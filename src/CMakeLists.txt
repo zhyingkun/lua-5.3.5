@@ -1,6 +1,6 @@
 # Note: This CMakeLists.txt is for mac only
 cmake_minimum_required(VERSION 3.0)
-project(lua)
+project(lua-5.3.5)
 add_compile_options(-std=gnu99 -O2 -Wall -Wextra -DLUA_COMPAT_5_2 -DLUA_USE_MACOSX)
 # set(CMAKE_CXX_FLAGS xxx)
 # set(CMAKE_C_FLAGS xxx)
