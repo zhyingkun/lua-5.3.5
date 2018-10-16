@@ -14,7 +14,7 @@ add_library(lua_lib STATIC ${LUA_LIB_SRC})
 set_target_properties(lua_lib PROPERTIES OUTPUT_NAME "lua")
 
 add_executable(lua lua.c ${LUA_LIB_SRC})
-target_link_libraries(lua m readline)
+target_link_libraries(lua m readline dl)
 
 add_executable(luac luac.c ${LUA_LIB_SRC})
-target_link_libraries(luac m readline)
+target_link_libraries(luac m readline dl)
