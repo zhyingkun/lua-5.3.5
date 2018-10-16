@@ -68,6 +68,8 @@ typedef struct LG {
 
 
 #define fromstate(L)	(cast(LX *, cast(lu_byte *, (L)) - offsetof(LX, l)))
+// L is a pointer to lua_State
+// so, this macro is for get the LG Addr from L, according to the LG and LX Struct define
 
 
 /*

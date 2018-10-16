@@ -122,7 +122,10 @@ typedef int (*lua_Writer) (lua_State *L, const void *p, size_t sz, void *ud);
 ** Type for memory-allocation functions
 */
 typedef void * (*lua_Alloc) (void *ud, void *ptr, size_t osize, size_t nsize);
-
+// ud is auxiliary data, you can use it for alloc func to alloc from different heap
+// ptr is a pointer to the memory
+// osize is old size
+// nsize is new size
 
 
 /*
