@@ -1,7 +1,11 @@
 # Note: This CMakeLists.txt is for mac only
 cmake_minimum_required(VERSION 3.0)
 project(lua-5.3.5)
-add_compile_options(-std=gnu99 -Wall -Wextra -DLUA_COMPAT_5_2 -DLUA_USE_MACOSX)
+if(APPLE)
+    add_compile_options(-std=gnu99 -g -Wall -Wextra -DLUA_COMPAT_5_2 -DLUA_USE_MACOSX)
+else(APPLE)
+    add_compile_options(-std=gnu99 -g -Wall -Wextra -DLUA_COMPAT_5_2 -DLUA_USE_LINUX)
+endif(APPLE)
 # set(CMAKE_CXX_FLAGS xxx)
 # set(CMAKE_C_FLAGS xxx)
 # add_subdirectory(src)
