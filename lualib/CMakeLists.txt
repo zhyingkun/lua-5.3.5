@@ -12,4 +12,4 @@ include_directories(../include)
 aux_source_directory(. LUA_LIB_SRC)
 add_library(lualib SHARED ${LUA_LIB_SRC})
 set_target_properties(lualib PROPERTIES OUTPUT_NAME "lua")
-# target_link_libraries(lualib m readline dl) # actually, lualib is a shared library, no need link this libs
+target_link_libraries(lualib m dl)
