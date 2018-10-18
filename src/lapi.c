@@ -528,7 +528,7 @@ LUA_API const char *lua_pushfstring (lua_State *L, const char *fmt, ...) {
   return ret;
 }
 
-
+// argument n is the number of upvalue, a upvalue is a closure local variable
 LUA_API void lua_pushcclosure (lua_State *L, lua_CFunction fn, int n) {
   lua_lock(L);
   if (n == 0) {
@@ -944,7 +944,7 @@ static void f_call (lua_State *L, void *ud) {
 }
 
 
-
+// L:lua_State nargs:number of args  nresults:number of results
 LUA_API int lua_pcallk (lua_State *L, int nargs, int nresults, int errfunc,
                         lua_KContext ctx, lua_KFunction k) {
   struct CallS c;

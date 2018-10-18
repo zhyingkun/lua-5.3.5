@@ -155,7 +155,7 @@ static void stack_init (lua_State *L1, lua_State *L) {
   /* initialize stack array */
   L1->stack = luaM_newvector(L, BASIC_STACK_SIZE, TValue);
   L1->stacksize = BASIC_STACK_SIZE;
-  for (i = 0; i < BASIC_STACK_SIZE; i++)
+  for (i = 0; i < BASIC_STACK_SIZE; i++)// clear the TValue's tag type
     setnilvalue(L1->stack + i);  /* erase new stack */
   L1->top = L1->stack;
   L1->stack_last = L1->stack + L1->stacksize - EXTRA_STACK;
@@ -186,7 +186,7 @@ static void freestack (lua_State *L) {
 static void init_registry (lua_State *L, global_State *g) {
   TValue temp;
   /* create registry */
-  Table *registry = luaH_new(L);
+  Table *registry = luaH_new(L);// lua Hush table
   sethvalue(L, &g->l_registry, registry);
   luaH_resize(L, registry, LUA_RIDX_LAST, 0);
   /* registry[LUA_RIDX_MAINTHREAD] = L */

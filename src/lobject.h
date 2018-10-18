@@ -106,7 +106,7 @@ typedef union Value {
   lua_Number n;    /* float numbers */
 } Value;
 
-
+// tt_ means a tag with value_'s type
 #define TValuefields	Value value_; int tt_
 
 
