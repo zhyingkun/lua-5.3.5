@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.0)
+project(lua-5.3.5)
+add_subdirectory(lualib)
+add_subdirectory(lua)
+add_subdirectory(luac)
+add_subdirectory(cmod)
