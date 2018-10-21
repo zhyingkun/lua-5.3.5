@@ -680,13 +680,13 @@ LUA_API int lua_rawgetp (lua_State *L, int idx, const void *p) {
   return ttnov(L->top - 1);
 }
 
-
+// narray: number of array   nrec: number of other elements, the hash table
 LUA_API void lua_createtable (lua_State *L, int narray, int nrec) {
   Table *t;
   lua_lock(L);
   t = luaH_new(L);
   sethvalue(L, L->top, t);
-  api_incr_top(L);
+  api_incr_top(L);// push the t to lua stack
   if (narray > 0 || nrec > 0)
     luaH_resize(L, t, narray, nrec);
   luaC_checkGC(L);

@@ -782,9 +782,11 @@
 ** without modifying the main part of the file.
 */
 
+// hash seed, default time(NULL)
+//#define luai_makeseed()        cast(unsigned int, 1)
 
-
-
+// max short string length, default 40
+//#define LUAI_MAXSHORTLEN 100
 
 #endif
 

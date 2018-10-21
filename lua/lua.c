@@ -555,7 +555,8 @@ static int pmain (lua_State *L) {
   int argc = (int)lua_tointeger(L, 1);
   char **argv = (char **)lua_touserdata(L, 2);
   int script;
-  int args = collectargs(argv, &script);
+  int args = collectargs(argv, &script);// args are flags, script indicate the first argument after --
+// check whether the link runtime version number equals the current runtime version number
   luaL_checkversion(L);  /* check that interpreter has correct version */
   if (argv[0] && argv[0][0]) progname = argv[0];
   if (args == has_error) {  /* bad arg? */
@@ -586,6 +587,7 @@ static int pmain (lua_State *L) {
       print_version();
       doREPL(L);  /* do read-eval-print loop */
     }
+// Redirect the output to lua, such as, echo "print('Hello')" | ./lua
     else dofile(L, NULL);  /* executes stdin as a file */
   }
   lua_pushboolean(L, 1);  /* signal no errors */
