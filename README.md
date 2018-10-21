@@ -18,6 +18,10 @@ using cmake, type the cmd below if you want to build the code
 
 ```bash
 cd lua-5.3.5/
+Linux:
 mkdir build && cd build && cmake ..
+Mac:
 mkdir buildXcode && cd buildXcode && cmake -G "Xcode" ..
+Windows:(Cygwin)
+mkdir buildVS && cd buildVS && cmake ..
 ```
