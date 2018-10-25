@@ -16,11 +16,67 @@ static int hellomod(lua_State *L)
     printf("hello mod\n");
     return 0;
 }
+
+int afteryield(lua_State *L, int status, lua_KContext ctx)
+{
+    printf("cfuncyield after yield lua call\n");
+    printf("status: %d, ctx: %d\n", status, (int)ctx);
+    return 0;
+}
+
+static int cfuncyield(lua_State *L)
+{
+    printf("cfuncyield before yield lua call\n");
+    int tagType = lua_getglobal(L, "lfuncyield");
+    if (tagType != LUA_TFUNCTION)
+    {
+        lua_pushliteral(L, "lfuncyield is not a lua function");
+        lua_error(L);
+    }
+    lua_pushnumber(L, 12);
+//    lua_pcall(L, 1, 0, 0);
+//    printf("cfuncyield after yield lua call\n");
+//    return 0;
+    lua_KContext myCtx = 15;
+    int status = lua_pcallk(L, 1, 0, 0, myCtx, afteryield);
+    return afteryield(L, status, myCtx);
+}
+
+static int cfunc(lua_State *L)
+{
+    printf("cfunc before lua call\n");
+    lua_getglobal(L, "lfunc");
+    lua_pushnumber(L, 13);
+    lua_pcall(L, 1, 0, 0);
+    printf("cfunc after lua call\n");
+    return 0;
+}
+
+static int foo(lua_State *L)
+{
+    int n = lua_gettop(L);    /* num of arguments */
+    lua_Number sum = 0.0;
+    int i;
+    for (i = 1; i <= n; i++) {
+        if (!lua_isnumber(L, i)) {
+            lua_pushliteral(L, "incorrect argument");
+            lua_error(L);
+        }
+        sum += lua_tonumber(L, i);
+    }
+    lua_pushnumber(L, sum/n);        /* first return value */
+    lua_pushnumber(L, sum);         /* second return value */
+    return 2;                   /* num of return value */
+}
+
 int luaopen_libhellomod(lua_State *L)
 {
     luaL_Reg luaLoadFun[] = {
         {"add", add},
         {"hellomod", hellomod},
+        {"cfuncyield", cfuncyield},
+        {"cfunc", cfunc},
+        {"foo", foo},
         {NULL, NULL}};
     luaL_newlib(L, luaLoadFun);
     // luaL_newlib will check lua runtime and runtime version
