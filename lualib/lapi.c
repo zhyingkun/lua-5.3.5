@@ -157,6 +157,7 @@ LUA_API const lua_Number *lua_version (lua_State *L) {
 /*
 ** convert an acceptable stack index into an absolute index
 */
+// CallInfo <===> StackTop  absolute index are base on current callinfo
 LUA_API int lua_absindex (lua_State *L, int idx) {
   return (idx > 0 || ispseudo(idx))
          ? idx
@@ -298,7 +299,7 @@ LUA_API int lua_rawequal (lua_State *L, int index1, int index2) {
   return (isvalid(o1) && isvalid(o2)) ? luaV_rawequalobj(o1, o2) : 0;
 }
 
-
+// arithmetic
 LUA_API void lua_arith (lua_State *L, int op) {
   lua_lock(L);
   if (op != LUA_OPUNM && op != LUA_OPBNOT)
