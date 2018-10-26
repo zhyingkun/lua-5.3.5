@@ -19,6 +19,9 @@ static int hellomod(lua_State *L)
 
 int afteryield(lua_State *L, int status, lua_KContext ctx)
 {
+//    if status == 0, no longjmp happend
+//    if status == 1, lua yield happend
+//    if status == 2, error occur
     printf("cfuncyield after yield lua call\n");
     printf("status: %d, ctx: %d\n", status, (int)ctx);
     return 0;
@@ -27,6 +30,8 @@ int afteryield(lua_State *L, int status, lua_KContext ctx)
 static int cfuncyield(lua_State *L)
 {
     printf("cfuncyield before yield lua call\n");
+    int yieldAble = lua_isyieldable(L);
+    printf("Current Coroutine is yieldable: %d\n", yieldAble);
     int tagType = lua_getglobal(L, "lfuncyield");
     if (tagType != LUA_TFUNCTION)
     {
@@ -45,6 +50,36 @@ static int cfuncyield(lua_State *L)
 static int cfunc(lua_State *L)
 {
     printf("cfunc before lua call\n");
+    int yieldAble = lua_isyieldable(L);
+    printf("Current Coroutine is yieldable: %d\n", yieldAble);
+    int ret = lua_getglobal(L, "world");// push global var to stack
+    if (ret != LUA_TTABLE) {
+        lua_pushliteral(L, "world is not a global table");
+        lua_error(L);
+    }
+    ret = lua_getfield(L, -1, "hi");// push world.hi to stack
+    if (ret != LUA_TSTRING) {
+        lua_pushliteral(L, "world.hi is not a string");
+        lua_error(L);
+    }
+    const char *hi = lua_tostring(L, -1);
+    printf("world.hi: %s\n", hi);
+    lua_pop(L, 1);
+    ret = lua_getfield(L, -1, "singSong");
+    if (ret != LUA_TFUNCTION) {
+        lua_pushliteral(L, "world.singSong is not a lua function");
+        lua_error(L);
+    }
+    lua_pushliteral(L, "zyk");
+    ret = lua_pcall(L, 1, 1, 0);
+    printf("lua_pcall ret: %d\n", ret);
+    if (ret != LUA_OK) {
+        const char *msg = lua_tostring(L, -1);
+        printf("lua_pcall error: %s\n", msg);
+//        luaL_traceback(L, L, msg, 2);
+    }
+    int myVal = lua_tointeger(L, -1);
+    printf("myVal: %d\n", myVal);
     lua_getglobal(L, "lfunc");
     lua_pushnumber(L, 13);
     lua_pcall(L, 1, 0, 0);
