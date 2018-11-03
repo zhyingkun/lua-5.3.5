@@ -402,7 +402,7 @@ static int varint_decoder(lua_State *L)
     
     buffer += pos;
     len = size_varint(buffer, len);
-    if(len == -1)
+    if(len == (size_t)-1)
     {
         luaL_error(L, "error data %s, len:%d", buffer, len);
     }
@@ -422,7 +422,7 @@ static int varint_decoder64(lua_State *L)
     
     buffer += pos;
     len = size_varint(buffer, len);
-    if(len == -1)
+    if(len == (size_t)-1)
     {
         luaL_error(L, "error data %s, len:%d", buffer, len);
     }
@@ -444,7 +444,7 @@ static int signed_varint_decoder(lua_State *L)
     buffer += pos;
     len = size_varint(buffer, len);
     
-    if(len == -1)
+    if(len == (size_t)-1)
     {
         luaL_error(L, "error data %s, len:%d", buffer, len);
     }
@@ -464,7 +464,7 @@ static int signed_varint_decoder64(lua_State *L)
     buffer += pos;
     len = size_varint(buffer, len);
     
-    if(len == -1)
+    if(len == (size_t)-1)
     {
         luaL_error(L, "error data %s, len:%d", buffer, len);
     }
@@ -544,7 +544,7 @@ static int read_tag(lua_State *L)
     buffer += pos;
     len = size_varint(buffer, len);
 
-    if(len == -1)
+    if(len == (size_t)-1)
     {
         luaL_error(L, "error data %s, len:%d", buffer, len);
     }
