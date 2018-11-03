@@ -1,5 +1,5 @@
 # cmake_minimum_required(VERSION 3.0)
-# project(hellomod)
+# project(luasocket)
 if(APPLE)
     add_compile_options(-std=gnu99 -g -Wall -Wextra)
 endif(APPLE)
