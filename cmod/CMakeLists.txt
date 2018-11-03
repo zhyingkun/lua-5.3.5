@@ -3,3 +3,4 @@
 add_subdirectory(hellomod)
 add_subdirectory(luasocket)
 add_subdirectory(luacjson)
+add_subdirectory(luacstruct)
