@@ -11,6 +11,7 @@
 #include "socket.h"
 #include "options.h"
 #include "unix.h"
+#include "luasocket.h"
 #include <sys/un.h>
 
 /*
