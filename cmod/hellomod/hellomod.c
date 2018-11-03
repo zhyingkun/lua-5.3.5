@@ -24,6 +24,19 @@ int afteryield(lua_State *L, int status, lua_KContext ctx)
 //    if status == 2, error occur
     printf("cfuncyield after yield lua call\n");
     printf("status: %d, ctx: %d\n", status, (int)ctx);
+    switch (status) {
+        case LUA_OK:
+            printf("LUA_OK\n");
+            break;
+        case LUA_YIELD:
+            printf("LUA_YIELD\n");
+            break;
+        case LUA_ERRRUN:
+            printf("LUA_ERRRUN\n");
+            break;
+        default:
+            break;
+    }
     return 0;
 }
 
@@ -39,7 +52,10 @@ static int cfuncyield(lua_State *L)
         lua_error(L);
     }
     lua_pushnumber(L, 12);
-//    lua_pcall(L, 1, 0, 0);
+//    int ret = lua_pcall(L, 1, 0, 0);
+//    if (ret != LUA_OK) {
+//        printf("lua_pcall error: %s\n", lua_tostring(L, -1));
+//    }
 //    printf("cfuncyield after yield lua call\n");
 //    return 0;
     lua_KContext myCtx = 15;
