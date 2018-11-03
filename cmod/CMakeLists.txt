@@ -2,3 +2,4 @@
 # project(cmod)
 add_subdirectory(hellomod)
 add_subdirectory(luasocket)
+add_subdirectory(luacjson)
