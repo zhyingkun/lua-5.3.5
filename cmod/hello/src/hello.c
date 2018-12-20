@@ -1,18 +1,23 @@
 #include <stdio.h>
 #include <lua.h>
 #include <lauxlib.h>
-#include <lualib.h>
 
 static int add(lua_State *L)
 {
-    double d1 = luaL_checknumber(L, 1);
-    double d2 = luaL_checknumber(L, 2);
+    int num = lua_gettop(L);
+    if (num != 2) {
+        lua_pushnumber(L, 0);
+        return 1;
+    }
+    lua_Number d1 = luaL_checknumber(L, 1);
+    lua_Number d2 = luaL_checknumber(L, 2);
     lua_pushnumber(L, d1 + d2);
     return 1;
 }
 
 static int hellomod(lua_State *L)
 {
+    (void)L;
     printf("hello mod\n");
     return 0;
 }
@@ -22,7 +27,7 @@ int afteryield(lua_State *L, int status, lua_KContext ctx)
 //    if status == 0, no longjmp happend
 //    if status == 1, lua yield happend
 //    if status == 2, error occur
-    printf("cfuncyield after yield lua call\n");
+    printf("c func afteryield\n");
     printf("status: %d, ctx: %d\n", status, (int)ctx);
     switch (status) {
         case LUA_OK:
@@ -105,7 +110,7 @@ static int cfunc(lua_State *L)
 
 static int foo(lua_State *L)
 {
-    int n = lua_gettop(L);    /* num of arguments */
+    int n = lua_gettop(L); /* num of arguments */
     lua_Number sum = 0.0;
     int i;
     for (i = 1; i <= n; i++) {
@@ -115,12 +120,12 @@ static int foo(lua_State *L)
         }
         sum += lua_tonumber(L, i);
     }
-    lua_pushnumber(L, sum/n);        /* first return value */
-    lua_pushnumber(L, sum);         /* second return value */
-    return 2;                   /* num of return value */
+    lua_pushnumber(L, sum/n); /* first return value */
+    lua_pushnumber(L, sum); /* second return value */
+    return 2; /* num of return value */
 }
 
-int luaopen_libhellomod(lua_State *L)
+int luaopen_libhello(lua_State *L)
 {
     luaL_Reg luaLoadFun[] = {
         {"add", add},
