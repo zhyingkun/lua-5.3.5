@@ -1,15 +1,28 @@
-# cmake_minimum_required(VERSION 3.0)
-# project(hellomod)
+cmake_minimum_required(VERSION 3.0)
+project(hello
+	VERSION 0.1.0
+	DESCRIPTION "Lua hello module"
+	# HOMEPAGE_URL "www.zhyingkun.com"
+	LANGUAGES C CXX)
+if("${CMAKE_BUILD_TYPE}" STREQUAL "")
+	set(CMAKE_BUILD_TYPE "Debug")
+endif()
+message(STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
+
 if(APPLE)
-    add_compile_options(-std=gnu99 -g -Wall -DLUA_COMPAT_MODULE -Wextra)
-endif(APPLE)
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-    add_compile_options(-std=gnu99 -g -Wall -DLUA_COMPAT_MODULE -Wextra)
-endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-if(WIN32)
-    add_compile_options(-Wall -DLUA_COMPAT_MODULE)
-endif(WIN32)
+	set(CMAKE_C_FLAGS_DEBUG   "-std=gnu99 -Wall -Wextra -DLUA_USE_MACOSX -g")
+	set(CMAKE_C_FLAGS_RELEASE "-std=gnu99 -Wall -Wextra -DLUA_USE_MACOSX -O2 -DNDEBUG")
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+	set(CMAKE_C_FLAGS_DEBUG   "-std=gnu99 -Wall -Wextra -DLUA_USE_LINUX -g")
+	set(CMAKE_C_FLAGS_RELEASE "-std=gnu99 -Wall -Wextra -DLUA_USE_LINUX -O2 -DNDEBUG")
+elseif(WIN32)
+	set(CMAKE_C_FLAGS_DEBUG   "-std=gnu99 -Wall -g")
+	set(CMAKE_C_FLAGS_RELEASE "-std=gnu99 -Wall -O2 -DNDEBUG")
+endif()
+
 include_directories(../../include)
-aux_source_directory(. HELLOMOD_SRC)
-add_library(hellomod MODULE ${HELLOMOD_SRC})#dynamic load library  .so .bundle
-target_link_libraries(hellomod lualib)
+aux_source_directory(./src HELLOMOD_SRC)
+source_group(src FILES ${HELLOMOD_SRC})
+# dynamic load library  .so .bundle
+add_library(${PROJECT_NAME} MODULE ${HELLOMOD_SRC})
+target_link_libraries(${PROJECT_NAME} lualib)
