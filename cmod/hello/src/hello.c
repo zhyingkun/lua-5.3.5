@@ -1,4 +1,12 @@
+/* Lua C Library */
+
+#define hello_c
+#define LUA_LIB // for export function
+
+#include <lprefix.h> // must include first
+
 #include <stdio.h>
+
 #include <lua.h>
 #include <lauxlib.h>
 
@@ -24,6 +32,7 @@ static int hellomod(lua_State *L)
 
 int afteryield(lua_State *L, int status, lua_KContext ctx)
 {
+    (void)L;
 //    if status == 0, no longjmp happend
 //    if status == 1, lua yield happend
 //    if status == 2, error occur
@@ -125,7 +134,7 @@ static int foo(lua_State *L)
     return 2; /* num of return value */
 }
 
-int luaopen_libhello(lua_State *L)
+LUAMOD_API int luaopen_libhello(lua_State *L)
 {
     luaL_Reg luaLoadFun[] = {
         {"add", add},
