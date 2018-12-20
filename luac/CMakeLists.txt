@@ -1,17 +1,47 @@
-# cmake_minimum_required(VERSION 3.0)
-# project(luac)
+cmake_minimum_required(VERSION 3.0)
+project(luac
+	VERSION 5.3.5
+	DESCRIPTION "Lua compiler cmd"
+	# HOMEPAGE_URL "www.zhyingkun.com"
+	LANGUAGES C CXX)
+
+if("${CMAKE_BUILD_TYPE}" STREQUAL "")
+	set(CMAKE_BUILD_TYPE "Debug")
+endif()
+message(STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
+
 if(APPLE)
-    add_compile_options(-std=gnu99 -g -Wall -Wextra -DLUA_COMPAT_5_2 -DLUA_USE_MACOSX)
-endif(APPLE)
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-    add_compile_options(-std=gnu99 -g -Wall -Wextra -DLUA_COMPAT_5_2 -DLUA_USE_LINUX)
-endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-if(WIN32)
-    add_compile_options(-Wall -DLUA_COMPAT_5_2)
-endif(WIN32)
-# set(CMAKE_CXX_FLAGS xxx)
-# set(CMAKE_C_FLAGS xxx)
+	set(CMAKE_C_FLAGS_DEBUG   "-std=gnu99 -Wall -Wextra -DLUA_USE_MACOSX -g")
+	set(CMAKE_C_FLAGS_RELEASE "-std=gnu99 -Wall -Wextra -DLUA_USE_MACOSX -O2 -DNDEBUG")
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+	set(CMAKE_C_FLAGS_DEBUG   "-std=gnu99 -Wall -Wextra -DLUA_USE_LINUX -g")
+	set(CMAKE_C_FLAGS_RELEASE "-std=gnu99 -Wall -Wextra -DLUA_USE_LINUX -O2 -DNDEBUG")
+elseif(WIN32)
+	set(CMAKE_C_FLAGS_DEBUG   "-std=gnu99 -Wall -g")
+	set(CMAKE_C_FLAGS_RELEASE "-std=gnu99 -Wall -O2 -DNDEBUG")
+endif()
+
 include_directories(../include)
-aux_source_directory(. LUAC_SRC)
-add_executable(luac ${LUAC_SRC})
-target_link_libraries(luac lualibstatic)
+
+aux_source_directory(../lualib/src LUA_LIB_SRC)
+file(GLOB LUA_HEADERS "../include/*.h")
+source_group(src FILES ${LUA_LIB_SRC})
+source_group(header FILES ${LUA_HEADERS})
+add_library(lualibstatic STATIC ${LUA_LIB_SRC} ${LUA_HEADERS})
+set_target_properties(lualibstatic PROPERTIES
+	OUTPUT_NAME "lualib"
+	VERSION "5.3.5"
+	SOVERSION "5.3"
+	POSITION_INDEPENDENT_CODE OFF)
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+	target_link_libraries(lualibstatic m dl)
+endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+
+aux_source_directory(./src LUAC_SRC)
+source_group(src FILES ${LUAC_SRC})
+add_executable(${PROJECT_NAME} ${LUAC_SRC})
+target_link_libraries(${PROJECT_NAME} lualibstatic)
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_property(TARGET lualibstatic PROPERTY FOLDER "luac")
+set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "luac")
