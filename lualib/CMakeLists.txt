@@ -1,23 +1,40 @@
-# cmake_minimum_required(VERSION 3.0)
-# project(lualib)
+cmake_minimum_required(VERSION 3.0)
+project(lualib
+	VERSION 5.3.5
+	DESCRIPTION "Lua dynamic library"
+	HOMEPAGE_URL "www.zhyingkun.com"
+	LANGUAGES C CXX)
+
+if("${CMAKE_BUILD_TYPE}" STREQUAL "")
+	set(CMAKE_BUILD_TYPE "Debug")
+endif()
+message(STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
+
+# -DLUA_COMPAT_5_1 -DLUA_COMPAT_5_2 -DLUA_COMPAT_MODULE
 if(APPLE)
-    add_compile_options(-std=gnu99 -g -Wall -Wextra -DLUA_COMPAT_5_2 -DLUA_COMPAT_MODULE -DLUA_USE_MACOSX)
-endif(APPLE)
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-    add_compile_options(-std=gnu99 -g -Wall -Wextra -DLUA_COMPAT_5_2 -DLUA_COMPAT_MODULE -DLUA_USE_LINUX)
-endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-if(WIN32)
-    add_compile_options(-Wall -DLUA_COMPAT_5_2 -DLUA_COMPAT_MODULE)
-endif(WIN32)
-# set(CMAKE_CXX_FLAGS xxx)
-# set(CMAKE_C_FLAGS xxx)
+	set(CMAKE_C_FLAGS_DEBUG   "-std=gnu99 -Wall -Wextra -DLUA_USE_MACOSX -g")
+	set(CMAKE_C_FLAGS_RELEASE "-std=gnu99 -Wall -Wextra -DLUA_USE_MACOSX -O2 -DNDEBUG")
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+	set(CMAKE_C_FLAGS_DEBUG   "-std=gnu99 -Wall -Wextra -DLUA_USE_LINUX -g")
+	set(CMAKE_C_FLAGS_RELEASE "-std=gnu99 -Wall -Wextra -DLUA_USE_LINUX -O2 -DNDEBUG")
+elseif(WIN32)
+	set(CMAKE_C_FLAGS_DEBUG   "-std=gnu99 -Wall -Wextra -DLUA_BUILD_AS_DLL -g")
+	set(CMAKE_C_FLAGS_RELEASE "-std=gnu99 -Wall -Wextra -DLUA_BUILD_AS_DLL -O2 -DNDEBUG")
+endif()
+
 include_directories(../include)
-aux_source_directory(. LUA_LIB_SRC)
-add_library(lualib SHARED ${LUA_LIB_SRC})
-set_target_properties(lualib PROPERTIES OUTPUT_NAME "lua")
-add_library(lualibstatic STATIC ${LUA_LIB_SRC})
-set_target_properties(lualibstatic PROPERTIES OUTPUT_NAME "lua")
+aux_source_directory(./src LUA_LIB_SRC)
+file(GLOB LUA_HEADERS "../include/*.h")
+source_group(src FILES ${LUA_LIB_SRC})
+source_group(header FILES ${LUA_HEADERS})
+
+add_library(${PROJECT_NAME} SHARED ${LUA_LIB_SRC} ${LUA_HEADERS})
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	OUTPUT_NAME ${PROJECT_NAME}
+	VERSION ${PROJECT_VERSION}
+	SOVERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"
+	POSITION_INDEPENDENT_CODE ON)
+
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-    target_link_libraries(lualib m dl)
-    target_link_libraries(lualibstatic m dl)
+	target_link_libraries(${PROJECT_NAME} m dl)
 endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
