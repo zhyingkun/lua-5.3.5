@@ -8,6 +8,7 @@ project(lua
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
 	set(CMAKE_BUILD_TYPE "Debug")
 endif()
+message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
 message(STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
 
 if(APPLE)
