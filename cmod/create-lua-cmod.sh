@@ -112,7 +112,7 @@ static const luaL_Reg luaLoadFun[] = {
 	{NULL, NULL}
 };
 
-LUAMOD_API int luaopen_libhello(lua_State *L)
+LUAMOD_API int luaopen_lib${PROJECT_NAME}(lua_State *L)
 {
 	luaL_newlib(L, luaLoadFun);
 	return 1;
