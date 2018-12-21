@@ -89,7 +89,7 @@ echo "Write features to $writeFilePath ..."
 cat << EOF > $writeFilePath
 /* Lua C Library */
 
-#define hello_c
+#define $cmodName_c
 #define LUA_LIB // for export function
 
 #include <lprefix.h> // must include first
@@ -112,7 +112,7 @@ static const luaL_Reg luaLoadFun[] = {
 	{NULL, NULL}
 };
 
-LUAMOD_API int luaopen_lib${PROJECT_NAME}(lua_State *L)
+LUAMOD_API int luaopen_lib$cmodName(lua_State *L)
 {
 	luaL_newlib(L, luaLoadFun);
 	return 1;
