@@ -32,27 +32,27 @@ fi
 
 cmodName=$1
 
-if test -d $cmodName ; then
-	echo \"$cmodName\"" module already exist!!! Exit Now."
+if test -d ${cmodName} ; then
+	echo \"${cmodName}\"" module already exist!!! Exit Now."
 	exit
 fi
 
 echo "Create Directories ..."
-mkdir -p $cmodName $cmodName/src
+mkdir -p ${cmodName} ${cmodName}/src
 exitWhileError "Create Directories failed"
 
 echo "Create files ..."
-touch $cmodName/CMakeLists.txt $cmodName/src/$cmodName.c
+touch ${cmodName}/CMakeLists.txt ${cmodName}/src/${cmodName}.c
 exitWhileError "Create files failed"
 
 # Note: all '$' will be convert, so all '$' in CMakeLists.txt muse escape
-writeFilePath=$cmodName/CMakeLists.txt
+writeFilePath=${cmodName}/CMakeLists.txt
 echo "Write features to $writeFilePath ..."
 cat << EOF > $writeFilePath
 cmake_minimum_required(VERSION 3.0)
-project($cmodName
+project(${cmodName}
 	VERSION 0.1.0
-	DESCRIPTION "Lua $cmodName module"
+	DESCRIPTION "Lua ${cmodName} module"
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
 if("\${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -84,12 +84,12 @@ target_link_libraries(\${PROJECT_NAME} lualib)
 EOF
 exitWhileError "Write features to $writeFilePath failed"
 
-writeFilePath=$cmodName/src/$cmodName.c
+writeFilePath=${cmodName}/src/${cmodName}.c
 echo "Write features to $writeFilePath ..."
 cat << EOF > $writeFilePath
 /* Lua C Library */
 
-#define $cmodName_c
+#define ${cmodName}_c
 #define LUA_LIB // for export function
 
 #include <lprefix.h> // must include first
@@ -103,7 +103,7 @@ cat << EOF > $writeFilePath
 static int printHello(lua_State *L)
 {
 	(void)L;
-	printf("Hello, here are in $cmodName mod\n");
+	printf("Hello, here are in ${cmodName} mod\n");
 	return 0;
 }
 
@@ -112,7 +112,7 @@ static const luaL_Reg luaLoadFun[] = {
 	{NULL, NULL}
 };
 
-LUAMOD_API int luaopen_lib$cmodName(lua_State *L)
+LUAMOD_API int luaopen_lib${cmodName}(lua_State *L)
 {
 	luaL_newlib(L, luaLoadFun);
 	return 1;
@@ -123,8 +123,8 @@ exitWhileError "Write features to $writeFilePath failed"
 writeFilePath=CMakeLists.txt
 echo "Append features to $writeFilePath ..."
 cat << EOF >> $writeFilePath
-add_subdirectory($cmodName)
-set_property(TARGET $cmodName PROPERTY FOLDER "cmod")
+add_subdirectory(${cmodName})
+set_property(TARGET ${cmodName} PROPERTY FOLDER "cmod")
 EOF
 exitWhileError "Append features to $writeFilePath failed"
 

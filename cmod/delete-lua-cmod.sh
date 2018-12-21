@@ -23,25 +23,25 @@ if test $# -ne 1 ; then
 fi
 
 cmodName=`echo $1 | sed "s/\/$//"`
-# echo $cmodName
+# echo ${cmodName}
 
-if ! test -d $cmodName ; then
-	echo \"$cmodName\"" module does not exist!!! Exit Now."
+if ! test -d ${cmodName} ; then
+	echo \"${cmodName}\"" module does not exist!!! Exit Now."
 	exit
 fi
 
 echo "Delete Directories ..."
-rm -rf $cmodName
+rm -rf ${cmodName}
 exitWhileError "Delete Directories failed"
 
 echo "Delete features from CMakeLists.txt ..."
 hostSystem=`uname -s`
 if [ $hostSystem == "Darwin" ]; then
-	sed -i "" '/add_subdirectory('$cmodName')/d' CMakeLists.txt
-	sed -i "" '/set_property(TARGET '$cmodName' PROPERTY FOLDER "cmod")/d' CMakeLists.txt
+	sed -i "" '/add_subdirectory('${cmodName}')/d' CMakeLists.txt
+	sed -i "" '/set_property(TARGET '${cmodName}' PROPERTY FOLDER "cmod")/d' CMakeLists.txt
 else
-	sed -i '/add_subdirectory('$cmodName')/d' CMakeLists.txt
-	sed -i '/set_property(TARGET '$cmodName' PROPERTY FOLDER "cmod")/d' CMakeLists.txt
+	sed -i '/add_subdirectory('${cmodName}')/d' CMakeLists.txt
+	sed -i '/set_property(TARGET '${cmodName}' PROPERTY FOLDER "cmod")/d' CMakeLists.txt
 fi
 exitWhileError "Delete features from CMakeLists.txt failed"
 
