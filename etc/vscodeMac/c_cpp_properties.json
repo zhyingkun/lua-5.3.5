@@ -11,10 +11,11 @@
                 "/System/Library/Frameworks",
                 "/Library/Frameworks"
             ],
-            "compilerPath": "/usr/local/opt/zyk/emsdk/clang/e1.38.11_64bit/clang",
+            "compilerPath": "/usr/bin/clang",
             "cStandard": "c11",
             "cppStandard": "c++17",
-            "intelliSenseMode": "clang-x64"
+			"intelliSenseMode": "clang-x64",
+			"compileCommands": "${workspaceFolder}/build/compile_commands.json"
         }
     ],
     "version": 4
