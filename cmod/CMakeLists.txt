@@ -1,10 +1,26 @@
-# cmake_minimum_required(VERSION 3.0)
-# project(cmod)
-add_subdirectory(hellomod)
-add_subdirectory(luasocket)
-add_subdirectory(luacjson)
-add_subdirectory(luacstruct)
-add_subdirectory(protobuf)
-add_subdirectory(luabitop)
-add_subdirectory(lpeg)
+cmake_minimum_required(VERSION 3.0)
+project(cmod
+        VERSION 1.0.0
+        DESCRIPTION "Lua c module"
+        # HOMEPAGE_URL "www.zhyingkun.com"
+        LANGUAGES C CXX)
+
+message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+add_subdirectory(hello)
+set_property(TARGET hello PROPERTY FOLDER "cmod")
+# add_subdirectory(luasocket)
+# set_property(TARGET hello PROPERTY FOLDER "cmod")
+# add_subdirectory(luacjson)
+# set_property(TARGET hello PROPERTY FOLDER "cmod")
+# add_subdirectory(luacstruct)
+# set_property(TARGET hello PROPERTY FOLDER "cmod")
+# add_subdirectory(protobuf)
+# set_property(TARGET hello PROPERTY FOLDER "cmod")
+# add_subdirectory(luabitop)
+# set_property(TARGET hello PROPERTY FOLDER "cmod")
+# add_subdirectory(lpeg)
+# set_property(TARGET hello PROPERTY FOLDER "cmod")
 # add_subdirectory(tolua)
+# set_property(TARGET hello PROPERTY FOLDER "cmod")

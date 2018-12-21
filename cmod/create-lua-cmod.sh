@@ -9,25 +9,25 @@
 # exitWhileError "Write features to $writeFilePath failed"
 
 usage(){
-    echo "
+	echo "
     [sudo] sh $0 <LuaCModName>
 
         <LuaCModName>: The c module name you want to create.
-        "
+		"
 }
 exitWhileError(){
-    if test $? -ne 0 ; then
-        echo "
+	if test $? -ne 0 ; then
+		echo "
         Error Message: $1
         Please Check The Error And Test Again! Exit Now.
         "
-        exit
-    fi
+		exit
+	fi
 }
 
 if test $# -ne 1 ; then
-    usage
-    exit
+	usage
+	exit
 fi
 
 cmodName=$1
@@ -127,3 +127,5 @@ add_subdirectory($cmodName)
 set_property(TARGET $cmodName PROPERTY FOLDER "cmod")
 EOF
 exitWhileError "Append features to $writeFilePath failed"
+
+echo "All done."
