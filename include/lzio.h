@@ -17,6 +17,17 @@
 
 typedef struct Zio ZIO;
 
+// Equals to this implement
+//unsigned char zgetc(ZIO* z)
+//{
+//	int tmpNum = z->n;
+//	z->n--;
+//	if (tmpNum > 0) {
+//		return *z->p++;
+//	}else{
+//		return luaZ_fill(z);
+//	}
+//}
 #define zgetc(z)  (((z)->n--)>0 ?  cast_uchar(*(z)->p++) : luaZ_fill(z))
 
 
