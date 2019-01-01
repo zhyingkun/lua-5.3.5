@@ -47,7 +47,7 @@ int luaS_eqlngstr (TString *a, TString *b) {
 
 
 unsigned int luaS_hash (const char *str, size_t l, unsigned int seed) {
-  unsigned int h = seed ^ cast(unsigned int, l);
+  unsigned int h = seed ^ cast(unsigned int, l); // ^ means Bitwise XOR
   size_t step = (l >> LUAI_HASHLIMIT) + 1;
   for (; l >= step; l -= step)
     h ^= ((h<<5) + (h>>2) + cast_byte(str[l - 1]));
@@ -168,6 +168,9 @@ static TString *internshrstr (lua_State *L, const char *str, size_t l) {
   TString *ts;
   global_State *g = G(L);
   unsigned int h = luaS_hash(str, l, g->seed);
+  // g->strt.size always is 2^n, such as 128
+  // lmod get the lowest n bit from h
+  // list is a sub array from g->strt.hash
   TString **list = &g->strt.hash[lmod(h, g->strt.size)];
   lua_assert(str != NULL);  /* otherwise 'memcmp'/'memcpy' are undefined */
   for (ts = *list; ts != NULL; ts = ts->u.hnext) {
