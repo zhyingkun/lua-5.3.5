@@ -137,23 +137,38 @@ typedef struct lua_TValue {
 
 
 /* Macros to test type */
+// base check
+// bit6         bit5,4        bit3,2,1,0
+// collectable  variant type  lua base type
+// checktag: all bit, checktype: only bit0-3
 #define checktag(o,t)		(rttype(o) == (t))
 #define checktype(o,t)		(ttnov(o) == (t))
+// Number, base tag type, Non collectable
 #define ttisnumber(o)		checktype((o), LUA_TNUMBER)
+// float and int belong to number
 #define ttisfloat(o)		checktag((o), LUA_TNUMFLT)
 #define ttisinteger(o)		checktag((o), LUA_TNUMINT)
+
 #define ttisnil(o)		checktag((o), LUA_TNIL)
 #define ttisboolean(o)		checktag((o), LUA_TBOOLEAN)
 #define ttislightuserdata(o)	checktag((o), LUA_TLIGHTUSERDATA)
+// String, all string are collectable
 #define ttisstring(o)		checktype((o), LUA_TSTRING)
+// short string, long string
 #define ttisshrstring(o)	checktag((o), ctb(LUA_TSHRSTR))
 #define ttislngstring(o)	checktag((o), ctb(LUA_TLNGSTR))
+
 #define ttistable(o)		checktag((o), ctb(LUA_TTABLE))
+// Function, Contain light C function, C closure, Lua closure
 #define ttisfunction(o)		checktype(o, LUA_TFUNCTION)
+// Closure, Contain C closure, Lua closure, collectable
 #define ttisclosure(o)		((rttype(o) & 0x1F) == LUA_TFUNCTION)
+// C closure and Lua closure
 #define ttisCclosure(o)		checktag((o), ctb(LUA_TCCL))
 #define ttisLclosure(o)		checktag((o), ctb(LUA_TLCL))
+// Light C function, Not collectable
 #define ttislcf(o)		checktag((o), LUA_TLCF)
+
 #define ttisfulluserdata(o)	checktag((o), ctb(LUA_TUSERDATA))
 #define ttisthread(o)		checktag((o), ctb(LUA_TTHREAD))
 #define ttisdeadkey(o)		checktag((o), LUA_TDEADKEY)
