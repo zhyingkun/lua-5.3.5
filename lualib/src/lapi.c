@@ -66,12 +66,14 @@ static TValue *index2addr (lua_State *L, int idx) {
     else return o;
   }
   else if (!ispseudo(idx)) {  /* negative index */
+	  // 0 >= idx > LUA_REGISTRYINDEX
     api_check(L, idx != 0 && -idx <= L->top - (ci->func + 1), "invalid index");
     return L->top + idx;
   }
   else if (idx == LUA_REGISTRYINDEX)
     return &G(L)->l_registry;
   else {  /* upvalues */
+	  // idx < LUA_REGISTRYINDEX
     idx = LUA_REGISTRYINDEX - idx;
     api_check(L, idx <= MAXUPVAL + 1, "upvalue index too large");
     if (ttislcf(ci->func))  /* light C function? */

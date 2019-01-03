@@ -171,24 +171,43 @@ typedef struct lua_TValue {
 
 #define ttisfulluserdata(o)	checktag((o), ctb(LUA_TUSERDATA))
 #define ttisthread(o)		checktag((o), ctb(LUA_TTHREAD))
+// This TValue is Point to a Lua Object, and now dead (collected)
 #define ttisdeadkey(o)		checktag((o), LUA_TDEADKEY)
 
 
 /* Macros to access values */
+// Get value from TValue, 6 member
+// GCObject *
+#define gcvalue(o)	check_exp(iscollectable(o), val_(o).gc)
+// void *
+#define pvalue(o)	check_exp(ttislightuserdata(o), val_(o).p)
+// int, for boolean
+#define bvalue(o)	check_exp(ttisboolean(o), val_(o).b)
+// lua_CFunction
+#define fvalue(o)	check_exp(ttislcf(o), val_(o).f)
+// lua_Integer
 #define ivalue(o)	check_exp(ttisinteger(o), val_(o).i)
+// lua_Number
 #define fltvalue(o)	check_exp(ttisfloat(o), val_(o).n)
+// Number, Contain lua_Integer and lua_Number
+// if lua_Integer, then convert to lua_Number
 #define nvalue(o)	check_exp(ttisnumber(o), \
 	(ttisinteger(o) ? cast_num(ivalue(o)) : fltvalue(o)))
-#define gcvalue(o)	check_exp(iscollectable(o), val_(o).gc)
-#define pvalue(o)	check_exp(ttislightuserdata(o), val_(o).p)
+// All GCUnion Contain a GCObject
+// GCObject* point to a TString,
+// Get TValue.gc(GCObject*), and convert to TString*
 #define tsvalue(o)	check_exp(ttisstring(o), gco2ts(val_(o).gc))
+// Udata*
 #define uvalue(o)	check_exp(ttisfulluserdata(o), gco2u(val_(o).gc))
+// Closure*
 #define clvalue(o)	check_exp(ttisclosure(o), gco2cl(val_(o).gc))
+// LClosure*
 #define clLvalue(o)	check_exp(ttisLclosure(o), gco2lcl(val_(o).gc))
+// CClosure*
 #define clCvalue(o)	check_exp(ttisCclosure(o), gco2ccl(val_(o).gc))
-#define fvalue(o)	check_exp(ttislcf(o), val_(o).f)
+// Table*
 #define hvalue(o)	check_exp(ttistable(o), gco2t(val_(o).gc))
-#define bvalue(o)	check_exp(ttisboolean(o), val_(o).b)
+// lua_State*
 #define thvalue(o)	check_exp(ttisthread(o), gco2th(val_(o).gc))
 /* a dead value may get the 'gc' field, but cannot access its contents */
 #define deadvalue(o)	check_exp(ttisdeadkey(o), cast(void *, val_(o).gc))
@@ -208,6 +227,7 @@ typedef struct lua_TValue {
 
 
 /* Macros to set values */
+// For TValue lua type
 #define settt_(o,t)	((o)->tt_=(t))
 
 #define setfltvalue(obj,x) \

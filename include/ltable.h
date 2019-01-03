@@ -10,12 +10,16 @@
 #include "lobject.h"
 
 
+// get node from table 't' by index 'i'
 #define gnode(t,i)	(&(t)->node[i])
+// get value from node 'n'
 #define gval(n)		(&(n)->i_val)
+// get next from node 'n', next is diff index by current one
 #define gnext(n)	((n)->i_key.nk.next)
 
 
 /* 'const' to avoid wrong writings that can mess up field 'next' */
+// get key from node 'n'
 #define gkey(n)		cast(const TValue*, (&(n)->i_key.tvk))
 
 /*
