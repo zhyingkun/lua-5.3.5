@@ -178,7 +178,7 @@ typedef struct global_State {
 struct lua_State {
   CommonHeader;
   unsigned short nci;  /* number of items in 'ci' list */
-  lu_byte status;
+  lu_byte status; // status of current lua thread
   StkId top;  /* first free slot in the stack */
   global_State *l_G;
   CallInfo *ci;  /* call info for current function */

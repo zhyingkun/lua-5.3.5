@@ -1129,7 +1129,7 @@ void luaV_execute (lua_State *L) {
       }
       vmcase(OP_CALL) {
         int b = GETARG_B(i);
-        int nresults = GETARG_C(i) - 1;
+        int nresults = GETARG_C(i) - 1; // c == 0 means multi results
         if (b != 0) L->top = ra+b;  /* else previous instruction set top */
         if (luaD_precall(L, ra, nresults)) {  /* C function? */
           if (nresults >= 0)

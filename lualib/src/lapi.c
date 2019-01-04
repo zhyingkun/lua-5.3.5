@@ -57,6 +57,9 @@ const char lua_ident[] =
 	api_check(l, isstackindex(i, o), "index not in the stack")
 
 
+// Only Lua C API call this function, lua vm didn't!
+// Lua C API: index base on ci->func
+// Lua vm(or bytecode): index base on ci->u.l.base
 static TValue *index2addr (lua_State *L, int idx) {
   CallInfo *ci = L->ci;
   if (idx > 0) {
@@ -207,6 +210,8 @@ static void reverse (lua_State *L, StkId from, StkId to) {
 ** Let x = AB, where A is a prefix of length 'n'. Then,
 ** rotate x n == BA. But BA == (A^r . B^r)^r.
 */
+// (A^r . B^r)^r, the ^r means reverse, not rotate
+// the length of B is n
 LUA_API void lua_rotate (lua_State *L, int idx, int n) {
   StkId p, t, m;
   lua_lock(L);
