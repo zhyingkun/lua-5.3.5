@@ -74,13 +74,12 @@ ndk-build
 	>e. luacstruct：让lua与C语言结构体交互，代码来自[http://www.inf.puc-rio.br/~roberto/struct/]
 	>f. luasocket：封装了socket接口，代码来自[https://github.com/diegonehab/luasocket]
 	>g. protobuf：序列化，代码来自[https://github.com/topameng/protoc-gen-lua]
-	>h. tolua：与Unity tolua对接，添加了部分接口，代码来自[https://github.com/topameng/tolua_runtime]
+	>h. luawithlib：与Unity C#对接，添加了部分接口，代码参考了[https://github.com/topameng/tolua_runtime]
 6. etc：工程杂项
 	>a. fromlua：来自lua官方的相关文件，包括lua文档，留着方便查看
 	>b. vscodeMac：Mac上VSCode的配置文件
 7. luawithlib：专门为Unity tolua 构建的运行时动态库（iOS下是静态库）
-8. demo：用于测试的lua语言Demo和C语言Demo
-	>a. lua：所有的lua测试文件
-	>b. dlopen：C语言动态加载共享库的接口
-	>c. setjmp：C语言跨函数长跳转
+8. demo：用于测试的Demo
+	>a. c-call-lua：C作为宿主，调用Lua来完成操作
+	>b. c-lang：C语言特性示例
 9. 所有CMakeLists.txt：用于构建整个工程
