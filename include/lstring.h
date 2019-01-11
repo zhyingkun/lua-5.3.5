@@ -12,8 +12,10 @@
 #include "lstate.h"
 
 
+// calculate the whole size of string object, C string are append after TString struct
 #define sizelstring(l)  (sizeof(union UTString) + ((l) + 1) * sizeof(char))
 
+// userdata, real data are append after UUdata struct
 #define sizeludata(l)	(sizeof(union UUdata) + (l))
 #define sizeudata(u)	sizeludata((u)->len)
 

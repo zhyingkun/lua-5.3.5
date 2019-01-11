@@ -46,15 +46,17 @@ int luaS_eqlngstr (TString *a, TString *b) {
 }
 
 
+// Calculate the string hash value
 unsigned int luaS_hash (const char *str, size_t l, unsigned int seed) {
   unsigned int h = seed ^ cast(unsigned int, l); // ^ means Bitwise XOR
-  size_t step = (l >> LUAI_HASHLIMIT) + 1;
+  size_t step = (l >> LUAI_HASHLIMIT) + 1; // if l < 2^LUAI_HASHLIMIT then every byte will be counted
   for (; l >= step; l -= step)
     h ^= ((h<<5) + (h>>2) + cast_byte(str[l - 1]));
   return h;
 }
 
 
+// Calculate the hash value for long string, default: length > 40
 unsigned int luaS_hashlongstr (TString *ts) {
   lua_assert(ts->tt == LUA_TLNGSTR);
   if (ts->extra == 0) {  /* no hash? */
@@ -70,11 +72,11 @@ unsigned int luaS_hashlongstr (TString *ts) {
 */
 void luaS_resize (lua_State *L, int newsize) {
   int i;
-  stringtable *tb = &G(L)->strt;
+  stringtable *tb = &G(L)->strt; // global string table
   if (newsize > tb->size) {  /* grow table if needed */
     luaM_reallocvector(L, tb->hash, tb->size, newsize, TString *);
     for (i = tb->size; i < newsize; i++)
-      tb->hash[i] = NULL;
+      tb->hash[i] = NULL; // open hash table, tb->hash is the pointer for linked list
   }
   for (i = 0; i < tb->size; i++) {  /* rehash */
     TString *p = tb->hash[i];
@@ -138,12 +140,14 @@ static TString *createstrobj (lua_State *L, size_t l, int tag, unsigned int h) {
   o = luaC_newobj(L, tag, totalsize);
   ts = gco2ts(o);
   ts->hash = h;
-  ts->extra = 0;
+  ts->extra = 0; // if long string, means doesn't have a hash value
+				// if short string, means this string not a reserved key word
   getstr(ts)[l] = '\0';  /* ending 0 */
   return ts;
 }
 
 
+// create a long string object
 TString *luaS_createlngstrobj (lua_State *L, size_t l) {
   TString *ts = createstrobj(L, l, LUA_TLNGSTR, G(L)->seed);
   ts->u.lnglen = l;
@@ -151,6 +155,7 @@ TString *luaS_createlngstrobj (lua_State *L, size_t l) {
 }
 
 
+// remove the TString from internal global string table
 void luaS_remove (lua_State *L, TString *ts) {
   stringtable *tb = &G(L)->strt;
   TString **p = &tb->hash[lmod(ts->hash, tb->size)];
@@ -164,6 +169,7 @@ void luaS_remove (lua_State *L, TString *ts) {
 /*
 ** checks whether short string exists and reuses it or creates a new one
 */
+// the string 'str' should be a short string
 static TString *internshrstr (lua_State *L, const char *str, size_t l) {
   TString *ts;
   global_State *g = G(L);
@@ -189,7 +195,7 @@ static TString *internshrstr (lua_State *L, const char *str, size_t l) {
   ts = createstrobj(L, l, LUA_TSHRSTR, h);
   memcpy(getstr(ts), str, l * sizeof(char));
   ts->shrlen = cast_byte(l);
-  ts->u.hnext = *list;
+  ts->u.hnext = *list; // link to the internal global string table
   *list = ts;
   g->strt.nuse++;
   return ts;
@@ -236,6 +242,7 @@ TString *luaS_new (lua_State *L, const char *str) {
 }
 
 
+// Create a userdata with size 's'
 Udata *luaS_newudata (lua_State *L, size_t s) {
   Udata *u;
   GCObject *o;
