@@ -51,6 +51,7 @@
 
 
 
+// string.len("xxx")
 static int str_len (lua_State *L) {
   size_t l;
   luaL_checklstring(L, 1, &l);
@@ -67,6 +68,7 @@ static lua_Integer posrelat (lua_Integer pos, size_t len) {
 }
 
 
+// string.sub("xxx", i [, j])
 static int str_sub (lua_State *L) {
   size_t l;
   const char *s = luaL_checklstring(L, 1, &l);
@@ -81,6 +83,7 @@ static int str_sub (lua_State *L) {
 }
 
 
+// string.reverse("xxx")
 static int str_reverse (lua_State *L) {
   size_t l, i;
   luaL_Buffer b;
@@ -93,6 +96,7 @@ static int str_reverse (lua_State *L) {
 }
 
 
+// string.lower("xxx")
 static int str_lower (lua_State *L) {
   size_t l;
   size_t i;
@@ -106,6 +110,7 @@ static int str_lower (lua_State *L) {
 }
 
 
+// string.upper("xxx")
 static int str_upper (lua_State *L) {
   size_t l;
   size_t i;
@@ -119,6 +124,7 @@ static int str_upper (lua_State *L) {
 }
 
 
+// string.rep("xxx", n [, sep])
 static int str_rep (lua_State *L) {
   size_t l, lsep;
   const char *s = luaL_checklstring(L, 1, &l);
@@ -145,6 +151,7 @@ static int str_rep (lua_State *L) {
 }
 
 
+// string.byte("xxx" [, i [, j]])
 static int str_byte (lua_State *L) {
   size_t l;
   const char *s = luaL_checklstring(L, 1, &l);
@@ -164,6 +171,7 @@ static int str_byte (lua_State *L) {
 }
 
 
+// string.char(···)
 static int str_char (lua_State *L) {
   int n = lua_gettop(L);  /* number of arguments */
   int i;
@@ -179,6 +187,7 @@ static int str_char (lua_State *L) {
 }
 
 
+// writer for string.dump
 static int writer (lua_State *L, const void *b, size_t size, void *B) {
   (void)L;
   luaL_addlstring((luaL_Buffer *) B, (const char *)b, size);
@@ -186,6 +195,7 @@ static int writer (lua_State *L, const void *b, size_t size, void *B) {
 }
 
 
+// string.dump(function [, strip]), only contain the number of upvalue, not upvalue itself
 static int str_dump (lua_State *L) {
   luaL_Buffer b;
   int strip = lua_toboolean(L, 2);
