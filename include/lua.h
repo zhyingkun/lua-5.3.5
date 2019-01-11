@@ -126,6 +126,22 @@ typedef void * (*lua_Alloc) (void *ud, void *ptr, size_t osize, size_t nsize);
 // ptr is a pointer to the memory
 // osize is old size
 // nsize is new size
+// if nsize == 0, lua_Alloc means free and return NULL;
+// if nsize != 0, lua_Alloc means realloc;
+// if error occur, lua_Alloc return NULL;
+// if nsize <= osize, lua will assume thar lua_Alloc always return success;
+// example: (from luaL_newstate)
+//static void* l_alloc (void* ud, void *ptr, size_t osize, size_t nsize)
+//{
+//	(void)ud;
+//	(void)osize; /* not used */
+//	if (nsize == 0)
+//	{
+//		free(ptr);
+//		return NULL;
+//	}
+//	return realloc(ptr, nsize);
+//}
 
 
 /*
