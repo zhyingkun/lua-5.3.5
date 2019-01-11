@@ -73,10 +73,11 @@ struct lua_longjmp;  /* defined in ldo.c */
 #define KGC_EMERGENCY	1	/* gc was forced by an allocation failure */
 
 
+// internal global string table
 typedef struct stringtable {
-  TString **hash;
+  TString **hash; // array for hash table
   int nuse;  /* number of elements */
-  int size;
+  int size; // size of 'hash' array
 } stringtable;
 
 
@@ -104,7 +105,7 @@ typedef struct CallInfo {
       lua_KContext ctx;  /* context info. in case of yields */
     } c;
   } u;
-  ptrdiff_t extra;
+  ptrdiff_t extra; // for actual 'func' while yield
   short nresults;  /* expected number of results from this function */
   unsigned short callstatus;
 } CallInfo;

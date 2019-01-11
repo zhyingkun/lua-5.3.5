@@ -64,12 +64,14 @@ typedef struct LG {
   LX l;
   global_State g;
 } LG;
-
+// extra space + lua_State(Main lua thread) + global_State
+// a lua_State    represent a lua thread  (coroutine in C)
+// a global_State represent a lua process (may be thread in C)
 
 
 #define fromstate(L)	(cast(LX *, cast(lu_byte *, (L)) - offsetof(LX, l)))
 // L is a pointer to lua_State
-// so, this macro is for get the LG Addr from L, according to the LG and LX Struct define
+// so, this macro is for get the LG Addr from L, according to the LG and LX Struct define (address of LG == address of LG.l == address of LX)
 
 
 /*
@@ -80,6 +82,7 @@ typedef struct LG {
   { size_t t = cast(size_t, e); \
     memcpy(b + p, &t, sizeof(t)); p += sizeof(t); }
 
+// create the seed
 static unsigned int makeseed (lua_State *L) {
   char buff[4 * sizeof(size_t)];
   unsigned int h = luai_makeseed();
@@ -107,6 +110,7 @@ void luaE_setdebt (global_State *g, l_mem debt) {
 }
 
 
+// Extend CallInfo Linked List
 CallInfo *luaE_extendCI (lua_State *L) {
   CallInfo *ci = luaM_new(L, CallInfo);
   lua_assert(L->ci->next == NULL);
@@ -150,6 +154,7 @@ void luaE_shrinkCI (lua_State *L) {
 }
 
 
+// Init lua stack for a lua_State, (lua thread)
 static void stack_init (lua_State *L1, lua_State *L) {
   int i; CallInfo *ci;
   /* initialize stack array */
@@ -160,16 +165,17 @@ static void stack_init (lua_State *L1, lua_State *L) {
   L1->top = L1->stack;
   L1->stack_last = L1->stack + L1->stacksize - EXTRA_STACK;
   /* initialize first ci */
-  ci = &L1->base_ci;
+  ci = &L1->base_ci; // base_ci are the struct in lua_State, not alloc mem
   ci->next = ci->previous = NULL;
   ci->callstatus = 0;
-  ci->func = L1->top;
+  ci->func = L1->top; // the first block of stack not used forever
   setnilvalue(L1->top++);  /* 'function' entry for this 'ci' */
   ci->top = L1->top + LUA_MINSTACK;
-  L1->ci = ci;
+  L1->ci = ci; // pointer to the L1->base_ci
 }
 
 
+// free all stack and all callinfo, if you release the thread
 static void freestack (lua_State *L) {
   if (L->stack == NULL)
     return;  /* stack not completely built yet */
@@ -207,9 +213,9 @@ static void f_luaopen (lua_State *L, void *ud) {
   UNUSED(ud);
   stack_init(L, L);  /* init stack */
   init_registry(L, g);
-  luaS_init(L);
-  luaT_init(L);
-  luaX_init(L);
+  luaS_init(L); // init lua string
+  luaT_init(L); // init tag method name
+  luaX_init(L); // lex
   g->gcrunning = 1;  /* allow gc */
   g->version = lua_version(NULL);
   luai_userstateopen(L);
@@ -241,6 +247,7 @@ static void preinit_thread (lua_State *L, global_State *g) {
 }
 
 
+// Release a lua process, also Release the global_State
 static void close_state (lua_State *L) {
   global_State *g = G(L);
   luaF_close(L, L->stack);  /* close all upvalues for this thread */
@@ -254,6 +261,7 @@ static void close_state (lua_State *L) {
 }
 
 
+// Create a new lua thread, lua_State
 LUA_API lua_State *lua_newthread (lua_State *L) {
   global_State *g = G(L);
   lua_State *L1;
@@ -284,6 +292,7 @@ LUA_API lua_State *lua_newthread (lua_State *L) {
 }
 
 
+// Release a lua thread 'L1'
 void luaE_freethread (lua_State *L, lua_State *L1) {
   LX *l = fromstate(L1);
   luaF_close(L1, L1->stack);  /* close all upvalues for this thread */
@@ -294,6 +303,7 @@ void luaE_freethread (lua_State *L, lua_State *L1) {
 }
 
 
+// Create a new lua process, a lua_State and a global_State
 LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   int i;
   lua_State *L;
@@ -310,7 +320,7 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   g->frealloc = f;
   g->ud = ud;
   g->mainthread = L;
-  g->seed = makeseed(L);
+  g->seed = makeseed(L); // seed for calculate the string hash
   g->gcrunning = 0;  /* no GC while building state */
   g->GCestimate = 0;
   g->strt.size = g->strt.nuse = 0;
@@ -340,6 +350,7 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
 }
 
 
+// Release a lua Process
 LUA_API void lua_close (lua_State *L) {
   L = G(L)->mainthread;  /* only the main thread can be closed */
   lua_lock(L);
