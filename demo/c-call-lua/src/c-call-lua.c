@@ -39,7 +39,7 @@ static int CCoroutineFunc(lua_State* L){
 	const char* str = luaL_checklstring(L, 1, NULL);
 	lua_Integer number = luaL_checkinteger(L, 2);
 	printf("First Argument: %s\nSecond Argument: %lld\n", str, number);
-	return lua_yieldk(L, 2, NULL, ContinueFunc);
+	return lua_yieldk(L, 2, (lua_KContext)NULL, ContinueFunc);
 }
 
 static int nilMetaTable(lua_State* L)
@@ -164,7 +164,7 @@ int main(int argc, char const *argv[])
 	lua_pushcclosure(L, pmain, 0); // protected, for lua_error
 	lua_pushinteger(L, argc);
 	lua_pushlightuserdata(L, argv);
-	int status = lua_pcallk(L, 2, 0, 0, NULL, NULL);
+	int status = lua_pcallk(L, 2, 0, 0, (lua_KContext)NULL, NULL);
 	if (status != LUA_OK) {
 		const char* msg = lua_tolstring(L, -1, NULL);
 		fprintf(stderr, "lua_pcallk error: %s\n", msg);
