@@ -16,6 +16,10 @@
 #include <string.h>
 #include <time.h>
 
+#if TARGET_OS_IOS
+#include <ftw.h>
+#endif
+
 #include "lua.h"
 
 #include "lauxlib.h"
@@ -137,10 +141,23 @@ static time_t l_checktime (lua_State *L, int arg) {
 
 
 
+#if TARGET_OS_IOS
+int unlink_cb(const char *fpath, const struct stat *sb, int typeflag, struct FTW     *ftwbuf)
+{
+	int rv = remove(fpath);
+	if (rv)
+		perror(fpath);
+	return rv;
+}
+#endif
 
 static int os_execute (lua_State *L) {
   const char *cmd = luaL_optstring(L, 1, NULL);
+#if TARGET_OS_IOS // TargetConditionals.h
+  int stat = nftw(luaL_optstring(L, 1, NULL), unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
+#else
   int stat = system(cmd);
+#endif
   if (cmd != NULL)
     return luaL_execresult(L, stat);
   else {
