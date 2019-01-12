@@ -107,6 +107,7 @@ static void seterrorobj (lua_State *L, int errcode, StkId oldtop) {
 }
 
 
+// throw the error, fire the longjmp
 l_noret luaD_throw (lua_State *L, int errcode) {
   if (L->errorJmp) {  /* thread has an error handler? */
     L->errorJmp->status = errcode;  /* set status */
@@ -133,9 +134,10 @@ l_noret luaD_throw (lua_State *L, int errcode) {
 }
 
 
+// function f can fire the longjmp, (call the luaD_throw)
 int luaD_rawrunprotected (lua_State *L, Pfunc f, void *ud) {
   unsigned short oldnCcalls = L->nCcalls;
-  struct lua_longjmp lj;
+  struct lua_longjmp lj; // longjmp struct save on the c stack
   lj.status = LUA_OK;
   lj.previous = L->errorJmp;  /* chain new error handler */
   L->errorJmp = &lj;
@@ -155,6 +157,7 @@ int luaD_rawrunprotected (lua_State *L, Pfunc f, void *ud) {
 ** Stack reallocation
 ** ===================================================================
 */
+// correct pointers which point to stack, upvalue, callinfo's top func base
 static void correctstack (lua_State *L, TValue *oldstack) {
   CallInfo *ci;
   UpVal *up;
@@ -174,6 +177,7 @@ static void correctstack (lua_State *L, TValue *oldstack) {
 #define ERRORSTACKSIZE	(LUAI_MAXSTACK + 200)
 
 
+// realloc the lua stack
 void luaD_reallocstack (lua_State *L, int newsize) {
   TValue *oldstack = L->stack;
   int lim = L->stacksize;
@@ -210,10 +214,12 @@ void luaD_growstack (lua_State *L, int n) {
 static int stackinuse (lua_State *L) {
   CallInfo *ci;
   StkId lim = L->top;
+  // why loop? current callinfo is the top, so why not just L->ci->top?
   for (ci = L->ci; ci != NULL; ci = ci->previous) {
     if (lim < ci->top) lim = ci->top;
   }
   lua_assert(lim <= L->stack_last);
+  // lim point to ci->top (no data), just lim - L->stack, why plus one?
   return cast_int(lim - L->stack) + 1;  /* part of stack in use */
 }
 
