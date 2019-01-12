@@ -14,7 +14,3 @@ UserInterface.xcuserstate
 
 luawithlib/Android/libs/
 luawithlib/Android/obj/
-
-demo/lua/*.so
-demo/lua/*.dll
-demo/lua/*.lasm
