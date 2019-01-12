@@ -56,6 +56,8 @@
 
 #ifdef _MSC_VER
 #define CJSON_EXPORT    __declspec(dllexport)
+#define strcasecmp stricmp
+#define strncasecmp strnicmp
 #else
 #define CJSON_EXPORT    extern
 #endif
