@@ -382,7 +382,7 @@ typedef struct Udata {
   CommonHeader;
   lu_byte ttuv_;  /* user value's tag */
   struct Table *metatable;
-  size_t len;  /* number of bytes */
+  size_t len;  /* number of bytes */ // didn't contain the size of Udata struct
   union Value user_;  /* user value */
 } Udata;
 
