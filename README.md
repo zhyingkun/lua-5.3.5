@@ -25,7 +25,7 @@ cmake -G "Xcode" ..
 2. 直接命令行编译（支持Mac和Linux）
 ```bash
 cd lua-5.3.5/
-mkdir build &&cd build
+mkdir build && cd build
 cmake .. # default is Debug
 # for Debug: cmake -DCMAKE_BUILD_TYPE=Debug ..
 # for Release: cmake -DCMAKE_BUILD_TYPE=Release ..
@@ -74,11 +74,11 @@ ndk-build
 	>e. luacstruct：让lua与C语言结构体交互，代码来自[http://www.inf.puc-rio.br/~roberto/struct/]
 	>f. luasocket：封装了socket接口，代码来自[https://github.com/diegonehab/luasocket]
 	>g. protobuf：序列化，代码来自[https://github.com/topameng/protoc-gen-lua]
-	>h. luawithlib：与Unity C#对接，添加了部分接口，代码参考了[https://github.com/topameng/tolua_runtime]
+	>h. create-lua-cmod.sh 和 delete-lua-cmod.sh：shell脚本用于快速构建Lua C模块
 6. etc：工程杂项
 	>a. fromlua：来自lua官方的相关文件，包括lua文档，留着方便查看
 	>b. vscodeMac：Mac上VSCode的配置文件
-7. luawithlib：专门为Unity tolua 构建的运行时动态库（iOS下是静态库）
+7. luawithlib：包含lua和luaC模块的运行时动态库（iOS下是静态库）
 8. demo：用于测试的Demo
 	>a. c-call-lua：C作为宿主，调用Lua来完成操作
 	>b. c-lang：C语言特性示例
