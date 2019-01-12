@@ -91,5 +91,5 @@ target_link_libraries(${PROJECT_NAME} lualib)
 
 if(WIN32)
 	set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "lib")
-	target_link_libraries(luasocketmod wsock32 ws2_32)
+	target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
 endif(WIN32)
