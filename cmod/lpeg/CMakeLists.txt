@@ -35,4 +35,9 @@ source_group(src FILES ${LPEGMOD_SRC})
 source_group(include FILES ${LPEGMOD_HEADERS})
 
 add_library(${PROJECT_NAME} MODULE ${LPEGMOD_SRC} ${LPEGMOD_HEADERS})
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	# OUTPUT_NAME ${PROJECT_NAME}
+	# VERSION "1.0.1"
+	# SOVERSION "1.0.1"
+	POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(${PROJECT_NAME} lualib)
