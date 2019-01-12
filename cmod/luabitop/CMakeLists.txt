@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(luabitop
-	# VERSION 1.0.2
-	DESCRIPTION "Lua dynamic library"
+	VERSION 1.0.2
+	DESCRIPTION "Lua bit operation module"
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
 

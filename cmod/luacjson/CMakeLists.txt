@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(luacjson
 	VERSION 2.1.0
-	DESCRIPTION "Lua dynamic library"
+	DESCRIPTION "Lua c json module"
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
 

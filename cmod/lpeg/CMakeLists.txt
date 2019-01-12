@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(lpeg
 	VERSION 1.0.1
-	DESCRIPTION "Lua dynamic library"
+	DESCRIPTION "Lua lpeg module"
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
 
