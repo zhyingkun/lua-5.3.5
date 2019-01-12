@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(protobuf
 	VERSION 2.5
-	DESCRIPTION "Lua protobuf module"
+	# DESCRIPTION "Lua protobuf module"
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
 

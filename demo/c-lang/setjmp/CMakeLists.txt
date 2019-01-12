@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(setjmp
 	VERSION 0.1.0
-	DESCRIPTION "Demo for setjmp"
+	# DESCRIPTION "Demo for setjmp"
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
 

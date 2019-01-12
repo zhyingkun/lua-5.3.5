@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(luasocket
 	VERSION 3.0
-	DESCRIPTION "Lua socket c module"
+	# DESCRIPTION "Lua socket c module"
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
 

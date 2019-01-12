@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(lualib
 	VERSION 5.3.5
-	DESCRIPTION "Lua dynamic library"
+	# DESCRIPTION "Lua dynamic library"
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
 

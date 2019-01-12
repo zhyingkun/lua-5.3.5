@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(luacstruct
 	VERSION 0.3
-	DESCRIPTION "Lua c struct module"
+	# DESCRIPTION "Lua c struct module"
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
 

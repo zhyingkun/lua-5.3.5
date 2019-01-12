@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(luac
 	VERSION 5.3.5
-	DESCRIPTION "Lua compiler cmd"
+	# DESCRIPTION "Lua compiler cmd"
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
 

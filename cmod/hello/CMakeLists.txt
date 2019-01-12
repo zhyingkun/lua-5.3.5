@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(hello
 	VERSION 0.1.0
-	DESCRIPTION "Lua hello module"
+	# DESCRIPTION "Lua hello module"
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")

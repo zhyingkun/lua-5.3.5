@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(c-call-lua
 	VERSION 0.1.0
-	DESCRIPTION "Demo for C to call lua"
+	# DESCRIPTION "Demo for C to call lua"
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
 

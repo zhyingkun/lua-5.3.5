@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(lua
 	VERSION 5.3.5
-	DESCRIPTION "Lua cmd"
+	# DESCRIPTION "Lua cmd"
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
 
