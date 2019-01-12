@@ -6,6 +6,7 @@ LUA_PROJECT_PATH := ../../..
 
 LOCAL_MODULE := luawithlib
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/$(LUA_PROJECT_PATH)/include
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/$(LUA_PROJECT_PATH)/cmod/luasocket/include
 LOCAL_CFLAGS :=  -g -std=gnu99 -DLUA_USE_LINUX
 
 # lualib

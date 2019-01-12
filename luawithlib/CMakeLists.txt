@@ -26,6 +26,7 @@ elseif(WIN32)
 endif()
 
 include_directories(../include)
+include_directories(../cmod/luasocket/include)
 
 aux_source_directory(../lualib/src LUALIB_SRC)
 set(LUA_SOCKET_PATH "../cmod/luasocket/src")
