@@ -49,6 +49,14 @@
 
 #define luaM_newobject(L,tag,s)	luaM_realloc_(L, NULL, tag, (s))
 
+// function: grow vector for one element at least
+//        L: lua_State
+//        v: vector, first address of the array
+//   nelems: current number of elements
+//     size: current size of array (where store the size, not the copy one)
+//        t: element type
+//    limit: array length limit
+//        e: error message
 #define luaM_growvector(L,v,nelems,size,t,limit,e) \
           if ((nelems)+1 > (size)) \
             ((v)=cast(t *, luaM_growaux_(L,v,&(size),sizeof(t),limit,e)))

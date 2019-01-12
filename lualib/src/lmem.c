@@ -45,6 +45,12 @@
 #define MINSIZEARRAY	4
 
 
+//   function: grow the block array
+//      block: first address of the array
+//       size: where store the current size of the array
+// size_elems: size of one element
+//      limit: array length limit
+//       what: what's this array?
 void *luaM_growaux_ (lua_State *L, void *block, int *size, size_t size_elems,
                      int limit, const char *what) {
   void *newblock;
@@ -74,6 +80,11 @@ l_noret luaM_toobig (lua_State *L) {
 /*
 ** generic allocation routine.
 */
+// Here is where allocating the memory
+// if block == NULL, osize will be the base data type
+// old  mem info ==> ptr: (block)     size: osize
+// want mem info ==> ptr: (ret value) size: nsize
+// nsize is the size real allocated, include the struct size of lua object
 void *luaM_realloc_ (lua_State *L, void *block, size_t osize, size_t nsize) {
   void *newblock;
   global_State *g = G(L);
@@ -94,7 +105,7 @@ void *luaM_realloc_ (lua_State *L, void *block, size_t osize, size_t nsize) {
       luaD_throw(L, LUA_ERRMEM);
   }
   lua_assert((nsize == 0) == (newblock == NULL));
-  g->GCdebt = (g->GCdebt + nsize) - realosize;
+  g->GCdebt = (g->GCdebt + nsize) - realosize; // record real size allocated
   return newblock;
 }
 
