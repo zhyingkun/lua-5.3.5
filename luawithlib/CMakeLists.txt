@@ -59,20 +59,20 @@ source_group(lualib FILES ${LUALIB_SRC})
 source_group(luasocket FILES ${LUASOCKET_SRC})
 
 #dynamic load library  .so .bundle
-add_library(luawithlib MODULE ${LUALIB_SRC} ${LUASOCKET_SRC})
+add_library(${PROJECT_NAME} MODULE ${LUALIB_SRC} ${LUASOCKET_SRC})
 
-set_target_properties(luawithlib PROPERTIES
-	OUTPUT_NAME "luawithlib"
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	# OUTPUT_NAME "luawithlib"
 	# VERSION "1.0.0"
 	# SOVERSION "1.0.0"
 	POSITION_INDEPENDENT_CODE ON)
 
 if(APPLE)
-	set_target_properties(luawithlib PROPERTIES BUNDLE TRUE)
+	set_target_properties(${PROJECT_NAME} PROPERTIES BUNDLE TRUE)
 endif(APPLE)
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	target_link_libraries(luawithlib m dl)
+	target_link_libraries(${PROJECT_NAME} m dl)
 endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 if(WIN32)
-	target_link_libraries(luawithlib wsock32 ws2_32)
+	target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
 endif(WIN32)
