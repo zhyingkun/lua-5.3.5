@@ -30,7 +30,7 @@ include_directories(../include)
 aux_source_directory(../lualib/src LUA_LIB_SRC)
 file(GLOB LUA_HEADERS "../include/*.h")
 source_group(src FILES ${LUA_LIB_SRC})
-source_group(header FILES ${LUA_HEADERS})
+source_group(include FILES ${LUA_HEADERS})
 add_library(lualibstatic STATIC ${LUA_LIB_SRC} ${LUA_HEADERS})
 set_target_properties(lualibstatic PROPERTIES
 	OUTPUT_NAME "lualib"
