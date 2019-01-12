@@ -29,6 +29,11 @@ aux_source_directory(./src HELLOMOD_SRC)
 source_group(src FILES ${HELLOMOD_SRC})
 # dynamic load library  .so .bundle
 add_library(${PROJECT_NAME} MODULE ${HELLOMOD_SRC})
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	# OUTPUT_NAME ${PROJECT_NAME}
+	# VERSION "0.1.0"
+	# SOVERSION "0.1.0"
+	POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(${PROJECT_NAME} lualib)
 
 if(WIN32)
