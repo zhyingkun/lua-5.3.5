@@ -20,7 +20,7 @@ static int CDefineFunc(lua_State* L){
 }
 
 static int ContinueFunc (lua_State *L, int status, lua_KContext ctx){
-	printf("status: %d  LUA_YIELD: %d  ctx: %ld\n", status, LUA_YIELD, ctx);
+	printf("status: %d  LUA_YIELD: %d  ctx: %ld\n", status, LUA_YIELD, (long)ctx);
 	int num = lua_gettop(L);
 	printf("num is %d\n", num);
 	const char* str = luaL_checklstring(L, 1, NULL);
@@ -90,9 +90,9 @@ static int pmain(lua_State* L){
 	lua_pushstring(L, "Hello zyk!");
 	lua_call(L, 1, 0);
 	
-	luaL_dostring(L, luaStr);
+	int ret = luaL_dostring(L, luaStr);
 	
-	printf("After luaL_dostring\n");
+	printf("After luaL_dostring, ret: %d\n", ret);
 	type = lua_getglobal(L, "luaDefineFunc");
 	printf("type is %d  lua function type is %d\n", type, LUA_TFUNCTION);
 	

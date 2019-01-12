@@ -559,6 +559,7 @@ static int read_tag(lua_State *L)
 static const uint8_t* unpack_fixed32(const uint8_t* buffer, uint8_t* cache)
 {
 #ifdef IS_LITTLE_ENDIAN
+	(void)cache;
     return buffer;
 #else
     *(uint32_t UNALIGNED*)cache = le32toh(*(uint32_t UNALIGNED*)buffer);
@@ -569,6 +570,7 @@ static const uint8_t* unpack_fixed32(const uint8_t* buffer, uint8_t* cache)
 static const uint8_t* unpack_fixed64(const uint8_t* buffer, uint8_t* cache)
 {
 #ifdef IS_LITTLE_ENDIAN
+	(void)cache;
     return buffer;
 #else
     *(uint64_t UNALIGNED*)cache = le64toh(*(uint64_t UNALIGNED*)buffer);
