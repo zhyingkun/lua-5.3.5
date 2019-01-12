@@ -18,6 +18,9 @@
  * =====================================================================================
  */
 
+#define LUA_LIB // for export function
+#include <lprefix.h> // must include first
+
 #include <stdint.h>
 #include <string.h>
 #include <math.h>

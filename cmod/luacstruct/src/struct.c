@@ -25,6 +25,8 @@
 ** ' ' - ignored
 */
 
+#define LUA_LIB // for export function
+#include <lprefix.h> // must include first
 
 #include <ctype.h>
 #include <limits.h>
