@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.0)
 project(luasocket
-	VERSION 3.0
+	# VERSION 3.0
 	DESCRIPTION "Lua socket c module"
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
+
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
 	set(CMAKE_BUILD_TYPE "Debug")
 endif()
@@ -25,63 +26,68 @@ elseif(WIN32)
 endif()
 
 include_directories(../../include)
+
+set(LUA_SOCKET_PATH "./src")
 set(LUA_SOCKET_SRC
-	./src/auxiliar.c
-	./src/except.c
-	./src/luasocket.c
-	./src/select.c
-	./src/timeout.c
-	./src/buffer.c
-	./src/inet.c
-	./src/mime.c
-	./src/udp.c
-	./src/compat.c
-	./src/io.c
-	./src/options.c
-	./src/tcp.c)
+	${LUA_SOCKET_PATH}/auxiliar.c
+	${LUA_SOCKET_PATH}/except.c
+	${LUA_SOCKET_PATH}/luasocket.c
+	${LUA_SOCKET_PATH}/select.c
+	${LUA_SOCKET_PATH}/timeout.c
+	${LUA_SOCKET_PATH}/buffer.c
+	${LUA_SOCKET_PATH}/inet.c
+	${LUA_SOCKET_PATH}/mime.c
+	${LUA_SOCKET_PATH}/udp.c
+	${LUA_SOCKET_PATH}/compat.c
+	${LUA_SOCKET_PATH}/io.c
+	${LUA_SOCKET_PATH}/options.c
+	${LUA_SOCKET_PATH}/tcp.c)
 set(LUA_SOCKET_HEADER
-	./src/auxiliar.h
-	./src/except.h
-	./src/luasocket.h
-	./src/select.h
-	./src/timeout.h
-	./src/buffer.h
-	./src/inet.h
-	./src/mime.h
-	./src/udp.h
-	./src/compat.h
-	./src/io.h
-	./src/options.h
-	./src/tcp.h)
+	${LUA_SOCKET_PATH}/auxiliar.h
+	${LUA_SOCKET_PATH}/except.h
+	${LUA_SOCKET_PATH}/luasocket.h
+	${LUA_SOCKET_PATH}/select.h
+	${LUA_SOCKET_PATH}/timeout.h
+	${LUA_SOCKET_PATH}/buffer.h
+	${LUA_SOCKET_PATH}/inet.h
+	${LUA_SOCKET_PATH}/mime.h
+	${LUA_SOCKET_PATH}/udp.h
+	${LUA_SOCKET_PATH}/compat.h
+	${LUA_SOCKET_PATH}/io.h
+	${LUA_SOCKET_PATH}/options.h
+	${LUA_SOCKET_PATH}/tcp.h)
 if(WIN32)
-    set(PLATFORM_SOCKET_SRC ./src/wsocket.c)
-    set(PLATFORM_SOCKET_HEADER ./src/wsocket.h)
+    set(PLATFORM_SOCKET_SRC ${LUA_SOCKET_PATH}/wsocket.c)
+    set(PLATFORM_SOCKET_HEADER ${LUA_SOCKET_PATH}/wsocket.h)
 else(WIN32)
 	set(PLATFORM_SOCKET_SRC
-		./src/serial.c
-		./src/usocket.c
-		./src/unixdgram.c
-		./src/unixstream.c
-		./src/unix.c)
+		${LUA_SOCKET_PATH}/serial.c
+		${LUA_SOCKET_PATH}/usocket.c
+		${LUA_SOCKET_PATH}/unixdgram.c
+		${LUA_SOCKET_PATH}/unixstream.c
+		${LUA_SOCKET_PATH}/unix.c)
 	set(PLATFORM_SOCKET_HEADER
-		./src/usocket.h
-		./src/unixdgram.h
-		./src/unixstream.h
-		./src/unix.h)
+		${LUA_SOCKET_PATH}/usocket.h
+		${LUA_SOCKET_PATH}/unixdgram.h
+		${LUA_SOCKET_PATH}/unixstream.h
+		${LUA_SOCKET_PATH}/unix.h)
 endif(WIN32)
+
 set(LUASOCKETMOD_SRC ${LUA_SOCKET_SRC} ${PLATFORM_SOCKET_SRC})
 set(LUASOCKETMOD_HEADER ${LUA_SOCKET_HEADER} ${PLATFORM_SOCKET_HEADER})
+
 source_group(src FILES ${LUASOCKETMOD_SRC})
-source_group(header FILES ${LUASOCKETMOD_HEADER})
+source_group(include FILES ${LUASOCKETMOD_HEADER})
+
 add_library(${PROJECT_NAME} MODULE ${LUASOCKETMOD_SRC} ${LUASOCKETMOD_HEADER})
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	OUTPUT_NAME "luasocket"
-	VERSION "3.0"
-	SOVERSION "3.0"
+	# VERSION "3.0"
+	# SOVERSION "3.0"
 	POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(${PROJECT_NAME} lualib)
 
 if(WIN32)
-	set_target_properties(${PROJECT_NAME} PROPERTIES
-		PREFIX "lib")
+	set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "lib")
+	target_link_libraries(luasocketmod wsock32 ws2_32)
 endif(WIN32)
