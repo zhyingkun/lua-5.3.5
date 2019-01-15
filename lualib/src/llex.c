@@ -124,6 +124,9 @@ l_noret luaX_syntaxerror (LexState *ls, const char *msg) {
 ** it will not be collected until the end of the compilation
 ** (by that time it should be anchored somewhere)
 */
+// key = &(G(L)->strt.hash[str])
+// ls->h[key] = true;
+// return key
 TString *luaX_newstring (LexState *ls, const char *str, size_t l) {
   lua_State *L = ls->L;
   TValue *o;  /* entry for 'str' */
@@ -137,6 +140,7 @@ TString *luaX_newstring (LexState *ls, const char *str, size_t l) {
     luaC_checkGC(L);
   }
   else {  /* string already present */
+	// str may be a long string, not in global string table
     ts = tsvalue(keyfromval(o));  /* re-use value previously stored */
   }
   L->top--;  /* remove string from stack */
@@ -183,6 +187,7 @@ void luaX_setinput (lua_State *L, LexState *ls, ZIO *z, TString *source,
 */
 
 
+// check current char, if true, get next char
 static int check_next1 (LexState *ls, int c) {
   if (ls->current == c) {
     next(ls);
@@ -261,6 +266,9 @@ static int skip_sep (LexState *ls) {
 }
 
 
+// read long string, string define or long comment
+// if seminfo == NULL, it read for comment, else, for string
+// [<-- sep -->[here are string with '\n']<-- sep -->]
 static void read_long_string (LexState *ls, SemInfo *seminfo, int sep) {
   int line = ls->linenumber;  /* initial line (for error message) */
   save_and_next(ls);  /* skip 2nd '[' */
@@ -363,6 +371,8 @@ static int readdecesc (LexState *ls) {
 }
 
 
+// del: delimiter, " or '
+// seminfo: for store the string, (TString type)
 static void read_string (LexState *ls, int del, SemInfo *seminfo) {
   save_and_next(ls);  /* keep delimiter (for error messages) */
   while (ls->current != del) {
@@ -426,6 +436,8 @@ static void read_string (LexState *ls, int del, SemInfo *seminfo) {
 }
 
 
+// get the next token, return the token
+// if next token is double, int, or string, store it's value(or ptr) in seminfo
 static int llex (LexState *ls, SemInfo *seminfo) {
   luaZ_resetbuffer(ls->buff);
   for (;;) {
@@ -470,7 +482,7 @@ static int llex (LexState *ls, SemInfo *seminfo) {
       case '=': {
         next(ls);
         if (check_next1(ls, '=')) return TK_EQ;
-        else return '=';
+        else return '='; // come to here, check_next1 will not take the next char
       }
       case '<': {
         next(ls);
@@ -546,6 +558,7 @@ static int llex (LexState *ls, SemInfo *seminfo) {
 }
 
 
+// get the next token, store pointer in ls->t
 void luaX_next (LexState *ls) {
   ls->lastline = ls->linenumber;
   if (ls->lookahead.token != TK_EOS) {  /* is there a look-ahead token? */
@@ -557,6 +570,7 @@ void luaX_next (LexState *ls) {
 }
 
 
+// look what's the next token, but not take it, only support look 1 token
 int luaX_lookahead (LexState *ls) {
   lua_assert(ls->lookahead.token == TK_EOS);
   ls->lookahead.token = llex(ls, &ls->lookahead.seminfo);

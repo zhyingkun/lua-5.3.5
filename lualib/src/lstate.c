@@ -241,7 +241,7 @@ static void preinit_thread (lua_State *L, global_State *g) {
   L->allowhook = 1;
   resethookcount(L);
   L->openupval = NULL;
-  L->nny = 1;
+  L->nny = 1; // C main not support yield
   L->status = LUA_OK;
   L->errfunc = 0;
 }

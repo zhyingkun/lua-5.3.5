@@ -89,11 +89,12 @@ static l_noret errorlimit (FuncState *fs, int limit, const char *what) {
 }
 
 
+// check maximum depth for nested C calls
 static void checklimit (FuncState *fs, int v, int l, const char *what) {
   if (v > l) errorlimit(fs, l, what);
 }
 
-// if next token is c, then eat it, else leave it
+// if current token is c, then eat it, else leave it
 static int testnext (LexState *ls, int c) {
   if (ls->t.token == c) {
     luaX_next(ls);
@@ -132,6 +133,7 @@ static void check_match (LexState *ls, int what, int who, int where) {
 }
 
 
+// current token is a TK_NAME, read it and get next token
 static TString *str_checkname (LexState *ls) {
   TString *ts;
   check(ls, TK_NAME);
@@ -328,6 +330,7 @@ static void adjust_assign (LexState *ls, int nvars, int nexps, expdesc *e) {
 }
 
 
+// increase L->nCcalls, pair with leavelevel(ls)
 static void enterlevel (LexState *ls) {
   lua_State *L = ls->L;
   ++L->nCcalls;
@@ -1414,6 +1417,7 @@ static void test_then_block (LexState *ls, int *escapelist) {
 }
 
 
+// if statement
 static void ifstat (LexState *ls, int line) {
   /* ifstat -> IF cond THEN block {ELSEIF cond THEN block} [ELSE block] END */
   FuncState *fs = ls->fs;
@@ -1537,7 +1541,7 @@ static void retstat (LexState *ls) {
 static void statement (LexState *ls) {
   int line = ls->linenumber;  /* may be needed for error messages */
   enterlevel(ls);
-  switch (ls->t.token) {
+  switch (ls->t.token) { // every case is a statement
     case ';': {  /* stat -> ';' (empty statement) */
       luaX_next(ls);  /* skip ';' */
       break;

@@ -952,7 +952,10 @@ static void f_call (lua_State *L, void *ud) {
 }
 
 
-// L:lua_State nargs:number of args  nresults:number of results
+//        L: lua_State
+//    nargs: number of args
+// nresults: number of results
+//  errfunc: error function index in the lua stack
 LUA_API int lua_pcallk (lua_State *L, int nargs, int nresults, int errfunc,
                         lua_KContext ctx, lua_KFunction k) {
   struct CallS c;
@@ -973,10 +976,15 @@ LUA_API int lua_pcallk (lua_State *L, int nargs, int nresults, int errfunc,
   }
   c.func = L->top - (nargs+1);  /* function to be called */
   if (k == NULL || L->nny > 0) {  /* no continuation or no yieldable? */
+	// Can not yieldable in this case
+	// so, call it on protected mode
     c.nresults = nresults;  /* do a 'conventional' protected call */
     status = luaD_pcall(L, f_call, &c, savestack(L, c.func), func);
   }
   else {  /* prepare continuation (call is already protected by 'resume') */
+	// k != NULL && L->nny == 0 (L->nny should not less then 0)
+	// only lua_assume can make L->nny == 0
+	// and, it has a k, so, it can yield
     CallInfo *ci = L->ci;
     ci->u.c.k = k;  /* save continuation */
     ci->u.c.ctx = ctx;  /* save context */
