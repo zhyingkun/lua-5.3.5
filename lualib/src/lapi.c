@@ -1302,12 +1302,14 @@ LUA_API void *lua_upvalueid (lua_State *L, int fidx, int n) {
 
 LUA_API void lua_upvaluejoin (lua_State *L, int fidx1, int n1,
                                             int fidx2, int n2) {
-  LClosure *f1;
-  UpVal **up1 = getupvalref(L, fidx1, n1, &f1);
+// Here has a bug, see http://lua-users.org/lists/lua-l/2019-01/msg00039.html
+  UpVal **up1 = getupvalref(L, fidx1, n1, NULL);
   UpVal **up2 = getupvalref(L, fidx2, n2, NULL);
+//  if(*up1 == *up2) return; // already join, it works
+  (*up2)->refcount++; // if *up1 == *up2
   luaC_upvdeccount(L, *up1);
   *up1 = *up2;
-  (*up1)->refcount++;
+//  (*up1)->refcount++;
   if (upisopen(*up1)) (*up1)->u.open.touched = 1;
   luaC_upvalbarrier(L, *up1);
 }
