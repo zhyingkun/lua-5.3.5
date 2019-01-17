@@ -26,6 +26,7 @@ elseif(WIN32)
 endif()
 
 include_directories(../../include)
+include_directories(../../lualib/include)
 
 aux_source_directory(./src PROTOBUFMOD_SRC)
 

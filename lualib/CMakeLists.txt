@@ -27,12 +27,23 @@ elseif(WIN32)
 endif()
 
 include_directories(../include)
-aux_source_directory(./src LUA_LIB_SRC)
-file(GLOB LUA_HEADERS "../include/*.h")
-source_group(src FILES ${LUA_LIB_SRC})
-source_group(include FILES ${LUA_HEADERS})
+include_directories(./include)
 
-add_library(${PROJECT_NAME} SHARED ${LUA_LIB_SRC} ${LUA_HEADERS})
+aux_source_directory(./core LUA_CORE_SRC)
+aux_source_directory(./libraries LUA_LIBRARIES_SRC)
+file(GLOB LUA_HEADERS "../include/*.h")
+file(GLOB LUA_CORE_HEADERS "./include/*.h")
+
+source_group(core FILES ${LUA_CORE_SRC})
+source_group(libraries FILES ${LUA_LIBRARIES_SRC})
+source_group(include FILES ${LUA_HEADERS})
+source_group(coreinc FILES ${LUA_CORE_HEADERS})
+
+add_library(${PROJECT_NAME} SHARED 
+	${LUA_CORE_SRC}
+	${LUA_LIBRARIES_SRC}
+	${LUA_HEADERS}
+	${LUA_CORE_HEADERS})
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	OUTPUT_NAME ${PROJECT_NAME}
 	VERSION ${PROJECT_VERSION}

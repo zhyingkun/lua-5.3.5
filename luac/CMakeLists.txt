@@ -26,12 +26,13 @@ elseif(WIN32)
 endif()
 
 include_directories(../include)
+include_directories(../lualib/include)
 
-aux_source_directory(../lualib/src LUA_LIB_SRC)
-file(GLOB LUA_HEADERS "../include/*.h")
-source_group(src FILES ${LUA_LIB_SRC})
-source_group(include FILES ${LUA_HEADERS})
-add_library(lualibstatic STATIC ${LUA_LIB_SRC} ${LUA_HEADERS})
+aux_source_directory(../lualib/core LUA_CORE_SRC)
+aux_source_directory(../lualib/libraries LUA_LIBRARIES_SRC)
+set(LUALIB_SRC ${LUA_CORE_SRC} ${LUA_LIBRARIES_SRC})
+source_group(src FILES ${LUALIB_SRC})
+add_library(lualibstatic STATIC ${LUALIB_SRC})
 set_target_properties(lualibstatic PROPERTIES
 	OUTPUT_NAME "lualib"
 	VERSION "5.3.5"

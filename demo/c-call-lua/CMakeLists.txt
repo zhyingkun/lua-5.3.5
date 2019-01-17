@@ -26,6 +26,7 @@ elseif(WIN32)
 endif()
 
 include_directories(../../include)
+include_directories(../../lualib/include) # for lstate.h
 aux_source_directory(./src C_CALL_LUA_SRC)
 source_group(src FILES ${C_CALL_LUA_SRC})
 

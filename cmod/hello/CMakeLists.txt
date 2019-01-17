@@ -25,6 +25,7 @@ elseif(WIN32)
 endif()
 
 include_directories(../../include)
+include_directories(../../lualib/include)
 aux_source_directory(./src HELLOMOD_SRC)
 source_group(src FILES ${HELLOMOD_SRC})
 # dynamic load library  .so .bundle
