@@ -71,10 +71,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	# SOVERSION "1.0.0"
 	POSITION_INDEPENDENT_CODE ON)
 
-if(APPLE)
-	add_library(luabundle MODULE ${LUALIB_SRC} ${LUASOCKET_SRC})
-	set_target_properties(luabundle PROPERTIES BUNDLE TRUE)
-endif(APPLE)
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	target_link_libraries(${PROJECT_NAME} m dl)
 endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
