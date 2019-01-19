@@ -6,44 +6,47 @@ LUA_PROJECT_PATH := ../../..
 
 LOCAL_MODULE := luawithlib
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/$(LUA_PROJECT_PATH)/include
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/$(LUA_PROJECT_PATH)/lualib/include
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/$(LUA_PROJECT_PATH)/cmod/luasocket/include
 LOCAL_CFLAGS :=  -g -std=gnu99 -DLUA_USE_LINUX
 
 # lualib
-LUALIB_PATH := $(LUA_PROJECT_PATH)/lualib/src
-LOCAL_SRC_FILES := $(LUALIB_PATH)/lauxlib.c \
-					$(LUALIB_PATH)/liolib.c \
-					$(LUALIB_PATH)/lopcodes.c \
-					$(LUALIB_PATH)/lstate.c \
-					$(LUALIB_PATH)/lobject.c \
-					$(LUALIB_PATH)/lmathlib.c \
-					$(LUALIB_PATH)/loadlib.c \
-					$(LUALIB_PATH)/lvm.c \
-					$(LUALIB_PATH)/lfunc.c \
-					$(LUALIB_PATH)/lstrlib.c \
-					$(LUALIB_PATH)/linit.c \
-					$(LUALIB_PATH)/lstring.c \
-					$(LUALIB_PATH)/lundump.c \
-					$(LUALIB_PATH)/lctype.c \
-					$(LUALIB_PATH)/ltable.c \
-					$(LUALIB_PATH)/ldump.c \
-					$(LUALIB_PATH)/loslib.c \
-					$(LUALIB_PATH)/lgc.c \
-					$(LUALIB_PATH)/lzio.c \
-					$(LUALIB_PATH)/ldblib.c \
-					$(LUALIB_PATH)/lutf8lib.c \
-					$(LUALIB_PATH)/lmem.c \
-					$(LUALIB_PATH)/lcorolib.c \
-					$(LUALIB_PATH)/lcode.c \
-					$(LUALIB_PATH)/ltablib.c \
-					$(LUALIB_PATH)/lbitlib.c \
-					$(LUALIB_PATH)/lapi.c \
-					$(LUALIB_PATH)/lbaselib.c \
-					$(LUALIB_PATH)/ldebug.c \
-					$(LUALIB_PATH)/lparser.c \
-					$(LUALIB_PATH)/llex.c \
-					$(LUALIB_PATH)/ltm.c \
-					$(LUALIB_PATH)/ldo.c
+LUALIB_PATH := $(LUA_PROJECT_PATH)/lualib
+LUALIB_CORE_SRC := ${LUALIB_PATH}/core
+LUALIB_LIBRARIES_SRC := ${LUALIB_PATH}/libraries
+LOCAL_SRC_FILES := $(LUALIB_CORE_SRC)/lopcodes.c \
+					$(LUALIB_CORE_SRC)/lstate.c \
+					$(LUALIB_CORE_SRC)/lobject.c \
+					$(LUALIB_CORE_SRC)/lvm.c \
+					$(LUALIB_CORE_SRC)/lfunc.c \
+					$(LUALIB_CORE_SRC)/lstring.c \
+					$(LUALIB_CORE_SRC)/lundump.c \
+					$(LUALIB_CORE_SRC)/lctype.c \
+					$(LUALIB_CORE_SRC)/ltable.c \
+					$(LUALIB_CORE_SRC)/ldump.c \
+					$(LUALIB_CORE_SRC)/lgc.c \
+					$(LUALIB_CORE_SRC)/lzio.c \
+					$(LUALIB_CORE_SRC)/lmem.c \
+					$(LUALIB_CORE_SRC)/lcode.c \
+					$(LUALIB_CORE_SRC)/lapi.c \
+					$(LUALIB_CORE_SRC)/ldebug.c \
+					$(LUALIB_CORE_SRC)/lparser.c \
+					$(LUALIB_CORE_SRC)/llex.c \
+					$(LUALIB_CORE_SRC)/ltm.c \
+					$(LUALIB_CORE_SRC)/ldo.c \
+					$(LUALIB_LIBRARIES_SRC)/lauxlib.c \
+					$(LUALIB_LIBRARIES_SRC)/lbaselib.c \
+					$(LUALIB_LIBRARIES_SRC)/lbitlib.c \
+					$(LUALIB_LIBRARIES_SRC)/lcorolib.c \
+					$(LUALIB_LIBRARIES_SRC)/ldblib.c \
+					$(LUALIB_LIBRARIES_SRC)/linit.c \
+					$(LUALIB_LIBRARIES_SRC)/liolib.c \
+					$(LUALIB_LIBRARIES_SRC)/lmathlib.c \
+					$(LUALIB_LIBRARIES_SRC)/loadlib.c \
+					$(LUALIB_LIBRARIES_SRC)/loslib.c \
+					$(LUALIB_LIBRARIES_SRC)/lstrlib.c \
+					$(LUALIB_LIBRARIES_SRC)/ltablib.c \
+					$(LUALIB_LIBRARIES_SRC)/lutf8lib.c
 
 # lua cmod
 # luasocket
