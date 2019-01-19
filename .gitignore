@@ -4,12 +4,10 @@ buildXcode
 buildVS
 .vscode
 
-*.xcuserstate
 project.xcworkspace
 xcuserdata
+xcshareddata
 UserInterfaceState.xcuserstate
-project.xcworkspace/
-xcuserdata/
 UserInterface.xcuserstate
 
 luawithlib/Android/libs/
