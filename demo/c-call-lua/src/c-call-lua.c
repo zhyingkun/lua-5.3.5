@@ -12,7 +12,7 @@
 #include <lualib.h>
 
 
-// Lua Coroutine C Implementation ----------------------------------------------
+// Lua Coroutine C Implementation Start ----------------------------------------
 
 static int helloCoroutine(lua_State* L){
 	(void)L;
@@ -21,6 +21,14 @@ static int helloCoroutine(lua_State* L){
 }
 
 static int CYieldFunc1(lua_State* L, int status, lua_KContext ctx){
+	// Now L1->stack[0] ==> nil
+	//     L1->stack[1] ==> LuaCoroutineCImpl
+	//     L1->stack[2] ==> 1
+	//     L1->ci->func ---> L1->stack[3] ==> CYieldFunc
+	//     L1->stack[4] ==> 11 // for test
+	//     L1->stack[5] ==> 12 // for test
+	//     L1->stack[6] ==> 2  // the second resume
+	//     L1->top ---> L1->stack[7]
 	printf("In CYieldFunc1 status: %d  ctx: %ld\n", status, (long)ctx);
 	lua_Integer intVal = luaL_checkinteger(L, 1);
 	printf("From Second Resume: %lld\n", intVal);
@@ -28,6 +36,8 @@ static int CYieldFunc1(lua_State* L, int status, lua_KContext ctx){
 }
 static int CYieldFunc(lua_State* L){
 	printf("In CYieldFunc\n");
+	lua_pushinteger(L, 11); // for test
+	lua_pushinteger(L, 12); // for test
 	lua_pushinteger(L, 11);
 	return lua_yieldk(L, 1, 201, CYieldFunc1);
 }
@@ -44,6 +54,10 @@ static int ContinueFunc3 (lua_State *L, int status, lua_KContext ctx){
 }
 
 static int ContinueFunc2 (lua_State *L, int status, lua_KContext ctx){
+	// Now L1->stack[0] ==> nil
+	//     L1->stack[1] ==> LuaCoroutineCImpl
+	//     L1->stack[2] ==> 1
+	//     L1->top ---> L1->stack[3]
 	printf("In ContinueFunc2 status: %d  ctx: %ld\n", status, (long)ctx);
 	int num = lua_gettop(L);
 	lua_Integer intVal = luaL_checkinteger(L, 1);
@@ -77,7 +91,7 @@ static int LuaCoroutineCImpl(lua_State* L){
 	return ContinueFunc1(L, status, 101);
 }
 
-// Lua Coroutine C Implementation ----------------------------------------------
+// Lua Coroutine C Implementation End ------------------------------------------
 
 
 static int CDefineFunc(lua_State* L){
@@ -96,6 +110,12 @@ static int nilMetaTable(lua_State* L)
 	return 1;
 }
 
+static const char *luaStrFunc = "\
+print('Run in Lua')\
+print('In luaStrFunc')\
+print('Good Morning')\
+return 42";
+
 static const char *luaStr = "\
 print('Run in Lua')\
 print('MyName is ', MyName)\
@@ -113,7 +133,10 @@ static int pmain(lua_State* L){
 	(void)argv;
 	printf("Start c-call-lua ...\n");
 	lua_pop(L, 2); // pop argc and argv from lua stack
-	// Now lua stack is empty, L->ci->func ==> pmain
+	// Lua stack is empty, L->ci->func ==> pmain
+	// Now L->stack[0] ==> (all null value)
+	//     L->stack[1] ==> pmain
+	//     L->top ---> L->stack[2]
 	printf("===================================\n");
 	
 	lua_pushstring(L, "zyk"); // push to stack
@@ -121,14 +144,14 @@ static int pmain(lua_State* L){
 	int zykType = lua_type(L, 1);
 	printf("zykType is %d, LUA_TSTRING is %d\n", zykType, LUA_TSTRING);
 	printf("LUA_TSHRSTR is %d, LUA_TLNGSTR is %d\n", LUA_TSHRSTR, LUA_TLNGSTR);
-	lua_setglobal(L, "MyName"); // pop from stack and set to global
+	lua_setglobal(L, "MyName"); // pop one value from stack and set to global
 	printf("===================================\n");
 
 	lua_createtable(L, 0, 0); // create a new table and push to stack
 	lua_pushstring(L, "Year");
 	lua_pushnumber(L, 2018);
-	lua_settable(L, -3); // t["Year"] = 2018
-	lua_setglobal(L, "TimeRecord"); // _G["TimeRecord"] = t
+	lua_settable(L, -3); // t["Year"] = 2018, this op will pop 2 value
+	lua_setglobal(L, "TimeRecord"); // _G["TimeRecord"] = t (pop 1 value)
 //	printf("===================================\n");
 
 	lua_createtable(L, 0, 0); // t = {}
@@ -139,10 +162,20 @@ static int pmain(lua_State* L){
 	lua_setglobal(L, "RefTable"); // _G["RefTable"] = t2
 	printf("===================================\n");
 
-	lua_pushcclosure(L, CDefineFunc, 0);
-	lua_pushstring(L, "Hello zyk!");
+	lua_pushcclosure(L, CDefineFunc, 0); // push C func to stack
+	lua_pushstring(L, "Hello zyk!"); // parament for CDefineFunc
 	printf("CDefineFunc is %p\n", CDefineFunc);
-	lua_call(L, 1, 0);
+	lua_call(L, 1, 0); // call it, this will pop 2 value from lua stack
+	printf("===================================\n");
+
+	int funcRet = luaL_loadstring(L, luaStrFunc); // load string and parse it to a function
+	if (funcRet != LUA_OK) {
+		printf("luaL_loadstring error, funcRet: %d return: %s\n", funcRet, lua_tostring(L, 1));
+	}else{
+		funcRet = lua_pcall(L, 0, 1, 0);
+		printf("lua_pcall return: %lld\n", lua_tointeger(L, 1));
+	}
+	lua_pop(L, 1); // pop string pushed by luaL_loadstring or lua_pcall
 	printf("===================================\n");
 
 	int ret = luaL_dostring(L, luaStr); // luaStr will return a string
@@ -168,17 +201,26 @@ static int pmain(lua_State* L){
 	//     L1->top ---> L->stack[3]
 	int resumeRet = lua_resume(L1, L, 1); // resume L1 from L
 	printf("[In pmain] First Resume Ret: %d  L1 gettop: %d  Value: %lld\n", resumeRet, lua_gettop(L1), lua_tointeger(L1, 1));
-	lua_pop(L1, lua_gettop(L1)); // pop return value from L1 stack
+	printf("lua_gettop(L1): %d\n", lua_gettop(L1));
+	// Now L1->stack[0] ==> nil
+	//     L1->stack[1] ==> LuaCoroutineCImpl
+	//     L1->stack[2] ==> 1
+	//     Here are all stack frame pushed by L1 func call ... (funcs and values)
+	//     L1->ci->func ---> L1->stack[m]
+	//     Here are values for L1 yield n arguments ...
+	//     L1->top ---> L1->stack[m+1+n]
+	//     lua_gettop(L1) ==> n
+	lua_pop(L1, lua_gettop(L1)); // pop all value which are L1 yield passed
 	
 	lua_pushinteger(L1, 2);
 	resumeRet = lua_resume(L1, L, 1);
 	printf("[In pmain] Second Resume Ret: %d Value: %lld\n", resumeRet, lua_tointeger(L1, 1));
-	lua_pop(L1, lua_gettop(L1)); // pop return value from L1 stack
+	lua_pop(L1, lua_gettop(L1)); // pop all return value from L1 stack
 
 	lua_pushinteger(L1, 3);
 	resumeRet = lua_resume(L1, L, 1);
 	printf("[In pmain] Third Resume Ret: %d Value: %lld\n", resumeRet, lua_tointeger(L1, 1));
-	lua_pop(L1, lua_gettop(L1)); // pop return value from L1 stack
+	lua_pop(L1, lua_gettop(L1)); // pop all return value from L1 stack
 	lua_pop(L, 1); // pop L1 from L stack
 	printf("===================================\n");
 
@@ -192,10 +234,10 @@ static int pmain(lua_State* L){
 //		}
 //	}
 	
-	lua_pushnil(L);
-	lua_newtable(L);
+	lua_pushnil(L); // L->stack[2] = nil
+	lua_newtable(L); // L->stack[3] = t = {}
 	lua_pushcclosure(L, nilMetaTable, 0);
-	lua_setfield(L, -2, "__index");
+	lua_setfield(L, -2, "__index"); // t.__index = nilMetaTable
 	lua_setmetatable(L, -2);
 	lua_pop(L, 1); // pop nil
 	
@@ -203,6 +245,38 @@ static int pmain(lua_State* L){
 	lua_getfield(L, -1, "NilGetValue");
 	printf("Get from nil: %s\n", lua_tostring(L, -1));
 	lua_pop(L, 2); // pop nil and value from getfield
+	printf("===================================\n");
+
+	// test lua gc
+//	lua_gc(L, LUA_GCCOLLECT, 0);
+//	lua_gc(L, LUA_GCCOLLECT, 0);
+//	lua_newtable(L);
+//	lua_setglobal(L, "TableForTestGC");
+//	int oldgcstepmul = lua_gc(L, LUA_GCSETSTEPMUL, 50);
+//	int objNum[4];
+//	for (int i=0; i<4; i++) {
+//		objNum[i] = 0;
+//	}
+//	lu_byte oldWhite = G(L)->currentwhite;
+//	printf("oldgcstepmul: %d\n", oldgcstepmul);
+//	lua_getglobal(L, "TableForTestGC");
+//	for (int i=1;;i++) {
+//		char tmp[1024];
+//		sprintf(tmp, "haha%0128d", i);
+////		printf("%s\n", tmp);
+//		if (G(L)->currentwhite != oldWhite) {
+//			printf("currentwhite changed: %d\n", G(L)->currentwhite);
+//			for (int i=0; i<4; i++) {
+//				printf("objNum[%d] = %d\n", i, objNum[i]);
+//				objNum[i] = 0;
+//			}
+//		}
+//		oldWhite = G(L)->currentwhite;
+//		objNum[G(L)->currentwhite]++;
+//		lua_pushstring(L, tmp);
+//		lua_pop(L, 1);
+////		lua_rawseti(L, -2, i);
+//	}
 	
 	return 0;
 }
@@ -212,7 +286,7 @@ int main(int argc, char const *argv[])
 	lua_State* L = luaL_newstate();
 //	lua_gc(L, LUA_GCCOLLECT, 0);
 	if (L == NULL) {
-		fprintf(stderr, "%s:%s\n", argv[0], "cannot create state: not enough memory");
+		fprintf(stderr, "%s: %s\n", argv[0], "cannot create state ==> not enough memory");
 		fflush(stderr);
 		return 1;
 	}
