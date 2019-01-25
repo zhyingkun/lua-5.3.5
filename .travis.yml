@@ -11,10 +11,7 @@ compiler:
 
 script:
   - mkdir build && cd build
-  - if [ $TRAVIS_OS_NAME == windows ]; then 
-  -   cmake -G "Visual Studio 15 2017 Win64" ..
-  -   # MSBuild
-  - else
-  -   cmake -DCMAKE_BUILD_TYPE=Release ..
-  -   make
-  - fi
+  - if [ $TRAVIS_OS_NAME == linux ];   then cmake -DCMAKE_BUILD_TYPE=Release .. && make ; fi
+  - if [ $TRAVIS_OS_NAME == osx ];     then cmake -DCMAKE_BUILD_TYPE=Release .. && make ; fi
+  - if [ $TRAVIS_OS_NAME == windows ]; then cmake -G "Visual Studio 15 2017 Win64" .. ; fi
+  - # TODO: MSBuild for windows
