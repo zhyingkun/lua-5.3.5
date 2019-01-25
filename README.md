@@ -1,5 +1,7 @@
 # lua-5.3.5
 
+[![Build Status](https://travis-ci.com/zhyingkun/lua-5.3.5.svg)](https://travis-ci.com/zhyingkun/lua-5.3.5)
+
 ----
 
 ## 基本介绍
