@@ -1136,6 +1136,9 @@ LUA_API int lua_error (lua_State *L) {
 }
 
 
+// when call lua_next
+// index2addr(idx) ==> table for Traversing
+//     (L->top -1) ==> the key for get next, nil for get the first key-value
 LUA_API int lua_next (lua_State *L, int idx) {
   StkId t;
   int more;

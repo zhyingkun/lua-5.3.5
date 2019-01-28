@@ -1181,7 +1181,7 @@ void luaV_execute (lua_State *L) {
           return;  /* external invocation: return */
         else {  /* invocation via reentry: continue execution */
           ci = L->ci;
-          if (b) L->top = ci->top;
+          if (b) L->top = ci->top; // ci->top is the top of lua stack frame
           lua_assert(isLua(ci));
           lua_assert(GET_OPCODE(*((ci)->u.l.savedpc - 1)) == OP_CALL);
           goto newframe;  /* restart luaV_execute over new Lua function */

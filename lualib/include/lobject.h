@@ -546,6 +546,7 @@ typedef struct Table {
 /*
 ** 'module' operation for hashing (size is always a power of 2)
 */
+// s is the hash code, lmod get last log2(size) - 1 bits
 #define lmod(s,size) \
 	(check_exp((size&(size-1))==0, (cast(int, (s) & ((size)-1)))))
 

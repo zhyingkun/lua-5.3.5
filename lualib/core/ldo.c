@@ -379,6 +379,7 @@ static int moveresults (lua_State *L, const TValue *firstResult, StkId res,
 ** moves current number of results to proper place; returns 0 iff call
 ** wanted multiple (variable number of) results.
 */
+// call hook, and handle lua stack for return result
 int luaD_poscall (lua_State *L, CallInfo *ci, StkId firstResult, int nres) {
   StkId res;
   int wanted = ci->nresults;
