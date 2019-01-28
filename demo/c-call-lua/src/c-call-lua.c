@@ -193,6 +193,7 @@ static int pmain(lua_State* L){
 	//     L->stack[1] ==> pmain
 	//     L->stack[2] ==> L1
 	//     L->top ---> L->stack[3]
+	//     L->ci->func ---> pmain
 	lua_pushcfunction(L1, LuaCoroutineCImpl);
 	lua_pushinteger(L1, 1);
 	// Now L1->stack[0] ==> (all null value)
@@ -210,6 +211,7 @@ static int pmain(lua_State* L){
 	//     Here are values for L1 yield n arguments ...
 	//     L1->top ---> L1->stack[m+1+n]
 	//     lua_gettop(L1) ==> n
+	//     L1->ci->extra = k * sizeof(StkId) // for L1 prev call, StkId is a pointer
 	lua_pop(L1, lua_gettop(L1)); // pop all value which are L1 yield passed
 	
 	lua_pushinteger(L1, 2);
@@ -247,6 +249,48 @@ static int pmain(lua_State* L){
 	lua_pop(L, 2); // pop nil and value from getfield
 	printf("===================================\n");
 
+	lua_newtable(L); // t = {}
+	lua_pushstring(L, "World");
+	lua_setfield(L, 1, "Hello"); // t.Hello = "World"
+	lua_pushstring(L, "It is One");
+	lua_seti(L, 1, 1); // t[1] = "It is One"
+	lua_pushstring(L, "It is Two");
+	lua_seti(L, 1, 2);
+	lua_pushstring(L, "It is Three");
+	lua_seti(L, 1, 3);
+	lua_pushstring(L, "It is Twenty");
+	lua_seti(L, 1, 20);
+	lua_pushnil(L); // Start Traversing the Table
+	while (lua_next(L, 1)) { // In table's hash part, which key print first dependent on hash seed
+		printf("%s ==> %s\n", lua_typename(L, lua_type(L, 2)), lua_tostring(L, 3));
+		lua_pop(L, 1); // pop the value, leave the key for lua_next
+	}
+	
+	lua_pushstring(L, "It is Twenty");
+	lua_seti(L, 1, 4);
+	lua_pushstring(L, "It is Twenty");
+	lua_seti(L, 1, 5);
+	lua_pushstring(L, "It is Twenty");
+	lua_seti(L, 1, 6);
+	lua_pushstring(L, "It is Twenty");
+	lua_seti(L, 1, 7);
+	lua_pushstring(L, "It is Twenty");
+	lua_seti(L, 1, 9);
+	lua_pushstring(L, "It is Twenty");
+	lua_seti(L, 1, 10);
+	lua_pushstring(L, "It is Twenty");
+	lua_seti(L, 1, 11);
+	lua_pushstring(L, "It is Twenty");
+	lua_seti(L, 1, 12);
+	lua_pushstring(L, "It is Twenty");
+	lua_seti(L, 1, 13);
+	lua_pushstring(L, "It is Twenty");
+	lua_seti(L, 1, 14);
+	printf("lua_rawlen(t): %zu\n", lua_rawlen(L, 1)); // lua_rawlen(t) ==> 7
+	lua_pop(L, 1); // pop the table t
+
+	printf("===================================\n");
+	
 	// test lua gc
 //	lua_gc(L, LUA_GCCOLLECT, 0);
 //	lua_gc(L, LUA_GCCOLLECT, 0);
