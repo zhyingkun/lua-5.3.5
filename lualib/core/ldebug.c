@@ -107,6 +107,8 @@ LUA_API int lua_gethookcount (lua_State *L) {
 }
 
 
+// level == 0 means current L->ci
+// level == 1 means L->ci->previous ...
 LUA_API int lua_getstack (lua_State *L, int level, lua_Debug *ar) {
   int status;
   CallInfo *ci;
@@ -268,15 +270,15 @@ static int auxgetinfo (lua_State *L, const char *what, lua_Debug *ar,
         funcinfo(ar, f);
         break;
       }
-      case 'l': {
+      case 'l': { // get current line, should have a ci
         ar->currentline = (ci && isLua(ci)) ? currentline(ci) : -1;
         break;
       }
       case 'u': {
-        ar->nups = (f == NULL) ? 0 : f->c.nupvalues;
+        ar->nups = (f == NULL) ? 0 : f->c.nupvalues; // number of upvalues
         if (noLuaClosure(f)) {
           ar->isvararg = 1;
-          ar->nparams = 0;
+          ar->nparams = 0; // number of fixed params
         }
         else {
           ar->isvararg = f->l.p->is_vararg;
@@ -284,11 +286,11 @@ static int auxgetinfo (lua_State *L, const char *what, lua_Debug *ar,
         }
         break;
       }
-      case 't': {
+      case 't': { // is it a tailcall, must have a ci
         ar->istailcall = (ci) ? ci->callstatus & CIST_TAIL : 0;
         break;
       }
-      case 'n': {
+      case 'n': { // get the name and name type, should have a ci
         ar->namewhat = getfuncname(L, ci, &ar->name);
         if (ar->namewhat == NULL) {
           ar->namewhat = "";  /* not found */
@@ -306,6 +308,15 @@ static int auxgetinfo (lua_State *L, const char *what, lua_Debug *ar,
 }
 
 
+// Should in a call of function: ('what' not start with '>')
+// 'l' ==> get currentline in ar->currentline
+// 't' ==> is it a tailcall, store in ar->istailcall
+// 'n' ==> get the name and name type, in ar->name and ar->namewhat
+// ('what' can start with '>')
+// 'S' ==> for ar->source, ar->short_src, ar->linedefined, ar->lastlinedefined, ar->what
+// 'u' ==> for info of upvalues and params, ar->nups, ar->isvararg, ar->nparams
+// 'f' ==> push the function (which has been got info) to the lua stack
+// 'L' ==> push a table (which store the lineinfo of the function) to the lua stack
 LUA_API int lua_getinfo (lua_State *L, const char *what, lua_Debug *ar) {
   int status;
   Closure *cl;

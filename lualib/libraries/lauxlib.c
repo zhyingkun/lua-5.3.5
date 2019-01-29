@@ -107,6 +107,9 @@ static void pushfuncname (lua_State *L, lua_Debug *ar) {
 }
 
 
+// get the depth of CallInfo chain
+// L->base_ci ==> n ==> n-1 ==> ... ==> 1 ==> L->ci
+// lastlevel will find 'n'
 static int lastlevel (lua_State *L) {
   lua_Debug ar;
   int li = 1, le = 1;
@@ -122,6 +125,7 @@ static int lastlevel (lua_State *L) {
 }
 
 
+// get function call info from level to lastlevel
 LUALIB_API void luaL_traceback (lua_State *L, lua_State *L1,
                                 const char *msg, int level) {
   lua_Debug ar;
@@ -138,7 +142,7 @@ LUALIB_API void luaL_traceback (lua_State *L, lua_State *L1,
       level = last - LEVELS2 + 1;  /* and skip to last ones */
     }
     else {
-      lua_getinfo(L1, "Slnt", &ar);
+      lua_getinfo(L1, "Slnt", &ar); // get info from ar->i_ci
       lua_pushfstring(L, "\n\t%s:", ar.short_src);
       if (ar.currentline > 0)
         lua_pushfstring(L, "%d:", ar.currentline);
