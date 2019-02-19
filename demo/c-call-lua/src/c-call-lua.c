@@ -111,9 +111,13 @@ static int nilMetaTable(lua_State* L)
 }
 
 static const char *luaStrFunc = "\
-print('Run in Lua')\
-print('In luaStrFunc')\
-print('Good Morning')\
+function globalFunc()			\n\
+	local numVar = 12			\n\
+	print('numVar: ', numVar)	\n\
+end								\n\
+print('Run in Lua')				\n\
+print('In luaStrFunc')			\n\
+print('Good Morning')			\n\
 return 42";
 
 static const char *luaStr = "\
@@ -291,6 +295,12 @@ static int pmain(lua_State* L){
 
 	printf("===================================\n");
 	
+	lua_pushstring(L, "TestString");
+	lua_pushstring(L, "name");
+	lua_pushstring(L, "GoodName");
+	lua_rawget(L, -3);
+	printf("===================================\n");
+
 	// test lua gc
 //	lua_gc(L, LUA_GCCOLLECT, 0);
 //	lua_gc(L, LUA_GCCOLLECT, 0);
