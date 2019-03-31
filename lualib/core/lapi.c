@@ -593,6 +593,7 @@ LUA_API int lua_pushthread (lua_State *L) {
 */
 
 
+// May throw LUA_ERRRUN or LUA_ERRMEM
 static int auxgetstr (lua_State *L, const TValue *t, const char *k) {
   const TValue *slot;
   TString *str = luaS_new(L, k);
@@ -627,6 +628,7 @@ LUA_API int lua_gettable (lua_State *L, int idx) {
 }
 
 
+// May throw LUA_ERRRUN or LUA_ERRMEM
 LUA_API int lua_getfield (lua_State *L, int idx, const char *k) {
   lua_lock(L);
   return auxgetstr(L, index2addr(L, idx), k);
@@ -1127,6 +1129,7 @@ LUA_API int lua_gc (lua_State *L, int what, int data) {
 */
 
 
+// Throw LUA_ERRRUN
 LUA_API int lua_error (lua_State *L) {
   lua_lock(L);
   api_checknelems(L, 1);

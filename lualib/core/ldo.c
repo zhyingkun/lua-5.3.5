@@ -192,6 +192,7 @@ void luaD_reallocstack (lua_State *L, int newsize) {
 }
 
 
+// May Throw LUA_ERRERR
 void luaD_growstack (lua_State *L, int n) {
   int size = L->stacksize;
   if (size > LUAI_MAXSTACK)  /* error after extra size? */
@@ -485,6 +486,7 @@ int luaD_precall (lua_State *L, StkId func, int nresults) {
 ** smaller than 9/8 of LUAI_MAXCCALLS, does not report an error (to
 ** allow overflow handling to work)
 */
+// May Throw LUA_ERRERR
 static void stackerror (lua_State *L) {
   if (L->nCcalls == LUAI_MAXCCALLS)
     luaG_runerror(L, "C stack overflow");
@@ -696,6 +698,7 @@ LUA_API int lua_isyieldable (lua_State *L) {
 }
 
 
+// May Throw LUA_YIELD
 LUA_API int lua_yieldk (lua_State *L, int nresults, lua_KContext ctx,
                         lua_KFunction k) {
   CallInfo *ci = L->ci;
@@ -761,6 +764,7 @@ struct SParser {  /* data to 'f_parser' */
 };
 
 
+// May Throw LUA_ERRSYNTAX
 static void checkmode (lua_State *L, const char *mode, const char *x) {
   if (mode && strchr(mode, x[0]) == NULL) {
     luaO_pushfstring(L,

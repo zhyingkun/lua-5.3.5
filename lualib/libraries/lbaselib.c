@@ -99,6 +99,7 @@ static int luaB_tonumber (lua_State *L) {
 }
 
 
+// Throw LUA_ERRRUN
 static int luaB_error (lua_State *L) {
   int level = (int)luaL_optinteger(L, 2, 1);
   lua_settop(L, 1);
@@ -359,6 +360,7 @@ static int dofilecont (lua_State *L, int d1, lua_KContext d2) {
 }
 
 
+// May Throw LUA_ERRRUN
 static int luaB_dofile (lua_State *L) {
   const char *fname = luaL_optstring(L, 1, NULL);
   lua_settop(L, 1);

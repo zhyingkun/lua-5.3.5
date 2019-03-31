@@ -289,7 +289,7 @@ static int noenv (lua_State *L) {
 */
 static void setpath (lua_State *L, const char *fieldname,
                                    const char *envname,
-                                   const char *dft) {
+                                   const char *dft) { // [-0, +0]
   const char *nver = lua_pushfstring(L, "%s%s", envname, LUA_VERSUFFIX);
   const char *path = getenv(nver);  /* use versioned name */
   if (path == NULL)  /* no environment variable? */
@@ -730,7 +730,7 @@ static const luaL_Reg ll_funcs[] = {
 };
 
 
-static void createsearcherstable (lua_State *L) {
+static void createsearcherstable (lua_State *L) { // [-0, +0]
   static const lua_CFunction searchers[] =
     {searcher_preload, searcher_Lua, searcher_C, searcher_Croot, NULL};
   int i;
@@ -754,7 +754,7 @@ static void createsearcherstable (lua_State *L) {
 ** create table CLIBS to keep track of loaded C libraries,
 ** setting a finalizer to close all libraries when closing state.
 */
-static void createclibstable (lua_State *L) {
+static void createclibstable (lua_State *L) { // [-0, +0]
   lua_newtable(L);  /* create CLIBS table */
   lua_createtable(L, 0, 1);  /* create metatable for CLIBS */
   lua_pushcfunction(L, gctm);
@@ -764,13 +764,13 @@ static void createclibstable (lua_State *L) {
 }
 
 
-LUAMOD_API int luaopen_package (lua_State *L) {
-  createclibstable(L);
-  luaL_newlib(L, pk_funcs);  /* create 'package' table */
-  createsearcherstable(L);
+LUAMOD_API int luaopen_package (lua_State *L) { // [-0, +1]
+  createclibstable(L);												// [-0, +0]
+  luaL_newlib(L, pk_funcs);  /* create 'package' table */			// [-0, +1]
+  createsearcherstable(L);											// [-0, +0]
   /* set paths */
-  setpath(L, "path", LUA_PATH_VAR, LUA_PATH_DEFAULT);
-  setpath(L, "cpath", LUA_CPATH_VAR, LUA_CPATH_DEFAULT);
+  setpath(L, "path", LUA_PATH_VAR, LUA_PATH_DEFAULT);				// [-0, +0]
+  setpath(L, "cpath", LUA_CPATH_VAR, LUA_CPATH_DEFAULT);			// [-0, +0]
   /* store config information */
   lua_pushliteral(L, LUA_DIRSEP "\n" LUA_PATH_SEP "\n" LUA_PATH_MARK "\n"
                      LUA_EXEC_DIR "\n" LUA_IGMARK "\n");
@@ -781,10 +781,10 @@ LUAMOD_API int luaopen_package (lua_State *L) {
   /* set field 'preload' */
   luaL_getsubtable(L, LUA_REGISTRYINDEX, LUA_PRELOAD_TABLE);
   lua_setfield(L, -2, "preload");
-  lua_pushglobaltable(L);
-  lua_pushvalue(L, -2);  /* set 'package' as upvalue for next lib */
-  luaL_setfuncs(L, ll_funcs, 1);  /* open lib into global table */
-  lua_pop(L, 1);  /* pop global table */
+  lua_pushglobaltable(L);											// [-0, +1]
+  lua_pushvalue(L, -2);  /* set 'package' as upvalue for next lib */// [-0, +1]
+  luaL_setfuncs(L, ll_funcs, 1);  /* open lib into global table */	// [-1, +0]
+  lua_pop(L, 1);  /* pop global table */							// [-1, +0]
   return 1;  /* return 'package' table */
 }
 

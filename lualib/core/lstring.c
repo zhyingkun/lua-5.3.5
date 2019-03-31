@@ -70,6 +70,7 @@ unsigned int luaS_hashlongstr (TString *ts) {
 /*
 ** resizes the string table
 */
+// May Throw LUA_ERRRUN or LUA_ERRMEM
 void luaS_resize (lua_State *L, int newsize) {
   int i;
   stringtable *tb = &G(L)->strt; // global string table
@@ -132,6 +133,7 @@ void luaS_init (lua_State *L) {
 /*
 ** creates a new string object
 */
+// May throw LUA_ERRMEM
 static TString *createstrobj (lua_State *L, size_t l, int tag, unsigned int h) {
   TString *ts;
   GCObject *o;
@@ -148,6 +150,7 @@ static TString *createstrobj (lua_State *L, size_t l, int tag, unsigned int h) {
 
 
 // create a long string object
+// May throw LUA_ERRMEM
 TString *luaS_createlngstrobj (lua_State *L, size_t l) {
   TString *ts = createstrobj(L, l, LUA_TLNGSTR, G(L)->seed);
   ts->u.lnglen = l;
@@ -170,6 +173,7 @@ void luaS_remove (lua_State *L, TString *ts) {
 ** checks whether short string exists and reuses it or creates a new one
 */
 // the string 'str' should be a short string
+// May Throw LUA_ERRRUN or LUA_ERRMEM
 static TString *internshrstr (lua_State *L, const char *str, size_t l) {
   TString *ts;
   global_State *g = G(L);
@@ -205,6 +209,7 @@ static TString *internshrstr (lua_State *L, const char *str, size_t l) {
 /*
 ** new string (with explicit length)
 */
+// May Throw LUA_ERRRUN or LUA_ERRMEM
 TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
   if (l <= LUAI_MAXSHORTLEN)  /* short string? */
     return internshrstr(L, str, l);
@@ -225,6 +230,7 @@ TString *luaS_newlstr (lua_State *L, const char *str, size_t l) {
 ** only zero-terminated strings, so it is safe to use 'strcmp' to
 ** check hits.
 */
+// May throw LUA_ERRRUN or LUA_ERRMEM
 TString *luaS_new (lua_State *L, const char *str) {
   unsigned int i = point2uint(str) % STRCACHE_N;  /* hash */
   int j;

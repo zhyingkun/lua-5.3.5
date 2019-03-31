@@ -27,6 +27,7 @@
 ** false due to limited range of data type"; the +1 tricks the compiler,
 ** avoiding this warning but also this optimization.)
 */
+// May Throw LUA_ERRRUN or LUA_ERRMEM
 #define luaM_reallocv(L,b,on,n,e) \
   (((sizeof(n) >= sizeof(size_t) && cast(size_t, (n)) + 1 > MAX_SIZET/(e)) \
       ? luaM_toobig(L) : cast_void(0)) , \
@@ -47,6 +48,7 @@
 #define luaM_newvector(L,n,t) \
 		cast(t *, luaM_reallocv(L, NULL, 0, n, sizeof(t)))
 
+// May throw LUA_ERRMEM
 #define luaM_newobject(L,tag,s)	luaM_realloc_(L, NULL, tag, (s))
 
 // function: grow vector for one element at least
@@ -61,6 +63,7 @@
           if ((nelems)+1 > (size)) \
             ((v)=cast(t *, luaM_growaux_(L,v,&(size),sizeof(t),limit,e)))
 
+// May Throw LUA_ERRRUN or LUA_ERRMEM
 #define luaM_reallocvector(L, v,oldn,n,t) \
    ((v)=cast(t *, luaM_reallocv(L, v, oldn, n, sizeof(t))))
 

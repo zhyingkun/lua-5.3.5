@@ -71,6 +71,7 @@ static int luaB_coresume (lua_State *L) {
 }
 
 
+// May Throw LUA_ERRRUN
 static int luaB_auxwrap (lua_State *L) {
   lua_State *co = lua_tothread(L, lua_upvalueindex(1));
   int r = auxresume(L, co, lua_gettop(L));

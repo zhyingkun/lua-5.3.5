@@ -71,6 +71,7 @@ void *luaM_growaux_ (lua_State *L, void *block, int *size, size_t size_elems,
 }
 
 
+// Throw LUA_ERRRUN
 l_noret luaM_toobig (lua_State *L) {
   luaG_runerror(L, "memory allocation error: block too big");
 }
@@ -85,6 +86,7 @@ l_noret luaM_toobig (lua_State *L) {
 // old  mem info ==> ptr: (block)     size: osize
 // want mem info ==> ptr: (ret value) size: nsize
 // nsize is the size real allocated, include the struct size of lua object
+// When nsize > 0, May throw LUA_ERRMEM
 void *luaM_realloc_ (lua_State *L, void *block, size_t osize, size_t nsize) {
   void *newblock;
   global_State *g = G(L);

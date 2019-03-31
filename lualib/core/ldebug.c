@@ -648,6 +648,7 @@ const char *luaG_addinfo (lua_State *L, const char *msg, TString *src,
 }
 
 
+// Throw LUA_ERRRUN
 l_noret luaG_errormsg (lua_State *L) {
   if (L->errfunc != 0) {  /* is there an error handling function? */
     StkId errfunc = restorestack(L, L->errfunc);
@@ -660,6 +661,7 @@ l_noret luaG_errormsg (lua_State *L) {
 }
 
 
+// Throw LUA_ERRRUN
 l_noret luaG_runerror (lua_State *L, const char *fmt, ...) {
   CallInfo *ci = L->ci;
   const char *msg;
@@ -674,6 +676,7 @@ l_noret luaG_runerror (lua_State *L, const char *fmt, ...) {
 }
 
 
+// May Throw LUA_YIELD
 void luaG_traceexec (lua_State *L) {
   CallInfo *ci = L->ci;
   lu_byte mask = L->hookmask;
