@@ -52,7 +52,7 @@ cat << EOF > $writeFilePath
 cmake_minimum_required(VERSION 3.0)
 project(${cmodName}
 	VERSION 0.1.0
-	DESCRIPTION "Lua ${cmodName} module"
+	# DESCRIPTION "Lua ${cmodName} module"
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
 if("\${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -76,6 +76,7 @@ elseif(WIN32)
 endif()
 
 include_directories(../../include)
+include_directories(../../lualib/include)
 aux_source_directory(./src HELLOMOD_SRC)
 source_group(src FILES \${HELLOMOD_SRC})
 

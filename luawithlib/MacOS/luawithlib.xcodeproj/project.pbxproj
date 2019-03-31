@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		32249381224CD20E007D9DA2 /* luanet.h in Headers */ = {isa = PBXBuildFile; fileRef = 3224937C224CD20E007D9DA2 /* luanet.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		32249382224CD20E007D9DA2 /* luanet.c in Sources */ = {isa = PBXBuildFile; fileRef = 3224937E224CD20E007D9DA2 /* luanet.c */; };
+		32249383224CD20E007D9DA2 /* luanet.c in Sources */ = {isa = PBXBuildFile; fileRef = 3224937E224CD20E007D9DA2 /* luanet.c */; };
 		32CE97E321F2E75E0025DDF5 /* luawithlib.h in Headers */ = {isa = PBXBuildFile; fileRef = 32CE97E121F2E75E0025DDF5 /* luawithlib.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		32CE988221F2E7990025DDF5 /* lopcodes.c in Sources */ = {isa = PBXBuildFile; fileRef = 32CE97EC21F2E7990025DDF5 /* lopcodes.c */; };
 		32CE988321F2E7990025DDF5 /* lstate.c in Sources */ = {isa = PBXBuildFile; fileRef = 32CE97ED21F2E7990025DDF5 /* lstate.c */; };
@@ -157,6 +160,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3224937C224CD20E007D9DA2 /* luanet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = luanet.h; sourceTree = "<group>"; };
+		3224937E224CD20E007D9DA2 /* luanet.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = luanet.c; sourceTree = "<group>"; };
 		32CE97DE21F2E75E0025DDF5 /* luawithlib.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = luawithlib.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		32CE97E121F2E75E0025DDF5 /* luawithlib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = luawithlib.h; sourceTree = "<group>"; };
 		32CE97E221F2E75E0025DDF5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -277,6 +282,31 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		32249379224CD20E007D9DA2 /* luanet */ = {
+			isa = PBXGroup;
+			children = (
+				3224937B224CD20E007D9DA2 /* include */,
+				3224937D224CD20E007D9DA2 /* src */,
+			);
+			path = luanet;
+			sourceTree = "<group>";
+		};
+		3224937B224CD20E007D9DA2 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				3224937C224CD20E007D9DA2 /* luanet.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		3224937D224CD20E007D9DA2 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				3224937E224CD20E007D9DA2 /* luanet.c */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
 		32CE97D421F2E75E0025DDF5 = {
 			isa = PBXGroup;
 			children = (
@@ -396,6 +426,7 @@
 		32CE982421F2E7990025DDF5 /* cmod */ = {
 			isa = PBXGroup;
 			children = (
+				32249379224CD20E007D9DA2 /* luanet */,
 				32CE984421F2E7990025DDF5 /* luasocket */,
 			);
 			name = cmod;
@@ -489,6 +520,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				32249381224CD20E007D9DA2 /* luanet.h in Headers */,
 				32CE98FF21F2E7990025DDF5 /* lualib.h in Headers */,
 				32CE98FD21F2E7990025DDF5 /* luaconf.h in Headers */,
 				32CE990021F2E7990025DDF5 /* lauxlib.h in Headers */,
@@ -662,6 +694,7 @@
 				32CE98F621F2E7990025DDF5 /* options.c in Sources */,
 				32CE988F21F2E7990025DDF5 /* lcode.c in Sources */,
 				32CE989521F2E7990025DDF5 /* ldo.c in Sources */,
+				32249382224CD20E007D9DA2 /* luanet.c in Sources */,
 				32CE988921F2E7990025DDF5 /* lctype.c in Sources */,
 				32CE988721F2E7990025DDF5 /* lstring.c in Sources */,
 				32CE989021F2E7990025DDF5 /* lapi.c in Sources */,
@@ -720,6 +753,7 @@
 				32CE992C21F2E9260025DDF5 /* lapi.c in Sources */,
 				32CE992D21F2E9260025DDF5 /* ldebug.c in Sources */,
 				32CE992E21F2E9260025DDF5 /* lparser.c in Sources */,
+				32249383224CD20E007D9DA2 /* luanet.c in Sources */,
 				32CE992F21F2E9260025DDF5 /* llex.c in Sources */,
 				32CE993021F2E9260025DDF5 /* ltm.c in Sources */,
 				32CE993121F2E9260025DDF5 /* ldo.c in Sources */,

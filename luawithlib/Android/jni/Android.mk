@@ -8,6 +8,7 @@ LOCAL_MODULE := luawithlib
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/$(LUA_PROJECT_PATH)/include
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/$(LUA_PROJECT_PATH)/lualib/include
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/$(LUA_PROJECT_PATH)/cmod/luasocket/include
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/$(LUA_PROJECT_PATH)/cmod/luanet/include
 LOCAL_CFLAGS :=  -g -std=gnu99 -DLUA_USE_LINUX
 
 # lualib
@@ -69,5 +70,9 @@ LOCAL_SRC_FILES += $(LUASOCKET_PATH)/buffer.c \
 					$(LUASOCKET_PATH)/unixdgram.c \
 					$(LUASOCKET_PATH)/unixstream.c \
 					$(LUASOCKET_PATH)/unix.c
+
+# luanet
+LUASOCKET_PATH := $(LUA_PROJECT_PATH)/cmod/luanet/src
+LOCAL_SRC_FILES += $(LUASOCKET_PATH)/luanet.c
 
 include $(BUILD_SHARED_LIBRARY)
