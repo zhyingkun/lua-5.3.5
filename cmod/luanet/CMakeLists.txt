@@ -34,9 +34,11 @@ file(GLOB LUA_NET_HEADERS "./include/*.h")
 source_group(src FILES ${HELLOMOD_SRC})
 source_group(include FILES ${LUA_NET_HEADERS})
 
+# luanet must static link with lualib, not dynamic link, because of the use of luaD_rawrunprotected
 add_library(${PROJECT_NAME} MODULE ${HELLOMOD_SRC} ${LUA_NET_HEADERS})
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	# OUTPUT_NAME ${PROJECT_NAME}
+	# VERSION "1.0.0"
+	# SOVERSION "1.0.0"
+	POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(${PROJECT_NAME} lualib)
-if(WIN32)
-	set_target_properties(${PROJECT_NAME} PROPERTIES
-		PREFIX "lib")
-endif(WIN32)

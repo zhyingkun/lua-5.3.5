@@ -81,11 +81,12 @@ aux_source_directory(./src HELLOMOD_SRC)
 source_group(src FILES \${HELLOMOD_SRC})
 
 add_library(\${PROJECT_NAME} MODULE \${HELLOMOD_SRC})
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	# OUTPUT_NAME ${PROJECT_NAME}
+	# VERSION "1.0.0"
+	# SOVERSION "1.0.0"
+	POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(\${PROJECT_NAME} lualib)
-if(WIN32)
-	set_target_properties(\${PROJECT_NAME} PROPERTIES
-		PREFIX "lib")
-endif(WIN32)
 EOF
 exitWhileError "Write features to $writeFilePath failed"
 

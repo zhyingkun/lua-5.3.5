@@ -36,8 +36,3 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	# SOVERSION "0.1.0"
 	POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(${PROJECT_NAME} lualib)
-
-if(WIN32)
-	set_target_properties(${PROJECT_NAME} PROPERTIES
-		PREFIX "lib")
-endif(WIN32)
