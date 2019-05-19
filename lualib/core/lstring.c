@@ -49,7 +49,8 @@ int luaS_eqlngstr (TString *a, TString *b) {
 // Calculate the string hash value
 unsigned int luaS_hash (const char *str, size_t l, unsigned int seed) {
   unsigned int h = seed ^ cast(unsigned int, l); // ^ means Bitwise XOR
-  size_t step = (l >> LUAI_HASHLIMIT) + 1; // if l < 2^LUAI_HASHLIMIT then every byte will be counted
+  // if l < 2^LUAI_HASHLIMIT then every byte will be counted
+  size_t step = (l >> LUAI_HASHLIMIT) + 1;
   for (; l >= step; l -= step)
     h ^= ((h<<5) + (h>>2) + cast_byte(str[l - 1]));
   return h;
@@ -77,7 +78,8 @@ void luaS_resize (lua_State *L, int newsize) {
   if (newsize > tb->size) {  /* grow table if needed */
     luaM_reallocvector(L, tb->hash, tb->size, newsize, TString *);
     for (i = tb->size; i < newsize; i++)
-      tb->hash[i] = NULL; // open hash table, tb->hash is the pointer for linked list
+	  // open hash table, tb->hash is the pointer for linked list
+      tb->hash[i] = NULL;
   }
   for (i = 0; i < tb->size; i++) {  /* rehash */
     TString *p = tb->hash[i];

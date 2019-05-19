@@ -1,16 +1,16 @@
 /* Lua C Library */
 
 #define luanet_c
-#define LUA_LIB  // for export function
+#define LUA_LIB // for export function
 
-#include "lprefix.h"  // must include first
+#include "lprefix.h" // must include first
 
 #include <stdio.h>
 
-#include "lua.h"
-#include "lualib.h"
 #include "lauxlib.h"
 #include "ldo.h"
+#include "lua.h"
+#include "lualib.h"
 
 #include "luanet.h"
 
@@ -143,7 +143,9 @@ LUAMOD_API int luanet_gettable(lua_State* L, int idx) {
 }
 
 // =============================================================================
-typedef struct len_t { int idx; } len_t;
+typedef struct len_t {
+  int idx;
+} len_t;
 void pfunc_len(lua_State* L, void* ud) {
   len_t* tmpArg = (len_t*)ud;
   lua_len(L, tmpArg->idx);
@@ -159,7 +161,9 @@ LUAMOD_API int luanet_len(lua_State* L, int idx) {
 }
 
 // =============================================================================
-typedef struct newthread_t { lua_State* ret; } newthread_t;
+typedef struct newthread_t {
+  lua_State* ret;
+} newthread_t;
 void pfunc_newthread(lua_State* L, void* ud) {
   newthread_t* tmpArg = (newthread_t*)ud;
   tmpArg->ret = lua_newthread(L);
@@ -224,6 +228,10 @@ void pfunc_pushcclosure(lua_State* L, void* ud) {
   lua_pushcclosure(L, tmpArg->fn, tmpArg->n);
 }
 LUAMOD_API int luanet_pushcclosure(lua_State* L, lua_CFunction fn, int n) {
+  if (n == 0) { // if the closure has no upvalue, it has not way to longjmp
+    lua_pushcclosure(L, fn, 0);
+    return LUA_OK;
+  }
   pushcclosure_t tmpArg;
   tmpArg.fn = fn;
   tmpArg.n = n;
@@ -243,8 +251,7 @@ void pfunc_pushstring(lua_State* L, void* ud) {
   pushstring_t* tmpArg = (pushstring_t*)ud;
   tmpArg->ret = lua_pushstring(L, tmpArg->s);
 }
-LUAMOD_API const char* luanet_pushstring(lua_State* L,
-                                         const char* s,
+LUAMOD_API const char* luanet_pushstring(lua_State* L, const char* s,
                                          int* exception) {
   pushstring_t tmpArg;
   tmpArg.s = s;
@@ -266,10 +273,8 @@ void pfunc_pushlstring(lua_State* L, void* ud) {
   pushlstring_t* tmpArg = (pushlstring_t*)ud;
   tmpArg->ret = lua_pushlstring(L, tmpArg->s, tmpArg->len);
 }
-LUAMOD_API const char* luanet_pushlstring(lua_State* L,
-                                          const char* s,
-                                          size_t len,
-                                          int* exception) {
+LUAMOD_API const char* luanet_pushlstring(lua_State* L, const char* s,
+                                          size_t len, int* exception) {
   pushlstring_t tmpArg;
   tmpArg.s = s;
   tmpArg.len = len;
@@ -282,7 +287,9 @@ LUAMOD_API const char* luanet_pushlstring(lua_State* L,
 }
 
 // =============================================================================
-typedef struct rawset_t { int idx; } rawset_t;
+typedef struct rawset_t {
+  int idx;
+} rawset_t;
 void pfunc_rawset(lua_State* L, void* ud) {
   rawset_t* tmpArg = (rawset_t*)ud;
   lua_rawset(L, tmpArg->idx);
@@ -358,7 +365,9 @@ LUAMOD_API int luanet_setfield(lua_State* L, int idx, const char* k) {
 }
 
 // =============================================================================
-typedef struct setglobal_t { const char* name; } setglobal_t;
+typedef struct setglobal_t {
+  const char* name;
+} setglobal_t;
 void pfunc_setglobal(lua_State* L, void* ud) {
   setglobal_t* tmpArg = (setglobal_t*)ud;
   lua_setglobal(L, tmpArg->name);
@@ -394,7 +403,9 @@ LUAMOD_API int luanet_seti(lua_State* L, int idx, lua_Integer n) {
 }
 
 // =============================================================================
-typedef struct settable_t { int idx; } settable_t;
+typedef struct settable_t {
+  int idx;
+} settable_t;
 void pfunc_settable(lua_State* L, void* ud) {
   settable_t* tmpArg = (settable_t*)ud;
   lua_settable(L, tmpArg->idx);
@@ -419,9 +430,7 @@ void pfunc_tolstring(lua_State* L, void* ud) {
   tolstring_t* tmpArg = (tolstring_t*)ud;
   tmpArg->ret = lua_tolstring(L, tmpArg->idx, tmpArg->len);
 }
-LUAMOD_API const char* luanet_tolstring(lua_State* L,
-                                        int idx,
-                                        size_t* len,
+LUAMOD_API const char* luanet_tolstring(lua_State* L, int idx, size_t* len,
                                         int* exception) {
   tolstring_t tmpArg;
   tmpArg.idx = idx;
@@ -435,7 +444,9 @@ LUAMOD_API const char* luanet_tolstring(lua_State* L,
 }
 
 // =============================================================================
-typedef struct checkany_Lt { int arg; } checkany_Lt;
+typedef struct checkany_Lt {
+  int arg;
+} checkany_Lt;
 void pfuncL_checkany(lua_State* L, void* ud) {
   checkany_Lt* tmpArg = (checkany_Lt*)ud;
   luaL_checkany(L, tmpArg->arg);
@@ -480,9 +491,7 @@ void pfuncL_checklstring(lua_State* L, void* ud) {
   checklstring_Lt* tmpArg = (checklstring_Lt*)ud;
   tmpArg->ret = luaL_checklstring(L, tmpArg->arg, tmpArg->len);
 }
-LUAMOD_API const char* luanetL_checklstring(lua_State* L,
-                                            int arg,
-                                            size_t* len,
+LUAMOD_API const char* luanetL_checklstring(lua_State* L, int arg, size_t* len,
                                             int* exception) {
   checklstring_Lt tmpArg;
   tmpArg.arg = arg;
@@ -504,8 +513,7 @@ void pfuncL_checknumber(lua_State* L, void* ud) {
   checknumber_Lt* tmpArg = (checknumber_Lt*)ud;
   tmpArg->ret = luaL_checknumber(L, tmpArg->arg);
 }
-LUAMOD_API lua_Number luanetL_checknumber(lua_State* L,
-                                          int arg,
+LUAMOD_API lua_Number luanetL_checknumber(lua_State* L, int arg,
                                           int* exception) {
   checknumber_Lt tmpArg;
   tmpArg.arg = arg;
@@ -567,9 +575,7 @@ void pfuncL_checkudata(lua_State* L, void* ud) {
   checkudata_Lt* tmpArg = (checkudata_Lt*)ud;
   tmpArg->ret = luaL_checkudata(L, tmpArg->ud, tmpArg->tname);
 }
-LUAMOD_API void* luanetL_checkudata(lua_State* L,
-                                    int ud,
-                                    const char* tname,
+LUAMOD_API void* luanetL_checkudata(lua_State* L, int ud, const char* tname,
                                     int* exception) {
   checkudata_Lt tmpArg;
   tmpArg.ud = ud;
@@ -592,10 +598,8 @@ void pfuncL_loadfilex(lua_State* L, void* ud) {
   loadfilex_Lt* tmpArg = (loadfilex_Lt*)ud;
   tmpArg->ret = luaL_loadfilex(L, tmpArg->filename, tmpArg->mode);
 }
-LUAMOD_API int luanetL_loadfilex(lua_State* L,
-                                 const char* filename,
-                                 const char* mode,
-                                 int* exception) {
+LUAMOD_API int luanetL_loadfilex(lua_State* L, const char* filename,
+                                 const char* mode, int* exception) {
   loadfilex_Lt tmpArg;
   tmpArg.filename = filename;
   tmpArg.mode = mode;
@@ -694,10 +698,8 @@ void pfuncL_optinteger(lua_State* L, void* ud) {
   optinteger_Lt* tmpArg = (optinteger_Lt*)ud;
   tmpArg->ret = luaL_optinteger(L, tmpArg->arg, tmpArg->def);
 }
-LUAMOD_API lua_Integer luanetL_optinteger(lua_State* L,
-                                          int arg,
-                                          lua_Integer def,
-                                          int* exception) {
+LUAMOD_API lua_Integer luanetL_optinteger(lua_State* L, int arg,
+                                          lua_Integer def, int* exception) {
   optinteger_Lt tmpArg;
   tmpArg.arg = arg;
   tmpArg.def = def;
@@ -720,10 +722,8 @@ void pfuncL_optlstring(lua_State* L, void* ud) {
   optlstring_Lt* tmpArg = (optlstring_Lt*)ud;
   tmpArg->ret = luaL_optlstring(L, tmpArg->arg, tmpArg->def, tmpArg->len);
 }
-LUAMOD_API const char* luanetL_optlstring(lua_State* L,
-                                          int arg,
-                                          const char* def,
-                                          size_t* len,
+LUAMOD_API const char* luanetL_optlstring(lua_State* L, int arg,
+                                          const char* def, size_t* len,
                                           int* exception) {
   optlstring_Lt tmpArg;
   tmpArg.arg = arg;
@@ -746,9 +746,7 @@ void pfuncL_optnumber(lua_State* L, void* ud) {
   optnumber_Lt* tmpArg = (optnumber_Lt*)ud;
   tmpArg->ret = luaL_optnumber(L, tmpArg->arg, tmpArg->def);
 }
-LUAMOD_API lua_Number luanetL_optnumber(lua_State* L,
-                                        int arg,
-                                        lua_Number def,
+LUAMOD_API lua_Number luanetL_optnumber(lua_State* L, int arg, lua_Number def,
                                         int* exception) {
   optnumber_Lt tmpArg;
   tmpArg.arg = arg;
@@ -791,10 +789,8 @@ void pfuncL_requiref(lua_State* L, void* ud) {
   requiref_Lt* tmpArg = (requiref_Lt*)ud;
   luaL_requiref(L, tmpArg->modname, tmpArg->openf, tmpArg->glb);
 }
-LUAMOD_API int luanetL_requiref(lua_State* L,
-                                const char* modname,
-                                lua_CFunction openf,
-                                int glb) {
+LUAMOD_API int luanetL_requiref(lua_State* L, const char* modname,
+                                lua_CFunction openf, int glb) {
   requiref_Lt tmpArg;
   tmpArg.modname = modname;
   tmpArg.openf = openf;
@@ -807,29 +803,27 @@ LUAMOD_API int luanetL_requiref(lua_State* L,
 }
 
 // =============================================================================
-typedef struct testudata_Lt {
-  int ud;
-  const char* tname;
-  void* ret;
-} testudata_Lt;
-void pfuncL_testudata(lua_State* L, void* ud) {
-  testudata_Lt* tmpArg = (testudata_Lt*)ud;
-  tmpArg->ret = luaL_testudata(L, tmpArg->ud, tmpArg->tname);
-}
-LUAMOD_API void* luanetL_testudata(lua_State* L,
-                                   int ud,
-                                   const char* tname,
-                                   int* exception) {
-  testudata_Lt tmpArg;
-  tmpArg.ud = ud;
-  tmpArg.tname = tname;
-  tmpArg.ret = NULL;
-  int status = luaD_rawrunprotected(L, pfuncL_testudata, &tmpArg);
-  if (exception != NULL) {
-    *exception = status;
-  }
-  return tmpArg.ret;
-}
+// typedef struct testudata_Lt {
+//  int ud;
+//  const char *tname;
+//  void *ret;
+//} testudata_Lt;
+// void pfuncL_testudata(lua_State *L, void *ud) {
+//  testudata_Lt *tmpArg = (testudata_Lt *)ud;
+//  tmpArg->ret = luaL_testudata(L, tmpArg->ud, tmpArg->tname);
+//}
+// LUAMOD_API void *luanetL_testudata(lua_State *L, int ud, const char *tname,
+//                                   int *exception) {
+//  testudata_Lt tmpArg;
+//  tmpArg.ud = ud;
+//  tmpArg.tname = tname;
+//  tmpArg.ret = NULL;
+//  int status = luaD_rawrunprotected(L, pfuncL_testudata, &tmpArg);
+//  if (exception != NULL) {
+//    *exception = status;
+//  }
+//  return tmpArg.ret;
+//}
 
 // =============================================================================
 typedef struct tolstring_Lt {
@@ -841,9 +835,7 @@ void pfuncL_tolstring(lua_State* L, void* ud) {
   tolstring_Lt* tmpArg = (tolstring_Lt*)ud;
   tmpArg->ret = luaL_tolstring(L, tmpArg->idx, tmpArg->len);
 }
-LUAMOD_API const char* luanetL_tolstring(lua_State* L,
-                                         int idx,
-                                         size_t* len,
+LUAMOD_API const char* luanetL_tolstring(lua_State* L, int idx, size_t* len,
                                          int* exception) {
   tolstring_Lt tmpArg;
   tmpArg.idx = idx;
@@ -866,9 +858,7 @@ void pfuncL_traceback(lua_State* L, void* ud) {
   traceback_Lt* tmpArg = (traceback_Lt*)ud;
   luaL_traceback(L, tmpArg->L1, tmpArg->msg, tmpArg->level);
 }
-LUAMOD_API int luanetL_traceback(lua_State* L,
-                                 lua_State* L1,
-                                 const char* msg,
+LUAMOD_API int luanetL_traceback(lua_State* L, lua_State* L1, const char* msg,
                                  int level) {
   traceback_Lt tmpArg;
   tmpArg.L1 = L1;
@@ -883,59 +873,53 @@ LUAMOD_API int luanetL_traceback(lua_State* L,
 
 // =============================================================================
 // For Unity Wrap Namespaces and Classes
-// LUAMOD_API void luanet_UnityWrapInit(lua_State* L){
-//	lua_createtable(L, 0, 256);
-//	lua_setfield(L, LUA_REGISTRYINDEX, "UnityNameToVtbl");
-//	lua_createtable(L, 0, 256);
-//	lua_setfield(L, LUA_REGISTRYINDEX, "UnityNameToClass");
-//}
-// LUAMOD_API void luanet_CreateNamespace(lua_State* L, const char* name, int
-// cnt){
-//	int top = lua_gettop(L);
-//	lua_createtable(L, 0, cnt); // [-0, +1]
-//	lua_pushvalue(L, top+1); // [-0, +1]
-//	lua_setfield(L, top, name); // [-1, +0]
-//}
-// LUAMOD_API void luanet_CreateUnityClass(lua_State* L,
-//										const char*
-//classType,
-//										const char*
-//superType){
-//	int top = lua_gettop(L);
-//	lua_createtable(L, 0, 4); // class, for static member   // top+1
-//	lua_createtable(L, 0, 8); // vtbl, for instance member  // top+2
-//	lua_getfield(L, LUA_REGISTRYINDEX, "UnityNameToClass"); // top+3
-//	lua_getfield(L, LUA_REGISTRYINDEX, "UnityNameToVtbl"); // top+4
-//
-//	if (superType != NULL){
-//		lua_createtable(L, 0, 1); // class metatable
-//		lua_getfield(L, top+3, superType); // get super class
-//		lua_setfield(L, -2, "__index");
-//		lua_setmetatable(L, top+1);
-//
-//		lua_createtable(L, 0, 1); // vtbl metatable
-//		lua_getfield(L, top+4, superType);
-//		lua_setfield(L, -2, "__index");
-//		lua_setmetatable(L, top+2);
-//	}
-//
-//	lua_pushvalue(L, top+1);
-//	lua_setfield(L, top, classType); // namespace[classType] = class
-//	lua_pushvalue(L, top+1);
-//	lua_setfield(L, top+3, classType);
-//	lua_pushvalue(L, top+2);
-//	lua_setfield(L, top+4, classType);
-//}
+// LUAMOD_API void luanet_UnityWrapInit(lua_State *L) {
+//   lua_createtable(L, 0, 256);
+//   lua_setfield(L, LUA_REGISTRYINDEX, "UnityNameToVtbl");
+//   lua_createtable(L, 0, 256);
+//   lua_setfield(L, LUA_REGISTRYINDEX, "UnityNameToClass");
+// }
+// LUAMOD_API void luanet_CreateNamespace(lua_State *L, const char *name,
+//                                        int cnt) {
+//   int top = lua_gettop(L);
+//   lua_createtable(L, 0, cnt); // [-0, +1]
+//   lua_pushvalue(L, top + 1);  // [-0, +1]
+//   lua_setfield(L, top, name); // [-1, +0]
+// }
+// LUAMOD_API void luanet_CreateUnityClass(lua_State *L, const char *classType,
+//                                         const char *superType) {
+//   int top = lua_gettop(L);
+//   lua_createtable(L, 0, 4); // class, for static member   // top+1
+//   lua_createtable(L, 0, 8); // vtbl, for instance member  // top+2
+//   lua_getfield(L, LUA_REGISTRYINDEX, "UnityNameToClass"); // top+3
+//   lua_getfield(L, LUA_REGISTRYINDEX, "UnityNameToVtbl");  // top+4
+
+//   if (superType != NULL) {
+//     lua_createtable(L, 0, 1);            // class metatable
+//     lua_getfield(L, top + 3, superType); // get super class
+//     lua_setfield(L, -2, "__index");
+//     lua_setmetatable(L, top + 1);
+
+//     lua_createtable(L, 0, 1); // vtbl metatable
+//     lua_getfield(L, top + 4, superType);
+//     lua_setfield(L, -2, "__index");
+//     lua_setmetatable(L, top + 2);
+//   }
+
+//   lua_pushvalue(L, top + 1);
+//   lua_setfield(L, top, classType); // namespace[classType] = class
+//   lua_pushvalue(L, top + 1);
+//   lua_setfield(L, top + 3, classType);
+//   lua_pushvalue(L, top + 2);
+//   lua_setfield(L, top + 4, classType);
+// }
 
 // =============================================================================
 // typedef int (*lua_CFunction) (lua_State *L);
-//
-// static const luaL_Reg luaLoadFun[] = {
-//	{NULL, NULL}
-//};
-//
-// LUAMOD_API int luaopen_libluanet(lua_State *L)
-//{
-//	luaL_newlib(L, luaLoadFun);
-//	return 1;
-//}
+
+// static const luaL_Reg luaLoadFun[] = {{NULL, NULL}};
+
+// LUAMOD_API int luaopen_libluanet(lua_State *L) {
+//   luaL_newlib(L, luaLoadFun);
+//   return 1;
+// }

@@ -1055,6 +1055,13 @@ LUA_API int lua_status (lua_State *L) {
 ** Garbage-collection function
 */
 
+/**
+ Lua garbage collection
+ @param L the lua_State
+ @param what what
+ @param data data
+ @return the collected size
+ */
 LUA_API int lua_gc (lua_State *L, int what, int data) {
   int res = 0;
   global_State *g;
