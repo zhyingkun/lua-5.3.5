@@ -132,6 +132,8 @@ static luaL_Reg luaLoadFun[] = {
     {"cfunc", cfunc}, {"foo", foo},           {NULL, NULL}};
 
 LUAMOD_API int luaopen_libhello(lua_State *L) {
+  printf("First argument: %s\n", lua_tostring(L, 1));
+  printf("Second argument: %s\n", lua_tostring(L, 2));
   luaL_newlib(L, luaLoadFun);
   // luaL_newlib will check lua runtime and runtime version
   // Use Marco for version number (when compile this module, the lua version
