@@ -422,7 +422,10 @@ static int luaB_pcall (lua_State *L) {
   int status;
   luaL_checkany(L, 1);
   lua_pushboolean(L, 1);  /* first result if no errors */
+  // pcall(0) func(1) ...(n) true(n+1)
   lua_insert(L, 1);  /* put it in place */
+  // pcall(0) true(1) func(2) ...(n+1)
+  // lua_pcallk(L, argc, retc, errfunc, ctx, k)
   status = lua_pcallk(L, lua_gettop(L) - 2, LUA_MULTRET, 0, 0, finishpcall);
   return finishpcall(L, status, 0);
 }
@@ -439,7 +442,10 @@ static int luaB_xpcall (lua_State *L) {
   luaL_checktype(L, 2, LUA_TFUNCTION);  /* check error function */
   lua_pushboolean(L, 1);  /* first result */
   lua_pushvalue(L, 1);  /* function */
+  // xpcall(0) func(1) msgh(2) ...(n) true(n+1) func(n+2)
   lua_rotate(L, 3, 2);  /* move them below function's arguments */
+  // xpcall(0) func(1) msgh(2) true(3) func(4) ...(n+2)
+  // lua_pcallk(L, argc, retc, errfunc, ctx, k)
   status = lua_pcallk(L, n - 2, LUA_MULTRET, 2, 2, finishpcall);
   return finishpcall(L, status, 2);
 }
