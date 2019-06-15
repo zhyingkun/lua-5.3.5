@@ -438,6 +438,11 @@ static void PrintDebug(const Proto* f)
   printf("\t%d\t%s\t%d\t%d\n",
   i,UPVALNAME(i),f->upvalues[i].instack,f->upvalues[i].idx);
  }
+}
+
+static void PrintSubProtos(const Proto* f)
+{
+ int i,n;
  n=f->sizep;
  printf("sub protos (%d) for %p:\n",n,VOID(f));
  for (i=0; i<n; i++)
@@ -452,5 +457,6 @@ static void PrintFunction(const Proto* f, int full)
  PrintHeader(f);
  PrintCode(f);
  if (full) PrintDebug(f);
+ PrintSubProtos(f);
  for (i=0; i<n; i++) PrintFunction(f->p[i],full);
 }
