@@ -10,8 +10,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_subdirectory(hello)
 set_property(TARGET hello PROPERTY FOLDER "cmod")
-add_subdirectory(luacstruct)
-set_property(TARGET luacstruct PROPERTY FOLDER "cmod")
 add_subdirectory(luasocket)
 set_property(TARGET luasocket PROPERTY FOLDER "cmod")
 add_subdirectory(protobuf)
