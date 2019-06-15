@@ -12,8 +12,6 @@ add_subdirectory(hello)
 set_property(TARGET hello PROPERTY FOLDER "cmod")
 add_subdirectory(luasocket)
 set_property(TARGET luasocket PROPERTY FOLDER "cmod")
-add_subdirectory(protobuf)
-set_property(TARGET protobuf PROPERTY FOLDER "cmod")
 # luanet must static link with lualib
 # add_subdirectory(luanet)
 # set_property(TARGET luanet PROPERTY FOLDER "cmod")
