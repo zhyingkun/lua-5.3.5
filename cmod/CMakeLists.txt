@@ -10,8 +10,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 add_subdirectory(hello)
 set_property(TARGET hello PROPERTY FOLDER "cmod")
-add_subdirectory(luabitop)
-set_property(TARGET luabitop PROPERTY FOLDER "cmod")
 add_subdirectory(luacjson)
 set_property(TARGET luacjson PROPERTY FOLDER "cmod")
 add_subdirectory(luacstruct)
