@@ -70,12 +70,8 @@ ndk-build
 4. luac：Lua官方命令行编译器
 5. cmod：Lua的C语言扩展模块
 	+ hello：helloworld
-	+ lpeg：Lua模式匹配库，代码来自[http://www.inf.puc-rio.br/~roberto/lpeg/lpeg.html]
-	+ luabitop：位操作，代码来自[http://bitop.luajit.org/]
-	+ luacjson：让lua支持json格式，代码来自[https://github.com/mpx/lua-cjson]
-	+ luacstruct：让lua与C语言结构体交互，代码来自[http://www.inf.puc-rio.br/~roberto/struct/]
+	+ luanet：将Lua虚拟机嵌入UnityC#的中间层
 	+ luasocket：封装了socket接口，代码来自[https://github.com/diegonehab/luasocket]
-	+ protobuf：序列化，代码来自[https://github.com/topameng/protoc-gen-lua]
 	+ create-lua-cmod.sh 和 delete-lua-cmod.sh：shell脚本用于快速构建Lua C模块
 6. etc：工程杂项
 	+ fromlua：来自lua官方的相关文件，包括lua文档，留着方便查看
