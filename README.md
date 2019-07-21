@@ -53,7 +53,7 @@ open luawithlib.xcodeproj
 
 5. 使用NDK编译出用于Android的libluawithlib.so共享库
 ```bash
-cd lua-5.1.5/luawithlib/Android/
+cd lua-5.3.5/luawithlib/Android/
 ndk-build
 ```
 编译之后便会有luawithlib/Android/libs/${APP_ABI}/libluawithlib.so共享库
