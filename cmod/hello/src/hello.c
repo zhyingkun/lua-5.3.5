@@ -10,7 +10,7 @@
 #include <lauxlib.h>
 #include <lua.h>
 
-static int add(lua_State *L) {
+static int add(lua_State* L) {
   int num = lua_gettop(L);
   if (num != 2) {
     lua_pushnumber(L, 0);
@@ -22,13 +22,13 @@ static int add(lua_State *L) {
   return 1;
 }
 
-static int hellomod(lua_State *L) {
+static int hellomod(lua_State* L) {
   (void)L;
   printf("hello mod\n");
   return 0;
 }
 
-int afteryield(lua_State *L, int status, lua_KContext ctx) {
+int afteryield(lua_State* L, int status, lua_KContext ctx) {
   (void)L;
   // if status == 0, no longjmp happend
   // if status == 1, lua yield happend
@@ -36,22 +36,22 @@ int afteryield(lua_State *L, int status, lua_KContext ctx) {
   printf("c func afteryield\n");
   printf("status: %d, ctx: %d\n", status, (int)ctx);
   switch (status) {
-  case LUA_OK:
-    printf("LUA_OK\n");
-    break;
-  case LUA_YIELD:
-    printf("LUA_YIELD\n");
-    break;
-  case LUA_ERRRUN:
-    printf("LUA_ERRRUN\n");
-    break;
-  default:
-    break;
+    case LUA_OK:
+      printf("LUA_OK\n");
+      break;
+    case LUA_YIELD:
+      printf("LUA_YIELD\n");
+      break;
+    case LUA_ERRRUN:
+      printf("LUA_ERRRUN\n");
+      break;
+    default:
+      break;
   }
   return 0;
 }
 
-static int cfuncyield(lua_State *L) {
+static int cfuncyield(lua_State* L) {
   printf("cfuncyield before yield lua call\n");
   int yieldAble = lua_isyieldable(L);
   printf("Current Coroutine is yieldable: %d\n", yieldAble);
@@ -72,7 +72,7 @@ static int cfuncyield(lua_State *L) {
   return afteryield(L, status, myCtx);
 }
 
-static int cfunc(lua_State *L) {
+static int cfunc(lua_State* L) {
   printf("cfunc before lua call\n");
   int yieldAble = lua_isyieldable(L);
   printf("Current Coroutine is yieldable: %d\n", yieldAble);
@@ -86,7 +86,7 @@ static int cfunc(lua_State *L) {
     lua_pushliteral(L, "world.hi is not a string");
     lua_error(L);
   }
-  const char *hi = lua_tostring(L, -1);
+  const char* hi = lua_tostring(L, -1);
   printf("world.hi: %s\n", hi);
   lua_pop(L, 1);
   ret = lua_getfield(L, -1, "singSong");
@@ -98,7 +98,7 @@ static int cfunc(lua_State *L) {
   ret = lua_pcall(L, 1, 1, 0);
   printf("lua_pcall ret: %d\n", ret);
   if (ret != LUA_OK) {
-    const char *msg = lua_tostring(L, -1);
+    const char* msg = lua_tostring(L, -1);
     printf("lua_pcall error: %s\n", msg);
     // luaL_traceback(L, L, msg, 2);
   }
@@ -111,7 +111,7 @@ static int cfunc(lua_State *L) {
   return 0;
 }
 
-static int foo(lua_State *L) {
+static int foo(lua_State* L) {
   int n = lua_gettop(L); /* num of arguments */
   lua_Number sum = 0.0;
   int i;
@@ -123,15 +123,14 @@ static int foo(lua_State *L) {
     sum += lua_tonumber(L, i);
   }
   lua_pushnumber(L, sum / n); /* first return value */
-  lua_pushnumber(L, sum);     /* second return value */
-  return 2;                   /* num of return value */
+  lua_pushnumber(L, sum); /* second return value */
+  return 2; /* num of return value */
 }
 
-static luaL_Reg luaLoadFun[] = {
-    {"add", add},     {"hellomod", hellomod}, {"cfuncyield", cfuncyield},
-    {"cfunc", cfunc}, {"foo", foo},           {NULL, NULL}};
+static luaL_Reg luaLoadFun[] =
+    {{"add", add}, {"hellomod", hellomod}, {"cfuncyield", cfuncyield}, {"cfunc", cfunc}, {"foo", foo}, {NULL, NULL}};
 
-LUAMOD_API int luaopen_libhello(lua_State *L) {
+LUAMOD_API int luaopen_libhello(lua_State* L) {
   printf("First argument: %s\n", lua_tostring(L, 1));
   printf("Second argument: %s\n", lua_tostring(L, 2));
   luaL_newlib(L, luaLoadFun);

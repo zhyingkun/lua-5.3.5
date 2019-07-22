@@ -251,8 +251,7 @@ void pfunc_pushstring(lua_State* L, void* ud) {
   pushstring_t* tmpArg = (pushstring_t*)ud;
   tmpArg->ret = lua_pushstring(L, tmpArg->s);
 }
-LUAMOD_API const char* luanet_pushstring(lua_State* L, const char* s,
-                                         int* exception) {
+LUAMOD_API const char* luanet_pushstring(lua_State* L, const char* s, int* exception) {
   pushstring_t tmpArg;
   tmpArg.s = s;
   tmpArg.ret = NULL;
@@ -273,8 +272,7 @@ void pfunc_pushlstring(lua_State* L, void* ud) {
   pushlstring_t* tmpArg = (pushlstring_t*)ud;
   tmpArg->ret = lua_pushlstring(L, tmpArg->s, tmpArg->len);
 }
-LUAMOD_API const char* luanet_pushlstring(lua_State* L, const char* s,
-                                          size_t len, int* exception) {
+LUAMOD_API const char* luanet_pushlstring(lua_State* L, const char* s, size_t len, int* exception) {
   pushlstring_t tmpArg;
   tmpArg.s = s;
   tmpArg.len = len;
@@ -430,8 +428,7 @@ void pfunc_tolstring(lua_State* L, void* ud) {
   tolstring_t* tmpArg = (tolstring_t*)ud;
   tmpArg->ret = lua_tolstring(L, tmpArg->idx, tmpArg->len);
 }
-LUAMOD_API const char* luanet_tolstring(lua_State* L, int idx, size_t* len,
-                                        int* exception) {
+LUAMOD_API const char* luanet_tolstring(lua_State* L, int idx, size_t* len, int* exception) {
   tolstring_t tmpArg;
   tmpArg.idx = idx;
   tmpArg.len = len;
@@ -491,8 +488,7 @@ void pfuncL_checklstring(lua_State* L, void* ud) {
   checklstring_Lt* tmpArg = (checklstring_Lt*)ud;
   tmpArg->ret = luaL_checklstring(L, tmpArg->arg, tmpArg->len);
 }
-LUAMOD_API const char* luanetL_checklstring(lua_State* L, int arg, size_t* len,
-                                            int* exception) {
+LUAMOD_API const char* luanetL_checklstring(lua_State* L, int arg, size_t* len, int* exception) {
   checklstring_Lt tmpArg;
   tmpArg.arg = arg;
   tmpArg.len = len;
@@ -513,8 +509,7 @@ void pfuncL_checknumber(lua_State* L, void* ud) {
   checknumber_Lt* tmpArg = (checknumber_Lt*)ud;
   tmpArg->ret = luaL_checknumber(L, tmpArg->arg);
 }
-LUAMOD_API lua_Number luanetL_checknumber(lua_State* L, int arg,
-                                          int* exception) {
+LUAMOD_API lua_Number luanetL_checknumber(lua_State* L, int arg, int* exception) {
   checknumber_Lt tmpArg;
   tmpArg.arg = arg;
   tmpArg.ret = 0;
@@ -575,8 +570,7 @@ void pfuncL_checkudata(lua_State* L, void* ud) {
   checkudata_Lt* tmpArg = (checkudata_Lt*)ud;
   tmpArg->ret = luaL_checkudata(L, tmpArg->ud, tmpArg->tname);
 }
-LUAMOD_API void* luanetL_checkudata(lua_State* L, int ud, const char* tname,
-                                    int* exception) {
+LUAMOD_API void* luanetL_checkudata(lua_State* L, int ud, const char* tname, int* exception) {
   checkudata_Lt tmpArg;
   tmpArg.ud = ud;
   tmpArg.tname = tname;
@@ -598,8 +592,7 @@ void pfuncL_loadfilex(lua_State* L, void* ud) {
   loadfilex_Lt* tmpArg = (loadfilex_Lt*)ud;
   tmpArg->ret = luaL_loadfilex(L, tmpArg->filename, tmpArg->mode);
 }
-LUAMOD_API int luanetL_loadfilex(lua_State* L, const char* filename,
-                                 const char* mode, int* exception) {
+LUAMOD_API int luanetL_loadfilex(lua_State* L, const char* filename, const char* mode, int* exception) {
   loadfilex_Lt tmpArg;
   tmpArg.filename = filename;
   tmpArg.mode = mode;
@@ -698,8 +691,7 @@ void pfuncL_optinteger(lua_State* L, void* ud) {
   optinteger_Lt* tmpArg = (optinteger_Lt*)ud;
   tmpArg->ret = luaL_optinteger(L, tmpArg->arg, tmpArg->def);
 }
-LUAMOD_API lua_Integer luanetL_optinteger(lua_State* L, int arg,
-                                          lua_Integer def, int* exception) {
+LUAMOD_API lua_Integer luanetL_optinteger(lua_State* L, int arg, lua_Integer def, int* exception) {
   optinteger_Lt tmpArg;
   tmpArg.arg = arg;
   tmpArg.def = def;
@@ -722,9 +714,7 @@ void pfuncL_optlstring(lua_State* L, void* ud) {
   optlstring_Lt* tmpArg = (optlstring_Lt*)ud;
   tmpArg->ret = luaL_optlstring(L, tmpArg->arg, tmpArg->def, tmpArg->len);
 }
-LUAMOD_API const char* luanetL_optlstring(lua_State* L, int arg,
-                                          const char* def, size_t* len,
-                                          int* exception) {
+LUAMOD_API const char* luanetL_optlstring(lua_State* L, int arg, const char* def, size_t* len, int* exception) {
   optlstring_Lt tmpArg;
   tmpArg.arg = arg;
   tmpArg.def = def;
@@ -746,8 +736,7 @@ void pfuncL_optnumber(lua_State* L, void* ud) {
   optnumber_Lt* tmpArg = (optnumber_Lt*)ud;
   tmpArg->ret = luaL_optnumber(L, tmpArg->arg, tmpArg->def);
 }
-LUAMOD_API lua_Number luanetL_optnumber(lua_State* L, int arg, lua_Number def,
-                                        int* exception) {
+LUAMOD_API lua_Number luanetL_optnumber(lua_State* L, int arg, lua_Number def, int* exception) {
   optnumber_Lt tmpArg;
   tmpArg.arg = arg;
   tmpArg.def = def;
@@ -789,8 +778,7 @@ void pfuncL_requiref(lua_State* L, void* ud) {
   requiref_Lt* tmpArg = (requiref_Lt*)ud;
   luaL_requiref(L, tmpArg->modname, tmpArg->openf, tmpArg->glb);
 }
-LUAMOD_API int luanetL_requiref(lua_State* L, const char* modname,
-                                lua_CFunction openf, int glb) {
+LUAMOD_API int luanetL_requiref(lua_State* L, const char* modname, lua_CFunction openf, int glb) {
   requiref_Lt tmpArg;
   tmpArg.modname = modname;
   tmpArg.openf = openf;
@@ -835,8 +823,7 @@ void pfuncL_tolstring(lua_State* L, void* ud) {
   tolstring_Lt* tmpArg = (tolstring_Lt*)ud;
   tmpArg->ret = luaL_tolstring(L, tmpArg->idx, tmpArg->len);
 }
-LUAMOD_API const char* luanetL_tolstring(lua_State* L, int idx, size_t* len,
-                                         int* exception) {
+LUAMOD_API const char* luanetL_tolstring(lua_State* L, int idx, size_t* len, int* exception) {
   tolstring_Lt tmpArg;
   tmpArg.idx = idx;
   tmpArg.len = len;
@@ -858,8 +845,7 @@ void pfuncL_traceback(lua_State* L, void* ud) {
   traceback_Lt* tmpArg = (traceback_Lt*)ud;
   luaL_traceback(L, tmpArg->L1, tmpArg->msg, tmpArg->level);
 }
-LUAMOD_API int luanetL_traceback(lua_State* L, lua_State* L1, const char* msg,
-                                 int level) {
+LUAMOD_API int luanetL_traceback(lua_State* L, lua_State* L1, const char* msg, int level) {
   traceback_Lt tmpArg;
   tmpArg.L1 = L1;
   tmpArg.msg = msg;
@@ -913,6 +899,75 @@ LUAMOD_API int luanetL_traceback(lua_State* L, lua_State* L1, const char* msg,
 //   lua_pushvalue(L, top + 2);
 //   lua_setfield(L, top + 4, classType);
 // }
+
+LUAMOD_API int luanet_metatable_index(lua_State* L) {
+  // 1 ==> userdata, indicate the C# Object
+  // 2 ==> the key
+  lua_getmetatable(L, 1); // 3 ==> metatable from 1
+  while (1) {
+    lua_pushvalue(L, 2);
+    lua_rawget(L, 3); // 4 ==> ud->metatable[key]
+    if (!lua_isnil(L, 4)) {
+      return 1; // find it, Now is index for the function
+    }
+    lua_pop(L, 1); // pop 4
+    lua_pushstring(L, "__get");
+    lua_rawget(L, 3);
+    if (lua_istable(L, 4)) { // 4 ==> {} by __get
+      lua_pushvalue(L, 2);
+      lua_rawget(L, 4); // 5 ==> ud->metatable.__get[key]
+      if (lua_isfunction(L, 5)) {
+        int* objIdx = (int*)lua_touserdata(L, 1);
+        lua_pushinteger(L, *objIdx);
+        lua_call(L, 1, 1);
+        return 1; // Now is get the value from varilable
+      }
+    }
+    lua_pop(L, 1); // pop 4
+    lua_pushstring(L, "__super");
+    lua_rawget(L, 3);
+    if (lua_istable(L, 4)) { // 4 ==> ud->metatable.__super
+      lua_remove(L, 3); // make 4 replace 3
+      continue;
+    }
+    // no such function or field
+    lua_pushstring(L, "__classname");
+    lua_rawget(L, 3); // 5
+    luaL_error(L, "__index: Could not find %s in C# Class %s\n", lua_tostring(L, 2), lua_tostring(L, 5));
+  }
+}
+LUAMOD_API int luanet_metatable_newindex(lua_State* L) {
+  // 1 ==> userdata, indicate the C# Object
+  // 2 ==> the key
+  // 3 ==> the value
+  lua_getmetatable(L, 1); // 4 ==> metatable from 1
+  while (1) {
+    lua_pushstring(L, "__set");
+    lua_rawget(L, 4);
+    if (lua_istable(L, 5)) { // 5 ==> {} by __set
+      lua_pushvalue(L, 2);
+      lua_rawget(L, 5); // 6 ==> ud->metatable.__set[key]
+      if (lua_isfunction(L, 6)) {
+        int* objIdx = (int*)lua_touserdata(L, 1);
+        lua_pushinteger(L, *objIdx);
+        lua_pushvalue(L, 3);
+        lua_call(L, 2, 0);
+        return 0; // Now is set the value from varilable
+      }
+    }
+    lua_pop(L, 1); // pop 5
+    lua_pushstring(L, "__super");
+    lua_rawget(L, 4);
+    if (lua_istable(L, 5)) { // 5 ==> ud->metatable.__super
+      lua_remove(L, 4); // make 5 replace 4
+      continue;
+    }
+    // no such function or field
+    lua_pushstring(L, "__classname");
+    lua_rawget(L, 4); // 6
+    luaL_error(L, "__index: Could not find %s in C# Class %s\n", lua_tostring(L, 2), lua_tostring(L, 6));
+  }
+}
 
 // =============================================================================
 // typedef int (*lua_CFunction) (lua_State *L);

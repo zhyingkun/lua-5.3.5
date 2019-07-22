@@ -153,7 +153,7 @@ static int pmain(lua_State* L) {
   lua_createtable(L, 0, 0); // create a new table and push to stack
   lua_pushstring(L, "Year");
   lua_pushnumber(L, 2018);
-  lua_settable(L, -3);            // t["Year"] = 2018, this op will pop 2 value
+  lua_settable(L, -3); // t["Year"] = 2018, this op will pop 2 value
   lua_setglobal(L, "TimeRecord"); // _G["TimeRecord"] = t (pop 1 value)
   //	printf("===================================\n");
 
@@ -166,7 +166,7 @@ static int pmain(lua_State* L) {
   printf("===================================\n");
 
   lua_pushcclosure(L, CDefineFunc, 0); // push C func to stack
-  lua_pushstring(L, "Hello zyk!");     // parament for CDefineFunc
+  lua_pushstring(L, "Hello zyk!"); // parament for CDefineFunc
   printf("CDefineFunc is %p\n", CDefineFunc);
   lua_call(L, 1, 0); // call it, this will pop 2 value from lua stack
   printf("===================================\n");
@@ -174,8 +174,7 @@ static int pmain(lua_State* L) {
   // load string and parse it to a function
   int funcRet = luaL_loadstring(L, luaStrFunc);
   if (funcRet != LUA_OK) {
-    printf("luaL_loadstring error, funcRet: %d return: %s\n", funcRet,
-           lua_tostring(L, 1));
+    printf("luaL_loadstring error, funcRet: %d return: %s\n", funcRet, lua_tostring(L, 1));
   } else {
     funcRet = lua_pcall(L, 0, 1, 0);
     printf("lua_pcall return: %lld\n", lua_tointeger(L, 1));
@@ -206,8 +205,8 @@ static int pmain(lua_State* L) {
   //     L1->stack[2] = 1
   //     L1->top ---> L->stack[3]
   int resumeRet = lua_resume(L1, L, 1); // resume L1 from L
-  printf("[In pmain] First Resume Ret: %d  L1 gettop: %d  Value: %lld\n",
-         resumeRet, lua_gettop(L1), lua_tointeger(L1, 1));
+  printf(
+      "[In pmain] First Resume Ret: %d  L1 gettop: %d  Value: %lld\n", resumeRet, lua_gettop(L1), lua_tointeger(L1, 1));
   printf("lua_gettop(L1): %d\n", lua_gettop(L1));
   // Now L1->stack[0] ==> nil
   //     L1->stack[1] ==> LuaCoroutineCImpl
@@ -222,16 +221,14 @@ static int pmain(lua_State* L) {
 
   lua_pushinteger(L1, 2);
   resumeRet = lua_resume(L1, L, 1);
-  printf("[In pmain] Second Resume Ret: %d Value: %lld\n", resumeRet,
-         lua_tointeger(L1, 1));
+  printf("[In pmain] Second Resume Ret: %d Value: %lld\n", resumeRet, lua_tointeger(L1, 1));
   lua_pop(L1, lua_gettop(L1)); // pop all return value from L1 stack
 
   lua_pushinteger(L1, 3);
   resumeRet = lua_resume(L1, L, 1);
-  printf("[In pmain] Third Resume Ret: %d Value: %lld\n", resumeRet,
-         lua_tointeger(L1, 1));
+  printf("[In pmain] Third Resume Ret: %d Value: %lld\n", resumeRet, lua_tointeger(L1, 1));
   lua_pop(L1, lua_gettop(L1)); // pop all return value from L1 stack
-  lua_pop(L, 1);               // pop L1 from L stack
+  lua_pop(L, 1); // pop L1 from L stack
   printf("===================================\n");
 
   //	print global internal string table
@@ -244,7 +241,7 @@ static int pmain(lua_State* L) {
   //		}
   //	}
 
-  lua_pushnil(L);  // L->stack[2] = nil
+  lua_pushnil(L); // L->stack[2] = nil
   lua_newtable(L); // L->stack[3] = t = {}
   lua_pushcclosure(L, nilMetaTable, 0);
   lua_setfield(L, -2, "__index"); // t.__index = nilMetaTable
@@ -296,15 +293,15 @@ static int pmain(lua_State* L) {
   lua_pushstring(L, "It is Twenty");
   lua_seti(L, 1, 14);
   printf("lua_rawlen(t): %zu\n", lua_rawlen(L, 1)); // lua_rawlen(t) ==> 7
-  lua_pop(L, 1);                                    // pop the table t
+  lua_pop(L, 1); // pop the table t
 
   printf("===================================\n");
 
-//  lua_pushstring(L, "TestString");
-//  lua_pushstring(L, "name");
-//  lua_pushstring(L, "GoodName");
-//  lua_rawget(L, -3);
-//  printf("===================================\n");
+  //  lua_pushstring(L, "TestString");
+  //  lua_pushstring(L, "name");
+  //  lua_pushstring(L, "GoodName");
+  //  lua_rawget(L, -3);
+  //  printf("===================================\n");
 
   // test lua gc
   //	lua_gc(L, LUA_GCCOLLECT, 0);
@@ -340,17 +337,17 @@ static int pmain(lua_State* L) {
 
   return 0;
 }
-void printLuaValue(lua_State* L, int index, int depth, bool recursive){
+void printLuaValue(lua_State* L, int index, int depth, bool recursive) {
   static int cnt = 0;
   cnt++;
   char buffer[512];
   char endBuf[512];
-  for (int i=0; i<cnt; i++) {
+  for (int i = 0; i < cnt; i++) {
     buffer[i] = '\t';
     endBuf[i] = '\t';
   }
   buffer[cnt] = '\0';
-  endBuf[cnt-1] = '\0';
+  endBuf[cnt - 1] = '\0';
   index = lua_absindex(L, index);
   switch (lua_type(L, index)) {
     case LUA_TNIL:
@@ -365,14 +362,14 @@ void printLuaValue(lua_State* L, int index, int depth, bool recursive){
     case LUA_TNUMBER:
       printf("\"number %lld\"", lua_tointeger(L, index));
       break;
-    case LUA_TSTRING:{
+    case LUA_TSTRING: {
       const char* tmp = lua_tostring(L, index);
       char tmpBuf[512];
       int i;
-      for (i=0; tmp[i]!='\0'; i++) {
+      for (i = 0; tmp[i] != '\0'; i++) {
         if (tmp[i] == '\n') {
           tmpBuf[i] = '|';
-        }else{
+        } else {
           tmpBuf[i] = tmp[i];
         }
       }
@@ -387,7 +384,7 @@ void printLuaValue(lua_State* L, int index, int depth, bool recursive){
       }
       printf(" {\n%s\"description\" : \"table %p\"", buffer, lua_topointer(L, index));
       lua_pushnil(L);
-      while(lua_next(L, index)!=0){
+      while (lua_next(L, index) != 0) {
         printf(",\n");
         printf("%s", buffer);
         printLuaValue(L, -2, depth - 1, true);
@@ -421,15 +418,15 @@ void printLuaValue(lua_State* L, int index, int depth, bool recursive){
   }
   cnt--;
 }
-int printLuaStringTable(lua_State* L){
+int printLuaStringTable(lua_State* L) {
   printf("+++++++++++++++++++++++++++++++++");
   printf("+++++++++++++++++++++++++++++++++");
   return 0;
 }
-int printLuaRegistry(lua_State* L){
-//  printf("=================================\n");
+int printLuaRegistry(lua_State* L) {
+  //  printf("=================================\n");
   printLuaValue(L, LUA_REGISTRYINDEX, 3, true);
-//  printf("=================================\n");
+  //  printf("=================================\n");
   return 0;
 }
 
@@ -437,15 +434,14 @@ int main(int argc, char const* argv[]) {
   lua_State* L = luaL_newstate();
   //	lua_gc(L, LUA_GCCOLLECT, 0);
   if (L == NULL) {
-    fprintf(stderr, "%s: %s\n", argv[0],
-            "cannot create state ==> not enough memory");
+    fprintf(stderr, "%s: %s\n", argv[0], "cannot create state ==> not enough memory");
     fflush(stderr);
     return 1;
   }
-  luaL_openlibs(L);
-
-  printLuaRegistry(L);
-  return 0;
+  //  luaL_openlibs(L);
+  //
+  //  printLuaRegistry(L);
+  //  return 0;
 
   lua_pushcclosure(L, pmain, 0); // protected, for lua_error
   lua_pushinteger(L, argc);

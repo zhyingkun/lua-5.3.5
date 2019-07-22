@@ -2,8 +2,7 @@
 #include <stdlib.h>
 
 void usage(char* cmdName) {
-  printf("\tusage: %s <TagTypeNumber>\n\tTagTypeNumber: Integer Number\n",
-         cmdName);
+  printf("\tusage: %s <TagTypeNumber>\n\tTagTypeNumber: Integer Number\n", cmdName);
 }
 
 /*
@@ -23,16 +22,18 @@ void usage(char* cmdName) {
 // Number of Tags
 #define LUA_NUMTAGS 9
 
-static const char* const ActualTagNames[9] = {
-    "LUA_TNIL",      "LUA_TBOOLEAN",  "LUA_TLIGHTUSERDATA",
-    "LUA_TNUMBER",   "LUA_TSTRING",   "LUA_TTABLE",
-    "LUA_TFUNCTION", "LUA_TUSERDATA", "LUA_TTHREAD"};
-static const char* const VariantTagFunctions[3] = {
-    "Lua Closure", "Light C Function", "C Closure"};
-static const char* const VariantTagStrings[2] = {"Short Strings",
-                                                 "Long Strings"};
-static const char* const VariantTagNumbers[2] = {"Float Numbers",
-                                                 "Integer Numbers"};
+static const char* const ActualTagNames[9] = {"LUA_TNIL",
+                                              "LUA_TBOOLEAN",
+                                              "LUA_TLIGHTUSERDATA",
+                                              "LUA_TNUMBER",
+                                              "LUA_TSTRING",
+                                              "LUA_TTABLE",
+                                              "LUA_TFUNCTION",
+                                              "LUA_TUSERDATA",
+                                              "LUA_TTHREAD"};
+static const char* const VariantTagFunctions[3] = {"Lua Closure", "Light C Function", "C Closure"};
+static const char* const VariantTagStrings[2] = {"Short Strings", "Long Strings"};
+static const char* const VariantTagNumbers[2] = {"Float Numbers", "Integer Numbers"};
 static const char* const IsCollectable[2] = {"Not Collectable", "Collectable"};
 
 int main(int argc, char* argv[]) {
