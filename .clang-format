@@ -1,68 +1,85 @@
 ---
-# for C/C++/Objective-C/C#/JavaScript
+# For C/C++/Objective-C/C#/JavaScript
+# Command for Using ==> clang-format -style=file
+# For more information, see http://clang.llvm.org/docs/ClangFormatStyleOptions.html
+
 # Language: Cpp
 # BasedOnStyle: LLVM
 AccessModifierOffset: -2
+
 AlignAfterOpenBracket: Align
+# AlignConsecutiveMacros: false
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
 AlignEscapedNewlines: DontAlign
 AlignOperands: true
-AlignTrailingComments: true
+AlignTrailingComments: false
+
 # AllowAllArgumentsOnNextLine: false
 # AllowAllConstructorInitializersOnNextLine: false
-AllowAllParametersOfDeclarationOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: All
+AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: false
+# AllowShortLambdasOnASingleLine: None
 AllowShortLoopsOnASingleLine: false
+
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
-AlwaysBreakTemplateDeclarations: MultiLine
-BinPackArguments: true
-BinPackParameters: true
-BraceWrapping:
-  AfterClass: false
-  AfterControlStatement: false
-  AfterEnum: false
-  AfterFunction: false
-  AfterNamespace: false
-  AfterObjCDeclaration: false
-  AfterStruct: false
-  AfterUnion: false
-  AfterExternBlock: false
-  BeforeCatch: false
-  BeforeElse: false
-  IndentBraces: false
-  SplitEmptyFunction: true
-  SplitEmptyRecord: true
-  SplitEmptyNamespace: true
-BreakBeforeBinaryOperators: None
+AlwaysBreakTemplateDeclarations: Yes
+
+BinPackArguments: false
+BinPackParameters: false
 BreakBeforeBraces: Attach
+# BreakBeforeBraces: Custom
+# BraceWrapping:
+#   AfterCaseLabel: false
+#   AfterClass: true
+#   AfterControlStatement: false
+#   AfterEnum: false
+#   AfterFunction: false
+#   AfterNamespace: false
+#   AfterObjCDeclaration: false
+#   AfterStruct: false
+#   AfterUnion: false
+#   AfterExternBlock: false
+#   BeforeCatch: false
+#   BeforeElse: false
+#   IndentBraces: false
+#   SplitEmptyFunction: true
+#   SplitEmptyRecord: true
+#   SplitEmptyNamespace: true
+BreakAfterJavaFieldAnnotations: true
+BreakBeforeBinaryOperators: None
+
 BreakBeforeInheritanceComma: false
-BreakInheritanceList: BeforeColon
-BreakBeforeTernaryOperators: true
-BreakConstructorInitializersBeforeComma: false
-BreakConstructorInitializers: BeforeColon
-BreakAfterJavaFieldAnnotations: false
-BreakStringLiterals: true
-ColumnLimit: 80
-CommentPragmas: '^ IWYU pragma:'
+
+BreakBeforeTernaryOperators: false
+# BreakConstructorInitializersBeforeComma: false
+BreakConstructorInitializers: AfterColon
+BreakInheritanceList: AfterColon
+BreakStringLiterals: false
+
+ColumnLimit: 120
+CommentPragmas: '^ pragma:'
 CompactNamespaces: false
-ConstructorInitializerAllOnOneLineOrOnePerLine: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
 Cpp11BracedListStyle: true
 DerivePointerAlignment: false
 DisableFormat: false
-ExperimentalAutoDetectBinPacking: false
+# ExperimentalAutoDetectBinPacking: false
 FixNamespaceComments: true
+
 ForEachMacros:   
   - foreach
   - Q_FOREACH
   - BOOST_FOREACH
+# TypenameMacros:
+
 IncludeBlocks:   Preserve
 IncludeCategories: 
   - Regex:           '^"(llvm|llvm-c|clang|clang-c)/'
@@ -72,21 +89,30 @@ IncludeCategories:
   - Regex:           '.*'
     Priority:        1
 IncludeIsMainRegex: '(Test)?$'
-IndentCaseLabels: false
+
+IndentCaseLabels: true
 IndentPPDirectives: None
 IndentWidth:     2
 IndentWrappedFunctionNames: false
-JavaScriptQuotes: Leave
+
+# JavaImportGroups:
+
+JavaScriptQuotes: Double
 JavaScriptWrapImports: true
 KeepEmptyLinesAtTheStartOfBlocks: true
+
 MacroBlockBegin: ''
-MacroBlockEnd:   ''
+MacroBlockEnd: ''
+
 MaxEmptyLinesToKeep: 1
-NamespaceIndentation: None
+NamespaceIndentation: All
+# NamespaceMacros: ''
+
 ObjCBinPackProtocolList: Auto
 ObjCBlockIndentWidth: 2
-ObjCSpaceAfterProperty: false
+ObjCSpaceAfterProperty: true
 ObjCSpaceBeforeProtocolList: true
+
 PenaltyBreakAssignment: 2
 PenaltyBreakBeforeFirstCallParameter: 19
 PenaltyBreakComment: 300
@@ -95,12 +121,18 @@ PenaltyBreakString: 1000
 PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 60
+
 PointerAlignment: Left
+
+# RawStringFormats: ''
+
 ReflowComments:  true
-SortIncludes:    true
-SortUsingDeclarations: true
+SortIncludes:    false
+SortUsingDeclarations: false
+
 SpaceAfterCStyleCast: false
-SpaceAfterTemplateKeyword: true
+# SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: false
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeCpp11BracedList: false
 SpaceBeforeCtorInitializerColon: true
@@ -110,15 +142,15 @@ SpaceBeforeRangeBasedForLoopColon: true
 SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 1
 SpacesInAngles:  false
-SpacesInContainerLiterals: true
 SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
-Standard:        Cpp11
+
+Standard: Cpp11
 StatementMacros: 
   - Q_UNUSED
   - QT_REQUIRE_VERSION
-TabWidth:        8
-UseTab:          Never
+TabWidth: 4
+UseTab: Never
 ...
-
