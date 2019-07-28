@@ -7,6 +7,3 @@ project(c-lang
 
 # add_subdirectory(dlopen)
 add_subdirectory(setjmp)
-
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set_property(TARGET setjmp PROPERTY FOLDER "demo")

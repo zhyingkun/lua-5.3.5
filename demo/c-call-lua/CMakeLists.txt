@@ -33,6 +33,7 @@ source_group(src FILES ${C_CALL_LUA_SRC})
 add_executable(${PROJECT_NAME} ${C_CALL_LUA_SRC})
 target_link_libraries(${PROJECT_NAME} lualib)
 set_target_properties(${PROJECT_NAME} PROPERTIES
+	FOLDER "demo"
 	INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")

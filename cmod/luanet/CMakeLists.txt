@@ -37,6 +37,7 @@ source_group(include FILES ${LUA_NET_HEADERS})
 # luanet must static link with lualib, not dynamic link, because of the use of luaD_rawrunprotected
 add_library(${PROJECT_NAME} MODULE ${HELLOMOD_SRC} ${LUA_NET_HEADERS})
 set_target_properties(${PROJECT_NAME} PROPERTIES
+	FOLDER "cmod"
 	# OUTPUT_NAME ${PROJECT_NAME}
 	# VERSION "1.0.0"
 	# SOVERSION "1.0.0"

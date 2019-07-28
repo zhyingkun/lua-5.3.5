@@ -83,6 +83,7 @@ source_group(include FILES ${LUASOCKETMOD_HEADER})
 
 add_library(${PROJECT_NAME} MODULE ${LUASOCKETMOD_SRC} ${LUASOCKETMOD_HEADER})
 set_target_properties(${PROJECT_NAME} PROPERTIES
+	FOLDER "cmod"
 	# OUTPUT_NAME "luasocket"
 	# VERSION "3.0"
 	# SOVERSION "3.0"

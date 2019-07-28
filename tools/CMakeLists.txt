@@ -5,7 +5,4 @@ project(tools
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
 
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
 add_subdirectory(luatt)
-set_property(TARGET luatt PROPERTY FOLDER "tools")

@@ -7,6 +7,3 @@ project(demo
 
 add_subdirectory(c-call-lua)
 add_subdirectory(c-lang)
-
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set_property(TARGET c-call-lua PROPERTY FOLDER "demo")

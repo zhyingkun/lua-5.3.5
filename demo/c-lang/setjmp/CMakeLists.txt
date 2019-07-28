@@ -28,6 +28,8 @@ endif()
 aux_source_directory(./src SETJMP_SRC)
 source_group(src FILES ${SETJMP_SRC})
 add_executable(${PROJECT_NAME} ${SETJMP_SRC})
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	FOLDER "demo")
 
 install(TARGETS ${PROJECT_NAME}
 	RUNTIME DESTINATION bin
