@@ -29,3 +29,8 @@ aux_source_directory(./src TOOLS_LUATT_SRC)
 source_group(src FILES ${TOOLS_LUATT_SRC})
 
 add_executable(${PROJECT_NAME} ${TOOLS_LUATT_SRC})
+
+install(TARGETS ${PROJECT_NAME}
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib)

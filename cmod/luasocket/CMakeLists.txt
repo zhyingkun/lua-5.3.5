@@ -86,6 +86,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	# OUTPUT_NAME "luasocket"
 	# VERSION "3.0"
 	# SOVERSION "3.0"
+	INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
 	POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(${PROJECT_NAME} lualib)
 
@@ -93,3 +94,8 @@ if(WIN32)
 	set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "lib")
 	target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
 endif(WIN32)
+
+install(TARGETS ${PROJECT_NAME}
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib)

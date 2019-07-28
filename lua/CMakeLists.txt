@@ -32,6 +32,8 @@ aux_source_directory(./src LUA_SRC)
 source_group(src FILES ${LUA_SRC})
 
 add_executable(${PROJECT_NAME} ${LUA_SRC})
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
 target_link_libraries(${PROJECT_NAME} lualib)
 
 if(APPLE)
@@ -39,3 +41,8 @@ if(APPLE)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
     target_link_libraries(${PROJECT_NAME} m readline dl)
 endif()
+
+install(TARGETS ${PROJECT_NAME}
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib)

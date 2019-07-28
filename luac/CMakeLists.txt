@@ -50,3 +50,8 @@ target_link_libraries(${PROJECT_NAME} lualibstatic)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(TARGET lualibstatic PROPERTY FOLDER "luac")
 set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "luac")
+
+install(TARGETS ${PROJECT_NAME}
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib)

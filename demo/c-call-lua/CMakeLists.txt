@@ -32,7 +32,14 @@ source_group(src FILES ${C_CALL_LUA_SRC})
 
 add_executable(${PROJECT_NAME} ${C_CALL_LUA_SRC})
 target_link_libraries(${PROJECT_NAME} lualib)
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-    target_link_libraries(${PROJECT_NAME} m dl)
+	target_link_libraries(${PROJECT_NAME} m dl)
 endif()
+
+install(TARGETS ${PROJECT_NAME}
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib)
