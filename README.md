@@ -56,6 +56,8 @@ open luawithlib.xcodeproj
 ```bash
 cd lua-5.3.5/luawithlib/Android/
 ndk-build
+ndk-build clean # clean project
+ndk-build -B # rebuild project
 ```
 编译之后便会有luawithlib/Android/libs/${APP_ABI}/libluawithlib.so共享库
 使用ndk-build命令需要先安装AndroidStudio+AndroidSDK+NDK，然后将ndk-bundle路径加到系统PATH环境变量中

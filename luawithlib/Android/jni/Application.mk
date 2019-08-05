@@ -7,7 +7,7 @@ APP_MODULES := luawithlib
 APP_OPTIM := release
 
 # APP_CFLAGS := 
-# APP_CPPFLAGS := 
+# APP_CPPFLAGS := -frtti -D__LINUX__ # for cpp
 # APP_LDFLAGS := 
 # APP_BUILD_SCRIPT := 
 
@@ -16,6 +16,8 @@ APP_ABI := armeabi-v7a arm64-v8a
 
 APP_PLATFORM := android-21
 
-# APP_STL := 
+# APP_STL := c++_static # for cpp
 # APP_SHORT_COMMANDS := 
 # APP_THIN_ARCHIVE := 
+
+# APP_CFLAGS += -Wno-error=format-security # android-ndk-r9 isn't compatible with Eclipse, for cygwin?
