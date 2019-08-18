@@ -278,9 +278,9 @@
 ** default definition.
 */
 #if defined(__GNUC__) && ((__GNUC__*100 + __GNUC_MINOR__) >= 302) && \
-    defined(__ELF__) && !defined(__LUAC_EXE__)		/* { */
-#define LUAI_FUNC	__attribute__((visibility("hidden"))) extern
-// #define LUAI_FUNC	extern
+    defined(__ELF__)		/* { */
+// #define LUAI_FUNC	__attribute__((visibility("hidden"))) extern
+#define LUAI_FUNC	extern
 #else				/* }{ */
 #define LUAI_FUNC	extern
 #endif				/* } */
