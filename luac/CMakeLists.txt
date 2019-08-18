@@ -12,11 +12,11 @@ message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
 message(STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
 
 if(APPLE)
-	set(CMAKE_C_FLAGS         "-std=gnu99 -Wall -Wextra -DLUA_USE_MACOSX")
+	set(CMAKE_C_FLAGS         "-std=gnu99 -Wall -Wextra")
 	set(CMAKE_C_FLAGS_DEBUG   "-g")
 	set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	set(CMAKE_C_FLAGS         "-std=gnu99 -Wall -Wextra -DLUA_USE_LINUX")
+	set(CMAKE_C_FLAGS         "-std=gnu99 -Wall -Wextra")
 	set(CMAKE_C_FLAGS_DEBUG   "-g")
 	set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 elseif(WIN32)
@@ -28,28 +28,13 @@ endif()
 include_directories(../include)
 include_directories(../lualib/include)
 
-aux_source_directory(../lualib/core LUA_CORE_SRC)
-aux_source_directory(../lualib/libraries LUA_LIBRARIES_SRC)
-set(LUALIB_SRC ${LUA_CORE_SRC} ${LUA_LIBRARIES_SRC})
-source_group(src FILES ${LUALIB_SRC})
-add_library(lualibstatic STATIC ${LUALIB_SRC})
-set_target_properties(lualibstatic PROPERTIES
-	OUTPUT_NAME "lualib"
-	VERSION "5.3.5"
-	SOVERSION "5.3"
-	POSITION_INDEPENDENT_CODE OFF)
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	target_link_libraries(lualibstatic m dl)
-endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-
 aux_source_directory(./src LUAC_SRC)
 source_group(src FILES ${LUAC_SRC})
-add_executable(${PROJECT_NAME} ${LUAC_SRC})
-target_link_libraries(${PROJECT_NAME} lualibstatic)
 
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set_property(TARGET lualibstatic PROPERTY FOLDER "luac")
-set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "luac")
+add_executable(${PROJECT_NAME} ${LUAC_SRC})
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
+target_link_libraries(${PROJECT_NAME} lualib)
 
 install(TARGETS ${PROJECT_NAME}
 	RUNTIME DESTINATION bin

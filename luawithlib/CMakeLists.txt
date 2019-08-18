@@ -11,6 +11,8 @@ endif()
 message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
 message(STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
 
+# LUA_USE_MACOSX and LUA_USE_LINUX are only available for lua.c and lualib, not for user
+# LUA_BUILD_AS_DLL is only available for windows lualib and cmod library, not for user
 if(APPLE)
 	set(CMAKE_C_FLAGS         "-std=gnu99 -Wall -Wextra -DLUA_USE_MACOSX")
 	set(CMAKE_C_FLAGS_DEBUG   "-g")
