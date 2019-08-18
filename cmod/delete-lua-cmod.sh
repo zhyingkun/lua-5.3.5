@@ -38,10 +38,8 @@ echo "Delete features from CMakeLists.txt ..."
 hostSystem=`uname -s`
 if [ $hostSystem == "Darwin" ]; then
 	sed -i "" '/add_subdirectory('${cmodName}')/d' CMakeLists.txt
-	sed -i "" '/set_property(TARGET '${cmodName}' PROPERTY FOLDER "cmod")/d' CMakeLists.txt
 else
 	sed -i '/add_subdirectory('${cmodName}')/d' CMakeLists.txt
-	sed -i '/set_property(TARGET '${cmodName}' PROPERTY FOLDER "cmod")/d' CMakeLists.txt
 fi
 exitWhileError "Delete features from CMakeLists.txt failed"
 

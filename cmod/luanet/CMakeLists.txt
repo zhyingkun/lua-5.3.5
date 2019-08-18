@@ -28,14 +28,14 @@ include_directories(../../include)
 include_directories(../../lualib/include)
 include_directories(./include)
 
-aux_source_directory(./src HELLOMOD_SRC)
+aux_source_directory(./src LUA_NET_MOD_SRC)
 file(GLOB LUA_NET_HEADERS "./include/*.h")
 
-source_group(src FILES ${HELLOMOD_SRC})
+source_group(src FILES ${LUA_NET_MOD_SRC})
 source_group(include FILES ${LUA_NET_HEADERS})
 
 # luanet must static link with lualib, not dynamic link, because of the use of luaD_rawrunprotected
-add_library(${PROJECT_NAME} MODULE ${HELLOMOD_SRC} ${LUA_NET_HEADERS})
+add_library(${PROJECT_NAME} MODULE ${LUA_NET_MOD_SRC} ${LUA_NET_HEADERS})
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	FOLDER "cmod"
 	# OUTPUT_NAME ${PROJECT_NAME}
@@ -45,7 +45,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(${PROJECT_NAME} lualib)
 
-install(TARGETS ${PROJECT_NAME}
-	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib)
+# install(TARGETS ${PROJECT_NAME}
+# 	RUNTIME DESTINATION bin
+# 	LIBRARY DESTINATION lib
+# 	ARCHIVE DESTINATION lib)

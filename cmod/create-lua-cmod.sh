@@ -31,6 +31,7 @@ if test $# -ne 1 ; then
 fi
 
 cmodName=$1
+cmodNameUpperCase=`echo ${cmodName} | tr '[a-z]' '[A-Z]'`
 
 if test -d ${cmodName} ; then
 	echo \"${cmodName}\"" module already exist!!! Exit Now."
@@ -77,16 +78,24 @@ endif()
 
 include_directories(../../include)
 include_directories(../../lualib/include)
-aux_source_directory(./src HELLOMOD_SRC)
-source_group(src FILES \${HELLOMOD_SRC})
+aux_source_directory(./src ${cmodNameUpperCase}MOD_SRC)
+source_group(src FILES \${${cmodNameUpperCase}MOD_SRC})
 
-add_library(\${PROJECT_NAME} MODULE \${HELLOMOD_SRC})
-set_target_properties(${PROJECT_NAME} PROPERTIES
-	# OUTPUT_NAME ${PROJECT_NAME}
-	# VERSION "1.0.0"
-	# SOVERSION "1.0.0"
+add_library(\${PROJECT_NAME} MODULE \${${cmodNameUpperCase}MOD_SRC})
+set_target_properties(\${PROJECT_NAME} PROPERTIES
+	FOLDER "cmod"
+	# OUTPUT_NAME \${PROJECT_NAME}
+	# VERSION "0.1.0"
+	# SOVERSION "0.1.0"
+	INSTALL_RPATH \${CMAKE_INSTALL_PREFIX}/lib
 	POSITION_INDEPENDENT_CODE ON)
+
 target_link_libraries(\${PROJECT_NAME} lualib)
+
+install(TARGETS \${PROJECT_NAME}
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib)
 EOF
 exitWhileError "Write features to $writeFilePath failed"
 
@@ -130,7 +139,6 @@ writeFilePath=CMakeLists.txt
 echo "Append features to $writeFilePath ..."
 cat << EOF >> $writeFilePath
 add_subdirectory(${cmodName})
-set_property(TARGET ${cmodName} PROPERTY FOLDER "cmod")
 EOF
 exitWhileError "Append features to $writeFilePath failed"
 

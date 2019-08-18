@@ -11,4 +11,3 @@ add_subdirectory(hello)
 add_subdirectory(luasocket)
 # luanet must static link with lualib
 # add_subdirectory(luanet)
-# set_property(TARGET luanet PROPERTY FOLDER "cmod")
