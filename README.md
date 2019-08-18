@@ -8,7 +8,7 @@
 
 1. 本工程是Lua及其C扩展的构建工程，用于运行调试
 2. 所有Lua源码来自lua官方网站[https://www.lua.org/]
-3. 支持Debug/Release编译模式
+3. 增加了源码注释，支持Debug/Release编译模式
 4. 整个工程PC端编译构建采用cmake来管理，支持跨平台（可以在树莓派上正常cmake+make）
 5. 移动端iOS直接给出Xcode工程，Android则提供Android.md用于ndk-build（仅限luawithlib库）
 
@@ -21,6 +21,7 @@
 cd lua-5.3.5/
 mkdir buildXcode && cd buildXcode
 cmake -DCMAKE_INSTALL_PREFIX=./install -G "Xcode" ..
+# cmake -DCMAKE_INSTALL_PREFIX=/usr/local/zyk -G "Xcode" ..
 ```
 此时已经在buildXcode文件夹下生成了Xcode工程，直接打开并编译即可
 
