@@ -5,7 +5,7 @@ project(setjmp
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
 
-if("${CMAKE_BUILD_TYPE}" STREQUAL "")
+if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug")
 endif()
 message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")

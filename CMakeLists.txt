@@ -5,8 +5,16 @@ project(lua-5.3.5
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX)
 
+# The name of the top level project.
+message(STATUS "Top level project is ${CMAKE_PROJECT_NAME}")
 message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
 message(STATUS "Current OS is ${CMAKE_SYSTEM}")
+# if(NOT CMAKE_BUILD_TYPE)
+# 	set(CMAKE_BUILD_TYPE "Debug")
+# endif()
+# message(STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
+message(STATUS "CMAKE_INSTALL_PREFIX is ${CMAKE_INSTALL_PREFIX}")
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
