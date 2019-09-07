@@ -438,7 +438,7 @@ int main(int argc, char const* argv[]) {
     fflush(stderr);
     return 1;
   }
-  //  luaL_openlibs(L);
+  luaL_openlibs(L);
   //
   //  printLuaRegistry(L);
   //  return 0;
