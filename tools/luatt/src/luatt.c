@@ -22,15 +22,17 @@ void usage(char* cmdName) {
 // Number of Tags
 #define LUA_NUMTAGS 9
 
-static const char* const ActualTagNames[9] = {"LUA_TNIL",
-                                              "LUA_TBOOLEAN",
-                                              "LUA_TLIGHTUSERDATA",
-                                              "LUA_TNUMBER",
-                                              "LUA_TSTRING",
-                                              "LUA_TTABLE",
-                                              "LUA_TFUNCTION",
-                                              "LUA_TUSERDATA",
-                                              "LUA_TTHREAD"};
+static const char* const ActualTagNames[9] = {
+    "LUA_TNIL",
+    "LUA_TBOOLEAN",
+    "LUA_TLIGHTUSERDATA",
+    "LUA_TNUMBER",
+    "LUA_TSTRING",
+    "LUA_TTABLE",
+    "LUA_TFUNCTION",
+    "LUA_TUSERDATA",
+    "LUA_TTHREAD",
+};
 static const char* const VariantTagFunctions[3] = {"Lua Closure", "Light C Function", "C Closure"};
 static const char* const VariantTagStrings[2] = {"Short Strings", "Long Strings"};
 static const char* const VariantTagNumbers[2] = {"Float Numbers", "Integer Numbers"};

@@ -31,7 +31,7 @@ AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: Yes
 
 BinPackArguments: false
-BinPackParameters: false
+BinPackParameters: true
 BreakBeforeBraces: Attach
 # BreakBeforeBraces: Custom
 # BraceWrapping:
