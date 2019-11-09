@@ -3,7 +3,8 @@ project(c-call-lua
 	VERSION 0.1.0
 	# DESCRIPTION "Demo for C to call lua"
 	# HOMEPAGE_URL "www.zhyingkun.com"
-	LANGUAGES C CXX)
+	LANGUAGES C CXX
+)
 
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug")
@@ -20,18 +21,18 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	set(CMAKE_C_FLAGS_DEBUG   "-g")
 	set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 elseif(WIN32)
-	set(CMAKE_C_FLAGS         "-std=gnu99 -Wall -DLUA_BUILD_AS_DLL")
-	set(CMAKE_C_FLAGS_DEBUG   "-g")
+	set(CMAKE_C_FLAGS         "-Wall -DLUA_BUILD_AS_DLL")
+	# set(CMAKE_C_FLAGS_DEBUG   "-g")
 	set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 endif()
 
-include_directories(../../include)
-include_directories(../../lualib/include) # for lstate.h
+include_directories(../../liblua/include)
+include_directories(../../liblua/core) # for lstate.h
 aux_source_directory(./src C_CALL_LUA_SRC)
 source_group(src FILES ${C_CALL_LUA_SRC})
 
 add_executable(${PROJECT_NAME} ${C_CALL_LUA_SRC})
-target_link_libraries(${PROJECT_NAME} lualib)
+target_link_libraries(${PROJECT_NAME} liblua)
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	FOLDER "demo"
 	INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
@@ -39,4 +40,5 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 # install(TARGETS ${PROJECT_NAME}
 # 	RUNTIME DESTINATION bin
 # 	LIBRARY DESTINATION lib
-# 	ARCHIVE DESTINATION lib)
+# 	ARCHIVE DESTINATION lib
+# )

@@ -3,7 +3,8 @@ project(lua-5.3.5
 	VERSION 5.3.5
 	# DESCRIPTION "Lua project" # cmake version >= 3.9
 	# HOMEPAGE_URL "www.zhyingkun.com"
-	LANGUAGES C CXX)
+	LANGUAGES C CXX
+)
 
 # The name of the top level project.
 message(STATUS "Top level project is ${CMAKE_PROJECT_NAME}")
@@ -24,7 +25,7 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FLASE)
 # set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib") # must before add_executable
 
-add_subdirectory(lualib)
+add_subdirectory(liblua)
 add_subdirectory(lua)
 add_subdirectory(luac)
 add_subdirectory(cmod)

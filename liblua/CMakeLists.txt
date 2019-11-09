@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.0)
-project(lualib
+project(liblua
 	VERSION 5.3.5
 	# DESCRIPTION "Lua dynamic library"
 	# HOMEPAGE_URL "www.zhyingkun.com"
-	LANGUAGES C CXX)
+	LANGUAGES C CXX
+)
 
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug")
@@ -12,8 +13,8 @@ message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
 message(STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
 
 # -DLUA_COMPAT_5_1 -DLUA_COMPAT_5_2 -DLUA_COMPAT_MODULE
-# LUA_USE_MACOSX and LUA_USE_LINUX are only available for lua.c and lualib, not for user
-# LUA_BUILD_AS_DLL is only available for windows lualib and cmod library, not for user
+# LUA_USE_MACOSX and LUA_USE_LINUX are only available for lua.c and liblua, not for user
+# LUA_BUILD_AS_DLL is only available for windows liblua and cmod library, not for user
 if(APPLE)
 	set(CMAKE_C_FLAGS         "-std=gnu99 -Wall -Wextra -DLUA_USE_MACOSX")
 	set(CMAKE_C_FLAGS_DEBUG   "-g -DLUA_DEBUG") # LUA_DEBUG marco for ltable.c
@@ -23,34 +24,42 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	set(CMAKE_C_FLAGS_DEBUG   "-g -DLUA_DEBUG")
 	set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 elseif(WIN32)
-	set(CMAKE_C_FLAGS         "-std=gnu99 -Wall -DLUA_BUILD_AS_DLL")
-	set(CMAKE_C_FLAGS_DEBUG   "-g -DLUA_DEBUG")
+	set(CMAKE_C_FLAGS         "-Wall -DLUA_BUILD_AS_DLL")
+	set(CMAKE_C_FLAGS_DEBUG   "-DLUA_DEBUG")
 	set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 endif()
 
-include_directories(../include)
 include_directories(./include)
+include_directories(./core)
 
 aux_source_directory(./core LUA_CORE_SRC)
 aux_source_directory(./libraries LUA_LIBRARIES_SRC)
-file(GLOB LUA_HEADERS "../include/*.h")
-file(GLOB LUA_CORE_HEADERS "./include/*.h")
+file(GLOB LUA_HEADERS "./include/*.h")
+file(GLOB LUA_CORE_HEADERS "./core/*.h")
 
-source_group(core FILES ${LUA_CORE_SRC})
+source_group(core FILES ${LUA_CORE_SRC} ${LUA_CORE_HEADERS})
 source_group(libraries FILES ${LUA_LIBRARIES_SRC})
 source_group(include FILES ${LUA_HEADERS})
-source_group(coreinc FILES ${LUA_CORE_HEADERS})
 
-add_library(${PROJECT_NAME} SHARED 
+set(LIB_LUA_ALL_SRC
 	${LUA_CORE_SRC}
 	${LUA_LIBRARIES_SRC}
 	${LUA_HEADERS}
-	${LUA_CORE_HEADERS})
+	${LUA_CORE_HEADERS}
+)
+
+if(WIN32)
+	add_library(${PROJECT_NAME} STATIC ${LIB_LUA_ALL_SRC})
+else(WIN32)
+	add_library(${PROJECT_NAME} SHARED ${LIB_LUA_ALL_SRC})
+endif(WIN32)
+
 set_target_properties(${PROJECT_NAME} PROPERTIES
-	OUTPUT_NAME ${PROJECT_NAME}
+	OUTPUT_NAME "lua"
 	VERSION ${PROJECT_VERSION}
 	SOVERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"
-	POSITION_INDEPENDENT_CODE ON)
+	POSITION_INDEPENDENT_CODE ON
+)
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	target_link_libraries(${PROJECT_NAME} m dl)
@@ -59,5 +68,6 @@ endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 install(TARGETS ${PROJECT_NAME}
 	RUNTIME DESTINATION bin
 	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib)
+	ARCHIVE DESTINATION lib
+)
 install(FILES ${LUA_HEADERS} DESTINATION include/lua)
