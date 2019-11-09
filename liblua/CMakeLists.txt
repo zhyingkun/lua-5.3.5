@@ -48,11 +48,7 @@ set(LIB_LUA_ALL_SRC
 	${LUA_CORE_HEADERS}
 )
 
-if(WIN32)
-	add_library(${PROJECT_NAME} STATIC ${LIB_LUA_ALL_SRC})
-else(WIN32)
-	add_library(${PROJECT_NAME} SHARED ${LIB_LUA_ALL_SRC})
-endif(WIN32)
+add_library(${PROJECT_NAME} SHARED ${LIB_LUA_ALL_SRC})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	OUTPUT_NAME "lua"
