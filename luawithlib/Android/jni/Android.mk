@@ -7,8 +7,8 @@ LUA_PROJECT_PATH := $(LOCAL_PATH)/../../..
 LOCAL_MODULE := luawithlib
 LOCAL_MODULE_FILENAME := libluawithlib
 
-LOCAL_C_INCLUDES := $(LUA_PROJECT_PATH)/include
-LOCAL_C_INCLUDES += $(LUA_PROJECT_PATH)/lualib/include
+LOCAL_C_INCLUDES := $(LUA_PROJECT_PATH)/liblua/include
+LOCAL_C_INCLUDES += $(LUA_PROJECT_PATH)/liblua/core
 LOCAL_C_INCLUDES += $(LUA_PROJECT_PATH)/cmod/luasocket/include
 LOCAL_C_INCLUDES += $(LUA_PROJECT_PATH)/cmod/luanet/include
 
