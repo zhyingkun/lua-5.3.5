@@ -78,20 +78,21 @@ ndk-build -B # rebuild project
 
 ## 文件夹说明
 
-1. include：Lua5.3.5 源码中的头文件单独放到一个文件夹中
-2. lualib：Lua 编译器和虚拟机的源码，称为 Lua 库
-3. lua：Lua 官方命令行工具，带编译器和虚拟机，依赖 Lua 库
-4. luac：Lua 官方命令行编译器
-5. cmod：Lua 的 C 语言扩展模块
+1. cmod：Lua 的 C 语言扩展模块
    - hello：helloworld
    - luanet：将 Lua 虚拟机嵌入 UnityC#的中间层
-   - luasocket：封装了 socket 接口，代码来自[https://github.com/diegonehab/luasocket]
-   - create-lua-cmod.sh 和 delete-lua-cmod.sh：shell 脚本用于快速构建 Lua C 模块
-6. etc：工程杂项
-   - fromlua：来自 lua 官方的相关文件，包括 lua 文档，留着方便查看
-   - vscodeMac：Mac 上 VSCode 的配置文件
-7. luawithlib：包含 lua 和 luaC 模块的运行时动态库（iOS 下是静态库）
-8. demo：用于测试的 Demo
+   - luasocket：封装了 socket 接口，代码来自[LuaSocket](https://github.com/diegonehab/luasocket)
+2. demo：用于测试的 Demo
    - c-call-lua：C 作为宿主，调用 Lua 来完成操作
    - c-lang：C 语言特性示例
-9. 所有 CMakeLists.txt：用于构建整个工程
+3. etc：工程杂项
+   - fromlua：来自 lua 官方的相关文件，包括 lua 文档，留着方便查看
+   - vscodeMac：Mac 上 VSCode 的配置文件
+4. liblua：Lua 编译器和虚拟机的源码，称为 Lua 库
+   - core：Lua 核心 C 代码和 C 头文件
+   - include：Lua 源码中的外部使用头文件单独放到一个文件夹中
+   - libraries：Lua 自带的官方标准库
+5. lua：Lua 官方命令行工具，带编译器和虚拟机，依赖 Lua 库
+6. luac：Lua 官方命令行编译器
+7. luawithlib：包含 lua 和 luaC 模块的运行时动态库（iOS 下是静态库）
+8. tools：相关工具
