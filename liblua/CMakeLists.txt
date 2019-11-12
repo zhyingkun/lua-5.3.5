@@ -14,7 +14,7 @@ message(STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
 
 # -DLUA_COMPAT_5_1 -DLUA_COMPAT_5_2 -DLUA_COMPAT_MODULE
 # LUA_USE_MACOSX and LUA_USE_LINUX are only available for lua.c and liblua, not for user
-# LUA_BUILD_AS_DLL is only available for windows liblua and cmod library, not for user
+# LUA_BUILD_AS_DLL are for all windows components, include liblua, cmod library, and user exe which use liblua
 if(APPLE)
 	set(CMAKE_C_FLAGS         "-std=gnu99 -Wall -Wextra -DLUA_USE_MACOSX")
 	set(CMAKE_C_FLAGS_DEBUG   "-g -DLUA_DEBUG") # LUA_DEBUG marco for ltable.c
