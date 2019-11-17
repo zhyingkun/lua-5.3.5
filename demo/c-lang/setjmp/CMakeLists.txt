@@ -30,7 +30,8 @@ aux_source_directory(./src SETJMP_SRC)
 source_group(src FILES ${SETJMP_SRC})
 add_executable(${PROJECT_NAME} ${SETJMP_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES
-	FOLDER "demo\\c-lang")
+	FOLDER "demo/c-lang"
+)
 
 # install(TARGETS ${PROJECT_NAME}
 # 	RUNTIME DESTINATION bin
