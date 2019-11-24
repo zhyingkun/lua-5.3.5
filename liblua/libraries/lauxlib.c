@@ -70,6 +70,7 @@ static int findfield (lua_State *L, int objidx, int level) {
 /*
 ** Search for a name for a function in all loaded modules
 */
+// only find in package.loaded and table in package.loaded, not recursive
 static int pushglobalfuncname (lua_State *L, lua_Debug *ar) {
   int top = lua_gettop(L);
   lua_getinfo(L, "f", ar);  /* push function */
@@ -91,6 +92,7 @@ static int pushglobalfuncname (lua_State *L, lua_Debug *ar) {
 }
 
 
+// search a name for the function which ar->i_ci points to
 static void pushfuncname (lua_State *L, lua_Debug *ar) {
   if (pushglobalfuncname(L, ar)) {  /* try first a global name */
     lua_pushfstring(L, "function '%s'", lua_tostring(L, -1));
@@ -110,6 +112,7 @@ static void pushfuncname (lua_State *L, lua_Debug *ar) {
 // get the depth of CallInfo chain
 // L->base_ci ==> n ==> n-1 ==> ... ==> 1 ==> L->ci
 // lastlevel will find 'n'
+// with Callinfo implemented by doubly linked list, this function can be optimized
 static int lastlevel (lua_State *L) {
   lua_Debug ar;
   int li = 1, le = 1;

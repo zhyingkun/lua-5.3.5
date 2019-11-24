@@ -76,6 +76,7 @@ static int maxn (lua_State *L) {
 #endif
 
 
+// table.insert(list, [pos,] value)
 static int tinsert (lua_State *L) {
   lua_Integer e = aux_getn(L, 1, TAB_RW) + 1;  /* first empty element */
   lua_Integer pos;  /* where to insert new element */
@@ -103,6 +104,7 @@ static int tinsert (lua_State *L) {
 }
 
 
+// table.remove(list [, pos])
 static int tremove (lua_State *L) {
   lua_Integer size = aux_getn(L, 1, TAB_RW);
   lua_Integer pos = luaL_optinteger(L, 2, size);
@@ -166,6 +168,7 @@ static void addfield (lua_State *L, luaL_Buffer *b, lua_Integer i) {
 }
 
 
+// table.concat(list [, sep [, i [, j]]])
 static int tconcat (lua_State *L) {
   luaL_Buffer b;
   lua_Integer last = aux_getn(L, 1, TAB_R);
@@ -191,6 +194,7 @@ static int tconcat (lua_State *L) {
 ** =======================================================
 */
 
+// table.pack(···)
 static int pack (lua_State *L) {
   int i;
   int n = lua_gettop(L);  /* number of elements to pack */
@@ -204,6 +208,7 @@ static int pack (lua_State *L) {
 }
 
 
+// table.unpack(list [, i [, j]])
 static int unpack (lua_State *L) {
   lua_Unsigned n;
   lua_Integer i = luaL_optinteger(L, 2, 1);
@@ -284,6 +289,8 @@ static void set2 (lua_State *L, IdxT i, IdxT j) {
 ** Return true iff value at stack index 'a' is less than the value at
 ** index 'b' (according to the order of the sort).
 */
+// L->ci->func[1] ==> table for sort
+// L->ci->func[2] ==> compare function
 static int sort_comp (lua_State *L, int a, int b) {
   if (lua_isnil(L, 2))  /* no function? */
     return lua_compare(L, a, b, LUA_OPLT);  /* a < b */
@@ -354,6 +361,9 @@ static IdxT choosePivot (IdxT lo, IdxT up, unsigned int rnd) {
 /*
 ** QuickSort algorithm (recursive function)
 */
+// L->ci->func[1] ==> table for sort
+// L->ci->func[2] ==> compare function
+// Incremental ordering, rnd ==> random pivot
 static void auxsort (lua_State *L, IdxT lo, IdxT up,
                                    unsigned int rnd) {
   while (lo < up) {  /* loop for tail recursion */
@@ -408,6 +418,7 @@ static void auxsort (lua_State *L, IdxT lo, IdxT up,
 }
 
 
+// table.sort (list [, comp])
 static int sort (lua_State *L) {
   lua_Integer n = aux_getn(L, 1, TAB_RW);
   if (n > 1) {  /* non-trivial interval? */
