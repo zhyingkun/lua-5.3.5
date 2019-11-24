@@ -3,7 +3,7 @@ table.concat = function(list, sep, i, j)
 	i = i or 1
 	j = j or #list
 	local result = ""
-	for index = i, j do 
+	for index = i, j do
 		result = result .. list[index] .. sep
 	end
 	return result
