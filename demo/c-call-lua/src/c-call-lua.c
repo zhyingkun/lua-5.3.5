@@ -337,96 +337,10 @@ static int pmain(lua_State* L) {
 
   return 0;
 }
-void printLuaValue(lua_State* L, int index, int depth, bool recursive) {
-  static int cnt = 0;
-  cnt++;
-  char buffer[512];
-  char endBuf[512];
-  for (int i = 0; i < cnt; i++) {
-    buffer[i] = '\t';
-    endBuf[i] = '\t';
-  }
-  buffer[cnt] = '\0';
-  endBuf[cnt - 1] = '\0';
-  index = lua_absindex(L, index);
-  switch (lua_type(L, index)) {
-    case LUA_TNIL:
-      printf("\"nil\"");
-      break;
-    case LUA_TBOOLEAN:
-      printf("\"bool %s\"", (lua_toboolean(L, index) == 1) ? "True" : "False");
-      break;
-    case LUA_TLIGHTUSERDATA:
-      printf("\"lightuserdata %p\"", lua_touserdata(L, index));
-      break;
-    case LUA_TNUMBER:
-      printf("\"number %lld\"", lua_tointeger(L, index));
-      break;
-    case LUA_TSTRING: {
-      const char* tmp = lua_tostring(L, index);
-      char tmpBuf[512];
-      int i;
-      for (i = 0; tmp[i] != '\0'; i++) {
-        if (tmp[i] == '\n') {
-          tmpBuf[i] = '|';
-        } else {
-          tmpBuf[i] = tmp[i];
-        }
-      }
-      tmpBuf[i] = '\0';
-      printf("\"string %s\"", tmpBuf);
-      break;
-    }
-    case LUA_TTABLE:
-      if (depth == 0 || recursive == false) {
-        printf("{\"description\" : \"table %p\"}", lua_topointer(L, index));
-        break;
-      }
-      printf(" {\n%s\"description\" : \"table %p\"", buffer, lua_topointer(L, index));
-      lua_pushnil(L);
-      while (lua_next(L, index) != 0) {
-        printf(",\n");
-        printf("%s", buffer);
-        printLuaValue(L, -2, depth - 1, true);
-        bool recv = true;
-        if (lua_type(L, -2) == LUA_TSTRING) {
-          const char* key = lua_tostring(L, -2);
-          if (strcmp(key, "_G") == 0) {
-            recv = false;
-          }
-        }
-        printf(" : ");
-        printLuaValue(L, -1, depth - 1, recv);
-        lua_pop(L, 1);
-      }
-      printf("\n%s}", endBuf);
-      break;
-    case LUA_TFUNCTION:
-      printf("\"function %p\"", lua_topointer(L, index));
-      break;
-    case LUA_TUSERDATA:
-      printf("\"userdata %p\"", lua_touserdata(L, index));
-      break;
-    case LUA_TTHREAD:
-      printf("\"thread %p\"", lua_tothread(L, index));
-      break;
-    default:
-      break;
-  }
-  if (cnt == 1) {
-    printf("\n");
-  }
-  cnt--;
-}
+
 int printLuaStringTable(lua_State* L) {
   printf("+++++++++++++++++++++++++++++++++");
   printf("+++++++++++++++++++++++++++++++++");
-  return 0;
-}
-int printLuaRegistry(lua_State* L) {
-  //  printf("=================================\n");
-  printLuaValue(L, LUA_REGISTRYINDEX, 3, true);
-  //  printf("=================================\n");
   return 0;
 }
 
@@ -439,9 +353,13 @@ int main(int argc, char const* argv[]) {
     return 1;
   }
   luaL_openlibs(L);
-  //
-  //  printLuaRegistry(L);
-  //  return 0;
+
+  lua_pushvalue(L, LUA_REGISTRYINDEX);
+  size_t length = 0;
+  const char* str = luaL_tolstringex(L, -1, &length, 10);
+  printf("String type: %d, Length: %lu\n", L->top[-1].tt_, length);
+  printf("Registry => %s\n", str);
+  lua_pop(L, 2);
 
   lua_pushcclosure(L, pmain, 0); // protected, for lua_error
   lua_pushinteger(L, argc);
@@ -454,6 +372,7 @@ int main(int argc, char const* argv[]) {
     //		lua_settop(L, -2);
     lua_settop(L, 0);
   }
+
   lua_close(L);
   return status;
 }
