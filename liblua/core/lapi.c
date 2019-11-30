@@ -378,6 +378,7 @@ LUA_API int lua_toboolean (lua_State *L, int idx) {
 }
 
 
+// Only support string and number, does not support table
 LUA_API const char *lua_tolstring (lua_State *L, int idx, size_t *len) {
   StkId o = index2addr(L, idx);
   if (!ttisstring(o)) {
@@ -1007,6 +1008,7 @@ LUA_API int lua_pcallk (lua_State *L, int nargs, int nresults, int errfunc,
 }
 
 
+// Support text or binary
 LUA_API int lua_load (lua_State *L, lua_Reader reader, void *data,
                       const char *chunkname, const char *mode) {
   ZIO z;
