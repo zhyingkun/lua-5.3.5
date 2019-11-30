@@ -15,6 +15,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+// #include <lstate.h>
+// #include <assert.h>
 
 
 /*
@@ -850,6 +853,212 @@ LUALIB_API const char *luaL_tolstring (lua_State *L, int idx, size_t *len) {
     }
   }
   return lua_tolstring(L, -1, len);
+}
+
+
+/*
+** {======================================================
+** String Buffer for C
+** =======================================================
+*/
+
+typedef struct {
+    char* b;
+    size_t size;  /* buffer size */
+    size_t n;  /* number of characters in buffer */
+} StringBuffer;
+
+
+void strbuff_init(StringBuffer* b) {
+    b->size = 4096;
+    b->b = (char*)malloc(b->size);
+    b->n = 0;
+}
+
+
+void strbuff_addlstring(StringBuffer* b, const char* str, size_t len) {
+    if (b->n + len > b->size) {
+        char* s = b->b;
+        b->size *= 4;
+        b->b = malloc(b->size);
+        memcpy(b->b, s, b->n);
+        free(s);
+    }
+//    memcpy(b->b+b->n, str, len);
+    char* dst = b->b + b->n;
+    if (len == 1) {
+        dst[0] = str[0];
+        b->n++;
+        return;
+    }
+    size_t i = 0;
+    for (i=0; i<len; i++) {
+        char tmp = str[i];
+        switch (tmp) {
+            case '\n':
+            case '\0':
+                dst[i] = ' ';
+                break;
+            default:
+                dst[i] = tmp;
+                break;
+        }
+    }
+    b->n+=len;
+}
+
+
+void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
+    idx = lua_absindex(L, idx);
+    size_t length = 0;
+    const char* result = luaL_tolstring(L, idx, &length); // [-0, +1]
+    if (lua_type(L, idx) == LUA_TSTRING) {
+        strbuff_addlstring(b, "\"", 1);
+        strbuff_addlstring(b, result, length);
+        strbuff_addlstring(b, "\"", 1);
+    } else {
+        strbuff_addlstring(b, result, length);
+    }
+    lua_pop(L, 1); // [-1, +0]
+}
+
+
+void strbuff_destroy(StringBuffer* b) {
+    free(b->b);
+    b->size = 0;
+    b->n = 0;
+}
+
+/* }====================================================== */
+
+
+/*
+** {======================================================
+** String Detail
+** =======================================================
+*/
+
+typedef struct {
+    lua_State* L;
+    int level;
+    int current_level;
+    int idx_tables;
+    StringBuffer buffer;
+} DetailStr;
+
+
+void ds_recordtable(DetailStr* detail, int idx, int level) {
+    lua_State* L = detail->L;
+    lua_pushvalue(L, idx);
+    lua_pushinteger(L, level);
+    lua_settable(L, detail->idx_tables);
+}
+
+
+bool ds_checktable(DetailStr* detail, int idx) {
+    lua_State* L = detail->L;
+    lua_pushvalue(L, idx); // [-0, +1]
+    bool result = false;
+    if (lua_gettable(L, detail->idx_tables) == LUA_TNUMBER && // [-1, +1]
+        lua_tointeger(L, -1) < detail->current_level) {
+        result = true;
+    }
+    lua_pop(L, 1); // [-1, +0]
+    return result;
+}
+
+
+void ds_recordsubtable(DetailStr* detail, int idx) {
+    lua_State* L = detail->L;
+    idx = lua_absindex(L, idx);
+    lua_pushnil(L); // [-0, +1]
+    while (lua_next(L, idx) != 0) { // [-1, +(2/0)]
+        if (lua_type(L, -1) == LUA_TTABLE &&
+            ds_checktable(detail, -1) == false) {
+            ds_recordtable(detail, -1, detail->current_level);
+        }
+        lua_pop(L, 1);
+    }
+}
+
+/* }====================================================== */
+
+
+static const char* tab_str = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
+
+void recursive_tostring(DetailStr* detail, int idx) {
+    lua_State* L = detail->L;
+    StringBuffer* b = &detail->buffer;
+    idx = lua_absindex(L, idx);
+
+    if (detail->current_level >= detail->level) { // check recursive depth
+        strbuff_addvalue(b, L, idx);
+        return;
+    }
+
+    const char* head = lua_pushfstring(L, "table: %p {", lua_topointer(L, idx));
+    strbuff_addlstring(b, head, strlen(head));
+    lua_pop(L, 1);
+    strbuff_addlstring(b, "\n", 1);
+
+    // record current table, 0 means do not recursive later
+    ds_recordtable(detail, idx, 0);
+    detail->current_level++;
+    ds_recordsubtable(detail, idx);
+
+    // walk through the table
+    lua_pushnil(L);
+    while (lua_next(L, idx) != 0) {
+        strbuff_addlstring(b, tab_str, detail->current_level);
+        strbuff_addvalue(b, L, -2);
+        strbuff_addlstring(b, " => ", 4);
+        if (lua_type(L, -1) == LUA_TTABLE &&
+            ds_checktable(detail, -1) == false) {
+            recursive_tostring(detail, -1);
+        } else {
+            strbuff_addvalue(b, L, -1);
+        }
+        strbuff_addlstring(b, "\n", 1);
+        lua_pop(L, 1);
+    }
+
+    // walk end
+    detail->current_level--;
+
+    // tail parentheses
+    strbuff_addlstring(b, tab_str, detail->current_level);
+    strbuff_addlstring(b, "}", 1);
+}
+
+
+LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int level) {
+    idx = lua_absindex(L, idx);
+    if (lua_type(L, idx) != LUA_TTABLE ||
+        level <= 0) {
+        return luaL_tolstring(L, idx, len);
+    }
+    if (level > 16) {
+        level = 16;
+    }
+    DetailStr dStr;
+    dStr.L = L;
+    strbuff_init(&dStr.buffer);
+    dStr.level = level;
+    dStr.current_level = 0;
+    // table for record which has been walk through
+    lua_createtable(L, 0, 8);
+    dStr.idx_tables = lua_gettop(L);
+    recursive_tostring(&dStr, idx);
+    lua_pop(L, 1);
+    // get the length and address from the TString
+    size_t length = dStr.buffer.n;
+    if (len != NULL) {
+        *len = length;
+    }
+    const char* result = lua_pushlstring(L, dStr.buffer.b, length);
+    strbuff_destroy(&dStr.buffer);
+    // now we have the string in the top of lua stack
+    return result;
 }
 
 
