@@ -9,13 +9,13 @@
 
 #include "lprefix.h"
 
-
 #include "lctype.h"
 
-#if !LUA_USE_CTYPE	/* { */
+#if !LUA_USE_CTYPE /* { */
 
 #include <limits.h>
 
+// clang-format off
 LUAI_DDEF const lu_byte luai_ctype_[UCHAR_MAX + 2] = {
   0x00,  /* EOZ */
   0x00,  0x00,  0x00,  0x00,  0x00,  0x00,  0x00,  0x00,	/* 0. */
@@ -51,5 +51,6 @@ LUAI_DDEF const lu_byte luai_ctype_[UCHAR_MAX + 2] = {
   0x00,  0x00,  0x00,  0x00,  0x00,  0x00,  0x00,  0x00,	/* f. */
   0x00,  0x00,  0x00,  0x00,  0x00,  0x00,  0x00,  0x00,
 };
+// clang-format on
 
-#endif			/* } */
+#endif /* } */

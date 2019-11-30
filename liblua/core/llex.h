@@ -10,15 +10,13 @@
 #include "lobject.h"
 #include "lzio.h"
 
-
-#define FIRST_RESERVED	257
-
+#define FIRST_RESERVED 257
 
 #if !defined(LUA_ENV)
-#define LUA_ENV		"_ENV"
+#define LUA_ENV "_ENV"
 #endif
 
-
+// clang-format off
 /*
 * WARNING: if you change the order of this enumeration,
 * grep "ORDER RESERVED"
@@ -35,51 +33,46 @@ enum RESERVED {
   TK_DBCOLON, TK_EOS,
   TK_FLT, TK_INT, TK_NAME, TK_STRING
 };
+// clang-format on
 
 /* number of reserved words */
-#define NUM_RESERVED	(cast(int, TK_WHILE-FIRST_RESERVED+1))
-
+#define NUM_RESERVED (cast(int, TK_WHILE - FIRST_RESERVED + 1))
 
 typedef union {
   lua_Number r;
   lua_Integer i;
-  TString *ts;
-} SemInfo;  /* semantics information */
-
+  TString* ts;
+} SemInfo; /* semantics information */
 
 typedef struct Token {
   int token;
   SemInfo seminfo;
 } Token;
 
-
 /* state of the lexer plus state of the parser when shared by all
    functions */
 typedef struct LexState {
-  int current;  /* current character (charint) */
-  int linenumber;  /* input line counter */
-  int lastline;  /* line of last token 'consumed' */
-  Token t;  /* current token */
-  Token lookahead;  /* look ahead token */
-  struct FuncState *fs;  /* current function (parser) */
-  struct lua_State *L;
-  ZIO *z;  /* input stream */
-  Mbuffer *buff;  /* buffer for tokens */
-  Table *h;  /* to avoid collection/reuse strings */
-  struct Dyndata *dyd;  /* dynamic structures used by the parser */
-  TString *source;  /* current source name */
-  TString *envn;  /* environment variable name */
+  int current; /* current character (charint) */
+  int linenumber; /* input line counter */
+  int lastline; /* line of last token 'consumed' */
+  Token t; /* current token */
+  Token lookahead; /* look ahead token */
+  struct FuncState* fs; /* current function (parser) */
+  struct lua_State* L;
+  ZIO* z; /* input stream */
+  Mbuffer* buff; /* buffer for tokens */
+  Table* h; /* to avoid collection/reuse strings */
+  struct Dyndata* dyd; /* dynamic structures used by the parser */
+  TString* source; /* current source name */
+  TString* envn; /* environment variable name */
 } LexState;
 
-
-LUAI_FUNC void luaX_init (lua_State *L);
-LUAI_FUNC void luaX_setinput (lua_State *L, LexState *ls, ZIO *z,
-                              TString *source, int firstchar);
-LUAI_FUNC TString *luaX_newstring (LexState *ls, const char *str, size_t l);
-LUAI_FUNC void luaX_next (LexState *ls);
-LUAI_FUNC int luaX_lookahead (LexState *ls);
-LUAI_FUNC l_noret luaX_syntaxerror (LexState *ls, const char *s);
-LUAI_FUNC const char *luaX_token2str (LexState *ls, int token);
-
+LUAI_FUNC void luaX_init(lua_State* L);
+LUAI_FUNC void luaX_setinput(lua_State* L, LexState* ls, ZIO* z, TString* source, int firstchar);
+LUAI_FUNC TString* luaX_newstring(LexState* ls, const char* str, size_t l);
+LUAI_FUNC void luaX_next(LexState* ls);
+LUAI_FUNC int luaX_lookahead(LexState* ls);
+LUAI_FUNC l_noret luaX_syntaxerror(LexState* ls, const char* s);
+LUAI_FUNC const char* luaX_token2str(LexState* ls, int token);
 
 #endif

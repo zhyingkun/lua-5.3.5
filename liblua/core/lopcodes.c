@@ -9,14 +9,12 @@
 
 #include "lprefix.h"
 
-
 #include <stddef.h>
 
 #include "lopcodes.h"
 
-
+// clang-format off
 /* ORDER OP */
-
 LUAI_DDEF const char *const luaP_opnames[NUM_OPCODES+1] = {
   "MOVE",
   "LOADK",
@@ -67,10 +65,11 @@ LUAI_DDEF const char *const luaP_opnames[NUM_OPCODES+1] = {
   "EXTRAARG",
   NULL
 };
+// clang-format on
 
+#define opmode(t, a, b, c, m) (((t) << 7) | ((a) << 6) | ((b) << 4) | ((c) << 2) | (m))
 
-#define opmode(t,a,b,c,m) (((t)<<7) | ((a)<<6) | ((b)<<4) | ((c)<<2) | (m))
-
+// clang-format off
 LUAI_DDEF const lu_byte luaP_opmodes[NUM_OPCODES] = {
 /*       T  A    B       C     mode		   opcode	*/
   opmode(0, 1, OpArgR, OpArgN, iABC)		/* OP_MOVE */
@@ -121,4 +120,4 @@ LUAI_DDEF const lu_byte luaP_opmodes[NUM_OPCODES] = {
  ,opmode(0, 1, OpArgU, OpArgN, iABC)		/* OP_VARARG */
  ,opmode(0, 0, OpArgU, OpArgU, iAx)		/* OP_EXTRAARG */
 };
-
+// clang-format on
