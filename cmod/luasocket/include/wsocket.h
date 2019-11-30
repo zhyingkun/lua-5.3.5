@@ -14,7 +14,7 @@
 typedef int socklen_t;
 typedef SOCKADDR_STORAGE t_sockaddr_storage;
 typedef SOCKET t_socket;
-typedef t_socket *p_socket;
+typedef t_socket* p_socket;
 
 #ifndef IPV6_V6ONLY
 #define IPV6_V6ONLY 27

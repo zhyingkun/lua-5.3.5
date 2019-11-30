@@ -33,6 +33,6 @@
 
 #include "lua.h"
 
-int except_open(lua_State *L);
+int except_open(lua_State* L);
 
 #endif
