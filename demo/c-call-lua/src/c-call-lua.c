@@ -340,6 +340,15 @@ static int pmain(lua_State* L) {
 
 int printLuaStringTable(lua_State* L) {
   printf("+++++++++++++++++++++++++++++++++");
+  global_State* G = G(L);
+  stringtable strt = G->strt;
+  for (int i = 0; i < strt.size; i++) {
+    TString* str = strt.hash[i];
+    while (str != NULL) {
+      printf("String: %s\n", getstr(str));
+      str = str->u.hnext;
+    }
+  }
   printf("+++++++++++++++++++++++++++++++++");
   return 0;
 }
@@ -353,6 +362,8 @@ int main(int argc, char const* argv[]) {
     return 1;
   }
   luaL_openlibs(L);
+
+  printLuaStringTable(L);
 
   lua_pushvalue(L, LUA_REGISTRYINDEX);
   size_t length = 0;
