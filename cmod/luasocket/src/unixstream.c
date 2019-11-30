@@ -39,36 +39,43 @@ static const char* unixstream_tryconnect(p_unix un, const char* path);
 static const char* unixstream_trybind(p_unix un, const char* path);
 
 /* unixstream object methods */
-static luaL_Reg unixstream_methods[] = {{"__gc", meth_close},
-                                        {"__tostring", auxiliar_tostring},
-                                        {"accept", meth_accept},
-                                        {"bind", meth_bind},
-                                        {"close", meth_close},
-                                        {"connect", meth_connect},
-                                        {"dirty", meth_dirty},
-                                        {"getfd", meth_getfd},
-                                        {"getstats", meth_getstats},
-                                        {"setstats", meth_setstats},
-                                        {"listen", meth_listen},
-                                        {"receive", meth_receive},
-                                        {"send", meth_send},
-                                        {"setfd", meth_setfd},
-                                        {"setoption", meth_setoption},
-                                        {"setpeername", meth_connect},
-                                        {"setsockname", meth_bind},
-                                        {"getsockname", meth_getsockname},
-                                        {"settimeout", meth_settimeout},
-                                        {"shutdown", meth_shutdown},
-                                        {NULL, NULL}};
+static luaL_Reg unixstream_methods[] = {
+    {"__gc", meth_close},
+    {"__tostring", auxiliar_tostring},
+    {"accept", meth_accept},
+    {"bind", meth_bind},
+    {"close", meth_close},
+    {"connect", meth_connect},
+    {"dirty", meth_dirty},
+    {"getfd", meth_getfd},
+    {"getstats", meth_getstats},
+    {"setstats", meth_setstats},
+    {"listen", meth_listen},
+    {"receive", meth_receive},
+    {"send", meth_send},
+    {"setfd", meth_setfd},
+    {"setoption", meth_setoption},
+    {"setpeername", meth_connect},
+    {"setsockname", meth_bind},
+    {"getsockname", meth_getsockname},
+    {"settimeout", meth_settimeout},
+    {"shutdown", meth_shutdown},
+    {NULL, NULL},
+};
 
 /* socket option handlers */
-static t_opt optset[] = {{"keepalive", opt_set_keepalive},
-                         {"reuseaddr", opt_set_reuseaddr},
-                         {"linger", opt_set_linger},
-                         {NULL, NULL}};
+static t_opt optset[] = {
+    {"keepalive", opt_set_keepalive},
+    {"reuseaddr", opt_set_reuseaddr},
+    {"linger", opt_set_linger},
+    {NULL, NULL},
+};
 
 /* functions in library namespace */
-static luaL_Reg func[] = {{"stream", global_create}, {NULL, NULL}};
+static luaL_Reg func[] = {
+    {"stream", global_create},
+    {NULL, NULL},
+};
 
 /*-------------------------------------------------------------------------*\
 * Initializes module

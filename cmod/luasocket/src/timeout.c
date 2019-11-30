@@ -34,7 +34,11 @@
 static int timeout_lua_gettime(lua_State* L);
 static int timeout_lua_sleep(lua_State* L);
 
-static luaL_Reg func[] = {{"gettime", timeout_lua_gettime}, {"sleep", timeout_lua_sleep}, {NULL, NULL}};
+static luaL_Reg func[] = {
+    {"gettime", timeout_lua_gettime},
+    {"sleep", timeout_lua_sleep},
+    {NULL, NULL},
+};
 
 /*=========================================================================*\
 * Exported functions.

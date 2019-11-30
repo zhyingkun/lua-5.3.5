@@ -48,61 +48,72 @@ static int meth_setfd(lua_State* L);
 static int meth_dirty(lua_State* L);
 
 /* udp object methods */
-static luaL_Reg udp_methods[] = {{"__gc", meth_close},
-                                 {"__tostring", auxiliar_tostring},
-                                 {"close", meth_close},
-                                 {"dirty", meth_dirty},
-                                 {"getfamily", meth_getfamily},
-                                 {"getfd", meth_getfd},
-                                 {"getpeername", meth_getpeername},
-                                 {"getsockname", meth_getsockname},
-                                 {"receive", meth_receive},
-                                 {"receivefrom", meth_receivefrom},
-                                 {"send", meth_send},
-                                 {"sendto", meth_sendto},
-                                 {"setfd", meth_setfd},
-                                 {"setoption", meth_setoption},
-                                 {"getoption", meth_getoption},
-                                 {"setpeername", meth_setpeername},
-                                 {"setsockname", meth_setsockname},
-                                 {"settimeout", meth_settimeout},
-                                 {"gettimeout", meth_gettimeout},
-                                 {NULL, NULL}};
+static luaL_Reg udp_methods[] = {
+    {"__gc", meth_close},
+    {"__tostring", auxiliar_tostring},
+    {"close", meth_close},
+    {"dirty", meth_dirty},
+    {"getfamily", meth_getfamily},
+    {"getfd", meth_getfd},
+    {"getpeername", meth_getpeername},
+    {"getsockname", meth_getsockname},
+    {"receive", meth_receive},
+    {"receivefrom", meth_receivefrom},
+    {"send", meth_send},
+    {"sendto", meth_sendto},
+    {"setfd", meth_setfd},
+    {"setoption", meth_setoption},
+    {"getoption", meth_getoption},
+    {"setpeername", meth_setpeername},
+    {"setsockname", meth_setsockname},
+    {"settimeout", meth_settimeout},
+    {"gettimeout", meth_gettimeout},
+    {NULL, NULL},
+};
 
 /* socket options for setoption */
-static t_opt optset[] = {{"dontroute", opt_set_dontroute},
-                         {"broadcast", opt_set_broadcast},
-                         {"reuseaddr", opt_set_reuseaddr},
-                         {"reuseport", opt_set_reuseport},
-                         {"ip-multicast-if", opt_set_ip_multicast_if},
-                         {"ip-multicast-ttl", opt_set_ip_multicast_ttl},
-                         {"ip-multicast-loop", opt_set_ip_multicast_loop},
-                         {"ip-add-membership", opt_set_ip_add_membership},
-                         {"ip-drop-membership", opt_set_ip_drop_membersip},
-                         {"ipv6-unicast-hops", opt_set_ip6_unicast_hops},
-                         {"ipv6-multicast-hops", opt_set_ip6_unicast_hops},
-                         {"ipv6-multicast-loop", opt_set_ip6_multicast_loop},
-                         {"ipv6-add-membership", opt_set_ip6_add_membership},
-                         {"ipv6-drop-membership", opt_set_ip6_drop_membersip},
-                         {"ipv6-v6only", opt_set_ip6_v6only},
-                         {NULL, NULL}};
+static t_opt optset[] = {
+    {"dontroute", opt_set_dontroute},
+    {"broadcast", opt_set_broadcast},
+    {"reuseaddr", opt_set_reuseaddr},
+    {"reuseport", opt_set_reuseport},
+    {"ip-multicast-if", opt_set_ip_multicast_if},
+    {"ip-multicast-ttl", opt_set_ip_multicast_ttl},
+    {"ip-multicast-loop", opt_set_ip_multicast_loop},
+    {"ip-add-membership", opt_set_ip_add_membership},
+    {"ip-drop-membership", opt_set_ip_drop_membersip},
+    {"ipv6-unicast-hops", opt_set_ip6_unicast_hops},
+    {"ipv6-multicast-hops", opt_set_ip6_unicast_hops},
+    {"ipv6-multicast-loop", opt_set_ip6_multicast_loop},
+    {"ipv6-add-membership", opt_set_ip6_add_membership},
+    {"ipv6-drop-membership", opt_set_ip6_drop_membersip},
+    {"ipv6-v6only", opt_set_ip6_v6only},
+    {NULL, NULL},
+};
 
 /* socket options for getoption */
-static t_opt optget[] = {{"dontroute", opt_get_dontroute},
-                         {"broadcast", opt_get_broadcast},
-                         {"reuseaddr", opt_get_reuseaddr},
-                         {"reuseport", opt_get_reuseport},
-                         {"ip-multicast-if", opt_get_ip_multicast_if},
-                         {"ip-multicast-loop", opt_get_ip_multicast_loop},
-                         {"error", opt_get_error},
-                         {"ipv6-unicast-hops", opt_get_ip6_unicast_hops},
-                         {"ipv6-multicast-hops", opt_get_ip6_unicast_hops},
-                         {"ipv6-multicast-loop", opt_get_ip6_multicast_loop},
-                         {"ipv6-v6only", opt_get_ip6_v6only},
-                         {NULL, NULL}};
+static t_opt optget[] = {
+    {"dontroute", opt_get_dontroute},
+    {"broadcast", opt_get_broadcast},
+    {"reuseaddr", opt_get_reuseaddr},
+    {"reuseport", opt_get_reuseport},
+    {"ip-multicast-if", opt_get_ip_multicast_if},
+    {"ip-multicast-loop", opt_get_ip_multicast_loop},
+    {"error", opt_get_error},
+    {"ipv6-unicast-hops", opt_get_ip6_unicast_hops},
+    {"ipv6-multicast-hops", opt_get_ip6_unicast_hops},
+    {"ipv6-multicast-loop", opt_get_ip6_multicast_loop},
+    {"ipv6-v6only", opt_get_ip6_v6only},
+    {NULL, NULL},
+};
 
 /* functions in library namespace */
-static luaL_Reg func[] = {{"udp", global_create}, {"udp4", global_create4}, {"udp6", global_create6}, {NULL, NULL}};
+static luaL_Reg func[] = {
+    {"udp", global_create},
+    {"udp4", global_create4},
+    {"udp6", global_create6},
+    {NULL, NULL},
+};
 
 /*-------------------------------------------------------------------------*\
 * Initializes module

@@ -11,7 +11,11 @@
 /*-------------------------------------------------------------------------*\
 * Modules and functions
 \*-------------------------------------------------------------------------*/
-static const luaL_Reg mod[] = {{"stream", unixstream_open}, {"dgram", unixdgram_open}, {NULL, NULL}};
+static const luaL_Reg mod[] = {
+    {"stream", unixstream_open},
+    {"dgram", unixdgram_open},
+    {NULL, NULL},
+};
 
 static void add_alias(lua_State* L, int index, const char* name, const char* target) {
   lua_getfield(L, index, target);

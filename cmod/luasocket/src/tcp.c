@@ -43,55 +43,63 @@ static int meth_setfd(lua_State* L);
 static int meth_dirty(lua_State* L);
 
 /* tcp object methods */
-static luaL_Reg tcp_methods[] = {{"__gc", meth_close},
-                                 {"__tostring", auxiliar_tostring},
-                                 {"accept", meth_accept},
-                                 {"bind", meth_bind},
-                                 {"close", meth_close},
-                                 {"connect", meth_connect},
-                                 {"dirty", meth_dirty},
-                                 {"getfamily", meth_getfamily},
-                                 {"getfd", meth_getfd},
-                                 {"getoption", meth_getoption},
-                                 {"getpeername", meth_getpeername},
-                                 {"getsockname", meth_getsockname},
-                                 {"getstats", meth_getstats},
-                                 {"setstats", meth_setstats},
-                                 {"listen", meth_listen},
-                                 {"receive", meth_receive},
-                                 {"send", meth_send},
-                                 {"setfd", meth_setfd},
-                                 {"setoption", meth_setoption},
-                                 {"setpeername", meth_connect},
-                                 {"setsockname", meth_bind},
-                                 {"settimeout", meth_settimeout},
-                                 {"gettimeout", meth_gettimeout},
-                                 {"shutdown", meth_shutdown},
-                                 {NULL, NULL}};
+static luaL_Reg tcp_methods[] = {
+    {"__gc", meth_close},
+    {"__tostring", auxiliar_tostring},
+    {"accept", meth_accept},
+    {"bind", meth_bind},
+    {"close", meth_close},
+    {"connect", meth_connect},
+    {"dirty", meth_dirty},
+    {"getfamily", meth_getfamily},
+    {"getfd", meth_getfd},
+    {"getoption", meth_getoption},
+    {"getpeername", meth_getpeername},
+    {"getsockname", meth_getsockname},
+    {"getstats", meth_getstats},
+    {"setstats", meth_setstats},
+    {"listen", meth_listen},
+    {"receive", meth_receive},
+    {"send", meth_send},
+    {"setfd", meth_setfd},
+    {"setoption", meth_setoption},
+    {"setpeername", meth_connect},
+    {"setsockname", meth_bind},
+    {"settimeout", meth_settimeout},
+    {"gettimeout", meth_gettimeout},
+    {"shutdown", meth_shutdown},
+    {NULL, NULL},
+};
 
 /* socket option handlers */
-static t_opt optget[] = {{"keepalive", opt_get_keepalive},
-                         {"reuseaddr", opt_get_reuseaddr},
-                         {"reuseport", opt_get_reuseport},
-                         {"tcp-nodelay", opt_get_tcp_nodelay},
-                         {"linger", opt_get_linger},
-                         {"error", opt_get_error},
-                         {NULL, NULL}};
+static t_opt optget[] = {
+    {"keepalive", opt_get_keepalive},
+    {"reuseaddr", opt_get_reuseaddr},
+    {"reuseport", opt_get_reuseport},
+    {"tcp-nodelay", opt_get_tcp_nodelay},
+    {"linger", opt_get_linger},
+    {"error", opt_get_error},
+    {NULL, NULL},
+};
 
-static t_opt optset[] = {{"keepalive", opt_set_keepalive},
-                         {"reuseaddr", opt_set_reuseaddr},
-                         {"reuseport", opt_set_reuseport},
-                         {"tcp-nodelay", opt_set_tcp_nodelay},
-                         {"ipv6-v6only", opt_set_ip6_v6only},
-                         {"linger", opt_set_linger},
-                         {NULL, NULL}};
+static t_opt optset[] = {
+    {"keepalive", opt_set_keepalive},
+    {"reuseaddr", opt_set_reuseaddr},
+    {"reuseport", opt_set_reuseport},
+    {"tcp-nodelay", opt_set_tcp_nodelay},
+    {"ipv6-v6only", opt_set_ip6_v6only},
+    {"linger", opt_set_linger},
+    {NULL, NULL},
+};
 
 /* functions in library namespace */
-static luaL_Reg func[] = {{"tcp", global_create},
-                          {"tcp4", global_create4},
-                          {"tcp6", global_create6},
-                          {"connect", global_connect},
-                          {NULL, NULL}};
+static luaL_Reg func[] = {
+    {"tcp", global_create},
+    {"tcp4", global_create4},
+    {"tcp6", global_create6},
+    {"connect", global_connect},
+    {NULL, NULL},
+};
 
 /*-------------------------------------------------------------------------*\
 * Initializes module

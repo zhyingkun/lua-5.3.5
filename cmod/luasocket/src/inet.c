@@ -23,12 +23,14 @@ static void inet_pushresolved(lua_State* L, struct hostent* hp);
 static int inet_global_gethostname(lua_State* L);
 
 /* DNS functions */
-static luaL_Reg func[] = {{"toip", inet_global_toip},
-                          {"getaddrinfo", inet_global_getaddrinfo},
-                          {"tohostname", inet_global_tohostname},
-                          {"getnameinfo", inet_global_getnameinfo},
-                          {"gethostname", inet_global_gethostname},
-                          {NULL, NULL}};
+static luaL_Reg func[] = {
+    {"toip", inet_global_toip},
+    {"getaddrinfo", inet_global_getaddrinfo},
+    {"tohostname", inet_global_tohostname},
+    {"getnameinfo", inet_global_getnameinfo},
+    {"gethostname", inet_global_gethostname},
+    {NULL, NULL},
+};
 
 /*=========================================================================*\
 * Exported functions

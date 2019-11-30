@@ -40,18 +40,20 @@ static int meth_getstats(lua_State* L);
 static int meth_setstats(lua_State* L);
 
 /* serial object methods */
-static luaL_Reg serial_methods[] = {{"__gc", meth_close},
-                                    {"__tostring", auxiliar_tostring},
-                                    {"close", meth_close},
-                                    {"dirty", meth_dirty},
-                                    {"getfd", meth_getfd},
-                                    {"getstats", meth_getstats},
-                                    {"setstats", meth_setstats},
-                                    {"receive", meth_receive},
-                                    {"send", meth_send},
-                                    {"setfd", meth_setfd},
-                                    {"settimeout", meth_settimeout},
-                                    {NULL, NULL}};
+static luaL_Reg serial_methods[] = {
+    {"__gc", meth_close},
+    {"__tostring", auxiliar_tostring},
+    {"close", meth_close},
+    {"dirty", meth_dirty},
+    {"getfd", meth_getfd},
+    {"getstats", meth_getstats},
+    {"setstats", meth_setstats},
+    {"receive", meth_receive},
+    {"send", meth_send},
+    {"setfd", meth_setfd},
+    {"settimeout", meth_settimeout},
+    {NULL, NULL},
+};
 
 /*-------------------------------------------------------------------------*\
 * Initializes module

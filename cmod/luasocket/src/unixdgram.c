@@ -40,31 +40,39 @@ static const char* unixdgram_tryconnect(p_unix un, const char* path);
 static const char* unixdgram_trybind(p_unix un, const char* path);
 
 /* unixdgram object methods */
-static luaL_Reg unixdgram_methods[] = {{"__gc", meth_close},
-                                       {"__tostring", auxiliar_tostring},
-                                       {"bind", meth_bind},
-                                       {"close", meth_close},
-                                       {"connect", meth_connect},
-                                       {"dirty", meth_dirty},
-                                       {"getfd", meth_getfd},
-                                       {"send", meth_send},
-                                       {"sendto", meth_sendto},
-                                       {"receive", meth_receive},
-                                       {"receivefrom", meth_receivefrom},
-                                       {"setfd", meth_setfd},
-                                       {"setoption", meth_setoption},
-                                       {"setpeername", meth_connect},
-                                       {"setsockname", meth_bind},
-                                       {"getsockname", meth_getsockname},
-                                       {"settimeout", meth_settimeout},
-                                       {"gettimeout", meth_gettimeout},
-                                       {NULL, NULL}};
+static luaL_Reg unixdgram_methods[] = {
+    {"__gc", meth_close},
+    {"__tostring", auxiliar_tostring},
+    {"bind", meth_bind},
+    {"close", meth_close},
+    {"connect", meth_connect},
+    {"dirty", meth_dirty},
+    {"getfd", meth_getfd},
+    {"send", meth_send},
+    {"sendto", meth_sendto},
+    {"receive", meth_receive},
+    {"receivefrom", meth_receivefrom},
+    {"setfd", meth_setfd},
+    {"setoption", meth_setoption},
+    {"setpeername", meth_connect},
+    {"setsockname", meth_bind},
+    {"getsockname", meth_getsockname},
+    {"settimeout", meth_settimeout},
+    {"gettimeout", meth_gettimeout},
+    {NULL, NULL},
+};
 
 /* socket option handlers */
-static t_opt optset[] = {{"reuseaddr", opt_set_reuseaddr}, {NULL, NULL}};
+static t_opt optset[] = {
+    {"reuseaddr", opt_set_reuseaddr},
+    {NULL, NULL},
+};
 
 /* functions in library namespace */
-static luaL_Reg func[] = {{"dgram", global_create}, {NULL, NULL}};
+static luaL_Reg func[] = {
+    {"dgram", global_create},
+    {NULL, NULL},
+};
 
 /*-------------------------------------------------------------------------*\
 * Initializes module

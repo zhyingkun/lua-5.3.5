@@ -44,17 +44,23 @@ static int base_open(lua_State* L);
 /*-------------------------------------------------------------------------*\
 * Modules and functions
 \*-------------------------------------------------------------------------*/
-static const luaL_Reg mod[] = {{"auxiliar", auxiliar_open},
-                               {"except", except_open},
-                               {"timeout", timeout_open},
-                               {"buffer", buffer_open},
-                               {"inet", inet_open},
-                               {"tcp", tcp_open},
-                               {"udp", udp_open},
-                               {"select", select_open},
-                               {NULL, NULL}};
+static const luaL_Reg mod[] = {
+    {"auxiliar", auxiliar_open},
+    {"except", except_open},
+    {"timeout", timeout_open},
+    {"buffer", buffer_open},
+    {"inet", inet_open},
+    {"tcp", tcp_open},
+    {"udp", udp_open},
+    {"select", select_open},
+    {NULL, NULL},
+};
 
-static luaL_Reg func[] = {{"skip", global_skip}, {"__unload", global_unload}, {NULL, NULL}};
+static luaL_Reg func[] = {
+    {"skip", global_skip},
+    {"__unload", global_unload},
+    {NULL, NULL},
+};
 
 /*-------------------------------------------------------------------------*\
 * Skip a few arguments

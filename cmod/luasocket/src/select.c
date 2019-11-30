@@ -24,7 +24,10 @@ static void make_assoc(lua_State* L, int tab);
 static int global_select(lua_State* L);
 
 /* functions in library namespace */
-static luaL_Reg func[] = {{"select", global_select}, {NULL, NULL}};
+static luaL_Reg func[] = {
+    {"select", global_select},
+    {NULL, NULL},
+};
 
 /*=========================================================================*\
 * Exported functions
