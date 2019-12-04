@@ -404,6 +404,17 @@ static int db_traceback(lua_State* L) {
   return 1;
 }
 
+static int db_getspecialkeys(lua_State* L) {
+  lua_createtable(L, 0, 2); // [-0, +1]
+  int idx = lua_gettop(L);
+  extern const int CLIBS;
+  lua_pushlightuserdata(L, (void*)&CLIBS); // [-0, +1]
+  lua_setfield(L, idx, "CLIBS"); // [-1, +0]
+  lua_pushlightuserdata(L, (void*)&HOOKKEY); // [-0, +1]
+  lua_setfield(L, idx, "HOOKKEY"); // [-1, +0]
+  return 1;
+}
+
 static const luaL_Reg dblib[] = {
     {"debug", db_debug},
     {"getuservalue", db_getuservalue},
@@ -421,6 +432,7 @@ static const luaL_Reg dblib[] = {
     {"setmetatable", db_setmetatable},
     {"setupvalue", db_setupvalue},
     {"traceback", db_traceback},
+    {"getspecialkeys", db_getspecialkeys},
     {NULL, NULL},
 };
 
