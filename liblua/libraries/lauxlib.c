@@ -794,6 +794,9 @@ LUALIB_API const char* luaL_tolstring(lua_State* L, int idx, size_t* len) {
 ** =======================================================
 */
 
+#define strbuff_addliteral(b, s) strbuff_addlstring(b, "" s, sizeof(s) - 1)
+#define strbuff_addnewline(b) strbuff_addliteral(b, "\n")
+
 typedef struct {
   char* b;
   size_t size; /* buffer size */
@@ -842,9 +845,9 @@ void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
   size_t length = 0;
   const char* result = luaL_tolstring(L, idx, &length); // [-0, +1]
   if (lua_type(L, idx) == LUA_TSTRING) {
-    strbuff_addlstring(b, "\"", 1);
+    strbuff_addliteral(b, "\"");
     strbuff_addlstring(b, result, length);
-    strbuff_addlstring(b, "\"", 1);
+    strbuff_addliteral(b, "\"");
   } else {
     strbuff_addlstring(b, result, length);
   }
@@ -907,6 +910,7 @@ void ds_recordsubtable(DetailStr* detail, int idx) {
 /* }====================================================== */
 
 static const char* tab_str = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
+#define TABLE_HEAD_SIZE 32
 
 void recursive_tostring(DetailStr* detail, int idx) {
   lua_State* L = detail->L;
@@ -918,10 +922,10 @@ void recursive_tostring(DetailStr* detail, int idx) {
     return;
   }
 
-  const char* head = lua_pushfstring(L, "table: %p {", lua_topointer(L, idx));
-  strbuff_addlstring(b, head, strlen(head));
-  lua_pop(L, 1);
-  strbuff_addlstring(b, "\n", 1);
+  char buffer[TABLE_HEAD_SIZE];
+  snprintf(buffer, TABLE_HEAD_SIZE, "table: %p {", lua_topointer(L, idx));
+  strbuff_addlstring(b, buffer, strlen(buffer));
+  strbuff_addnewline(b);
 
   // record current table, 0 means do not recursive later
   ds_recordtable(detail, idx, 0);
@@ -933,13 +937,13 @@ void recursive_tostring(DetailStr* detail, int idx) {
   while (lua_next(L, idx) != 0) {
     strbuff_addlstring(b, tab_str, detail->current_level);
     strbuff_addvalue(b, L, -2);
-    strbuff_addlstring(b, " => ", 4);
+    strbuff_addliteral(b, " => ");
     if (lua_type(L, -1) == LUA_TTABLE && ds_checktable(detail, -1) == false) {
       recursive_tostring(detail, -1);
     } else {
       strbuff_addvalue(b, L, -1);
     }
-    strbuff_addlstring(b, "\n", 1);
+    strbuff_addnewline(b);
     lua_pop(L, 1);
   }
 
@@ -948,7 +952,7 @@ void recursive_tostring(DetailStr* detail, int idx) {
 
   // tail parentheses
   strbuff_addlstring(b, tab_str, detail->current_level);
-  strbuff_addlstring(b, "}", 1);
+  strbuff_addliteral(b, "}");
 }
 
 LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int level) {
@@ -965,10 +969,10 @@ LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int 
   dStr.level = level;
   dStr.current_level = 0;
   // table for record which has been walk through
-  lua_createtable(L, 0, 8);
+  lua_createtable(L, 0, 8); // [-0, +1]
   dStr.idx_tables = lua_gettop(L);
   recursive_tostring(&dStr, idx);
-  lua_pop(L, 1);
+  lua_pop(L, 1); // [-1, +0]
   // get the length and address from the TString
   size_t length = dStr.buffer.n;
   if (len != NULL) {
