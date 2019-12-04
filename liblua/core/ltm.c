@@ -22,13 +22,14 @@
 #include "ltm.h"
 #include "lvm.h"
 
+static const char lightudatatypename[] = "lightuserdata";
 static const char udatatypename[] = "userdata";
 
 LUAI_DDEF const char* const luaT_typenames_[LUA_TOTALTAGS] = {
     "no value",
     "nil",
     "boolean",
-    udatatypename,
+    lightudatatypename,
     "number",
     "string",
     "table",
