@@ -124,6 +124,8 @@ print('Run in Lua')\
 print('MyName is ', MyName)\
 print('TimeRecord.Year is ', TimeRecord.Year)\
 print('RefTable[1].Year is ', RefTable[1].Year)\
+print(debug.traceback())\n\
+print(tostring(debug.getinfo(1), 1))\n\
 function luaDefineFunc(arg)\
 	print(\"In Lua Define Function\", arg)\
 end\n\
@@ -339,7 +341,7 @@ static int pmain(lua_State* L) {
 }
 
 int printLuaStringTable(lua_State* L) {
-  printf("+++++++++++++++++++++++++++++++++");
+  printf("+++++++++++++++++++++++++++++++++\n");
   global_State* G = G(L);
   stringtable strt = G->strt;
   for (int i = 0; i < strt.size; i++) {
@@ -349,7 +351,7 @@ int printLuaStringTable(lua_State* L) {
       str = str->u.hnext;
     }
   }
-  printf("+++++++++++++++++++++++++++++++++");
+  printf("+++++++++++++++++++++++++++++++++\n");
   return 0;
 }
 
@@ -362,6 +364,7 @@ int main(int argc, char const* argv[]) {
     return 1;
   }
   luaL_openlibs(L);
+  printf("top: %d, L->stack: %p, L->top: %p\n", lua_gettop(L), L->stack, L->top);
 
   printLuaStringTable(L);
 
