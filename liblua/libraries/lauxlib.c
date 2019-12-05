@@ -910,6 +910,7 @@ void ds_recordsubtable(DetailStr* detail, int idx) {
 /* }====================================================== */
 
 static const char* tab_str = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
+#define MAX_TAB_SIZE 16
 #define TABLE_HEAD_SIZE 32
 
 void recursive_tostring(DetailStr* detail, int idx) {
@@ -960,8 +961,8 @@ LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int 
   if (lua_type(L, idx) != LUA_TTABLE || level <= 0) {
     return luaL_tolstring(L, idx, len);
   }
-  if (level > 16) {
-    level = 16;
+  if (level > MAX_TAB_SIZE) {
+    level = MAX_TAB_SIZE;
   }
   DetailStr dStr;
   dStr.L = L;
