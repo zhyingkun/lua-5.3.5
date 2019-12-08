@@ -625,6 +625,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = 32CE97D421F2E75E0025DDF5;
 			productRefGroup = 32CE97DF21F2E75E0025DDF5 /* Products */;
@@ -913,6 +914,13 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
+				OTHER_CFLAGS = (
+					"-std=gnu99",
+					"-Wall",
+					"-Wextra",
+					"-DLUA_USE_MACOSX",
+					"-fPIC",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.zhyingkun.luawithlib;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -940,6 +948,13 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
+				OTHER_CFLAGS = (
+					"-std=gnu99",
+					"-Wall",
+					"-Wextra",
+					"-DLUA_USE_MACOSX",
+					"-fPIC",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.zhyingkun.luawithlib;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -956,6 +971,13 @@
 				DEVELOPMENT_TEAM = MAVTF79RK5;
 				INFOPLIST_FILE = luabundle/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				OTHER_CFLAGS = (
+					"-std=gnu99",
+					"-Wall",
+					"-Wextra",
+					"-DLUA_USE_MACOSX",
+					"-fPIC",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.zhyingkun.luawithlib;
 				PRODUCT_NAME = luawithlib;
 				SKIP_INSTALL = YES;
@@ -973,6 +995,13 @@
 				DEVELOPMENT_TEAM = MAVTF79RK5;
 				INFOPLIST_FILE = luabundle/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				OTHER_CFLAGS = (
+					"-std=gnu99",
+					"-Wall",
+					"-Wextra",
+					"-DLUA_USE_MACOSX",
+					"-fPIC",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.zhyingkun.luawithlib;
 				PRODUCT_NAME = luawithlib;
 				SKIP_INSTALL = YES;
