@@ -67,3 +67,5 @@ install(TARGETS ${PROJECT_NAME}
 	ARCHIVE DESTINATION lib
 )
 install(FILES ${LUA_HEADERS} DESTINATION include/lua)
+
+add_subdirectory(test)
