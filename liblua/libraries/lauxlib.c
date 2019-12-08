@@ -778,6 +778,9 @@ LUALIB_API const char* luaL_tolstring(lua_State* L, int idx, size_t* len) {
       default: {
         int tt = luaL_getmetafield(L, idx, "__name"); /* try name */
         const char* kind = (tt == LUA_TSTRING) ? lua_tostring(L, -1) : luaL_typename(L, idx);
+        if (lua_type(L, idx) == LUA_TLIGHTUSERDATA) {
+          kind = "lightuserdata";
+        }
         lua_pushfstring(L, "%s: %p", kind, lua_topointer(L, idx));
         if (tt != LUA_TNIL)
           lua_remove(L, -2); /* remove '__name' */
@@ -856,6 +859,7 @@ void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
 
 void strbuff_destroy(StringBuffer* b) {
   free(b->b);
+  b->b = NULL;
   b->size = 0;
   b->n = 0;
 }
@@ -913,15 +917,11 @@ static const char* tab_str = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
 #define MAX_TAB_SIZE 16
 #define TABLE_HEAD_SIZE 32
 
+// idx points to a table, detail->level > 0
 void recursive_tostring(DetailStr* detail, int idx) {
   lua_State* L = detail->L;
   StringBuffer* b = &detail->buffer;
   idx = lua_absindex(L, idx);
-
-  if (detail->current_level >= detail->level) { // check recursive depth
-    strbuff_addvalue(b, L, idx);
-    return;
-  }
 
   char buffer[TABLE_HEAD_SIZE];
   snprintf(buffer, TABLE_HEAD_SIZE, "table: %p {", lua_topointer(L, idx));
@@ -932,6 +932,7 @@ void recursive_tostring(DetailStr* detail, int idx) {
   ds_recordtable(detail, idx, 0);
   detail->current_level++;
   ds_recordsubtable(detail, idx);
+  bool can_recursive = detail->current_level < detail->level;
 
   // walk through the table
   lua_pushnil(L);
@@ -939,7 +940,9 @@ void recursive_tostring(DetailStr* detail, int idx) {
     strbuff_addlstring(b, tab_str, detail->current_level);
     strbuff_addvalue(b, L, -2);
     strbuff_addliteral(b, " => ");
-    if (lua_type(L, -1) == LUA_TTABLE && ds_checktable(detail, -1) == false) {
+    if (can_recursive && // check recursive depth
+        lua_type(L, -1) == LUA_TTABLE && // must be a table
+        ds_checktable(detail, -1) == false) {
       recursive_tostring(detail, -1);
     } else {
       strbuff_addvalue(b, L, -1);
