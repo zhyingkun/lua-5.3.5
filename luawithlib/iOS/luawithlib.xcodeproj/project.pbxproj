@@ -627,6 +627,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = 32CE993F21F2EAF20025DDF5;
 			productRefGroup = 32CE994A21F2EAF20025DDF5 /* Products */;
@@ -911,6 +912,13 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				OTHER_CFLAGS = (
+					"-std=gnu99",
+					"-Wall",
+					"-Wextra",
+					"-DLUA_USE_MACOSX",
+					"-fPIC",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.zhyingkun.luawithlib;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -937,6 +945,13 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				OTHER_CFLAGS = (
+					"-std=gnu99",
+					"-Wall",
+					"-Wextra",
+					"-DLUA_USE_MACOSX",
+					"-fPIC",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.zhyingkun.luawithlib;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -954,6 +969,12 @@
 					"TARGET_OS_IOS=1",
 					"DEBUG=1",
 				);
+				OTHER_CFLAGS = (
+					"-std=gnu99",
+					"-Wall",
+					"-Wextra",
+					"-DLUA_USE_MACOSX",
+				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = luawithlib;
 				SKIP_INSTALL = YES;
@@ -968,6 +989,12 @@
 				CURRENT_PROJECT_VERSION = 5.3.5;
 				DEVELOPMENT_TEAM = MAVTF79RK5;
 				GCC_PREPROCESSOR_DEFINITIONS = "TARGET_OS_IOS=1";
+				OTHER_CFLAGS = (
+					"-std=gnu99",
+					"-Wall",
+					"-Wextra",
+					"-DLUA_USE_MACOSX",
+				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = luawithlib;
 				SKIP_INSTALL = YES;
