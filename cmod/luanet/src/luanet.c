@@ -475,7 +475,7 @@ LUAMOD_API int luanetL_checkinteger(lua_State* L, int arg, int* exception) {
   if (exception != NULL) {
     *exception = status;
   }
-  return tmpArg.ret;
+  return (int)tmpArg.ret;
 }
 
 // =============================================================================

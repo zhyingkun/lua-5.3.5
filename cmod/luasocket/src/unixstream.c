@@ -195,7 +195,7 @@ static const char* unixstream_trybind(p_unix un, const char* path) {
   err = socket_bind(&un->sock, (SA*)&local, local.sun_len);
 
 #else
-  err = socket_bind(&un->sock, (SA*)&local, sizeof(local.sun_family) + len);
+  err = socket_bind(&un->sock, (SA*)&local, (socklen_t)(sizeof(local.sun_family) + len));
 #endif
   if (err != IO_DONE)
     socket_destroy(&un->sock);
@@ -247,7 +247,7 @@ static const char* unixstream_tryconnect(p_unix un, const char* path) {
   remote.sun_len = sizeof(remote.sun_family) + sizeof(remote.sun_len) + len + 1;
   err = socket_connect(&un->sock, (SA*)&remote, remote.sun_len, &un->tm);
 #else
-  err = socket_connect(&un->sock, (SA*)&remote, sizeof(remote.sun_family) + len, &un->tm);
+  err = socket_connect(&un->sock, (SA*)&remote, (socklen_t)(sizeof(remote.sun_family) + len), &un->tm);
 #endif
   if (err != IO_DONE)
     socket_destroy(&un->sock);

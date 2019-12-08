@@ -437,8 +437,8 @@ static lu_mem traversetable(global_State* g, Table* h) {
   const TValue* mode = gfasttm(g, h->metatable, TM_MODE);
   markobjectN(g, h->metatable);
   if (mode && ttisstring(mode) && /* is there a weak mode? */
-      ((weakkey = strchr(svalue(mode), 'k')),
-       (weakvalue = strchr(svalue(mode), 'v')),
+      ((void)((weakkey = strchr(svalue(mode), 'k'))),
+       (void)((weakvalue = strchr(svalue(mode), 'v'))),
        (weakkey || weakvalue))) { /* is really weak? */
     black2gray(h); /* keep table gray */
     if (!weakkey) /* strong keys? */

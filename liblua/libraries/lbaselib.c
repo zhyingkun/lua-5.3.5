@@ -438,7 +438,7 @@ static int luaB_xpcall(lua_State* L) {
 static void aux_tostring(lua_State* L) {
   int level = 0;
   if (lua_isnoneornil(L, 2) || lua_type(L, 1) != LUA_TTABLE || lua_type(L, 2) != LUA_TNUMBER ||
-      (level = lua_tointeger(L, 2)) <= 0) {
+      (level = (int)lua_tointeger(L, 2)) <= 0) {
     luaL_tolstring(L, 1, NULL);
   }
   lua_settop(L, 1);

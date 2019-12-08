@@ -314,7 +314,7 @@ static unsigned long readutf8esc(LexState* ls) {
   save_and_next(ls); /* skip 'u' */
   esccheck(ls, ls->current == '{', "missing '{'");
   r = gethexa(ls); /* must have at least one digit */
-  while ((save_and_next(ls), lisxdigit(ls->current))) {
+  while (((void)(save_and_next(ls)), lisxdigit(ls->current))) {
     i++;
     r = (r << 4) + luaO_hexavalue(ls->current);
     esccheck(ls, r <= 0x10FFFF, "UTF-8 value too large");

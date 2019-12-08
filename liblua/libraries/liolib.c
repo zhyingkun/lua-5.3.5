@@ -35,7 +35,7 @@
 /* Check whether 'mode' matches '[rwa]%+?[L_MODEEXT]*' */
 static int l_checkmode(const char* mode) {
   return (*mode != '\0' && strchr("rwa", *(mode++)) != NULL &&
-          (*mode != '+' || (++mode, 1)) && /* skip if char is '+' */
+          (*mode != '+' || ((void)(++mode), 1)) && /* skip if char is '+' */
           (strspn(mode, L_MODEEXT) == strlen(mode))); /* check extensions */
 }
 
@@ -97,6 +97,9 @@ static int l_checkmode(const char* mode) {
 #if defined(LUA_USE_POSIX) /* { */
 
 #include <sys/types.h>
+
+int fseeko(FILE* stream, off_t offset, int whence);
+off_t ftello(FILE* stream);
 
 #define l_fseek(f, o, w) fseeko(f, o, w)
 #define l_ftell(f) ftello(f)

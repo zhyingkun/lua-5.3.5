@@ -145,6 +145,9 @@ static time_t l_checktime(lua_State* L, int arg) {
 
 #if TARGET_OS_IOS
 int unlink_cb(const char* fpath, const struct stat* sb, int typeflag, struct FTW* ftwbuf) {
+  (void)sb;
+  (void)typeflag;
+  (void)ftwbuf;
   int rv = remove(fpath);
   if (rv)
     perror(fpath);
@@ -155,7 +158,7 @@ int unlink_cb(const char* fpath, const struct stat* sb, int typeflag, struct FTW
 static int os_execute(lua_State* L) {
   const char* cmd = luaL_optstring(L, 1, NULL);
 #if TARGET_OS_IOS // TargetConditionals.h
-  int stat = nftw(luaL_optstring(L, 1, NULL), unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
+  int stat = nftw(cmd, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
 #else
   int stat = system(cmd);
 #endif

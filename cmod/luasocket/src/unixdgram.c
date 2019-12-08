@@ -147,7 +147,7 @@ static int meth_sendto(lua_State* L) {
   remote.sun_len = sizeof(remote.sun_family) + sizeof(remote.sun_len) + len + 1;
   err = socket_sendto(&un->sock, data, count, &sent, (SA*)&remote, remote.sun_len, tm);
 #else
-  err = socket_sendto(&un->sock, data, count, &sent, (SA*)&remote, sizeof(remote.sun_family) + len, tm);
+  err = socket_sendto(&un->sock, data, count, &sent, (SA*)&remote, (socklen_t)(sizeof(remote.sun_family) + len), tm);
 #endif
   if (err != IO_DONE) {
     lua_pushnil(L);
@@ -271,7 +271,7 @@ static const char* unixdgram_trybind(p_unix un, const char* path) {
   err = socket_bind(&un->sock, (SA*)&local, local.sun_len);
 
 #else
-  err = socket_bind(&un->sock, (SA*)&local, sizeof(local.sun_family) + len);
+  err = socket_bind(&un->sock, (SA*)&local, (socklen_t)(sizeof(local.sun_family) + len));
 #endif
   if (err != IO_DONE)
     socket_destroy(&un->sock);
@@ -323,7 +323,7 @@ static const char* unixdgram_tryconnect(p_unix un, const char* path) {
   remote.sun_len = sizeof(remote.sun_family) + sizeof(remote.sun_len) + len + 1;
   err = socket_connect(&un->sock, (SA*)&remote, remote.sun_len, &un->tm);
 #else
-  err = socket_connect(&un->sock, (SA*)&remote, sizeof(remote.sun_family) + len, &un->tm);
+  err = socket_connect(&un->sock, (SA*)&remote, (socklen_t)(sizeof(remote.sun_family) + len), &un->tm);
 #endif
   if (err != IO_DONE)
     socket_destroy(&un->sock);
