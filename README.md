@@ -8,7 +8,7 @@
 
 1. 本工程是 Lua 及其 C 扩展的构建工程，用于运行调试
 2. 所有 Lua 源码来自 lua 官方网站[https://www.lua.org/]
-3. 增加了源码注释，支持 Debug/Release 编译模式
+3. 增加了源码注释，扩展了一些功能，支持 Debug/Release 编译模式
 4. 整个工程 PC 端编译构建采用 cmake 来管理，支持跨平台（可以在树莓派上正常 cmake+make）
 5. 移动端 iOS 直接给出 Xcode 工程，Android 则提供 Android.md 用于 ndk-build（仅限 luawithlib 库）
 
@@ -80,11 +80,12 @@ ndk-build -B # rebuild project
 
 1. cmod：Lua 的 C 语言扩展模块
    - hello：helloworld
-   - luanet：将 Lua 虚拟机嵌入 UnityC#的中间层
+   - luanet：将 Lua 虚拟机嵌入 UnityC# 的中间层
    - luasocket：封装了 socket 接口，代码来自[LuaSocket](https://github.com/diegonehab/luasocket)
 2. demo：用于测试的 Demo
    - c-call-lua：C 作为宿主，调用 Lua 来完成操作
    - c-lang：C 语言特性示例
+   - stdlib：用 Lua 语言实现的部分 Lua 标准库函数
 3. etc：工程杂项
    - fromlua：来自 lua 官方的相关文件，包括 lua 文档，留着方便查看
    - vscodeMac：Mac 上 VSCode 的配置文件
@@ -92,7 +93,25 @@ ndk-build -B # rebuild project
    - core：Lua 核心 C 代码和 C 头文件
    - include：Lua 源码中的外部使用头文件单独放到一个文件夹中
    - libraries：Lua 自带的官方标准库
+   - test：扩展 Lua 功能的测试代码
 5. lua：Lua 官方命令行工具，带编译器和虚拟机，依赖 Lua 库
 6. luac：Lua 官方命令行编译器
 7. luawithlib：包含 lua 和 luaC 模块的运行时动态库（iOS 下是静态库）
+   - Android：安卓的 ndk-build 相关配置
+   - iOS：Xcode 工程
+   - MacOS：用于生成 MacOSX 下运行的 bundle
 8. tools：相关工具
+   - luatt：用于查看 Lua Tag Type 的整数类型对应的含义
+
+---
+
+## 扩展 Lua 功能
+
+1. tostring 方法支持第二个参数，传入一个大于 0 的整数，用于打印 table 中的字段，数字大小代表打印深度（通过 luaL_tolstringex 实现）
+2. 增加 debug.getspecialkeys 函数，该函数无参数，返回一个 table，table 中记录了 CLIBS 等 Lua 用到的特殊 key
+
+---
+
+## 扩展 C API
+
+1. 增加 luaL_tolstringex 方法，用于支持快速查看 table 中的字段
