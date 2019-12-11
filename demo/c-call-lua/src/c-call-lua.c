@@ -364,6 +364,7 @@ int main(int argc, char const* argv[]) {
     return 1;
   }
   luaL_openlibs(L);
+  printf("lua_ident: %s\n", lua_ident);
   printf("top: %d, L->stack: %p, L->top: %p\n", lua_gettop(L), L->stack, L->top);
 
   printLuaStringTable(L);
