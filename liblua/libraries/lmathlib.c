@@ -172,10 +172,12 @@ static int math_log(lua_State* L) {
       res = l_mathop(log2)(x);
     else
 #endif
-        if (base == l_mathop(10.0))
-      res = l_mathop(log10)(x);
-    else
-      res = l_mathop(log)(x) / l_mathop(log)(base);
+    {
+      if (base == l_mathop(10.0))
+        res = l_mathop(log10)(x);
+      else
+        res = l_mathop(log)(x) / l_mathop(log)(base);
+    }
   }
   lua_pushnumber(L, res);
   return 1;
