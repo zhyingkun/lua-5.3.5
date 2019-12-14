@@ -805,15 +805,14 @@ typedef struct {
   size_t size; /* buffer size */
   size_t n; /* number of characters in buffer */
   lua_State* L;
+  int idx_buffer;
 } StringBuffer;
 
-void strbuff_init(StringBuffer* b, lua_State* L) {
+void strbuff_init(StringBuffer* b, lua_State* L, int idx, size_t size) {
   b->L = L;
-  b->size = 4096;
-  lua_pushglobaltable(L); // [-0, +1]
-  b->b = (char*)lua_newuserdata(L, b->size); // [-0, +1]
-  lua_rawsetp(L, -2, (const void*)b); // [-1, +0], anchor userdata in global table
-  lua_pop(L, 1); // [-1, +0], pop global table
+  b->idx_buffer = idx;
+  b->size = size;
+  b->b = (char*)lua_touserdata(L, idx);
   b->n = 0;
 }
 
@@ -822,11 +821,9 @@ void strbuff_addlstring(StringBuffer* b, const char* str, size_t len) {
     char* s = b->b;
     b->size *= 4;
     lua_State* L = b->L;
-    lua_pushglobaltable(L);
     b->b = lua_newuserdata(L, b->size);
     memcpy(b->b, s, b->n);
-    lua_rawsetp(L, -2, (const void*)b);
-    lua_pop(L, 1); // pop global table
+    lua_replace(L, b->idx_buffer);
   }
   //    memcpy(b->b+b->n, str, len);
   char* dst = b->b + b->n;
@@ -866,15 +863,11 @@ void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
 }
 
 void strbuff_destroy(StringBuffer* b) {
-  lua_State* L = b->L;
-  lua_pushglobaltable(L);
-  lua_pushnil(L);
-  lua_rawsetp(L, -2, (const void*)b);
-  lua_pop(L, 1); // pop global table
   b->b = NULL;
   b->size = 0;
   b->n = 0;
   b->L = NULL;
+  b->idx_buffer = 0;
 }
 
 /* }====================================================== */
@@ -972,6 +965,8 @@ void recursive_tostring(DetailStr* detail, int idx) {
   strbuff_addliteral(b, "}");
 }
 
+#define DEFAULT_BUFFER_SIZE 4096
+
 LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int level) {
   idx = lua_absindex(L, idx);
   if (lua_type(L, idx) != LUA_TTABLE || level <= 0) {
@@ -982,7 +977,8 @@ LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int 
   }
   DetailStr dStr;
   dStr.L = L;
-  strbuff_init(&dStr.buffer, L);
+  lua_newuserdata(L, DEFAULT_BUFFER_SIZE); // [-0, +1]
+  strbuff_init(&dStr.buffer, L, lua_gettop(L), DEFAULT_BUFFER_SIZE);
   dStr.level = level;
   dStr.current_level = 0;
   // table for record which has been walk through
@@ -997,6 +993,7 @@ LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int 
   }
   const char* result = lua_pushlstring(L, dStr.buffer.b, length);
   strbuff_destroy(&dStr.buffer);
+  lua_remove(L, -2); // [-1, +0]
   // now we have the string in the top of lua stack
   return result;
 }
