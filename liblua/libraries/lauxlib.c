@@ -804,11 +804,16 @@ typedef struct {
   char* b;
   size_t size; /* buffer size */
   size_t n; /* number of characters in buffer */
+  lua_State* L;
 } StringBuffer;
 
-void strbuff_init(StringBuffer* b) {
+void strbuff_init(StringBuffer* b, lua_State* L) {
+  b->L = L;
   b->size = 4096;
-  b->b = (char*)malloc(b->size);
+  lua_pushglobaltable(L); // [-0, +1]
+  b->b = (char*)lua_newuserdata(L, b->size); // [-0, +1]
+  lua_rawsetp(L, -2, (const void*)b); // [-1, +0], anchor userdata in global table
+  lua_pop(L, 1); // [-1, +0], pop global table
   b->n = 0;
 }
 
@@ -816,9 +821,12 @@ void strbuff_addlstring(StringBuffer* b, const char* str, size_t len) {
   if (b->n + len > b->size) {
     char* s = b->b;
     b->size *= 4;
-    b->b = malloc(b->size);
+    lua_State* L = b->L;
+    lua_pushglobaltable(L);
+    b->b = lua_newuserdata(L, b->size);
     memcpy(b->b, s, b->n);
-    free(s);
+    lua_rawsetp(L, -2, (const void*)b);
+    lua_pop(L, 1); // pop global table
   }
   //    memcpy(b->b+b->n, str, len);
   char* dst = b->b + b->n;
@@ -858,10 +866,15 @@ void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
 }
 
 void strbuff_destroy(StringBuffer* b) {
-  free(b->b);
+  lua_State* L = b->L;
+  lua_pushglobaltable(L);
+  lua_pushnil(L);
+  lua_rawsetp(L, -2, (const void*)b);
+  lua_pop(L, 1); // pop global table
   b->b = NULL;
   b->size = 0;
   b->n = 0;
+  b->L = NULL;
 }
 
 /* }====================================================== */
@@ -969,7 +982,7 @@ LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int 
   }
   DetailStr dStr;
   dStr.L = L;
-  strbuff_init(&dStr.buffer);
+  strbuff_init(&dStr.buffer, L);
   dStr.level = level;
   dStr.current_level = 0;
   // table for record which has been walk through
