@@ -107,7 +107,7 @@ static int codepoint(lua_State* L) {
     return 0; /* empty interval; return no values */
   if (pose - posi >= INT_MAX) /* (lua_Integer -> int) overflow? */
     return luaL_error(L, "string slice too long");
-  n = (int)(pose - posi) + 1;
+  n = (int)(pose - posi) + 1; // length in byte
   luaL_checkstack(L, n, "string slice too long");
   n = 0;
   se = s + pose;
@@ -119,7 +119,7 @@ static int codepoint(lua_State* L) {
     lua_pushinteger(L, code);
     n++;
   }
-  return n;
+  return n; // length in character
 }
 
 static void pushutfchar(lua_State* L, int arg) {
@@ -190,10 +190,12 @@ static int byteoffset(lua_State* L) {
   return 1;
 }
 
+// function(string, prev_pos) ==> next_pos, next_code
 static int iter_aux(lua_State* L) {
   size_t len;
   const char* s = luaL_checklstring(L, 1, &len);
   lua_Integer n = lua_tointeger(L, 2) - 1;
+  // n counts in byte, not character
   if (n < 0) /* first iteration? */
     n = 0; /* start from here */
   else if (n < (lua_Integer)len) {
@@ -214,6 +216,7 @@ static int iter_aux(lua_State* L) {
   }
 }
 
+// return iter, invariant, startkey
 static int iter_codes(lua_State* L) {
   luaL_checkstring(L, 1);
   lua_pushcfunction(L, iter_aux);
