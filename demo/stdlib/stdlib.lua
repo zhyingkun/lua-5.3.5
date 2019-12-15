@@ -1,3 +1,53 @@
+-- Math
+
+math.deg = function(n)
+	return n * (180.0 / math.pi)
+end
+
+math.rad = function(n)
+	return n * (math.pi / 180.0)
+end
+
+math.min = function(...)
+	local args = {...}
+	local len = #args
+	local val = args[1];
+	for i=2, len do
+		local nval = args[i]
+		if nval < val then val = nval end
+	end
+	return val
+end
+
+math.max = function(...)
+	local args = {...}
+	local len = #args
+	local val = args[1];
+	for i=2, len do
+		local nval = args[i]
+		if nval > val then val = nval end
+	end
+	return val
+end
+
+print(math.deg(math.pi/2), math.rad(90.0))
+print(math.min(3, 4, 7, 1, 2, 5), math.max(3, 4, 7, 1, 2, 5))
+
+
+-- String
+
+string.rep = function(str, n, sep)
+	sep = sep or ""
+	local result = ""
+	for i=1,n-1 do result = result .. str .. sep end
+	return result .. str
+end
+
+print(string.rep("Hello", 3, "_"))
+
+
+-- Table
+
 table.concat = function(list, sep, i, j)
 	i = i or 1
 	j = j or #list
