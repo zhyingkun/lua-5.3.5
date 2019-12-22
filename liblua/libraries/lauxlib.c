@@ -104,23 +104,28 @@ static void pushfuncname(lua_State* L, lua_Debug* ar) {
 // L->base_ci ==> n ==> n-1 ==> ... ==> 1 ==> L->ci
 // lastlevel will find 'n'
 // with Callinfo implemented by doubly linked list, this function can be optimized
+// static int lastlevel(lua_State* L) {
+//   lua_Debug ar;
+//   int li = 1, le = 1;
+//   /* find an upper bound */
+//   while (lua_getstack(L, le, &ar)) {
+//     li = le;
+//     le *= 2;
+//   }
+//   /* do a binary search */
+//   while (li < le) {
+//     int m = (li + le) / 2;
+//     if (lua_getstack(L, m, &ar))
+//       li = m + 1;
+//     else
+//       le = m;
+//   }
+//   return le - 1;
+// }
+
 static int lastlevel(lua_State* L) {
   lua_Debug ar;
-  int li = 1, le = 1;
-  /* find an upper bound */
-  while (lua_getstack(L, le, &ar)) {
-    li = le;
-    le *= 2;
-  }
-  /* do a binary search */
-  while (li < le) {
-    int m = (li + le) / 2;
-    if (lua_getstack(L, m, &ar))
-      li = m + 1;
-    else
-      le = m;
-  }
-  return le - 1;
+  return lua_getstackdepth(L, &ar);
 }
 
 // get function call info from level to lastlevel
