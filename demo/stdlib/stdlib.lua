@@ -214,3 +214,16 @@ for k,v in pairs(tmp) do print(k,v) end
 
 table.sort(list)
 print(table.maxn(list), table.concat(list, " _ "))
+
+
+-- Global table
+
+_G.ipairs = function(list)
+	return function(list, key)
+		if key >= #list then return nil end
+		key = key + 1
+		return key, list[key]
+	end, list, 0
+end
+
+for k,v in ipairs({"Hello", "Nice", "Good"}) do print(k, v) end
