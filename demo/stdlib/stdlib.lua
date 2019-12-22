@@ -96,8 +96,13 @@ table.pack = function(...)
 	return list
 end
 
--- table.unpack = function(list)
--- end
+table.unpack = function(list, i, n)
+	i = i or 1
+	n = n or #list
+	if i <= n then
+		return list[i], unpack(list, i + 1, n)
+	end
+end
 
 table.remove = function(list, pos)
 	local size = #list
