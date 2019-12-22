@@ -575,7 +575,7 @@ static int io_readline(lua_State* L) {
   int n = (int)lua_tointeger(L, lua_upvalueindex(2));
   if (isclosed(p)) /* file is already closed? */
     return luaL_error(L, "file is already closed");
-  lua_settop(L, 1);
+  lua_settop(L, 1); // leave one nil for g_read
   luaL_checkstack(L, n, "too many arguments");
   for (i = 1; i <= n; i++) /* push arguments to 'g_read' */
     lua_pushvalue(L, lua_upvalueindex(3 + i));
