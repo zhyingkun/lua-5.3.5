@@ -112,6 +112,20 @@ LUA_API int lua_getstack(lua_State* L, int level, lua_Debug* ar) {
   return status;
 }
 
+// ar is for distinguish with lua_CFunction
+LUA_API int lua_getstackdepth(lua_State* L, lua_Debug* ar) {
+  (void)ar;
+  int level = 0;
+  CallInfo* ci;
+  if (L->ci == &L->base_ci) {
+    return 0;
+  }
+  for (ci = L->ci->previous; ci != &L->base_ci; ci = ci->previous) {
+    level++;
+  }
+  return level;
+}
+
 static const char* upvalname(Proto* p, int uv) {
   TString* s = check_exp(uv < p->sizeupvalues, p->upvalues[uv].name);
   if (s == NULL)
