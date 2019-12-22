@@ -18,6 +18,8 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
+#include "ltable.h" // for Table
+
 /*
 ** The hook table at registry[&HOOKKEY] maps threads to their current
 ** hook function. (We only need the unique address of 'HOOKKEY'.)
@@ -415,6 +417,29 @@ static int db_getspecialkeys(lua_State* L) {
   return 1;
 }
 
+static int db_sizeofstruct(lua_State* L) {
+  lua_createtable(L, 0, 3);
+  lua_pushinteger(L, (lua_Integer)sizeof(Table));
+  lua_setfield(L, -2, "Table");
+  lua_pushinteger(L, (lua_Integer)sizeof(TValue));
+  lua_setfield(L, -2, "TValue");
+  lua_pushinteger(L, (lua_Integer)sizeof(Node));
+  lua_setfield(L, -2, "Node");
+  return 1;
+}
+
+static int db_tablemem(lua_State* L) {
+  luaL_checktype(L, 1, LUA_TTABLE);
+  Table* tbl = (Table*)lua_topointer(L, 1);
+  lua_Integer array = sizeof(TValue) * tbl->sizearray;
+  lua_Integer node = sizeof(Node) * allocsizenode(tbl);
+  lua_pushinteger(L, (lua_Integer)(sizeof(Table) + array + node));
+  lua_pushinteger(L, (lua_Integer)tbl->sizearray);
+  lua_pushinteger(L, (lua_Integer)tbl->lsizenode);
+  lua_pushboolean(L, isdummy(tbl));
+  return 4;
+}
+
 static const luaL_Reg dblib[] = {
     {"debug", db_debug},
     {"getuservalue", db_getuservalue},
@@ -433,6 +458,8 @@ static const luaL_Reg dblib[] = {
     {"setupvalue", db_setupvalue},
     {"traceback", db_traceback},
     {"getspecialkeys", db_getspecialkeys},
+    {"sizeofstruct", db_sizeofstruct},
+    {"tablemem", db_tablemem},
     {NULL, NULL},
 };
 
