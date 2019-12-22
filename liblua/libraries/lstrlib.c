@@ -892,6 +892,7 @@ static int lua_number2strx(lua_State* L, char* buff, int sz, const char* fmt, lu
 ** is maximum exponent + 1). (99+3+1 then rounded to 120 for "extra
 ** expenses", such as locale-dependent stuff)
 */
+// #define DBL_MAX_10_EXP 308
 #define MAX_ITEM (120 + l_mathlim(MAX_10_EXP))
 
 /* valid flags in a format specification */
@@ -973,6 +974,7 @@ static void addliteral(lua_State* L, luaL_Buffer* b, int arg) {
   }
 }
 
+// make the format string in form for snprintf
 static const char* scanformat(lua_State* L, const char* strfrmt, char* form) {
   const char* p = strfrmt;
   while (*p != '\0' && strchr(FLAGS, *p) != NULL)
@@ -1494,6 +1496,8 @@ static lua_Integer unpackint(lua_State* L, const char* str, int islittle, int si
   if (size < SZINT) { /* real size smaller than lua_Integer? */
     if (issigned) { /* needs sign extension? */
       lua_Unsigned mask = (lua_Unsigned)1 << (size * NB - 1);
+      // A is n bit and we have A + ~A + 1 = 2^n
+      // unsigned A, B and C, A + B = C, then A - C is (-B)'s complement
       res = ((res ^ mask) - mask); /* do sign extension */
     }
   } else if (size > SZINT) { /* must check unread bytes */
@@ -1518,6 +1522,9 @@ static int str_unpack(lua_State* L) {
   while (*fmt != '\0') {
     int size, ntoalign;
     KOption opt = getdetails(&h, pos, &fmt, &size, &ntoalign);
+    // for unsigned value, if A > ~B then A + B will overflow
+    // force type convert has higher priority than '+'
+    // unsigned int + int ==> unsigned int
     if ((size_t)ntoalign + size > ~pos || pos + ntoalign + size > ld)
       luaL_argerror(L, 2, "data string too short");
     pos += ntoalign; /* skip alignment */

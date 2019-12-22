@@ -488,7 +488,7 @@ LUAMOD_API int luaopen_base(lua_State* L) {
   /* open lib into global table */
   lua_pushglobaltable(L);
   luaL_setfuncs(L, base_funcs, 0);
-  /* set global _G */
+  /* set global _G */ // luaL_openlibs will set "_G" to global table again
   lua_pushvalue(L, -1);
   lua_setfield(L, -2, "_G");
   /* set global _VERSION */
