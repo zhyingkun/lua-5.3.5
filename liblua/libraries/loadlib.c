@@ -55,7 +55,7 @@
 ** for all loaded C libraries
 */
 // static const int CLIBS = 0;
-const int CLIBS = 0;
+LUAI_DDEF const int CLIBS = 0;
 
 #define LIB_FAIL "open"
 

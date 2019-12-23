@@ -813,7 +813,7 @@ typedef struct {
   int idx_buffer;
 } StringBuffer;
 
-void strbuff_init(StringBuffer* b, lua_State* L, int idx, size_t size) {
+static void strbuff_init(StringBuffer* b, lua_State* L, int idx, size_t size) {
   b->L = L;
   b->idx_buffer = idx;
   b->size = size;
@@ -821,7 +821,7 @@ void strbuff_init(StringBuffer* b, lua_State* L, int idx, size_t size) {
   b->n = 0;
 }
 
-void strbuff_addlstring(StringBuffer* b, const char* str, size_t len) {
+static void strbuff_addlstring(StringBuffer* b, const char* str, size_t len) {
   if (b->n + len > b->size) {
     char* s = b->b;
     b->size *= 4;
@@ -853,7 +853,7 @@ void strbuff_addlstring(StringBuffer* b, const char* str, size_t len) {
   b->n += len;
 }
 
-void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
+static void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
   idx = lua_absindex(L, idx);
   size_t length = 0;
   const char* result = luaL_tolstring(L, idx, &length); // [-0, +1]
@@ -867,7 +867,7 @@ void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
   lua_pop(L, 1); // [-1, +0]
 }
 
-void strbuff_destroy(StringBuffer* b) {
+static void strbuff_destroy(StringBuffer* b) {
   b->b = NULL;
   b->size = 0;
   b->n = 0;
@@ -891,14 +891,14 @@ typedef struct {
   StringBuffer buffer;
 } DetailStr;
 
-void ds_recordtable(DetailStr* detail, int idx, int level) {
+static void ds_recordtable(DetailStr* detail, int idx, int level) {
   lua_State* L = detail->L;
   lua_pushvalue(L, idx);
   lua_pushinteger(L, level);
   lua_settable(L, detail->idx_tables);
 }
 
-bool ds_checktable(DetailStr* detail, int idx) {
+static bool ds_checktable(DetailStr* detail, int idx) {
   lua_State* L = detail->L;
   lua_pushvalue(L, idx); // [-0, +1]
   bool result = false;
@@ -910,7 +910,7 @@ bool ds_checktable(DetailStr* detail, int idx) {
   return result;
 }
 
-void ds_recordsubtable(DetailStr* detail, int idx) {
+static void ds_recordsubtable(DetailStr* detail, int idx) {
   lua_State* L = detail->L;
   idx = lua_absindex(L, idx);
   lua_pushnil(L); // [-0, +1]
@@ -929,7 +929,7 @@ static const char* tab_str = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
 #define TABLE_HEAD_SIZE 32
 
 // idx points to a table, detail->level > 0
-void recursive_tostring(DetailStr* detail, int idx) {
+static void recursive_tostring(DetailStr* detail, int idx) {
   lua_State* L = detail->L;
   StringBuffer* b = &detail->buffer;
   idx = lua_absindex(L, idx);
