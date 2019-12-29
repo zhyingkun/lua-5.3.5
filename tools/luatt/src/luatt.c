@@ -22,8 +22,10 @@ void usage(char* cmdName) {
 #define LUA_TTHREAD 8
 // Number of Tags
 #define LUA_NUMTAGS 9
+#define LUA_TPROTO LUA_NUMTAGS
+#define LUA_TDEADKEY (LUA_NUMTAGS + 1)
 
-static const char* const ActualTagNames[9] = {
+static const char* const ActualTagNames[] = {
     "LUA_TNIL",
     "LUA_TBOOLEAN",
     "LUA_TLIGHTUSERDATA",
@@ -33,6 +35,8 @@ static const char* const ActualTagNames[9] = {
     "LUA_TFUNCTION",
     "LUA_TUSERDATA",
     "LUA_TTHREAD",
+    "LUA_TPROTO",
+    "LUA_TDEADKEY",
 };
 static const char* const VariantTagFunctions[3] = {
     "Lua Closure",
@@ -51,7 +55,8 @@ static const char* const IsCollectable[2] = {
     "Not Collectable",
     "Collectable",
 };
-static const int AllTypeNumber[13] = {
+static const char* const TagTypeNone = "LUA_TNONE";
+static const int AllTypeNumber[] = {
     0, // nil
     1, // boolean
     2, // light userdata
@@ -65,6 +70,9 @@ static const int AllTypeNumber[13] = {
     102, // c closure
     71, // userdata
     72, // thread
+    9, // proto
+    10, // deadkey
+    -1, // none
 };
 
 bool is_type_num_valid(int type) {
@@ -78,6 +86,10 @@ bool is_type_num_valid(int type) {
 }
 
 void display_type(int tagType) {
+  if (tagType == -1) {
+    printf("%3d => ActualTag: %s\n", tagType, TagTypeNone);
+    return;
+  }
   int actualTag = tagType & 0x0f;
   int variantBits = (tagType >> 4) & 0x03;
   int collectable = (tagType >> 6) & 0x01;
