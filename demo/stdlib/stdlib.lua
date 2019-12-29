@@ -227,3 +227,31 @@ _G.ipairs = function(list)
 end
 
 for k,v in ipairs({"Hello", "Nice", "Good"}) do print(k, v) end
+
+_G.require = function(modname)
+	local loadedVal = package.loaded[modname]
+	if loadedVal then
+		return loadedVal
+	end
+	local errorMsg = ""
+	for _, searcher in ipairs(package.searchers) do
+		local loader, absPath = searcher(modname)
+		local typeOfLoader = type(loader)
+		if typeOfLoader == "function" then
+			local ret = loader(modname, absPath)
+			if ret ~= nil then
+				package.loaded[modname] = ret
+			end
+			if package.loaded[modname] == nil then
+				package.loaded[modname] = true
+			end
+			return package.loaded[modname]
+		elseif typeOfLoader == "string" then
+			errorMsg = errorMsg .. loader
+		else
+			-- should not run here
+		end
+	end
+	error("module " .. modname .. " not found:" .. errorMsg)
+	-- no way to here
+end
