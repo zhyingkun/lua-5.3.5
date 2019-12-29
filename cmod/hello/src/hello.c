@@ -10,6 +10,58 @@
 #include <lauxlib.h>
 #include <lua.h>
 
+static void hello_initializer(const char* system_name) {
+  printf("%s Hello Mod Initializer\n", system_name);
+}
+static void hello_finalizer(const char* system_name) {
+  printf("%s Hello Mod Finalizer\n", system_name);
+}
+
+#ifdef _WIN32
+
+#include <windows.h>
+static const char* system_name = "Windows";
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
+  switch (ul_reason_for_call) {
+    case DLL_PROCESS_ATTACH:
+      hello_initializer(system_name);
+      break;
+    case DLL_THREAD_ATTACH:
+      break;
+    case DLL_THREAD_DETACH:
+      break;
+    case DLL_PROCESS_DETACH:
+      hello_finalizer(system_name);
+      break;
+    default:
+      printf("DllMain, Unknown\n");
+      break;
+  }
+  return TRUE;
+}
+
+#elif __APPLE__
+
+static const char* system_name = "MacOSX";
+__attribute__((constructor)) static void lib_initializer(void) {
+  hello_initializer(system_name);
+}
+__attribute__((destructor)) static void lib_finalizer(void) {
+  hello_finalizer(system_name);
+}
+
+#elif __linux__
+
+static const char* system_name = "Linux";
+__attribute__((constructor)) static void lib_initializer(void) {
+  hello_initializer(system_name);
+}
+__attribute__((destructor)) static void lib_finalizer(void) {
+  hello_finalizer(system_name);
+}
+
+#endif
+
 static int add(lua_State* L) {
   int num = lua_gettop(L);
   if (num != 2) {
@@ -28,7 +80,7 @@ static int hellomod(lua_State* L) {
   return 0;
 }
 
-int afteryield(lua_State* L, int status, lua_KContext ctx) {
+static int afteryield(lua_State* L, int status, lua_KContext ctx) {
   (void)L;
   // if status == 0, no longjmp happend
   // if status == 1, lua yield happend
@@ -127,8 +179,14 @@ static int foo(lua_State* L) {
   return 2; /* num of return value */
 }
 
-static luaL_Reg luaLoadFun[] =
-    {{"add", add}, {"hellomod", hellomod}, {"cfuncyield", cfuncyield}, {"cfunc", cfunc}, {"foo", foo}, {NULL, NULL}};
+static luaL_Reg luaLoadFun[] = {
+    {"add", add},
+    {"hellomod", hellomod},
+    {"cfuncyield", cfuncyield},
+    {"cfunc", cfunc},
+    {"foo", foo},
+    {NULL, NULL},
+};
 
 LUAMOD_API int luaopen_libhello(lua_State* L) {
   printf("First argument: %s\n", lua_tostring(L, 1));
