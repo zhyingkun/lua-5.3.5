@@ -107,14 +107,15 @@ ndk-build -B # rebuild project
 
 ## 扩展 Lua 功能
 
-1. tostring 方法支持第二个参数，传入一个大于 0 的整数，用于打印 table 中的字段，数字大小代表打印深度（通过 luaL_tolstringex 实现）
-2. 增加 debug.getspecialkeys 函数，该函数无参数，返回一个 table，table 中记录了 CLIBS 等 Lua 用到的特殊 key
-3. 增加 debug.sizeofstruct 函数，无参数，返回一个 table，table 中记录了底层实现结构体的内存占用大小
-4. 增加 debug.tablemem 函数，接收一个 table 作为参数，返回四个字段：该 table 占用内存大小、数组部分长度、以 2 为底哈希表部分长度的对数、哈希表部分是否为假节点
+1. 非 Win 环境下，package.cpath 增加 "/usr/local/zyk/lib/lua/5.3/?.so" 搜索路径
+2. tostring 方法支持第二个参数，传入一个大于 0 的整数，用于打印 table 中的字段，数字大小代表打印深度（通过 luaL_tolstringex 实现）
+3. 增加 debug.getspecialkeys 函数，该函数无参数，返回一个 table，table 中记录了 CLIBS 等 Lua 用到的特殊 key
+4. 增加 debug.sizeofstruct 函数，无参数，返回一个 table，table 中记录了底层实现结构体的内存占用大小
+5. 增加 debug.tablemem 函数，接收一个 table 作为参数，返回四个字段：该 table 占用内存大小、数组部分长度、以 2 为底哈希表部分长度的对数、哈希表部分是否为假节点
 
 ---
 
 ## 扩展 C API
 
 1. 增加 luaL_tolstringex 方法，用于支持快速查看 table 中的字段
-2. 增加 lua_getstackdepth 方法，用于获取当前函数调用嵌套深度（并非链表长度）
+2. 增加 lua_getstackdepth 方法，用于获取当前函数调用嵌套深度（并非链表长度，链表长度记录于 L->nci）
