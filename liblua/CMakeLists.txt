@@ -59,6 +59,10 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	POSITION_INDEPENDENT_CODE ON
 )
 
+# API check for debug
+# add_definitions(-DLUA_USE_APICHECK)
+# target_compile_definitions(${PROJECT_NAME} PRIVATE LUA_USE_APICHECK)
+
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	target_link_libraries(${PROJECT_NAME} m dl)
 endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
