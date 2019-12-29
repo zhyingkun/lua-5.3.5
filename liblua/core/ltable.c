@@ -138,6 +138,7 @@ static Node* mainposition(const Table* t, const TValue* key) {
 ** the array part of the table, 0 otherwise.
 */
 // The Array Part from Table are start with 1, not 0
+// is key an array index? return 0 if not
 static unsigned int arrayindex(const TValue* key) {
   if (ttisinteger(key)) {
     lua_Integer k = ivalue(key);

@@ -65,6 +65,9 @@ typedef struct GCObject GCObject;
 ** Common Header for all collectable objects (in macro form, to be
 ** included in other objects)
 */
+// next: for link to g->allgc list
+// tt: actual tag type + variant tag type
+// marked: gc colors
 #define CommonHeader \
   GCObject* next; \
   lu_byte tt; \
@@ -94,7 +97,7 @@ typedef union Value {
   lua_Number n; /* float numbers */
 } Value;
 
-// tt_ means a tag with value_'s type
+// tt_ means a tag with value_'s type, GCObject.tt_ + collectable
 #define TValuefields \
   Value value_; \
   int tt_
@@ -554,7 +557,7 @@ typedef struct Table {
   CommonHeader;
   lu_byte flags; /* 1<<p means tagmethod(p) is not present */
   lu_byte lsizenode; /* log2 of size of 'node' array */
-  unsigned int sizearray; /* size of 'array' array */
+  unsigned int sizearray; /* size of 'array' array */ // should be 2^n after rehash
   TValue* array; /* array part */
   Node* node;
   Node* lastfree; /* any free position is before this position */

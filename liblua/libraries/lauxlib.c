@@ -558,6 +558,7 @@ LUALIB_API char* luaL_buffinitsize(lua_State* L, luaL_Buffer* B, size_t sz) {
 /* index of free-list header */
 #define freelist 0
 
+// t[freelist] = ref1, t[ref1] = ref2, ..., t[refn] = nil
 LUALIB_API int luaL_ref(lua_State* L, int t) {
   int ref;
   if (lua_isnil(L, -1)) {
@@ -817,6 +818,8 @@ static void strbuff_init(StringBuffer* b, lua_State* L, int idx, size_t size) {
   b->L = L;
   b->idx_buffer = idx;
   b->size = size;
+  // for simplicity, here use userdata to manager long string
+  // we can use luaL_Buffer and change the implemention of traversaling the table
   b->b = (char*)lua_touserdata(L, idx);
   b->n = 0;
 }
@@ -830,7 +833,7 @@ static void strbuff_addlstring(StringBuffer* b, const char* str, size_t len) {
     memcpy(b->b, s, b->n);
     lua_replace(L, b->idx_buffer);
   }
-  //    memcpy(b->b+b->n, str, len);
+  // memcpy(b->b+b->n, str, len);
   char* dst = b->b + b->n;
   if (len == 1) {
     dst[0] = str[0];

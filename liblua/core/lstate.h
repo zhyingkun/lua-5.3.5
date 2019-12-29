@@ -178,17 +178,17 @@ struct lua_State {
   StkId stack; /* stack base */
   UpVal* openupval; /* list of open upvalues in this stack */
   GCObject* gclist;
-  struct lua_State* twups; /* list of threads with open upvalues */
+  struct lua_State* twups; /* list of threads with open upvalues */ // g->twups
   struct lua_longjmp* errorJmp; /* current error recover point */
   CallInfo base_ci; /* CallInfo for first level (C calling Lua) */
   volatile lua_Hook hook;
   ptrdiff_t errfunc; /* current error handling function (stack index) */
   int stacksize;
-  int basehookcount;
-  int hookcount;
+  int basehookcount; // how many instructions to execute the hook function
+  int hookcount; // instruction count
   unsigned short nny; /* number of non-yieldable calls in stack */
   unsigned short nCcalls; /* number of nested C calls */
-  l_signalT hookmask;
+  l_signalT hookmask; // call, return, line
   lu_byte allowhook;
 };
 
