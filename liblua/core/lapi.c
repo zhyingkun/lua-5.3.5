@@ -71,6 +71,7 @@ static TValue* index2addr(lua_State* L, int idx) {
   else { /* upvalues */
     // idx < LUA_REGISTRYINDEX
     idx = LUA_REGISTRYINDEX - idx;
+    // idx should <= MAXUPVAL, so why plus one?
     api_check(L, idx <= MAXUPVAL + 1, "upvalue index too large");
     if (ttislcf(ci->func)) /* light C function? */
       return NONVALIDVALUE; /* it has no upvalues */
@@ -513,7 +514,7 @@ LUA_API const char* lua_pushfstring(lua_State* L, const char* fmt, ...) {
   return ret;
 }
 
-// argument n is the number of upvalue, a upvalue is a closure local variable
+// argument n is the number of upvalue, a upvalue is a closure non local variable, but not global variable
 LUA_API void lua_pushcclosure(lua_State* L, lua_CFunction fn, int n) {
   lua_lock(L);
   if (n == 0) {
