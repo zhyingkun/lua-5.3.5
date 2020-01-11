@@ -19,6 +19,7 @@
 #include "lualib.h"
 
 #include "ltable.h" // for Table
+#include "lstate.h"
 
 /*
 ** The hook table at registry[&HOOKKEY] maps threads to their current
@@ -417,14 +418,18 @@ static int db_getspecialkeys(lua_State* L) {
   return 1;
 }
 
+#define ADD_STRUCT_SIZE(type) \
+  do { \
+    lua_pushinteger(L, (lua_Integer)sizeof(type)); \
+    lua_setfield(L, -2, #type); \
+  } while (0)
+
 static int db_sizeofstruct(lua_State* L) {
   lua_createtable(L, 0, 3);
-  lua_pushinteger(L, (lua_Integer)sizeof(Table));
-  lua_setfield(L, -2, "Table");
-  lua_pushinteger(L, (lua_Integer)sizeof(TValue));
-  lua_setfield(L, -2, "TValue");
-  lua_pushinteger(L, (lua_Integer)sizeof(Node));
-  lua_setfield(L, -2, "Node");
+  ADD_STRUCT_SIZE(lua_State);
+  ADD_STRUCT_SIZE(Table);
+  ADD_STRUCT_SIZE(TValue);
+  ADD_STRUCT_SIZE(Node);
   return 1;
 }
 
@@ -438,6 +443,21 @@ static int db_tablemem(lua_State* L) {
   lua_pushinteger(L, (lua_Integer)tbl->lsizenode);
   lua_pushboolean(L, isdummy(tbl));
   return 4;
+}
+
+static int db_getgcstate(lua_State* L) {
+  static const char* allstatus[] = {
+      "GCSpropagate",
+      "GCSatomic",
+      "GCSswpallgc",
+      "GCSswpfinobj",
+      "GCSswptobefnz",
+      "GCSswpend",
+      "GCScallfin",
+      "GCSpause",
+  };
+  lua_pushstring(L, allstatus[L->l_G->gcstate]);
+  return 1;
 }
 
 static const luaL_Reg dblib[] = {
@@ -460,6 +480,7 @@ static const luaL_Reg dblib[] = {
     {"getspecialkeys", db_getspecialkeys},
     {"sizeofstruct", db_sizeofstruct},
     {"tablemem", db_tablemem},
+    {"getgcstate", db_getgcstate},
     {NULL, NULL},
 };
 
