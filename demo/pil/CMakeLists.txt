@@ -32,6 +32,9 @@ source_group(src FILES ${PIL_SRC})
 
 add_executable(${PROJECT_NAME} ${PIL_SRC})
 target_link_libraries(${PROJECT_NAME} liblua)
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+	target_link_libraries(${PROJECT_NAME} pthread)
+endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	FOLDER "demo"
 	# INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
