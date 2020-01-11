@@ -63,7 +63,14 @@ do
 end
 print("======================================================================")
 
-local lproc = require("liblproc")
+local lproc = nil
+local loadlib = pcall(function()
+	lproc = require("liblproc")
+end)
+if loadlib == false then
+	print("Could not find liblproc, may be not implement, such as Windows!")
+	return
+end
 local send = [===[
 	print("send thread start...")
 	local lproc = require("liblproc")
