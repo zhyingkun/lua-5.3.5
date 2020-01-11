@@ -8,3 +8,4 @@ project(demo
 
 add_subdirectory(c-call-lua)
 add_subdirectory(c-lang)
+add_subdirectory(pil)
