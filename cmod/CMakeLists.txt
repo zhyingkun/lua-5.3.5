@@ -12,3 +12,9 @@ add_subdirectory(hello)
 add_subdirectory(luasocket)
 # luanet must static link with liblua
 # add_subdirectory(luanet)
+add_subdirectory(boolarray)
+add_subdirectory(dir)
+
+if(NOT WIN32)
+	add_subdirectory(lproc)
+endif(NOT WIN32)
