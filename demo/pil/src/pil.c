@@ -46,11 +46,11 @@ int main(void) {
   luaL_openlibs(L); /* opens the standard libraries */
   assert(lua_gettop(L) == 0);
 
-  luaL_dostring(L, print_cwd);
+  (void)luaL_dostring(L, print_cwd);
   assert(lua_gettop(L) == 0);
 
   // generic call
-  luaL_dostring(L, lua_code_generic_call);
+  (void)luaL_dostring(L, lua_code_generic_call);
   double num = 0.0;
   int integer = 0;
   const char* str = NULL;
@@ -63,7 +63,7 @@ int main(void) {
   // read directory
   lua_pushcfunction(L, l_dir);
   lua_setglobal(L, "lsdir");
-  luaL_dostring(L, lua_code_use_ls);
+  (void)luaL_dostring(L, lua_code_use_ls);
   assert(lua_gettop(L) == 0);
 
   // foreach
@@ -71,7 +71,7 @@ int main(void) {
   lua_setglobal(L, "foreach");
   lua_pushcfunction(L, foreach_yieldable);
   lua_setglobal(L, "foreach_yieldable");
-  luaL_dostring(L, lua_code_foreach);
+  (void)luaL_dostring(L, lua_code_foreach);
   assert(lua_gettop(L) == 0);
 
   lua_close(L);

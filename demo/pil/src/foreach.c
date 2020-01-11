@@ -1,7 +1,7 @@
 #include "lua.h"
 #include "lauxlib.h"
 
-int foreach (lua_State* L) {
+int foreach_(lua_State* L) {
   luaL_checktype(L, 1, LUA_TTABLE);
   luaL_checktype(L, 2, LUA_TFUNCTION);
   lua_pushnil(L);
@@ -25,7 +25,7 @@ static int kfunc_yieldable(lua_State* L, int status, lua_KContext ctx) {
     lua_pushvalue(L, 2);
     lua_pushvalue(L, -3);
     lua_rotate(L, -3, -1);
-    lua_callk(L, 2, 0, NULL, kfunc_yieldable);
+    lua_callk(L, 2, 0, 0, kfunc_yieldable);
   }
   return 0;
 }
@@ -34,5 +34,5 @@ int foreach_yieldable(lua_State* L) {
   luaL_checktype(L, 1, LUA_TTABLE);
   luaL_checktype(L, 2, LUA_TFUNCTION);
   lua_pushnil(L);
-  return kfunc_yieldable(L, 0, NULL);
+  return kfunc_yieldable(L, 0, 0);
 }
