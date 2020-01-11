@@ -35,7 +35,8 @@ add_executable(${PROJECT_NAME} ${C_CALL_LUA_SRC})
 target_link_libraries(${PROJECT_NAME} liblua)
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	FOLDER "demo"
-	INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
+	# INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
+)
 
 # install(TARGETS ${PROJECT_NAME}
 # 	RUNTIME DESTINATION bin
