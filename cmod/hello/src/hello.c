@@ -12,9 +12,11 @@
 
 static void hello_initializer(const char* system_name) {
   printf("%s Hello Mod Initializer\n", system_name);
+  fflush(NULL);
 }
 static void hello_finalizer(const char* system_name) {
   printf("%s Hello Mod Finalizer\n", system_name);
+  fflush(NULL);
 }
 
 #ifdef _WIN32
@@ -103,11 +105,11 @@ static int afteryield(lua_State* L, int status, lua_KContext ctx) {
   return 0;
 }
 
-static int cfuncyield(lua_State* L) {
+static int cfuncyieldable(lua_State* L) {
   printf("cfuncyield before yield lua call\n");
   int yieldAble = lua_isyieldable(L);
   printf("Current Coroutine is yieldable: %d\n", yieldAble);
-  int tagType = lua_getglobal(L, "lfuncyield");
+  int tagType = lua_getglobal(L, "lfuncyieldable");
   if (tagType != LUA_TFUNCTION) {
     lua_pushliteral(L, "lfuncyield is not a lua function");
     lua_error(L);
@@ -125,7 +127,7 @@ static int cfuncyield(lua_State* L) {
 }
 
 static int cfunc(lua_State* L) {
-  printf("cfunc before lua call\n");
+  printf("/////////////////////////////////////\n");
   int yieldAble = lua_isyieldable(L);
   printf("Current Coroutine is yieldable: %d\n", yieldAble);
   int ret = lua_getglobal(L, "world"); // push global var to stack
@@ -159,7 +161,7 @@ static int cfunc(lua_State* L) {
   lua_getglobal(L, "lfunc");
   lua_pushnumber(L, 13);
   lua_pcall(L, 1, 0, 0);
-  printf("cfunc after lua call\n");
+  printf("/////////////////////////////////////\n");
   return 0;
 }
 
@@ -180,11 +182,11 @@ static int foo(lua_State* L) {
 }
 
 static luaL_Reg luaLoadFun[] = {
-    {"add", add},
     {"hellomod", hellomod},
-    {"cfuncyield", cfuncyield},
-    {"cfunc", cfunc},
+    {"add", add},
     {"foo", foo},
+    {"cfunc", cfunc},
+    {"cfuncyieldable", cfuncyieldable},
     {NULL, NULL},
 };
 
