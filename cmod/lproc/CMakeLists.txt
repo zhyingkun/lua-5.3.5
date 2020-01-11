@@ -43,6 +43,9 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 target_link_libraries(${PROJECT_NAME} liblua)
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+	target_link_libraries(${PROJECT_NAME} pthread)
+endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 install(TARGETS ${PROJECT_NAME}
 	RUNTIME DESTINATION bin
