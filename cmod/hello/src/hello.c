@@ -19,7 +19,7 @@ static void hello_finalizer(const char* system_name) {
   fflush(NULL);
 }
 
-#ifdef _WIN32
+#if defined(_WIN32)
 
 #include <windows.h>
 static const char* system_name = "Windows";
@@ -42,7 +42,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
   return TRUE;
 }
 
-#elif __APPLE__
+#elif defined(__APPLE__)
 
 static const char* system_name = "MacOSX";
 __attribute__((constructor)) static void lib_initializer(void) {
@@ -52,7 +52,7 @@ __attribute__((destructor)) static void lib_finalizer(void) {
   hello_finalizer(system_name);
 }
 
-#elif __linux__
+#elif defined(__linux__)
 
 static const char* system_name = "Linux";
 __attribute__((constructor)) static void lib_initializer(void) {
