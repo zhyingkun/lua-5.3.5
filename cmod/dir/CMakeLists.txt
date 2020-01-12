@@ -44,6 +44,9 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	POSITION_INDEPENDENT_CODE ON
 )
 target_link_libraries(${PROJECT_NAME} liblua)
+if(WIN32)
+	set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "lib")
+endif(WIN32)
 
 install(TARGETS ${PROJECT_NAME}
 	RUNTIME DESTINATION bin
