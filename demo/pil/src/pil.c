@@ -11,7 +11,7 @@ int l_dir(lua_State* L);
 int foreach_(lua_State* L);
 int foreach_yieldable(lua_State* L);
 
-#ifndef _WIN32
+#if !defined(_WIN32)
 static const char* print_cwd = "print(os.execute('pwd'))";
 #else
 static const char* print_cwd = "print(os.execute('dir'))";
