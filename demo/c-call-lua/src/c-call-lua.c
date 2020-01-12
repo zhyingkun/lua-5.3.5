@@ -402,7 +402,9 @@ int main(int argc, char const* argv[]) {
     return EXIT_FAILURE;
   }
   luaL_openlibs(L);
+#ifndef _WIN32
   printf("lua_ident: %s\n", lua_ident);
+#endif
   printf("top: %d, L->stack: %p, L->top: %p\n", lua_gettop(L), L->stack, L->top);
 
   print_lua_string_table(L);
