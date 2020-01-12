@@ -11,34 +11,34 @@ int l_dir(lua_State* L);
 int foreach_(lua_State* L);
 int foreach_yieldable(lua_State* L);
 
-static const char* print_cwd = "\
-print(os.execute(\"pwd\"))\
+#ifndef _WIN32
+static const char* print_cwd = "print(os.execute('pwd'))";
+#else
+static const char* print_cwd = "print(os.execute('dir'))";
+#endif
+
+static const char* lua_code_generic_call = " \
+showarg = function(...) print(...) return ... end \
 ";
 
-static const char* lua_code_generic_call = "\
-showarg = function(...) print(...) return ... end\
+static const char* lua_code_use_ls = " \
+print(tostring(lsdir('.'), 1)) \
 ";
 
-static const char* lua_code_use_ls = "\
-print(tostring(lsdir(\".\"), 1))\
-";
-
-static const char* lua_code_foreach = "\
-print(\"=========================================\") \
-foreach_yieldable(debug.getregistry(), function(k, v) \
-    print(k, v) \
-end)\
-print(\"=========================================\") \
+static const char* lua_code_foreach = " \
+print('=========================================') \
+foreach_yieldable(debug.getregistry(), function(k, v) print(k, v) end) \
+print('=========================================') \
 co_each = coroutine.create(function() \
     foreach_yieldable(coroutine, function(k, v) \
         coroutine.yield(k, v) \
     end) \
 end) \
 while coroutine.status(co_each) ~= \"dead\" do \
-    print(\"-----------------------------------------\") \
+    print('-----------------------------------------') \
     print(coroutine.resume(co_each)) \
 end \
-print(\"=========================================\") \
+print('=========================================') \
 ";
 
 int main(void) {
