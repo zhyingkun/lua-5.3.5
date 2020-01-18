@@ -128,7 +128,7 @@ static const char* reader(lua_State* L, void* ud, size_t* size) {
 
 #define toproto(L, i) getproto(L->top + (i))
 
-static const Proto* combine(lua_State* L, int n) {
+static Proto* combine(lua_State* L, int n) {
   if (n == 1)
     return toproto(L, -1);
   else {
@@ -147,6 +147,7 @@ static const Proto* combine(lua_State* L, int n) {
   }
 }
 
+// typedef int (*lua_Writer)(lua_State* L, const void* p, size_t sz, void* ud);
 static int writer(lua_State* L, const void* p, size_t size, void* u) {
   UNUSED(L);
   return (fwrite(p, size, 1, (FILE*)u) != 1) && (size != 0);
@@ -155,7 +156,7 @@ static int writer(lua_State* L, const void* p, size_t size, void* u) {
 static int pmain(lua_State* L) {
   int argc = (int)lua_tointeger(L, 1);
   char** argv = (char**)lua_touserdata(L, 2);
-  const Proto* f;
+  Proto* f;
   int i;
   if (!lua_checkstack(L, argc))
     fatal("too many input files");
@@ -171,9 +172,14 @@ static int pmain(lua_State* L) {
     FILE* D = (output == NULL) ? stdout : fopen(output, "wb");
     if (D == NULL)
       cannot("open");
-    lua_lock(L);
-    luaU_dump(L, f, writer, D, stripping);
-    lua_unlock(L);
+    // lua_lock(L);
+    // luaU_dump(L, f, writer, D, stripping);
+    // lua_unlock(L);
+    LClosure cl;
+    cl.p = f;
+    setclLvalue(L, L->top, &cl); /* anchor it (to avoid being collected) */
+    L->top++;
+    lua_dump(L, writer, D, stripping);
     if (ferror(D))
       cannot("write");
     if (fclose(D))
