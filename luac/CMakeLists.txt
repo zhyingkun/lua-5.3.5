@@ -29,35 +29,39 @@ endif()
 include_directories(../liblua/include)
 include_directories(../liblua/core)
 
-aux_source_directory(../liblua/core LUA_CORE_SRC)
-aux_source_directory(../liblua/libraries LUA_LIBRARIES_SRC)
+# aux_source_directory(../liblua/core LUA_CORE_SRC)
+# aux_source_directory(../liblua/libraries LUA_LIBRARIES_SRC)
 
-set(LIBLUA_SRC ${LUA_CORE_SRC} ${LUA_LIBRARIES_SRC})
-source_group(src FILES ${LIBLUA_SRC})
+# set(LIBLUA_SRC ${LUA_CORE_SRC} ${LUA_LIBRARIES_SRC})
+# source_group(src FILES ${LIBLUA_SRC})
 
-add_library(libluastatic STATIC ${LIBLUA_SRC})
-set_target_properties(libluastatic PROPERTIES
-	FOLDER "luac"
-	OUTPUT_NAME "lua"
-	VERSION "5.3.5"
-	SOVERSION "5.3"
-	POSITION_INDEPENDENT_CODE OFF
-)
+# add_library(libluastatic STATIC ${LIBLUA_SRC})
+# set_target_properties(libluastatic PROPERTIES
+# 	FOLDER "luac"
+# 	OUTPUT_NAME "lua"
+# 	VERSION "5.3.5"
+# 	SOVERSION "5.3"
+# 	POSITION_INDEPENDENT_CODE OFF
+# )
 
-if(APPLE)
-	target_compile_definitions(libluastatic PRIVATE LUA_USE_MACOSX)
-elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	target_compile_definitions(libluastatic PRIVATE LUA_USE_LINUX)
-	target_link_libraries(libluastatic m dl)
-endif()
+# if(APPLE)
+# 	target_compile_definitions(libluastatic PRIVATE LUA_USE_MACOSX)
+# elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+# 	target_compile_definitions(libluastatic PRIVATE LUA_USE_LINUX)
+# 	target_link_libraries(libluastatic m dl)
+# endif()
 
 
 aux_source_directory(./src LUAC_SRC)
 source_group(src FILES ${LUAC_SRC})
 
 add_executable(${PROJECT_NAME} ${LUAC_SRC})
-target_link_libraries(${PROJECT_NAME} libluastatic)
-set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "luac")
+# target_link_libraries(${PROJECT_NAME} libluastatic)
+# set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "luac")
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
+)
+target_link_libraries(${PROJECT_NAME} liblua)
 
 install(TARGETS ${PROJECT_NAME}
 	RUNTIME DESTINATION bin
