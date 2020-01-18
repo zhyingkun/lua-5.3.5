@@ -35,7 +35,8 @@ source_group(src FILES ${LUA_SRC})
 
 add_executable(${PROJECT_NAME} ${LUA_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES
-	INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
+	INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
+)
 target_link_libraries(${PROJECT_NAME} liblua)
 
 if(APPLE)
