@@ -136,11 +136,11 @@ static int db_getinfo(lua_State* L) {
   int arg;
   lua_State* L1 = getthread(L, &arg);
   const char* options = luaL_optstring(L, arg + 2, "flnStu");
-  checkstack(L, L1, 3);
+  checkstack(L, L1, 3); // L1 should has 3 slot
   if (lua_isfunction(L, arg + 1)) { /* info about a function? */
     options = lua_pushfstring(L, ">%s", options); /* add '>' to 'options' */
     lua_pushvalue(L, arg + 1); /* move function to 'L1' stack */
-    lua_xmove(L, L1, 1);
+    lua_xmove(L, L1, 1); // first slot
   } else { /* stack level */
     if (!lua_getstack(L1, (int)luaL_checkinteger(L, arg + 1), &ar)) {
       lua_pushnil(L); /* level out of range */
@@ -171,9 +171,9 @@ static int db_getinfo(lua_State* L) {
   if (strchr(options, 't'))
     settabsb(L, "istailcall", ar.istailcall);
   if (strchr(options, 'L'))
-    treatstackoption(L, L1, "activelines");
+    treatstackoption(L, L1, "activelines"); // second slot
   if (strchr(options, 'f'))
-    treatstackoption(L, L1, "func");
+    treatstackoption(L, L1, "func"); // third slot
   return 1; /* return table */
 }
 
@@ -430,6 +430,8 @@ static int db_sizeofstruct(lua_State* L) {
   ADD_STRUCT_SIZE(Table);
   ADD_STRUCT_SIZE(TValue);
   ADD_STRUCT_SIZE(Node);
+  ADD_STRUCT_SIZE(UTString);
+  ADD_STRUCT_SIZE(UUdata);
   return 1;
 }
 
