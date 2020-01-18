@@ -14,7 +14,7 @@ do
 	b[65] = true
 	b[77] = true
 
-	local showarray = function(str, a)
+	local function showarray(str, a)
 		local tbl = {}
 		for k in pairs(a) do tbl[#tbl + 1] = k end
 		print(str, table.unpack(tbl))
@@ -45,9 +45,9 @@ do
 			return 42
 		end,
 	}
-	lfunc = function(num) print("In lfunc:", num) end
+	function lfunc(num) print("In lfunc:", num) end
 	hello.cfunc()
-	lfuncyieldable = function(num)
+	function lfuncyieldable(num)
 		print(num)
 		coroutine.yield("Middle Yield >>>>>>>>")
 	end
