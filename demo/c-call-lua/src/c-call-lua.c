@@ -424,7 +424,7 @@ int main(int argc, char const* argv[]) {
   print_lua_registry_table(L);
 
   assert(lua_gettop(L) == 0);
-  luaL_dostring(L, main_as_coroutine);
+  (void)luaL_dostring(L, main_as_coroutine);
   assert(lua_gettop(L) == 0);
   lua_getglobal(L, "main_coroutine");
   lua_pushliteral(L, "zykTest");
