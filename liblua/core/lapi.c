@@ -28,8 +28,8 @@
 #include "lundump.h"
 #include "lvm.h"
 
-const char lua_ident[] = "$LuaVersion: " LUA_COPYRIGHT " $"
-                         "$LuaAuthors: " LUA_AUTHORS " $";
+LUA_API const char lua_ident[] = "$LuaVersion: " LUA_COPYRIGHT " $"
+                                 "$LuaAuthors: " LUA_AUTHORS " $";
 
 /* value at a non-valid index */
 #define NONVALIDVALUE cast(TValue*, luaO_nilobject)
@@ -139,7 +139,7 @@ LUA_API lua_CFunction lua_atpanic(lua_State* L, lua_CFunction panicf) {
 LUA_API const lua_Number* lua_version(lua_State* L) {
   static const lua_Number version = LUA_VERSION_NUM;
   if (L == NULL)
-    return &version;
+    return &version; // version address from current library
   else
     return G(L)->version;
 }
