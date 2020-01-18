@@ -355,6 +355,12 @@ static int pmain(lua_State* L) {
   (void)test_gc;
   assert(lua_gettop(L) == 0);
 
+  // %U: Unicode integer to UTF-8 encoding (multibyte encoding, not '\' escape representation)
+  const char* utf8str = lua_pushfstring(L, "utf8 string: %U\n", (long)39532);
+  printf("%s\n", utf8str);
+  lua_pop(L, 1);
+  assert(lua_gettop(L) == 0);
+
   printf("c-call-lua End.\n");
   return 0;
 }
@@ -393,6 +399,14 @@ static void print_lua_registry_table(lua_State* L) {
   printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 }
 
+static const char* main_as_coroutine = " \
+function main_coroutine(who) \
+    print('In Main Coroutine:', who) \
+    coroutine.yield() \
+    print('Main Coroutine End') \
+end \
+";
+
 int main(int argc, char const* argv[]) {
   lua_State* L = luaL_newstate();
   // lua_gc(L, LUA_GCCOLLECT, 0);
@@ -409,6 +423,15 @@ int main(int argc, char const* argv[]) {
 
   print_lua_string_table(L);
   print_lua_registry_table(L);
+
+  assert(lua_gettop(L) == 0);
+  luaL_dostring(L, main_as_coroutine);
+  assert(lua_gettop(L) == 0);
+  lua_getglobal(L, "main_coroutine");
+  lua_pushliteral(L, "zykTest");
+  lua_resume(L, L, 1);
+  lua_resume(L, L, 0);
+  assert(lua_gettop(L) == 0);
 
   lua_pushcclosure(L, pmain, 0); // protected, for lua_error
   lua_pushinteger(L, argc);
