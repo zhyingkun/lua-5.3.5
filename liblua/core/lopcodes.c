@@ -15,7 +15,7 @@
 
 // clang-format off
 /* ORDER OP */
-LUA_API const char *const luaP_opnames[NUM_OPCODES+1] = {
+const char *const luaP_opnames[NUM_OPCODES+1] = {
   "MOVE",
   "LOADK",
   "LOADKX",
@@ -70,7 +70,7 @@ LUA_API const char *const luaP_opnames[NUM_OPCODES+1] = {
 #define opmode(t, a, b, c, m) (((t) << 7) | ((a) << 6) | ((b) << 4) | ((c) << 2) | (m))
 
 // clang-format off
-LUA_API const lu_byte luaP_opmodes[NUM_OPCODES] = {
+const lu_byte luaP_opmodes[NUM_OPCODES] = {
 /*       T  A    B       C     mode		   opcode	*/
   opmode(0, 1, OpArgR, OpArgN, iABC)		/* OP_MOVE */
  ,opmode(0, 1, OpArgK, OpArgN, iABx)		/* OP_LOADK */
