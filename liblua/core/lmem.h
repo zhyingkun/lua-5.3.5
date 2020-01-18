@@ -26,6 +26,12 @@
 ** avoiding this warning but also this optimization.)
 */
 // May Throw LUA_ERRRUN or LUA_ERRMEM
+// void* luaM_reallocv(lua_State* L, void* b, size_t on, size_t n, size_t e) {
+//   if (sizeof(n) >= sizeof(size_t) && cast(size_t, (n)) + 1 > MAX_SIZET / (e)) {
+//     luaM_toobig(L);
+//   }
+//   return luaM_realloc_(L, (b), (on) * (e), (n) * (e));
+// }
 #define luaM_reallocv(L, b, on, n, e) \
   (((sizeof(n) >= sizeof(size_t) && cast(size_t, (n)) + 1 > MAX_SIZET / (e)) ? luaM_toobig(L) : cast_void(0)), \
    luaM_realloc_(L, (b), (on) * (e), (n) * (e)))

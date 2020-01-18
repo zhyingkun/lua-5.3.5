@@ -206,7 +206,7 @@ static void f_luaopen(lua_State* L, void* ud) {
   luaT_init(L); // init tag method name
   luaX_init(L); // lex
   g->gcrunning = 1; /* allow gc */
-  g->version = lua_version(NULL);
+  g->version = lua_version(NULL); // version address from current library
   luai_userstateopen(L);
 }
 

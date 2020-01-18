@@ -14,6 +14,7 @@
 #define sizeLclosure(n) (cast(int, sizeof(LClosure)) + cast(int, sizeof(TValue*) * ((n)-1)))
 
 /* test whether thread is in 'twups' list */
+// L->twups == L means L not in the list G(L)->twups
 #define isintwups(L) (L->twups != L)
 
 /*

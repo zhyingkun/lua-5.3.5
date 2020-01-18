@@ -35,6 +35,7 @@
 #define allocsizenode(t) (isdummy(t) ? 0 : sizenode(t))
 
 /* returns the key, given the value of a table entry */
+// type of v is TValue*
 #define keyfromval(v) (gkey(cast(Node*, cast(char*, (v)) - offsetof(Node, i_val))))
 
 LUAI_FUNC const TValue* luaH_getint(Table* t, lua_Integer key);

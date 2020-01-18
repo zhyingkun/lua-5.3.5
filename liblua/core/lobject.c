@@ -343,6 +343,8 @@ static const char* l_str2int(const char* s, lua_Integer* result) {
   } else { /* decimal */
     for (; lisdigit(cast_uchar(*s)); s++) {
       int d = *s - '0';
+      // a > MAXBY10 || (a == MAXBY10 && d > MAXLASTD + neg)
+      // for integer: negative integer interval larger than positive integer interval by one
       if (a >= MAXBY10 && (a > MAXBY10 || d > MAXLASTD + neg)) /* overflow? */
         return NULL; /* do not accept it (as integer) */
       a = a * 10 + d;
@@ -513,18 +515,18 @@ void luaO_chunkid(char* out, const char* source, size_t bufflen) {
   size_t l = strlen(source);
   if (*source == '=') { /* 'literal' source */
     if (l <= bufflen) /* small enough? */
-      memcpy(out, source + 1, l * sizeof(char));
+      memcpy(out, source + 1, l * sizeof(char)); // include '\0'
     else { /* truncate it */
       addstr(out, source + 1, bufflen - 1);
       *out = '\0';
     }
   } else if (*source == '@') { /* file name */
     if (l <= bufflen) /* small enough? */
-      memcpy(out, source + 1, l * sizeof(char));
+      memcpy(out, source + 1, l * sizeof(char)); // include '\0'
     else { /* add '...' before rest of name */
       addstr(out, RETS, LL(RETS));
       bufflen -= LL(RETS);
-      memcpy(out, source + 1 + l - bufflen, bufflen * sizeof(char));
+      memcpy(out, source + 1 + l - bufflen, bufflen * sizeof(char)); // include '\0'
     }
   } else { /* string; format as [string "source"] */
     const char* nl = strchr(source, '\n'); /* find first new line (if any) */
@@ -540,6 +542,6 @@ void luaO_chunkid(char* out, const char* source, size_t bufflen) {
       addstr(out, source, l);
       addstr(out, RETS, LL(RETS));
     }
-    memcpy(out, POS, (LL(POS) + 1) * sizeof(char));
+    memcpy(out, POS, (LL(POS) + 1) * sizeof(char)); // include '\0'
   }
 }

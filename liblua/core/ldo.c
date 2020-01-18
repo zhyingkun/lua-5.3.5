@@ -210,12 +210,16 @@ static int stackinuse(lua_State* L) {
   CallInfo* ci;
   StkId lim = L->top;
   // why loop? current callinfo is the top, so why not just L->ci->top?
+  // Answer: here must use loop to find the max top
+  // ci->top means it's call use stack which all less then ci->top
+  // but when call sub function, the sub function's stack frame start in L->top, not preci->top
+  // so, previous call may has a larger ci->top than current one, we should use loop to find the max
   for (ci = L->ci; ci != NULL; ci = ci->previous) {
     if (lim < ci->top)
       lim = ci->top;
   }
   lua_assert(lim <= L->stack_last);
-  // lim point to ci->top (no data), just lim - L->stack, why plus one?
+  // lim point to ci->top (no data), just lim - L->stack, why plus one? myabe count this slot: ci->top
   return cast_int(lim - L->stack) + 1; /* part of stack in use */
 }
 
