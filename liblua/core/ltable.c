@@ -456,6 +456,8 @@ static Node* getfreepos(Table* t) {
     while (t->lastfree > t->node) {
       t->lastfree--;
       if (ttisnil(gkey(t->lastfree)))
+        // lastfree will traversal from tail to head only one time
+        // this will sometimes lost some node which has nil value
         return t->lastfree;
     }
   }
@@ -469,6 +471,8 @@ static Node* getfreepos(Table* t) {
 ** put new key in its main position; otherwise (colliding node is in its main
 ** position), new key goes to an empty position.
 */
+// hash table has many linked lists, in every list, all nodes linked by 'next' field
+// all this list nodes store in a array, which is t->node
 TValue* luaH_newkey(lua_State* L, Table* t, const TValue* key) {
   Node* mp;
   TValue aux;
