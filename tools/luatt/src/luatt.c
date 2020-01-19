@@ -61,15 +61,15 @@ static const int AllTypeNumber[] = {
     1, // boolean
     2, // light userdata
     3, // float number
-    19, // integer number
-    68, // short string
-    84, // long string
-    69, // table
-    70, // lua closure
-    22, // light c function
-    102, // c closure
-    71, // userdata
-    72, // thread
+    3 + 1 * 16, // integer number
+    4 + 0 * 16 + 1 * 64, // short string
+    4 + 1 * 16 + 1 * 64, // long string
+    5 + 0 * 16 + 1 * 64, // table
+    6 + 0 * 16 + 1 * 64, // lua closure
+    6 + 1 * 16, // light c function
+    6 + 2 * 16 + 1 * 64, // c closure
+    7 + 0 * 16 + 1 * 64, // userdata
+    8 + 0 * 16 + 1 * 64, // thread
     9, // proto
     10, // deadkey
     -1, // none
@@ -93,7 +93,8 @@ void display_type(int tagType) {
   int actualTag = tagType & 0x0f;
   int variantBits = (tagType >> 4) & 0x03;
   int collectable = (tagType >> 6) & 0x01;
-  printf("%3d => ActualTag: %s", tagType, ActualTagNames[actualTag]);
+  printf(
+      "%3d => %2d %2d %2d => ActualTag: %s", tagType, collectable, variantBits, actualTag, ActualTagNames[actualTag]);
   switch (actualTag) {
     case LUA_TFUNCTION:
       printf(" VariantTag: %s", VariantTagFunctions[variantBits]);
