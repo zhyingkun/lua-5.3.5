@@ -110,6 +110,19 @@ ndk-build -B # rebuild project
 
 ---
 
+## 让 luac 命令使用 liblua 动态库
+
+luac 命令的官方实现中，使用了一些动态库没有导出的符号，因此只能通过静态链接的方式来编译 luac。不过实际上 luac 命令只是一个类似 lua 命令的应用，本工程通过如下修改让 luac 命令也使用 liblua 动态库：
+
+1. liblua 动态库导出两个符号：luaP_opmodes、luaP_opnames
+2. 用 lua_dump 函数代替 luaU_dump，其实底层都是使用 luaU_dump 函数
+3. 去除 luac.c 中的宏定义：LUA_CORE， 作为一个使用 liblua 的应用程序，不需要此宏（Win 下不允许有此宏，否则有些符号找不到）
+4. 修改 CMakeLists.txt 配置文件，使用 liblua 动态库，并为 Win 版本加入宏：LUA_BUILD_AS_DLL（任何使用 liblua 的应用都需要在 Win 版本中添加 LUA_BUILD_AS_DLL 宏）
+
+其实在 MacOSX 中，不需要上述操作也可以直接将 luac 切换为使用动态库 liblua，做这些修改主要是针对 Linux 和 Windows 平台
+
+---
+
 ## 扩展 Lua 功能
 
 1. 非 Win 环境下，package.cpath 增加 "/usr/local/zyk/lib/lua/5.3/?.so" 搜索路径
@@ -125,3 +138,4 @@ ndk-build -B # rebuild project
 
 1. 增加 luaL_tolstringex 方法，用于支持快速查看 table 中的字段
 2. 增加 lua_getstackdepth 方法，用于获取当前函数调用嵌套深度（并非链表长度，链表长度记录于 L->nci）
+3. 导出 lua_ident 符号，以便在 Windows 下使用该字符串
