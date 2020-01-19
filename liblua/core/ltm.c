@@ -71,6 +71,7 @@ const TValue* luaT_gettm(Table* events, TMS event, TString* ename) {
     return tm;
 }
 
+// get tag method by object, meta method
 const TValue* luaT_gettmbyobj(lua_State* L, const TValue* o, TMS event) {
   Table* mt;
   switch (ttnov(o)) {
@@ -101,6 +102,7 @@ const char* luaT_objtypename(lua_State* L, const TValue* o) {
   return ttypename(ttnov(o)); /* else use standard type name */
 }
 
+// f: meta method, p1, p2: parament 1 and 2, p3: if has result, for result, else for parament 3
 void luaT_callTM(lua_State* L, const TValue* f, const TValue* p1, const TValue* p2, TValue* p3, int hasres) {
   ptrdiff_t result = savestack(L, p3);
   StkId func = L->top;
@@ -109,7 +111,7 @@ void luaT_callTM(lua_State* L, const TValue* f, const TValue* p1, const TValue* 
   setobj2s(L, func + 2, p2); /* 2nd argument */
   L->top += 3;
   if (!hasres) /* no result? 'p3' is third argument */
-    setobj2s(L, L->top++, p3); /* 3rd argument */
+    setobj2s(L, L->top++, p3); /* 3rd argument */ // now only for __newindex
   /* metamethod may yield only when called from Lua code */
   if (isLua(L->ci))
     luaD_call(L, func, hasres);
