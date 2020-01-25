@@ -54,6 +54,7 @@ static void usage(const char* message) {
           "usage: %s [options] [filenames]\n"
           "Available options are:\n"
           "  -l       list (use -l -l for full listing)\n"
+          "  (use -l -l -l for list instructions in different style)\n"
           "  -o name  output to file 'name' (default is \"%s\")\n"
           "  -p       parse only\n"
           "  -s       strip debug information\n"
@@ -223,6 +224,82 @@ int main(int argc, char* argv[]) {
 #include "lobject.h"
 #include "lopcodes.h"
 
+// None, Value, Register, Constant, Prototype, Upvalue, Bool
+enum OpPrefix { N_, V_, R_, K_, P_, U_, B_ };
+
+#define PRE_POS_A 6
+#define PRE_POS_B 3
+#define PRE_POS_C 0
+#define PRE_MASK MASK1(3, 0)
+#define OPPREFIX_MASK(op, pos, mask) ((luaP_opprefixmask[op] >> (pos)) & (mask))
+
+// bit size:   1, 1, 2, 2, 2
+#define opprefix(a, b, c) (((a) << PRE_POS_A) | ((b) << PRE_POS_B) | ((c) << PRE_POS_C))
+
+// clang-format off
+static const short luaP_opprefixmask[] = {
+/*         A   B   C             opcode */
+  opprefix(R_, R_, N_)        /* OP_MOVE */
+ ,opprefix(R_, K_, N_)        /* OP_LOADK */
+ ,opprefix(R_, N_, N_)        /* OP_LOADKX */
+ ,opprefix(R_, B_, B_)        /* OP_LOADBOOL */
+ ,opprefix(R_, V_, N_)        /* OP_LOADNIL */
+ ,opprefix(R_, U_, N_)        /* OP_GETUPVAL */
+ ,opprefix(R_, U_, K_)        /* OP_GETTABUP */
+ ,opprefix(R_, R_, K_)        /* OP_GETTABLE */
+ ,opprefix(U_, K_, K_)        /* OP_SETTABUP */
+ ,opprefix(R_, U_, N_)        /* OP_SETUPVAL */
+ ,opprefix(R_, K_, K_)        /* OP_SETTABLE */
+ ,opprefix(R_, V_, V_)        /* OP_NEWTABLE */
+ ,opprefix(R_, R_, K_)        /* OP_SELF */
+ ,opprefix(R_, K_, K_)        /* OP_ADD */
+ ,opprefix(R_, K_, K_)        /* OP_SUB */
+ ,opprefix(R_, K_, K_)        /* OP_MUL */
+ ,opprefix(R_, K_, K_)        /* OP_MOD */
+ ,opprefix(R_, K_, K_)        /* OP_POW */
+ ,opprefix(R_, K_, K_)        /* OP_DIV */
+ ,opprefix(R_, K_, K_)        /* OP_IDIV */
+ ,opprefix(R_, K_, K_)        /* OP_BAND */
+ ,opprefix(R_, K_, K_)        /* OP_BOR */
+ ,opprefix(R_, K_, K_)        /* OP_BXOR */
+ ,opprefix(R_, K_, K_)        /* OP_SHL */
+ ,opprefix(R_, K_, K_)        /* OP_SHR */
+ ,opprefix(R_, R_, N_)        /* OP_UNM */
+ ,opprefix(R_, R_, N_)        /* OP_BNOT */
+ ,opprefix(R_, R_, N_)        /* OP_NOT */
+ ,opprefix(R_, R_, N_)        /* OP_LEN */
+ ,opprefix(R_, R_, R_)        /* OP_CONCAT */
+ ,opprefix(R_, V_, N_)        /* OP_JMP */
+ ,opprefix(B_, K_, K_)        /* OP_EQ */
+ ,opprefix(B_, K_, K_)        /* OP_LT */
+ ,opprefix(B_, K_, K_)        /* OP_LE */
+ ,opprefix(R_, N_, V_)        /* OP_TEST */
+ ,opprefix(R_, R_, V_)        /* OP_TESTSET */
+ ,opprefix(R_, V_, V_)        /* OP_CALL */
+ ,opprefix(R_, V_, N_)        /* OP_TAILCALL */
+ ,opprefix(R_, V_, N_)        /* OP_RETURN */
+ ,opprefix(R_, V_, N_)        /* OP_FORLOOP */
+ ,opprefix(R_, V_, N_)        /* OP_FORPREP */
+ ,opprefix(R_, N_, V_)        /* OP_TFORCALL */
+ ,opprefix(R_, V_, N_)        /* OP_TFORLOOP */
+ ,opprefix(R_, V_, N_)        /* OP_SETLIST */
+ ,opprefix(R_, P_, N_)        /* OP_CLOSURE */
+ ,opprefix(R_, V_, N_)        /* OP_VARARG */
+ ,opprefix(V_, N_, N_)        /* OP_EXTRAARG */
+};
+// clang-format on
+
+static const char* luaP_prefix(OpCode op, int pos, int mask, int isk) {
+  if (isk)
+    return "k";
+  static const char* prefix[] = {" ", " ", "r", "r", "p", "u", "b"};
+  return prefix[OPPREFIX_MASK(op, pos, mask)];
+}
+
+#define Prefix_A(op, isk) luaP_prefix(op, PRE_POS_A, PRE_MASK, isk)
+#define Prefix_B(op, isk) luaP_prefix(op, PRE_POS_B, PRE_MASK, isk)
+#define Prefix_C(op, isk) luaP_prefix(op, PRE_POS_C, PRE_MASK, isk)
+
 #define VOID(p) ((const void*)(p))
 
 static void PrintString(const TString* ts) {
@@ -315,33 +392,61 @@ static void PrintCode(const Proto* f) {
     int bx = GETARG_Bx(i);
     int sbx = GETARG_sBx(i);
     int line = getfuncline(f, pc);
-    printf("\t%d\t", pc + 1);
+    printf("\t%d\t", listing > 2 ? pc : pc + 1);
     if (line > 0)
       printf("[%d]\t", line);
     else
       printf("[-]\t");
     printf("%-9s\t", luaP_opnames[o]);
-    switch (getOpMode(o)) {
-      case iABC:
-        printf("%d", a);
-        if (getBMode(o) != OpArgN)
-          printf(" %d", ISK(b) ? (MYK(INDEXK(b))) : b);
-        if (getCMode(o) != OpArgN)
-          printf(" %d", ISK(c) ? (MYK(INDEXK(c))) : c);
-        break;
-      case iABx:
-        printf("%d", a);
-        if (getBMode(o) == OpArgK)
-          printf(" %d", MYK(bx));
-        if (getBMode(o) == OpArgU)
-          printf(" %d", bx);
-        break;
-      case iAsBx:
-        printf("%d %d", a, sbx);
-        break;
-      case iAx:
-        printf("%d", MYK(ax));
-        break;
+    if (listing > 2) {
+      switch (getOpMode(o)) {
+        case iABC:
+          printf("%s%d", Prefix_A(o, 0), a);
+          if (getBMode(o) != OpArgN)
+            printf(" %s%d", Prefix_B(o, ISK(b)), INDEXK(b));
+          else
+            printf("   ");
+          if (getCMode(o) != OpArgN)
+            printf(" %s%d", Prefix_C(o, ISK(c)), INDEXK(c));
+          break;
+        case iABx:
+          printf("%s%d", Prefix_A(o, 0), a);
+          if (getBMode(o) == OpArgK)
+            printf(" %s%d", Prefix_B(o, 1), bx);
+          if (getBMode(o) == OpArgU)
+            printf(" %s%d", Prefix_B(o, 0), bx);
+          break;
+        case iAsBx:
+          printf("%s%d", Prefix_A(o, 0), a);
+          printf(" %s%d", Prefix_B(o, 0), sbx);
+          break;
+        case iAx:
+          printf("%d", ax);
+          break;
+      }
+    } else {
+      switch (getOpMode(o)) {
+        case iABC:
+          printf("%d", a);
+          if (getBMode(o) != OpArgN)
+            printf(" %d", ISK(b) ? (MYK(INDEXK(b))) : b);
+          if (getCMode(o) != OpArgN)
+            printf(" %d", ISK(c) ? (MYK(INDEXK(c))) : c);
+          break;
+        case iABx:
+          printf("%d", a);
+          if (getBMode(o) == OpArgK)
+            printf(" %d", MYK(bx));
+          if (getBMode(o) == OpArgU)
+            printf(" %d", bx);
+          break;
+        case iAsBx:
+          printf("%d %d", a, sbx);
+          break;
+        case iAx:
+          printf("%d", MYK(ax));
+          break;
+      }
     }
     switch (o) {
       case OP_LOADK:
@@ -410,20 +515,24 @@ static void PrintCode(const Proto* f) {
       case OP_FORLOOP:
       case OP_FORPREP:
       case OP_TFORLOOP:
-        printf("\t; to %d", sbx + pc + 2);
+        // origin plus one for real pc
+        printf("\t; to %d", sbx + pc + 1 + (listing > 2 ? 0 : 1));
         break;
       case OP_CLOSURE:
         printf("\t; %p", VOID(f->p[bx]));
         break;
       case OP_SETLIST:
         if (c == 0)
-          printf("\t; %d", (int)code[++pc]);
+          printf("\t; %d", GETARG_Ax((int)code[pc + 1]));
         else
           printf("\t; %d", c);
         break;
       case OP_EXTRAARG:
         printf("\t; ");
         PrintConstant(f, ax);
+        break;
+      case OP_NEWTABLE:
+        printf("\t; %d %d", luaO_fb2int(b), luaO_fb2int(c));
         break;
       default:
         break;
@@ -464,7 +573,7 @@ static void PrintDebug(const Proto* f) {
   n = f->sizek;
   printf("constants (%d) for %p:\n", n, VOID(f));
   for (i = 0; i < n; i++) {
-    printf("\t%d\t", i + 1);
+    printf("\t%d\t", listing > 2 ? i : i + 1);
     PrintConstant(f, i);
     printf("\n");
   }
