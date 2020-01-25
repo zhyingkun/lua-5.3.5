@@ -532,7 +532,9 @@ static void PrintCode(const Proto* f) {
         PrintConstant(f, ax);
         break;
       case OP_NEWTABLE:
-        printf("\t; %d %d", luaO_fb2int(b), luaO_fb2int(c));
+#define LUAO_FB2INT(x) (x < 8) ? x : ((x & 7) + 8) << ((x >> 3) - 1)
+        printf("\t; %d %d", LUAO_FB2INT(b), LUAO_FB2INT(c));
+#undef LUAO_FB2INT
         break;
       default:
         break;
