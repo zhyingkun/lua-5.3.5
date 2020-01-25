@@ -310,6 +310,11 @@ static StkId adjust_varargs(lua_State* L, Proto* p, int actual) {
 ** it in stack below original 'func' so that 'luaD_precall' can call
 ** it. Raise an error if __call metafield is not a function.
 */
+// L->top ==> (nil)
+//        ==> nargs argument
+//        ...
+//        ==> first argument
+//   func ==> function for call
 static void tryfuncTM(lua_State* L, StkId func) {
   const TValue* tm = luaT_gettmbyobj(L, func, TM_CALL);
   StkId p;
@@ -389,6 +394,7 @@ int luaD_poscall(lua_State* L, CallInfo* ci, StkId firstResult, int nres) {
 #define next_ci(L) (L->ci = (L->ci->next ? L->ci->next : luaE_extendCI(L)))
 
 /* macro to check stack size, preserving 'p' */
+// we should preserving p because during reallocing stack, stack address may be changed
 #define checkstackp(L, n, p) \
   luaD_checkstackaux(L, n, ptrdiff_t t__ = savestack(L, p); /* save 'p' */ \
                      luaC_checkGC(L), /* stack grow uses memory */ \
@@ -401,6 +407,11 @@ int luaD_poscall(lua_State* L, CallInfo* ci, StkId firstResult, int nres) {
 ** the execution ('luaV_execute') to the caller, to allow stackless
 ** calls.) Returns true iff function has been executed (C function).
 */
+// L->top ==> (nil)
+//        ==> nargs argument
+//        ...
+//        ==> first argument
+//   func ==> function for call
 int luaD_precall(lua_State* L, StkId func, int nresults) {
   lua_CFunction f;
   CallInfo* ci;
@@ -454,6 +465,7 @@ int luaD_precall(lua_State* L, StkId func, int nresults) {
       return 0;
     }
     default: { /* not a function */
+      // check 1 stack size for meta method
       checkstackp(L, 1, func); /* ensure space for metamethod */
       tryfuncTM(L, func); /* try to get '__call' metamethod */
       return luaD_precall(L, func, nresults); /* now it must be a function */
@@ -482,6 +494,11 @@ static void stackerror(lua_State* L) {
 ** When returns, all the results are on the stack, starting at the original
 ** function position.
 */
+// L->top ==> (nil)
+//        ==> nargs argument
+//        ...
+//        ==> first argument
+//   func ==> function for call
 void luaD_call(lua_State* L, StkId func, int nResults) {
   if (++L->nCcalls >= LUAI_MAXCCALLS)
     stackerror(L);

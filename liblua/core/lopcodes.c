@@ -67,6 +67,7 @@ const char *const luaP_opnames[NUM_OPCODES+1] = {
 };
 // clang-format on
 
+// bit size:   1, 1, 2, 2, 2
 #define opmode(t, a, b, c, m) (((t) << 7) | ((a) << 6) | ((b) << 4) | ((c) << 2) | (m))
 
 // clang-format off

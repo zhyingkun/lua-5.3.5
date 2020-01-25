@@ -737,6 +737,9 @@ void luaV_finishOp(lua_State* L) {
     dojump(ci, i, 1); \
   }
 
+// why should this operator to protect base?
+// answer: invoking every function which will reallocate the stack (include Lua and C)
+// we should reread base from CallInfo (reallocate lua stack will correct CallInfo list)
 #define Protect(x) \
   { \
     { x; }; \
@@ -752,6 +755,8 @@ void luaV_finishOp(lua_State* L) {
   }
 
 /* fetch an instruction and prepare its execution */
+// savedpc in LClosure initialized with (Proto*)->code
+// base => L->ci->func+1, register count start at 0
 #define vmfetch() \
   { \
     i = *(ci->u.l.savedpc++); \
@@ -791,7 +796,8 @@ void luaV_execute(lua_State* L) {
   CallInfo* ci = L->ci;
   LClosure* cl;
   TValue* k;
-  StkId base;
+  StkId base; // point to stack, affected by stack reallocation
+              // after any function call, we should correct this pointer
   ci->callstatus |= CIST_FRESH; /* fresh invocation of 'luaV_execute" */
 newframe: /* reentry point when frame changes (call/return) */
   lua_assert(ci == L->ci);
@@ -884,11 +890,11 @@ newframe: /* reentry point when frame changes (call/return) */
         StkId rb = RB(i);
         TValue* rc = RKC(i);
         TString* key = tsvalue(rc); /* key must be a string */
-        setobjs2s(L, ra + 1, rb);
+        setobjs2s(L, ra + 1, rb); // may be ra == rb
         if (luaV_fastget(L, rb, key, aux, luaH_getstr)) {
           setobj2s(L, ra, aux);
         } else
-          Protect(luaV_finishget(L, rb, rc, ra, aux));
+          Protect(luaV_finishget(L, rb, rc, ra, aux)); // call meta method, should protect 'base'
         vmbreak;
       }
       vmcase(OP_ADD) {
@@ -1174,7 +1180,8 @@ newframe: /* reentry point when frame changes (call/return) */
             setobjs2s(L, ofunc + aux, nfunc + aux);
           oci->u.l.base = ofunc + (nci->u.l.base - nfunc); /* correct base */
           oci->top = L->top = ofunc + (L->top - nfunc); /* correct top */
-          oci->u.l.savedpc = nci->u.l.savedpc;
+          // no need to change oci->func, because it points to the correct slot
+          oci->u.l.savedpc = nci->u.l.savedpc; // point to new function, drop current running position
           oci->callstatus |= CIST_TAIL; /* function was tail called */
           ci = L->ci = oci; /* remove new frame */
           lua_assert(L->top == oci->u.l.base + getproto(ofunc)->maxstacksize);
@@ -1191,7 +1198,7 @@ newframe: /* reentry point when frame changes (call/return) */
           return; /* external invocation: return */
         else { /* invocation via reentry: continue execution */
           ci = L->ci;
-          if (b)
+          if (b) // b > 0 => not multi result, no need L->top to indicate the number of result
             L->top = ci->top; // ci->top is the top of lua stack frame
           lua_assert(isLua(ci));
           lua_assert(GET_OPCODE(*((ci)->u.l.savedpc - 1)) == OP_CALL);
