@@ -844,7 +844,13 @@ static void strbuff_addlstring(StringBuffer* b, const char* str, size_t len) {
   for (i = 0; i < len; i++) {
     char tmp = str[i];
     switch (tmp) {
+      case '\a':
+      case '\b':
+      case '\f':
       case '\n':
+      case '\r':
+      case '\t':
+      case '\v':
       case '\0':
         dst[i] = ' ';
         break;
