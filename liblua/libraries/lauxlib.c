@@ -824,42 +824,74 @@ static void strbuff_init(StringBuffer* b, lua_State* L, int idx, size_t size) {
   b->n = 0;
 }
 
-static void strbuff_addlstring(StringBuffer* b, const char* str, size_t len) {
-  if (b->n + len > b->size) {
+static size_t escape_string(char* dst, const char* str, size_t len) {
+  size_t i = 0;
+  char* olddst = dst;
+  for (i = 0; i < len; i++) {
+    char tmp = str[i];
+#define ESCAPE_CHAR_BRK(c) \
+  { \
+    *dst = '\\'; \
+    dst++; \
+    *dst = (c); \
+    break; \
+  }
+    switch (tmp) {
+      case '"':
+        ESCAPE_CHAR_BRK('"');
+      case '\\':
+        ESCAPE_CHAR_BRK('\\');
+      case '\a':
+        ESCAPE_CHAR_BRK('a');
+      case '\b':
+        ESCAPE_CHAR_BRK('b');
+      case '\f':
+        ESCAPE_CHAR_BRK('f');
+      case '\n':
+        ESCAPE_CHAR_BRK('n');
+      case '\r':
+        ESCAPE_CHAR_BRK('r');
+      case '\t':
+        ESCAPE_CHAR_BRK('t');
+      case '\v':
+        ESCAPE_CHAR_BRK('v');
+      case '\0':
+        ESCAPE_CHAR_BRK('0');
+      default:
+        // does not escape other unprintable character
+        // may be utf8 multi byte character
+        *dst = tmp;
+        break;
+    }
+#undef ESCAPE_CHAR_BRK
+    dst++;
+  }
+  return dst - olddst;
+}
+
+static void strbuff_addlstringex(StringBuffer* b, const char* str, size_t len, int escape) {
+  size_t minisize = b->n + len * (escape ? 2 : 1);
+  if (minisize > b->size) {
     char* s = b->b;
     b->size *= 4;
+    if (minisize > b->size) {
+      b->size = minisize;
+    }
     lua_State* L = b->L;
     b->b = lua_newuserdata(L, b->size);
     memcpy(b->b, s, b->n);
     lua_replace(L, b->idx_buffer);
   }
-  // memcpy(b->b+b->n, str, len);
-  char* dst = b->b + b->n;
-  if (len == 1) {
-    dst[0] = str[0];
-    b->n++;
-    return;
-  }
-  size_t i = 0;
-  for (i = 0; i < len; i++) {
-    char tmp = str[i];
-    switch (tmp) {
-      case '\a':
-      case '\b':
-      case '\f':
-      case '\n':
-      case '\r':
-      case '\t':
-      case '\v':
-      case '\0':
-        dst[i] = ' ';
-        break;
-      default:
-        dst[i] = tmp;
-        break;
-    }
+  if (escape) {
+    len = escape_string(b->b + b->n, str, len);
+  } else {
+    memcpy(b->b + b->n, str, len);
   }
   b->n += len;
+}
+
+static void strbuff_addlstring(StringBuffer* b, const char* str, size_t len) {
+  strbuff_addlstringex(b, str, len, 0);
 }
 
 static void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
@@ -868,7 +900,7 @@ static void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
   const char* result = luaL_tolstring(L, idx, &length); // [-0, +1]
   if (lua_type(L, idx) == LUA_TSTRING) {
     strbuff_addliteral(b, "\"");
-    strbuff_addlstring(b, result, length);
+    strbuff_addlstringex(b, result, length, 1);
     strbuff_addliteral(b, "\"");
   } else {
     strbuff_addlstring(b, result, length);
