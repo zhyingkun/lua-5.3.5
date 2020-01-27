@@ -81,6 +81,12 @@
 #define tofinalize(x) testbit((x)->marked, FINALIZEDBIT)
 
 #define otherwhite(g) ((g)->currentwhite ^ WHITEBITS)
+// m is current mark, m ^ WHITEBITS ==> make another white
+// another white & other white ==> 0 means m is other white, so it is dead
+// another white & other white ==> 1 means m is current white
+// in gc phase: before atomic, every live object should be current white (other white has been collected)
+// after atomic, every live has been traversal, so, they should be black (other white object is garbage)
+// all the time, if some object's mark equal to other white, it must be dead
 #define isdeadm(ow, m) (!(((m) ^ WHITEBITS) & (ow)))
 #define isdead(g, v) isdeadm(otherwhite(g), (v)->marked)
 
