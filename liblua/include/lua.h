@@ -293,6 +293,7 @@ LUA_API int(lua_isyieldable)(lua_State* L);
 #define LUA_GCSETPAUSE 6
 #define LUA_GCSETSTEPMUL 7
 #define LUA_GCISRUNNING 9
+#define LUA_GCONESTEP 10
 
 LUA_API int(lua_gc)(lua_State* L, int what, int data);
 

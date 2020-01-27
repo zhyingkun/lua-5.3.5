@@ -1103,6 +1103,24 @@ void luaC_step(lua_State* L) {
   }
 }
 
+// only one step
+void luaC_onestep(lua_State* L) {
+  global_State* g = G(L);
+  l_mem debt = getdebt(g); /* GC deficit (be paid now) */
+  if (!g->gcrunning) { /* not running? */
+    luaE_setdebt(g, -GCSTEPSIZE * 10); /* avoid being called too often */
+    return;
+  }
+  debt -= singlestep(L); /* perform one single step */
+  if (g->gcstate == GCSpause)
+    setpause(g); /* pause until next cycle */
+  else {
+    debt = (debt / g->gcstepmul) * STEPMULADJ; /* convert 'work units' to Kb */
+    luaE_setdebt(g, debt);
+    // runafewfinalizers(L);
+  }
+}
+
 /*
 ** Performs a full GC cycle; if 'isemergency', set a flag to avoid
 ** some operations which could change the interpreter state in some

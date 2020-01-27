@@ -121,6 +121,7 @@
 LUAI_FUNC void luaC_fix(lua_State* L, GCObject* o);
 LUAI_FUNC void luaC_freeallobjects(lua_State* L);
 LUAI_FUNC void luaC_step(lua_State* L);
+LUAI_FUNC void luaC_onestep(lua_State* L);
 LUAI_FUNC void luaC_runtilstate(lua_State* L, int statesmask);
 LUAI_FUNC void luaC_fullgc(lua_State* L, int isemergency);
 LUAI_FUNC GCObject* luaC_newobj(lua_State* L, int tt, size_t sz);

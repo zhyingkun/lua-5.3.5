@@ -1055,6 +1055,15 @@ LUA_API int lua_gc(lua_State* L, int what, int data) {
       res = g->gcrunning;
       break;
     }
+    case LUA_GCONESTEP: {
+      lu_byte oldrunning = g->gcrunning;
+      g->gcrunning = 1; // allow GC to run
+      luaC_onestep(L);
+      g->gcrunning = oldrunning; // restore previous state
+      if (g->gcstate == GCSpause) // end of cycle?
+        res = 1; // signal it
+      break;
+    }
     default:
       res = -1; /* invalid option */
   }
