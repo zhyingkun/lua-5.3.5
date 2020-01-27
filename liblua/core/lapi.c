@@ -864,6 +864,11 @@ LUA_API void lua_setuservalue(lua_State* L, int idx) {
             (nr) == LUA_MULTRET || (L->ci->top - L->top >= (nr) - (na)), \
             "results from function overflow current stack size")
 
+// L->top ==> (nil)
+//        ==> nargs argument
+//        ...
+//        ==> first argument
+//        ==> function for call
 LUA_API void lua_callk(lua_State* L, int nargs, int nresults, lua_KContext ctx, lua_KFunction k) {
   StkId func;
   lua_lock(L);
