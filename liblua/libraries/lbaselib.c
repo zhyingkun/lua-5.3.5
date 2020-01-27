@@ -211,6 +211,21 @@ static int luaB_type(lua_State* L) {
   return 1;
 }
 
+// similar with luaT_objtypename
+static int luaB_typedetail(lua_State* L) {
+  int t = lua_type(L, 1);
+  luaL_argcheck(L, t != LUA_TNONE, 1, "value expected");
+  if ((t == LUA_TTABLE || t == LUA_TUSERDATA) && luaL_getmetafield(L, 1, "__name") == LUA_TSTRING) {
+    return 1;
+  }
+  if (t == LUA_TLIGHTUSERDATA) {
+    lua_pushliteral(L, "lightuserdata");
+  } else {
+    lua_pushstring(L, lua_typename(L, t));
+  }
+  return 1;
+}
+
 static int pairsmeta(lua_State* L, const char* method, int iszero, lua_CFunction iter) {
   luaL_checkany(L, 1);
   if (luaL_getmetafield(L, 1, method) == LUA_TNIL) { /* no metamethod? */
@@ -477,6 +492,7 @@ static const luaL_Reg base_funcs[] = {
     {"tonumber", luaB_tonumber},
     {"tostring", luaB_tostring},
     {"type", luaB_type},
+    {"typedetail", luaB_typedetail},
     {"xpcall", luaB_xpcall},
     /* placeholders */
     {"_G", NULL},
