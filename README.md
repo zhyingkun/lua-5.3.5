@@ -131,6 +131,8 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 4. 增加 debug.sizeofstruct 函数，无参数，返回一个 table，table 中记录了底层实现结构体的内存占用大小
 5. 增加 debug.tablemem 函数，接收一个 table 作为参数，返回四个字段：该 table 占用内存大小、数组部分长度、以 2 为底哈希表部分长度的对数、哈希表部分是否为假节点
 6. 增加 debug.getgcstate 函数，用于获取当前 GC 状态
+7. 增加 \_G.typedetail 函数，用于获取数据类型细节，包括了 \_\_name 元字段
+8. 针对函数 \_G.collectgarbage 添加新的选项 "onestep"， 用于仅走最最原始的一步 gc 操作
 
 ---
 
@@ -139,3 +141,4 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 1. 增加 luaL_tolstringex 方法，用于支持快速查看 table 中的字段
 2. 增加 lua_getstackdepth 方法，用于获取当前函数调用嵌套深度（并非链表长度，链表长度记录于 L->nci）
 3. 导出 lua_ident 符号，以便在 Windows 下使用该字符串
+4. 针对函数 lua_gc 的第二个参数(what)添加新的选项 LUA_GCONESTEP，用于仅走最最原始的一步 gc 操作
