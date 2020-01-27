@@ -543,21 +543,24 @@ do
 		}
 		local a = {}
 		collectgarbage()
-		local cnt = collectgarbage("count") * 1024
+		-- local cnt = collectgarbage("count") * 1024
 		for i = 1, 10000 do
 			count = count + 1
 			a[i] = setmetatable({}, mt)
-			if i <= 10 then
-				collectgarbage()
-				print(collectgarbage("count") * 1024 - cnt)
-			end
+			-- if i <= 10 then
+			-- 	collectgarbage()
+			-- 	print(collectgarbage("count") * 1024 - cnt)
+			-- end
 		end
 		collectgarbage()
+		-- print(debug.tablemem(a))
+		-- print will call tostring to make string, may be alloc memory
+		-- may be realloc lua stack in any function invoke
 		print(collectgarbage("count") * 1024, count)
 		a = nil
 		collectgarbage()
 		print(collectgarbage("count") * 1024, count)
-		collectgarbage()
+		collectgarbage() --> collect 10000 empty tables, in 64bit system may be 56*10000 byte
 		print(collectgarbage("count") * 1024, count)
 	end
 end
