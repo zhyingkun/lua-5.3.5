@@ -171,6 +171,7 @@ static int luaB_collectgarbage(lua_State* L) {
       "setpause",
       "setstepmul",
       "isrunning",
+      "onestep",
       NULL,
   };
   static const int optsnum[] = {
@@ -182,6 +183,7 @@ static int luaB_collectgarbage(lua_State* L) {
       LUA_GCSETPAUSE,
       LUA_GCSETSTEPMUL,
       LUA_GCISRUNNING,
+      LUA_GCONESTEP,
   };
   int o = optsnum[luaL_checkoption(L, 1, "collect", opts)];
   int ex = (int)luaL_optinteger(L, 2, 0);
@@ -193,6 +195,7 @@ static int luaB_collectgarbage(lua_State* L) {
       return 1;
     }
     case LUA_GCSTEP:
+    case LUA_GCONESTEP:
     case LUA_GCISRUNNING: {
       lua_pushboolean(L, res);
       return 1;
