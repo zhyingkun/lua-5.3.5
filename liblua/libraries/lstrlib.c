@@ -273,6 +273,7 @@ static const char* classend(MatchState* ms, const char* p) {
   }
 }
 
+// c: character, cl: class
 static int match_class(int c, int cl) {
   int res;
   switch (tolower(cl)) {
@@ -312,9 +313,10 @@ static int match_class(int c, int cl) {
     default:
       return (cl == c);
   }
-  return (islower(cl) ? res : !res);
+  return (islower(cl) ? res : !res); // Upper class means Complement
 }
 
+// 'p' points to '[', 'ec' points to ']'
 static int matchbracketclass(int c, const char* p, const char* ec) {
   int sig = 1;
   if (*(p + 1) == '^') {
@@ -336,6 +338,7 @@ static int matchbracketclass(int c, const char* p, const char* ec) {
   return !sig;
 }
 
+// s: string, p: pattern, ep: end of pattern ('ep' points to the character after the pattern)
 static int singlematch(MatchState* ms, const char* s, const char* p, const char* ep) {
   if (s >= ms->src_end)
     return 0;
@@ -347,7 +350,7 @@ static int singlematch(MatchState* ms, const char* s, const char* p, const char*
       case L_ESC:
         return match_class(c, uchar(*(p + 1)));
       case '[':
-        return matchbracketclass(c, p, ep - 1);
+        return matchbracketclass(c, p, ep - 1); // 'ep - 1' points to ']'
       default:
         return (uchar(*p) == c);
     }
@@ -374,6 +377,7 @@ static const char* matchbalance(MatchState* ms, const char* s, const char* p) {
   return NULL; /* string ends out of balance */
 }
 
+// s: string, p: pattern, ep: end of pattern ('ep' points to the character after the pattern)
 static const char* max_expand(MatchState* ms, const char* s, const char* p, const char* ep) {
   ptrdiff_t i = 0; /* counts maximum expand for item */
   while (singlematch(ms, s + i, p, ep))
@@ -432,6 +436,7 @@ static const char* match_capture(MatchState* ms, const char* s, int l) {
     return NULL;
 }
 
+// s: start of the string, p: start of the pattern
 static const char* match(MatchState* ms, const char* s, const char* p) {
   if (ms->matchdepth-- == 0)
     luaL_error(ms->L, "pattern too complex");
@@ -547,6 +552,7 @@ init: /* using goto's to optimize tail recursion */
   return s;
 }
 
+// l1 and l2 does not include '\0'
 static const char* lmemfind(const char* s1, size_t l1, const char* s2, size_t l2) {
   if (l2 == 0)
     return s1; /* empty strings are everywhere */
@@ -569,10 +575,11 @@ static const char* lmemfind(const char* s1, size_t l1, const char* s2, size_t l2
   }
 }
 
+// MatchState record the match information, captures can be pushed more than one time
 static void push_onecapture(MatchState* ms, int i, const char* s, const char* e) {
   if (i >= ms->level) {
     if (i == 0) /* ms->level == 0, too */
-      lua_pushlstring(ms->L, s, e - s); /* add whole match */
+      lua_pushlstring(ms->L, s, e - s); /* add whole match */ // for string.match only
     else
       luaL_error(ms->L, "invalid capture index %%%d", i + 1);
   } else {
@@ -586,6 +593,7 @@ static void push_onecapture(MatchState* ms, int i, const char* s, const char* e)
   }
 }
 
+// if s == NULL then only push captures, do not push the whole match
 static int push_captures(MatchState* ms, const char* s, const char* e) {
   int i;
   int nlevels = (ms->level == 0 && s) ? 1 : ms->level;
@@ -655,9 +663,9 @@ static int str_find_aux(lua_State* L, int find) {
         if (find) {
           lua_pushinteger(L, (s1 - s) + 1); /* start */
           lua_pushinteger(L, res - s); /* end */
-          return push_captures(&ms, NULL, 0) + 2;
+          return push_captures(&ms, NULL, 0) + 2; // does not include the whole match
         } else
-          return push_captures(&ms, s1, res);
+          return push_captures(&ms, s1, res); // include the whole match
       }
     } while (s1++ < ms.src_end && !anchor);
   }
@@ -681,16 +689,19 @@ typedef struct GMatchState {
   MatchState ms; /* match state */
 } GMatchState;
 
+// Upvalues: 1 => string
+//           2 => pattern
+//           3 => GMatchState
 static int gmatch_aux(lua_State* L) {
   GMatchState* gm = (GMatchState*)lua_touserdata(L, lua_upvalueindex(3));
   const char* src;
   gm->ms.L = L;
-  for (src = gm->src; src <= gm->ms.src_end; src++) {
+  for (src = gm->src; src <= gm->ms.src_end; src++) { // gm->ms.src_end points to '\0'
     const char* e;
     reprepstate(&gm->ms);
     if ((e = match(&gm->ms, src, gm->p)) != NULL && e != gm->lastmatch) {
       gm->src = gm->lastmatch = e;
-      return push_captures(&gm->ms, src, e);
+      return push_captures(&gm->ms, src, e); // include the whole match
     }
   }
   return 0; /* not found */
@@ -724,10 +735,10 @@ static void add_s(MatchState* ms, luaL_Buffer* b, const char* s, const char* e) 
         if (news[i] != L_ESC)
           luaL_error(L, "invalid use of '%c' in replacement string", L_ESC);
         luaL_addchar(b, news[i]);
-      } else if (news[i] == '0')
+      } else if (news[i] == '0') // %0 means the whole match
         luaL_addlstring(b, s, e - s);
       else {
-        push_onecapture(ms, news[i] - '1', s, e);
+        push_onecapture(ms, news[i] - '1', s, e); // captures start at 0
         luaL_tolstring(L, -1, NULL); /* if number, convert it to string */
         lua_remove(L, -2); /* remove original value */
         luaL_addvalue(b); /* add capture to accumulated result */
@@ -736,18 +747,22 @@ static void add_s(MatchState* ms, luaL_Buffer* b, const char* s, const char* e) 
   }
 }
 
+// stack: 1 => string
+//        2 => pattern
+//        3 => replacement
+// s: start of the matching string, e: end of the matching string, tr: type of replacement
 static void add_value(MatchState* ms, luaL_Buffer* b, const char* s, const char* e, int tr) {
   lua_State* L = ms->L;
   switch (tr) {
     case LUA_TFUNCTION: {
       int n;
       lua_pushvalue(L, 3);
-      n = push_captures(ms, s, e);
+      n = push_captures(ms, s, e); // all captures or the whole match
       lua_call(L, n, 1);
       break;
     }
     case LUA_TTABLE: {
-      push_onecapture(ms, 0, s, e);
+      push_onecapture(ms, 0, s, e); // the first capture or the whole match
       lua_gettable(L, 3);
       break;
     }
