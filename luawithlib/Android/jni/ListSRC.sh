@@ -27,7 +27,7 @@ ProjectRootDir=$1
 SrcDirInProj=(
     "liblua/core"
     "liblua/libraries"
-    "cmod/luasocket/src"
+    "cmod/luasocket"
     "cmod/luanet/src"
 );
 

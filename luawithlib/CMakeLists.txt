@@ -30,40 +30,35 @@ endif()
 
 include_directories(../liblua/include)
 include_directories(../liblua/core)
-include_directories(../cmod/luasocket/include)
 include_directories(../cmod/luanet/include)
 
 aux_source_directory(../liblua/core LUA_CORE_SRC)
 aux_source_directory(../liblua/libraries LUA_LIBRARIES_SRC)
 set(LIBLUA_SRC ${LUA_CORE_SRC} ${LUA_LIBRARIES_SRC})
-set(LUA_SOCKET_PATH "../cmod/luasocket/src")
-set(LUA_SOCKET_SRC
-	${LUA_SOCKET_PATH}/auxiliar.c
-	${LUA_SOCKET_PATH}/except.c
-	${LUA_SOCKET_PATH}/luasocket.c
-	${LUA_SOCKET_PATH}/select.c
-	${LUA_SOCKET_PATH}/timeout.c
-	${LUA_SOCKET_PATH}/buffer.c
-	${LUA_SOCKET_PATH}/inet.c
-	${LUA_SOCKET_PATH}/mime.c
-	${LUA_SOCKET_PATH}/udp.c
-	${LUA_SOCKET_PATH}/compat.c
-	${LUA_SOCKET_PATH}/io.c
-	${LUA_SOCKET_PATH}/options.c
-	${LUA_SOCKET_PATH}/tcp.c
-)
+
+include_directories(../cmod/luasocket/mime)
+include_directories(../cmod/luasocket/socket)
+aux_source_directory(../cmod/luasocket/mime LUASOCKET_MIME_SRC)
+aux_source_directory(../cmod/luasocket/socket LUASOCKET_SOCKET_SRC)
+
 if(WIN32)
-	set(PLATFORM_SOCKET_SRC ${LUA_SOCKET_PATH}/wsocket.c)
+	include_directories(../cmod/luasocket/socket/win)
+	aux_source_directory(../cmod/luasocket/socket/win LUASOCKET_SOCKET_WIN_SRC)
+	set(LUASOCKET_PLATFORM ${LUASOCKET_SOCKET_WIN_SRC})
 else(WIN32)
-	set(PLATFORM_SOCKET_SRC
-		${LUA_SOCKET_PATH}/serial.c
-		${LUA_SOCKET_PATH}/usocket.c
-		${LUA_SOCKET_PATH}/unixdgram.c
-		${LUA_SOCKET_PATH}/unixstream.c
-		${LUA_SOCKET_PATH}/unix.c
+	include_directories(../cmod/luasocket/unix)
+	include_directories(../cmod/luasocket/socket/unix)
+	aux_source_directory(../cmod/luasocket/socket/unix LUASOCKET_SOCKET_UNIX_SRC)
+	aux_source_directory(../cmod/luasocket/serial LUASOCKET_SERIAL_SRC)
+	aux_source_directory(../cmod/luasocket/unix LUASOCKET_UNIX_SRC)
+	set(LUASOCKET_PLATFORM
+		${LUASOCKET_SOCKET_UNIX_SRC}
+		${LUASOCKET_SERIAL_SRC}
+		${LUASOCKET_UNIX_SRC}
 	)
 endif(WIN32)
-set(LUASOCKET_SRC ${LUA_SOCKET_SRC} ${PLATFORM_SOCKET_SRC})
+
+set(LUASOCKET_SRC ${LUASOCKET_MIME_SRC} ${LUASOCKET_SOCKET_SRC} ${LUASOCKET_PLATFORM})
 aux_source_directory(../cmod/luanet/src LUA_NET_SRC)
 
 source_group(liblua FILES ${LIBLUA_SRC})
@@ -80,12 +75,15 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	POSITION_INDEPENDENT_CODE ON
 )
 
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+if(APPLE)
+	target_compile_definitions(${PROJECT_NAME} PRIVATE UNIX_HAS_SUN_LEN)
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	target_link_libraries(${PROJECT_NAME} m dl)
-endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-if(WIN32)
+elseif(WIN32)
 	target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
-endif(WIN32)
+endif()
+
+# target_compile_definitions(${PROJECT_NAME} PRIVATE LUASOCKET_DEBUG)
 
 # install(TARGETS ${PROJECT_NAME}
 # 	RUNTIME DESTINATION bin

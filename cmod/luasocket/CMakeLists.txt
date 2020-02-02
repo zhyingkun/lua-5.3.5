@@ -28,62 +28,49 @@ elseif(WIN32)
 endif()
 
 include_directories(../../liblua/include)
-include_directories(./include)
 
-set(LUA_SOCKET_PATH "./src")
-set(LUA_SOCKET_INCLUDE_PATH "./include")
-set(LUA_SOCKET_SRC
-	${LUA_SOCKET_PATH}/auxiliar.c
-	${LUA_SOCKET_PATH}/except.c
-	${LUA_SOCKET_PATH}/luasocket.c
-	${LUA_SOCKET_PATH}/select.c
-	${LUA_SOCKET_PATH}/timeout.c
-	${LUA_SOCKET_PATH}/buffer.c
-	${LUA_SOCKET_PATH}/inet.c
-	${LUA_SOCKET_PATH}/mime.c
-	${LUA_SOCKET_PATH}/udp.c
-	${LUA_SOCKET_PATH}/compat.c
-	${LUA_SOCKET_PATH}/io.c
-	${LUA_SOCKET_PATH}/options.c
-	${LUA_SOCKET_PATH}/tcp.c)
-set(LUA_SOCKET_HEADER
-	${LUA_SOCKET_INCLUDE_PATH}/auxiliar.h
-	${LUA_SOCKET_INCLUDE_PATH}/except.h
-	${LUA_SOCKET_INCLUDE_PATH}/luasocket.h
-	${LUA_SOCKET_INCLUDE_PATH}/select.h
-	${LUA_SOCKET_INCLUDE_PATH}/timeout.h
-	${LUA_SOCKET_INCLUDE_PATH}/buffer.h
-	${LUA_SOCKET_INCLUDE_PATH}/inet.h
-	${LUA_SOCKET_INCLUDE_PATH}/mime.h
-	${LUA_SOCKET_INCLUDE_PATH}/udp.h
-	${LUA_SOCKET_INCLUDE_PATH}/compat.h
-	${LUA_SOCKET_INCLUDE_PATH}/io.h
-	${LUA_SOCKET_INCLUDE_PATH}/options.h
-	${LUA_SOCKET_INCLUDE_PATH}/tcp.h)
+include_directories(./mime)
+include_directories(./socket)
+aux_source_directory(./mime LUASOCKET_MIME_SRC)
+aux_source_directory(./socket LUASOCKET_SOCKET_SRC)
+file(GLOB LUASOCKET_MIME_HEADERS "./mime/*.h")
+file(GLOB LUASOCKET_SOCKET_HEADERS "./socket/*.h")
+source_group(mime FILES ${LUASOCKET_MIME_SRC} ${LUASOCKET_MIME_HEADERS})
+source_group(socket FILES ${LUASOCKET_SOCKET_SRC} ${LUASOCKET_SOCKET_HEADERS})
+
 if(WIN32)
-    set(PLATFORM_SOCKET_SRC ${LUA_SOCKET_PATH}/wsocket.c)
-    set(PLATFORM_SOCKET_HEADER ${LUA_SOCKET_INCLUDE_PATH}/wsocket.h)
+	include_directories(./socket/win)
+	aux_source_directory(./socket/win LUASOCKET_SOCKET_WIN_SRC)
+	file(GLOB LUASOCKET_SOCKET_WIN_HEADERS "./socket/win/*.h")
+	source_group(socket FILES ${LUASOCKET_SOCKET_WIN_SRC} ${LUASOCKET_SOCKET_WIN_HEADERS})
+	set(LUASOCKET_PLATFORM ${LUASOCKET_SOCKET_WIN_SRC} ${LUASOCKET_SOCKET_WIN_HEADERS})
 else(WIN32)
-	set(PLATFORM_SOCKET_SRC
-		${LUA_SOCKET_PATH}/serial.c
-		${LUA_SOCKET_PATH}/usocket.c
-		${LUA_SOCKET_PATH}/unixdgram.c
-		${LUA_SOCKET_PATH}/unixstream.c
-		${LUA_SOCKET_PATH}/unix.c)
-	set(PLATFORM_SOCKET_HEADER
-		${LUA_SOCKET_INCLUDE_PATH}/usocket.h
-		${LUA_SOCKET_INCLUDE_PATH}/unixdgram.h
-		${LUA_SOCKET_INCLUDE_PATH}/unixstream.h
-		${LUA_SOCKET_INCLUDE_PATH}/unix.h)
+	include_directories(./unix)
+	include_directories(./socket/unix)
+	aux_source_directory(./socket/unix LUASOCKET_SOCKET_UNIX_SRC)
+	aux_source_directory(./serial LUASOCKET_SERIAL_SRC)
+	aux_source_directory(./unix LUASOCKET_UNIX_SRC)
+	file(GLOB LUASOCKET_SOCKET_UNIX_HEADERS "./socket/unix/*.h")
+	file(GLOB LUASOCKET_UNIX_HEADERS "./unix/*.h")
+	source_group(socket FILES ${LUASOCKET_SOCKET_UNIX_SRC} ${LUASOCKET_SOCKET_UNIX_HEADERS})
+	source_group(serial FILES ${LUASOCKET_SERIAL_SRC})
+	source_group(unix FILES ${LUASOCKET_UNIX_SRC} ${LUASOCKET_UNIX_HEADERS})
+	set(LUASOCKET_PLATFORM
+		${LUASOCKET_SOCKET_UNIX_SRC}
+		${LUASOCKET_SOCKET_UNIX_HEADERS}
+		${LUASOCKET_SERIAL_SRC}
+		${LUASOCKET_UNIX_SRC}
+		${LUASOCKET_UNIX_HEADERS}
+	)
 endif(WIN32)
 
-set(LUASOCKETMOD_SRC ${LUA_SOCKET_SRC} ${PLATFORM_SOCKET_SRC})
-set(LUASOCKETMOD_HEADER ${LUA_SOCKET_HEADER} ${PLATFORM_SOCKET_HEADER})
-
-source_group(src FILES ${LUASOCKETMOD_SRC})
-source_group(include FILES ${LUASOCKETMOD_HEADER})
-
-add_library(${PROJECT_NAME} MODULE ${LUASOCKETMOD_SRC} ${LUASOCKETMOD_HEADER})
+add_library(${PROJECT_NAME} MODULE
+	${LUASOCKET_MIME_SRC}
+	${LUASOCKET_SOCKET_SRC}
+	${LUASOCKET_MIME_HEADERS}
+	${LUASOCKET_SOCKET_HEADERS}
+	${LUASOCKET_PLATFORM}
+)
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	FOLDER "cmod"
 	# OUTPUT_NAME "luasocket"
@@ -98,6 +85,12 @@ if(WIN32)
 	set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "lib")
 	target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
 endif(WIN32)
+
+if(APPLE)
+	target_compile_definitions(${PROJECT_NAME} PRIVATE UNIX_HAS_SUN_LEN)
+endif(APPLE)
+
+# target_compile_definitions(${PROJECT_NAME} PRIVATE LUASOCKET_DEBUG)
 
 install(TARGETS ${PROJECT_NAME}
 	RUNTIME DESTINATION bin
