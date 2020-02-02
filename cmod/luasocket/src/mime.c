@@ -65,7 +65,9 @@ enum { QP_PLAIN, QP_QUOTED, QP_CR, QP_IF_LAST };
 /*-------------------------------------------------------------------------*\
 * Base64 globals
 \*-------------------------------------------------------------------------*/
+// index to base character
 static const UC b64base[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+// base character to index
 static UC b64unbase[256];
 
 /*=========================================================================*\
@@ -75,8 +77,7 @@ static UC b64unbase[256];
 * Initializes module
 \*-------------------------------------------------------------------------*/
 MIME_API int luaopen_mime_core(lua_State* L) {
-  lua_newtable(L);
-  luaL_setfuncs(L, func, 0);
+  luaL_newlib(L, func);
   /* make version string available to scripts */
   lua_pushstring(L, "_VERSION");
   lua_pushstring(L, MIME_VERSION);
@@ -85,6 +86,10 @@ MIME_API int luaopen_mime_core(lua_State* L) {
   qpsetup(qpclass, qpunbase);
   b64setup(b64unbase);
   return 1;
+}
+
+MIME_API int luaopen_libluasocket_mime(lua_State* L) {
+  return luaopen_mime_core(L);
 }
 
 /*=========================================================================*\
@@ -146,7 +151,7 @@ static int mime_global_wrp(lua_State* L) {
 static void b64setup(UC* unbase) {
   int i;
   for (i = 0; i <= 255; i++)
-    unbase[i] = (UC)255;
+    unbase[i] = (UC)255; // set all bit with 1
   for (i = 0; i < 64; i++)
     unbase[b64base[i]] = (UC)i;
   unbase['='] = 0;
@@ -749,7 +754,7 @@ static int mime_global_dot(lua_State* L) {
   /* process all input */
   luaL_buffinit(L, &buffer);
   while (input < last)
-    state = dot(*input++, state, &buffer);
+    state = dot(*input++, state, &buffer); // may be here can be optimized
   luaL_pushresult(&buffer);
   lua_pushnumber(L, (lua_Number)state);
   return 2;

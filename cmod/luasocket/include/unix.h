@@ -26,5 +26,6 @@ typedef struct t_unix_ {
 typedef t_unix* p_unix;
 
 UNIX_API int luaopen_socket_unix(lua_State* L);
+UNIX_API int luaopen_libluasocket_unix(lua_State* L);
 
 #endif /* UNIX_H */

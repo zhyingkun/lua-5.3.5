@@ -25,5 +25,6 @@
 #endif
 
 MIME_API int luaopen_mime_core(lua_State* L);
+MIME_API int luaopen_libluasocket_mime(lua_State* L);
 
 #endif /* MIME_H */

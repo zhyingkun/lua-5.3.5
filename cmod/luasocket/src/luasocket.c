@@ -116,6 +116,6 @@ LUASOCKET_API int luaopen_socket_core(lua_State* L) {
   return 1;
 }
 
-LUASOCKET_API int luaopen_libluasocket(lua_State* L) {
+LUASOCKET_API int luaopen_libluasocket_socket(lua_State* L) {
   return luaopen_socket_core(L);
 }

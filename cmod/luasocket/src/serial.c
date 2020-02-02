@@ -67,6 +67,10 @@ LUASOCKET_API int luaopen_socket_serial(lua_State* L) {
   return 1;
 }
 
+LUASOCKET_API int luaopen_libluasocket_serial(lua_State* L) {
+  return luaopen_socket_serial(L);
+}
+
 /*=========================================================================*\
 * Lua methods
 \*=========================================================================*/
