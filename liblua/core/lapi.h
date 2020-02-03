@@ -24,4 +24,6 @@
 
 #define api_checknelems(L, n) api_check(L, (n) < (L->top - L->ci->func), "not enough elements in the stack")
 
+LUAI_DDEC TValue* index2addr(lua_State* L, int idx);
+
 #endif

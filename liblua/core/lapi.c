@@ -53,7 +53,7 @@ const char lua_ident[] = "$LuaVersion: " LUA_COPYRIGHT " $"
 // Only Lua C API call this function, lua vm didn't!
 // Lua C API: index base on ci->func
 // Lua vm(or bytecode): index base on ci->u.l.base
-static TValue* index2addr(lua_State* L, int idx) {
+LUAI_DDEF TValue* index2addr(lua_State* L, int idx) {
   CallInfo* ci = L->ci;
   if (idx > 0) {
     TValue* o = ci->func + idx;
