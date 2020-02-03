@@ -119,7 +119,9 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 3. 去除 luac.c 中的宏定义：LUA_CORE， 作为一个使用 liblua 的应用程序，不需要此宏（Win 下不允许有此宏，否则有些符号找不到）
 4. 修改 CMakeLists.txt 配置文件，使用 liblua 动态库，并为 Win 版本加入宏：LUA_BUILD_AS_DLL（任何使用 liblua 的应用都需要在 Win 版本中添加 LUA_BUILD_AS_DLL 宏）
 
-其实在 MacOSX 中，不需要上述操作也可以直接将 luac 切换为使用动态库 liblua，做这些修改主要是针对 Linux 和 Windows 平台
+其实在 MacOSX 中，不需要上述操作也可以直接将 luac 切换为使用动态库 liblua，做这些修改主要是针对 Linux 和 Windows 平台。
+
+为了在 lua 命令的交互式模式中也能够查看 lua 函数原型的内容，我将 luac 中的相关函数移植到 lauxlib.c 中，定义 C API luaL_protoinfo，并使用此 API 实现 luac 中的相关功能。
 
 ---
 
@@ -133,6 +135,7 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 6. 增加 debug.getgcstate 函数，用于获取当前 GC 状态
 7. 增加 \_G.typedetail 函数，用于获取数据类型细节，包括了 \_\_name 元字段
 8. 针对函数 \_G.collectgarbage 添加新的选项 "onestep"， 用于仅走最最原始的一步 gc 操作
+9. 增加 debug.protoinfo 函数，用于获取函数原型信息，接收三个参数：Lua 函数、是否递归、原型选项。其中，原型选项为字符串"hcklupz"，每一个字符代表打印一种信息，分别为：header、codes、constants、locals、upvalues、protos、zykstyle
 
 ---
 
@@ -142,3 +145,4 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 2. 增加 lua_getstackdepth 方法，用于获取当前函数调用嵌套深度（并非链表长度，链表长度记录于 L->nci）
 3. 导出 lua_ident 符号，以便在 Windows 下使用该字符串
 4. 针对函数 lua_gc 的第二个参数(what)添加新的选项 LUA_GCONESTEP，用于仅走最最原始的一步 gc 操作
+5. 增加 luaL_protoinfo 方法，用于获取函数原型信息
