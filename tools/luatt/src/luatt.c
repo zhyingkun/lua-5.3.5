@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
-void usage(char* cmdName) {
+static void usage(char* cmdName) {
   printf("\tusage: %s <TagTypeNumber>\n\tTagTypeNumber: Integer Number\n", cmdName);
 }
 
@@ -75,17 +74,17 @@ static const int AllTypeNumber[] = {
     -1, // none
 };
 
-bool is_type_num_valid(int type) {
+static int is_type_num_valid(int type) {
   int length = sizeof(AllTypeNumber) / sizeof(int);
   for (int i = 0; i < length; i++) {
     if (type == AllTypeNumber[i]) {
-      return true;
+      return 1;
     }
   }
-  return false;
+  return 0;
 }
 
-void display_type(int tagType) {
+static void display_type(int tagType) {
   if (tagType == -1) {
     printf("%3d => ActualTag: %s\n", tagType, TagTypeNone);
     return;
@@ -114,7 +113,7 @@ void display_type(int tagType) {
   printf("\n");
 }
 
-void display_all_type() {
+static void display_all_type() {
   int length = sizeof(AllTypeNumber) / sizeof(int);
   for (int i = 0; i < length; i++) {
     display_type(AllTypeNumber[i]);
@@ -127,7 +126,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
   int tagType = atoi(argv[1]);
-  if (is_type_num_valid(tagType) == false) {
+  if (is_type_num_valid(tagType) == 0) {
     fprintf(stderr, "Tag type %d is invalid!\n", tagType);
     return 0;
   }

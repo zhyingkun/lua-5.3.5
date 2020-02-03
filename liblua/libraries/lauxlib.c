@@ -14,7 +14,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 // #include <lstate.h>
 // #include <assert.h>
 #include <llimits.h>
@@ -932,13 +931,13 @@ static void ds_recordtable(DetailStr* detail, int idx, int level) {
   lua_settable(L, detail->idx_tables);
 }
 
-static bool ds_checktable(DetailStr* detail, int idx) {
+static int ds_checktable(DetailStr* detail, int idx) {
   lua_State* L = detail->L;
   lua_pushvalue(L, idx); // [-0, +1]
-  bool result = false;
+  int result = 0;
   if (lua_gettable(L, detail->idx_tables) == LUA_TNUMBER && // [-1, +1]
       lua_tointeger(L, -1) < detail->current_level) {
-    result = true;
+    result = 1;
   }
   lua_pop(L, 1); // [-1, +0]
   return result;
@@ -949,7 +948,7 @@ static void ds_recordsubtable(DetailStr* detail, int idx) {
   idx = lua_absindex(L, idx);
   lua_pushnil(L); // [-0, +1]
   while (lua_next(L, idx) != 0) { // [-1, +(2/0)]
-    if (lua_type(L, -1) == LUA_TTABLE && ds_checktable(detail, -1) == false) {
+    if (lua_type(L, -1) == LUA_TTABLE && ds_checktable(detail, -1) == 0) {
       ds_recordtable(detail, -1, detail->current_level);
     }
     lua_pop(L, 1);
@@ -977,7 +976,7 @@ static void recursive_tostring(DetailStr* detail, int idx) {
   ds_recordtable(detail, idx, 0);
   detail->current_level++;
   ds_recordsubtable(detail, idx);
-  bool can_recursive = detail->current_level < detail->level;
+  int can_recursive = detail->current_level < detail->level ? 1 : 0;
 
   // walk through the table
   lua_pushnil(L);
@@ -987,7 +986,7 @@ static void recursive_tostring(DetailStr* detail, int idx) {
     strbuff_addliteral(b, " => ");
     if (can_recursive && // check recursive depth
         lua_type(L, -1) == LUA_TTABLE && // must be a table
-        ds_checktable(detail, -1) == false) {
+        ds_checktable(detail, -1) == 0) {
       recursive_tostring(detail, -1);
     } else {
       strbuff_addvalue(b, L, -1);
