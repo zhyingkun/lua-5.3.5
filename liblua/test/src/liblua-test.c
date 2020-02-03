@@ -22,6 +22,20 @@ void Test_luaL_tolstringex(CuTest* tc) {
   lua_close(L);
 }
 
+void Test_luaL_protoinfo(CuTest* tc) {
+  lua_State* L = luaL_newstate();
+  luaL_openlibs(L);
+  CuAssertIntEquals(tc, 0, lua_gettop(L));
+  luaL_loadstring(L, "function a() return function() end end");
+  CuAssertIntEquals(tc, 1, lua_gettop(L));
+  luaL_protoinfo(L, 1, 1, NULL);
+  CuAssertIntEquals(tc, 2, lua_gettop(L));
+  CuAssertTrue(tc, lua_type(L, -1) == LUA_TSTRING);
+  lua_pop(L, 2);
+  CuAssertIntEquals(tc, 0, lua_gettop(L));
+  lua_close(L);
+}
+
 // get the depth of CallInfo chain
 // L->base_ci ==> n ==> n-1 ==> ... ==> 1 ==> L->ci
 // lastlevel will find 'n'
@@ -156,6 +170,7 @@ CuSuite* LuaGetSuite() {
   CuSuite* suite = CuSuiteNew();
 
   SUITE_ADD_TEST(suite, Test_luaL_tolstringex);
+  SUITE_ADD_TEST(suite, Test_luaL_protoinfo);
   SUITE_ADD_TEST(suite, Test_lua_getstackdepth);
   SUITE_ADD_TEST(suite, Test_db_getspecialkeys);
   SUITE_ADD_TEST(suite, Test_db_sizeofstruct);
