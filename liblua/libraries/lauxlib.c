@@ -17,6 +17,7 @@
 #include <stdbool.h>
 // #include <lstate.h>
 // #include <assert.h>
+#include <llimits.h>
 
 /*
 ** This file uses only the official API of Lua.
@@ -803,24 +804,14 @@ LUALIB_API const char* luaL_tolstring(lua_State* L, int idx, size_t* len) {
 ** =======================================================
 */
 
-#define strbuff_addliteral(b, s) strbuff_addlstring(b, "" s, sizeof(s) - 1)
-#define strbuff_addnewline(b) strbuff_addliteral(b, "\n")
-
-typedef struct {
-  char* b;
-  size_t size; /* buffer size */
-  size_t n; /* number of characters in buffer */
-  lua_State* L;
-  int idx_buffer;
-} StringBuffer;
-
-static void strbuff_init(StringBuffer* b, lua_State* L, int idx, size_t size) {
+LUALIB_API void strbuff_init(StringBuffer* b, lua_State* L, int idx, size_t size) {
   b->L = L;
-  b->idx_buffer = idx;
+  b->idx_buffer = lua_absindex(L, idx);
   b->size = size;
   // for simplicity, here use userdata to manager long string
   // we can use luaL_Buffer and change the implemention of traversaling the table
-  b->b = (char*)lua_touserdata(L, idx);
+  b->b = (char*)lua_newuserdata(L, size);
+  lua_replace(L, b->idx_buffer);
   b->n = 0;
 }
 
@@ -869,11 +860,17 @@ static size_t escape_string(char* dst, const char* str, size_t len) {
   return dst - olddst;
 }
 
-static void strbuff_addlstringex(StringBuffer* b, const char* str, size_t len, int escape) {
-  size_t minisize = b->n + len * (escape ? 2 : 1);
+LUALIB_API void strbuff_addlstringex(StringBuffer* b, const char* str, size_t len, int escape) {
+  size_t mul = escape ? 2 : 1;
+  if (len > (l_castS2U(LUA_MAXINTEGER) - b->n) / mul) {
+    luaL_error(b->L, "string size of strbuff overflow");
+  }
+  size_t minisize = b->n + len * mul;
   if (minisize > b->size) {
     char* s = b->b;
-    b->size *= 4;
+    if (b->size <= l_castS2U(LUA_MAXINTEGER) / 2) {
+      b->size *= 2;
+    }
     if (minisize > b->size) {
       b->size = minisize;
     }
@@ -890,11 +887,7 @@ static void strbuff_addlstringex(StringBuffer* b, const char* str, size_t len, i
   b->n += len;
 }
 
-static void strbuff_addlstring(StringBuffer* b, const char* str, size_t len) {
-  strbuff_addlstringex(b, str, len, 0);
-}
-
-static void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
+LUALIB_API void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
   idx = lua_absindex(L, idx);
   size_t length = 0;
   const char* result = luaL_tolstring(L, idx, &length); // [-0, +1]
@@ -908,7 +901,7 @@ static void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
   lua_pop(L, 1); // [-1, +0]
 }
 
-static void strbuff_destroy(StringBuffer* b) {
+LUALIB_API void strbuff_destroy(StringBuffer* b) {
   b->b = NULL;
   b->size = 0;
   b->n = 0;
@@ -1011,8 +1004,6 @@ static void recursive_tostring(DetailStr* detail, int idx) {
   strbuff_addliteral(b, "}");
 }
 
-#define DEFAULT_BUFFER_SIZE 4096
-
 LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int level) {
   idx = lua_absindex(L, idx);
   if (lua_type(L, idx) != LUA_TTABLE || level <= 0) {
@@ -1023,8 +1014,8 @@ LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int 
   }
   DetailStr dStr;
   dStr.L = L;
-  lua_newuserdata(L, DEFAULT_BUFFER_SIZE); // [-0, +1]
-  strbuff_init(&dStr.buffer, L, lua_gettop(L), DEFAULT_BUFFER_SIZE);
+  lua_pushnil(L); // [-0, +1]
+  strbuff_init(&dStr.buffer, L, -1, DEFAULT_BUFFER_SIZE);
   dStr.level = level;
   dStr.current_level = 0;
   // table for record which has been walk through
