@@ -462,6 +462,17 @@ static int db_getgcstate(lua_State* L) {
   return 1;
 }
 
+static int db_protoinfo(lua_State* L) {
+  lua_settop(L, 3);
+  int recursive = lua_toboolean(L, 2) == 1 ? 1 : 0;
+  const char* options = NULL;
+  if (lua_type(L, 3) == LUA_TSTRING) {
+    options = lua_tostring(L, 3);
+  }
+  luaL_protoinfo(L, 1, recursive, options);
+  return 1;
+}
+
 static const luaL_Reg dblib[] = {
     {"debug", db_debug},
     {"getuservalue", db_getuservalue},
@@ -483,6 +494,7 @@ static const luaL_Reg dblib[] = {
     {"sizeofstruct", db_sizeofstruct},
     {"tablemem", db_tablemem},
     {"getgcstate", db_getgcstate},
+    {"protoinfo", db_protoinfo},
     {NULL, NULL},
 };
 
