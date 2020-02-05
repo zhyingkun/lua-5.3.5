@@ -30,7 +30,7 @@
 /* In general, 'pre'/'pos' are empty (nothing to save) */
 #define luaD_checkstack(L, n) luaD_checkstackaux(L, n, (void)0, (void)0)
 
-// save and restore with ptrdiff_t
+// save and restore with ptrdiff_t across stack reallocation
 #define savestack(L, p) ((char*)(p) - (char*)L->stack)
 #define restorestack(L, n) ((TValue*)((char*)L->stack + (n)))
 

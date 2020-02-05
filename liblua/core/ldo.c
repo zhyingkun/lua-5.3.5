@@ -51,6 +51,7 @@
 #if defined(__cplusplus) && !defined(LUA_USE_LONGJMP) /* { */
 
 /* C++ exceptions */
+// run into catch, status should not be LUA_OK
 #define LUAI_THROW(L, c) throw(c)
 #define LUAI_TRY(L, c, a) \
   try { \

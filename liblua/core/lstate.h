@@ -173,7 +173,7 @@ struct lua_State {
   StkId top; /* first free slot in the stack */
   global_State* l_G;
   CallInfo* ci; /* call info for current function */
-  const Instruction* oldpc; /* last pc traced */
+  const Instruction* oldpc; /* last pc traced */ // calling hook for one line
   StkId stack_last; /* last free slot in the stack */
   StkId stack; /* stack base */
   UpVal* openupval; /* list of open upvalues in this stack */
