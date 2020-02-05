@@ -52,9 +52,10 @@ static void usage(const char* message) {
   fprintf(stderr,
           "usage: %s [options] [filenames]\n"
           "Available options are:\n"
-          "  -l       list (use -l -l for full listing)\n"
+          "  -l       list to stdout(use -l -l for full listing)\n"
           "  (use -l -l -l for list instructions in different style)\n"
           "  -o name  output to file 'name' (default is \"%s\")\n"
+          "  (use -o - for output to stdout)\n"
           "  -p       parse only\n"
           "  -s       strip debug information\n"
           "  -v       show version information\n"
@@ -75,13 +76,6 @@ static int doargs(int argc, char* argv[]) {
   for (i = 1; i < argc; i++) {
     if (*argv[i] != '-') /* end of options; keep it */
       break;
-    else if (IS("--")) { /* end of options; skip it */
-      ++i;
-      if (version)
-        ++version;
-      break;
-    } else if (IS("-")) /* end of options; use stdin */
-      break;
     else if (IS("-l")) /* list */
       ++listing;
     else if (IS("-o")) { /* output file */
@@ -96,23 +90,31 @@ static int doargs(int argc, char* argv[]) {
       stripping = 1;
     else if (IS("-v")) /* show version */
       ++version;
+    else if (IS("--")) { /* end of options; skip it */
+      ++i;
+      if (version) // '--' not a useful option
+        ++version;
+      break;
+    } else if (IS("-")) /* end of options; use stdin */
+      break;
     else /* unknown option */
       usage(argv[i]);
   }
-  // i equals to args means no filenames
+  // (i == argc) means no filenames
+  // (listing || !dumping) means -l or -p
   if (i == argc && (listing || !dumping)) {
-    dumping = 0;
-    argv[--i] = Output;
+    dumping = 0; // set '-p'
+    argv[--i] = Output; // set last option to 'luac.out'
   }
   if (version) {
     printf("%s\n", LUA_COPYRIGHT);
-    if (version == argc - 1)
+    if (version == argc - 1) // means all options are '-v'
       exit(EXIT_SUCCESS);
   }
-  return i;
+  return i; // return the number of which has beed dealed with
 }
 
-#define FUNCTION "(function()end)();"
+#define FUNCTION "(function(...)end)(...);"
 
 static const char* reader(lua_State* L, void* ud, size_t* size) {
   UNUSED(L);
@@ -127,6 +129,11 @@ static const char* reader(lua_State* L, void* ud, size_t* size) {
 
 #define toproto(L, i) getproto(L->top + (i))
 
+// stack: L->top => None
+//            -1 => lua closure n
+//            -2 => lua closure n - 1
+//               ...
+//            -n => lua closure 1
 static void combine(lua_State* L, int n) {
   if (n == 1)
     return;
@@ -136,7 +143,7 @@ static void combine(lua_State* L, int n) {
     fatal(lua_tostring(L, -1));
   f = toproto(L, -1);
   for (i = 0; i < n; i++) {
-    f->p[i] = toproto(L, i - n - 1);
+    f->p[i] = toproto(L, i - n - 1); // mines one for new closure in the top
     if (f->p[i]->sizeupvalues > 0)
       f->p[i]->upvalues[0].instack = 0;
   }
