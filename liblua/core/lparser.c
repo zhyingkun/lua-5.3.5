@@ -546,8 +546,8 @@ static int block_follow(LexState* ls, int withuntil) {
 
 static void statlist(LexState* ls) {
   /* statlist -> { stat [';'] } */
-  while (!block_follow(ls, 1)) {
-    if (ls->t.token == TK_RETURN) {
+  while (!block_follow(ls, 1)) { // current token isn't end of block
+    if (ls->t.token == TK_RETURN) { // must test token first or it will lost
       statement(ls);
       return; /* 'return' must be last statement */
     }
