@@ -522,6 +522,18 @@ static int handle_luainit(lua_State* L) {
     return dostring(L, init, name);
 }
 
+static void wait_for_debugger(lua_State* L) {
+  char buffer[LUA_MAXINPUT];
+  char* b = buffer;
+  int n = lua_readline(L, b, "Waiting for debug attaching...");
+  if (n == 0) {
+    printf("Start debugging...\n");
+  } else {
+    lua_freeline(L, b);
+    printf("No debugger attached!\n");
+  }
+}
+
 /*
 ** Main body of stand-alone interpreter (to be called in protected mode).
 ** Reads the options and handles them all.
@@ -556,9 +568,12 @@ static int pmain(lua_State* L) {
   if (script < argc && /* execute main script (if there is one) */
       handle_script(L, argv + script) != LUA_OK)
     return 0;
-  if (args & has_i) /* -i option? */
+  if (args & has_i) { /* -i option? */
+#if defined(__APPLE__)
+    wait_for_debugger(L);
+#endif
     doREPL(L); /* do read-eval-print loop */
-  else if (script == argc && !(args & (has_e | has_v))) { /* no arguments? */
+  } else if (script == argc && !(args & (has_e | has_v))) { /* no arguments? */
     if (lua_stdin_is_tty()) { /* running in interactive mode? */
       print_version();
       doREPL(L); /* do read-eval-print loop */
