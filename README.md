@@ -51,11 +51,10 @@ mkdir buildVS && cd buildVS
 cmake -DCMAKE_INSTALL_PREFIX=./install -G "Visual Studio 15 2017 Win64" ..
 ```
 
-非 Cygwin 可以使用 CMake 的 GUI 界面来生成 Visual Studio 工程
+非 Cygwin 可以使用 GUI 版本的 CMake 来生成 Visual Studio 工程
 在 buildVS 文件夹下生成了 Visual Studio 工程后，双击打开并编译 ALL_BUILD 目标
 Windows 环境下需要将 CMAKE_INSTALL_PREFIX 设置路径下 bin 文件夹加入系统 path 环境变量，以便在 cmd 命令行中能调用到
 执行 INSTALL 目标后所有 exe、dll 和 .h 头文件 都会安装到 CMAKE_INSTALL_PREFIX 设置路径下的对应位置，lua 运行时可正常加载对应 dll，无需手动设置 package.cpath
-目前在 Visual Studio 下无法直接调试运行链接了 dll 的 exe，执行 lua 等命令行需要执行上述命令行之后在 CMD 中运行，demo 下的 exe 则需要复制 liblua 编译出来的 lua.dll 到对应的 exe 目录下
 
 #### 4. 在 Mac 上编译出用于 iOS 的 libluawithlib.a 静态库（直接 Xcode 打开 luawithlib 工程文件）
 
@@ -77,19 +76,22 @@ ndk-build -B # rebuild project
 
 编译之后便会有 luawithlib/Android/libs/\${APP_ABI}/libluawithlib.so 共享库
 使用 ndk-build 命令需要先安装 AndroidStudio+AndroidSDK+NDK，然后将 ndk-bundle 路径加到系统 PATH 环境变量中
-目前仅支持 AndroidAPI21 及以上的 AndroidSDK，因为 API20 及以下不支持 C 标准库中的 localeconv 函数
 
 ---
 
 ## 文件夹说明
 
 1. cmod：Lua 的 C 语言扩展模块
+   - boolarray：《Lua 程序设计》中的布尔数组，加了数组的交集和并集操作
+   - dir：《Lua 程序设计》中的遍历文件夹，加了 Win 版实现
    - hello：helloworld
+   - lproc：《Lua 程序设计》中的多线程模块，使用 pthread
    - luanet：将 Lua 虚拟机嵌入 UnityC# 的中间层
    - luasocket：封装了 socket 接口，代码来自[LuaSocket](https://github.com/diegonehab/luasocket)
 2. demo：用于测试的 Demo
    - c-call-lua：C 作为宿主，调用 Lua 来完成操作
    - c-lang：C 语言特性示例
+   - pil：《Lua 程序设计》中的一部分示例代码
    - stdlib：用 Lua 语言实现的部分 Lua 标准库函数
 3. etc：工程杂项
    - fromlua：来自 lua 官方的相关文件，包括 lua 文档，留着方便查看
@@ -106,6 +108,7 @@ ndk-build -B # rebuild project
    - iOS：Xcode 工程
    - MacOS：用于生成 MacOSX 下运行的 bundle
 8. tools：相关工具
+   - luatoken：用于查看词法分析 Token 的整数类型对应的含义
    - luatt：用于查看 Lua Tag Type 的整数类型对应的含义
 
 ---
@@ -146,3 +149,11 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 3. 导出 lua_ident 符号，以便在 Windows 下使用该字符串
 4. 针对函数 lua_gc 的第二个参数(what)添加新的选项 LUA_GCONESTEP，用于仅走最最原始的一步 gc 操作
 5. 增加 luaL_protoinfo 方法，用于获取函数原型信息
+
+---
+
+## 问题记录
+
+1. luawithlib 在 Android 平台上仅支持 AndroidAPI21 及以上的 SDK，因为 API20 及以下不支持 C 标准库中的 localeconv 函数
+2. 目前在 Visual Studio 下无法直接调试运行链接了 dll 的 exe，执行 lua 等命令行需要执行上述命令行之后在 CMD 中运行，demo 下的 exe 则需要复制 liblua 编译出来的 lua.dll 到对应的 exe 目录下
+3. Xcode 中使用 Attach to process 进行调试会将阻塞于 readline 的目标进程(lua 命令)唤醒，没有字符输入，此时会被 Lua 识别成 EOF，该进程主动退出。因此，需要使用 attach 进行调试的时候，需要先手动阻塞等待调试器的 attach（例如先调用一次 readline，在 lua.c 中实现为 wait_for_debugger 函数）
