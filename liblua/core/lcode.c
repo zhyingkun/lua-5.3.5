@@ -61,10 +61,10 @@ static int tonumeral(const expdesc* e, TValue* v) {
 */
 void luaK_nil(FuncState* fs, int from, int n) {
   Instruction* previous;
-  int l = from + n - 1; /* last register to set nil */
   if (fs->pc > fs->lasttarget) { /* no jumps to current position? */
     previous = &fs->f->code[fs->pc - 1];
     if (GET_OPCODE(*previous) == OP_LOADNIL) { /* previous is LOADNIL? */
+      int l = from + n - 1; /* last register to set nil */
       int pfrom = GETARG_A(*previous); /* get previous range */
       int pl = pfrom + GETARG_B(*previous);
       if ((pfrom <= from && from <= pl + 1) || (from <= pfrom && pfrom <= l + 1)) { /* can connect both? */
