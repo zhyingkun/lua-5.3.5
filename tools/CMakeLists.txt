@@ -7,3 +7,4 @@ project(tools
 )
 
 add_subdirectory(luatt)
+add_subdirectory(luatoken)
