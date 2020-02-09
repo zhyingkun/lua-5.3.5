@@ -140,7 +140,8 @@ static void print_usage(const char* badoption) {
                        "  -v       show version information\n"
                        "  -E       ignore environment variables\n"
                        "  --       stop handling options\n"
-                       "  -        stop handling options and execute stdin\n",
+                       "  -        stop handling options and execute stdin\n"
+                       "  -d       ignore EOF, for debug attaching\n",
                        progname);
 }
 
@@ -288,6 +289,8 @@ static int incomplete(lua_State* L, int status) {
   return 0; /* else... */
 }
 
+static int debugging = 0;
+
 /*
 ** Prompt the user, read a line, and push it into the Lua stack.
 */
@@ -296,9 +299,16 @@ static int pushline(lua_State* L, int firstline) {
   char* b = buffer;
   size_t l;
   const char* prmt = get_prompt(L, firstline);
-  int readstatus = lua_readline(L, b, prmt);
-  if (readstatus == 0)
+  int readstatus = 0;
+reread:
+  readstatus = lua_readline(L, b, prmt);
+  if (readstatus == 0) {
+    if (debugging) {
+      printf("\nRead EOF, but debugging...\n");
+      goto reread;
+    }
     return 0; /* no input (prompt will be popped by caller) */
+  }
   lua_pop(L, 1); /* remove prompt */
   l = strlen(b);
   if (l > 0 && b[l - 1] == '\n') /* line ends with newline? */
@@ -433,6 +443,7 @@ static int handle_script(lua_State* L, char** argv) {
 #define has_v 4 /* -v */
 #define has_e 8 /* -e */
 #define has_E 16 /* -E */
+#define has_d 32 /* -d */
 
 /*
 ** Traverses all arguments from 'argv', returning a mask with those
@@ -455,6 +466,9 @@ static int collectargs(char** argv, int* first) {
         return args;
       case '\0': /* '-' */
         return args; /* script "name" is '-' */
+      case 'd':
+        args |= has_d;
+        break;
       case 'E':
         if (argv[i][2] != '\0') /* extra characters after 1st? */
           return has_error; /* invalid option */
@@ -522,18 +536,6 @@ static int handle_luainit(lua_State* L) {
     return dostring(L, init, name);
 }
 
-static void wait_for_debugger(lua_State* L) {
-  char buffer[LUA_MAXINPUT];
-  char* b = buffer;
-  int n = lua_readline(L, b, "Waiting for debug attaching...");
-  if (n == 0) {
-    printf("Start debugging...\n");
-  } else {
-    lua_freeline(L, b);
-    printf("No debugger attached!\n");
-  }
-}
-
 /*
 ** Main body of stand-alone interpreter (to be called in protected mode).
 ** Reads the options and handles them all.
@@ -568,10 +570,11 @@ static int pmain(lua_State* L) {
   if (script < argc && /* execute main script (if there is one) */
       handle_script(L, argv + script) != LUA_OK)
     return 0;
+  if (args & has_d) {
+    printf("Support debug attaching...\n");
+    debugging++;
+  }
   if (args & has_i) { /* -i option? */
-#if defined(__APPLE__)
-    wait_for_debugger(L);
-#endif
     doREPL(L); /* do read-eval-print loop */
   } else if (script == argc && !(args & (has_e | has_v))) { /* no arguments? */
     if (lua_stdin_is_tty()) { /* running in interactive mode? */
