@@ -59,7 +59,7 @@ static void usage(char* cmdName) {
 static void display_token(int token) {
   if (token >= TK_AND && token <= TK_STRING) {
     int index = token - FIRST_RESERVED;
-    printf("\t%d:\t%s\t%s\n", token, luaX_tokennames[index], luaX_tokens[index]);
+    printf("\t%d:\t%s\t\"%s\"\n", token, luaX_tokennames[index], luaX_tokens[index]);
   } else {
     printf("\t%d:\t'%c'\n", token, token);
   }
