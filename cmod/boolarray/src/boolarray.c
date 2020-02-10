@@ -20,6 +20,7 @@
 // get position of the first 1 in a binary unsigned int
 #define FIRST_ONE(w) binpos((w & (w - 1)) ^ w)
 
+// optimized and wide version: luaO_ceillog2
 static int binpos(unsigned int index) {
   int cnt = 0;
   while (index) { // position of first bit is 1

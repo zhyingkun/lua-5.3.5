@@ -303,7 +303,7 @@ static int pushline(lua_State* L, int firstline) {
 reread:
   readstatus = lua_readline(L, b, prmt);
   if (readstatus == 0) {
-    if (debugging) {
+    if (debugging) { // Now for MacOSX only
       printf("\nRead EOF, but debugging...\n");
       goto reread;
     }

@@ -553,6 +553,8 @@ typedef struct Node {
   TKey i_key;
 } Node;
 
+// every time set table with new key (means t[key] == nil before set)
+// flags will be seted to 0, using invalidateTMcache
 typedef struct Table {
   CommonHeader;
   lu_byte flags; /* 1<<p means tagmethod(p) is not present */
