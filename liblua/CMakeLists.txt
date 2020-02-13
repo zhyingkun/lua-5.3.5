@@ -59,6 +59,10 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	POSITION_INDEPENDENT_CODE ON
 )
 
+if(WIN32)
+	set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "lib")
+endif(WIN32)
+
 # API check for debug
 # add_definitions(-DLUA_USE_APICHECK)
 # target_compile_definitions(${PROJECT_NAME} PRIVATE LUA_USE_APICHECK)
