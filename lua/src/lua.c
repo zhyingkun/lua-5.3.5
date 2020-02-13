@@ -141,7 +141,7 @@ static void print_usage(const char* badoption) {
                        "  -E       ignore environment variables\n"
                        "  --       stop handling options\n"
                        "  -        stop handling options and execute stdin\n"
-                       "  -d       ignore EOF, for debug attaching\n",
+                       "  -d       ignore EOF, for debug attaching in MacOSX\n",
                        progname);
 }
 
@@ -572,7 +572,11 @@ static int pmain(lua_State* L) {
     return 0;
   if (args & has_d) {
     printf("Support debug attaching...\n");
+#if defined(__APPLE__)
     debugging++;
+#else
+    debugging = 0;
+#endif
   }
   if (args & has_i) { /* -i option? */
     doREPL(L); /* do read-eval-print loop */
