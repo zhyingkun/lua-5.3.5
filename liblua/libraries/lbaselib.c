@@ -223,6 +223,12 @@ static int luaB_typedetail(lua_State* L) {
   }
   if (t == LUA_TLIGHTUSERDATA) {
     lua_pushliteral(L, "lightuserdata");
+  } else if (t == LUA_TFUNCTION) {
+    if (lua_iscfunction(L, 1)) {
+      lua_pushliteral(L, "cfunction");
+    } else {
+      lua_pushliteral(L, "luafunction");
+    }
   } else {
     lua_pushstring(L, lua_typename(L, t));
   }
