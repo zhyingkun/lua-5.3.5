@@ -1406,9 +1406,7 @@ static void proto_printinstructionmode(const Proto* f, StringBuffer* sb, Instruc
   }
 }
 
-// iszero: is pc start at zero
-static void proto_printinstructionadditions(const Proto* f, StringBuffer* sb, const Instruction* code, int pc,
-                                            int iszero) {
+static void proto_printinstructionadditions_z(const Proto* f, StringBuffer* sb, const Instruction* code, int pc) {
   Instruction i = code[pc];
   OpCode o = GET_OPCODE(i);
   int a = GETARG_A(i);
@@ -1420,8 +1418,18 @@ static void proto_printinstructionadditions(const Proto* f, StringBuffer* sb, co
 
   switch (o) {
     case OP_LOADK:
-      strbuff_addfstring(sb, "\t; ");
+      strbuff_addliteral(sb, "\t; ");
       proto_printconstant(f, sb, bx);
+      break;
+    case OP_LOADKX:
+      strbuff_addliteral(sb, "\t; ");
+      proto_printconstant(f, sb, GETARG_Ax((int)code[pc + 1]));
+      break;
+    case OP_LOADBOOL:
+      strbuff_addfstring(sb, "\t; to %d", pc + 1 + (c ? 1 : 0));
+      break;
+    case OP_LOADNIL:
+      strbuff_addfstring(sb, "\t; range: [%d, %d]", a, a + b);
       break;
     case OP_GETUPVAL:
     case OP_SETUPVAL:
@@ -1430,25 +1438,25 @@ static void proto_printinstructionadditions(const Proto* f, StringBuffer* sb, co
     case OP_GETTABUP:
       strbuff_addfstring(sb, "\t; %s", UPVALNAME(b));
       if (ISK(c)) {
-        strbuff_addfstring(sb, " ");
+        strbuff_addliteral(sb, " ");
         proto_printconstant(f, sb, INDEXK(c));
       }
       break;
     case OP_SETTABUP:
       strbuff_addfstring(sb, "\t; %s", UPVALNAME(a));
       if (ISK(b)) {
-        strbuff_addfstring(sb, " ");
+        strbuff_addliteral(sb, " ");
         proto_printconstant(f, sb, INDEXK(b));
       }
       if (ISK(c)) {
-        strbuff_addfstring(sb, " ");
+        strbuff_addliteral(sb, " ");
         proto_printconstant(f, sb, INDEXK(c));
       }
       break;
     case OP_GETTABLE:
     case OP_SELF:
       if (ISK(c)) {
-        strbuff_addfstring(sb, "\t; ");
+        strbuff_addliteral(sb, "\t; ");
         proto_printconstant(f, sb, INDEXK(c));
       }
       break;
@@ -1469,16 +1477,161 @@ static void proto_printinstructionadditions(const Proto* f, StringBuffer* sb, co
     case OP_LT:
     case OP_LE:
       if (ISK(b) || ISK(c)) {
-        strbuff_addfstring(sb, "\t; ");
+        strbuff_addliteral(sb, "\t; ");
         if (ISK(b))
           proto_printconstant(f, sb, INDEXK(b));
         else
-          strbuff_addfstring(sb, "-");
-        strbuff_addfstring(sb, " ");
+          strbuff_addliteral(sb, "-");
+        strbuff_addliteral(sb, " ");
         if (ISK(c))
           proto_printconstant(f, sb, INDEXK(c));
         else
-          strbuff_addfstring(sb, "-");
+          strbuff_addliteral(sb, "-");
+      }
+      break;
+    case OP_JMP:
+      strbuff_addfstring(sb, "\t; to %d", sbx + pc + 1 + 0);
+      if (a) {
+        strbuff_addfstring(sb, ", close upvalues: [%d, ~)", a - 1);
+      }
+      break;
+    case OP_FORLOOP:
+    case OP_FORPREP:
+    case OP_TFORLOOP:
+      // origin plus one for real pc
+      strbuff_addfstring(sb, "\t; to %d", sbx + pc + 1 + 0);
+      break;
+    case OP_CLOSURE:
+      strbuff_addfstring(sb, "\t; %p", f->p[bx]);
+      break;
+    case OP_SETLIST:
+      if (c == 0)
+        c = GETARG_Ax((int)code[pc + 1]);
+      int idx = (c - 1) * LFIELDS_PER_FLUSH;
+      if (b == 0) {
+        strbuff_addfstring(sb, "\t; index: [%d, multi]", idx + 1);
+        strbuff_addfstring(sb, ", reg: [%d, multi]", a + 1);
+      } else {
+        strbuff_addfstring(sb, "\t; index: [%d, %d]", idx + 1, idx + b);
+        strbuff_addfstring(sb, ", reg: [%d, %d]", a + 1, a + b);
+      }
+      break;
+    case OP_EXTRAARG:
+      strbuff_addliteral(sb, "\t; ");
+      proto_printconstant(f, sb, ax);
+      break;
+    case OP_NEWTABLE:
+#define LUAO_FB2INT(x) (x < 8) ? x : ((x & 7) + 8) << ((x >> 3) - 1)
+      strbuff_addfstring(sb, "\t; size: %d %d", LUAO_FB2INT(b), LUAO_FB2INT(c));
+#undef LUAO_FB2INT
+      break;
+    case OP_CONCAT:
+      strbuff_addfstring(sb, "\t; range: [%d, %d]", b, c);
+      break;
+    case OP_CALL:
+      if (b == 0)
+        strbuff_addliteral(sb, "\t; args: multi");
+      else
+        strbuff_addfstring(sb, "\t; args: %d", b - 1);
+      if (c == 0)
+        strbuff_addliteral(sb, ", ret: multi");
+      else
+        strbuff_addfstring(sb, ", ret: %d", c - 1);
+      break;
+    case OP_TAILCALL:
+      if (b == 0)
+        strbuff_addliteral(sb, "\t; args: multi");
+      else
+        strbuff_addfstring(sb, "\t; args: %d", b - 1);
+      break;
+    case OP_RETURN:
+      if (b == 0)
+        strbuff_addliteral(sb, ", ret: multi");
+      else
+        strbuff_addfstring(sb, ", ret: %d", b - 1);
+      break;
+    case OP_VARARG:
+      if (b == 0)
+        strbuff_addfstring(sb, "\t; range: [%d, multi]", a);
+      else
+        strbuff_addfstring(sb, "\t; range: [%d, %d]", a, a + b - 2);
+      break;
+    default:
+      break;
+  }
+}
+
+static void proto_printinstructionadditions(const Proto* f, StringBuffer* sb, const Instruction* code, int pc) {
+  Instruction i = code[pc];
+  OpCode o = GET_OPCODE(i);
+  int a = GETARG_A(i);
+  int b = GETARG_B(i);
+  int c = GETARG_C(i);
+  int ax = GETARG_Ax(i);
+  int bx = GETARG_Bx(i);
+  int sbx = GETARG_sBx(i);
+
+  switch (o) {
+    case OP_LOADK:
+      strbuff_addliteral(sb, "\t; ");
+      proto_printconstant(f, sb, bx);
+      break;
+    case OP_GETUPVAL:
+    case OP_SETUPVAL:
+      strbuff_addfstring(sb, "\t; %s", UPVALNAME(b));
+      break;
+    case OP_GETTABUP:
+      strbuff_addfstring(sb, "\t; %s", UPVALNAME(b));
+      if (ISK(c)) {
+        strbuff_addliteral(sb, " ");
+        proto_printconstant(f, sb, INDEXK(c));
+      }
+      break;
+    case OP_SETTABUP:
+      strbuff_addfstring(sb, "\t; %s", UPVALNAME(a));
+      if (ISK(b)) {
+        strbuff_addliteral(sb, " ");
+        proto_printconstant(f, sb, INDEXK(b));
+      }
+      if (ISK(c)) {
+        strbuff_addliteral(sb, " ");
+        proto_printconstant(f, sb, INDEXK(c));
+      }
+      break;
+    case OP_GETTABLE:
+    case OP_SELF:
+      if (ISK(c)) {
+        strbuff_addliteral(sb, "\t; ");
+        proto_printconstant(f, sb, INDEXK(c));
+      }
+      break;
+    case OP_SETTABLE:
+    case OP_ADD:
+    case OP_SUB:
+    case OP_MUL:
+    case OP_MOD:
+    case OP_POW:
+    case OP_DIV:
+    case OP_IDIV:
+    case OP_BAND:
+    case OP_BOR:
+    case OP_BXOR:
+    case OP_SHL:
+    case OP_SHR:
+    case OP_EQ:
+    case OP_LT:
+    case OP_LE:
+      if (ISK(b) || ISK(c)) {
+        strbuff_addliteral(sb, "\t; ");
+        if (ISK(b))
+          proto_printconstant(f, sb, INDEXK(b));
+        else
+          strbuff_addliteral(sb, "-");
+        strbuff_addliteral(sb, " ");
+        if (ISK(c))
+          proto_printconstant(f, sb, INDEXK(c));
+        else
+          strbuff_addliteral(sb, "-");
       }
       break;
     case OP_JMP:
@@ -1486,7 +1639,7 @@ static void proto_printinstructionadditions(const Proto* f, StringBuffer* sb, co
     case OP_FORPREP:
     case OP_TFORLOOP:
       // origin plus one for real pc
-      strbuff_addfstring(sb, "\t; to %d", sbx + pc + 1 + (iszero ? 0 : 1));
+      strbuff_addfstring(sb, "\t; to %d", sbx + pc + 1 + 1);
       break;
     case OP_CLOSURE:
       strbuff_addfstring(sb, "\t; %p", f->p[bx]);
@@ -1498,13 +1651,8 @@ static void proto_printinstructionadditions(const Proto* f, StringBuffer* sb, co
         strbuff_addfstring(sb, "\t; %d", c);
       break;
     case OP_EXTRAARG:
-      strbuff_addfstring(sb, "\t; ");
+      strbuff_addliteral(sb, "\t; ");
       proto_printconstant(f, sb, ax);
-      break;
-    case OP_NEWTABLE:
-#define LUAO_FB2INT(x) (x < 8) ? x : ((x & 7) + 8) << ((x >> 3) - 1)
-      strbuff_addfstring(sb, "\t; %d %d", LUAO_FB2INT(b), LUAO_FB2INT(c));
-#undef LUAO_FB2INT
       break;
     default:
       break;
@@ -1514,13 +1662,13 @@ static void proto_printinstructionadditions(const Proto* f, StringBuffer* sb, co
 // mystyle: 1 for my style and 0 for luac original style
 static void proto_printcodes(const Proto* f, StringBuffer* sb, int mystyle) {
   const Instruction* code = f->code;
-  int pc, n = f->sizecode;
+  int pc, n = f->sizecode, z = mystyle ? 0 : 1;
   for (pc = 0; pc < n; pc++) {
     Instruction i = code[pc];
     OpCode o = GET_OPCODE(i);
 
     int line = getfuncline(f, pc);
-    strbuff_addfstring(sb, "\t%d\t", mystyle ? pc : pc + 1);
+    strbuff_addfstring(sb, "\t%d\t", pc + z);
     if (line > 0)
       strbuff_addfstring(sb, "[%d]\t", line);
     else
@@ -1529,10 +1677,12 @@ static void proto_printcodes(const Proto* f, StringBuffer* sb, int mystyle) {
 
     if (mystyle) {
       proto_printinstructionmode_z(f, sb, i);
+      proto_printinstructionadditions_z(f, sb, code, pc);
     } else {
       proto_printinstructionmode(f, sb, i);
+      proto_printinstructionadditions(f, sb, code, pc);
     }
-    proto_printinstructionadditions(f, sb, code, pc, mystyle);
+
     strbuff_addfstring(sb, "\n");
   }
 }
@@ -1575,23 +1725,25 @@ static void proto_printconstant(const Proto* f, StringBuffer* b, int i) {
 
 // iszero: is constant start at zero
 static void proto_printconstants(const Proto* f, StringBuffer* b, int iszero) {
-  int i, n;
+  int i, n, z;
   n = f->sizek;
+  z = iszero ? 0 : 1;
   strbuff_addfstring(b, "constants (%d) for %p:\n", n, f);
   for (i = 0; i < n; i++) {
-    strbuff_addfstring(b, "\t%d\t", iszero ? i : i + 1);
+    strbuff_addfstring(b, "\t%d\t", i + z);
     proto_printconstant(f, b, i);
     strbuff_addnewline(b);
   }
 }
 
-static void proto_printlocals(const Proto* f, StringBuffer* b) {
-  int i, n;
+static void proto_printlocals(const Proto* f, StringBuffer* b, int iszero) {
+  int i, n, z;
   n = f->sizelocvars;
+  z = iszero ? 0 : 1;
   strbuff_addfstring(b, "locals (%d) for %p:\n", n, f);
   for (i = 0; i < n; i++) {
-    strbuff_addfstring(
-        b, "\t%d\t%s\t%d\t%d\n", i, getstr(f->locvars[i].varname), f->locvars[i].startpc + 1, f->locvars[i].endpc + 1);
+    strbuff_addfstring(b, "\t%d\t%s", i, getstr(f->locvars[i].varname));
+    strbuff_addfstring(b, "\t%d\t%d\n", f->locvars[i].startpc + z, f->locvars[i].endpc + z);
   }
 }
 
@@ -1624,7 +1776,7 @@ static void proto_printproto(const Proto* f, StringBuffer* b, const char* option
     proto_printconstants(f, b, z);
   }
   if (strchr(options, 'l')) {
-    proto_printlocals(f, b);
+    proto_printlocals(f, b, z);
   }
   if (strchr(options, 'u')) {
     proto_printupvalues(f, b);
