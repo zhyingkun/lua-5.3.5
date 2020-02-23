@@ -22,7 +22,7 @@
 cd lua-5.3.5/
 mkdir buildXcode && cd buildXcode
 cmake -DCMAKE_INSTALL_PREFIX=./install -G "Xcode" ..
-# cmake -DCMAKE_INSTALL_PREFIX=/usr/local/zyk -G "Xcode" ..
+# cmake -DCMAKE_INSTALL_PREFIX=/usr/local/zyk/lua -G "Xcode" ..
 ```
 
 此时已经在 buildXcode 文件夹下生成了 Xcode 工程，直接打开并编译即可
@@ -35,6 +35,7 @@ mkdir build && cd build
 cmake -DCMAKE_INSTALL_PREFIX=./install .. # default is Debug
 # for Debug: cmake -DCMAKE_BUILD_TYPE=Debug ..
 # for Release: cmake -DCMAKE_BUILD_TYPE=Release ..
+# cmake -DCMAKE_INSTALL_PREFIX=/usr/local/zyk/lua -DCMAKE_BUILD_TYPE=Release ..
 make
 # for more details: make VERBOSE=1
 make install
@@ -49,6 +50,7 @@ make 命令会自动编译好各个模块
 cd lua-5.3.5/
 mkdir buildVS && cd buildVS
 cmake -DCMAKE_INSTALL_PREFIX=./install -G "Visual Studio 15 2017 Win64" ..
+# cmake -DCMAKE_INSTALL_PREFIX=D:/Applications/zyk/lua -G "Visual Studio 15 2017 Win64" ..
 ```
 
 非 Cygwin 可以使用 GUI 版本的 CMake 来生成 Visual Studio 工程
@@ -134,7 +136,7 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 
 ## 扩展 Lua 功能
 
-1. 非 Win 环境下，package.cpath 增加 "/usr/local/zyk/lib/lua/5.3/?.so" 搜索路径
+1. 非 Win 环境下，package.cpath 增加 "/usr/local/zyk/lua/lib/lua/5.3/?.so" 搜索路径
 2. tostring 方法支持第二个参数，传入一个大于 0 的整数，用于打印 table 中的字段，数字大小代表打印深度（通过 luaL_tolstringex 实现）
 3. 增加 debug.getspecialkeys 函数，该函数无参数，返回一个 table，table 中记录了 CLIBS 等 Lua 用到的特殊 key
 4. 增加 debug.sizeofstruct 函数，无参数，返回一个 table，table 中记录了底层实现结构体的内存占用大小
