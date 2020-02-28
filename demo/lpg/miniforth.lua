@@ -6,9 +6,13 @@ local parser = {
     pos = 1,
 }
 
-function parser:setinput(subj)
+function parser:setinput(subj, pos)
     self.subj = subj
-    self.pos = 1
+    self.pos = pos or 1
+end
+
+function parser:getinput()
+    return self.subj, self.pos
 end
 
 function parser:parsebypattern(pat)
@@ -44,8 +48,9 @@ end
 -------------------------------------------------------------------------------
 local _F = {
     ["%L"] = function()
-        return function(modes, _F, parser)
-            load(parser:parse("restofline"))()(modes, _F, parser)
+        return function(modes)
+            local f = load(modes.parser:parse("restofline"))
+            modes:runfunc(f)
         end
     end
 }
@@ -66,6 +71,7 @@ function stack:push(x)
 end
 
 function stack:pop()
+    if self.n == 0 then error("stack has no value!") end
     local n = self.n
     local x = self.DS[n]
     self.DS[n] = nil
@@ -100,14 +106,24 @@ function modes:runmode()
     self[self.mode](self)
 end
 
-function modes:interpretprimitive(word)
-    local f = self._F[word]
+function modes:runfunc(f)
     if type(f) == "function" then
-        f()(self, self._F, self.parser)
+        local g = f()
+        if type(g) == "function" then
+            g(self)
+        end
+        return true
+    elseif type(f) == "string" then
+        self:exec(f)
         return true
     else
         return false
     end
+end
+
+function modes:interpretprimitive(word)
+    local f = self._F[word]
+    return self:runfunc(f)
 end
 
 function modes:interpretnonprimitive(word)
@@ -142,48 +158,179 @@ function modes:interpret()
     error("Can't interpret: " .. word)
 end
 
+function modes:exec(subj)
+    local oldsubj, oldpos = self.parser:getinput()
+    local oldmode = self:getmode()
+    self.parser:setinput(subj)
+    self:setmode("interpret")
+    while self:islive() do
+        self:runmode()
+    end
+    self.parser:setinput(oldsubj, oldpos)
+    self:setmode(oldmode)
+end
+
+function modes:run(subj)
+    self:exec(subj)
+    io.write("\n")
+end
+
 -------------------------------------------------------------------------------
 -- Runtime Insert Word
 -------------------------------------------------------------------------------
 local defsubj = [=[
-    %L return function(modes, _F, parser) _F["\n"] = function() return function(modes, _F, parser) end end end
-    %L return function(modes, _F, parser) _F[""] = function() return function(modes, _F, parser) modes:setmode("stop") end end end
-    %L return function(modes, _F, parser) _F["[L"] = function() return function(modes, _F, parser) load(parser:parsebypattern("^(.-)%sL]()"))()(modes, _F, parser) end end end
+    %L return function(modes) modes._F["\n"] = function() end end
+    %L return function(modes) modes._F[""] = function() modes:setmode("stop") end end
+    %L return function(modes) modes._F["[L"] = function() load(modes.parser:parsebypattern("^(.-)%sL]()"))()(modes) end end
     [L
-        return function(modes, _F, parser)
+        return function(modes)
+            local _F = modes._F
+            local stack = modes.stack
             _F["DUP"] = function()
-                return function(modes, _F, parser)
-                    local stack = modes.stack
-                    local num = stack:pop()
-                    stack:push(num)
-                    stack:push(num)
-                end
+                local num = stack:pop()
+                stack:push(num)
+                stack:push(num)
             end
             _F["*"] = function()
-                return function(modes, _F, parser)
-                    local stack = modes.stack
-                    stack:push(stack:pop() * stack:pop())
-                end
+                local stack = modes.stack
+                stack:push(stack:pop() * stack:pop())
             end
             _F["."] = function()
-                return function(modes, _F, parser)
-                    io.write(" " .. modes.stack:pop())
+                io.write(" " .. modes.stack:pop())
+            end
+        end
+    L]
+    [L
+        return function(modes)
+            local _F = modes._F
+            local stack = modes.stack
+            _F[":"] = function()
+                local word = modes.parser:getword()
+                local str = modes.parser:parsebypattern("^(.-)%s;()")
+                if str == nil then error("Define forth function with ':' should end with ';'") end
+                _F[word] = str
+            end
+            _F[".S"] = function()
+                io.write(" <" .. stack.n .. ">")
+                for _, v in ipairs(stack.DS) do
+                    io.write(" " .. v)
                 end
+            end
+            _F["CR"] = function()
+                io.write("\n")
+            end
+            _F["SWAP"] = function()
+                local num1 = stack:pop()
+                local num2 = stack:pop()
+                stack:push(num1)
+                stack:push(num2)
+            end
+            _F["DROP"] = function()
+                stack:pop()
+            end
+            _F["OVER"] = function()
+                local num1 = stack:pop()
+                local num2 = stack:pop()
+                stack:push(num2)
+                stack:push(num1)
+                stack:push(num2)
+            end
+            _F["ROT"] = function()
+                local num1 = stack:pop()
+                local num2 = stack:pop()
+                local num3 = stack:pop()
+                stack:push(num2)
+                stack:push(num1)
+                stack:push(num3)
+            end
+            _F["-ROT"] = function()
+                local num1 = stack:pop()
+                local num2 = stack:pop()
+                local num3 = stack:pop()
+                stack:push(num1)
+                stack:push(num3)
+                stack:push(num2)
+            end
+            _F["2DUP"] = function()
+                local num1 = stack:pop()
+                local num2 = stack:pop()
+                stack:push(num2)
+                stack:push(num1)
+                stack:push(num2)
+                stack:push(num1)
+            end
+            _F["2SWAP"] = function()
+                local num1 = stack:pop()
+                local num2 = stack:pop()
+                local num3 = stack:pop()
+                local num4 = stack:pop()
+                stack:push(num2)
+                stack:push(num1)
+                stack:push(num4)
+                stack:push(num3)
+            end
+            _F["PICK"] = function()
+                local idx = stack:pop()
+                stack:push(stack.DS[stack.n - idx])
+            end
+            _F["ROLL"] = function()
+                local idx = stack:pop()
+                local num = table.remove(stack.DS, stack.n - idx)
+                stack:push(num)
+            end
+            _F["MOD"] = function()
+                local num1 = stack:pop()
+                local num2 = stack:pop()
+                stack:push(num2 % num1)
+            end
+            _F["/MOD"] = function()
+                local num1 = stack:pop()
+                local num2 = stack:pop()
+                stack:push(num2 % num1)
+                stack:push(num2 // num1)
+            end
+            _F["MIN"] = function()
+                local num1 = stack:pop()
+                local num2 = stack:pop()
+                stack:push(num1 < num2 and num1 or num2)
+            end
+            _F["MAX"] = function()
+                local num1 = stack:pop()
+                local num2 = stack:pop()
+                stack:push(num1 > num2 and num1 or num2)
+            end
+            _F["NEGATE"] = function()
+                stack:push(-stack:pop())
+            end
+            _F["ABS"] = function()
+                stack:push(math.abs(stack:pop()))
+            end
+            _F["2*"] = function()
+                stack:push(stack:pop() * 2)
+            end
+            _F["2/"] = function()
+                stack:push(stack:pop() / 2)
+            end
+            _F["8*"] = function()
+                stack:push(stack:pop() * 8)
+            end
+            _F["1+"] = function()
+                stack:push(stack:pop() + 1)
+            end
+            _F["1-"] = function()
+                stack:push(stack:pop() - 1)
+            end
+            _F["2+"] = function()
+                stack:push(stack:pop() + 2)
+            end
+            _F["2-"] = function()
+                stack:push(stack:pop() - 2)
             end
         end
     L]
 ]=]
 
-local function run(subj)
-    parser:setinput(subj)
-    modes:setmode("interpret")
-    while modes:islive() do
-        modes:runmode()
-    end
-    io.write("\n")
-end
+print("Init miniforth")
+modes:exec(defsubj)
 
-run(defsubj)
--- run("5 DUP * .")
-
-return run
+return modes
