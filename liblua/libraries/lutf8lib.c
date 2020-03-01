@@ -135,17 +135,20 @@ static void pushutfchar(lua_State* L, int arg) {
 */
 static int utfchar(lua_State* L) {
   if (lua_type(L, 1) == LUA_TFUNCTION) {
-    lua_settop(L, 1);
     luaL_Buffer b;
     luaL_buffinit(L, &b);
 #define GET_CODEPOINT(L, idx) (lua_pushvalue(L, idx), lua_call(L, 0, 1), lua_type(L, -1))
     while (GET_CODEPOINT(L, 1) != LUA_TNIL) {
       lua_Integer codepoint = luaL_checkinteger(L, -1);
+      if (codepoint < 0 || codepoint > MAXUNICODE) {
+        luaL_error(L, "value out of range");
+      }
       lua_pop(L, 1);
       char buff[UTF8BUFFSZ];
       int l = luaO_utf8esc(buff, cast(long, codepoint));
       luaL_addlstring(&b, buff + UTF8BUFFSZ - l, l);
     }
+    lua_pop(L, 1);
 #undef GET_CODEPOINT
     luaL_pushresult(&b);
     return 1;
