@@ -394,6 +394,22 @@ static int os_exit(lua_State* L) {
   return 0;
 }
 
+#if defined(_WIN32)
+// _WIN64 macro for 64-bit only
+#define OS_SYSNAME "Windows"
+#elif defined(__APPLE__)
+#include "TargetConditionals.h"
+#if TARGET_OS_IOS
+#define OS_SYSNAME "iOS"
+#else
+#define OS_SYSNAME "MacOSX"
+#endif
+#elif defined(__ANDROID__)
+#define OS_SYSNAME "Android"
+#elif defined(__linux__)
+#define OS_SYSNAME "Linux"
+#endif
+
 static const luaL_Reg syslib[] = {
     {"clock", os_clock},
     {"date", os_date},
@@ -406,6 +422,8 @@ static const luaL_Reg syslib[] = {
     {"setlocale", os_setlocale},
     {"time", os_time},
     {"tmpname", os_tmpname},
+    /* placeholders */
+    {"sysname", NULL},
     {NULL, NULL},
 };
 
@@ -413,5 +431,7 @@ static const luaL_Reg syslib[] = {
 
 LUAMOD_API int luaopen_os(lua_State* L) {
   luaL_newlib(L, syslib);
+  lua_pushliteral(L, OS_SYSNAME);
+  lua_setfield(L, -2, "sysname");
   return 1;
 }
