@@ -6,10 +6,13 @@
 #include <lprefix.h> // must include first
 
 #include <stdio.h>
+#include <assert.h>
 
 #include <lauxlib.h>
 
 #include <gb2312.h>
+
+// key functions: gb2312_decode, gb2312_escape
 
 #define MAXUNICODE 0x10FFFF
 
@@ -21,15 +24,88 @@ static void push_unicode2gb2312(lua_State* L) {
   }
 }
 
+/* translate a relative string position: negative means back from end */
+static lua_Integer u_posrelat(lua_Integer pos, size_t len) {
+  if (pos >= 0)
+    return pos;
+  else if (0u - (size_t)pos > len)
+    return 0;
+  else
+    return (lua_Integer)len + pos + 1;
+}
+
+/*
+** Decode one GB2312 sequence, returning NULL if byte sequence is invalid.
+*/
+static const char* gb2312_decode(const char* o, int* val) {
+  const unsigned char* s = (const unsigned char*)o;
+  unsigned int c = s[0];
+  unsigned int res = 0; /* final result */
+  if (c < 0x80) /* ascii? */
+    res = c;
+  else {
+    // [0xA1, 0xA9] and [0xB0, 0xF7]
+    int section = 0;
+    if (c < 0xA1) {
+      return NULL;
+    } else if (c <= 0xA9) {
+      section = c - 0xA0;
+    } else if (c < 0xB0 || c > 0xF7) {
+      return NULL;
+    } else {
+      section = c - 0xA0 - 6;
+    }
+    unsigned int c2 = s[1];
+    // [0xA1, 0xFE]
+    if (c2 < 0xA1 || c2 > 0xFE) {
+      return NULL;
+    }
+    int offset = c2 - 0xA0;
+    int index = (section - 1) * 94 + (offset - 1);
+    assert(GB2312_Unicode[index].gb2312 == ((c << 8) | c2));
+    res = GB2312_Unicode[index].unicode;
+    if (res == 0x0000) {
+      return NULL;
+    }
+  }
+  if (val)
+    *val = res;
+  return (const char*)s + 1; /* +1 to include first byte */
+}
+
 static int byteoffset(lua_State* L) {
   return 0;
 }
 
 static int codepoint(lua_State* L) {
-  return 0;
+  size_t len;
+  const char* s = luaL_checklstring(L, 1, &len);
+  lua_Integer posi = u_posrelat(luaL_optinteger(L, 2, 1), len);
+  lua_Integer pose = u_posrelat(luaL_optinteger(L, 3, posi), len);
+  luaL_argcheck(L, posi >= 1, 2, "out of range");
+  luaL_argcheck(L, pose <= (lua_Integer)len, 3, "out of range");
+  if (posi > pose) {
+    return 0; /* empty interval; return no values */
+  }
+  if (pose - posi >= INT_MAX) { /* (lua_Integer -> int) overflow? */
+    return luaL_error(L, "string slice too long");
+  }
+  luaL_checkstack(L, (int)(pose - posi) + 1, "string slice too long");
+  int n = 0;
+  const char* se = s + pose;
+  for (s += posi - 1; s < se;) {
+    int code;
+    s = gb2312_decode(s, &code);
+    if (s == NULL)
+      return luaL_error(L, "invalid GB2312 code");
+    lua_pushinteger(L, code);
+    n++;
+  }
+  return n; // length in character
 }
 
-static int unicode2string(lua_State* L, lua_Integer codepoint, int tbl, char* buff) {
+// Unicode Integer to GB2312 Byte Sequence
+static int gb2312_escape(char* buff, int codepoint, lua_State* L, int tbl) {
   if (codepoint < 0 || codepoint > MAXUNICODE) {
     luaL_error(L, "value out of range");
   }
@@ -43,9 +119,9 @@ static int unicode2string(lua_State* L, lua_Integer codepoint, int tbl, char* bu
   }
   lua_Integer gbcode = lua_tointeger(L, -1);
   lua_pop(L, 1);
-  const char* pcode = (const char*)&gbcode;
-  buff[0] = pcode[1];
-  buff[1] = pcode[0];
+  // Support Little-Endian and Big-Endian
+  buff[0] = (gbcode >> 8); // & 0xFF
+  buff[1] = gbcode & 0xFF;
   return 2;
 }
 
@@ -59,23 +135,23 @@ static int gbchar(lua_State* L) {
     luaL_buffinit(L, &b);
 #define GET_CODEPOINT(L, idx) (lua_pushvalue(L, idx), lua_call(L, 0, 1), lua_type(L, -1))
     while (GET_CODEPOINT(L, 1) != LUA_TNIL) {
-      lua_Integer codepoint = luaL_checkinteger(L, -1);
+      int codepoint = (int)luaL_checkinteger(L, -1);
       lua_pop(L, 1);
-      len = unicode2string(L, codepoint, n + 1, buff);
+      len = gb2312_escape(buff, codepoint, L, n + 1);
       luaL_addlstring(&b, buff, len);
     }
     lua_pop(L, 1);
 #undef GET_CODEPOINT
     luaL_pushresult(&b);
   } else if (n == 1) { /* optimize common case of single char */
-    len = unicode2string(L, luaL_checkinteger(L, 1), n + 1, buff);
+    len = gb2312_escape(buff, (int)luaL_checkinteger(L, 1), L, n + 1);
     lua_pushlstring(L, buff, len);
   } else {
     int i;
     luaL_Buffer b;
     luaL_buffinit(L, &b);
     for (i = 1; i <= n; i++) {
-      len = unicode2string(L, luaL_checkinteger(L, i), n + 1, buff);
+      len = gb2312_escape(buff, (int)luaL_checkinteger(L, i), L, n + 1);
       luaL_addlstring(&b, buff, len);
     }
     luaL_pushresult(&b);
@@ -83,8 +159,31 @@ static int gbchar(lua_State* L) {
   return 1;
 }
 
+/*
+** gb2312len(s [, i [, j]]) --> number of characters that start in the
+** range [i,j], or nil + current position if 's' is not well formed in
+** that interval
+*/
 static int gblen(lua_State* L) {
-  return 0;
+  int n = 0;
+  size_t len;
+  const char* s = luaL_checklstring(L, 1, &len);
+  lua_Integer posi = u_posrelat(luaL_optinteger(L, 2, 1), len);
+  lua_Integer posj = u_posrelat(luaL_optinteger(L, 3, -1), len);
+  luaL_argcheck(L, 1 <= posi && --posi <= (lua_Integer)len, 2, "initial position out of string");
+  luaL_argcheck(L, --posj < (lua_Integer)len, 3, "final position out of string");
+  while (posi <= posj) {
+    const char* s1 = gb2312_decode(s + posi, NULL);
+    if (s1 == NULL) { /* conversion error? */
+      lua_pushnil(L); /* return nil ... */
+      lua_pushinteger(L, posi + 1); /* ... and current position */
+      return 2;
+    }
+    posi = s1 - s;
+    n++;
+  }
+  lua_pushinteger(L, n);
+  return 1;
 }
 
 static int iter_codes(lua_State* L) {
