@@ -19,6 +19,13 @@
 static void push_unicode2gb2312(lua_State* L) {
   lua_createtable(L, 0, GB2312_Unicode_Size);
   for (size_t i = 0; i < GB2312_Unicode_Size; i++) {
+#ifndef NDEBUG
+    lua_rawgeti(L, -1, GB2312_Unicode[i].unicode);
+    if (lua_type(L, -1) != LUA_TNIL) {
+      assert(GB2312_Unicode[i].unicode == 0x0000);
+    }
+    lua_pop(L, 1);
+#endif
     lua_pushinteger(L, GB2312_Unicode[i].gb2312);
     lua_rawseti(L, -2, GB2312_Unicode[i].unicode);
   }
@@ -73,7 +80,7 @@ static const char* gb2312_decode(const char* o, int* val) {
   }
   if (val)
     *val = res;
-  return (const char*)s + len; /* +1 to include first byte */
+  return (const char*)s + len;
 }
 
 static int byteoffset(lua_State* L) {
