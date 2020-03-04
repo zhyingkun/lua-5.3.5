@@ -53,3 +53,11 @@ install(TARGETS ${PROJECT_NAME}
 	LIBRARY DESTINATION lib/lua/5.3
 	ARCHIVE DESTINATION lib/lua/5.3
 )
+
+aux_source_directory(./test GB2312_TEST_SRC)
+source_group(src FILES ${GB2312_TEST_SRC})
+add_executable(gb2312-test ${GB2312_TEST_SRC} ${GB2312MOD_SRC} ${GB2312_HEADERS})
+set_target_properties(gb2312-test PROPERTIES
+	FOLDER "cmod/gb2312"
+)
+target_link_libraries(gb2312-test liblua)
