@@ -41,9 +41,11 @@ static const char* gb2312_decode(const char* o, int* val) {
   const unsigned char* s = (const unsigned char*)o;
   unsigned int c = s[0];
   unsigned int res = 0; /* final result */
-  if (c < 0x80) /* ascii? */
+  unsigned int len = 0;
+  if (c < 0x80) { /* ascii? */
     res = c;
-  else {
+    len = 1;
+  } else {
     // [0xA1, 0xA9] and [0xB0, 0xF7]
     int section = 0;
     if (c < 0xA1) {
@@ -67,10 +69,11 @@ static const char* gb2312_decode(const char* o, int* val) {
     if (res == 0x0000) {
       return NULL;
     }
+    len = 2;
   }
   if (val)
     *val = res;
-  return (const char*)s + 1; /* +1 to include first byte */
+  return (const char*)s + len; /* +1 to include first byte */
 }
 
 static int byteoffset(lua_State* L) {
