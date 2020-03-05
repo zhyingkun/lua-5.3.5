@@ -17,7 +17,7 @@
 #define MAXUNICODE 0x10FFFF
 
 static void push_unicode2gb2312(lua_State* L) {
-  lua_createtable(L, 0, GB2312_Unicode_Size);
+  lua_createtable(L, 0, GB2312_Unicode_Size - 123 + 1); // has 123 NULLs and 1 for it
   for (size_t i = 0; i < GB2312_Unicode_Size; i++) {
 #ifndef NDEBUG
     lua_rawgeti(L, -1, GB2312_Unicode[i].unicode);
@@ -83,8 +83,84 @@ static const char* gb2312_decode(const char* o, int* val) {
   return (const char*)s + len;
 }
 
+// addr: pointer
+// pos: byte position
+// offset: byte position in character boundary
+// cnt: character count
+// posi: [0, len]
+// offseti: [0, len]
+// cnti: [0, cnt]
+static int count_character(lua_State* L, const char* s, size_t len, size_t posi, size_t* offseti, int* cnti) {
+  const char* addrs = s; // address start
+  const char* addre = s + len; // address end, point to '\0'
+  const char* addri = s + posi; // posi: [0, len]
+  size_t offseti_ = 1;
+  int cnti_ = -1;
+  int cnt = 0;
+  for (; s < addre;) {
+    const char* oldchar = s;
+    s = gb2312_decode(s, NULL);
+    if (s == NULL)
+      return luaL_error(L, "invalid GB2312 code");
+    if (s > addri && cnti_ == -1) {
+      offseti_ = oldchar - addrs;
+      cnti_ = cnt;
+    }
+    cnt++;
+  }
+  if (posi == len) {
+    offseti_ = len;
+    cnti_ = cnt;
+  }
+  if (offseti != NULL) {
+    *offseti = offseti_;
+  }
+  if (cnti != NULL) {
+    *cnti = cnti_;
+  }
+  return cnt;
+}
+
+// cnti: [0, cnt]
+// return offset: [0, len]
+static int find_offset(lua_State* L, const char* s, int cnti) {
+  const char* olds = s;
+  for (; cnti > 0; cnti--) {
+    s = gb2312_decode(s, NULL);
+    if (s == NULL)
+      return luaL_error(L, "invalid GB2312 code");
+  }
+  return s - olds;
+}
+
+/*
+** offset(s, n, [i])  -> index where n-th character counting from
+**   position 'i' starts; 0 means character at 'i'.
+*/
 static int byteoffset(lua_State* L) {
-  return 0;
+  size_t len;
+  const char* s = luaL_checklstring(L, 1, &len);
+  lua_Integer n = luaL_checkinteger(L, 2); // n start at 1
+  lua_Integer posi = (n >= 0) ? 1 : len + 1; // posi start at 1
+  posi = u_posrelat(luaL_optinteger(L, 3, posi), len);
+  luaL_argcheck(L, 1 <= posi && --posi <= (lua_Integer)len, 3, "position out of range");
+  // now, posi in range: [0, len]
+  size_t offseti = 0; // offset for character which contain position posi, [0, len]
+  int cnti = 0; // character count for that character, [0, cnt]
+  int cnt = count_character(L, s, len, posi, &offseti, &cnti);
+  if (n == 0) {
+    lua_pushinteger(L, offseti + 1); // plus one for convert C to Lua
+  } else {
+    if (offseti != (size_t)posi)
+      return luaL_error(L, "initial position is a continuation byte");
+    cnti += n + (n > 0 ? -1 : 0); // n == 1 means character at cnti, equals to n == 0
+    if (cnti < 0 || cnti > cnt) { // [0, cnt]
+      lua_pushnil(L);
+    } else {
+      lua_pushinteger(L, find_offset(L, s, cnti) + 1);
+    }
+  }
+  return 1;
 }
 
 static int codepoint(lua_State* L) {
@@ -196,8 +272,40 @@ static int gblen(lua_State* L) {
   return 1;
 }
 
+// function(string, prev_pos) ==> next_pos, next_code
+static int iter_aux(lua_State* L) {
+  size_t len;
+  const char* s = luaL_checklstring(L, 1, &len);
+  lua_Integer n = lua_tointeger(L, 2) - 1;
+  // n counts in byte, not character
+  if (n < 0) /* first iteration? */
+    n = 0; /* start from here */
+  else if (n < (lua_Integer)len) {
+    if ((unsigned char)*(s + n) < 0x80) { /* ascii? */
+      n++;
+    } else { /* gb2312? */
+      n += 2;
+    }
+  }
+  if (n >= (lua_Integer)len)
+    return 0; /* no more codepoints */
+  else {
+    int code;
+    const char* next = gb2312_decode(s + n, &code);
+    if (next == NULL)
+      return luaL_error(L, "invalid UTF-8 code");
+    lua_pushinteger(L, n + 1);
+    lua_pushinteger(L, code);
+    return 2;
+  }
+}
+
 static int iter_codes(lua_State* L) {
-  return 0;
+  luaL_checkstring(L, 1);
+  lua_pushcfunction(L, iter_aux);
+  lua_pushvalue(L, 1);
+  lua_pushinteger(L, 0);
+  return 3;
 }
 
 /* pattern to match a single UTF-8 character */
