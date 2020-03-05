@@ -29,11 +29,17 @@ int main(int argc, const char* argv[]) {
       if (j == 0) {
         gbcode = GB2312_Unicode[idx].gb2312;
         unsigned int section = i + (i > 8 ? 6 : 0) + 0xA1;
-        assert(gbcode == ((section << 8) | 0xA1));
+        if (gbcode != ((section << 8) | 0xA1)) {
+          fprintf(stderr, "Error => gcode: %u, section: %u, bit: 0xA1\n", gbcode, section);
+          return -1;
+        }
         continue;
       }
       unsigned int next = GB2312_Unicode[idx].gb2312;
-      assert(next == gbcode + 1);
+      if (next != gbcode + 1) {
+        fprintf(stderr, "Error: Should be continuation in One Section!\n");
+        return -1;
+      }
       gbcode = next;
     }
   }
