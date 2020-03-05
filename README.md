@@ -90,6 +90,7 @@ ndk-build -B # rebuild project
 1. cmod：Lua 的 C 语言扩展模块
    - boolarray：《Lua 程序设计》中的布尔数组，加了数组的交集和并集操作
    - dir：《Lua 程序设计》中的遍历文件夹，加了 Win 版实现
+   - gb2312：类似 utf8 标准库实现的 gb2312 模块
    - hello：helloworld
    - lproc：《Lua 程序设计》中的多线程模块，使用 pthread
    - luanet：将 Lua 虚拟机嵌入 UnityC# 的中间层
