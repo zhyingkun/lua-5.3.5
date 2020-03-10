@@ -165,4 +165,4 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 
 1. luawithlib 在 Android 平台上仅支持 AndroidAPI21 及以上的 SDK，因为 API20 及以下不支持 C 标准库中的 localeconv 函数
 2. 目前在 Visual Studio 下无法直接调试运行链接了 dll 的 exe，执行 lua 等命令行需要执行上述命令行之后在 CMD 中运行，demo 下的 exe 则需要复制 liblua 编译出来的 lua.dll 到对应的 exe 目录下
-3. Xcode 中使用 Attach to process 进行调试会将阻塞于 readline 的目标进程(lua 命令)唤醒，没有字符输入，此时会被 Lua 识别成 EOF，该进程主动退出。因此，使用 attach 进行调试时需要先手动阻塞等待调试器的 attach（例如先调用一次 readline），另外，后续设置断点等操作也有可能造成进程的错误唤醒。比较彻底的做法是区分调试模式，在调试模式中遇到 EOF 不退出进程（lua 命令添加-d 参数，用于支持 debug attaching）。
+3. Xcode 中使用 Attach to process 进行调试会将阻塞于 readline 的目标进程(lua 命令)唤醒，没有字符输入，此时会被 Lua 识别成 EOF，该进程主动退出。因此，使用 attach 进行调试时需要先手动阻塞等待调试器的 attach（例如先调用一次 readline），另外，后续设置断点等操作也有可能造成进程的错误唤醒。比较彻底的做法是区分调试模式，在调试模式中遇到 EOF 不退出进程（lua 命令添加-d 参数，用于支持 debug attaching）
