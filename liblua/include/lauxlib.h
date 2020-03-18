@@ -152,42 +152,6 @@ LUALIB_API char*(luaL_buffinitsize)(lua_State* L, luaL_Buffer* B, size_t sz);
 
 /*
 ** {======================================================
-** String Buffer for C, for lua c module only
-** =======================================================
-*/
-
-#define strbuff_addlstring(b, s, l) strbuff_addlstringex(b, s, l, 0)
-#define strbuff_addstring(b, s) strbuff_addlstringex(b, s, strlen(s), 0)
-#define strbuff_addliteral(b, s) strbuff_addlstring(b, "" s, sizeof(s) - 1)
-#define strbuff_addnewline(b) strbuff_addliteral(b, "\n")
-
-#define TEMP_BUFF_SIZE 1024
-#define strbuff_addfstring(b, ...) \
-  do { \
-    char buff[TEMP_BUFF_SIZE]; \
-    snprintf(buff, TEMP_BUFF_SIZE, __VA_ARGS__); \
-    strbuff_addstring(b, buff); \
-  } while (0)
-
-#define DEFAULT_BUFFER_SIZE 4096
-
-typedef struct {
-  char* b;
-  size_t size; /* buffer size */
-  size_t n; /* number of characters in buffer */
-  lua_State* L;
-  int idx_buffer;
-} StringBuffer;
-
-LUALIB_API void strbuff_init(StringBuffer* b, lua_State* L, int idx, size_t size);
-LUALIB_API void strbuff_addlstringex(StringBuffer* b, const char* str, size_t len, int escape);
-LUALIB_API void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx);
-LUALIB_API void strbuff_destroy(StringBuffer* b);
-
-/* }====================================================== */
-
-/*
-** {======================================================
 ** File handles for IO library
 ** =======================================================
 */

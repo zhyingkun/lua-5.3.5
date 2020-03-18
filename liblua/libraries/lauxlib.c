@@ -805,7 +805,30 @@ LUALIB_API const char* luaL_tolstring(lua_State* L, int idx, size_t* len) {
 ** =======================================================
 */
 
-LUALIB_API void strbuff_init(StringBuffer* b, lua_State* L, int idx, size_t size) {
+#define strbuff_addlstring(b, s, l) strbuff_addlstringex(b, s, l, 0)
+#define strbuff_addstring(b, s) strbuff_addlstringex(b, s, strlen(s), 0)
+#define strbuff_addliteral(b, s) strbuff_addlstring(b, "" s, sizeof(s) - 1)
+#define strbuff_addnewline(b) strbuff_addliteral(b, "\n")
+
+#define TEMP_BUFF_SIZE 1024
+#define strbuff_addfstring(b, ...) \
+  do { \
+    char buff[TEMP_BUFF_SIZE]; \
+    snprintf(buff, TEMP_BUFF_SIZE, __VA_ARGS__); \
+    strbuff_addstring(b, buff); \
+  } while (0)
+
+#define DEFAULT_BUFFER_SIZE 4096
+
+typedef struct {
+  char* b;
+  size_t size; /* buffer size */
+  size_t n; /* number of characters in buffer */
+  lua_State* L;
+  int idx_buffer;
+} StringBuffer;
+
+static void strbuff_init(StringBuffer* b, lua_State* L, int idx, size_t size) {
   b->L = L;
   b->idx_buffer = lua_absindex(L, idx);
   b->size = size;
@@ -861,7 +884,7 @@ static size_t escape_string(char* dst, const char* str, size_t len) {
   return dst - olddst;
 }
 
-LUALIB_API void strbuff_addlstringex(StringBuffer* b, const char* str, size_t len, int escape) {
+static void strbuff_addlstringex(StringBuffer* b, const char* str, size_t len, int escape) {
   size_t mul = escape ? 2 : 1;
   if (len > (l_castS2U(LUA_MAXINTEGER) - b->n) / mul) {
     luaL_error(b->L, "string size of strbuff overflow");
@@ -888,7 +911,7 @@ LUALIB_API void strbuff_addlstringex(StringBuffer* b, const char* str, size_t le
   b->n += len;
 }
 
-LUALIB_API void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
+static void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
   idx = lua_absindex(L, idx);
   size_t length = 0;
   const char* result = luaL_tolstring(L, idx, &length); // [-0, +1]
@@ -902,7 +925,7 @@ LUALIB_API void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
   lua_pop(L, 1); // [-1, +0]
 }
 
-LUALIB_API void strbuff_destroy(StringBuffer* b) {
+static void strbuff_destroy(StringBuffer* b) {
   b->b = NULL;
   b->size = 0;
   b->n = 0;
