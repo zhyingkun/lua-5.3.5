@@ -66,6 +66,7 @@
 
 #define valiswhite(x) (iscollectable(x) && iswhite(gcvalue(x)))
 
+// if value != nil then key should not be dead
 #define checkdeadkey(n) lua_assert(!ttisdeadkey(gkey(n)) || ttisnil(gval(n)))
 
 #define checkconsistency(obj) lua_longassert(!iscollectable(obj) || righttt(obj))
@@ -362,6 +363,8 @@ static void traverseweakvalue(global_State* g, Table* h) {
         hasclears = 1; /* table will have to be cleared */
     }
   }
+  // every weak table should be traverse twice
+  // first in propagate, second in g->grayagain
   if (g->gcstate == GCSpropagate)
     linkgclist(h, g->grayagain); /* must retraverse it in atomic phase */
   else if (hasclears)
@@ -425,7 +428,7 @@ static void traversestrongtable(global_State* g, Table* h) {
     if (ttisnil(gval(n))) /* entry is empty? */
       removeentry(n); /* remove it */
     else {
-      lua_assert(!ttisnil(gkey(n)));
+      lua_assert(!ttisnil(gkey(n))); // in a table, if key == nil then value should be nil
       markvalue(g, gkey(n)); /* mark key */
       markvalue(g, gval(n)); /* mark value */
     }
