@@ -758,3 +758,64 @@ do
 		transfer()
 	end
 end
+print("======================================================================")
+do
+	local k = {}
+	local key = {}
+	local tbl1 = setmetatable({ [k] = key }, { __mode = "k" })
+	local tbl2 = setmetatable({ [key] = {} }, { __mode = "k" })
+	key = nil
+	collectgarbage("collect")
+	print(tostring(tbl1, 1))
+	print(tostring(tbl2, 1))
+	k = {}	
+	collectgarbage("collect")
+	print(tostring(tbl1, 1))
+	print(tostring(tbl2, 1))
+end
+print("======================================================================")
+do
+	local hold = {}
+	local obj = setmetatable({}, { __gc = function(obj)
+		print("In obj __gc metamethod")
+		hold.obj = obj
+	end })
+	print("gc:", tostring(obj, 1), tostring(getmetatable(obj), 1))
+	obj = nil
+	collectgarbage()
+	print("gc2:", tostring(hold, 1), tostring(getmetatable(hold.obj), 1))
+	hold = nil
+	collectgarbage()
+end
+print("======================================================================")
+do
+	local k = {}
+	local v = { 42 }
+	local tbl = setmetatable({ [k] = v }, { __mode = "k" })
+	print(tostring(tbl, 1))
+	k = nil
+	collectgarbage()
+	print(tostring(v, 1))
+	print(tostring(tbl, 1)) --> key-value has been collect
+end
+print("======================================================================")
+do
+	local k = {}
+	local tbl1 = setmetatable({ [k] = "Hello" }, { __mode = "k" })
+	local tbl2 = setmetatable({ Hi = k }, { __mode = "v" })
+	local tbl3 = setmetatable({ tbl1 = tbl1, tbl2 = tbl2, k = k }, { __gc = function(obj)
+		for k, v in pairs(obj.tbl1) do print("tbl1:", k, v) end --> print k => Hello
+		for k, v in pairs(obj.tbl2) do print("tbl2:", k, v) end --> print nothing
+		print("obj.k:", obj.k) --> print table k
+	end })
+	print("Start...")
+	k = nil
+	tbl3 = nil
+	collectgarbage()
+	for k, v in pairs(tbl1) do print("First GC tbl1:", k, v) end --> print k => Hello
+	for k, v in pairs(tbl2) do print("First GC tbl2:", k, v) end --> print nothing
+	collectgarbage()
+	for k, v in pairs(tbl1) do print("Second GC tbl1:", k, v) end --> print nothing
+	for k, v in pairs(tbl2) do print("Second GC tbl2:", k, v) end --> print nothing
+	print("END!")
+end
