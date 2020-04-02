@@ -425,13 +425,20 @@ static int db_getspecialkeys(lua_State* L) {
   } while (0)
 
 static int db_sizeofstruct(lua_State* L) {
-  lua_createtable(L, 0, 3);
+  lua_createtable(L, 0, 13);
+  ADD_STRUCT_SIZE(global_State);
   ADD_STRUCT_SIZE(lua_State);
   ADD_STRUCT_SIZE(Table);
+  ADD_STRUCT_SIZE(TKey);
   ADD_STRUCT_SIZE(TValue);
   ADD_STRUCT_SIZE(Node);
   ADD_STRUCT_SIZE(UTString);
   ADD_STRUCT_SIZE(UUdata);
+  ADD_STRUCT_SIZE(LClosure);
+  ADD_STRUCT_SIZE(CClosure);
+  ADD_STRUCT_SIZE(Proto);
+  ADD_STRUCT_SIZE(CallInfo);
+  ADD_STRUCT_SIZE(luaL_Stream);
   return 1;
 }
 
