@@ -212,7 +212,8 @@ static void fchecksize(LoadState* S, size_t size, const char* tname) {
 #define checksize(S, t) fchecksize(S, sizeof(t), #t)
 
 static void checkHeader(LoadState* S) {
-  checkliteral(S, LUA_SIGNATURE + 1, "not a"); /* 1st char already checked */
+  static const char* signature = LUA_SIGNATURE;
+  checkliteral(S, signature + 1, "not a"); /* 1st char already checked */
   if (LoadByte(S) != LUAC_VERSION)
     error(S, "version mismatch in");
   if (LoadByte(S) != LUAC_FORMAT)
