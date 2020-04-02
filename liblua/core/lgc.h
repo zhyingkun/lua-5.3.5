@@ -87,6 +87,8 @@
 // in gc phase: before atomic, every live object should be current white (other white has been collected)
 // after atomic, every live has been traversal, so, they should be black (other white object is garbage)
 // all the time, if some object's mark equal to other white, it must be dead
+// if reversing mark has other white bit, mark should be live with current white
+// if other white is 0x00, then every object would be treated as dead
 #define isdeadm(ow, m) (!(((m) ^ WHITEBITS) & (ow)))
 #define isdead(g, v) isdeadm(otherwhite(g), (v)->marked)
 
