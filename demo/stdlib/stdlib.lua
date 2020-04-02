@@ -45,6 +45,16 @@ do
 	end
 
 	print(string.rep("Hello", 3, "_"))
+
+	function string.grep(str, pat)
+		assert(type(str) == "string")
+		assert(type(pat) == "string")
+		for v in str:gmatch("[^\r\n]*") do
+			if v:find(pat) then print(v) end
+		end
+	end
+
+	print(string.grep(tostring(string, 1), "sub"))
 end
 print("======================================================================")
 print("*** table ***")
