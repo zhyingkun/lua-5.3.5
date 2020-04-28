@@ -35,6 +35,7 @@ do
 	print("mkdir:", dir.mkdir("_tmp_"))
 	print("chdir:", dir.chdir("_tmp_"))
 	print("cwd:", dir.cwd())
+	print("chdir:", dir.chdir(".."))
 	print("rmdir:", dir.rmdir("_tmp_"))
 end
 print("======================================================================")
