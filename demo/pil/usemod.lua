@@ -31,6 +31,11 @@ do
 	local tbl = {}
 	for name in dir.open(".") do  tbl[#tbl + 1] = name end
 	print("ls:", table.unpack(tbl))
+	print("cwd:", dir.cwd())
+	print("mkdir:", dir.mkdir("_tmp_"))
+	print("chdir:", dir.chdir("_tmp_"))
+	print("cwd:", dir.cwd())
+	print("rmdir:", dir.rmdir("_tmp_"))
 end
 print("======================================================================")
 do
