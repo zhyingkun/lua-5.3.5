@@ -195,7 +195,7 @@ typedef enum {
   OP_LT, /*	A B C	if ((RK(B) <  RK(C)) ~= A) then pc++		*/
   OP_LE, /*	A B C	if ((RK(B) <= RK(C)) ~= A) then pc++		*/
 
-  OP_TEST, /*	A C	if not (R(A) <=> C) then pc++			*/
+  OP_TEST, /*	A C	if not (R(A) <=> C) then pc++			*/ // <=> means compares in bool type
   OP_TESTSET, /*	A B C	if (R(B) <=> C) then R(A) := R(B) else pc++	*/
 
   OP_CALL, /*	A B C	R(A), ... ,R(A+C-2) := R(A)(R(A+1), ... ,R(A+B-1)) */
@@ -203,7 +203,7 @@ typedef enum {
   OP_RETURN, /*	A B	return R(A), ... ,R(A+B-2)	(see note)	*/
 
   OP_FORLOOP, /*	A sBx	R(A)+=R(A+2);
-               if R(A) <?= R(A+1) then { pc+=sBx; R(A+3)=R(A) }*/
+               if R(A) <?= R(A+1) then { pc+=sBx; R(A+3)=R(A) }*/ // <?= means if R(A+2) > 0 then <= else >=
   OP_FORPREP, /*	A sBx	R(A)-=R(A+2); pc+=sBx				*/
 
   OP_TFORCALL, /*	A C	R(A+3), ... ,R(A+2+C) := R(A)(R(A+1), R(A+2));	*/
