@@ -342,11 +342,16 @@ do
 				local ret = loader(modname, absPath)
 				if ret ~= nil then
 					package.loaded[modname] = ret
+				else
+					local origin = package.loaded[modname]
+					if origin == nil then
+						ret = true
+						package.loaded[modname] = true
+					else
+						ret = origin
+					end
 				end
-				if package.loaded[modname] == nil then
-					package.loaded[modname] = true
-				end
-				return package.loaded[modname]
+				return ret
 			elseif typeOfLoader == "string" then
 				errorMsg = errorMsg .. loader
 			else
