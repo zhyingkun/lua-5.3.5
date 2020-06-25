@@ -21,6 +21,11 @@ typedef struct {
   bool first;
 } Directory;
 #else
+#if defined(__APPLE__)
+#define _DARWIN_C_SOURCE
+#elif defined(__linux__)
+#define _BSD_SOURCE
+#endif
 #include <dirent.h>
 #endif
 
@@ -29,10 +34,11 @@ typedef struct {
 
 #if defined(_WIN32)
 #include <windows.h>
-#define MAXPATHLEN MAX_PATH
+#define PATH_MAX MAX_PATH
+#define SEP '\\'
 #else
 #include <unistd.h> // for rmdir/chdir/getcwd
-#include <sys/param.h> // for MAXPATHLEN
+#define SEP '/'
 #endif
 
 static int dir_iter(lua_State* L) {
@@ -40,22 +46,22 @@ static int dir_iter(lua_State* L) {
   Directory* d = (Directory*)lua_touserdata(L, lua_upvalueindex(1));
   if (d->first) {
     d->first = false;
-    lua_pushstring(L, d->dir.name);
-    return 1;
+  } else if (_findnext(d->fh, &(d->dir)) != 0) {
+    return 0; /* no more values to return */
   }
-  if (_findnext(d->fh, &(d->dir)) == 0) {
-    lua_pushstring(L, d->dir.name);
-    return 1;
-  }
+  lua_pushstring(L, d->dir.name);
+  lua_pushboolean(L, (d->dir.attrib & _A_SUBDIR) ? 1 : 0);
+  return 2;
 #else
   DIR* d = *(DIR**)lua_touserdata(L, lua_upvalueindex(1));
   struct dirent* entry = readdir(d);
-  if (entry != NULL) {
-    lua_pushstring(L, entry->d_name);
-    return 1;
+  if (entry == NULL) {
+    return 0;
   }
+  lua_pushstring(L, entry->d_name);
+  lua_pushboolean(L, (entry->d_type == DT_DIR) ? 1 : 0);
+  return 2;
 #endif
-  return 0; /* no more values to return */
 }
 
 static int l_dir(lua_State* L) {
@@ -112,15 +118,38 @@ static int dir_gc(lua_State* L) {
 }
 
 static int l_mkdir(lua_State* L) {
-  const char* path = luaL_checkstring(L, 1);
-
+  size_t len;
+  const char* path = luaL_checklstring(L, 1, &len);
+  int onlyone = lua_toboolean(L, 2);
+  if (onlyone) {
 #ifdef _WIN32
-  int res = _mkdir(path);
+    int res = _mkdir(path);
 #else
-  int res = mkdir((path), S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    int res = mkdir((path), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH); // chmod 775
 #endif
-
-  return luaL_fileresult(L, res == 0, path);
+    return luaL_fileresult(L, res == 0, path);
+  }
+  char tmpDirPath[PATH_MAX] = {0};
+  size_t maxi = len - 1;
+  for (size_t i = 0; i < len; i++) {
+    tmpDirPath[i] = path[i];
+    if (tmpDirPath[i] == '\\' || tmpDirPath[i] == '/' || i == maxi) {
+#ifdef _WIN32
+      if (_access(tmpDirPath, 0) == -1) {
+        if (_mkdir(tmpDirPath) == -1) {
+          return luaL_fileresult(L, 0, tmpDirPath);
+        }
+      }
+#else
+      if (access(tmpDirPath, F_OK) == -1) {
+        if (mkdir(tmpDirPath, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1) {
+          return luaL_fileresult(L, 0, tmpDirPath);
+        }
+      }
+#endif
+    }
+  }
+  return luaL_fileresult(L, 1, path);
 }
 
 static int l_rmdir(lua_State* L) {
@@ -131,7 +160,7 @@ static int l_rmdir(lua_State* L) {
 
 static int l_cwd(lua_State* L) {
   char* path = NULL;
-  size_t size = MAXPATHLEN;
+  size_t size = PATH_MAX;
   int result;
   while (1) {
     char* path2 = realloc(path, size);
@@ -161,6 +190,140 @@ static int l_chdir(lua_State* L) {
   return luaL_fileresult(L, res == 0, path);
 }
 
+static void strreplace(char* str, char s, char d) {
+  for (; *str != '\0'; str++) {
+    if (*str == s) {
+      *str = d;
+    }
+  }
+}
+
+static void strdelete(char* str, size_t len) {
+  char* s = str;
+  char* r = str + len;
+  while (*r != '\0') {
+    *s = *r;
+    s++;
+    r++;
+  }
+  *s = '\0';
+}
+
+static char* findrchr(char* stre, char c) {
+  while (*stre != c) {
+    stre--;
+  }
+  return stre;
+}
+
+static void clean_path(char* path) {
+  char* s = path; // start
+  char* e = strchr(path, SEP); // end
+  size_t back = 0;
+  while (e != NULL) {
+    if (s == e) {
+      if (s != path) {
+        strdelete(s, 1);
+      } else {
+        s++; // path start with SEP
+      }
+    } else if (s + 1 == e && *s == '.' && s != path) {
+      strdelete(s, 2);
+    } else if (s + 2 == e && s[0] == '.' && s[1] == '.') {
+      if (back > 0) {
+        char* pre = findrchr(s - 3, SEP); // should s-2, but no way for *(s-2) == SEP
+        s = pre + 1;
+        strdelete(s, e - pre);
+        back--;
+      } else {
+        s = e + 1;
+      }
+    } else {
+      s = e + 1;
+      back++;
+    }
+    e = strchr(s, SEP);
+  }
+  if (s[0] == '.' && s[1] == '.' && s[2] == '\0' && back > 0) {
+    char* pre = findrchr(s - 3, SEP);
+    *pre = '\0';
+  }
+}
+
+static int l_abspath(lua_State* L) {
+  size_t len = 0;
+  const char* path = luaL_checklstring(L, 1, &len);
+  char buff[PATH_MAX];
+#if defined(_WIN32)
+  if (len >= 3 && isalpha(path[0]) && path[1] == ':' && (path[2] == '/' || path[2] == '\\')) {
+    strcpy(buff, path); // absolute path
+  } else {
+    getcwd(buff, PATH_MAX);
+    if (len > 0) {
+      strcat(buff, "\\");
+      strcat(buff, path);
+    }
+  }
+  strreplace(buff, '/', '\\');
+#else
+  if (*path == '/') {
+    strcpy(buff, path); // absolute path
+  } else {
+    getcwd(buff, PATH_MAX);
+    if (len > 0) {
+      strcat(buff, "/");
+      strcat(buff, path);
+    }
+  }
+  strreplace(buff, '\\', '/');
+#endif
+  clean_path(buff);
+  lua_pushstring(L, buff);
+  return 1;
+}
+
+static int l_dirname(lua_State* L) {
+  const char* path = luaL_checkstring(L, 1);
+  char buff[PATH_MAX];
+  strcpy(buff, path);
+#if defined(_WIN32)
+  strreplace(buff, '/', '\\');
+#else
+  strreplace(buff, '\\', '/');
+#endif
+  char* e = strrchr(buff, SEP);
+  if (e == NULL) {
+    lua_pushliteral(L, ".");
+  } else if (e == buff) {
+    buff[0] = SEP;
+    buff[1] = '\0';
+    lua_pushstring(L, buff);
+  } else {
+    *e = '\0';
+    clean_path(buff);
+    lua_pushstring(L, buff);
+  }
+  return 1;
+}
+
+static int l_basename(lua_State* L) {
+  const char* path = luaL_checkstring(L, 1);
+  char buff[PATH_MAX];
+  strcpy(buff, path);
+#if defined(_WIN32)
+  strreplace(buff, '/', '\\');
+#else
+  strreplace(buff, '\\', '/');
+#endif
+  char* e = strrchr(buff, SEP);
+  if (e == NULL) {
+    lua_pushvalue(L, 1);
+  } else {
+    lua_pushstring(L, e + 1);
+  }
+  return 1;
+}
+
 static const struct luaL_Reg dirlib[] = {
     {"open", l_dir},
     {"dirs", l_dir},
@@ -168,6 +331,9 @@ static const struct luaL_Reg dirlib[] = {
     {"rmdir", l_rmdir},
     {"cwd", l_cwd},
     {"chdir", l_chdir},
+    {"abspath", l_abspath},
+    {"dirname", l_dirname},
+    {"basename", l_basename},
     {NULL, NULL},
 };
 
