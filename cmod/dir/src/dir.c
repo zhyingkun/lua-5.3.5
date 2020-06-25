@@ -38,7 +38,7 @@ typedef struct {
 
 #elif defined(__linux__)
 
-#define _BSD_SOURCE
+#define __USE_MISC
 #include <dirent.h>
 #define SEP '/'
 #define ANOTHER_SEP '\\'
