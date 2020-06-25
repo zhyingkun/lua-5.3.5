@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h> // for realloc
 #include <sys/stat.h> // for mkdir
-#include <unistd.h> // for rmdir/chdir/getcwd
 
 #include <lauxlib.h>
 #include <lua.h>
@@ -29,16 +28,15 @@ typedef struct {
 #define SEP '\\'
 #define ANOTHER_SEP '/'
 
-#elif defined(__APPLE__)
+#else
 
+#if defined(__APPLE__)
 #define _DARWIN_C_SOURCE
-#include <dirent.h>
-#define SEP '/'
-#define ANOTHER_SEP '\\'
-
 #elif defined(__linux__)
-
 #define __USE_MISC
+#endif
+
+#include <unistd.h> // for rmdir/chdir/getcwd
 #include <dirent.h>
 #define SEP '/'
 #define ANOTHER_SEP '\\'

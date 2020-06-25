@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <unistd.h>
 
 #include <lua.h>
 #include <lualib.h>
@@ -12,6 +11,7 @@
 #include <windows.h>
 #define PATH_MAX MAX_PATH
 #else
+#include <unistd.h>
 #endif
 
 static char script[PATH_MAX + 1];
