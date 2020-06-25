@@ -1210,6 +1210,83 @@ LUALIB_API const char* luaL_gsub(lua_State* L, const char* s, const char* p, con
   return lua_tostring(L, -1);
 }
 
+/*
+** {======================================================
+** Memory Pool, Maybe Object Pool
+** =======================================================
+*/
+
+#define arrayaddr(mem, sblock, index) ((void*)(((char*)mem) + (sblock * index)))
+#define setpointer(addr, value) (*(void**)(addr) = (value))
+#define getpointer(addr) (*(void**)addr)
+#define isinpool(p, ptr) (ptr >= p->first && ptr <= p->last)
+#define isempty(p) (p->list == NULL)
+
+typedef struct MemPool {
+  void* first;
+  void* last;
+  void* list; // free list head
+  size_t size;
+  size_t sblock; // size of block
+} MemPool;
+
+static MemPool* pool_new(size_t size, size_t sblock) {
+  MemPool* p = (MemPool*)malloc(sizeof(MemPool));
+  void* mem = malloc(size * sblock);
+  void* last = arrayaddr(mem, sblock, size - 1);
+
+  p->first = mem;
+  p->last = last;
+  p->list = mem; // list points to the first block
+  p->size = size;
+  p->sblock = sblock;
+
+  setpointer(last, NULL); // last block points to nothing
+  for (size_t i = 0, j = 1; j < size; i++, j++) { // initial list
+    setpointer(arrayaddr(mem, sblock, i), arrayaddr(mem, sblock, j));
+  }
+  return p;
+}
+
+static void pool_release(MemPool* p) {
+  free(p->first);
+  free(p);
+}
+
+static void* pool_malloc(MemPool* p) {
+  void* addr = p->list;
+  p->list = getpointer(addr);
+  return addr;
+}
+
+static void pool_free(MemPool* p, void* ptr) {
+  setpointer(ptr, p->list);
+  p->list = ptr;
+}
+
+/* }====================================================== */
+
+static void* l_alloc_z(void* ud, void* ptr, size_t osize, size_t nsize) {
+  MemPool* p = (MemPool*)ud;
+  if (nsize == 0) {
+    if (isinpool(p, ptr)) {
+      pool_free(p, ptr);
+    } else {
+      free(ptr);
+    }
+    return NULL;
+  }
+  if (ptr == NULL && !isempty(p)) {
+    if (nsize == sizeof(Table) && osize == LUA_TTABLE) {
+      return pool_malloc(p);
+    }
+  }
+  if (isinpool(p, ptr)) {
+    return NULL; // error occur
+  }
+  return realloc(ptr, nsize);
+}
+
 static void* l_alloc(void* ud, void* ptr, size_t osize, size_t nsize) {
   (void)ud;
   (void)osize; /* not used */
@@ -1240,6 +1317,39 @@ LUALIB_API void luaL_checkversion_(lua_State* L, lua_Number ver, size_t sz) {
     luaL_error(L, "multiple Lua VMs detected");
   else if (*v != ver)
     luaL_error(L, "version mismatch: app. needs %f, Lua core provides %f", (LUAI_UACNUMBER)ver, (LUAI_UACNUMBER)*v);
+}
+
+#define POOL_SIZE 2048
+
+LUALIB_API lua_State* luaL_newstate_z(void) {
+  MemPool* p = pool_new(POOL_SIZE, sizeof(Table));
+#if 0
+  void* tmp = pool_malloc(p);
+  assert(tmp == p->first);
+  pool_free(p, tmp);
+  assert(p->list == p->first);
+  void* ptr[POOL_SIZE];
+  for (size_t i = 0; i < POOL_SIZE; i++) {
+    ptr[i] = pool_malloc(p);
+    assert(isinpool(p, ptr[i]));
+  }
+  assert(ptr[POOL_SIZE - 1] == p->last);
+  assert(p->list == NULL);
+  for (size_t i = 0; i < POOL_SIZE; i++) {
+    pool_free(p, ptr[i]);
+    assert(isinpool(p, p->list));
+  }
+  assert(p->list == p->first);
+#endif
+  lua_State* L = lua_newstate(l_alloc_z, (void*)p);
+  if (L)
+    lua_atpanic(L, &panic);
+  return L;
+}
+
+LUA_API void luaL_close_z(lua_State* L) {
+  pool_release((MemPool*)L->l_G->ud);
+  lua_close(L);
 }
 
 /*
