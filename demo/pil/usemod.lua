@@ -29,14 +29,21 @@ print("======================================================================")
 do
 	local dir = require("libdir")
 	local tbl = {}
-	for name in dir.open(".") do  tbl[#tbl + 1] = name end
-	print("ls:", table.unpack(tbl))
+	for name, isdir in dir.open(".") do  tbl[name] = isdir end
+	print("ls:", tostring(tbl, 1))
 	print("cwd:", dir.cwd())
-	print("mkdir:", dir.mkdir("_tmp_"))
+	print("mkdir:", dir.mkdir("_tmp_/tmp", false))
 	print("chdir:", dir.chdir("_tmp_"))
 	print("cwd:", dir.cwd())
 	print("chdir:", dir.chdir(".."))
+	print("rmdir:", dir.rmdir("_tmp_/tmp"))
 	print("rmdir:", dir.rmdir("_tmp_"))
+	print(dir.abspath(""))
+	print(dir.abspath("../a/b/c/d/../.."))
+	print(dir.dirname(""))
+	print(dir.dirname("../a/b/c/../d/e/f/../.."))
+	print(dir.basename(""))
+	print(dir.basename("a/b/c/d.txt"))
 end
 print("======================================================================")
 do
