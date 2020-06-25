@@ -34,7 +34,7 @@ add_executable(${PROJECT_NAME} ${RUNNER_SRC})
 target_link_libraries(${PROJECT_NAME} liblua)
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	FOLDER "demo"
-	# INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
+	INSTALL_RPATH .
 )
 
 # install(TARGETS ${PROJECT_NAME}
