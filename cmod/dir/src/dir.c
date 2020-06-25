@@ -5,11 +5,16 @@
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h> // for realloc
+#include <sys/stat.h> // for mkdir
+#include <unistd.h> // for rmdir/chdir/getcwd
 
 #include <lauxlib.h>
 #include <lua.h>
 
 #if defined(_WIN32)
+
+#include <windows.h>
 #include <io.h>
 typedef int Bool_;
 #define bool Bool_
@@ -20,25 +25,24 @@ typedef struct {
   intptr_t fh;
   bool first;
 } Directory;
-#else
-#if defined(__APPLE__)
-#define _DARWIN_C_SOURCE
-#elif defined(__linux__)
-#define _BSD_SOURCE
-#endif
-#include <dirent.h>
-#endif
-
-#include <stdlib.h> // for realloc
-#include <sys/stat.h> // for mkdir
-
-#if defined(_WIN32)
-#include <windows.h>
 #define PATH_MAX MAX_PATH
 #define SEP '\\'
-#else
-#include <unistd.h> // for rmdir/chdir/getcwd
+#define ANOTHER_SEP '/'
+
+#elif defined(__APPLE__)
+
+#define _DARWIN_C_SOURCE
+#include <dirent.h>
 #define SEP '/'
+#define ANOTHER_SEP '\\'
+
+#elif defined(__linux__)
+
+#define _BSD_SOURCE
+#include <dirent.h>
+#define SEP '/'
+#define ANOTHER_SEP '\\'
+
 #endif
 
 static int dir_iter(lua_State* L) {
@@ -258,25 +262,24 @@ static int l_abspath(lua_State* L) {
   if (len >= 3 && isalpha(path[0]) && path[1] == ':' && (path[2] == '/' || path[2] == '\\')) {
     strcpy(buff, path); // absolute path
   } else {
-    getcwd(buff, PATH_MAX);
+    (void)getcwd(buff, PATH_MAX);
     if (len > 0) {
       strcat(buff, "\\");
       strcat(buff, path);
     }
   }
-  strreplace(buff, '/', '\\');
 #else
   if (*path == '/') {
     strcpy(buff, path); // absolute path
   } else {
-    getcwd(buff, PATH_MAX);
+    (void)getcwd(buff, PATH_MAX);
     if (len > 0) {
       strcat(buff, "/");
       strcat(buff, path);
     }
   }
-  strreplace(buff, '\\', '/');
 #endif
+  strreplace(buff, ANOTHER_SEP, SEP);
   clean_path(buff);
   lua_pushstring(L, buff);
   return 1;
