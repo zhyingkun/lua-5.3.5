@@ -1,5 +1,12 @@
 #define LUA_LIB // for export function
 
+// for DT_DIR
+#if defined(__APPLE__)
+#define _DARWIN_C_SOURCE
+#elif defined(__linux__)
+#define _BSD_SOURCE
+#endif
+
 #include <lprefix.h> // must include first
 
 #include <errno.h>
@@ -29,12 +36,6 @@ typedef struct {
 #define ANOTHER_SEP '/'
 
 #else
-
-#if defined(__APPLE__)
-#define _DARWIN_C_SOURCE
-#elif defined(__linux__)
-#define __USE_MISC
-#endif
 
 #include <unistd.h> // for rmdir/chdir/getcwd
 #include <dirent.h>
