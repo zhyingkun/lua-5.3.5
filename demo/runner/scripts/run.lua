@@ -1,12 +1,15 @@
-local exe = require("libdir").basename(arg[0])
 local cpath
 if os.sysname == "Windows" then
 	cpath = ".\\cmods\\?.dll;"
-	exe = exe:sub(1, -5)
 else
 	cpath = "./cmods/?.so;"
 end
 package.cpath = cpath .. package.cpath
+
+local exe = require("libdir").basename(arg[0])
+if os.sysname == "Windows" then
+	exe = exe:sub(1, -5)
+end
 
 if exe == "runner" then
 	print("Hello runner")
