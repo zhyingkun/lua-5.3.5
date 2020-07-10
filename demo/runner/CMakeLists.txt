@@ -34,7 +34,7 @@ add_executable(${PROJECT_NAME} ${RUNNER_SRC})
 target_link_libraries(${PROJECT_NAME} liblua)
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	FOLDER "demo"
-	INSTALL_RPATH .
+	INSTALL_RPATH ./lib
 )
 
 # install(TARGETS ${PROJECT_NAME}
