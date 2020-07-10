@@ -10,5 +10,5 @@ xcshareddata
 UserInterfaceState.xcuserstate
 UserInterface.xcuserstate
 
-luawithlib/Android/libs/
-luawithlib/Android/obj/
+luawithlib/Android/libs
+luawithlib/Android/obj
