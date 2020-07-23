@@ -148,6 +148,8 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 9. 增加 debug.protoinfo 函数，用于获取函数原型信息，接收三个参数：Lua 函数、是否递归、原型选项。其中，原型选项为字符串"hcklupz"，每一个字符代表打印一种信息，分别为：header、codes、constants、locals、upvalues、protos、zykstyle
 10. 增加 os.sysname 字段，为一个预编译定义的字符串，用于获取当前系统类型
 11. 针对函数 utf8.char 添加新的用法：第一个参数传入一个 Lua 闭包，每次执行该闭包返回一个 codepoint，返回 nil 表示结束
+12. 针对函数 string.char 添加新的用法：第一个参数传入一个 Lua 闭包，每次执行该闭包返回一个 ASCII 字符，返回 nil 表示结束
+13. 增加 string.bytes 函数，是字节版的 utf.codes，用于遍历所有字节
 
 ---
 
