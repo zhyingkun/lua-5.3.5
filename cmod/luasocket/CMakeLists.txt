@@ -97,3 +97,5 @@ install(TARGETS ${PROJECT_NAME}
 	LIBRARY DESTINATION lib/lua/5.3
 	ARCHIVE DESTINATION lib/lua/5.3
 )
+
+install(TARGETS luasocket LIBRARY DESTINATION runner/cmods)

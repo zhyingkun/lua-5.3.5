@@ -42,3 +42,5 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 # 	LIBRARY DESTINATION lib
 # 	ARCHIVE DESTINATION lib
 # )
+install(TARGETS runner RUNTIME DESTINATION runner)
+install(DIRECTORY scripts DESTINATION runner)

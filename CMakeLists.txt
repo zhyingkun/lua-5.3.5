@@ -32,11 +32,3 @@ add_subdirectory(cmod)
 # add_subdirectory(luawithlib)
 add_subdirectory(demo)
 add_subdirectory(tools)
-
-install(TARGETS runner RUNTIME DESTINATION runner)
-install(TARGETS liblua
-	RUNTIME DESTINATION runner
-	LIBRARY DESTINATION runner/lib
-)
-install(TARGETS dir gb2312 luasocket LIBRARY DESTINATION runner/cmods)
-install(DIRECTORY demo/runner/scripts DESTINATION runner)

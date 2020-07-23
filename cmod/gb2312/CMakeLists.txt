@@ -54,6 +54,8 @@ install(TARGETS ${PROJECT_NAME}
 	ARCHIVE DESTINATION lib/lua/5.3
 )
 
+install(TARGETS gb2312 LIBRARY DESTINATION runner/cmods)
+
 aux_source_directory(./test GB2312_TEST_SRC)
 source_group(src FILES ${GB2312_TEST_SRC})
 add_executable(gb2312-test ${GB2312_TEST_SRC} ${GB2312MOD_SRC} ${GB2312_HEADERS})
