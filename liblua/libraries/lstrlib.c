@@ -166,8 +166,57 @@ static int str_byte(lua_State* L) {
   return n;
 }
 
+static int bytes_iterator(lua_State* L) {
+  const char* s = lua_tostring(L, lua_upvalueindex(1));
+  lua_Integer posi = lua_tointeger(L, lua_upvalueindex(2));
+  lua_Integer pose = lua_tointeger(L, lua_upvalueindex(3));
+  if (posi > pose)
+    return 0; /* empty interval; return no values */
+  lua_pushinteger(L, posi + 1);
+  lua_replace(L, lua_upvalueindex(2));
+  lua_pushinteger(L, uchar(s[posi]));
+  return 1;
+}
+
+// string.bytes("xxx" [, i [, j]])
+static int str_bytes(lua_State* L) {
+  size_t l;
+  (void)luaL_checklstring(L, 1, &l);
+  lua_Integer posi = posrelat(luaL_optinteger(L, 2, 1), l);
+  lua_Integer pose = posrelat(luaL_optinteger(L, 3, l), l);
+  if (posi < 1)
+    posi = 1;
+  if (pose > (lua_Integer)l)
+    pose = l;
+  if (pose - posi >= INT_MAX) /* arithmetic overflow? */
+    return luaL_error(L, "string slice too long");
+
+  lua_pushvalue(L, 1);
+  lua_pushinteger(L, posi - 1); // minus one for convert lua index to c index
+  lua_pushinteger(L, pose - 1);
+  lua_pushcclosure(L, bytes_iterator, 3);
+  return 1;
+}
+
 // string.char(···)
 static int str_char(lua_State* L) {
+  if (lua_type(L, 1) == LUA_TFUNCTION) {
+    luaL_Buffer b;
+    luaL_buffinit(L, &b);
+#define GET_CODEPOINT(L, idx) (lua_pushvalue(L, idx), lua_call(L, 0, 1), lua_type(L, -1))
+    while (GET_CODEPOINT(L, 1) != LUA_TNIL) {
+      lua_Integer c = luaL_checkinteger(L, -1);
+      if (uchar(c) != c) {
+        luaL_error(L, "value out of range");
+      }
+      lua_pop(L, 1);
+      luaL_addchar(&b, uchar(c));
+    }
+    lua_pop(L, 1);
+#undef GET_CODEPOINT
+    luaL_pushresult(&b);
+    return 1;
+  }
   int n = lua_gettop(L); /* number of arguments */
   int i;
   luaL_Buffer b;
@@ -1598,24 +1647,11 @@ static int str_unpack(lua_State* L) {
 /* }====================================================== */
 
 static const luaL_Reg strlib[] = {
-    {"byte", str_byte},
-    {"char", str_char},
-    {"dump", str_dump},
-    {"find", str_find},
-    {"format", str_format},
-    {"gmatch", gmatch},
-    {"gsub", str_gsub},
-    {"len", str_len},
-    {"lower", str_lower},
-    {"match", str_match},
-    {"rep", str_rep},
-    {"reverse", str_reverse},
-    {"sub", str_sub},
-    {"upper", str_upper},
-    {"pack", str_pack},
-    {"packsize", str_packsize},
-    {"unpack", str_unpack},
-    {NULL, NULL},
+    {"byte", str_byte},         {"bytes", str_bytes},   {"char", str_char},   {"dump", str_dump},
+    {"find", str_find},         {"format", str_format}, {"gmatch", gmatch},   {"gsub", str_gsub},
+    {"len", str_len},           {"lower", str_lower},   {"match", str_match}, {"rep", str_rep},
+    {"reverse", str_reverse},   {"sub", str_sub},       {"upper", str_upper}, {"pack", str_pack},
+    {"packsize", str_packsize}, {"unpack", str_unpack}, {NULL, NULL},
 };
 
 static void createmetatable(lua_State* L) {
