@@ -15,6 +15,7 @@ add_subdirectory(luasocket)
 add_subdirectory(boolarray)
 add_subdirectory(dir)
 add_subdirectory(gb2312)
+add_subdirectory(man)
 
 if(NOT WIN32)
 	add_subdirectory(lproc)
