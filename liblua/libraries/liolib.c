@@ -666,6 +666,11 @@ static int f_flush(lua_State* L) {
   return luaL_fileresult(L, fflush(tofile(L)) == 0, NULL);
 }
 
+static int f_fileno(lua_State* L) {
+  lua_pushinteger(L, fileno(tofile(L)));
+  return 1;
+}
+
 /*
 ** functions for 'io' library
 */
@@ -695,6 +700,7 @@ static const luaL_Reg flib[] = {
     {"seek", f_seek},
     {"setvbuf", f_setvbuf},
     {"write", f_write},
+    {"fileno", f_fileno},
     {"__gc", f_gc},
     {"__tostring", f_tostring},
     {NULL, NULL},
