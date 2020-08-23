@@ -31,8 +31,8 @@ include_directories(../../liblua/include)
 include_directories(../../liblua/core)
 include_directories(./src)
 
-include_directories(/usr/local/zyk/libuv/include/libuv)
-link_directories(/usr/local/zyk/libuv/lib)
+include_directories(${CMAKE_INSTALL_PREFIX}/../libuv/include/libuv)
+link_directories(${CMAKE_INSTALL_PREFIX}/../libuv/lib)
 
 aux_source_directory(./src UVWRAP_MOD_SRC)
 file(GLOB UVWRAP_HEADERS "./src/*.h")
@@ -45,6 +45,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	# VERSION "0.1.0"
 	# SOVERSION "0.1.0"
 	INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
+	INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/../libuv/lib
 	POSITION_INDEPENDENT_CODE ON
 )
 target_link_libraries(${PROJECT_NAME} liblua uv)
