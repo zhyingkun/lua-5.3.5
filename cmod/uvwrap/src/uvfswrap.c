@@ -163,11 +163,11 @@ LUAI_DDEF int uvwrap_fs_read(lua_State* L) {
   int ret = 1;
   if (!async) {
     FREE_REQ(req);
-    FREE_BUF(buf);
     if (result > 0) {
       lua_pushlstring(L, buf->base, result);
       ret++;
     }
+    FREE_BUF(buf);
   }
   return ret;
 }
