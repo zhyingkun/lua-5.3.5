@@ -22,7 +22,7 @@
 #define ALLOCA_REQ(req, L) \
   do { \
     req = (uv_fs_t*)uvwrap_fs_buf_t_alloc(); \
-    uv_req_set_data(req, L); \
+    uv_req_set_data((uv_req_t*)req, L); \
   } while (0)
 
 #define FREE_REQ(req) \
@@ -33,7 +33,7 @@
 
 #define PUSH_CALLBACK_FOR_REQ(L, req) \
   do { \
-    L = (lua_State*)uv_req_get_data(req); \
+    L = (lua_State*)uv_req_get_data((uv_req_t*)req); \
     lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)req); \
   } while (0)
 
