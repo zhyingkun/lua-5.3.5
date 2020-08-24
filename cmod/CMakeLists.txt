@@ -16,6 +16,7 @@ add_subdirectory(boolarray)
 add_subdirectory(dir)
 add_subdirectory(gb2312)
 add_subdirectory(man)
+add_subdirectory(uvwrap)
 
 if(NOT WIN32)
 	add_subdirectory(lproc)
