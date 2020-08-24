@@ -9,6 +9,19 @@ compiler:
   - gcc
   - clang
 
+# before_install:
+#   - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get install -y libuv1-dev ; fi
+#   - if [ $TRAVIS_OS_NAME == osx ]; then sudo brew install libuv ; fi
+
+addons:
+  apt:
+    packages:
+      - libuv1-dev
+  homebrew:
+    packages:
+      - libuv
+    update: true
+
 script:
   - mkdir build && cd build
   - if [ $TRAVIS_OS_NAME == linux ];   then cmake -DCMAKE_BUILD_TYPE=Release .. && make && ./liblua/test/liblua_Test && ./cmod/gb2312/gb2312-test ; fi
