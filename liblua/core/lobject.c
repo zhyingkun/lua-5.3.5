@@ -341,6 +341,18 @@ static const char* l_str2int(const char* s, lua_Integer* result) {
       a = a * 16 + luaO_hexavalue(*s);
       empty = 0;
     }
+  } else if (s[0] == '0' && (s[1] == 'o' || s[1] == 'O')) { /* octal? */
+    s += 2; /* skip '0o'*/
+    for (; lisodigit(cast_uchar(*s)); s++) {
+      a = a * 8 + luaO_hexavalue(*s);
+      empty = 0;
+    }
+  } else if (s[0] == '0' && (s[1] == 'b' || s[1] == 'B')) { /* binary? */
+    s += 2; /* skip '0b'*/
+    for (; lisbdigit(cast_uchar(*s)); s++) {
+      a = a * 2 + luaO_hexavalue(*s);
+      empty = 0;
+    }
   } else { /* decimal */
     for (; lisdigit(cast_uchar(*s)); s++) {
       int d = *s - '0';

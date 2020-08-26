@@ -201,8 +201,13 @@ static int read_numeral(LexState* ls, SemInfo* seminfo) {
   int first = ls->current;
   lua_assert(lisdigit(ls->current));
   save_and_next(ls);
-  if (first == '0' && check_next2(ls, "xX")) /* hexadecimal? */
-    expo = "Pp";
+  if (first == '0') {
+    if (check_next2(ls, "xX")) { /* hexadecimal? */
+      expo = "Pp";
+    } else if (check_next2(ls, "oO")) { /* octal? */
+    } else if (check_next2(ls, "bB")) { /* binary? */
+    }
+  }
   for (;;) {
     if (check_next2(ls, expo)) /* exponent part? */
       check_next2(ls, "-+"); /* optional exponent sign */
