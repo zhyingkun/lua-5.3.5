@@ -9,11 +9,30 @@
 
 #include <objectpool.h>
 
+LUAI_DDEF void uvwrap_alloc_buffer(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
+  (void)handle;
+  buf->base = (char*)malloc(suggested_size);
+  buf->len = suggested_size;
+}
+
+LUAI_DDEF void uvwrap_free_buffer(uv_handle_t* handle, const uv_buf_t* buf) {
+  (void)handle;
+  free(buf->base);
+}
+
 LUAI_DDEF uvwrap_fs_buf_t* uvwrap_fs_buf_t_alloc() {
   return (uvwrap_fs_buf_t*)malloc(sizeof(uvwrap_fs_buf_t));
 }
 
 LUAI_DDEF void uvwrap_fs_buf_t_free(uvwrap_fs_buf_t* req) {
+  free((void*)req);
+}
+
+LUAI_DDEF uvwrap_write_buf_t* uvwrap_write_buf_t_alloc() {
+  return (uvwrap_write_buf_t*)malloc(sizeof(uvwrap_write_buf_t));
+}
+
+LUAI_DDEF void uvwrap_write_buf_t_free(uvwrap_write_buf_t* req) {
   free((void*)req);
 }
 
@@ -33,4 +52,12 @@ LUAI_DDEF void* uvwrap_malloc(size_t size) {
 
 LUAI_DDEF void uvwrap_free(void* buf) {
   free((void*)buf);
+}
+
+LUAI_DDEF uv_work_t* uvwrap_work_t_alloc() {
+  return (uv_work_t*)malloc(sizeof(uv_work_t));
+}
+
+LUAI_DDEF void uvwrap_work_t_free(uv_work_t* req) {
+  free((void*)req);
 }
