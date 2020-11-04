@@ -187,6 +187,21 @@ static int l_cwd(lua_State* L) {
   return result;
 }
 
+#ifdef _WIN32
+static int win_chdir(const char* path, size_t len) {
+  wchar_t wpath[4096];
+  int winsz = MultiByteToWideChar(CP_UTF8, 0, path, len, wpath, 4096);
+  if (winsz == 0) {
+    return -1;
+  }
+  wpath[winsz] = 0;
+  if (SetCurrentDirectoryW(wpath) == 0) {
+    return -2;
+  }
+  return 0;
+}
+#endif
+
 static int l_chdir(lua_State* L) {
   const char* path = luaL_checkstring(L, 1);
   int res = chdir(path);
