@@ -23,6 +23,7 @@ cd lua-5.3.5/
 mkdir buildXcode && cd buildXcode
 cmake -DCMAKE_INSTALL_PREFIX=./install -G "Xcode" ..
 # cmake -DCMAKE_INSTALL_PREFIX=/usr/local/zyk/lua -G "Xcode" ..
+# for some cmake version: -DCMAKE_OSX_ARCHITECTURES=x86_64
 ```
 
 此时已经在 buildXcode 文件夹下生成了 Xcode 工程，直接打开并编译即可
