@@ -94,7 +94,6 @@ ndk-build -B # rebuild project
    - gb2312：类似 utf8 标准库实现的 gb2312 模块
    - hello：helloworld
    - lproc：《Lua 程序设计》中的多线程模块，使用 pthread
-   - luanet：将 Lua 虚拟机嵌入 UnityC# 的中间层
    - luasocket：封装了 socket 接口，代码来自[LuaSocket](https://github.com/diegonehab/luasocket)
 2. demo：用于测试的 Demo
    - c-call-lua：C 作为宿主，调用 Lua 来完成操作

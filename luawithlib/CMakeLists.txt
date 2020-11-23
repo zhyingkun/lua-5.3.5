@@ -30,7 +30,6 @@ endif()
 
 include_directories(../liblua/include)
 include_directories(../liblua/core)
-include_directories(../cmod/luanet/include)
 
 aux_source_directory(../liblua/core LUA_CORE_SRC)
 aux_source_directory(../liblua/libraries LUA_LIBRARIES_SRC)
@@ -59,14 +58,12 @@ else(WIN32)
 endif(WIN32)
 
 set(LUASOCKET_SRC ${LUASOCKET_MIME_SRC} ${LUASOCKET_SOCKET_SRC} ${LUASOCKET_PLATFORM})
-aux_source_directory(../cmod/luanet/src LUA_NET_SRC)
 
 source_group(liblua FILES ${LIBLUA_SRC})
 source_group(luasocket FILES ${LUASOCKET_SRC})
-source_group(luanet FILES ${LUA_NET_SRC})
 
 #dynamic load library  .so .bundle : MODULE
-add_library(${PROJECT_NAME} SHARED ${LIBLUA_SRC} ${LUASOCKET_SRC} ${LUA_NET_SRC})
+add_library(${PROJECT_NAME} SHARED ${LIBLUA_SRC} ${LUASOCKET_SRC})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	# OUTPUT_NAME "luawithlib"

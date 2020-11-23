@@ -13,7 +13,6 @@ LOCAL_C_INCLUDES += $(LUA_PROJECT_PATH)/cmod/luasocket/mime
 LOCAL_C_INCLUDES += $(LUA_PROJECT_PATH)/cmod/luasocket/socket
 LOCAL_C_INCLUDES += $(LUA_PROJECT_PATH)/cmod/luasocket/socket/unix
 LOCAL_C_INCLUDES += $(LUA_PROJECT_PATH)/cmod/luasocket/unix
-LOCAL_C_INCLUDES += $(LUA_PROJECT_PATH)/cmod/luanet/include
 
 LOCAL_CFLAGS := -std=gnu99 -DLUA_USE_LINUX
 

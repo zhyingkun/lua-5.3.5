@@ -28,7 +28,6 @@ SrcDirInProj=(
     "liblua/core"
     "liblua/libraries"
     "cmod/luasocket"
-    "cmod/luanet/src"
 );
 
 for dir in ${SrcDirInProj[@]}; do

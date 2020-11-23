@@ -10,8 +10,6 @@ message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
 
 add_subdirectory(hello)
 add_subdirectory(luasocket)
-# luanet must static link with liblua
-# add_subdirectory(luanet)
 add_subdirectory(boolarray)
 add_subdirectory(dir)
 add_subdirectory(gb2312)
