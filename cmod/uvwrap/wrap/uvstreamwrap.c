@@ -38,7 +38,7 @@ static uv_stream_t* luaL_checkstream(lua_State* L, int idx) {
   return NULL;
 }
 
-static void uvwrap_stream_on_connection(uv_stream_t* server, int status) {
+static void on_stream_connection(uv_stream_t* server, int status) {
   lua_State* L = (lua_State*)uv_handle_get_data((uv_handle_t*)server);
   PUSH_HOLD_OBJECT(L, server, 0);
   PUSH_HOLD_OBJECT(L, server, 1);
@@ -59,7 +59,7 @@ static int uvwrap_stream_listen(lua_State* L) {
 #undef idx
 #undef hold_handle
   uv_handle_set_data((uv_handle_t*)handle, (void*)L);
-  int ret = uv_listen(handle, backlog, uvwrap_stream_on_connection);
+  int ret = uv_listen(handle, backlog, on_stream_connection);
   lua_pushinteger(L, ret);
   return 1;
 }
@@ -71,7 +71,7 @@ static int uvwrap_stream_accept(lua_State* L) {
   return 1;
 }
 
-static void uvwrap_stream_on_read_start(uv_stream_t* client, ssize_t nread, const uv_buf_t* buf) {
+static void on_stream_read_start(uv_stream_t* client, ssize_t nread, const uv_buf_t* buf) {
   lua_State* L = (lua_State*)uv_handle_get_data((uv_handle_t*)client);
   PUSH_HOLD_OBJECT(L, client, 0);
   PUSH_HOLD_OBJECT(L, client, 1);
@@ -97,12 +97,12 @@ static int uvwrap_stream_read_start(lua_State* L) {
 #undef idx
 #undef hold_handle
   uv_handle_set_data((uv_handle_t*)handle, (void*)L);
-  int ret = uv_read_start(handle, uvwrap_alloc_buffer, uvwrap_stream_on_read_start);
+  int ret = uv_read_start(handle, uvwrap_alloc_buffer, on_stream_read_start);
   lua_pushinteger(L, ret);
   return 1;
 }
 
-static void uvwrap_stream_on_write(uv_write_t* req, int status) {
+static void on_stream_write(uv_write_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK(L, req);
   lua_pushinteger(L, status);
@@ -125,7 +125,7 @@ static int uvwrap_stream_write(lua_State* L) {
   wreq->buf.base = (char*)data;
   wreq->buf.len = len;
   uv_write_cb cb;
-  SET_REQ_CALLBACK(L, idx, wreq, cb, uvwrap_stream_on_write);
+  SET_REQ_CALLBACK(L, idx, wreq, cb, on_stream_write);
   HOLD_LUA_OBJECT(L, handle, 1, hold_handle);
   HOLD_LUA_OBJECT(L, handle, 2, hold_data);
 #undef idx

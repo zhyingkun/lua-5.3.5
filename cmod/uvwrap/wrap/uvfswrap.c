@@ -29,7 +29,7 @@
 
 #define CHECK_IS_ASYNC(L, idx) (lua_type(L, idx) == LUA_TFUNCTION)
 
-static void uvwrap_on_fs_open(uv_fs_t* req) {
+static void on_fs_open(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK(L, req);
   lua_pushinteger(L, req->result);
@@ -51,7 +51,7 @@ LUAI_DDEF int uvwrap_fs_open(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, idx);
   uv_fs_cb cb = NULL;
   if (async) {
-    SET_REQ_CALLBACK(L, idx, req, cb, uvwrap_on_fs_open);
+    SET_REQ_CALLBACK(L, idx, req, cb, on_fs_open);
   }
 #undef idx
   int result = uv_fs_open(loop, req, filepath, flags, mode, cb);
@@ -63,7 +63,7 @@ LUAI_DDEF int uvwrap_fs_open(lua_State* L) {
   return 1;
 }
 
-static void uvwrap_on_fs_close(uv_fs_t* req) {
+static void on_fs_close(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK(L, req);
   lua_pcall(L, 0, 0, 0);
@@ -80,7 +80,7 @@ LUAI_DDEF int uvwrap_fs_close(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, idx);
   uv_fs_cb cb = NULL;
   if (async) {
-    SET_REQ_CALLBACK(L, idx, req, cb, uvwrap_on_fs_close);
+    SET_REQ_CALLBACK(L, idx, req, cb, on_fs_close);
   }
 #undef idx
   int result = uv_fs_close(loop, req, fd, cb);
@@ -103,7 +103,7 @@ static void push_read_string(lua_State* L, uv_fs_t* req) {
   FREE_BUF(buf);
 }
 
-static void uvwrap_on_fs_read(uv_fs_t* req) {
+static void on_fs_read(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK(L, req);
   lua_pushinteger(L, req->result);
@@ -123,7 +123,7 @@ LUAI_DDEF int uvwrap_fs_read(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, idx);
   uv_fs_cb cb = NULL;
   if (async) {
-    SET_REQ_CALLBACK(L, idx, req, cb, uvwrap_on_fs_read);
+    SET_REQ_CALLBACK(L, idx, req, cb, on_fs_read);
   }
 #undef idx
   uv_buf_t* buf;
@@ -140,7 +140,7 @@ LUAI_DDEF int uvwrap_fs_read(lua_State* L) {
   return ret;
 }
 
-static void uvwrap_on_fs_write(uv_fs_t* req) {
+static void on_fs_write(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK(L, req);
   lua_pushinteger(L, req->result);
@@ -163,7 +163,7 @@ LUAI_DDEF int uvwrap_fs_write(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, idx);
   uv_fs_cb cb = NULL;
   if (async) {
-    SET_REQ_CALLBACK(L, idx, req, cb, uvwrap_on_fs_write);
+    SET_REQ_CALLBACK(L, idx, req, cb, on_fs_write);
     HOLD_LUA_OBJECT(L, req, 1, hold_data);
   }
 #undef idx
@@ -180,7 +180,7 @@ LUAI_DDEF int uvwrap_fs_write(lua_State* L) {
   return 1;
 }
 
-static void uvwrap_on_fs_link(uv_fs_t* req) {
+static void on_fs_link(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK(L, req);
   lua_pushinteger(L, req->result);
@@ -199,7 +199,7 @@ LUAI_DDEF int uvwrap_fs_link(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, idx);
   uv_fs_cb cb = NULL;
   if (async) {
-    SET_REQ_CALLBACK(L, idx, req, cb, uvwrap_on_fs_link);
+    SET_REQ_CALLBACK(L, idx, req, cb, on_fs_link);
   }
 #undef idx
   int result = uv_fs_link(loop, req, path, new_path, cb);
@@ -210,7 +210,7 @@ LUAI_DDEF int uvwrap_fs_link(lua_State* L) {
   return 1;
 }
 
-static void uvwrap_on_fs_unlink(uv_fs_t* req) {
+static void on_fs_unlink(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK(L, req);
   lua_pushinteger(L, req->result);
@@ -228,7 +228,7 @@ LUAI_DDEF int uvwrap_fs_unlink(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, idx);
   uv_fs_cb cb = NULL;
   if (async) {
-    SET_REQ_CALLBACK(L, idx, req, cb, uvwrap_on_fs_unlink);
+    SET_REQ_CALLBACK(L, idx, req, cb, on_fs_unlink);
   }
 #undef idx
   int result = uv_fs_unlink(loop, req, path, cb);
@@ -239,7 +239,7 @@ LUAI_DDEF int uvwrap_fs_unlink(lua_State* L) {
   return 1;
 }
 
-static void uvwrap_on_fs_mkdir(uv_fs_t* req) {
+static void on_fs_mkdir(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK(L, req);
   lua_pushinteger(L, req->result);
@@ -258,7 +258,7 @@ LUAI_DDEF int uvwrap_fs_mkdir(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, idx);
   uv_fs_cb cb = NULL;
   if (async) {
-    SET_REQ_CALLBACK(L, idx, req, cb, uvwrap_on_fs_mkdir);
+    SET_REQ_CALLBACK(L, idx, req, cb, on_fs_mkdir);
   }
 #undef idx
   int result = uv_fs_mkdir(loop, req, path, mode, cb);
@@ -269,7 +269,7 @@ LUAI_DDEF int uvwrap_fs_mkdir(lua_State* L) {
   return 1;
 }
 
-static void uvwrap_on_fs_rmdir(uv_fs_t* req) {
+static void on_fs_rmdir(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK(L, req);
   lua_pushinteger(L, req->result);
@@ -287,7 +287,7 @@ LUAI_DDEF int uvwrap_fs_rmdir(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, idx);
   uv_fs_cb cb = NULL;
   if (async) {
-    SET_REQ_CALLBACK(L, idx, req, cb, uvwrap_on_fs_rmdir);
+    SET_REQ_CALLBACK(L, idx, req, cb, on_fs_rmdir);
   }
 #undef idx
   int result = uv_fs_rmdir(loop, req, path, cb);
@@ -324,7 +324,7 @@ static void push_ents_in_table(lua_State* L, uv_fs_t* req) {
   }
 }
 
-static void uvwrap_on_fs_scandir(uv_fs_t* req) {
+static void on_fs_scandir(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK(L, req);
   lua_pushinteger(L, req->result);
@@ -344,7 +344,7 @@ LUAI_DDEF int uvwrap_fs_scandir(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, idx);
   uv_fs_cb cb = NULL;
   if (async) {
-    SET_REQ_CALLBACK(L, idx, req, cb, uvwrap_on_fs_scandir);
+    SET_REQ_CALLBACK(L, idx, req, cb, on_fs_scandir);
   }
 #undef idx
   int result = uv_fs_scandir(loop, req, path, flags, cb); // path will be duplicate in libuv api
