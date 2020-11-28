@@ -18,9 +18,10 @@ static char script[PATH_MAX + 1];
 
 #if defined(_WIN32)
 #define DEFAULT_SCRIPT "scripts\\run.lua"
-static void resolve_absolute_path() {
+static void resolve_absolute_path(char* script, int len, const char* runner) {
+  (void)runner;
   char* lb;
-  DWORD nsize = sizeof(script) / sizeof(char);
+  DWORD nsize = len;
   DWORD n = GetModuleFileNameA(NULL, script, nsize); /* get exec. name */
   if (n == 0 || n == nsize || (lb = strrchr(script, '\\')) == NULL) {
     fprintf(stderr, "unable to get ModuleFileName, use default path\n");
@@ -33,9 +34,9 @@ static void resolve_absolute_path() {
 }
 #else
 #define DEFAULT_SCRIPT "scripts/run.lua"
-static void resolve_absolute_path(const char* runner) {
+static void resolve_absolute_path(char* script, int len, const char* runner) {
   if (*runner != '/') {
-    (void)getcwd(script, sizeof(script) / sizeof(char));
+    (void)getcwd(script, len);
     strcat(script, "/");
     strcat(script, runner);
   } else {
@@ -46,38 +47,50 @@ static void resolve_absolute_path(const char* runner) {
 }
 #endif
 
+#if defined(_WIN32)
+static int win_chdir(const char* path, size_t len) {
+  wchar_t wpath[4096];
+  int winsz = MultiByteToWideChar(CP_UTF8, 0, path, len, wpath, 4096);
+  if (winsz == 0) {
+    return -1;
+  }
+  wpath[winsz] = 0;
+  if (SetCurrentDirectoryW(wpath) == 0) {
+    return -2;
+  }
+  return 0;
+}
+#endif
+
 static int pmain(lua_State* L) {
   int argc = lua_tointeger(L, 1);
   char** argv = (char**)lua_topointer(L, 2);
 
-  lua_createtable(L, argc - 1, 1);
+  lua_createtable(L, argc - 1, 1); // index 0 is not in array part
   for (int i = 0; i < argc; i++) {
     lua_pushstring(L, argv[i]);
-    lua_seti(L, -2, i);
+    lua_rawseti(L, -2, i);
     // printf("%d : %s\n", i, argv[i]);
   }
   lua_setglobal(L, "arg");
 
+  resolve_absolute_path(script, sizeof(script) / sizeof(char), argv[0]);
+
 #if defined(_WIN32)
-  resolve_absolute_path();
+  if (win_chdir(script, strlen(script)) != 0) {
 #else
-  resolve_absolute_path(argv[0]);
-#endif
   if (chdir(script) != 0) {
-    fprintf(stderr, "chdir error: %s, path: %s\n", strerror(errno), script);
-    fflush(stderr);
-    return 0;
+#endif
+    return luaL_error(L, "chdir error: %s, path: %s\n", strerror(errno), script);
   }
   strcat(script, DEFAULT_SCRIPT);
   printf("main script: %s\n", script);
 
   int status = luaL_dofile(L, script);
   if (status != LUA_OK) {
-    const char* msg = lua_tolstring(L, -1, NULL);
-    fprintf(stderr, "luaL_dofile %s with error: %s\n", script, msg);
-    fflush(stderr);
+    return lua_error(L);
   }
-  return 0;
+  return status;
 }
 
 int main(int argc, char const* argv[]) {
