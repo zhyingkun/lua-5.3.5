@@ -96,6 +96,7 @@ ndk-build -B # rebuild project
    - lproc: 《Lua 程序设计》中的多线程模块，使用 pthread
    - luasocket: 封装了 socket 接口，代码来自[LuaSocket](https://github.com/diegonehab/luasocket)
    - man: 标准库函数简易文档，方便命令行操作时使用
+   - protobuf: C 语言实现的 protobuf，代码来自[pbc](https://github.com/cloudwu/pbc)
    - uvwrap: 封装了 libuv 库，用于支持事件驱动的异步 IO
 2. demo: 用于测试的 Demo
    - c-call-lua: C 作为宿主，调用 Lua 来完成操作
