@@ -54,7 +54,7 @@ install(TARGETS ${PROJECT_NAME}
 	ARCHIVE DESTINATION lib/lua/5.3
 )
 
-install(TARGETS gb2312 LIBRARY DESTINATION runner/cmods)
+install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION runner/cmods)
 
 aux_source_directory(./test GB2312_TEST_SRC)
 source_group(src FILES ${GB2312_TEST_SRC})

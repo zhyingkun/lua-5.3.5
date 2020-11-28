@@ -78,7 +78,7 @@ install(TARGETS ${PROJECT_NAME}
 )
 install(FILES ${LUA_HEADERS} DESTINATION include/lua)
 
-install(TARGETS liblua
+install(TARGETS ${PROJECT_NAME}
 	RUNTIME DESTINATION runner
 	LIBRARY DESTINATION runner/lib
 )
