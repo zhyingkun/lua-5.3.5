@@ -88,35 +88,42 @@ ndk-build -B # rebuild project
 
 ## 文件夹说明
 
-1. cmod：Lua 的 C 语言扩展模块
-   - boolarray：《Lua 程序设计》中的布尔数组，加了数组的交集和并集操作
-   - dir：《Lua 程序设计》中的遍历文件夹，加了 Win 版实现
-   - gb2312：类似 utf8 标准库实现的 gb2312 模块
-   - hello：helloworld
-   - lproc：《Lua 程序设计》中的多线程模块，使用 pthread
-   - luasocket：封装了 socket 接口，代码来自[LuaSocket](https://github.com/diegonehab/luasocket)
-2. demo：用于测试的 Demo
-   - c-call-lua：C 作为宿主，调用 Lua 来完成操作
-   - c-lang：C 语言特性示例
-   - pil：《Lua 程序设计》中的一部分示例代码
-   - stdlib：用 Lua 语言实现的部分 Lua 标准库函数
-3. etc：工程杂项
-   - fromlua：来自 lua 官方的相关文件，包括 lua 文档，留着方便查看
-   - vscodeMac：Mac 上 VSCode 的配置文件
-4. liblua：Lua 编译器和虚拟机的源码，称为 Lua 库
-   - core：Lua 核心 C 代码和 C 头文件
-   - include：Lua 源码中的外部使用头文件单独放到一个文件夹中
-   - libraries：Lua 自带的官方标准库
-   - test：扩展 Lua 功能的测试代码
-5. lua：Lua 官方命令行工具，带编译器和虚拟机，依赖 Lua 库
-6. luac：Lua 官方命令行编译器
-7. luawithlib：包含 lua 和 luaC 模块的运行时动态库（iOS 下是静态库）
-   - Android：安卓的 ndk-build 相关配置
-   - iOS：Xcode 工程
-   - MacOS：用于生成 MacOSX 下运行的 bundle
-8. tools：相关工具
-   - luatoken：用于查看词法分析 Token 的整数类型对应的含义
-   - luatt：用于查看 Lua Tag Type 的整数类型对应的含义
+1. cmod: Lua 的 C 语言扩展模块
+   - boolarray: 《Lua 程序设计》中的布尔数组，加了数组的交集和并集操作
+   - dir: 《Lua 程序设计》中的遍历文件夹，加了 Win 版实现
+   - gb2312: 类似 utf8 标准库实现的 gb2312 模块
+   - hello: helloworld
+   - lproc: 《Lua 程序设计》中的多线程模块，使用 pthread
+   - luasocket: 封装了 socket 接口，代码来自[LuaSocket](https://github.com/diegonehab/luasocket)
+   - man: 标准库函数简易文档，方便命令行操作时使用
+   - uvwrap: 封装了 libuv 库，用于支持事件驱动的异步 IO
+2. demo: 用于测试的 Demo
+   - c-call-lua: C 作为宿主，调用 Lua 来完成操作
+   - c-lang: C 语言特性示例
+   - lpg: 《Lua Programming Gems》中的一部分案例代码
+   - pil: 《Lua 程序设计》中的一部分示例代码
+   - runner: Lua 环境的独立运行工具
+   - stdlib: 用 Lua 语言实现的部分 Lua 标准库函数
+   - uvwrap: Lua 代码层对 libuv 的封装，方便使用
+3. etc: 工程杂项
+   - fromlua: 来自 Lua 官方的相关文件，包括 Lua 文档，留着方便查看
+   - logos: Lua 官方图标
+   - vscodeMac: Mac 上 VSCode 的配置文件
+   - win: 用于 Windows 上的系统运行时补丁
+4. liblua: Lua 编译器和虚拟机的源码，称为 Lua 库
+   - core: Lua 核心 C 代码和 C 头文件
+   - include: Lua 源码中的外部使用头文件单独放到一个文件夹中
+   - libraries: Lua 自带的官方标准库
+   - test: 扩展 Lua 功能的测试代码
+5. lua: Lua 官方命令行工具，带编译器和虚拟机，依赖 Lua 库
+6. luac: Lua 官方命令行编译器
+7. luawithlib: 包含 lua 和 luaC 模块的运行时动态库（iOS 下是静态库）
+   - Android: 安卓的 ndk-build 相关配置
+   - iOS: Xcode 工程
+   - MacOS: 用于生成 MacOSX 下运行的 bundle
+8. tools: 相关工具
+   - luatoken: 用于查看词法分析 Token 的整数类型对应的含义
+   - luatt: 用于查看 Lua Tag Type 的整数类型对应的含义
 
 ---
 
@@ -170,5 +177,3 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 1. luawithlib 在 Android 平台上仅支持 AndroidAPI21 及以上的 SDK，因为 API20 及以下不支持 C 标准库中的 localeconv 函数
 2. 目前在 Visual Studio 下无法直接调试运行链接了 dll 的 exe，执行 lua 等命令行需要执行上述命令行之后在 CMD 中运行，demo 下的 exe 则需要复制 liblua 编译出来的 lua.dll 到对应的 exe 目录下
 3. Xcode 中使用 Attach to process 进行调试会将阻塞于 readline 的目标进程(lua 命令)唤醒，没有字符输入，此时会被 Lua 识别成 EOF，该进程主动退出。因此，使用 attach 进行调试时需要先手动阻塞等待调试器的 attach（例如先调用一次 readline），另外，后续设置断点等操作也有可能造成进程的错误唤醒。比较彻底的做法是区分调试模式，在调试模式中遇到 EOF 不退出进程（lua 命令添加-d 参数，用于支持 debug attaching）
-4. `cmod/uvwrap` 模块依赖了 libuv 库，如果系统没有安装 libuv，那么需要将 `cmod/CMakeLists.txt` 配置文件中的 `add_subdirectory(uvwrap)`注释掉，才能编译通过
-5. 同样的，在 Windows 下使用 libuv 也需要将 uv.dll 复制到 lua.exe 目录下，否则 lua 中无法正常`require("libuvwrap")`
