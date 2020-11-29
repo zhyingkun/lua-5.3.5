@@ -6,5 +6,6 @@ project(tools
 	LANGUAGES C CXX
 )
 
-add_subdirectory(luatt)
 add_subdirectory(luatoken)
+add_subdirectory(luatt)
+add_subdirectory(pbdump)
