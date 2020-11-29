@@ -42,8 +42,12 @@ source_group(include FILES ${PBC_HEADERS})
 aux_source_directory(./wrap WRAP_SRC)
 source_group(wrap FILES ${WRAP_SRC})
 
+set(PROTOBUF_FILES ${PROTOBUFMOD_SRC} ${PROTOBUF_HEADERS} ${PBC_HEADERS})
+add_library(protobuf_static STATIC ${PROTOBUF_FILES})
+set_target_properties(protobuf_static PROPERTIES FOLDER "cmod/protobuf")
+
 # dynamic load library  .so .bundle
-add_library(${PROJECT_NAME} MODULE ${PROTOBUFMOD_SRC} ${PROTOBUF_HEADERS} ${PBC_HEADERS} ${WRAP_SRC})
+add_library(${PROJECT_NAME} MODULE ${PROTOBUF_FILES} ${WRAP_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	FOLDER "cmod"
 	# OUTPUT_NAME ${PROJECT_NAME}
