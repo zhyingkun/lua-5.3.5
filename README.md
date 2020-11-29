@@ -103,6 +103,7 @@ ndk-build -B # rebuild project
    - c-lang: C 语言特性示例
    - lpg: 《Lua Programming Gems》中的一部分案例代码
    - pil: 《Lua 程序设计》中的一部分示例代码
+   - protobuf: protobuf 特性示例
    - runner: Lua 环境的独立运行工具
    - stdlib: 用 Lua 语言实现的部分 Lua 标准库函数
    - uvwrap: Lua 代码层对 libuv 的封装，方便使用
@@ -125,6 +126,7 @@ ndk-build -B # rebuild project
 8. tools: 相关工具
    - luatoken: 用于查看词法分析 Token 的整数类型对应的含义
    - luatt: 用于查看 Lua Tag Type 的整数类型对应的含义
+   - pbdump: 用于查看 protobuf 二进制信息
 
 ---
 
