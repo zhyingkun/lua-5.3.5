@@ -8,10 +8,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <assert.h>
-
-#ifndef _MSC_VER
 #include <stdbool.h>
-#endif
 
 #define WMESSAGE_SIZE 64
 

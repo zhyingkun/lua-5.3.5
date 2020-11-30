@@ -1,3 +1,8 @@
+/* Lua C Library */
+
+#define protobuf_c
+#define LUA_LIB // for export function
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -14,12 +19,7 @@ extern "C" {
 #include <malloc.h>
 #endif
 
-#ifndef _MSC_VER
 #include <stdbool.h>
-#else
-#define alloca _alloca
-#endif
-
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
