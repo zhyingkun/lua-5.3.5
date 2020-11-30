@@ -8,4 +8,7 @@ project(tools
 
 add_subdirectory(luatoken)
 add_subdirectory(luatt)
-add_subdirectory(pbdump)
+
+if(NOT WIN32)
+	add_subdirectory(pbdump)
+endif(NOT WIN32)
