@@ -222,6 +222,7 @@ LUA_API void lua_copy(lua_State* L, int fromidx, int toidx) {
   lua_unlock(L);
 }
 
+// [-0, +1], need 1 slot
 LUA_API void lua_pushvalue(lua_State* L, int idx) {
   lua_lock(L);
   setobj2s(L, L->top, index2addr(L, idx));
@@ -352,6 +353,7 @@ LUA_API int lua_toboolean(lua_State* L, int idx) {
 }
 
 // Only support string and number, does not support table
+// [-0, +0], need 0 slot
 LUA_API const char* lua_tolstring(lua_State* L, int idx, size_t* len) {
   StkId o = index2addr(L, idx);
   if (!ttisstring(o)) {
@@ -454,6 +456,7 @@ LUA_API void lua_pushnumber(lua_State* L, lua_Number n) {
   lua_unlock(L);
 }
 
+// [-0, +1], need 1 slot
 LUA_API void lua_pushinteger(lua_State* L, lua_Integer n) {
   lua_lock(L);
   setivalue(L->top, n);
@@ -477,6 +480,7 @@ LUA_API const char* lua_pushlstring(lua_State* L, const char* s, size_t len) {
   return getstr(ts);
 }
 
+// [-0, +1], need 1 slot
 LUA_API const char* lua_pushstring(lua_State* L, const char* s) {
   lua_lock(L);
   if (s == NULL)
@@ -502,6 +506,7 @@ LUA_API const char* lua_pushvfstring(lua_State* L, const char* fmt, va_list argp
   return ret;
 }
 
+// [-0, +1], need 1 slot
 LUA_API const char* lua_pushfstring(lua_State* L, const char* fmt, ...) {
   const char* ret;
   va_list argp;
@@ -586,6 +591,7 @@ LUA_API int lua_getglobal(lua_State* L, const char* name) {
   return auxgetstr(L, luaH_getint(reg, LUA_RIDX_GLOBALS), name);
 }
 
+// [-1, +1], need 0 slot
 LUA_API int lua_gettable(lua_State* L, int idx) {
   StkId t;
   lua_lock(L);
@@ -665,6 +671,7 @@ LUA_API void lua_createtable(lua_State* L, int narray, int nrec) {
   lua_unlock(L);
 }
 
+// [-0, +(0|1)], need 1 slot
 LUA_API int lua_getmetatable(lua_State* L, int objindex) {
   const TValue* obj;
   Table* mt;
@@ -1087,6 +1094,7 @@ LUA_API int lua_error(lua_State* L) {
 // when call lua_next
 // index2addr(idx) ==> table for Traversing
 //     (L->top -1) ==> the key for get next, nil for get the first key-value
+// [-1, +(2/0)], need 1 slot
 LUA_API int lua_next(lua_State* L, int idx) {
   StkId t;
   int more;

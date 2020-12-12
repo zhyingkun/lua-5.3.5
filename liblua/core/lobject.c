@@ -437,6 +437,7 @@ static void pushstr(lua_State* L, const char* str, size_t l) {
 ** this function handles only '%d', '%c', '%f', '%p', and '%s'
    conventional formats, plus Lua-specific '%I' and '%U'
 */
+// [-0, +1], need 1 slot
 const char* luaO_pushvfstring(lua_State* L, const char* fmt, va_list argp) {
   int n = 0;
   for (;;) {

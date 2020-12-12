@@ -726,6 +726,7 @@ LUALIB_API int luaL_loadstring(lua_State* L, const char* s) {
 
 /* }====================================================== */
 
+// [-0, +(0|1)], need 2 slot
 LUALIB_API int luaL_getmetafield(lua_State* L, int obj, const char* event) {
   if (!lua_getmetatable(L, obj)) /* no metatable? */
     return LUA_TNIL;
@@ -741,6 +742,7 @@ LUALIB_API int luaL_getmetafield(lua_State* L, int obj, const char* event) {
   }
 }
 
+// [-0, +(0|1)], need 2 slot
 LUALIB_API int luaL_callmeta(lua_State* L, int obj, const char* event) {
   obj = lua_absindex(L, obj);
   if (luaL_getmetafield(L, obj, event) == LUA_TNIL) /* no metafield? */
@@ -761,6 +763,7 @@ LUALIB_API lua_Integer luaL_len(lua_State* L, int idx) {
   return l;
 }
 
+// [-0, +1], need 2 slot
 LUALIB_API const char* luaL_tolstring(lua_State* L, int idx, size_t* len) {
   if (luaL_callmeta(L, idx, "__tostring")) { /* metafield? */
     if (!lua_isstring(L, -1))
@@ -820,6 +823,7 @@ LUALIB_API const char* luaL_tolstring(lua_State* L, int idx, size_t* len) {
 
 #define DEFAULT_BUFFER_SIZE 4096
 
+// only need one stack slot in idx_buffer
 typedef struct {
   char* b;
   size_t size; /* buffer size */
@@ -903,14 +907,16 @@ static void strbuff_addlstringex(StringBuffer* b, const char* str, size_t len, i
     memcpy(b->b, s, b->n);
     lua_replace(L, b->idx_buffer);
   }
+  char* dst = b->b + b->n;
   if (escape) {
-    len = escape_string(b->b + b->n, str, len);
+    len = escape_string(dst, str, len);
   } else {
-    memcpy(b->b + b->n, str, len);
+    memcpy(dst, str, len);
   }
   b->n += len;
 }
 
+// [-0, +0], need 2 slot
 static void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
   idx = lua_absindex(L, idx);
   size_t length = 0;
@@ -949,6 +955,7 @@ typedef struct {
   StringBuffer buffer;
 } DetailStr;
 
+// [-0, +0], need 2 slot
 static void ds_recordtable(DetailStr* detail, int idx, int level) {
   lua_State* L = detail->L;
   lua_pushvalue(L, idx);
@@ -956,6 +963,7 @@ static void ds_recordtable(DetailStr* detail, int idx, int level) {
   lua_settable(L, detail->idx_tables);
 }
 
+// [-0, +0], need 1 slot
 static int ds_checktable(DetailStr* detail, int idx) {
   lua_State* L = detail->L;
   lua_pushvalue(L, idx); // [-0, +1]
@@ -968,6 +976,7 @@ static int ds_checktable(DetailStr* detail, int idx) {
   return result;
 }
 
+// [-0, +0], need 4 slot
 static void ds_recordsubtable(DetailStr* detail, int idx) {
   lua_State* L = detail->L;
   idx = lua_absindex(L, idx);
@@ -991,6 +1000,7 @@ static void recursive_tostring(DetailStr* detail, int idx) {
   lua_State* L = detail->L;
   StringBuffer* b = &detail->buffer;
   idx = lua_absindex(L, idx);
+  lua_checkstack(L, 4); // 4 is the needed max stack slot for ds_recordsubtable
 
   char buffer[TABLE_HEAD_SIZE];
   snprintf(buffer, TABLE_HEAD_SIZE, "table: %p {", lua_topointer(L, idx));
@@ -1000,9 +1010,11 @@ static void recursive_tostring(DetailStr* detail, int idx) {
   // record current table, 0 means do not recursive later
   ds_recordtable(detail, idx, 0);
   detail->current_level++;
-  ds_recordsubtable(detail, idx);
   int can_recursive = detail->current_level < detail->level ? 1 : 0;
-
+  if (can_recursive) {
+    // items in this table will be display in current level later, do not display these items in sub level
+    ds_recordsubtable(detail, idx);
+  }
   // walk through the table
   lua_pushnil(L);
   while (lua_next(L, idx) != 0) {
@@ -1028,11 +1040,13 @@ static void recursive_tostring(DetailStr* detail, int idx) {
   strbuff_addliteral(b, "}");
 }
 
+// [-0, +1], need 2 slot
 LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int level) {
   idx = lua_absindex(L, idx);
   if (lua_type(L, idx) != LUA_TTABLE || level <= 0) {
     return luaL_tolstring(L, idx, len);
   }
+  // lua_checkstack(L, 2);
   if (level > MAX_TAB_SIZE) {
     level = MAX_TAB_SIZE;
   }
