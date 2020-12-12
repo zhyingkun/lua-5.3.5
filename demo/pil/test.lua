@@ -31,3 +31,22 @@ do
 	end
 end
 print("======================================================================")
+print("Make sure tostring support deep nested table")
+do
+	local tbl = {}
+	tbl[_G] = true
+	tbl.hello = "nice"
+	print(tostring(tbl, 1))
+	print(tostring(tbl, 1))
+	print(tbl[_G])
+	local tmp = tbl
+	for i = 1, 20, 1 do
+		local t = {
+			haha = 43,
+		}
+		tmp.sub = t
+		tmp = t
+	end
+	print(tostring(tbl, 20))
+end
+print("======================================================================")
