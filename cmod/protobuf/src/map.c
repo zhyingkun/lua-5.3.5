@@ -10,7 +10,7 @@ struct _pbcM_ip_slot {
   int next;
 };
 
-struct map_ip {
+struct map_ip { // integer => pointer
   size_t array_size;
   void** array;
   size_t hash_size;
@@ -24,7 +24,7 @@ struct _pbcM_si_slot {
   int next;
 };
 
-struct map_si {
+struct map_si { // string => integer
   size_t size;
   struct _pbcM_si_slot slot[1];
 };
@@ -63,7 +63,7 @@ struct map_si* _pbcM_si_new(struct map_kv* table, int size) {
       }
       struct _pbcM_si_slot* empty_slot = &ret->slot[empty];
       empty_slot->next = slot->next;
-      slot->next = empty + 1;
+      slot->next = empty + 1; // zero for no next slot
       empty_slot->id = table[i].id;
       empty_slot->key = (const char*)table[i].pointer;
       empty_slot->hash = hash_full;
@@ -220,7 +220,7 @@ struct _pbcM_sp_slot {
   int next;
 };
 
-struct map_sp {
+struct map_sp { // string => pointer
   size_t cap;
   size_t size;
   struct heap* heap;

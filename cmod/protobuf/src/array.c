@@ -50,7 +50,7 @@ void _pbcA_push(pbc_array _array, pbc_var var) {
       a->a = outer;
     } else {
       int size = a->number;
-      if (((size + 1) ^ size) > size) {
+      if (((size + 1) ^ size) > size) { // size == (2 ^ n) - 1
         struct heap* h = a->heap;
         if (h) {
           void* old = a->a;

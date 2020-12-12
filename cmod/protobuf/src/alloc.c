@@ -60,7 +60,7 @@ void _pbcH_delete(struct heap* h) {
 }
 
 void* _pbcH_alloc(struct heap* h, int size) {
-  size = (size + 3) & ~3;
+  size = (size + 3) & ~3; // 4 bytes align
   if (h->size - h->used < size) {
     struct heap_page* p;
     if (size < h->size) {
