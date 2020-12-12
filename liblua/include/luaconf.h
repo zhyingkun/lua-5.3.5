@@ -729,4 +729,10 @@
 // max short string length, default 40
 //#define LUAI_MAXSHORTLEN 100
 
+// for debug
+#if !defined(NDEBUG)
+#include <assert.h>
+#define lua_assert(e) assert(e)
+#endif
+
 #endif
