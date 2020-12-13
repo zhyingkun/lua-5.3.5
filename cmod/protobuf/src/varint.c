@@ -5,22 +5,22 @@
 #include <stdint.h>
 
 inline int _pbcV_encode32(uint32_t number, uint8_t buffer[10]) {
-  if (number < 0x80) {
+  if (number < 0x80) { // 7 bits
     buffer[0] = (uint8_t)number;
     return 1;
   }
   buffer[0] = (uint8_t)(number | 0x80);
-  if (number < 0x4000) {
+  if (number < 0x4000) { // 14 bits
     buffer[1] = (uint8_t)(number >> 7);
     return 2;
   }
   buffer[1] = (uint8_t)((number >> 7) | 0x80);
-  if (number < 0x200000) {
+  if (number < 0x200000) { // 21 bits
     buffer[2] = (uint8_t)(number >> 14);
     return 3;
   }
   buffer[2] = (uint8_t)((number >> 14) | 0x80);
-  if (number < 0x10000000) {
+  if (number < 0x10000000) { // 28 bits
     buffer[3] = (uint8_t)(number >> 21);
     return 4;
   }
