@@ -25,6 +25,8 @@ extern "C" {
 #include <stdint.h>
 
 #include "pbc.h"
+#include <varint.h>
+#include <context.h>
 
 static inline void* checkuserdata(lua_State* L, int index) {
   void* ud = lua_touserdata(L, index);
@@ -830,6 +832,121 @@ static int _add_rmessage(lua_State* L) {
   return 0;
 }
 
+static int l_pbc_next(lua_State* L) {
+  size_t cap = 0;
+  const char* buffer = luaL_checklstring(L, 1, &cap);
+  const char* origin = buffer;
+  lua_Integer start = luaL_checkinteger(L, 2);
+  start -= 1;
+  buffer += start;
+  cap -= start;
+  if (cap == 0) {
+    return 0; // nothing to be traversal
+  }
+  uint8_t temp[10];
+  struct longlong r;
+  int len;
+  if (cap >= 10) {
+    len = _pbcV_decode((uint8_t*)buffer, &r);
+  } else {
+    memcpy(temp, buffer, cap);
+    len = _pbcV_decode(temp, &r);
+  }
+  if (len > cap) {
+    luaL_error(L, "field number and wire type decode error");
+  }
+  if (r.hi != 0) {
+    luaL_error(L, "field number larger than 2^29 - 1");
+  }
+  buffer += len;
+  cap -= len;
+
+  int wiretype = r.low & 7;
+  int fieldnumber = r.low >> 3;
+  size_t delimited = 0;
+  lua_Integer varintnum = 0;
+  switch (wiretype) {
+    case WT_VARINT:
+      if (cap >= 10) {
+        len = _pbcV_decode((uint8_t*)buffer, &r);
+      } else {
+        memcpy(temp, buffer, cap);
+        len = _pbcV_decode(temp, &r);
+      }
+      if (len > cap) {
+        luaL_error(L, "varint field decode error");
+      }
+      buffer += len; // for next varint
+      varintnum = ((lua_Integer)r.hi << 32) | (lua_Integer)r.low;
+      break;
+    case WT_BIT64:
+      delimited = 8;
+      if (delimited > cap) {
+        luaL_error(L, "64 bit field decode error");
+      }
+      break;
+    case WT_LEND:
+      if (cap >= 10) {
+        len = _pbcV_decode((uint8_t*)buffer, &r);
+      } else {
+        memcpy(temp, buffer, cap);
+        len = _pbcV_decode(temp, &r);
+      }
+      if (len > cap) {
+        luaL_error(L, "length delimited field decode error");
+      }
+      if (r.hi != 0) {
+        luaL_error(L, "delimited length decode error");
+      }
+      buffer += len;
+      cap -= len;
+      delimited = r.low;
+      if (delimited > cap) {
+        luaL_error(L, "length delimited field features decode error");
+      }
+      break;
+    case WT_BIT32:
+      delimited = 4;
+      if (delimited > cap) {
+        luaL_error(L, "32 bit field decode error");
+      }
+      break;
+    default:
+      luaL_error(L, "unknown wire type");
+      break;
+  }
+#undef CHECK_CAP_SIZE
+#undef MUST_BE_32BIT
+  lua_pushinteger(L, buffer - origin + delimited + 1);
+  lua_pushinteger(L, fieldnumber);
+  lua_pushinteger(L, wiretype);
+  if (wiretype == WT_VARINT) {
+    lua_pushinteger(L, varintnum);
+  } else {
+    lua_pushlstring(L, buffer, delimited);
+  }
+  return 4;
+}
+static int l_pbc_varints(lua_State* L) {
+  luaL_checkstring(L, 1);
+  lua_pushcfunction(L, l_pbc_next);
+  lua_pushvalue(L, 1);
+  lua_pushinteger(L, 1);
+  return 3;
+}
+static int l_pbc_enzigzag(lua_State* L) {
+  lua_Integer n = luaL_checkinteger(L, 1);
+  n = (n << 1) ^ (n >> (sizeof(lua_Integer) * 8 - 1));
+  lua_pushinteger(L, n);
+  return 1;
+}
+static int l_pbc_dezigzag(lua_State* L) {
+  lua_Integer n = luaL_checkinteger(L, 1);
+  n = (n >> 1) ^ (n & 1 ? -1 : 0); // -1 means all 1 for unsigned
+  lua_pushinteger(L, n);
+  return 1;
+}
+
 LUAMOD_API int luaopen_libprotobuf(lua_State* L) {
   luaL_Reg reg[] = {
       {"_env_new", _env_new},
@@ -861,6 +978,10 @@ LUAMOD_API int luaopen_libprotobuf(lua_State* L) {
       {"_add_pattern", _add_pattern},
       {"_add_rmessage", _add_rmessage},
       {"_env_enum_id", _env_enum_id},
+      {"next", l_pbc_next},
+      {"varints", l_pbc_varints},
+      {"enzigzag", l_pbc_enzigzag},
+      {"dezigzag", l_pbc_dezigzag},
       {NULL, NULL},
   };
 
