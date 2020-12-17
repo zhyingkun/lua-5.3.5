@@ -1,20 +1,31 @@
 local pbc = require("libprotobuf")
 
-local function ParseVarint(msg, protocb)
+local useNumber = false
+local function ParseVarint(msg, config)
 	local fieldTbl = {}
-	local function SetField(key, field)
+	for _, number, wiretype, field in pbc.varints(msg) do
+		local fieldConfig = config[number]
+		assert(type(fieldConfig) == "table")
+		local key = useNumber and number or fieldConfig[1]
+		local bIsArray = fieldConfig[2]
+		local process = fieldConfig[3]
+		local value = field
+		local tProcess = type(process)
+		if tProcess == "function" then
+			value = process(field)
+		elseif tProcess == "table" then
+			value = ParseVarint(field, process)
+		else
+			assert(tProcess == "nil")
+		end
 		local oldField = fieldTbl[key]
 		if oldField == nil then
-			fieldTbl[key] = field
-		elseif type(oldField) == "table" and getmetatable(oldField) == table then
-			oldField:insert(field)
+			fieldTbl[key] = bIsArray and { value } or value
 		else
-			fieldTbl[key] = setmetatable({ oldField, field }, table)
+			assert(bIsArray)
+			assert(type(oldField) == "table")
+			table.insert(oldField, value)
 		end
-	end
-	for _, number, wiretype, field in pbc.varints(msg) do
-		local key, value = protocb(number, wiretype, field)
-		SetField(key, value)
 	end
 	return fieldTbl
 end
@@ -28,52 +39,77 @@ local function StringToHex(str)
 	return result
 end
 
-local function FieldDescriptorProto(number, wiretype, field)
-	if wiretype == 0 then
-		return number, tostring(field) .. "(" .. tostring(pbc.dezigzag(field)) .. ")"
-	elseif wiretype == 1 or wiretype == 5 then
-		return number, StringToHex(field)
-	else
-		return number, field
-	end
-end
+local Label = {
+	"LABEL_OPTIONAL",
+	"LABEL_REQUIRED",
+	"LABEL_REPEATED",
+}
+local Type = {
+	"TYPE_DOUBLE",
+	"TYPE_FLOAT",
+	"TYPE_INT64",
+	"TYPE_UINT64",
+	"TYPE_INT32",
+	"TYPE_FIXED64",
+	"TYPE_FIXED32",
+	"TYPE_BOOL",
+	"TYPE_STRING",
+	"TYPE_GROUP",
+	"TYPE_MESSAGE",
+	"TYPE_BYTES",
+	"TYPE_UINT32",
+	"TYPE_ENUM",
+	"TYPE_SFIXED32",
+	"TYPE_SFIXED64",
+	"TYPE_SINT32",
+	"TYPE_SINT64",
+}
+local FieldDescriptorProtoConfig = {
+	{ "name", false, nil },
+	{ "extendee", false, nil },
+	{ "number", false, nil },
+	{ "label", false, function(field) return Label[field] end },
+	{ "type", false, function(field) return Type[field] end },
+	{ "type_name", false, nil },
+	{ "default_value", false, nil },
+	{ "options", false, StringToHex },
+	{ "oneof_index", false, nil },
+	{ "json_name", false, nil },
+}
+local DescriptorProtoConfig = {
+	{ "name", false, nil },
+	{ "field", true, FieldDescriptorProtoConfig },
+	{ "nested_type", true, "self recursive" },
+	{ "enum_type", true, nil },
+	{ "extension_range", true, StringToHex },
+	{ "extension", true, FieldDescriptorProtoConfig },
+	{ "options", false, StringToHex },
+	{ "oneof_decl", true, StringToHex },
+	{ "reserved_range", true, StringToHex },
+	{ "reserved_name", true, nil },
+}
+DescriptorProtoConfig[3][3] = DescriptorProtoConfig
+local FileDescriptorProtoConfig = {
+	{ "name", false, nil },
+	{ "package", false, nil },
+	{ "dependency", true, nil },
+	{ "message_type", true, DescriptorProtoConfig },
+	{ "enum_type", true, nil },
+	{ "service", true, StringToHex },
+	{ "extension", true, FieldDescriptorProtoConfig },
+	{ "options", false, StringToHex },
+	{ "source_code_info", false, StringToHex },
+	{ "public_dependency", true, nil },
+	{ "weak_dependency", true, nil },
+	{ "syntax", false, nil },
+}
+local FileDescriptorSetConfig = {
+	{ "file", true, FileDescriptorProtoConfig },
+}
 
-local function DescriptorProto(number, wiretype, field)
-	if wiretype == 0 then
-		return number, tostring(field) .. "(" .. tostring(pbc.dezigzag(field)) .. ")"
-	elseif wiretype == 1 or wiretype == 5 then
-		return number, StringToHex(field)
-	else
-		if number == 2 then
-			return number, ParseVarint(field, FieldDescriptorProto)
-		else
-			return number, field
-		end
-	end
-end
-
-local function FileDescriptorProto(number, wiretype, field)
-	if wiretype == 0 then
-		return number, tostring(field) .. "(" .. tostring(pbc.dezigzag(field)) .. ")"
-	elseif wiretype == 1 or wiretype == 5 then
-		return number, StringToHex(field)
-	else
-		if number == 4 then
-			return number, ParseVarint(field, DescriptorProto)
-		else
-			return number, field
-		end
-	end
-end
-
-local function FileArray(number, wiretype, field)
-	assert(number == 1)
-	return number, ParseVarint(field, FileDescriptorProto)
-end
-
-local fd = io.open("zykTest.pb", "r")
+local fd = io.open(arg[1], "rb")
 local msg = fd:read("a")
 fd:close()
 fd = nil
-local fieldTbl = ParseVarint(msg, FileArray)
+local fieldTbl = ParseVarint(msg, FileDescriptorSetConfig)
 print(tostring(fieldTbl, 16))
