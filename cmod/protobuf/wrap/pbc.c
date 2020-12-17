@@ -946,6 +946,49 @@ static int l_pbc_dezigzag(lua_State* L) {
   lua_pushinteger(L, n);
   return 1;
 }
+static int l_pbc_todouble(lua_State* L) {
+  size_t len = 0;
+  const char* buffer = luaL_checklstring(L, 1, &len);
+  if (len != 4 && len != 8) {
+    luaL_error(L, "must be 4 byte or 8 byte float number");
+  }
+  struct longlong i;
+  i.low = buffer[0] | buffer[1] << 8 | buffer[2] << 16 | buffer[3] << 24;
+  if (len == 8) {
+    i.hi = buffer[4] | buffer[5] << 8 | buffer[6] << 16 | buffer[7] << 24;
+    union {
+      uint64_t i;
+      double d;
+    } u;
+    u.i = (uint64_t)i.low | (uint64_t)i.hi << 32;
+    lua_pushnumber(L, u.d);
+  } else {
+    union {
+      uint32_t i;
+      float f;
+    } u;
+    u.i = i.low;
+    lua_pushnumber(L, (lua_Number)u.f);
+  }
+  return 1;
+}
+static int l_pbc_tointeger(lua_State* L) {
+  size_t len = 0;
+  const char* buffer = luaL_checklstring(L, 1, &len);
+  if (len != 4 && len != 8) {
+    luaL_error(L, "must be 4 byte or 8 byte integer");
+  }
+  struct longlong i;
+  i.low = buffer[0] | buffer[1] << 8 | buffer[2] << 16 | buffer[3] << 24;
+  if (len == 8) {
+    i.hi = buffer[4] | buffer[5] << 8 | buffer[6] << 16 | buffer[7] << 24;
+  } else {
+    i.hi = 0;
+  }
+  uint64_t v = (uint64_t)i.low | (uint64_t)i.hi << 32;
+  lua_pushinteger(L, (lua_Integer)v);
+  return 1;
+}
 
 LUAMOD_API int luaopen_libprotobuf(lua_State* L) {
   luaL_Reg reg[] = {
@@ -982,6 +1025,8 @@ LUAMOD_API int luaopen_libprotobuf(lua_State* L) {
       {"varints", l_pbc_varints},
       {"enzigzag", l_pbc_enzigzag},
       {"dezigzag", l_pbc_dezigzag},
+      {"todouble", l_pbc_todouble},
+      {"tointeger", l_pbc_tointeger},
       {NULL, NULL},
   };
 
