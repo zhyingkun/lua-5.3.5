@@ -89,44 +89,44 @@ ndk-build -B # rebuild project
 ## 文件夹说明
 
 1. cmod: Lua 的 C 语言扩展模块
-   - boolarray: 《Lua 程序设计》中的布尔数组，加了数组的交集和并集操作
-   - dir: 《Lua 程序设计》中的遍历文件夹，加了 Win 版实现
-   - gb2312: 类似 utf8 标准库实现的 gb2312 模块
-   - hello: helloworld
-   - lproc: 《Lua 程序设计》中的多线程模块，使用 pthread
-   - luasocket: 封装了 socket 接口，代码来自[LuaSocket](https://github.com/diegonehab/luasocket)
-   - man: 标准库函数简易文档，方便命令行操作时使用
-   - protobuf: C 语言实现的 protobuf，代码来自[pbc](https://github.com/cloudwu/pbc)
-   - uvwrap: 封装了 libuv 库，用于支持事件驱动的异步 IO
+    - boolarray: 《Lua 程序设计》中的布尔数组，加了数组的交集和并集操作
+    - dir: 《Lua 程序设计》中的遍历文件夹，加了 Win 版实现
+    - gb2312: 类似 utf8 标准库实现的 gb2312 模块
+    - hello: helloworld
+    - lproc: 《Lua 程序设计》中的多线程模块，使用 pthread
+    - luasocket: 封装了 socket 接口，代码来自[LuaSocket](https://github.com/diegonehab/luasocket)
+    - man: 标准库函数简易文档，方便命令行操作时使用
+    - protobuf: C 语言实现的 protobuf，代码来自[pbc](https://github.com/cloudwu/pbc)
+    - uvwrap: 封装了 libuv 库，用于支持事件驱动的异步 IO
 2. demo: 用于测试的 Demo
-   - c-call-lua: C 作为宿主，调用 Lua 来完成操作
-   - c-lang: C 语言特性示例
-   - lpg: 《Lua Programming Gems》中的一部分案例代码
-   - pil: 《Lua 程序设计》中的一部分示例代码
-   - protobuf: protobuf 特性示例
-   - runner: Lua 环境的独立运行工具
-   - stdlib: 用 Lua 语言实现的部分 Lua 标准库函数
-   - uvwrap: Lua 代码层对 libuv 的封装，方便使用
+    - c-call-lua: C 作为宿主，调用 Lua 来完成操作
+    - c-lang: C 语言特性示例
+    - lpg: 《Lua Programming Gems》中的一部分案例代码
+    - pil: 《Lua 程序设计》中的一部分示例代码
+    - protobuf: protobuf 特性示例
+    - runner: Lua 环境的独立运行工具
+    - stdlib: 用 Lua 语言实现的部分 Lua 标准库函数
+    - uvwrap: Lua 代码层对 libuv 的封装，方便使用
 3. etc: 工程杂项
-   - fromlua: 来自 Lua 官方的相关文件，包括 Lua 文档，留着方便查看
-   - logos: Lua 官方图标
-   - vscodeMac: Mac 上 VSCode 的配置文件
-   - win: 用于 Windows 上的系统运行时补丁
+    - fromlua: 来自 Lua 官方的相关文件，包括 Lua 文档，留着方便查看
+    - logos: Lua 官方图标
+    - vscodeMac: Mac 上 VSCode 的配置文件
+    - win: 用于 Windows 上的系统运行时补丁
 4. liblua: Lua 编译器和虚拟机的源码，称为 Lua 库
-   - core: Lua 核心 C 代码和 C 头文件
-   - include: Lua 源码中的外部使用头文件单独放到一个文件夹中
-   - libraries: Lua 自带的官方标准库
-   - test: 扩展 Lua 功能的测试代码
+    - core: Lua 核心 C 代码和 C 头文件
+    - include: Lua 源码中的外部使用头文件单独放到一个文件夹中
+    - libraries: Lua 自带的官方标准库
+    - test: 扩展 Lua 功能的测试代码
 5. lua: Lua 官方命令行工具，带编译器和虚拟机，依赖 Lua 库
 6. luac: Lua 官方命令行编译器
 7. luawithlib: 包含 lua 和 luaC 模块的运行时动态库（iOS 下是静态库）
-   - Android: 安卓的 ndk-build 相关配置
-   - iOS: Xcode 工程
-   - MacOS: 用于生成 MacOSX 下运行的 bundle
+    - Android: 安卓的 ndk-build 相关配置
+    - iOS: Xcode 工程
+    - MacOS: 用于生成 MacOSX 下运行的 bundle
 8. tools: 相关工具
-   - luatoken: 用于查看词法分析 Token 的整数类型对应的含义
-   - luatt: 用于查看 Lua Tag Type 的整数类型对应的含义
-   - pbdump: 用于查看 protobuf 二进制信息
+    - luatoken: 用于查看词法分析 Token 的整数类型对应的含义
+    - luatt: 用于查看 Lua Tag Type 的整数类型对应的含义
+    - pbdump: 用于查看 protobuf 二进制信息
 
 ---
 
@@ -158,7 +158,7 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 9. 增加 debug.protoinfo 函数，用于获取函数原型信息，接收三个参数：Lua 函数、是否递归、原型选项。其中，原型选项为字符串"hcklupz"，每一个字符代表打印一种信息，分别为：header、codes、constants、locals、upvalues、protos、zykstyle
 10. 增加 os.sysname 字段，为一个预编译定义的字符串，用于获取当前系统类型
 11. 针对函数 utf8.char 添加新的用法：第一个参数传入一个 Lua 闭包，每次执行该闭包返回一个 codepoint，返回 nil 表示结束
-12. 针对函数 string.char 添加新的用法：第一个参数传入一个 Lua 闭包，每次执行该闭包返回一个 ASCII 字符，返回 nil 表示结束
+12. 针对函数 string.char 添加新的用法：第一个参数传入一个 Lua 闭包，每次执行该闭包返回一个 ASCII 字符对应的 codepoint（其实支持 0 到 255 之间任意数字，就是 1 个字节的范围），返回 nil 表示结束
 13. 增加 string.bytes 函数，是字节版的 utf.codes，用于遍历所有字节
 14. 增加 file:fileno 函数，用于获取文件对象中的文件描述符
 15. 整数字面量增加八进制和二进制的支持（0o70、0b10）
