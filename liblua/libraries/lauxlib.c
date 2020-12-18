@@ -1942,6 +1942,7 @@ static void proto_printprotos(const Proto* f, StringBuffer* b, int recursive, co
   }
 }
 
+// [-0, +0], need 1 slot, LUA_ERRRUN
 LUALIB_API const char* luaL_protoinfo(lua_State* L, int idx, int recursive, const char* options) {
   StkId o = index2addr(L, idx);
   if (ttype(o) != LUA_TLCL) {
