@@ -819,3 +819,22 @@ do
 	for k, v in pairs(tbl2) do print("Second GC tbl2:", k, v) end --> print nothing
 	print("END!")
 end
+print("======================================================================")
+do
+	local function MaxNum()
+		print("In MaxNum")
+		return 3
+	end
+	local i = 12
+	for i = 1, MaxNum(), 1 do
+		print(i)
+	end
+	print(i)
+
+	getmetatable("").__lt = function(a, b)
+		print("In __lt metatable: ", a, b)
+		return true
+	end
+	print("First:", "3" < "4")
+	print("Second:", "a" < 1)
+end
