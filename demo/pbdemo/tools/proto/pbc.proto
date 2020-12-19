@@ -1,0 +1,26 @@
+package pbc;
+
+message field {
+  optional string name = 1;
+  optional int32 id = 2;
+  optional int32 label = 3; // 0 optional 1 required 2 repeated
+  optional int32 type = 4; // type_id
+  optional string type_name = 5;
+  optional int32 default_int = 6;
+  optional string default_string = 7;
+  optional double default_real = 8;
+}
+
+message file {
+  optional string name = 1;
+  repeated string dependency = 2;
+
+  repeated string message_name = 3;
+  repeated int32 message_size = 4;
+  repeated field message_field = 5;
+
+  repeated string enum_name = 6;
+  repeated int32 enum_size = 7;
+  repeated string enum_string = 8;
+  repeated int32 enum_id = 9;
+}
