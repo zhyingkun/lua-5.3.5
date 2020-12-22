@@ -157,6 +157,7 @@ static luaL_Reg uvwrap_fs_funcs[] = {
     {"mkdir", uvwrap_fs_mkdir},
     {"rmdir", uvwrap_fs_rmdir},
     {"scandir", uvwrap_fs_scandir},
+    {"rename", uvwrap_fs_rename},
     {NULL, NULL},
 };
 

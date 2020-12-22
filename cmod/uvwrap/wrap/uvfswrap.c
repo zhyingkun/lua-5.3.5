@@ -356,3 +356,36 @@ LUAI_DDEF int uvwrap_fs_scandir(lua_State* L) {
   }
   return 1;
 }
+
+static void on_fs_rename(uv_fs_t* req) {
+  lua_State* L;
+  PUSH_REQ_CALLBACK(L, req);
+  lua_pushinteger(L, req->result);
+  push_ents_in_table(L, req);
+  lua_pcall(L, 2, 0, 0);
+  CLEAR_REQ_CALLBACK(L, req);
+  FREE_REQ(req);
+}
+
+LUAI_DDEF int uvwrap_fs_rename(lua_State* L) {
+  uv_loop_t* loop = luaL_checkuvloop(L, 1);
+  const char* path = luaL_checkstring(L, 2);
+  const char* npath = luaL_checkstring(L, 3);
+#define idx 4
+  uv_fs_t* req;
+  ALLOCA_REQ(req, L);
+  int async = CHECK_IS_ASYNC(L, idx);
+  uv_fs_cb cb = NULL;
+  if (async) {
+    SET_REQ_CALLBACK(L, idx, req, cb, on_fs_rename);
+  }
+#undef idx
+  int result = uv_fs_rename(loop, req, path, npath, cb); // path will be duplicate in libuv api
+  lua_pushinteger(L, result);
+  if (!async) {
+    push_ents_in_table(L, req);
+    FREE_REQ(req);
+    return 2;
+  }
+  return 1;
+}
