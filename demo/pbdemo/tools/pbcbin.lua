@@ -269,11 +269,7 @@ local intArray = {
 	102,46,83,111,117,114,99,101,67,111,100,101,73,110,102,111,
 	46,76,111,99,97,116,105,111,110,0,nil,
 }
-local cnt = 0
-local str = string.char(function()
-	cnt = cnt + 1
-	return intArray[cnt]
-end)
+local str = string.char(function(idx) return intArray[idx] end)
 local fd = io.open("descriptor.bin", "wb")
 fd:write(str)
 fd:close()
