@@ -203,7 +203,8 @@ static int str_char(lua_State* L) {
   if (lua_type(L, 1) == LUA_TFUNCTION) {
     luaL_Buffer b;
     luaL_buffinit(L, &b);
-#define GET_CODEPOINT(L, idx) (lua_pushvalue(L, idx), lua_call(L, 0, 1), lua_type(L, -1))
+    lua_Integer i = 1;
+#define GET_CODEPOINT(L, idx) (lua_pushvalue(L, idx), lua_pushinteger(L, i++), lua_call(L, 1, 1), lua_type(L, -1))
     while (GET_CODEPOINT(L, 1) != LUA_TNIL) {
       lua_Integer c = luaL_checkinteger(L, -1);
       if (uchar(c) != c) {
