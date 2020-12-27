@@ -249,6 +249,31 @@ static int db_setupvalue(lua_State* L) {
   return auxupvalue(L, 0);
 }
 
+static int auxupnext(lua_State* L) {
+  luaL_checktype(L, 1, LUA_TFUNCTION);
+  int n = (int)luaL_checkinteger(L, 2);
+  if (n < 0) {
+    luaL_error(L, "upvalue index out of range");
+  }
+  n++;
+  const char* name = lua_getupvalue(L, 1, n);
+  if (name == NULL) {
+    return 0;
+  }
+  lua_pushinteger(L, n);
+  lua_pushstring(L, name);
+  lua_pushvalue(L, -3);
+  return 3;
+}
+
+static int db_upvalues(lua_State* L) {
+  luaL_checktype(L, 1, LUA_TFUNCTION);
+  lua_pushcfunction(L, auxupnext);
+  lua_pushvalue(L, 1);
+  lua_pushinteger(L, 0);
+  return 3;
+}
+
 /*
 ** Check whether a given upvalue from a given closure exists and
 ** returns its index
@@ -502,6 +527,7 @@ static const luaL_Reg dblib[] = {
     {"tablemem", db_tablemem},
     {"getgcstate", db_getgcstate},
     {"protoinfo", db_protoinfo},
+    {"upvalues", db_upvalues},
     {NULL, NULL},
 };
 
