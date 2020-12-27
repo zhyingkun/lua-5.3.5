@@ -1189,6 +1189,7 @@ static const char* aux_upvalue(StkId fi, int n, TValue** val, CClosure** owner, 
   }
 }
 
+// [-0, +(0|1)], need 1 slot
 LUA_API const char* lua_getupvalue(lua_State* L, int funcindex, int n) {
   const char* name;
   TValue* val = NULL; /* to avoid warnings */
