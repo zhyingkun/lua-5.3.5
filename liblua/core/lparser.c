@@ -978,6 +978,7 @@ static BinOpr getbinopr(int op) {
   }
 }
 
+// clang-format off
 static const struct {
   lu_byte left; /* left priority for each binary operator */
   lu_byte right; /* right priority */
@@ -994,6 +995,7 @@ static const struct {
     {3, 3},   {3, 3},   {3, 3}, /* ~=, >, >= */
     {2, 2},   {1, 1} /* and, or */
 };
+// clang-format on
 
 #define UNARY_PRIORITY 12 /* priority for unary operators */
 

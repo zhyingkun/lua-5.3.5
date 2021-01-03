@@ -134,7 +134,7 @@ static TString* createstrobj(lua_State* L, size_t l, int tag, unsigned int h) {
   ts = gco2ts(o);
   ts->hash = h;
   ts->extra = 0; // if long string, means doesn't have a hash value
-                 // if short string, means this string not a reserved key word
+      // if short string, means this string is not a reserved key word
   getstr(ts)[l] = '\0'; /* ending 0 */
   return ts;
 }

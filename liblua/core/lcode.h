@@ -46,7 +46,13 @@ typedef enum BinOpr {
   OPR_NOBINOPR
 } BinOpr;
 
-typedef enum UnOpr { OPR_MINUS, OPR_BNOT, OPR_NOT, OPR_LEN, OPR_NOUNOPR } UnOpr;
+typedef enum UnOpr {
+  OPR_MINUS,
+  OPR_BNOT,
+  OPR_NOT,
+  OPR_LEN,
+  OPR_NOUNOPR
+} UnOpr;
 
 /* get (pointer to) instruction of given 'expdesc' */
 #define getinstruction(fs, e) ((fs)->f->code[(e)->u.info])

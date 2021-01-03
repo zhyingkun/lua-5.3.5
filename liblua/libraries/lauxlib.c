@@ -1402,7 +1402,15 @@ static void proto_printheaders(const Proto* f, StringBuffer* b) {
 }
 
 // None, Value, Register, Constant, Prototype, Upvalue, Bool
-enum OpPrefix { N_, V_, R_, K_, P_, U_, B_ };
+enum OpPrefix {
+  N_,
+  V_,
+  R_,
+  K_,
+  P_,
+  U_,
+  B_
+};
 
 #define PRE_POS_A 6
 #define PRE_POS_B 3

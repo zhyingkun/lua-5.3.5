@@ -797,7 +797,7 @@ void luaV_execute(lua_State* L) {
   LClosure* cl;
   TValue* k;
   StkId base; // point to stack, affected by stack reallocation
-              // after any function call, we should correct this pointer
+      // after any function call, we should correct this pointer
   ci->callstatus |= CIST_FRESH; /* fresh invocation of 'luaV_execute" */
 newframe: /* reentry point when frame changes (call/return) */
   lua_assert(ci == L->ci);
