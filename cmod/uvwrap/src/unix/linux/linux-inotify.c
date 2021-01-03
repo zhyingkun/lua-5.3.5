@@ -33,7 +33,8 @@
 #include <unistd.h>
 
 struct watcher_list {
-  RB_ENTRY(watcher_list) entry;
+  RB_ENTRY(watcher_list)
+  entry;
   QUEUE watchers;
   int iterating;
   char* path;

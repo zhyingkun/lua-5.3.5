@@ -67,7 +67,10 @@ typedef struct uv__fsevents_event_s uv__fsevents_event_t;
 typedef struct uv__cf_loop_signal_s uv__cf_loop_signal_t;
 typedef struct uv__cf_loop_state_s uv__cf_loop_state_t;
 
-enum uv__cf_loop_signal_type_e { kUVCFLoopSignalRegular, kUVCFLoopSignalClosing };
+enum uv__cf_loop_signal_type_e {
+  kUVCFLoopSignalRegular,
+  kUVCFLoopSignalClosing
+};
 typedef enum uv__cf_loop_signal_type_e uv__cf_loop_signal_type_t;
 
 struct uv__cf_loop_signal_s {

@@ -132,10 +132,15 @@ int uv__pthread_sigmask(int how, const sigset_t* set, sigset_t* oset);
 typedef struct uv__stream_queued_fds_s uv__stream_queued_fds_t;
 
 /* loop flags */
-enum { UV_LOOP_BLOCK_SIGPROF = 1 };
+enum {
+  UV_LOOP_BLOCK_SIGPROF = 1
+};
 
 /* flags of excluding ifaddr */
-enum { UV__EXCLUDE_IFPHYS, UV__EXCLUDE_IFADDR };
+enum {
+  UV__EXCLUDE_IFPHYS,
+  UV__EXCLUDE_IFADDR
+};
 
 typedef enum {
   UV_CLOCK_PRECISE = 0, /* Use the highest resolution clock available. */

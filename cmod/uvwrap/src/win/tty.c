@@ -69,7 +69,12 @@ static int uv__cancel_read_console(uv_tty_t* handle);
 /* Null uv_buf_t */
 static const uv_buf_t uv_null_buf_ = {0, NULL};
 
-enum uv__read_console_status_e { NOT_STARTED, IN_PROGRESS, TRAP_REQUESTED, COMPLETED };
+enum uv__read_console_status_e {
+  NOT_STARTED,
+  IN_PROGRESS,
+  TRAP_REQUESTED,
+  COMPLETED
+};
 
 static volatile LONG uv__read_console_status = NOT_STARTED;
 static volatile LONG uv__restore_screen_state;
@@ -132,7 +137,11 @@ static char uv_tty_default_fg_bright = 0;
 static char uv_tty_default_bg_bright = 0;
 static char uv_tty_default_inverse = 0;
 
-typedef enum { UV_SUPPORTED, UV_UNCHECKED, UV_UNSUPPORTED } uv_vtermstate_t;
+typedef enum {
+  UV_SUPPORTED,
+  UV_UNCHECKED,
+  UV_UNSUPPORTED
+} uv_vtermstate_t;
 /* Determine whether or not ANSI support is enabled. */
 static uv_vtermstate_t uv__vterm_state = UV_UNCHECKED;
 static void uv__determine_vterm_state(HANDLE handle);

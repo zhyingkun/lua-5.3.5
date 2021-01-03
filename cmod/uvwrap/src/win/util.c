@@ -690,7 +690,7 @@ static int address_prefix_match(int family, struct sockaddr* address, struct soc
     prefix_address_data = (uint8_t*)&(((struct sockaddr_in*)prefix_address)->sin_addr);
   }
 
-  for (i = 0; i<prefix_len>> 3; i++) {
+  for (i = 0; i < prefix_len >> 3; i++) {
     if (address_data[i] != prefix_address_data[i])
       return 0;
   }

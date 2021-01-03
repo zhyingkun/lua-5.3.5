@@ -60,7 +60,12 @@ static luaL_Reg func[] = {
 static UC qpclass[256];
 static UC qpbase[] = "0123456789ABCDEF";
 static UC qpunbase[256];
-enum { QP_PLAIN, QP_QUOTED, QP_CR, QP_IF_LAST };
+enum {
+  QP_PLAIN,
+  QP_QUOTED,
+  QP_CR,
+  QP_IF_LAST
+};
 
 /*-------------------------------------------------------------------------*\
 * Base64 globals
@@ -246,7 +251,9 @@ static size_t b64decode(UC c, UC* input, size_t size, luaL_Buffer* buffer) {
     value >>= 8;
     decoded[0] = (UC)value;
     /* take care of paddding */
-    valid = (input[2] == '=') ? 1 : (input[3] == '=') ? 2 : 3;
+    valid = (input[2] == '=') ? 1 :
+            (input[3] == '=') ? 2 :
+                                3;
     luaL_addlstring(buffer, (char*)decoded, valid);
     return 0;
     /* need more data */
