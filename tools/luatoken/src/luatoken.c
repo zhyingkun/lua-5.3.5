@@ -43,12 +43,12 @@ static const char* const luaX_tokens[] = {
     "<<", ">>", "::", "<eof>",
     "<number>", "<integer>", "<name>", "<string>"
 };
-// clang-format on
 
 static const char luaX_othertokens[] = {
     '=', '<', '>', '/', '~', ':', '.', '+', '-', '*', '(', ')',
     '[', ']', '{', '}', ',', ';', '%', '^', '#', '&', '|', '\0',
 };
+// clang-format on
 
 static void usage(char* cmdName) {
   printf("\tusage: %s <TokenNumber>\n\tTokenNumber: Integer Number\n", cmdName);
