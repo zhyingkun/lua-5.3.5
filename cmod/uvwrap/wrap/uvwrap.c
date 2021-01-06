@@ -192,7 +192,7 @@ static luaL_Reg uvwrap_funcs[] = {
     {NULL, NULL},
 };
 
-LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
+UV_EXTERN LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
   luaL_newlib(L, uvwrap_funcs);
 
   lua_pushinteger(L, uv_version());
