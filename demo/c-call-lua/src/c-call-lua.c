@@ -149,6 +149,110 @@ static void coroutine_with_c_api(lua_State* L) {
 
 // Lua Coroutine C Implementation End ------------------------------------------
 
+// Store data in lua thread Start ----------------------------------------------
+
+typedef struct {
+  lua_State* dataL;
+  int idName;
+  int idAge;
+  int idIsStudent;
+} person;
+
+const char* PERSON_MT = "PERSON_MT";
+
+static int person_get(lua_State* L) {
+  person* p = (person*)luaL_checkudata(L, 1, PERSON_MT);
+
+  lua_pushvalue(L, 2);
+  lua_xmove(L, p->dataL, 1);
+  lua_rawget(p->dataL, 1);
+  int idx = lua_tointeger(p->dataL, -1);
+  lua_pop(p->dataL, 1);
+  lua_pushvalue(p->dataL, idx);
+  lua_xmove(p->dataL, L, 1);
+  return 1;
+}
+
+static int person_set(lua_State* L) {
+  person* p = (person*)luaL_checkudata(L, 1, PERSON_MT);
+
+  lua_pushvalue(L, 2);
+  lua_xmove(L, p->dataL, 1);
+  lua_rawget(p->dataL, 1);
+  int idx = lua_tointeger(p->dataL, -1);
+  lua_pop(p->dataL, 1);
+
+  lua_pushvalue(L, 3);
+  lua_xmove(L, p->dataL, 1);
+  lua_replace(p->dataL, idx);
+  return 0;
+}
+
+static int person_create(lua_State* L) {
+  person* p = (person*)lua_newuserdata(L, sizeof(person));
+  p->dataL = lua_newthread(L);
+  lua_setuservalue(L, -2);
+  luaL_newmetatable(L, PERSON_MT);
+  luaL_Reg mtfs[] = {
+      {"__index", person_get},
+      {"__newindex", person_set},
+      {NULL, NULL},
+  };
+  luaL_setfuncs(L, mtfs, 0);
+  lua_setmetatable(L, -2);
+
+  p->idName = 2;
+  p->idAge = 3;
+  p->idIsStudent = 4;
+
+  lua_checkstack(p->dataL, 4);
+  lua_createtable(p->dataL, 0, 3);
+  static const char* fields[] = {
+      "name",
+      "age",
+      "isStudent",
+  };
+  for (int i = 0; i < 3; i++) {
+    lua_pushstring(p->dataL, fields[i]);
+    lua_pushinteger(p->dataL, i + 2);
+    lua_rawset(p->dataL, -3);
+  }
+  for (int i = 0; i < 3; i++) {
+    lua_pushnil(p->dataL);
+  }
+
+  return 1;
+}
+
+static const char* access_person = "\
+    print(one.name, one.age, one.isStudent) \
+    one.name = 'nice' \
+    one.age = '16' \
+    one.isStudent = true ";
+
+static void test_person(lua_State* L) {
+  person_create(L);
+
+  person* p = (person*)luaL_checkudata(L, -1, PERSON_MT);
+  lua_pushstring(p->dataL, "tony");
+  lua_replace(p->dataL, p->idName);
+  lua_pushinteger(p->dataL, 23);
+  lua_replace(p->dataL, p->idAge);
+  lua_pushboolean(p->dataL, 0);
+  lua_replace(p->dataL, p->idIsStudent);
+
+  lua_setglobal(L, "one");
+
+  luaL_dostring(L, access_person);
+
+  const char* name = lua_tostring(p->dataL, p->idName);
+  int age = lua_tointeger(p->dataL, p->idAge);
+  const char* isS = lua_toboolean(p->dataL, p->idIsStudent) ? "true" : "false";
+  printf("After access: %s, %d, %s\n", name, age, isS);
+}
+
+// Store data in lua thread End ------------------------------------------------
+
 static void table_access(lua_State* L) {
   lua_pushstring(L, "zyk");
   // lua_error(L);
@@ -443,6 +547,8 @@ int main(int argc, char const* argv[]) {
     // lua_settop(L, -2);
     lua_settop(L, 0);
   }
+
+  test_person(L);
 
   lua_close(L);
   return status;
