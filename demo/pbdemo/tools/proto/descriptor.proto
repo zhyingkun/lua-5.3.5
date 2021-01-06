@@ -32,7 +32,12 @@ message DescriptorProto {
 
 message FieldDescriptorProto {
   enum Type {
-    TYPE_DOUBLE = 1; TYPE_FLOAT = 2; TYPE_INT64 = 3; TYPE_UINT64 = 4; TYPE_INT32 = 5; TYPE_FIXED64 = 6;
+    TYPE_DOUBLE = 1;
+    TYPE_FLOAT = 2;
+    TYPE_INT64 = 3;
+    TYPE_UINT64 = 4;
+    TYPE_INT32 = 5;
+    TYPE_FIXED64 = 6;
     TYPE_FIXED32 = 7;
     TYPE_BOOL = 8;
     TYPE_STRING = 9;
@@ -46,7 +51,11 @@ message FieldDescriptorProto {
     TYPE_SINT32 = 17;
     TYPE_SINT64 = 18;
   }
-  enum Label { LABEL_OPTIONAL = 1; LABEL_REQUIRED = 2; LABEL_REPEATED = 3; }
+  enum Label {
+    LABEL_OPTIONAL = 1;
+    LABEL_REQUIRED = 2;
+    LABEL_REPEATED = 3;
+  }
   optional string name = 1;
   optional int32 number = 3;
   optional Label label = 4;
@@ -83,7 +92,11 @@ message MethodDescriptorProto {
 }
 
 message FileOptions {
-  enum OptimizeMode { SPEED = 1; CODE_SIZE = 2; LITE_RUNTIME = 3; }
+  enum OptimizeMode {
+    SPEED = 1;
+    CODE_SIZE = 2;
+    LITE_RUNTIME = 3;
+  }
   optional string java_package = 1;
   optional string java_outer_classname = 8;
   optional bool java_multiple_files = 10;
@@ -102,7 +115,11 @@ message MessageOptions {
 }
 
 message FieldOptions {
-  enum CType { STRING = 0; CORD = 1; STRING_PIECE = 2; }
+  enum CType {
+    STRING = 0;
+    CORD = 1;
+    STRING_PIECE = 2;
+  }
   optional CType ctype = 1;
   optional bool packed = 2;
   optional bool deprecated = 3;
