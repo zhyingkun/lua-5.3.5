@@ -4,6 +4,7 @@ local loop = libuv.loop_new()
 
 local fs = libuv.fs
 local filename = "./word.txt"
+local filerename = "./reword.txt"
 
 -- async
 fs.open(loop, filename, "r", 0, function(fd)
@@ -38,6 +39,9 @@ local result, str = fs.read(loop, fd, -1)
 print("after sync fs.read:", result, str)
 local ret = fs.close(loop, fd)
 print("after sync fs.close:", ret)
+
+local ret = fs.rename(loop, filename, filerename)
+print("after sync fs.rename:", ret)
 
 local ret = libuv.run(loop)
 print("ret from libuv.run:", ret)
