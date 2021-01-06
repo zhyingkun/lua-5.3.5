@@ -225,6 +225,65 @@ static int db_setlocal(lua_State* L) {
   return 1;
 }
 
+static int auxlocalnext(lua_State* L) {
+  lua_State* L1 = (lua_State*)lua_topointer(L, lua_upvalueindex(1));
+  int nvar = (int)luaL_checkinteger(L, 2); /* local-variable index */
+  if (nvar < 0) {
+    nvar--;
+  } else {
+    nvar++;
+  }
+  if (lua_isfunction(L, 1)) { /* function argument? */
+    lua_pushvalue(L, 1); /* push function */
+    const char* name = lua_getlocal(L, NULL, nvar);
+    if (name) {
+      lua_pushinteger(L, nvar);
+      lua_pushstring(L, name); /* push local name */
+      return 2; /* return index and name (there is no value) */
+    } else {
+      lua_pushnil(L); /* no name (nor value) */
+      return 1;
+    }
+  } else { /* stack-level argument */
+    int level = (int)luaL_checkinteger(L, 1);
+    lua_Debug ar;
+    if (!lua_getstack(L1, level, &ar)) /* out of range? */
+      return luaL_argerror(L, 1, "level out of range");
+    checkstack(L, L1, 1);
+    const char* name = lua_getlocal(L1, &ar, nvar);
+    if (name == NULL && nvar > 0) {
+      nvar = -1;
+      name = lua_getlocal(L1, &ar, nvar);
+    }
+    if (name) {
+      lua_xmove(L1, L, 1); // maybe L1 == L, so must move first
+      lua_pushinteger(L, nvar);
+      lua_pushstring(L, name); /* push name */
+      lua_rotate(L, -3, -1); /* re-order */
+      return 3;
+    } else {
+      lua_pushnil(L); /* no name (nor value) */
+      return 1;
+    }
+  }
+}
+
+static int db_locals(lua_State* L) {
+  int arg;
+  lua_State* L1 = getthread(L, &arg);
+
+  int t = lua_type(L, arg + 1);
+  if (t != LUA_TFUNCTION && t != LUA_TNUMBER) {
+    luaL_error(L, "traversal locals need function or number");
+  }
+
+  lua_pushlightuserdata(L, L1);
+  lua_pushcclosure(L, auxlocalnext, 1);
+  lua_pushvalue(L, arg + 1);
+  lua_pushinteger(L, 0);
+  return 3;
+}
+
 /*
 ** get (if 'get' is true) or set an upvalue from a closure
 */
@@ -528,6 +587,7 @@ static const luaL_Reg dblib[] = {
     {"getgcstate", db_getgcstate},
     {"protoinfo", db_protoinfo},
     {"upvalues", db_upvalues},
+    {"locals", db_locals},
     {NULL, NULL},
 };
 
