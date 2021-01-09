@@ -1,6 +1,13 @@
 local pbc = require("libprotobuf")
 local ParseVarint = require("varint")
 
+local Optional = false
+local Required = false
+local Repeated = true
+
+local Int32 = nil
+local String = nil
+
 local Label = {
 	[0] = "optional",
 	"required",
@@ -8,26 +15,26 @@ local Label = {
 }
 
 local PBCFieldConfig = {
-	{ "name", false, nil },
-	{ "id", false, nil },
-	{ "label", false, nil }, -- function(field) return Label[field] end
-	{ "type", false, nil },
-	{ "type_name", false, nil },
-	{ "default_int", false, nil },
-	{ "default_string", false, nil },
-	{ "default_real", false, pbc.todouble },
+	{ "name", Optional, String },
+	{ "id", Optional, Int32 },
+	{ "label", Optional, Int32 }, -- function(field) return Label[field] end
+	{ "type", Optional, Int32 },
+	{ "type_name", Optional, String },
+	{ "default_int", Optional, Int32 },
+	{ "default_string", Optional, String },
+	{ "default_real", Optional, pbc.todouble },
 }
 
 local PBCFileConfig = {
-	{ "name", false, nil },
-	{ "dependency", true, nil },
-	{ "message_name", true, nil },
-	{ "message_size", true, nil },
-	{ "message_field", true, PBCFieldConfig },
-	{ "enum_name", true, nil },
-	{ "enum_size", true, nil },
-	{ "enum_string", true, nil },
-	{ "enum_id", true, nil },
+	{ "name", Optional, String },
+	{ "dependency", Repeated, String },
+	{ "message_name", Repeated, String },
+	{ "message_size", Repeated, Int32 },
+	{ "message_field", Repeated, PBCFieldConfig },
+	{ "enum_name", Repeated, String },
+	{ "enum_size", Repeated, Int32 },
+	{ "enum_string", Repeated, String },
+	{ "enum_id", Repeated, Int32 },
 }
 
 
