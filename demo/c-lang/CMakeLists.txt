@@ -6,5 +6,6 @@ project(c-lang
 	LANGUAGES C CXX
 )
 
+add_subdirectory(ascii)
 # add_subdirectory(dlopen)
 add_subdirectory(setjmp)
