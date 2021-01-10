@@ -19,6 +19,7 @@
 #include "lapi.h"
 #include "lopcodes.h"
 #include "ldebug.h"
+#include "lctype.h"
 
 /*
 ** This file uses only the official API of Lua.
@@ -847,7 +848,10 @@ static size_t escape_string(char* dst, const char* str, size_t len) {
   size_t i = 0;
   char* olddst = dst;
   for (i = 0; i < len; i++) {
-    char tmp = str[i];
+    unsigned char tmp = (unsigned char)str[i];
+    if (lisprint(tmp)) {
+      *dst = tmp;
+    } else {
 #define ESCAPE_CHAR_BRK(c) \
   { \
     *dst = '\\'; \
@@ -855,41 +859,49 @@ static size_t escape_string(char* dst, const char* str, size_t len) {
     *dst = (c); \
     break; \
   }
-    switch (tmp) {
-      case '"':
-        ESCAPE_CHAR_BRK('"');
-      case '\\':
-        ESCAPE_CHAR_BRK('\\');
-      case '\a':
-        ESCAPE_CHAR_BRK('a');
-      case '\b':
-        ESCAPE_CHAR_BRK('b');
-      case '\f':
-        ESCAPE_CHAR_BRK('f');
-      case '\n':
-        ESCAPE_CHAR_BRK('n');
-      case '\r':
-        ESCAPE_CHAR_BRK('r');
-      case '\t':
-        ESCAPE_CHAR_BRK('t');
-      case '\v':
-        ESCAPE_CHAR_BRK('v');
-      case '\0':
-        ESCAPE_CHAR_BRK('0');
-      default:
-        // does not escape other unprintable character
-        // may be utf8 multi byte character
-        *dst = tmp;
-        break;
-    }
+      switch (tmp) {
+        case '"':
+          ESCAPE_CHAR_BRK('"');
+        case '\\':
+          ESCAPE_CHAR_BRK('\\');
+        case '\0':
+          ESCAPE_CHAR_BRK('0');
+        case '\a':
+          ESCAPE_CHAR_BRK('a');
+        case '\b':
+          ESCAPE_CHAR_BRK('b');
+        case '\t':
+          ESCAPE_CHAR_BRK('t');
+        case '\n':
+          ESCAPE_CHAR_BRK('n');
+        case '\v':
+          ESCAPE_CHAR_BRK('v');
+        case '\f':
+          ESCAPE_CHAR_BRK('f');
+        case '\r':
+          ESCAPE_CHAR_BRK('r');
+        default: {
+          *dst = '\\';
+          char buffer[4];
+          sprintf(buffer, "%03u", tmp);
+          int i;
+          for (i = 0; buffer[i] != '\0'; i++) {
+            dst++;
+            *dst = buffer[i];
+          }
+          lua_assert(i == 3);
+          break;
+        }
+      }
 #undef ESCAPE_CHAR_BRK
+    }
     dst++;
   }
   return dst - olddst;
 }
 
 static void strbuff_addlstringex(StringBuffer* b, const char* str, size_t len, int escape) {
-  size_t mul = escape ? 2 : 1;
+  size_t mul = escape ? 4 : 1; // "\127" has 4 byte
   if (len > (l_castS2U(LUA_MAXINTEGER) - b->n) / mul) {
     luaL_error(b->L, "string size of strbuff overflow");
   }
