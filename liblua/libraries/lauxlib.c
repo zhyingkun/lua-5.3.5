@@ -805,46 +805,11 @@ LUALIB_API const char* luaL_tolstring(lua_State* L, int idx, size_t* len) {
 
 /*
 ** {======================================================
-** String Buffer for C
+** String Escape
 ** =======================================================
 */
 
-#define strbuff_addlstring(b, s, l) strbuff_addlstringex(b, s, l, 0)
-#define strbuff_addstring(b, s) strbuff_addlstringex(b, s, strlen(s), 0)
-#define strbuff_addliteral(b, s) strbuff_addlstring(b, "" s, sizeof(s) - 1)
-#define strbuff_addnewline(b) strbuff_addliteral(b, "\n")
-
-#define TEMP_BUFF_SIZE 1024
-#define strbuff_addfstring(b, ...) \
-  do { \
-    char buff[TEMP_BUFF_SIZE]; \
-    snprintf(buff, TEMP_BUFF_SIZE, __VA_ARGS__); \
-    strbuff_addstring(b, buff); \
-  } while (0)
-
-#define DEFAULT_BUFFER_SIZE 4096
-
-// only need one stack slot in idx_buffer
-typedef struct {
-  char* b;
-  size_t size; /* buffer size */
-  size_t n; /* number of characters in buffer */
-  lua_State* L;
-  int idx_buffer;
-} StringBuffer;
-
-static void strbuff_init(StringBuffer* b, lua_State* L, int idx, size_t size) {
-  b->L = L;
-  b->idx_buffer = lua_absindex(L, idx);
-  b->size = size;
-  // for simplicity, here use userdata to manager long string
-  // we can use luaL_Buffer and change the implemention of traversaling the table
-  b->b = (char*)lua_newuserdata(L, size);
-  lua_replace(L, b->idx_buffer);
-  b->n = 0;
-}
-
-static size_t escape_string(char* dst, const char* str, size_t len) {
+LUALIB_API size_t luaL_escape(char* dst, const char* str, size_t len) {
   size_t i = 0;
   char* olddst = dst;
   for (i = 0; i < len; i++) {
@@ -900,6 +865,61 @@ static size_t escape_string(char* dst, const char* str, size_t len) {
   return dst - olddst;
 }
 
+LUALIB_API int luaL_isvar(const char* str, size_t len) {
+  if (!lislalpha(*str)) {
+    return 0;
+  }
+  for (size_t i = 1; i < len; i++) {
+    if (!lislalnum(str[i])) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** String Buffer for C
+** =======================================================
+*/
+
+#define strbuff_addlstring(b, s, l) strbuff_addlstringex(b, s, l, 0)
+#define strbuff_addstring(b, s) strbuff_addlstringex(b, s, strlen(s), 0)
+#define strbuff_addliteral(b, s) strbuff_addlstring(b, "" s, sizeof(s) - 1)
+#define strbuff_addnewline(b) strbuff_addliteral(b, "\n")
+
+#define TEMP_BUFF_SIZE 1024
+#define strbuff_addfstring(b, ...) \
+  do { \
+    char buff[TEMP_BUFF_SIZE]; \
+    snprintf(buff, TEMP_BUFF_SIZE, __VA_ARGS__); \
+    strbuff_addstring(b, buff); \
+  } while (0)
+
+#define DEFAULT_BUFFER_SIZE 4096
+
+// only need one stack slot in idx_buffer
+typedef struct {
+  char* b;
+  size_t size; /* buffer size */
+  size_t n; /* number of characters in buffer */
+  lua_State* L;
+  int idx_buffer;
+} StringBuffer;
+
+static void strbuff_init(StringBuffer* b, lua_State* L, int idx, size_t size) {
+  b->L = L;
+  b->idx_buffer = lua_absindex(L, idx);
+  b->size = size;
+  // for simplicity, here use userdata to manager long string
+  // we can use luaL_Buffer and change the implemention of traversaling the table
+  b->b = (char*)lua_newuserdata(L, size);
+  lua_replace(L, b->idx_buffer);
+  b->n = 0;
+}
+
 static void strbuff_addlstringex(StringBuffer* b, const char* str, size_t len, int escape) {
   size_t mul = escape ? 4 : 1; // "\127" has 4 byte
   if (len > (l_castS2U(LUA_MAXINTEGER) - b->n) / mul) {
@@ -921,7 +941,7 @@ static void strbuff_addlstringex(StringBuffer* b, const char* str, size_t len, i
   }
   char* dst = b->b + b->n;
   if (escape) {
-    len = escape_string(dst, str, len);
+    len = luaL_escape(dst, str, len);
   } else {
     memcpy(dst, str, len);
   }

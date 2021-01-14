@@ -1645,6 +1645,23 @@ static int str_unpack(lua_State* L) {
   return n + 1;
 }
 
+static int str_escape(lua_State* L) {
+  size_t len;
+  const char* str = luaL_checklstring(L, 1, &len);
+  char* dst = (char*)lua_newuserdata(L, len * 4);
+  size_t dstlen = luaL_escape(dst, str, len);
+  lua_pushlstring(L, dst, dstlen);
+  return 1;
+}
+
+static int str_isvar(lua_State* L) {
+  size_t len;
+  const char* str = luaL_checklstring(L, 1, &len);
+  int isvar = luaL_isvar(str, len);
+  lua_pushboolean(L, isvar);
+  return 1;
+}
+
 /* }====================================================== */
 
 static const luaL_Reg strlib[] = {
@@ -1666,6 +1683,8 @@ static const luaL_Reg strlib[] = {
     {"pack", str_pack},
     {"packsize", str_packsize},
     {"unpack", str_unpack},
+    {"escape", str_escape},
+    {"isvar", str_isvar},
     {NULL, NULL},
 };
 

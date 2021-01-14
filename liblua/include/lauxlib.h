@@ -35,6 +35,8 @@ LUALIB_API int(luaL_getmetafield)(lua_State* L, int obj, const char* e);
 LUALIB_API int(luaL_callmeta)(lua_State* L, int obj, const char* e);
 LUALIB_API const char*(luaL_tolstring)(lua_State* L, int idx, size_t* len);
 LUALIB_API const char*(luaL_tolstringex)(lua_State* L, int idx, size_t* len, int level);
+LUALIB_API size_t(luaL_escape)(char* dst, const char* str, size_t len);
+LUALIB_API int(luaL_isvar)(const char* str, size_t len);
 LUALIB_API int(luaL_argerror)(lua_State* L, int arg, const char* extramsg);
 LUALIB_API const char*(luaL_checklstring)(lua_State* L, int arg, size_t* l);
 LUALIB_API const char*(luaL_optlstring)(lua_State* L, int arg, const char* def, size_t* l);
