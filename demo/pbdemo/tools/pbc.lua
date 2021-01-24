@@ -1,5 +1,5 @@
 local pbc = require("libprotobuf")
-local ParseVarint = require("varint")
+local ParseVarint = require("varint").ParseVarint
 
 local Optional = false
 local Required = false

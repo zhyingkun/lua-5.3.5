@@ -31,4 +31,36 @@ local function ParseVarint(msg, config)
 	return fieldTbl
 end
 
-return ParseVarint
+local function ParseVarintRaw(msg)
+	local function HexDump(field)
+		local buf = {}
+		for byte in string.bytes(field) do
+			table.insert(buf, string.format("%02x", byte))
+		end
+		return "0x" .. table.concat(buf)
+	end
+	local TypeProcess = {
+		[0] = function(field) return field end,
+		[1] = HexDump,
+		[2] = function(field)
+			local succeed, result = pcall(ParseVarintRaw, field)
+			if succeed then
+				return result
+			end
+			return string.escape(field)
+		end,
+		[3] = function(field) error("Start group has been deprecated") end,
+		[4] = function(field) error("End group has been deprecated") end,
+		[5] = HexDump,
+	}
+	local fieldTbl = {}
+	for _, number, wiretype, field in pbc.varints(msg) do
+		fieldTbl[number] = TypeProcess[wiretype](field)
+	end
+	return fieldTbl
+end
+
+return {
+	ParseVarint = ParseVarint,
+	ParseVarintRaw = ParseVarintRaw,
+}
