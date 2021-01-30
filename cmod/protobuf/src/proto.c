@@ -20,7 +20,7 @@ struct _message* _pbcP_get_message(struct pbc_env* p, const char* name) {
 }
 
 struct pbc_env* pbc_new(void) {
-  struct pbc_env* p = (struct pbc_env*)malloc(sizeof(*p));
+  struct pbc_env* p = (struct pbc_env*)_pbcM_malloc(sizeof(*p));
   p->files = _pbcM_sp_new(0, NULL);
   p->enums = _pbcM_sp_new(0, NULL);
   p->msgs = _pbcM_sp_new(0, NULL);
@@ -36,7 +36,7 @@ static void free_enum(void* p) {
   _pbcM_ip_delete(e->id);
   _pbcM_si_delete(e->name);
 
-  free(p);
+  _pbcM_free(p);
 }
 
 static void free_stringpool(void* p) {
@@ -47,10 +47,10 @@ static void free_msg(void* p) {
   struct _message* m = (struct _message*)p;
   if (m->id)
     _pbcM_ip_delete(m->id);
-  free(m->def);
+  _pbcM_free(m->def);
   _pbcM_sp_foreach(m->name, free);
   _pbcM_sp_delete(m->name);
-  free(p);
+  _pbcM_free(p);
 }
 
 void pbc_delete(struct pbc_env* p) {
@@ -63,14 +63,14 @@ void pbc_delete(struct pbc_env* p) {
   _pbcM_sp_foreach(p->files, free_stringpool);
   _pbcM_sp_delete(p->files);
 
-  free(p);
+  _pbcM_free(p);
 }
 
-struct _enum* _pbcP_push_enum(struct pbc_env* p, const char* name, struct map_kv* table, int sz) {
+struct _enum* _pbcP_push_enum(struct pbc_env* p, const char* name, map_kv* table, int sz) {
   void* check = _pbcM_sp_query(p->enums, name);
   if (check)
     return NULL;
-  struct _enum* v = (struct _enum*)malloc(sizeof(*v));
+  struct _enum* v = (struct _enum*)_pbcM_malloc(sizeof(*v));
   v->key = name;
   v->id = _pbcM_ip_new(table, sz);
   v->name = _pbcM_si_new(table, sz);
@@ -84,7 +84,7 @@ struct _enum* _pbcP_push_enum(struct pbc_env* p, const char* name, struct map_kv
 void _pbcP_push_message(struct pbc_env* p, const char* name, struct _field* f, pbc_array queue) {
   struct _message* m = (struct _message*)_pbcM_sp_query(p->msgs, name);
   if (m == NULL) {
-    m = (struct _message*)malloc(sizeof(*m));
+    m = (struct _message*)_pbcM_malloc(sizeof(*m));
     m->def = NULL;
     m->key = name;
     m->id = NULL;
@@ -92,7 +92,7 @@ void _pbcP_push_message(struct pbc_env* p, const char* name, struct _field* f, p
     m->env = p;
     _pbcM_sp_insert(p->msgs, name, m);
   }
-  struct _field* field = (struct _field*)malloc(sizeof(*field));
+  struct _field* field = (struct _field*)_pbcM_malloc(sizeof(*field));
   memcpy(field, f, sizeof(*f));
   _pbcM_sp_insert(m->name, field->name, field);
   pbc_var atom;
@@ -104,7 +104,7 @@ void _pbcP_push_message(struct pbc_env* p, const char* name, struct _field* f, p
 
 struct _iter {
   int count;
-  struct map_kv* table;
+  map_kv* table;
 };
 
 static void _count(void* p, void* ud) {
@@ -123,7 +123,7 @@ static void _set_table(void* p, void* ud) {
 struct _message* _pbcP_init_message(struct pbc_env* p, const char* name) {
   struct _message* m = (struct _message*)_pbcM_sp_query(p->msgs, name);
   if (m == NULL) {
-    m = (struct _message*)malloc(sizeof(*m));
+    m = (struct _message*)_pbcM_malloc(sizeof(*m));
     m->def = NULL;
     m->key = name;
     m->id = NULL;
@@ -139,13 +139,13 @@ struct _message* _pbcP_init_message(struct pbc_env* p, const char* name) {
   }
   struct _iter iter = {0, NULL};
   _pbcM_sp_foreach_ud(m->name, _count, &iter);
-  iter.table = (struct map_kv*)malloc(iter.count * sizeof(struct map_kv));
+  iter.table = (map_kv*)_pbcM_malloc(iter.count * sizeof(map_kv));
   iter.count = 0;
   _pbcM_sp_foreach_ud(m->name, _set_table, &iter);
 
   m->id = _pbcM_ip_new(iter.table, iter.count);
 
-  free(iter.table);
+  _pbcM_free(iter.table);
 
   return m;
 }

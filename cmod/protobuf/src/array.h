@@ -5,23 +5,24 @@
 #include "pbc.h"
 #include "alloc.h"
 
-typedef union _pbc_var {
-  struct longlong integer;
+typedef union {
+  longlong integer;
   double real;
   struct {
     const char* str;
     int len;
-  } s;
+  } s; // string
   struct {
     int id;
     const char* name;
-  } e;
-  struct pbc_slice m;
+  } e; // enum
+  pbc_slice m; // message
   void* p[2];
-} pbc_var[1];
+} _pbc_var;
+typedef _pbc_var pbc_var[1];
 
 void _pbcA_open(pbc_array);
-void _pbcA_open_heap(pbc_array, struct heap* h);
+void _pbcA_open_heap(pbc_array, heap* h);
 void _pbcA_close(pbc_array);
 
 void _pbcA_push(pbc_array, pbc_var var);

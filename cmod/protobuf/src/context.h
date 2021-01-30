@@ -56,7 +56,7 @@ struct atom {
   int wire_id;
   union {
     struct slice s;
-    struct longlong i;
+    longlong i;
   } v;
 };
 

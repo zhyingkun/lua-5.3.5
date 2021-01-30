@@ -3,31 +3,66 @@
 
 #include "alloc.h"
 
-struct map_ip;
-struct map_si;
-struct map_sp;
-
-struct map_kv {
+typedef struct {
   int id;
   void* pointer;
-};
+} map_kv;
 
-struct map_si* _pbcM_si_new(struct map_kv* table, int size);
-int _pbcM_si_query(struct map_si* map, const char* key, int* result);
-void _pbcM_si_delete(struct map_si* map);
+typedef struct {
+  const char* key;
+  size_t hash;
+  int id;
+  int next;
+} _pbcM_si_slot;
 
-struct map_ip* _pbcM_ip_new(struct map_kv* table, int size);
-struct map_ip* _pbcM_ip_combine(struct map_ip* a, struct map_ip* b);
-void* _pbcM_ip_query(struct map_ip* map, int id);
-void _pbcM_ip_delete(struct map_ip* map);
+typedef struct { // string => integer
+  size_t size;
+  _pbcM_si_slot slot[1];
+} map_si;
 
-struct map_sp* _pbcM_sp_new(int max, struct heap* h);
-void _pbcM_sp_insert(struct map_sp* map, const char* key, void* value);
-void* _pbcM_sp_query(struct map_sp* map, const char* key);
-void** _pbcM_sp_query_insert(struct map_sp* map, const char* key);
-void _pbcM_sp_delete(struct map_sp* map);
-void _pbcM_sp_foreach(struct map_sp* map, void (*func)(void* p));
-void _pbcM_sp_foreach_ud(struct map_sp* map, void (*func)(void* p, void* ud), void* ud);
-void* _pbcM_sp_next(struct map_sp* map, const char** key);
+map_si* _pbcM_si_new(map_kv* table, int size);
+int _pbcM_si_query(map_si* map, const char* key, int* result);
+void _pbcM_si_delete(map_si* map);
+
+typedef struct {
+  int id;
+  void* pointer;
+  int next;
+} _pbcM_ip_slot;
+
+typedef struct { // integer => pointer
+  size_t array_size;
+  void** array;
+  size_t hash_size;
+  _pbcM_ip_slot* slot;
+} map_ip;
+
+map_ip* _pbcM_ip_new(map_kv* table, int size);
+map_ip* _pbcM_ip_combine(map_ip* a, map_ip* b);
+void* _pbcM_ip_query(map_ip* map, int id);
+void _pbcM_ip_delete(map_ip* map);
+
+typedef struct {
+  const char* key;
+  size_t hash;
+  void* pointer;
+  int next;
+} _pbcM_sp_slot;
+
+typedef struct { // string => pointer
+  size_t cap;
+  size_t size;
+  heap* heap;
+  _pbcM_sp_slot* slot;
+} map_sp;
+
+map_sp* _pbcM_sp_new(int max, heap* h);
+void _pbcM_sp_insert(map_sp* map, const char* key, void* value);
+void* _pbcM_sp_query(map_sp* map, const char* key);
+void** _pbcM_sp_query_insert(map_sp* map, const char* key);
+void _pbcM_sp_delete(map_sp* map);
+void _pbcM_sp_foreach(map_sp* map, void (*func)(void* p));
+void _pbcM_sp_foreach_ud(map_sp* map, void (*func)(void* p, void* ud), void* ud);
+void* _pbcM_sp_next(map_sp* map, const char** key);
 
 #endif

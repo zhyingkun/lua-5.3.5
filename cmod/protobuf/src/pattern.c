@@ -37,14 +37,14 @@ static void set_default_v(void* output, int ctype, pbc_var defv) {
       *(uint16_t*)output = (uint16_t)defv->integer.low;
       break;
     case CTYPE_VAR:
-      *(union _pbc_var*)output = *defv;
+      *(_pbc_var*)output = *defv;
       break;
   }
 }
 
 static void _pattern_set_default(struct _pattern_field* field, char* output) {
   if (field->ctype == CTYPE_ARRAY || field->ctype == CTYPE_PACKED) {
-    struct _pbc_array* array = (struct _pbc_array*)(output + field->offset);
+    _pbc_array* array = (_pbc_array*)(output + field->offset);
     _pbcA_open(array);
   } else if (field->ptype == PTYPE_ENUM) {
     pbc_var defv;
@@ -91,13 +91,13 @@ static inline int write_real(int ctype, double v, void* out) {
       *(float*)out = (float)v;
       return 0;
     case CTYPE_VAR:
-      ((union _pbc_var*)out)->real = v;
+      ((_pbc_var*)out)->real = v;
       return 0;
   }
   return -1;
 }
 
-static inline int write_longlong(int ctype, struct longlong* i, void* out) {
+static inline int write_longlong(int ctype, longlong* i, void* out) {
   switch (ctype) {
     case CTYPE_INT32:
       *(uint32_t*)out = i->low;
@@ -115,7 +115,7 @@ static inline int write_longlong(int ctype, struct longlong* i, void* out) {
       *(uint8_t*)out = (uint16_t)i->low;
       return 0;
     case CTYPE_VAR:
-      ((union _pbc_var*)out)->integer = *i;
+      ((_pbc_var*)out)->integer = *i;
       return 0;
   }
   return -1;
@@ -258,11 +258,11 @@ int _pbcP_unpack_packed(uint8_t* buffer, int size, int ptype, pbc_array array) {
 
 static int unpack_field(int ctype, int ptype, char* buffer, struct atom* a, void* out) {
   if (ctype == CTYPE_ARRAY) {
-    return unpack_array(ptype, buffer, a, (struct _pbc_array*)out);
+    return unpack_array(ptype, buffer, a, (_pbc_array*)out);
   }
   if (ctype == CTYPE_PACKED) {
     return _pbcP_unpack_packed(
-        (uint8_t*)buffer + a->v.s.start, a->v.s.end - a->v.s.start, ptype, (struct _pbc_array*)out);
+        (uint8_t*)buffer + a->v.s.start, a->v.s.end - a->v.s.start, ptype, (_pbc_array*)out);
   }
   switch (ptype) {
     case PTYPE_DOUBLE:
@@ -289,26 +289,26 @@ static int unpack_field(int ctype, int ptype, char* buffer, struct atom* a, void
       return write_integer(ctype, a, out);
     case PTYPE_SINT32: {
       CHECK_VARINT(a, -1);
-      struct longlong temp = a->v.i;
+      longlong temp = a->v.i;
       _pbcV_dezigzag32(&temp);
       return write_longlong(ctype, &temp, out);
     }
     case PTYPE_SINT64: {
       CHECK_LEND(a, -1);
-      struct longlong temp = a->v.i;
+      longlong temp = a->v.i;
       _pbcV_dezigzag64(&temp);
       return write_longlong(ctype, &temp, out);
     }
     case PTYPE_MESSAGE:
       CHECK_LEND(a, -1);
-      ((union _pbc_var*)out)->m.buffer = buffer + a->v.s.start;
-      ((union _pbc_var*)out)->m.len = a->v.s.end - a->v.s.start;
+      ((_pbc_var*)out)->m.buffer = buffer + a->v.s.start;
+      ((_pbc_var*)out)->m.len = a->v.s.end - a->v.s.start;
       return 0;
     case PTYPE_STRING:
     case PTYPE_BYTES:
       CHECK_LEND(a, -1);
-      ((struct pbc_slice*)out)->buffer = buffer + a->v.s.start;
-      ((struct pbc_slice*)out)->len = a->v.s.end - a->v.s.start;
+      ((pbc_slice*)out)->buffer = buffer + a->v.s.start;
+      ((pbc_slice*)out)->len = a->v.s.end - a->v.s.start;
       return 0;
   }
   return -1;
@@ -329,12 +329,12 @@ void pbc_pattern_close_arrays(struct pbc_pattern* pat, void* data) {
   for (i = 0; i < pat->count; i++) {
     if (pat->f[i].ctype == CTYPE_ARRAY || pat->f[i].ctype == CTYPE_PACKED) {
       void* array = (char*)data + pat->f[i].offset;
-      _pbcA_close((struct _pbc_array*)array);
+      _pbcA_close((_pbc_array*)array);
     }
   }
 }
 
-static inline int _pack_wiretype(uint32_t wt, struct pbc_slice* s) {
+static inline int _pack_wiretype(uint32_t wt, pbc_slice* s) {
   int len;
   if (s->len < 10) {
     uint8_t temp[10];
@@ -350,7 +350,7 @@ static inline int _pack_wiretype(uint32_t wt, struct pbc_slice* s) {
   return len;
 }
 
-static inline int _pack_varint64(uint64_t i64, struct pbc_slice* s) {
+static inline int _pack_varint64(uint64_t i64, pbc_slice* s) {
   int len;
   if (s->len < 10) {
     uint8_t temp[10];
@@ -366,7 +366,7 @@ static inline int _pack_varint64(uint64_t i64, struct pbc_slice* s) {
   return len;
 }
 
-static inline int _pack_sint32(uint32_t v, struct pbc_slice* s) {
+static inline int _pack_sint32(uint32_t v, pbc_slice* s) {
   int len;
   if (s->len < 10) {
     uint8_t temp[10];
@@ -382,7 +382,7 @@ static inline int _pack_sint32(uint32_t v, struct pbc_slice* s) {
   return len;
 }
 
-static inline int _pack_sint64(uint64_t v, struct pbc_slice* s) {
+static inline int _pack_sint64(uint64_t v, pbc_slice* s) {
   int len;
   if (s->len < 10) {
     uint8_t temp[10];
@@ -405,12 +405,12 @@ static inline void _fix32_encode(uint32_t v, uint8_t* buffer) {
   buffer[3] = (uint8_t)(v >> 24);
 }
 
-static inline void _fix64_encode(struct longlong* v, uint8_t* buffer) {
+static inline void _fix64_encode(longlong* v, uint8_t* buffer) {
   _fix32_encode(v->low, buffer);
   _fix32_encode(v->hi, buffer + 4);
 }
 
-static int _pack_number(int ptype, int ctype, struct pbc_slice* s, void* input) {
+static int _pack_number(int ptype, int ctype, pbc_slice* s, void* input) {
   pbc_var var;
   if (ctype == CTYPE_VAR) {
     memcpy(var, input, sizeof(var));
@@ -495,12 +495,12 @@ static int _pack_number(int ptype, int ctype, struct pbc_slice* s, void* input) 
   }
 }
 
-static int _pack_field(struct _pattern_field* pf, int ctype, struct pbc_slice* s, void* input) {
+static int _pack_field(struct _pattern_field* pf, int ctype, pbc_slice* s, void* input) {
   int wiretype;
   int ret = 0;
   int len;
-  struct pbc_slice* input_slice;
-  struct pbc_slice string_slice;
+  pbc_slice* input_slice;
+  pbc_slice string_slice;
 
   switch (pf->ptype) {
     case PTYPE_FIXED64:
@@ -525,7 +525,7 @@ static int _pack_field(struct _pattern_field* pf, int ctype, struct pbc_slice* s
       goto _number;
     case PTYPE_STRING:
       wiretype = WT_LEND;
-      input_slice = (struct pbc_slice*)input;
+      input_slice = (pbc_slice*)input;
       if (input_slice->len >= 0)
         goto _string;
       string_slice.buffer = input_slice->buffer;
@@ -543,7 +543,7 @@ static int _pack_field(struct _pattern_field* pf, int ctype, struct pbc_slice* s
 
   return 0;
 _bytes:
-  input_slice = (struct pbc_slice*)input;
+  input_slice = (pbc_slice*)input;
 _string:
   len = _pack_wiretype(pf->id << 3 | WT_LEND, s);
   if (len < 0) {
@@ -578,7 +578,7 @@ _number:
   return ret;
 }
 
-static int _pack_repeated(struct _pattern_field* pf, struct pbc_slice* s, pbc_array array) {
+static int _pack_repeated(struct _pattern_field* pf, pbc_slice* s, pbc_array array) {
   int n = pbc_array_size(array);
   int ret = 0;
   if (n > 0) {
@@ -593,7 +593,7 @@ static int _pack_repeated(struct _pattern_field* pf, struct pbc_slice* s, pbc_ar
   return ret;
 }
 
-static int _pack_packed_fixed(struct _pattern_field* pf, int width, struct pbc_slice* s, pbc_array array) {
+static int _pack_packed_fixed(struct _pattern_field* pf, int width, pbc_slice* s, pbc_array array) {
   int len;
   int n = pbc_array_size(array);
   len = _pack_wiretype(n * width, s);
@@ -610,8 +610,8 @@ static int _pack_packed_fixed(struct _pattern_field* pf, int width, struct pbc_s
   return len + n * width;
 }
 
-static int _pack_packed_varint(struct _pattern_field* pf, struct pbc_slice* slice, pbc_array array) {
-  struct pbc_slice s = *slice;
+static int _pack_packed_varint(struct _pattern_field* pf, pbc_slice* slice, pbc_array array) {
+  pbc_slice s = *slice;
   int n = pbc_array_size(array);
   int estimate = n;
   int estimate_len = _pack_wiretype(estimate, &s);
@@ -631,7 +631,7 @@ static int _pack_packed_varint(struct _pattern_field* pf, struct pbc_slice* slic
     return packed_len + estimate_len;
   }
   uint8_t temp[10];
-  struct pbc_slice header_slice = {temp, 10};
+  pbc_slice header_slice = {temp, 10};
   int header_len = _pack_wiretype(packed_len, &header_slice);
   if (header_len == estimate_len) {
     memcpy(slice->buffer, temp, header_len);
@@ -647,7 +647,7 @@ static int _pack_packed_varint(struct _pattern_field* pf, struct pbc_slice* slic
   return packed_len + header_len;
 }
 
-static int _pack_packed(struct _pattern_field* pf, struct pbc_slice* s, pbc_array array) {
+static int _pack_packed(struct _pattern_field* pf, pbc_slice* s, pbc_array array) {
   int n = pbc_array_size(array);
   if (n == 0)
     return 0;
@@ -696,7 +696,7 @@ static int _pack_packed(struct _pattern_field* pf, struct pbc_slice* s, pbc_arra
 static bool _is_default(struct _pattern_field* pf, void* in) {
   switch (pf->ctype) {
     case CTYPE_INT64: {
-      struct longlong* d64 = &pf->defv->integer;
+      longlong* d64 = &pf->defv->integer;
       return ((uint64_t)d64->low | (uint64_t)d64->hi << 32) == *(uint64_t*)in;
     }
     case CTYPE_DOUBLE:
@@ -716,7 +716,7 @@ static bool _is_default(struct _pattern_field* pf, void* in) {
         return *(bool*)in == false;
   }
   if (pf->ptype == PTYPE_STRING) {
-    struct pbc_slice* slice = (struct pbc_slice*)in;
+    pbc_slice* slice = (pbc_slice*)in;
     if (slice->buffer == NULL) {
       return pf->defv->s.str[0] == '\0';
     }
@@ -726,7 +726,7 @@ static bool _is_default(struct _pattern_field* pf, void* in) {
     }
     return len == pf->defv->s.len && memcmp(pf->defv->s.str, slice->buffer, len) == 0;
   } else if (pf->ptype == PTYPE_BYTES) {
-    struct pbc_slice* slice = (struct pbc_slice*)in;
+    pbc_slice* slice = (pbc_slice*)in;
     if (slice->buffer == NULL)
       return true;
   }
@@ -734,8 +734,8 @@ static bool _is_default(struct _pattern_field* pf, void* in) {
   return false;
 }
 
-int pbc_pattern_pack(struct pbc_pattern* pat, void* input, struct pbc_slice* s) {
-  struct pbc_slice slice = *s;
+int pbc_pattern_pack(struct pbc_pattern* pat, void* input, pbc_slice* s) {
+  pbc_slice slice = *s;
   int i;
   for (i = 0; i < pat->count; i++) {
     struct _pattern_field* pf = &pat->f[i];
@@ -750,10 +750,10 @@ int pbc_pattern_pack(struct pbc_pattern* pat, void* input, struct pbc_slice* s) 
         len = _pack_field(pf, pf->ctype, &slice, in);
         break;
       case LABEL_REPEATED:
-        len = _pack_repeated(pf, &slice, (struct _pbc_array*)in);
+        len = _pack_repeated(pf, &slice, (_pbc_array*)in);
         break;
       case LABEL_PACKED:
-        len = _pack_packed(pf, &slice, (struct _pbc_array*)in);
+        len = _pack_packed(pf, &slice, (_pbc_array*)in);
         break;
     }
     if (len < 0) {
@@ -766,7 +766,7 @@ int pbc_pattern_pack(struct pbc_pattern* pat, void* input, struct pbc_slice* s) 
   return ret;
 }
 
-int pbc_pattern_unpack(struct pbc_pattern* pat, struct pbc_slice* s, void* output) {
+int pbc_pattern_unpack(struct pbc_pattern* pat, pbc_slice* s, void* output) {
   if (s->len == 0) {
     pbc_pattern_set_default(pat, output);
     return 0;
@@ -794,7 +794,7 @@ int pbc_pattern_unpack(struct pbc_pattern* pat, struct pbc_slice* s, void* outpu
         field[index] = true;
         ++fc;
         if ((f->ctype == CTYPE_ARRAY || f->ctype == CTYPE_PACKED)) {
-          struct _pbc_array* array = (struct _pbc_array*)((char*)output + f->offset);
+          _pbc_array* array = (_pbc_array*)((char*)output + f->offset);
           _pbcA_open(array);
         }
       }
@@ -804,7 +804,7 @@ int pbc_pattern_unpack(struct pbc_pattern* pat, struct pbc_slice* s, void* outpu
         for (j = 0; j < pat->count; j++) {
           if (field[j] == true && (pat->f[j].ctype == CTYPE_ARRAY || pat->f[j].ctype == CTYPE_PACKED)) {
             void* array = (char*)output + pat->f[j].offset;
-            _pbcA_close((struct _pbc_array*)array);
+            _pbcA_close((_pbc_array*)array);
           }
         }
         _pbcC_close(_ctx);
@@ -881,7 +881,7 @@ static int _ctype_size(const char* ctype) {
     case 'c':
       return sizeof(int8_t);
     case 's':
-      return sizeof(struct pbc_slice);
+      return sizeof(pbc_slice);
     case 'a':
       return sizeof(pbc_array);
     default:
@@ -928,7 +928,7 @@ static int _comp_field(const void* a, const void* b) {
 
 struct pbc_pattern* _pbcP_new(struct pbc_env* env, int n) {
   size_t sz = sizeof(struct pbc_pattern) + (sizeof(struct _pattern_field)) * (n - 1);
-  struct pbc_pattern* ret = (struct pbc_pattern*)malloc(sz);
+  struct pbc_pattern* ret = (struct pbc_pattern*)_pbcM_malloc(sz);
   memset(ret, 0, sz);
   ret->count = n;
   ret->env = env;
@@ -1004,7 +1004,7 @@ struct pbc_pattern* _pattern_new(struct _message* m, const char* format) {
   qsort(pat->f, n, sizeof(struct _pattern_field), _comp_field);
   return pat;
 _error:
-  free(pat);
+  _pbcM_free(pat);
   return NULL;
 }
 
@@ -1066,10 +1066,10 @@ struct pbc_pattern* pbc_pattern_new(struct pbc_env* env, const char* message, co
   qsort(pat->f, n, sizeof(struct _pattern_field), _comp_field);
   return pat;
 _error:
-  free(pat);
+  _pbcM_free(pat);
   return NULL;
 }
 
 void pbc_pattern_delete(struct pbc_pattern* pat) {
-  free(pat);
+  _pbcM_free(pat);
 }

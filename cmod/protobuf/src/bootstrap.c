@@ -50,18 +50,18 @@ message file {
 */
 
 struct field_t {
-  struct pbc_slice name;
+  pbc_slice name;
   int32_t id;
   int32_t label;
   int32_t type;
-  struct pbc_slice type_name;
+  pbc_slice type_name;
   int32_t default_integer;
-  struct pbc_slice default_string;
+  pbc_slice default_string;
   double default_real;
 };
 
 struct file_t {
-  struct pbc_slice name; // string
+  pbc_slice name; // string
   pbc_array dependency; // string
   pbc_array message_name; // string
   pbc_array message_size; // int32
@@ -73,7 +73,7 @@ struct file_t {
 };
 
 static void set_enum_one(struct pbc_env* p, struct file_t* file, const char* name, int start, int sz) {
-  struct map_kv* table = (struct map_kv*)malloc(sz * sizeof(struct map_kv));
+  map_kv* table = (map_kv*)_pbcM_malloc(sz * sizeof(map_kv));
   int i;
   for (i = 0; i < sz; i++) {
     pbc_var id;
@@ -85,7 +85,7 @@ static void set_enum_one(struct pbc_env* p, struct file_t* file, const char* nam
   }
   _pbcP_push_enum(p, name, table, sz);
 
-  free(table);
+  _pbcM_free(table);
 }
 
 static void set_enums(struct pbc_env* p, struct file_t* file) {
@@ -233,7 +233,7 @@ static void _set_int32_array(struct _pattern_field* f) {
 #define F(idx, field_name, type) SET_PATTERN(FIELD_T, idx, field_t, field_name, type)
 #define D(idx, field_name, type) SET_PATTERN(FILE_T, idx, file_t, field_name, type)
 
-static int register_internal(struct pbc_env* p, struct pbc_slice* slice) {
+static int register_internal(struct pbc_env* p, pbc_slice* slice) {
   struct pbc_pattern* FIELD_T = _pbcP_new(p, 8);
   F(0, name, string);
   F(1, id, int32);
@@ -278,12 +278,12 @@ static int register_internal(struct pbc_env* p, struct pbc_slice* slice) {
   pbc_pattern_close_arrays(FILE_T, &file);
 
 _return:
-  free(FIELD_T);
-  free(FILE_T);
+  _pbcM_free(FIELD_T);
+  _pbcM_free(FILE_T);
   return ret;
 }
 
 void _pbcB_init(struct pbc_env* p) {
-  struct pbc_slice slice = {pbc_descriptor, sizeof(pbc_descriptor)};
+  pbc_slice slice = {pbc_descriptor, sizeof(pbc_descriptor)};
   register_internal(p, &slice);
 }

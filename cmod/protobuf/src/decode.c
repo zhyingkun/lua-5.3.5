@@ -101,13 +101,13 @@ static int call_type(pbc_decoder pd, void* ud, struct _field* f, struct atom* a,
       CHECK_VARINT(a, -1);
       v.i.low = a->v.i.low;
       v.i.hi = a->v.i.hi;
-      _pbcV_dezigzag32((struct longlong*)&(v.i));
+      _pbcV_dezigzag32((longlong*)&(v.i));
       break;
     case PTYPE_SINT64:
       CHECK_VARINT(a, -1);
       v.i.low = a->v.i.low;
       v.i.hi = a->v.i.hi;
-      _pbcV_dezigzag64((struct longlong*)&(v.i));
+      _pbcV_dezigzag64((longlong*)&(v.i));
       break;
     case PTYPE_STRING:
     case PTYPE_BYTES:
@@ -196,11 +196,11 @@ static int call_array(pbc_decoder pd, void* ud, struct _field* f, uint8_t* buffe
       while (size > 0) {
         int len;
         if (size >= 10) {
-          len = _pbcV_decode(buffer, (struct longlong*)&(v.i));
+          len = _pbcV_decode(buffer, (longlong*)&(v.i));
         } else {
           uint8_t temp[10];
           memcpy(temp, buffer, size);
-          len = _pbcV_decode(buffer, (struct longlong*)&(v.i));
+          len = _pbcV_decode(buffer, (longlong*)&(v.i));
           if (len > size)
             return -1;
         }
@@ -216,11 +216,11 @@ static int call_array(pbc_decoder pd, void* ud, struct _field* f, uint8_t* buffe
       while (size > 0) {
         int len;
         if (size >= 10) {
-          len = _pbcV_decode(buffer, (struct longlong*)&(v.i));
+          len = _pbcV_decode(buffer, (longlong*)&(v.i));
         } else {
           uint8_t temp[10];
           memcpy(temp, buffer, size);
-          len = _pbcV_decode(buffer, (struct longlong*)&(v.i));
+          len = _pbcV_decode(buffer, (longlong*)&(v.i));
           if (len > size)
             return -1;
         }
@@ -238,15 +238,15 @@ static int call_array(pbc_decoder pd, void* ud, struct _field* f, uint8_t* buffe
       while (size > 0) {
         int len;
         if (size >= 10) {
-          len = _pbcV_decode(buffer, (struct longlong*)&(v.i));
-          _pbcV_dezigzag32((struct longlong*)&(v.i));
+          len = _pbcV_decode(buffer, (longlong*)&(v.i));
+          _pbcV_dezigzag32((longlong*)&(v.i));
         } else {
           uint8_t temp[10];
           memcpy(temp, buffer, size);
-          len = _pbcV_decode(buffer, (struct longlong*)&(v.i));
+          len = _pbcV_decode(buffer, (longlong*)&(v.i));
           if (len > size)
             return -1;
-          _pbcV_dezigzag32((struct longlong*)&(v.i));
+          _pbcV_dezigzag32((longlong*)&(v.i));
         }
         pd(ud, type, type_name, &v, f->id, f->name);
         buffer += len;
@@ -260,15 +260,15 @@ static int call_array(pbc_decoder pd, void* ud, struct _field* f, uint8_t* buffe
       while (size > 0) {
         int len;
         if (size >= 10) {
-          len = _pbcV_decode(buffer, (struct longlong*)&(v.i));
-          _pbcV_dezigzag64((struct longlong*)&(v.i));
+          len = _pbcV_decode(buffer, (longlong*)&(v.i));
+          _pbcV_dezigzag64((longlong*)&(v.i));
         } else {
           uint8_t temp[10];
           memcpy(temp, buffer, size);
-          len = _pbcV_decode(buffer, (struct longlong*)&(v.i));
+          len = _pbcV_decode(buffer, (longlong*)&(v.i));
           if (len > size)
             return -1;
-          _pbcV_dezigzag64((struct longlong*)&(v.i));
+          _pbcV_dezigzag64((longlong*)&(v.i));
         }
         pd(ud, type, type_name, &v, f->id, f->name);
         buffer += len;
@@ -282,7 +282,7 @@ static int call_array(pbc_decoder pd, void* ud, struct _field* f, uint8_t* buffe
   }
 }
 
-int pbc_decode(struct pbc_env* env, const char* type_name, struct pbc_slice* slice, pbc_decoder pd, void* ud) {
+int pbc_decode(struct pbc_env* env, const char* type_name, pbc_slice* slice, pbc_decoder pd, void* ud) {
   struct _message* msg = _pbcP_get_message(env, type_name);
   if (msg == NULL) {
     env->lasterror = "Proto not found";

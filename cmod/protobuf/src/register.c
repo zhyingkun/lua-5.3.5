@@ -36,7 +36,7 @@ static const char* _concat_name(struct _stringpool* p, const char* prefix, int p
 static void _register_enum(struct pbc_env* p, struct _stringpool* pool, struct pbc_rmessage* enum_type,
                            const char* prefix, int prefix_sz) {
   int field_count = pbc_rmessage_size(enum_type, "value");
-  struct map_kv* table = (struct map_kv*)malloc(field_count * sizeof(struct map_kv));
+  map_kv* table = (map_kv*)_pbcM_malloc(field_count * sizeof(map_kv));
   int i;
   for (i = 0; i < field_count; i++) {
     struct pbc_rmessage* value = pbc_rmessage_message(enum_type, "value", i);
@@ -50,7 +50,7 @@ static void _register_enum(struct pbc_env* p, struct _stringpool* pool, struct p
   const char* temp = _concat_name(pool, prefix, prefix_sz, name, name_sz, NULL);
 
   _pbcP_push_enum(p, temp, table, field_count);
-  free(table);
+  _pbcM_free(table);
 }
 
 static void _set_default(struct _stringpool* pool, struct _field* f, int ptype, const char* value, int sz) {
@@ -296,7 +296,7 @@ static int _register_no_dependency(struct pbc_env* p, struct pbc_rmessage** file
   return r;
 }
 
-int pbc_register(struct pbc_env* p, struct pbc_slice* slice) {
+int pbc_register(struct pbc_env* p, pbc_slice* slice) {
   struct pbc_rmessage* message = pbc_rmessage_new(p, "google.protobuf.FileDescriptorSet", slice);
   if (message == NULL) {
     p->lasterror = "register open google.protobuf.FileDescriptorSet fail";

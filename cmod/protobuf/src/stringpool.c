@@ -12,7 +12,7 @@ struct _stringpool {
 };
 
 struct _stringpool* _pbcS_new(void) {
-  struct _stringpool* ret = (struct _stringpool*)malloc(sizeof(struct _stringpool) + PAGE_SIZE);
+  struct _stringpool* ret = (struct _stringpool*)_pbcM_malloc(sizeof(struct _stringpool) + PAGE_SIZE);
   ret->buffer = (char*)(ret + 1);
   ret->len = 0;
   ret->next = NULL;
@@ -22,7 +22,7 @@ struct _stringpool* _pbcS_new(void) {
 void _pbcS_delete(struct _stringpool* pool) {
   while (pool) {
     struct _stringpool* next = pool->next;
-    free(pool);
+    _pbcM_free(pool);
     pool = next;
   }
 }
@@ -36,7 +36,7 @@ const char* _pbcS_build(struct _stringpool* pool, const char* str, int sz) {
     return ret;
   }
   if (s > PAGE_SIZE) {
-    struct _stringpool* next = (struct _stringpool*)malloc(sizeof(struct _stringpool) + s);
+    struct _stringpool* next = (struct _stringpool*)_pbcM_malloc(sizeof(struct _stringpool) + s);
     next->buffer = (char*)(next + 1);
     memcpy(next->buffer, str, s);
     next->len = s;
@@ -44,7 +44,7 @@ const char* _pbcS_build(struct _stringpool* pool, const char* str, int sz) {
     pool->next = next;
     return next->buffer;
   }
-  struct _stringpool* next = (struct _stringpool*)malloc(sizeof(struct _stringpool) + PAGE_SIZE);
+  struct _stringpool* next = (struct _stringpool*)_pbcM_malloc(sizeof(struct _stringpool) + PAGE_SIZE);
   next->buffer = pool->buffer;
   next->next = pool->next;
   next->len = pool->len;

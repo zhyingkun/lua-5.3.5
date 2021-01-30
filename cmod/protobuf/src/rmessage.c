@@ -11,8 +11,8 @@
 
 struct pbc_rmessage {
   struct _message* msg;
-  struct map_sp* index; // key -> struct value *
-  struct heap* heap;
+  map_sp* index; // key -> struct value *
+  heap* heap;
 };
 
 union _var {
@@ -38,7 +38,7 @@ int pbc_rmessage_next(struct pbc_rmessage* m, const char** key) {
 #define SIZE_ARRAY (offsetof(struct value, v) + sizeof(pbc_array))
 #define SIZE_MESSAGE (offsetof(struct value, v) + sizeof(struct pbc_rmessage))
 
-static struct value* read_string(struct heap* h, struct atom* a, struct _field* f, uint8_t* buffer) {
+static struct value* read_string(heap* h, struct atom* a, struct _field* f, uint8_t* buffer) {
   const char* temp = (const char*)(buffer + a->v.s.start);
   int len = a->v.s.end - a->v.s.start;
 
@@ -57,7 +57,7 @@ static struct value* read_string(struct heap* h, struct atom* a, struct _field* 
   }
 }
 
-static void read_string_var(struct heap* h, pbc_var var, struct atom* a, struct _field* f, uint8_t* buffer) {
+static void read_string_var(heap* h, pbc_var var, struct atom* a, struct _field* f, uint8_t* buffer) {
   const char* temp = (const char*)(buffer + a->v.s.start);
   int len = a->v.s.end - a->v.s.start;
   if (len == 0) {
@@ -75,9 +75,9 @@ static void read_string_var(struct heap* h, pbc_var var, struct atom* a, struct 
   }
 }
 
-static void _pbc_rmessage_new(struct pbc_rmessage* ret, struct _message* type, void* buffer, int size, struct heap* h);
+static void _pbc_rmessage_new(struct pbc_rmessage* ret, struct _message* type, void* buffer, int size, heap* h);
 
-static struct value* read_value(struct heap* h, struct _field* f, struct atom* a, uint8_t* buffer) {
+static struct value* read_value(heap* h, struct _field* f, struct atom* a, uint8_t* buffer) {
   struct value* v;
 
   switch (f->type) {
@@ -163,7 +163,7 @@ static void push_value_packed(struct _message* type, pbc_array array, struct _fi
   if (f->type == PTYPE_ENUM) {
     int i;
     for (i = 0; i < n; i++) {
-      union _pbc_var* v = (union _pbc_var*)_pbcA_index_p(array, i);
+      _pbc_var* v = (_pbc_var*)_pbcA_index_p(array, i);
       int id = v->integer.low;
       v->e.id = id;
       v->e.name = (const char*)_pbcM_ip_query(f->type_name.e->id, id);
@@ -171,7 +171,7 @@ static void push_value_packed(struct _message* type, pbc_array array, struct _fi
   }
 }
 
-static void push_value_array(struct heap* h, pbc_array array, struct _field* f, struct atom* a, uint8_t* buffer) {
+static void push_value_array(heap* h, pbc_array array, struct _field* f, struct atom* a, uint8_t* buffer) {
   pbc_var v;
 
   switch (f->type) {
@@ -231,7 +231,7 @@ static void push_value_array(struct heap* h, pbc_array array, struct _field* f, 
   _pbcA_push(array, v);
 }
 
-static void _pbc_rmessage_new(struct pbc_rmessage* ret, struct _message* type, void* buffer, int size, struct heap* h) {
+static void _pbc_rmessage_new(struct pbc_rmessage* ret, struct _message* type, void* buffer, int size, heap* h) {
   if (size == 0) {
     ret->msg = type;
     ret->index = _pbcM_sp_new(0, h);
@@ -295,14 +295,14 @@ static void _pbc_rmessage_new(struct pbc_rmessage* ret, struct _message* type, v
   _pbcC_close(_ctx);
 }
 
-struct pbc_rmessage* pbc_rmessage_new(struct pbc_env* env, const char* type_name, struct pbc_slice* slice) {
+struct pbc_rmessage* pbc_rmessage_new(struct pbc_env* env, const char* type_name, pbc_slice* slice) {
   struct _message* msg = _pbcP_get_message(env, type_name);
   if (msg == NULL) {
     env->lasterror = "Proto not found";
     return NULL;
   }
   struct pbc_rmessage temp;
-  struct heap* h = _pbcH_new(slice->len);
+  heap* h = _pbcH_new(slice->len);
   _pbc_rmessage_new(&temp, msg, slice->buffer, slice->len, h);
   if (temp.msg == NULL) {
     _pbcH_delete(h);
@@ -408,7 +408,7 @@ struct pbc_rmessage* pbc_rmessage_message(struct pbc_rmessage* rm, const char* k
 
     if (m->def == NULL) {
       // m->def will be free at the end (pbc_delete).
-      m->def = (struct pbc_rmessage*)malloc(sizeof(struct pbc_rmessage));
+      m->def = (struct pbc_rmessage*)_pbcM_malloc(sizeof(struct pbc_rmessage));
       m->def->msg = m;
       m->def->index = NULL;
     }

@@ -14,7 +14,7 @@
 
 static char* wiretype_decode(uint8_t* buffer, int cap, struct atom* a, int start) {
   uint8_t temp[10];
-  struct longlong r;
+  longlong r;
   int len;
   if (cap >= 10) {
     len = _pbcV_decode(buffer, &r);
@@ -101,11 +101,11 @@ static int _open_packed_varint(struct context* ctx, uint8_t* buffer, int size) {
     ctx->a = a;
   } else {
     int cap = 64;
-    ctx->a = (struct atom*)malloc(cap * sizeof(struct atom));
+    ctx->a = (struct atom*)_pbcM_malloc(cap * sizeof(struct atom));
     while (size > 0) {
       if (i >= cap) {
         cap = cap + 64;
-        ctx->a = (struct atom*)realloc(ctx->a, cap * sizeof(struct atom));
+        ctx->a = (struct atom*)_pbcM_realloc(ctx->a, cap * sizeof(struct atom));
         continue;
       }
       int len = _decode_varint(buffer, size, &a[i]);
@@ -163,7 +163,7 @@ int _pbcC_open_packed(pbc_ctx _ctx, int ptype, void* buffer, int size) {
   struct atom* a = (struct atom*)(ctx + 1);
 
   if (ctx->number > INNER_ATOM) {
-    ctx->a = (struct atom*)malloc(ctx->number * sizeof(struct atom));
+    ctx->a = (struct atom*)_pbcM_malloc(ctx->number * sizeof(struct atom));
     a = ctx->a;
   } else {
     ctx->a = a;
@@ -222,11 +222,11 @@ int _pbcC_open(pbc_ctx _ctx, void* buffer, int size) {
 
   if (size > 0) {
     int cap = 64;
-    ctx->a = (struct atom*)malloc(cap * sizeof(struct atom));
+    ctx->a = (struct atom*)_pbcM_malloc(cap * sizeof(struct atom));
     while (size > 0) {
       if (i >= cap) {
         cap = cap + 64;
-        ctx->a = (struct atom*)realloc(ctx->a, cap * sizeof(struct atom));
+        ctx->a = (struct atom*)_pbcM_realloc(ctx->a, cap * sizeof(struct atom));
         continue;
       }
       char* next = wiretype_decode((uint8_t*)buffer, size, &ctx->a[i], start);
@@ -248,7 +248,7 @@ int _pbcC_open(pbc_ctx _ctx, void* buffer, int size) {
 void _pbcC_close(pbc_ctx _ctx) {
   struct context* ctx = (struct context*)_ctx;
   if (ctx->a != NULL && (struct atom*)(ctx + 1) != ctx->a) {
-    free(ctx->a);
+    _pbcM_free(ctx->a);
     ctx->a = NULL;
   }
 }

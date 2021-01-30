@@ -46,7 +46,7 @@ static int _env_register(lua_State* L) {
   struct pbc_env* env = (struct pbc_env*)checkuserdata(L, 1);
   size_t sz = 0;
   const char* buffer = luaL_checklstring(L, 2, &sz);
-  struct pbc_slice slice;
+  pbc_slice slice;
   slice.buffer = (void*)buffer;
   slice.len = (int)sz;
   int ret = pbc_register(env, &slice);
@@ -72,7 +72,7 @@ static int _env_enum_id(lua_State* L) {
 static int _rmessage_new(lua_State* L) {
   struct pbc_env* env = (struct pbc_env*)checkuserdata(L, 1);
   const char* type_name = luaL_checkstring(L, 2);
-  struct pbc_slice slice;
+  pbc_slice slice;
   if (lua_isstring(L, 3)) {
     size_t sz = 0;
     slice.buffer = (void*)lua_tolstring(L, 3, &sz);
@@ -233,7 +233,7 @@ static int _wmessage_int(lua_State* L) {
 }
 
 static int _wmessage_buffer(lua_State* L) {
-  struct pbc_slice slice;
+  pbc_slice slice;
   struct pbc_wmessage* m = (struct pbc_wmessage*)checkuserdata(L, 1);
   pbc_wmessage_buffer(m, &slice);
   lua_pushlightuserdata(L, slice.buffer);
@@ -242,7 +242,7 @@ static int _wmessage_buffer(lua_State* L) {
 }
 
 static int _wmessage_buffer_string(lua_State* L) {
-  struct pbc_slice slice;
+  pbc_slice slice;
   struct pbc_wmessage* m = (struct pbc_wmessage*)checkuserdata(L, 1);
   pbc_wmessage_buffer(m, &slice);
   lua_pushlstring(L, (const char*)slice.buffer, slice.len);
@@ -311,19 +311,19 @@ static void* _push_value(lua_State* L, char* ptr, char type) {
       break;
     }
     case 's': {
-      struct pbc_slice* slice = (struct pbc_slice*)ptr;
+      pbc_slice* slice = (pbc_slice*)ptr;
       lua_pushlstring(L, (const char*)slice->buffer, slice->len);
-      ptr += sizeof(struct pbc_slice);
+      ptr += sizeof(pbc_slice);
       break;
     }
     case 'm': {
-      struct pbc_slice* slice = (struct pbc_slice*)ptr;
+      pbc_slice* slice = (pbc_slice*)ptr;
       lua_createtable(L, 2, 0);
       lua_pushlightuserdata(L, slice->buffer);
       lua_rawseti(L, -2, 1);
       lua_pushinteger(L, slice->len);
       lua_rawseti(L, -2, 2);
-      ptr += sizeof(struct pbc_slice);
+      ptr += sizeof(pbc_slice);
       break;
     }
   }
@@ -362,12 +362,12 @@ static void _push_array(lua_State* L, pbc_array array, char type, int index) {
       break;
     }
     case 'S': {
-      struct pbc_slice* slice = pbc_array_slice(array, index);
+      pbc_slice* slice = pbc_array_slice(array, index);
       lua_pushlstring(L, (const char*)slice->buffer, slice->len);
       break;
     }
     case 'M': {
-      struct pbc_slice* slice = pbc_array_slice(array, index);
+      pbc_slice* slice = pbc_array_slice(array, index);
       lua_createtable(L, 2, 0);
       lua_pushlightuserdata(L, slice->buffer);
       lua_rawseti(L, -2, 1);
@@ -394,7 +394,7 @@ static int _pattern_unpack(lua_State* L) {
   size_t format_sz = 0;
   const char* format = lua_tolstring(L, 2, &format_sz);
   int size = lua_tointeger(L, 3);
-  struct pbc_slice slice;
+  pbc_slice slice;
   if (lua_isstring(L, 4)) {
     size_t buffer_len = 0;
     const char* buffer = luaL_checklstring(L, 4, &buffer_len);
@@ -423,11 +423,11 @@ static int _pattern_unpack(lua_State* L) {
       ptr = (char*)_push_value(L, ptr, type);
     } else {
       array = true;
-      int n = pbc_array_size((struct _pbc_array*)ptr);
+      int n = pbc_array_size((_pbc_array*)ptr);
       lua_createtable(L, n, 0);
       int j;
       for (j = 0; j < n; j++) {
-        _push_array(L, (struct _pbc_array*)ptr, type, j);
+        _push_array(L, (_pbc_array*)ptr, type, j);
       }
       ptr += sizeof(pbc_array);
     }
@@ -463,13 +463,13 @@ static char* _get_value(lua_State* L, int index, char* ptr, char type) {
     case 's': {
       size_t sz = 0;
       const char* str = luaL_checklstring(L, index, &sz);
-      struct pbc_slice* slice = (struct pbc_slice*)ptr;
+      pbc_slice* slice = (pbc_slice*)ptr;
       slice->buffer = (void*)str;
       slice->len = sz;
-      return ptr + sizeof(struct pbc_slice);
+      return ptr + sizeof(pbc_slice);
     }
     case 'm': {
-      struct pbc_slice* slice = (struct pbc_slice*)ptr;
+      pbc_slice* slice = (pbc_slice*)ptr;
       if (lua_istable(L, index)) {
         lua_rawgeti(L, index, 1);
         slice->buffer = lua_touserdata(L, -1);
@@ -482,7 +482,7 @@ static char* _get_value(lua_State* L, int index, char* ptr, char type) {
         slice->buffer = (void*)buffer;
         slice->len = sz;
       }
-      return ptr + sizeof(struct pbc_slice);
+      return ptr + sizeof(pbc_slice);
     }
     default:
       luaL_error(L, "unknown format %c", type);
@@ -519,14 +519,14 @@ static void _get_array_value(lua_State* L, pbc_array array, char type) {
     case 'S': {
       size_t sz = 0;
       const char* str = luaL_checklstring(L, -1, &sz);
-      struct pbc_slice slice;
+      pbc_slice slice;
       slice.buffer = (void*)str;
       slice.len = sz;
       pbc_array_push_slice(array, &slice);
       break;
     }
     case 'M': {
-      struct pbc_slice slice;
+      pbc_slice slice;
       if (lua_istable(L, -1)) {
         lua_rawgeti(L, -1, 1);
         slice.buffer = lua_touserdata(L, -1);
@@ -579,7 +579,7 @@ static int _pattern_pack(lua_State* L) {
       int n = lua_rawlen(L, 4 + i);
       for (j = 0; j < n; j++) {
         lua_rawgeti(L, 4 + i, j + 1);
-        _get_array_value(L, (struct _pbc_array*)ptr, format[i]);
+        _get_array_value(L, (_pbc_array*)ptr, format[i]);
         lua_pop(L, 1);
       }
       ptr += sizeof(pbc_array);
@@ -593,7 +593,7 @@ static int _pattern_pack(lua_State* L) {
   for (;;) {
     char* temp = (char*)luaL_prepbuffsize(&b, cap);
 
-    struct pbc_slice slice;
+    pbc_slice slice;
     slice.buffer = temp;
     slice.len = cap;
 
@@ -630,7 +630,7 @@ static int _pattern_size(lua_State* L) {
         break;
       case 's':
       case 'm':
-        size += sizeof(struct pbc_slice);
+        size += sizeof(pbc_slice);
         break;
       default:
         size += sizeof(pbc_array);
@@ -737,7 +737,7 @@ static int _decode(lua_State* L) {
   luaL_checktype(L, 2, LUA_TFUNCTION);
   luaL_checktype(L, 3, LUA_TTABLE);
   const char* type = luaL_checkstring(L, 4);
-  struct pbc_slice slice;
+  pbc_slice slice;
   if (lua_type(L, 5) == LUA_TSTRING) {
     size_t len;
     slice.buffer = (void*)luaL_checklstring(L, 5, &len);
@@ -778,8 +778,8 @@ static int _clear_gcobj(lua_State* L) {
   for (i = 0; i < obj->size_msg; i++) {
     pbc_rmessage_delete(obj->msg[i]);
   }
-  free(obj->pat);
-  free(obj->msg);
+  _pbcM_free(obj->pat);
+  _pbcM_free(obj->msg);
   obj->pat = NULL;
   obj->msg = NULL;
   if (obj->env) {
@@ -799,8 +799,8 @@ static int _gc(lua_State* L) {
   obj->cap_pat = 4;
   obj->size_msg = 0;
   obj->cap_msg = 4;
-  obj->pat = (struct pbc_pattern**)malloc(obj->cap_pat * sizeof(struct pbc_pattern*));
-  obj->msg = (struct pbc_rmessage**)malloc(obj->cap_msg * sizeof(struct pbc_rmessage*));
+  obj->pat = (struct pbc_pattern**)_pbcM_malloc(obj->cap_pat * sizeof(struct pbc_pattern*));
+  obj->msg = (struct pbc_rmessage**)_pbcM_malloc(obj->cap_msg * sizeof(struct pbc_rmessage*));
 
   lua_createtable(L, 0, 1);
   lua_pushcfunction(L, _clear_gcobj);
@@ -814,7 +814,7 @@ static int _add_pattern(lua_State* L) {
   struct gcobj* obj = (struct gcobj*)lua_touserdata(L, 1);
   if (obj->size_pat >= obj->cap_pat) {
     obj->cap_pat *= 2;
-    obj->pat = (struct pbc_pattern**)realloc(obj->pat, obj->cap_pat * sizeof(struct pbc_pattern*));
+    obj->pat = (struct pbc_pattern**)_pbcM_realloc(obj->pat, obj->cap_pat * sizeof(struct pbc_pattern*));
   }
   struct pbc_pattern* pat = (struct pbc_pattern*)lua_touserdata(L, 2);
   obj->pat[obj->size_pat++] = pat;
@@ -825,7 +825,7 @@ static int _add_rmessage(lua_State* L) {
   struct gcobj* obj = (struct gcobj*)lua_touserdata(L, 1);
   if (obj->size_msg >= obj->cap_msg) {
     obj->cap_msg *= 2;
-    obj->msg = (struct pbc_rmessage**)realloc(obj->msg, obj->cap_msg * sizeof(struct pbc_rmessage*));
+    obj->msg = (struct pbc_rmessage**)_pbcM_realloc(obj->msg, obj->cap_msg * sizeof(struct pbc_rmessage*));
   }
   struct pbc_rmessage* msg = (struct pbc_rmessage*)lua_touserdata(L, 2);
   obj->msg[obj->size_msg++] = msg;
@@ -844,7 +844,7 @@ static int l_pbc_next(lua_State* L) {
     return 0; // nothing to be traversal
   }
   uint8_t temp[10];
-  struct longlong r;
+  longlong r;
   int len;
   if (cap >= 10) {
     len = _pbcV_decode((uint8_t*)buffer, &r);
@@ -952,7 +952,7 @@ static int l_pbc_todouble(lua_State* L) {
   if (len != 4 && len != 8) {
     luaL_error(L, "must be 4 byte or 8 byte float number");
   }
-  struct longlong i;
+  longlong i;
   i.low = buffer[0] | buffer[1] << 8 | buffer[2] << 16 | buffer[3] << 24;
   if (len == 8) {
     i.hi = buffer[4] | buffer[5] << 8 | buffer[6] << 16 | buffer[7] << 24;
@@ -978,7 +978,7 @@ static int l_pbc_tointeger(lua_State* L) {
   if (len != 4 && len != 8) {
     luaL_error(L, "must be 4 byte or 8 byte integer");
   }
-  struct longlong i;
+  longlong i;
   i.low = buffer[0] | buffer[1] << 8 | buffer[2] << 16 | buffer[3] << 24;
   if (len == 8) {
     i.hi = buffer[4] | buffer[5] << 8 | buffer[6] << 16 | buffer[7] << 24;

@@ -18,8 +18,8 @@ struct pbc_wmessage {
   uint8_t* ptr;
   uint8_t* endptr;
   pbc_array sub;
-  struct map_sp* packed;
-  struct heap* heap;
+  map_sp* packed;
+  heap* heap;
 };
 
 struct _packed {
@@ -28,7 +28,7 @@ struct _packed {
   pbc_array data;
 };
 
-static struct pbc_wmessage* _wmessage_new(struct heap* h, struct _message* msg) {
+static struct pbc_wmessage* _wmessage_new(heap* h, struct _message* msg) {
   struct pbc_wmessage* m = (struct pbc_wmessage*)_pbcH_alloc(h, sizeof(*m));
   m->type = msg;
   m->buffer = (uint8_t*)_pbcH_alloc(h, WMESSAGE_SIZE);
@@ -45,7 +45,7 @@ struct pbc_wmessage* pbc_wmessage_new(struct pbc_env* env, const char* type_name
   struct _message* msg = _pbcP_get_message(env, type_name);
   if (msg == NULL)
     return NULL;
-  struct heap* h = _pbcH_new(0);
+  heap* h = _pbcH_new(0);
   return _wmessage_new(h, msg);
 }
 
@@ -464,7 +464,7 @@ static void _pack_packed(void* p, void* ud) {
   }
 }
 
-void* pbc_wmessage_buffer(struct pbc_wmessage* m, struct pbc_slice* slice) {
+void* pbc_wmessage_buffer(struct pbc_wmessage* m, pbc_slice* slice) {
   if (m->packed) {
     _pbcM_sp_foreach_ud(m->packed, _pack_packed, m);
   }
@@ -473,7 +473,7 @@ void* pbc_wmessage_buffer(struct pbc_wmessage* m, struct pbc_slice* slice) {
   for (i = 0; i < n; i++) {
     pbc_var var;
     _pbcA_index(m->sub, i, var);
-    struct pbc_slice s;
+    pbc_slice s;
     pbc_wmessage_buffer((struct pbc_wmessage*)var->p[0], &s);
     if (s.buffer) {
       struct _field* f = (struct _field*)var->p[1];
