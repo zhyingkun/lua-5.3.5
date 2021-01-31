@@ -40,7 +40,7 @@ static void free_enum(void* p) {
 }
 
 static void free_stringpool(void* p) {
-  _pbcS_delete((struct _stringpool*)p);
+  _pbcS_delete((_stringpool*)p);
 }
 
 static void free_msg(void* p) {

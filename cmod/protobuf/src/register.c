@@ -13,7 +13,7 @@
 #define strtoll _strtoi64
 #endif
 
-static const char* _concat_name(struct _stringpool* p, const char* prefix, int prefix_sz, const char* name, int name_sz,
+static const char* _concat_name(_stringpool* p, const char* prefix, int prefix_sz, const char* name, int name_sz,
                                 int* sz) {
   if (prefix_sz == 0) {
     if (sz) {
@@ -33,7 +33,7 @@ static const char* _concat_name(struct _stringpool* p, const char* prefix, int p
   return ret;
 }
 
-static void _register_enum(struct pbc_env* p, struct _stringpool* pool, struct pbc_rmessage* enum_type,
+static void _register_enum(struct pbc_env* p, _stringpool* pool, struct pbc_rmessage* enum_type,
                            const char* prefix, int prefix_sz) {
   int field_count = pbc_rmessage_size(enum_type, "value");
   map_kv* table = (map_kv*)_pbcM_malloc(field_count * sizeof(map_kv));
@@ -53,7 +53,7 @@ static void _register_enum(struct pbc_env* p, struct _stringpool* pool, struct p
   _pbcM_free(table);
 }
 
-static void _set_default(struct _stringpool* pool, struct _field* f, int ptype, const char* value, int sz) {
+static void _set_default(_stringpool* pool, struct _field* f, int ptype, const char* value, int sz) {
   if (value == NULL || sz == 0) {
     if (f->type == PTYPE_STRING || f->type == PTYPE_BYTES) {
       f->default_v->s.str = "";
@@ -126,7 +126,7 @@ static void _set_default(struct _stringpool* pool, struct _field* f, int ptype, 
   }
 }
 
-static void _register_field(struct pbc_rmessage* field, struct _field* f, struct _stringpool* pool) {
+static void _register_field(struct pbc_rmessage* field, struct _field* f, _stringpool* pool) {
   f->id = pbc_rmessage_integer(field, "number", 0, 0);
   f->type = pbc_rmessage_integer(field, "type", 0, 0); // enum
   f->label = pbc_rmessage_integer(field, "label", 0, 0) - 1; // LABEL_OPTIONAL = 0
@@ -143,7 +143,7 @@ static void _register_field(struct pbc_rmessage* field, struct _field* f, struct
   _set_default(pool, f, f->type, default_value, vsz);
 }
 
-static void _register_extension(struct pbc_env* p, struct _stringpool* pool, const char* prefix, int prefix_sz,
+static void _register_extension(struct pbc_env* p, _stringpool* pool, const char* prefix, int prefix_sz,
                                 struct pbc_rmessage* msg, pbc_array queue) {
   int extension_count = pbc_rmessage_size(msg, "extension");
   if (extension_count <= 0)
@@ -175,7 +175,7 @@ static void _register_extension(struct pbc_env* p, struct _stringpool* pool, con
   _pbcP_init_message(p, last + 1);
 }
 
-static void _register_message(struct pbc_env* p, struct _stringpool* pool, struct pbc_rmessage* message_type,
+static void _register_message(struct pbc_env* p, _stringpool* pool, struct pbc_rmessage* message_type,
                               const char* prefix, int prefix_sz, pbc_array queue) {
   int name_sz;
   const char* name = pbc_rmessage_string(message_type, "name", 0, &name_sz);
@@ -217,7 +217,7 @@ static void _register_message(struct pbc_env* p, struct _stringpool* pool, struc
   }
 }
 
-static void _register(struct pbc_env* p, struct pbc_rmessage* file, struct _stringpool* pool) {
+static void _register(struct pbc_env* p, struct pbc_rmessage* file, _stringpool* pool) {
   int package_sz;
   const char* package = pbc_rmessage_string(file, "package", 0, &package_sz);
 
@@ -285,7 +285,7 @@ static int _register_no_dependency(struct pbc_env* p, struct pbc_rmessage** file
         ++r;
         break;
       case CHECK_FILE_OK: {
-        struct _stringpool* pool = _pbcS_new();
+        _stringpool* pool = _pbcS_new();
         filename = _pbcS_build(pool, filename, strlen(filename));
         _pbcM_sp_insert(p->files, filename, pool);
         _register(p, files[i], pool);

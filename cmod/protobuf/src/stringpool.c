@@ -1,33 +1,28 @@
 #include "alloc.h"
+#include "stringpool.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 #define PAGE_SIZE 256
 
-struct _stringpool {
-  char* buffer;
-  size_t len;
-  struct _stringpool* next;
-};
-
-struct _stringpool* _pbcS_new(void) {
-  struct _stringpool* ret = (struct _stringpool*)_pbcM_malloc(sizeof(struct _stringpool) + PAGE_SIZE);
+_stringpool* _pbcS_new(void) {
+  _stringpool* ret = (_stringpool*)_pbcM_malloc(sizeof(_stringpool) + PAGE_SIZE);
   ret->buffer = (char*)(ret + 1);
   ret->len = 0;
   ret->next = NULL;
   return ret;
 }
 
-void _pbcS_delete(struct _stringpool* pool) {
+void _pbcS_delete(_stringpool* pool) {
   while (pool) {
-    struct _stringpool* next = pool->next;
+    _stringpool* next = pool->next;
     _pbcM_free(pool);
     pool = next;
   }
 }
 
-const char* _pbcS_build(struct _stringpool* pool, const char* str, int sz) {
+const char* _pbcS_build(_stringpool* pool, const char* str, int sz) {
   size_t s = sz + 1;
   if (s < PAGE_SIZE - pool->len) {
     char* ret = pool->buffer + pool->len;
@@ -36,7 +31,7 @@ const char* _pbcS_build(struct _stringpool* pool, const char* str, int sz) {
     return ret;
   }
   if (s > PAGE_SIZE) {
-    struct _stringpool* next = (struct _stringpool*)_pbcM_malloc(sizeof(struct _stringpool) + s);
+    _stringpool* next = (_stringpool*)_pbcM_malloc(sizeof(_stringpool) + s);
     next->buffer = (char*)(next + 1);
     memcpy(next->buffer, str, s);
     next->len = s;
@@ -44,7 +39,7 @@ const char* _pbcS_build(struct _stringpool* pool, const char* str, int sz) {
     pool->next = next;
     return next->buffer;
   }
-  struct _stringpool* next = (struct _stringpool*)_pbcM_malloc(sizeof(struct _stringpool) + PAGE_SIZE);
+  _stringpool* next = (_stringpool*)_pbcM_malloc(sizeof(_stringpool) + PAGE_SIZE);
   next->buffer = pool->buffer;
   next->next = pool->next;
   next->len = pool->len;
