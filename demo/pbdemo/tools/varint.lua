@@ -54,8 +54,22 @@ local function ParseVarintRaw(msg)
 		[5] = HexDump,
 	}
 	local fieldTbl = {}
+	local insert = table.insert
 	for _, number, wiretype, field in pbc.varints(msg) do
-		fieldTbl[number] = TypeProcess[wiretype](field)
+		local value = TypeProcess[wiretype](field)
+		local origin = fieldTbl[number]
+		if origin then
+			if type(origin) == "table" then
+				insert(origin, value)
+			else
+				fieldTbl[number] = {
+					origin,
+					value,
+				}
+			end
+		else
+			fieldTbl[number] = value
+		end
 	end
 	return fieldTbl
 end
