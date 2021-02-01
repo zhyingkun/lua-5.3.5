@@ -80,10 +80,29 @@ local ValueMap = setmetatable({
 })
 local prefixIndent
 local insert = table.insert
+local sort = table.sort
+local function comp(a, b)
+	local bIsNumA = type(a) == "number"
+	local bIsNumB = type(b) == "number"
+	if bIsNumA and bIsNumB then return a < b end
+	if bIsNumA then return true end
+	if bIsNumB then return false end
+	return a < b
+end
+local function MakeSortedKeyArray(tbl)
+	local keyArray = {}
+	for key in pairs(tbl) do
+		insert(keyArray, key)
+	end
+	sort(keyArray, comp)
+	return keyArray
+end
 local function TTLSRecursive(tbl, prefix)
 	local subPrefix = prefix .. prefixIndent
 	local buffer = {"{"}
-	for key, value in pairs(tbl) do
+	local keyArray = MakeSortedKeyArray(tbl)
+	for _, key in ipairs(keyArray) do
+		local value = tbl[key]
 		local keyStr = KeyMap[type(key)](key)
 		local tv = type(value)
 		local valueStr = tv == "table" and TTLSRecursive(value, subPrefix) or ValueMap[tv](value)
