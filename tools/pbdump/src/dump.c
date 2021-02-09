@@ -5,7 +5,7 @@
 
 #include "pbc.h"
 
-static void read_file(const char* filename, struct pbc_slice* slice) {
+static void read_file(const char* filename, pbc_slice* slice) {
   FILE* f = fopen(filename, "rb");
   if (f == NULL) {
     fprintf(stderr, "Can't open file %s\n", filename);
@@ -28,9 +28,9 @@ static void dump_bytes(const char* data, size_t len) {
       fprintf(stdout, " %02x", 0xff & data[i]);
 }
 
-static void dump_message(struct pbc_rmessage* m, int level);
+static void dump_message(pbc_rmessage* m, int level);
 
-static void dump_value(struct pbc_rmessage* m, const char* key, int type, int idx, int level) {
+static void dump_value(pbc_rmessage* m, const char* key, int type, int idx, int level) {
   int i;
   for (i = 0; i < level; i++) {
     printf("  ");
@@ -93,7 +93,7 @@ static void dump_value(struct pbc_rmessage* m, const char* key, int type, int id
   printf("\n");
 }
 
-static void dump_message(struct pbc_rmessage* m, int level) {
+static void dump_message(pbc_rmessage* m, int level) {
   int t = 0;
   const char* key = NULL;
   for (;;) {
@@ -112,16 +112,16 @@ static void dump_message(struct pbc_rmessage* m, int level) {
   }
 }
 
-static void dump(const char* proto, const char* message, struct pbc_slice* data) {
-  struct pbc_env* env = pbc_new();
-  struct pbc_slice pb;
+static void dump(const char* proto, const char* message, pbc_slice* data) {
+  pbc_env* env = pbc_new();
+  pbc_slice pb;
   read_file(proto, &pb);
   int r = pbc_register(env, &pb);
   if (r != 0) {
     fprintf(stderr, "Can't register %s\n", proto);
     exit(1);
   }
-  struct pbc_rmessage* m = pbc_rmessage_new(env, message, data);
+  pbc_rmessage* m = pbc_rmessage_new(env, message, data);
   if (m == NULL) {
     fprintf(stderr, "Decoding message '%s' failed\n", message);
     exit(1);
@@ -129,7 +129,7 @@ static void dump(const char* proto, const char* message, struct pbc_slice* data)
   dump_message(m, 0);
 }
 
-static void push_byte(int byte, struct pbc_slice* data, int idx) {
+static void push_byte(int byte, pbc_slice* data, int idx) {
   if (idx >= data->len) {
     data->len *= 2;
     data->buffer = realloc(data->buffer, data->len);
@@ -137,7 +137,7 @@ static void push_byte(int byte, struct pbc_slice* data, int idx) {
   ((uint8_t*)data->buffer)[idx] = (uint8_t)byte;
 }
 
-static void read_stdin(int mode, struct pbc_slice* data) {
+static void read_stdin(int mode, pbc_slice* data) {
   data->len = 128;
   data->buffer = malloc(data->len);
   int idx = 0;
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  struct pbc_slice data;
+  pbc_slice data;
 
   if (datafile == NULL) {
     read_stdin(mode, &data);
