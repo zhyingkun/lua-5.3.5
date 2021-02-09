@@ -49,7 +49,7 @@ message file {
 
 */
 
-struct field_t {
+typedef struct {
   pbc_slice name;
   int32_t id;
   int32_t label;
@@ -58,9 +58,9 @@ struct field_t {
   int32_t default_integer;
   pbc_slice default_string;
   double default_real;
-};
+} field_t;
 
-struct file_t {
+typedef struct {
   pbc_slice name; // string
   pbc_array dependency; // string
   pbc_array message_name; // string
@@ -70,9 +70,9 @@ struct file_t {
   pbc_array enum_size; // int32
   pbc_array enum_string; // string
   pbc_array enum_id; // int32
-};
+} file_t;
 
-static void set_enum_one(struct pbc_env* p, struct file_t* file, const char* name, int start, int sz) {
+static void set_enum_one(pbc_env* p, file_t* file, const char* name, int start, int sz) {
   map_kv* table = (map_kv*)_pbcM_malloc(sz * sizeof(map_kv));
   int i;
   for (i = 0; i < sz; i++) {
@@ -88,7 +88,7 @@ static void set_enum_one(struct pbc_env* p, struct file_t* file, const char* nam
   _pbcM_free(table);
 }
 
-static void set_enums(struct pbc_env* p, struct file_t* file) {
+static void set_enums(pbc_env* p, file_t* file) {
   int n = pbc_array_size(file->enum_size);
   int i;
   int start = 0;
@@ -102,7 +102,7 @@ static void set_enums(struct pbc_env* p, struct file_t* file) {
   }
 }
 
-static void set_default(struct _field* f, struct field_t* input) {
+static void set_default(_field* f, field_t* input) {
   switch (f->type) {
     case PTYPE_DOUBLE:
     case PTYPE_FLOAT:
@@ -118,19 +118,19 @@ static void set_default(struct _field* f, struct field_t* input) {
   }
 }
 
-static void set_msg_one(struct pbc_pattern* FIELD_T, struct pbc_env* p, struct file_t* file, const char* name,
+static void set_msg_one(pbc_pattern* FIELD_T, pbc_env* p, file_t* file, const char* name,
                         int start, int sz, pbc_array queue) {
   int i;
   for (i = 0; i < sz; i++) {
-    pbc_var _field;
-    _pbcA_index(file->message_field, start + i, _field);
-    struct field_t field;
+    pbc_var _field_;
+    _pbcA_index(file->message_field, start + i, _field_);
+    field_t field;
 
-    int ret = pbc_pattern_unpack(FIELD_T, &_field->m, &field);
+    int ret = pbc_pattern_unpack(FIELD_T, &_field_->m, &field);
     if (ret != 0) {
       continue;
     }
-    struct _field f;
+    _field f;
     f.id = field.id;
     f.name = (const char*)field.name.buffer;
     f.type = field.type;
@@ -145,7 +145,7 @@ static void set_msg_one(struct pbc_pattern* FIELD_T, struct pbc_env* p, struct f
   _pbcP_init_message(p, name);
 }
 
-static void set_msgs(struct pbc_pattern* FIELD_T, struct pbc_env* p, struct file_t* file, pbc_array queue) {
+static void set_msgs(pbc_pattern* FIELD_T, pbc_env* p, file_t* file, pbc_array queue) {
   int n = pbc_array_size(file->message_size);
   int i;
   int start = 0;
@@ -159,13 +159,13 @@ static void set_msgs(struct pbc_pattern* FIELD_T, struct pbc_env* p, struct file
   }
 }
 
-static void set_field_one(struct pbc_env* p, struct _field* f) {
+static void set_field_one(pbc_env* p, _field* f) {
   const char* type_name = f->type_name.n;
   if (f->type == PTYPE_MESSAGE) {
-    f->type_name.m = (struct _message*)_pbcM_sp_query(p->msgs, type_name);
+    f->type_name.m = (_message*)_pbcM_sp_query(p->msgs, type_name);
     //		printf("MESSAGE: %s %p\n",type_name, f->type_name.m);
   } else if (f->type == PTYPE_ENUM) {
-    f->type_name.e = (struct _enum*)_pbcM_sp_query(p->enums, type_name);
+    f->type_name.e = (_enum*)_pbcM_sp_query(p->enums, type_name);
     //		printf("ENUM: %s %p ",type_name, f->type_name.e);
     const char* str = f->default_v->s.str;
     if (str && str[0]) {
@@ -182,59 +182,59 @@ static void set_field_one(struct pbc_env* p, struct _field* f) {
   }
 }
 
-void _pbcB_register_fields(struct pbc_env* p, pbc_array queue) {
+void _pbcB_register_fields(pbc_env* p, pbc_array queue) {
   int sz = pbc_array_size(queue);
   int i;
   for (i = 0; i < sz; i++) {
     pbc_var atom;
     _pbcA_index(queue, i, atom);
-    struct _field* f = (struct _field*)atom->m.buffer;
+    _field* f = (_field*)atom->m.buffer;
     set_field_one(p, f);
   }
 }
 
-static void _set_string(struct _pattern_field* f) {
+static void _set_string(_pattern_field* f) {
   f->ptype = PTYPE_STRING;
   f->ctype = CTYPE_VAR;
   f->defv->s.str = "";
   f->defv->s.len = 0;
 }
 
-static void _set_int32(struct _pattern_field* f) {
+static void _set_int32(_pattern_field* f) {
   f->ptype = PTYPE_INT32;
   f->ctype = CTYPE_INT32;
 }
 
-static void _set_double(struct _pattern_field* f) {
+static void _set_double(_pattern_field* f) {
   f->ptype = PTYPE_DOUBLE;
   f->ctype = CTYPE_DOUBLE;
 }
 
-static void _set_message_array(struct _pattern_field* f) {
+static void _set_message_array(_pattern_field* f) {
   f->ptype = PTYPE_MESSAGE;
   f->ctype = CTYPE_ARRAY;
 }
 
-static void _set_string_array(struct _pattern_field* f) {
+static void _set_string_array(_pattern_field* f) {
   f->ptype = PTYPE_STRING;
   f->ctype = CTYPE_ARRAY;
 }
 
-static void _set_int32_array(struct _pattern_field* f) {
+static void _set_int32_array(_pattern_field* f) {
   f->ptype = PTYPE_INT32;
   f->ctype = CTYPE_ARRAY;
 }
 
 #define SET_PATTERN(pat, idx, pat_type, field_name, type) \
   pat->f[idx].id = idx + 1; \
-  pat->f[idx].offset = offsetof(struct pat_type, field_name); \
+  pat->f[idx].offset = offsetof(pat_type, field_name); \
   _set_##type(&pat->f[idx]);
 
 #define F(idx, field_name, type) SET_PATTERN(FIELD_T, idx, field_t, field_name, type)
 #define D(idx, field_name, type) SET_PATTERN(FILE_T, idx, file_t, field_name, type)
 
-static int register_internal(struct pbc_env* p, pbc_slice* slice) {
-  struct pbc_pattern* FIELD_T = _pbcP_new(p, 8);
+static int register_internal(pbc_env* p, pbc_slice* slice) {
+  pbc_pattern* FIELD_T = _pbcP_new(p, 8);
   F(0, name, string);
   F(1, id, int32);
   F(2, label, int32);
@@ -244,7 +244,7 @@ static int register_internal(struct pbc_env* p, pbc_slice* slice) {
   F(6, default_string, string);
   F(7, default_real, double);
 
-  struct pbc_pattern* FILE_T = _pbcP_new(p, 10);
+  pbc_pattern* FILE_T = _pbcP_new(p, 10);
 
   D(0, name, string);
   D(1, dependency, string_array);
@@ -258,7 +258,7 @@ static int register_internal(struct pbc_env* p, pbc_slice* slice) {
 
   int ret = 0;
 
-  struct file_t file;
+  file_t file;
   int r = pbc_pattern_unpack(FILE_T, slice, &file);
   if (r != 0) {
     ret = 1;
@@ -283,7 +283,7 @@ _return:
   return ret;
 }
 
-void _pbcB_init(struct pbc_env* p) {
+void _pbcB_init(pbc_env* p) {
   pbc_slice slice = {pbc_descriptor, sizeof(pbc_descriptor)};
   register_internal(p, &slice);
 }

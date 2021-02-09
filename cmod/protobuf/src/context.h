@@ -47,25 +47,25 @@
 #define PTYPE_SINT32 17 // Uses ZigZag encoding.
 #define PTYPE_SINT64 18 // Uses ZigZag encoding.
 
-struct slice {
+typedef struct {
   int start;
   int end;
-};
+} slice;
 
-struct atom {
+typedef struct {
   int wire_id;
   union {
-    struct slice s;
+    slice s;
     longlong i;
   } v;
-};
+} atom;
 
-struct context {
+typedef struct {
   char* buffer;
   int size;
   int number;
-  struct atom* a;
-};
+  atom* a;
+} context;
 
 typedef struct _pbc_ctx {
   char _data[PBC_CONTEXT_CAP];
@@ -75,7 +75,7 @@ int _pbcC_open(pbc_ctx, void* buffer, int size); // <=0 failed
 int _pbcC_open_packed(pbc_ctx _ctx, int ptype, void* buffer, int size);
 void _pbcC_close(pbc_ctx);
 
-static inline double read_double(struct atom* a) {
+static inline double read_double(atom* a) {
   union {
     uint64_t i;
     double d;
@@ -84,7 +84,7 @@ static inline double read_double(struct atom* a) {
   return u.d;
 }
 
-static inline float read_float(struct atom* a) {
+static inline float read_float(atom* a) {
   union {
     uint32_t i;
     float f;

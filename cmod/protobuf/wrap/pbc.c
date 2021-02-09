@@ -37,13 +37,13 @@ static inline void* checkuserdata(lua_State* L, int index) {
 }
 
 static int _env_new(lua_State* L) {
-  struct pbc_env* env = pbc_new();
+  pbc_env* env = pbc_new();
   lua_pushlightuserdata(L, env);
   return 1;
 }
 
 static int _env_register(lua_State* L) {
-  struct pbc_env* env = (struct pbc_env*)checkuserdata(L, 1);
+  pbc_env* env = (pbc_env*)checkuserdata(L, 1);
   size_t sz = 0;
   const char* buffer = luaL_checklstring(L, 2, &sz);
   pbc_slice slice;
@@ -58,7 +58,7 @@ static int _env_register(lua_State* L) {
 }
 
 static int _env_enum_id(lua_State* L) {
-  struct pbc_env* env = (struct pbc_env*)checkuserdata(L, 1);
+  pbc_env* env = (pbc_env*)checkuserdata(L, 1);
   size_t sz = 0;
   const char* enum_type = luaL_checklstring(L, 2, &sz);
   const char* enum_name = luaL_checklstring(L, 3, &sz);
@@ -70,7 +70,7 @@ static int _env_enum_id(lua_State* L) {
 }
 
 static int _rmessage_new(lua_State* L) {
-  struct pbc_env* env = (struct pbc_env*)checkuserdata(L, 1);
+  pbc_env* env = (pbc_env*)checkuserdata(L, 1);
   const char* type_name = luaL_checkstring(L, 2);
   pbc_slice slice;
   if (lua_isstring(L, 3)) {
@@ -81,7 +81,7 @@ static int _rmessage_new(lua_State* L) {
     slice.buffer = lua_touserdata(L, 3);
     slice.len = luaL_checkinteger(L, 4);
   }
-  struct pbc_rmessage* m = pbc_rmessage_new(env, type_name, &slice);
+  pbc_rmessage* m = pbc_rmessage_new(env, type_name, &slice);
   if (m == NULL)
     return 0;
   lua_pushlightuserdata(L, m);
@@ -89,14 +89,14 @@ static int _rmessage_new(lua_State* L) {
 }
 
 static int _rmessage_delete(lua_State* L) {
-  struct pbc_rmessage* m = (struct pbc_rmessage*)checkuserdata(L, 1);
+  pbc_rmessage* m = (pbc_rmessage*)checkuserdata(L, 1);
   pbc_rmessage_delete(m);
 
   return 0;
 }
 
 static int _rmessage_int(lua_State* L) {
-  struct pbc_rmessage* m = (struct pbc_rmessage*)checkuserdata(L, 1);
+  pbc_rmessage* m = (pbc_rmessage*)checkuserdata(L, 1);
   const char* key = luaL_checkstring(L, 2);
   int index = luaL_checkinteger(L, 3);
   uint32_t hi, low;
@@ -108,7 +108,7 @@ static int _rmessage_int(lua_State* L) {
 }
 
 static int _rmessage_real(lua_State* L) {
-  struct pbc_rmessage* m = (struct pbc_rmessage*)checkuserdata(L, 1);
+  pbc_rmessage* m = (pbc_rmessage*)checkuserdata(L, 1);
   const char* key = luaL_checkstring(L, 2);
   int index = luaL_checkinteger(L, 3);
   double v = pbc_rmessage_real(m, key, index);
@@ -119,7 +119,7 @@ static int _rmessage_real(lua_State* L) {
 }
 
 static int _rmessage_string(lua_State* L) {
-  struct pbc_rmessage* m = (struct pbc_rmessage*)checkuserdata(L, 1);
+  pbc_rmessage* m = (pbc_rmessage*)checkuserdata(L, 1);
   const char* key = luaL_checkstring(L, 2);
   int index = lua_tointeger(L, 3);
   int sz = 0;
@@ -129,16 +129,16 @@ static int _rmessage_string(lua_State* L) {
 }
 
 static int _rmessage_message(lua_State* L) {
-  struct pbc_rmessage* m = (struct pbc_rmessage*)checkuserdata(L, 1);
+  pbc_rmessage* m = (pbc_rmessage*)checkuserdata(L, 1);
   const char* key = luaL_checkstring(L, 2);
   int index = lua_tointeger(L, 3);
-  struct pbc_rmessage* v = pbc_rmessage_message(m, key, index);
+  pbc_rmessage* v = pbc_rmessage_message(m, key, index);
   lua_pushlightuserdata(L, v);
   return 1;
 }
 
 static int _rmessage_size(lua_State* L) {
-  struct pbc_rmessage* m = (struct pbc_rmessage*)checkuserdata(L, 1);
+  pbc_rmessage* m = (pbc_rmessage*)checkuserdata(L, 1);
   const char* key = luaL_checkstring(L, 2);
 
   int sz = pbc_rmessage_size(m, key);
@@ -150,7 +150,7 @@ static int _rmessage_size(lua_State* L) {
 
 static int _env_type(lua_State* L) {
   lua_settop(L, 3);
-  struct pbc_env* env = (struct pbc_env*)checkuserdata(L, 1);
+  pbc_env* env = (pbc_env*)checkuserdata(L, 1);
   const char* type_name = luaL_checkstring(L, 2);
   if (lua_isnil(L, 3)) {
     int ret = pbc_type(env, type_name, NULL, NULL);
@@ -171,22 +171,22 @@ static int _env_type(lua_State* L) {
 }
 
 static int _wmessage_new(lua_State* L) {
-  struct pbc_env* env = (struct pbc_env*)checkuserdata(L, 1);
+  pbc_env* env = (pbc_env*)checkuserdata(L, 1);
   const char* type_name = luaL_checkstring(L, 2);
-  struct pbc_wmessage* ret = pbc_wmessage_new(env, type_name);
+  pbc_wmessage* ret = pbc_wmessage_new(env, type_name);
   lua_pushlightuserdata(L, ret);
   return 1;
 }
 
 static int _wmessage_delete(lua_State* L) {
-  struct pbc_wmessage* m = (struct pbc_wmessage*)lua_touserdata(L, 1);
+  pbc_wmessage* m = (pbc_wmessage*)lua_touserdata(L, 1);
   pbc_wmessage_delete(m);
 
   return 0;
 }
 
 static int _wmessage_real(lua_State* L) {
-  struct pbc_wmessage* m = (struct pbc_wmessage*)checkuserdata(L, 1);
+  pbc_wmessage* m = (pbc_wmessage*)checkuserdata(L, 1);
   const char* key = luaL_checkstring(L, 2);
   double number = luaL_checknumber(L, 3);
   pbc_wmessage_real(m, key, number);
@@ -195,7 +195,7 @@ static int _wmessage_real(lua_State* L) {
 }
 
 static int _wmessage_string(lua_State* L) {
-  struct pbc_wmessage* m = (struct pbc_wmessage*)checkuserdata(L, 1);
+  pbc_wmessage* m = (pbc_wmessage*)checkuserdata(L, 1);
   const char* key = luaL_checkstring(L, 2);
   size_t len = 0;
   const char* v = luaL_checklstring(L, 3, &len);
@@ -208,16 +208,16 @@ static int _wmessage_string(lua_State* L) {
 }
 
 static int _wmessage_message(lua_State* L) {
-  struct pbc_wmessage* m = (struct pbc_wmessage*)checkuserdata(L, 1);
+  pbc_wmessage* m = (pbc_wmessage*)checkuserdata(L, 1);
   const char* key = luaL_checkstring(L, 2);
-  struct pbc_wmessage* ret = pbc_wmessage_message(m, key);
+  pbc_wmessage* ret = pbc_wmessage_message(m, key);
   lua_pushlightuserdata(L, ret);
 
   return 1;
 }
 
 static int _wmessage_int(lua_State* L) {
-  struct pbc_wmessage* m = (struct pbc_wmessage*)checkuserdata(L, 1);
+  pbc_wmessage* m = (pbc_wmessage*)checkuserdata(L, 1);
   const char* key = luaL_checkstring(L, 2);
   int64_t number;
   // compat float for some historical reasons.
@@ -234,7 +234,7 @@ static int _wmessage_int(lua_State* L) {
 
 static int _wmessage_buffer(lua_State* L) {
   pbc_slice slice;
-  struct pbc_wmessage* m = (struct pbc_wmessage*)checkuserdata(L, 1);
+  pbc_wmessage* m = (pbc_wmessage*)checkuserdata(L, 1);
   pbc_wmessage_buffer(m, &slice);
   lua_pushlightuserdata(L, slice.buffer);
   lua_pushinteger(L, slice.len);
@@ -243,7 +243,7 @@ static int _wmessage_buffer(lua_State* L) {
 
 static int _wmessage_buffer_string(lua_State* L) {
   pbc_slice slice;
-  struct pbc_wmessage* m = (struct pbc_wmessage*)checkuserdata(L, 1);
+  pbc_wmessage* m = (pbc_wmessage*)checkuserdata(L, 1);
   pbc_wmessage_buffer(m, &slice);
   lua_pushlstring(L, (const char*)slice.buffer, slice.len);
   return 1;
@@ -253,7 +253,7 @@ static int _wmessage_buffer_string(lua_State* L) {
     lightuserdata env
  */
 static int _last_error(lua_State* L) {
-  struct pbc_env* env = (struct pbc_env*)checkuserdata(L, 1);
+  pbc_env* env = (pbc_env*)checkuserdata(L, 1);
   const char* err = pbc_error(env);
   lua_pushstring(L, err);
   return 1;
@@ -265,10 +265,10 @@ static int _last_error(lua_State* L) {
     string format
  */
 static int _pattern_new(lua_State* L) {
-  struct pbc_env* env = (struct pbc_env*)checkuserdata(L, 1);
+  pbc_env* env = (pbc_env*)checkuserdata(L, 1);
   const char* message = luaL_checkstring(L, 2);
   const char* format = luaL_checkstring(L, 3);
-  struct pbc_pattern* pat = pbc_pattern_new(env, message, format);
+  pbc_pattern* pat = pbc_pattern_new(env, message, format);
   if (pat == NULL) {
     return luaL_error(L, "create patten %s (%s) failed", message, format);
   }
@@ -278,7 +278,7 @@ static int _pattern_new(lua_State* L) {
 }
 
 static int _pattern_delete(lua_State* L) {
-  struct pbc_pattern* pat = (struct pbc_pattern*)lua_touserdata(L, 1);
+  pbc_pattern* pat = (pbc_pattern*)lua_touserdata(L, 1);
   pbc_pattern_delete(pat);
 
   return 0;
@@ -387,7 +387,7 @@ static void _push_array(lua_State* L, pbc_array array, char type, int index) {
     integer buffer_len
  */
 static int _pattern_unpack(lua_State* L) {
-  struct pbc_pattern* pat = (struct pbc_pattern*)checkuserdata(L, 1);
+  pbc_pattern* pat = (pbc_pattern*)checkuserdata(L, 1);
   if (pat == NULL) {
     return luaL_error(L, "unpack pattern is NULL");
   }
@@ -551,7 +551,7 @@ static void _get_array_value(lua_State* L, pbc_array array, char type) {
     integer size
  */
 static int _pattern_pack(lua_State* L) {
-  struct pbc_pattern* pat = (struct pbc_pattern*)checkuserdata(L, 1);
+  pbc_pattern* pat = (pbc_pattern*)checkuserdata(L, 1);
   if (pat == NULL) {
     return luaL_error(L, "pack pattern is NULL");
   }
@@ -658,7 +658,7 @@ static void new_array(lua_State* L, int id, const char* key) {
   }
 }
 
-static void push_value(lua_State* L, int type, const char* type_name, union pbc_value* v) {
+static void push_value(lua_State* L, int type, const char* type_name, pbc_value* v) {
   switch (type) {
     case PBC_FIXED32:
     case PBC_INT:
@@ -701,7 +701,7 @@ static void push_value(lua_State* L, int type, const char* type_name, union pbc_
     -2: table key
     -1:	table id
  */
-static void decode_cb(void* ud, int type, const char* type_name, union pbc_value* v, int id, const char* key) {
+static void decode_cb(void* ud, int type, const char* type_name, pbc_value* v, int id, const char* key) {
   lua_State* L = (lua_State*)ud;
   if (key == NULL) {
     // undefined field
@@ -733,7 +733,7 @@ static void decode_cb(void* ud, int type, const char* type_name, union pbc_value
     table
  */
 static int _decode(lua_State* L) {
-  struct pbc_env* env = (struct pbc_env*)checkuserdata(L, 1);
+  pbc_env* env = (pbc_env*)checkuserdata(L, 1);
   luaL_checktype(L, 2, LUA_TFUNCTION);
   luaL_checktype(L, 3, LUA_TTABLE);
   const char* type = luaL_checkstring(L, 4);
@@ -760,13 +760,13 @@ static int _decode(lua_State* L) {
 }
 
 struct gcobj {
-  struct pbc_env* env;
+  pbc_env* env;
   int size_pat;
   int cap_pat;
-  struct pbc_pattern** pat;
+  pbc_pattern** pat;
   int size_msg;
   int cap_msg;
-  struct pbc_rmessage** msg;
+  pbc_rmessage** msg;
 };
 
 static int _clear_gcobj(lua_State* L) {
@@ -794,13 +794,13 @@ static int _gc(lua_State* L) {
   struct gcobj* obj;
   lua_settop(L, 1);
   obj = (struct gcobj*)lua_newuserdata(L, sizeof(*obj));
-  obj->env = (struct pbc_env*)lua_touserdata(L, 1);
+  obj->env = (pbc_env*)lua_touserdata(L, 1);
   obj->size_pat = 0;
   obj->cap_pat = 4;
   obj->size_msg = 0;
   obj->cap_msg = 4;
-  obj->pat = (struct pbc_pattern**)_pbcM_malloc(obj->cap_pat * sizeof(struct pbc_pattern*));
-  obj->msg = (struct pbc_rmessage**)_pbcM_malloc(obj->cap_msg * sizeof(struct pbc_rmessage*));
+  obj->pat = (pbc_pattern**)_pbcM_malloc(obj->cap_pat * sizeof(pbc_pattern*));
+  obj->msg = (pbc_rmessage**)_pbcM_malloc(obj->cap_msg * sizeof(pbc_rmessage*));
 
   lua_createtable(L, 0, 1);
   lua_pushcfunction(L, _clear_gcobj);
@@ -814,9 +814,9 @@ static int _add_pattern(lua_State* L) {
   struct gcobj* obj = (struct gcobj*)lua_touserdata(L, 1);
   if (obj->size_pat >= obj->cap_pat) {
     obj->cap_pat *= 2;
-    obj->pat = (struct pbc_pattern**)_pbcM_realloc(obj->pat, obj->cap_pat * sizeof(struct pbc_pattern*));
+    obj->pat = (pbc_pattern**)_pbcM_realloc(obj->pat, obj->cap_pat * sizeof(pbc_pattern*));
   }
-  struct pbc_pattern* pat = (struct pbc_pattern*)lua_touserdata(L, 2);
+  pbc_pattern* pat = (pbc_pattern*)lua_touserdata(L, 2);
   obj->pat[obj->size_pat++] = pat;
   return 0;
 }
@@ -825,9 +825,9 @@ static int _add_rmessage(lua_State* L) {
   struct gcobj* obj = (struct gcobj*)lua_touserdata(L, 1);
   if (obj->size_msg >= obj->cap_msg) {
     obj->cap_msg *= 2;
-    obj->msg = (struct pbc_rmessage**)_pbcM_realloc(obj->msg, obj->cap_msg * sizeof(struct pbc_rmessage*));
+    obj->msg = (pbc_rmessage**)_pbcM_realloc(obj->msg, obj->cap_msg * sizeof(pbc_rmessage*));
   }
-  struct pbc_rmessage* msg = (struct pbc_rmessage*)lua_touserdata(L, 2);
+  pbc_rmessage* msg = (pbc_rmessage*)lua_touserdata(L, 2);
   obj->msg[obj->size_msg++] = msg;
   return 0;
 }

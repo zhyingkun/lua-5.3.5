@@ -9,15 +9,27 @@
 #endif
 #include <stddef.h>
 
-struct _message;
-struct _enum;
+typedef struct {
+  const char* key;
+  map_ip* id; // id -> _field
+  map_sp* name; // string -> _field
+  pbc_rmessage* def; // default message
+  pbc_env* env;
+} _message;
+
+typedef struct {
+  const char* key;
+  map_ip* id;
+  map_si* name;
+  pbc_var default_v;
+} _enum;
 
 #define LABEL_OPTIONAL 0
 #define LABEL_REQUIRED 1
 #define LABEL_REPEATED 2
 #define LABEL_PACKED 3
 
-struct _field {
+typedef struct {
   int id;
   const char* name;
   int type;
@@ -25,25 +37,10 @@ struct _field {
   pbc_var default_v;
   union {
     const char* n;
-    struct _message* m;
-    struct _enum* e;
+    _message* m;
+    _enum* e;
   } type_name;
-};
-
-struct _message {
-  const char* key;
-  map_ip* id; // id -> _field
-  map_sp* name; // string -> _field
-  struct pbc_rmessage* def; // default message
-  struct pbc_env* env;
-};
-
-struct _enum {
-  const char* key;
-  map_ip* id;
-  map_si* name;
-  pbc_var default_v;
-};
+} _field;
 
 struct pbc_env {
   map_sp* files; // string -> void *
@@ -52,11 +49,11 @@ struct pbc_env {
   const char* lasterror;
 };
 
-struct _message* _pbcP_init_message(struct pbc_env* p, const char* name);
-void _pbcP_push_message(struct pbc_env* p, const char* name, struct _field* f, pbc_array queue);
-struct _enum* _pbcP_push_enum(struct pbc_env* p, const char* name, map_kv* table, int sz);
-int _pbcP_message_default(struct _message* m, const char* name, pbc_var defv);
-struct _message* _pbcP_get_message(struct pbc_env* p, const char* name);
-int _pbcP_type(struct _field* field, const char** type);
+_message* _pbcP_init_message(pbc_env* p, const char* name);
+void _pbcP_push_message(pbc_env* p, const char* name, _field* f, pbc_array queue);
+_enum* _pbcP_push_enum(pbc_env* p, const char* name, map_kv* table, int sz);
+int _pbcP_message_default(_message* m, const char* name, pbc_var defv);
+_message* _pbcP_get_message(pbc_env* p, const char* name);
+int _pbcP_type(_field* field, const char** type);
 
 #endif

@@ -21,8 +21,8 @@ static const char* TYPENAME[] = {
     "uint", // 11
 };
 
-static int call_unknown(pbc_decoder f, void* ud, int id, struct atom* a, uint8_t* start) {
-  union pbc_value v;
+static int call_unknown(pbc_decoder f, void* ud, int id, atom* a, uint8_t* start) {
+  pbc_value v;
   switch (a->wire_id & 7) {
     case WT_VARINT:
       v.i.low = a->v.i.low;
@@ -50,8 +50,8 @@ static int call_unknown(pbc_decoder f, void* ud, int id, struct atom* a, uint8_t
   return 0;
 }
 
-static int call_type(pbc_decoder pd, void* ud, struct _field* f, struct atom* a, uint8_t* start) {
-  union pbc_value v;
+static int call_type(pbc_decoder pd, void* ud, _field* f, atom* a, uint8_t* start) {
+  pbc_value v;
   const char* type_name = NULL;
   int type = _pbcP_type(f, &type_name);
   assert(type != 0);
@@ -124,8 +124,8 @@ static int call_type(pbc_decoder pd, void* ud, struct _field* f, struct atom* a,
   return 0;
 }
 
-static int call_array(pbc_decoder pd, void* ud, struct _field* f, uint8_t* buffer, int size) {
-  union pbc_value v;
+static int call_array(pbc_decoder pd, void* ud, _field* f, uint8_t* buffer, int size) {
+  pbc_value v;
   const char* type_name = NULL;
   int type = _pbcP_type(f, &type_name);
   assert(type != 0);
@@ -282,8 +282,8 @@ static int call_array(pbc_decoder pd, void* ud, struct _field* f, uint8_t* buffe
   }
 }
 
-int pbc_decode(struct pbc_env* env, const char* type_name, pbc_slice* slice, pbc_decoder pd, void* ud) {
-  struct _message* msg = _pbcP_get_message(env, type_name);
+int pbc_decode(pbc_env* env, const char* type_name, pbc_slice* slice, pbc_decoder pd, void* ud) {
+  _message* msg = _pbcP_get_message(env, type_name);
   if (msg == NULL) {
     env->lasterror = "Proto not found";
     return -1;
@@ -298,13 +298,13 @@ int pbc_decode(struct pbc_env* env, const char* type_name, pbc_slice* slice, pbc
     _pbcC_close(_ctx);
     return count - 1;
   }
-  struct context* ctx = (struct context*)_ctx;
+  context* ctx = (context*)_ctx;
   uint8_t* start = (uint8_t*)slice->buffer;
 
   int i;
   for (i = 0; i < ctx->number; i++) {
     int id = ctx->a[i].wire_id >> 3;
-    struct _field* f = (struct _field*)_pbcM_ip_query(msg->id, id);
+    _field* f = (_field*)_pbcM_ip_query(msg->id, id);
     if (f == NULL) {
       int err = call_unknown(pd, ud, id, &ctx->a[i], start);
       if (err) {
@@ -312,7 +312,7 @@ int pbc_decode(struct pbc_env* env, const char* type_name, pbc_slice* slice, pbc
         return -i - 1;
       }
     } else if (f->label == LABEL_PACKED) {
-      struct atom* a = &ctx->a[i];
+      atom* a = &ctx->a[i];
       int n = call_array(pd, ud, f, start + a->v.s.start, a->v.s.end - a->v.s.start);
       if (n < 0) {
         _pbcC_close(_ctx);

@@ -13,7 +13,7 @@
 #define WMESSAGE_SIZE 64
 
 struct pbc_wmessage {
-  struct _message* type;
+  _message* type;
   uint8_t* buffer;
   uint8_t* ptr;
   uint8_t* endptr;
@@ -22,14 +22,14 @@ struct pbc_wmessage {
   heap* heap;
 };
 
-struct _packed {
+typedef struct {
   int id;
   int ptype;
   pbc_array data;
-};
+} _packed;
 
-static struct pbc_wmessage* _wmessage_new(heap* h, struct _message* msg) {
-  struct pbc_wmessage* m = (struct pbc_wmessage*)_pbcH_alloc(h, sizeof(*m));
+static pbc_wmessage* _wmessage_new(heap* h, _message* msg) {
+  pbc_wmessage* m = (pbc_wmessage*)_pbcH_alloc(h, sizeof(*m));
   m->type = msg;
   m->buffer = (uint8_t*)_pbcH_alloc(h, WMESSAGE_SIZE);
   m->ptr = m->buffer;
@@ -41,21 +41,21 @@ static struct pbc_wmessage* _wmessage_new(heap* h, struct _message* msg) {
   return m;
 }
 
-struct pbc_wmessage* pbc_wmessage_new(struct pbc_env* env, const char* type_name) {
-  struct _message* msg = _pbcP_get_message(env, type_name);
+pbc_wmessage* pbc_wmessage_new(pbc_env* env, const char* type_name) {
+  _message* msg = _pbcP_get_message(env, type_name);
   if (msg == NULL)
     return NULL;
   heap* h = _pbcH_new(0);
   return _wmessage_new(h, msg);
 }
 
-void pbc_wmessage_delete(struct pbc_wmessage* m) {
+void pbc_wmessage_delete(pbc_wmessage* m) {
   if (m) {
     _pbcH_delete(m->heap);
   }
 }
 
-static void _expand_message(struct pbc_wmessage* m, int sz) {
+static void _expand_message(pbc_wmessage* m, int sz) {
   if (m->ptr + sz > m->endptr) {
     int cap = m->endptr - m->buffer;
     sz = m->ptr + sz - m->buffer;
@@ -71,32 +71,32 @@ static void _expand_message(struct pbc_wmessage* m, int sz) {
   }
 }
 
-static struct _packed* _get_packed(struct pbc_wmessage* m, struct _field* f, const char* key) {
+static _packed* _get_packed(pbc_wmessage* m, _field* f, const char* key) {
   if (m->packed == NULL) {
     m->packed = _pbcM_sp_new(4, m->heap);
   }
   void** v = _pbcM_sp_query_insert(m->packed, key);
   if (*v == NULL) {
-    *v = _pbcH_alloc(m->heap, sizeof(struct _packed));
-    struct _packed* p = (struct _packed*)*v;
+    *v = _pbcH_alloc(m->heap, sizeof(_packed));
+    _packed* p = (_packed*)*v;
     p->id = f->id;
     p->ptype = f->type;
     _pbcA_open_heap(p->data, m->heap);
     return p;
   }
-  return (struct _packed*)*v;
+  return (_packed*)*v;
 }
 
-static void _packed_integer(struct pbc_wmessage* m, struct _field* f, const char* key, uint32_t low, uint32_t hi) {
-  struct _packed* packed = _get_packed(m, f, key);
+static void _packed_integer(pbc_wmessage* m, _field* f, const char* key, uint32_t low, uint32_t hi) {
+  _packed* packed = _get_packed(m, f, key);
   pbc_var var;
   var->integer.low = low;
   var->integer.hi = hi;
   _pbcA_push(packed->data, var);
 }
 
-static void _packed_real(struct pbc_wmessage* m, struct _field* f, const char* key, double v) {
-  struct _packed* packed = _get_packed(m, f, key);
+static void _packed_real(pbc_wmessage* m, _field* f, const char* key, double v) {
+  _packed* packed = _get_packed(m, f, key);
   pbc_var var;
   var->real = v;
   _pbcA_push(packed->data, var);
@@ -120,8 +120,8 @@ static inline void int32_encode(uint32_t low, uint8_t* buffer) {
   buffer[3] = (uint8_t)(low >> 24 & 0xff);
 }
 
-int pbc_wmessage_integer(struct pbc_wmessage* m, const char* key, uint32_t low, uint32_t hi) {
-  struct _field* f = (struct _field*)_pbcM_sp_query(m->type->name, key);
+int pbc_wmessage_integer(pbc_wmessage* m, const char* key, uint32_t low, uint32_t hi) {
+  _field* f = (_field*)_pbcM_sp_query(m->type->name, key);
   if (f == NULL) {
     // todo : error
     m->type->env->lasterror = "wmessage_interger query key error";
@@ -188,8 +188,8 @@ int pbc_wmessage_integer(struct pbc_wmessage* m, const char* key, uint32_t low, 
   return 0;
 }
 
-int pbc_wmessage_real(struct pbc_wmessage* m, const char* key, double v) {
-  struct _field* f = (struct _field*)_pbcM_sp_query(m->type->name, key);
+int pbc_wmessage_real(pbc_wmessage* m, const char* key, double v) {
+  _field* f = (_field*)_pbcM_sp_query(m->type->name, key);
   if (f == NULL) {
     // todo : error
     m->type->env->lasterror = "wmessage_real query key error";
@@ -225,8 +225,8 @@ int pbc_wmessage_real(struct pbc_wmessage* m, const char* key, double v) {
   return 0;
 }
 
-int pbc_wmessage_string(struct pbc_wmessage* m, const char* key, const char* v, int len) {
-  struct _field* f = (struct _field*)_pbcM_sp_query(m->type->name, key);
+int pbc_wmessage_string(pbc_wmessage* m, const char* key, const char* v, int len) {
+  _field* f = (_field*)_pbcM_sp_query(m->type->name, key);
   if (f == NULL) {
     // todo : error
     m->type->env->lasterror = "wmessage_string query key error";
@@ -311,8 +311,8 @@ int pbc_wmessage_string(struct pbc_wmessage* m, const char* key, const char* v, 
   return 0;
 }
 
-struct pbc_wmessage* pbc_wmessage_message(struct pbc_wmessage* m, const char* key) {
-  struct _field* f = (struct _field*)_pbcM_sp_query(m->type->name, key);
+pbc_wmessage* pbc_wmessage_message(pbc_wmessage* m, const char* key) {
+  _field* f = (_field*)_pbcM_sp_query(m->type->name, key);
   if (f == NULL) {
     // todo : error
     m->type->env->lasterror = "wmessage_message query key error";
@@ -322,10 +322,10 @@ struct pbc_wmessage* pbc_wmessage_message(struct pbc_wmessage* m, const char* ke
   var->p[0] = _wmessage_new(m->heap, f->type_name.m);
   var->p[1] = f;
   _pbcA_push(m->sub, var);
-  return (struct pbc_wmessage*)var->p[0];
+  return (pbc_wmessage*)var->p[0];
 }
 
-static void _pack_packed_64(struct _packed* p, struct pbc_wmessage* m) {
+static void _pack_packed_64(_packed* p, pbc_wmessage* m) {
   int n = pbc_array_size(p->data);
   int len = n * 8;
   int i;
@@ -349,7 +349,7 @@ static void _pack_packed_64(struct _packed* p, struct pbc_wmessage* m) {
   m->ptr += len;
 }
 
-static void _pack_packed_32(struct _packed* p, struct pbc_wmessage* m) {
+static void _pack_packed_32(_packed* p, pbc_wmessage* m) {
   int n = pbc_array_size(p->data);
   int len = n * 4;
   int i;
@@ -373,7 +373,7 @@ static void _pack_packed_32(struct _packed* p, struct pbc_wmessage* m) {
   m->ptr += len;
 }
 
-static void _pack_packed_varint(struct _packed* p, struct pbc_wmessage* m) {
+static void _pack_packed_varint(_packed* p, pbc_wmessage* m) {
   int n = pbc_array_size(p->data);
 
   int offset = m->ptr - m->buffer;
@@ -442,8 +442,8 @@ static void _pack_packed_varint(struct _packed* p, struct pbc_wmessage* m) {
 }
 
 static void _pack_packed(void* p, void* ud) {
-  struct _packed* packed = (struct _packed*)p;
-  struct pbc_wmessage* m = (struct pbc_wmessage*)ud;
+  _packed* packed = (_packed*)p;
+  pbc_wmessage* m = (pbc_wmessage*)ud;
   int id = packed->id << 3 | WT_LEND;
   _expand_message(m, 10);
   m->ptr += _pbcV_encode32(id, m->ptr);
@@ -464,7 +464,7 @@ static void _pack_packed(void* p, void* ud) {
   }
 }
 
-void* pbc_wmessage_buffer(struct pbc_wmessage* m, pbc_slice* slice) {
+void* pbc_wmessage_buffer(pbc_wmessage* m, pbc_slice* slice) {
   if (m->packed) {
     _pbcM_sp_foreach_ud(m->packed, _pack_packed, m);
   }
@@ -474,9 +474,9 @@ void* pbc_wmessage_buffer(struct pbc_wmessage* m, pbc_slice* slice) {
     pbc_var var;
     _pbcA_index(m->sub, i, var);
     pbc_slice s;
-    pbc_wmessage_buffer((struct pbc_wmessage*)var->p[0], &s);
+    pbc_wmessage_buffer((pbc_wmessage*)var->p[0], &s);
     if (s.buffer) {
-      struct _field* f = (struct _field*)var->p[1];
+      _field* f = (_field*)var->p[1];
       int id = f->id << 3 | WT_LEND;
       _expand_message(m, 20 + s.len);
       m->ptr += _pbcV_encode32(id, m->ptr);

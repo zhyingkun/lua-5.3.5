@@ -42,7 +42,7 @@ static void set_default_v(void* output, int ctype, pbc_var defv) {
   }
 }
 
-static void _pattern_set_default(struct _pattern_field* field, char* output) {
+static void _pattern_set_default(_pattern_field* field, char* output) {
   if (field->ctype == CTYPE_ARRAY || field->ctype == CTYPE_PACKED) {
     _pbc_array* array = (_pbc_array*)(output + field->offset);
     _pbcA_open(array);
@@ -55,7 +55,7 @@ static void _pattern_set_default(struct _pattern_field* field, char* output) {
   set_default_v(output + field->offset, field->ctype, field->defv);
 }
 
-void pbc_pattern_set_default(struct pbc_pattern* pat, void* output) {
+void pbc_pattern_set_default(pbc_pattern* pat, void* output) {
   int i;
   for (i = 0; i < pat->count; i++) {
     _pattern_set_default(&pat->f[i], (char*)output);
@@ -64,12 +64,12 @@ void pbc_pattern_set_default(struct pbc_pattern* pat, void* output) {
 
 // pattern unpack
 
-static struct _pattern_field* bsearch_pattern(struct pbc_pattern* pat, int id) {
+static _pattern_field* bsearch_pattern(pbc_pattern* pat, int id) {
   int begin = 0;
   int end = pat->count;
   while (begin < end) {
     int mid = (begin + end) / 2;
-    struct _pattern_field* f = &pat->f[mid];
+    _pattern_field* f = &pat->f[mid];
     if (id == f->id) {
       return f;
     }
@@ -121,11 +121,11 @@ static inline int write_longlong(int ctype, longlong* i, void* out) {
   return -1;
 }
 
-static inline int write_integer(int ctype, struct atom* a, void* out) {
+static inline int write_integer(int ctype, atom* a, void* out) {
   return write_longlong(ctype, &(a->v.i), out);
 }
 
-static int unpack_array(int ptype, char* buffer, struct atom*, pbc_array _array);
+static int unpack_array(int ptype, char* buffer, atom*, pbc_array _array);
 
 int _pbcP_unpack_packed(uint8_t* buffer, int size, int ptype, pbc_array array) {
   pbc_var var;
@@ -256,7 +256,7 @@ int _pbcP_unpack_packed(uint8_t* buffer, int size, int ptype, pbc_array array) {
   return -1;
 }
 
-static int unpack_field(int ctype, int ptype, char* buffer, struct atom* a, void* out) {
+static int unpack_field(int ctype, int ptype, char* buffer, atom* a, void* out) {
   if (ctype == CTYPE_ARRAY) {
     return unpack_array(ptype, buffer, a, (_pbc_array*)out);
   }
@@ -314,7 +314,7 @@ static int unpack_field(int ctype, int ptype, char* buffer, struct atom* a, void
   return -1;
 }
 
-static int unpack_array(int ptype, char* buffer, struct atom* a, pbc_array _array) {
+static int unpack_array(int ptype, char* buffer, atom* a, pbc_array _array) {
   pbc_var var;
   int r = unpack_field(CTYPE_VAR, ptype, buffer, a, var);
   if (r != 0)
@@ -324,7 +324,7 @@ static int unpack_array(int ptype, char* buffer, struct atom* a, pbc_array _arra
   return 0;
 }
 
-void pbc_pattern_close_arrays(struct pbc_pattern* pat, void* data) {
+void pbc_pattern_close_arrays(pbc_pattern* pat, void* data) {
   int i;
   for (i = 0; i < pat->count; i++) {
     if (pat->f[i].ctype == CTYPE_ARRAY || pat->f[i].ctype == CTYPE_PACKED) {
@@ -495,7 +495,7 @@ static int _pack_number(int ptype, int ctype, pbc_slice* s, void* input) {
   }
 }
 
-static int _pack_field(struct _pattern_field* pf, int ctype, pbc_slice* s, void* input) {
+static int _pack_field(_pattern_field* pf, int ctype, pbc_slice* s, void* input) {
   int wiretype;
   int ret = 0;
   int len;
@@ -578,7 +578,7 @@ _number:
   return ret;
 }
 
-static int _pack_repeated(struct _pattern_field* pf, pbc_slice* s, pbc_array array) {
+static int _pack_repeated(_pattern_field* pf, pbc_slice* s, pbc_array array) {
   int n = pbc_array_size(array);
   int ret = 0;
   if (n > 0) {
@@ -593,7 +593,7 @@ static int _pack_repeated(struct _pattern_field* pf, pbc_slice* s, pbc_array arr
   return ret;
 }
 
-static int _pack_packed_fixed(struct _pattern_field* pf, int width, pbc_slice* s, pbc_array array) {
+static int _pack_packed_fixed(_pattern_field* pf, int width, pbc_slice* s, pbc_array array) {
   int len;
   int n = pbc_array_size(array);
   len = _pack_wiretype(n * width, s);
@@ -610,7 +610,7 @@ static int _pack_packed_fixed(struct _pattern_field* pf, int width, pbc_slice* s
   return len + n * width;
 }
 
-static int _pack_packed_varint(struct _pattern_field* pf, pbc_slice* slice, pbc_array array) {
+static int _pack_packed_varint(_pattern_field* pf, pbc_slice* slice, pbc_array array) {
   pbc_slice s = *slice;
   int n = pbc_array_size(array);
   int estimate = n;
@@ -647,7 +647,7 @@ static int _pack_packed_varint(struct _pattern_field* pf, pbc_slice* slice, pbc_
   return packed_len + header_len;
 }
 
-static int _pack_packed(struct _pattern_field* pf, pbc_slice* s, pbc_array array) {
+static int _pack_packed(_pattern_field* pf, pbc_slice* s, pbc_array array) {
   int n = pbc_array_size(array);
   if (n == 0)
     return 0;
@@ -693,7 +693,7 @@ static int _pack_packed(struct _pattern_field* pf, pbc_slice* s, pbc_array array
   return ret;
 }
 
-static bool _is_default(struct _pattern_field* pf, void* in) {
+static bool _is_default(_pattern_field* pf, void* in) {
   switch (pf->ctype) {
     case CTYPE_INT64: {
       longlong* d64 = &pf->defv->integer;
@@ -734,11 +734,11 @@ static bool _is_default(struct _pattern_field* pf, void* in) {
   return false;
 }
 
-int pbc_pattern_pack(struct pbc_pattern* pat, void* input, pbc_slice* s) {
+int pbc_pattern_pack(pbc_pattern* pat, void* input, pbc_slice* s) {
   pbc_slice slice = *s;
   int i;
   for (i = 0; i < pat->count; i++) {
-    struct _pattern_field* pf = &pat->f[i];
+    _pattern_field* pf = &pat->f[i];
     void* in = (char*)input + pf->offset;
     int len = 0;
     switch (pf->label) {
@@ -766,7 +766,7 @@ int pbc_pattern_pack(struct pbc_pattern* pat, void* input, pbc_slice* s) {
   return ret;
 }
 
-int pbc_pattern_unpack(struct pbc_pattern* pat, pbc_slice* s, void* output) {
+int pbc_pattern_unpack(pbc_pattern* pat, pbc_slice* s, void* output) {
   if (s->len == 0) {
     pbc_pattern_set_default(pat, output);
     return 0;
@@ -779,15 +779,15 @@ int pbc_pattern_unpack(struct pbc_pattern* pat, pbc_slice* s, void* output) {
     return r - 1;
   }
 
-  struct context* ctx = (struct context*)_ctx;
+  context* ctx = (context*)_ctx; // key-value pair list
   bool* field = (bool*)alloca(pat->count * sizeof(bool));
   memset(field, 0, pat->count * sizeof(bool));
 
   int i;
-  int fc = 0;
+  int fc = 0; // field count
 
   for (i = 0; i < ctx->number; i++) {
-    struct _pattern_field* f = bsearch_pattern(pat, ctx->a[i].wire_id >> 3);
+    _pattern_field* f = bsearch_pattern(pat, ctx->a[i].wire_id >> 3);
     if (f) {
       int index = f - pat->f;
       if (field[index] == false) {
@@ -920,22 +920,22 @@ static int _scan_pattern(const char* format, char* temp) {
 }
 
 static int _comp_field(const void* a, const void* b) {
-  const struct _pattern_field* fa = (const struct _pattern_field*)a;
-  const struct _pattern_field* fb = (const struct _pattern_field*)b;
+  const _pattern_field* fa = (const _pattern_field*)a;
+  const _pattern_field* fb = (const _pattern_field*)b;
 
   return fa->id - fb->id;
 }
 
-struct pbc_pattern* _pbcP_new(struct pbc_env* env, int n) {
-  size_t sz = sizeof(struct pbc_pattern) + (sizeof(struct _pattern_field)) * (n - 1);
-  struct pbc_pattern* ret = (struct pbc_pattern*)_pbcM_malloc(sz);
+pbc_pattern* _pbcP_new(pbc_env* env, int n) {
+  size_t sz = sizeof(pbc_pattern) + (sizeof(_pattern_field)) * (n - 1);
+  pbc_pattern* ret = (pbc_pattern*)_pbcM_malloc(sz);
   memset(ret, 0, sz);
   ret->count = n;
   ret->env = env;
   return ret;
 }
 
-static int _check_ctype(struct _field* field, struct _pattern_field* f) {
+static int _check_ctype(_field* field, _pattern_field* f) {
   if (field->label == LABEL_REPEATED) {
     return f->ctype != CTYPE_ARRAY;
   }
@@ -957,11 +957,11 @@ static int _check_ctype(struct _field* field, struct _pattern_field* f) {
          f->ctype == CTYPE_FLOAT;
 }
 
-struct pbc_pattern* _pattern_new(struct _message* m, const char* format) {
+pbc_pattern* _pattern_new(_message* m, const char* format) {
   int len = strlen(format);
   char* temp = (char*)alloca(len + 1);
   int n = _scan_pattern(format, temp);
-  struct pbc_pattern* pat = _pbcP_new(m->env, n);
+  pbc_pattern* pat = _pbcP_new(m->env, n);
   int i;
 
   const char* ptr = temp;
@@ -969,8 +969,8 @@ struct pbc_pattern* _pattern_new(struct _message* m, const char* format) {
   int offset = 0;
 
   for (i = 0; i < n; i++) {
-    struct _pattern_field* f = &(pat->f[i]);
-    struct _field* field = (struct _field*)_pbcM_sp_query(m->name, ptr);
+    _pattern_field* f = &(pat->f[i]);
+    _field* field = (_field*)_pbcM_sp_query(m->name, ptr);
     if (field == NULL) {
       m->env->lasterror = "Pattern @new query none exist field";
       goto _error;
@@ -1001,15 +1001,15 @@ struct pbc_pattern* _pattern_new(struct _message* m, const char* format) {
 
   pat->count = n;
 
-  qsort(pat->f, n, sizeof(struct _pattern_field), _comp_field);
+  qsort(pat->f, n, sizeof(_pattern_field), _comp_field);
   return pat;
 _error:
   _pbcM_free(pat);
   return NULL;
 }
 
-struct pbc_pattern* pbc_pattern_new(struct pbc_env* env, const char* message, const char* format, ...) {
-  struct _message* m = _pbcP_get_message(env, message);
+pbc_pattern* pbc_pattern_new(pbc_env* env, const char* message, const char* format, ...) {
+  _message* m = _pbcP_get_message(env, message);
   if (m == NULL) {
     env->lasterror = "Pattern new can't find proto";
     return NULL;
@@ -1021,7 +1021,7 @@ struct pbc_pattern* pbc_pattern_new(struct pbc_env* env, const char* message, co
   int len = strlen(format);
   char* temp = (char*)alloca(len + 1);
   int n = _scan_pattern(format, temp);
-  struct pbc_pattern* pat = _pbcP_new(env, n);
+  pbc_pattern* pat = _pbcP_new(env, n);
   int i;
   va_list ap;
   va_start(ap, format);
@@ -1029,8 +1029,8 @@ struct pbc_pattern* pbc_pattern_new(struct pbc_env* env, const char* message, co
   const char* ptr = temp;
 
   for (i = 0; i < n; i++) {
-    struct _pattern_field* f = &(pat->f[i]);
-    struct _field* field = (struct _field*)_pbcM_sp_query(m->name, ptr);
+    _pattern_field* f = &(pat->f[i]);
+    _field* field = (_field*)_pbcM_sp_query(m->name, ptr);
     if (field == NULL) {
       env->lasterror = "Pattern new query none exist field";
       goto _error;
@@ -1063,13 +1063,13 @@ struct pbc_pattern* pbc_pattern_new(struct pbc_env* env, const char* message, co
 
   pat->count = n;
 
-  qsort(pat->f, n, sizeof(struct _pattern_field), _comp_field);
+  qsort(pat->f, n, sizeof(_pattern_field), _comp_field);
   return pat;
 _error:
   _pbcM_free(pat);
   return NULL;
 }
 
-void pbc_pattern_delete(struct pbc_pattern* pat) {
+void pbc_pattern_delete(pbc_pattern* pat) {
   _pbcM_free(pat);
 }

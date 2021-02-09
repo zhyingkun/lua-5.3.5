@@ -5,22 +5,22 @@
 #include "context.h"
 #include "array.h"
 
-struct _pattern_field {
+typedef struct {
   int id;
   int offset;
   int ptype;
   int ctype;
   int label;
   pbc_var defv;
-};
+} _pattern_field;
 
 struct pbc_pattern {
-  struct pbc_env* env;
+  pbc_env* env;
   int count;
-  struct _pattern_field f[1];
+  _pattern_field f[1];
 };
 
-struct pbc_pattern* _pbcP_new(struct pbc_env* env, int n);
+pbc_pattern* _pbcP_new(pbc_env* env, int n);
 int _pbcP_unpack_packed(uint8_t* buffer, int size, int ptype, pbc_array array);
 
 #endif

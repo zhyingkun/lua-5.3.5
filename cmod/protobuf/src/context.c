@@ -10,9 +10,9 @@
 #include <stdbool.h>
 #endif
 
-#define INNER_ATOM ((PBC_CONTEXT_CAP - sizeof(struct context)) / sizeof(struct atom))
+#define INNER_ATOM ((PBC_CONTEXT_CAP - sizeof(context)) / sizeof(atom))
 
-static char* wiretype_decode(uint8_t* buffer, int cap, struct atom* a, int start) {
+static char* wiretype_decode(uint8_t* buffer, int cap, atom* a, int start) {
   uint8_t temp[10];
   longlong r;
   int len;
@@ -73,7 +73,7 @@ static char* wiretype_decode(uint8_t* buffer, int cap, struct atom* a, int start
   }
 }
 
-static inline int _decode_varint(uint8_t* buffer, int size, struct atom* a) {
+static inline int _decode_varint(uint8_t* buffer, int size, atom* a) {
   a->wire_id = WT_VARINT;
   if (size < 10) {
     uint8_t temp[10];
@@ -84,8 +84,8 @@ static inline int _decode_varint(uint8_t* buffer, int size, struct atom* a) {
   }
 }
 
-static int _open_packed_varint(struct context* ctx, uint8_t* buffer, int size) {
-  struct atom* a = (struct atom*)(ctx + 1);
+static int _open_packed_varint(context* ctx, uint8_t* buffer, int size) {
+  atom* a = (atom*)(ctx + 1);
 
   int i;
 
@@ -101,11 +101,11 @@ static int _open_packed_varint(struct context* ctx, uint8_t* buffer, int size) {
     ctx->a = a;
   } else {
     int cap = 64;
-    ctx->a = (struct atom*)_pbcM_malloc(cap * sizeof(struct atom));
+    ctx->a = (atom*)_pbcM_malloc(cap * sizeof(atom));
     while (size > 0) {
       if (i >= cap) {
         cap = cap + 64;
-        ctx->a = (struct atom*)_pbcM_realloc(ctx->a, cap * sizeof(struct atom));
+        ctx->a = (atom*)_pbcM_realloc(ctx->a, cap * sizeof(atom));
         continue;
       }
       int len = _decode_varint(buffer, size, &a[i]);
@@ -114,7 +114,7 @@ static int _open_packed_varint(struct context* ctx, uint8_t* buffer, int size) {
 
       ++i;
     }
-    memcpy(ctx->a, a, sizeof(struct atom) * INNER_ATOM);
+    memcpy(ctx->a, a, sizeof(atom) * INNER_ATOM);
   }
   ctx->number = i;
 
@@ -122,7 +122,7 @@ static int _open_packed_varint(struct context* ctx, uint8_t* buffer, int size) {
 }
 
 int _pbcC_open_packed(pbc_ctx _ctx, int ptype, void* buffer, int size) {
-  struct context* ctx = (struct context*)_ctx;
+  context* ctx = (context*)_ctx;
   ctx->buffer = (char*)buffer;
   ctx->size = size;
   ctx->number = 0;
@@ -160,10 +160,10 @@ int _pbcC_open_packed(pbc_ctx _ctx, int ptype, void* buffer, int size) {
       return 0;
   }
 
-  struct atom* a = (struct atom*)(ctx + 1);
+  atom* a = (atom*)(ctx + 1);
 
   if (ctx->number > INNER_ATOM) {
-    ctx->a = (struct atom*)_pbcM_malloc(ctx->number * sizeof(struct atom));
+    ctx->a = (atom*)_pbcM_malloc(ctx->number * sizeof(atom));
     a = ctx->a;
   } else {
     ctx->a = a;
@@ -192,7 +192,7 @@ int _pbcC_open_packed(pbc_ctx _ctx, int ptype, void* buffer, int size) {
 }
 
 int _pbcC_open(pbc_ctx _ctx, void* buffer, int size) {
-  struct context* ctx = (struct context*)_ctx;
+  context* ctx = (context*)_ctx;
   ctx->buffer = (char*)buffer;
   ctx->size = size;
 
@@ -202,7 +202,7 @@ int _pbcC_open(pbc_ctx _ctx, void* buffer, int size) {
     return 0;
   }
 
-  struct atom* a = (struct atom*)(ctx + 1);
+  atom* a = (atom*)(ctx + 1);
 
   int i;
   int start = 0;
@@ -222,11 +222,11 @@ int _pbcC_open(pbc_ctx _ctx, void* buffer, int size) {
 
   if (size > 0) {
     int cap = 64;
-    ctx->a = (struct atom*)_pbcM_malloc(cap * sizeof(struct atom));
+    ctx->a = (atom*)_pbcM_malloc(cap * sizeof(atom));
     while (size > 0) {
       if (i >= cap) {
         cap = cap + 64;
-        ctx->a = (struct atom*)_pbcM_realloc(ctx->a, cap * sizeof(struct atom));
+        ctx->a = (atom*)_pbcM_realloc(ctx->a, cap * sizeof(atom));
         continue;
       }
       char* next = wiretype_decode((uint8_t*)buffer, size, &ctx->a[i], start);
@@ -238,7 +238,7 @@ int _pbcC_open(pbc_ctx _ctx, void* buffer, int size) {
       buffer = next;
       ++i;
     }
-    memcpy(ctx->a, a, sizeof(struct atom) * INNER_ATOM);
+    memcpy(ctx->a, a, sizeof(atom) * INNER_ATOM);
   }
   ctx->number = i;
 
@@ -246,8 +246,8 @@ int _pbcC_open(pbc_ctx _ctx, void* buffer, int size) {
 }
 
 void _pbcC_close(pbc_ctx _ctx) {
-  struct context* ctx = (struct context*)_ctx;
-  if (ctx->a != NULL && (struct atom*)(ctx + 1) != ctx->a) {
+  context* ctx = (context*)_ctx;
+  if (ctx->a != NULL && (atom*)(ctx + 1) != ctx->a) {
     _pbcM_free(ctx->a);
     ctx->a = NULL;
   }

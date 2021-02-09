@@ -33,13 +33,13 @@ static const char* _concat_name(_stringpool* p, const char* prefix, int prefix_s
   return ret;
 }
 
-static void _register_enum(struct pbc_env* p, _stringpool* pool, struct pbc_rmessage* enum_type,
+static void _register_enum(pbc_env* p, _stringpool* pool, pbc_rmessage* enum_type,
                            const char* prefix, int prefix_sz) {
   int field_count = pbc_rmessage_size(enum_type, "value");
   map_kv* table = (map_kv*)_pbcM_malloc(field_count * sizeof(map_kv));
   int i;
   for (i = 0; i < field_count; i++) {
-    struct pbc_rmessage* value = pbc_rmessage_message(enum_type, "value", i);
+    pbc_rmessage* value = pbc_rmessage_message(enum_type, "value", i);
     int enum_name_sz;
     const char* enum_name = pbc_rmessage_string(value, "name", 0, &enum_name_sz);
     table[i].pointer = (void*)_pbcS_build(pool, enum_name, enum_name_sz);
@@ -53,7 +53,7 @@ static void _register_enum(struct pbc_env* p, _stringpool* pool, struct pbc_rmes
   _pbcM_free(table);
 }
 
-static void _set_default(_stringpool* pool, struct _field* f, int ptype, const char* value, int sz) {
+static void _set_default(_stringpool* pool, _field* f, int ptype, const char* value, int sz) {
   if (value == NULL || sz == 0) {
     if (f->type == PTYPE_STRING || f->type == PTYPE_BYTES) {
       f->default_v->s.str = "";
@@ -126,12 +126,12 @@ static void _set_default(_stringpool* pool, struct _field* f, int ptype, const c
   }
 }
 
-static void _register_field(struct pbc_rmessage* field, struct _field* f, _stringpool* pool) {
+static void _register_field(pbc_rmessage* field, _field* f, _stringpool* pool) {
   f->id = pbc_rmessage_integer(field, "number", 0, 0);
   f->type = pbc_rmessage_integer(field, "type", 0, 0); // enum
   f->label = pbc_rmessage_integer(field, "label", 0, 0) - 1; // LABEL_OPTIONAL = 0
   if (pbc_rmessage_size(field, "options") > 0) {
-    struct pbc_rmessage* options = pbc_rmessage_message(field, "options", 0);
+    pbc_rmessage* options = pbc_rmessage_message(field, "options", 0);
     int packed = pbc_rmessage_integer(options, "packed", 0, NULL);
     if (packed) {
       f->label = LABEL_PACKED;
@@ -143,8 +143,8 @@ static void _register_field(struct pbc_rmessage* field, struct _field* f, _strin
   _set_default(pool, f, f->type, default_value, vsz);
 }
 
-static void _register_extension(struct pbc_env* p, _stringpool* pool, const char* prefix, int prefix_sz,
-                                struct pbc_rmessage* msg, pbc_array queue) {
+static void _register_extension(pbc_env* p, _stringpool* pool, const char* prefix, int prefix_sz,
+                                pbc_rmessage* msg, pbc_array queue) {
   int extension_count = pbc_rmessage_size(msg, "extension");
   if (extension_count <= 0)
     return;
@@ -153,9 +153,9 @@ static void _register_extension(struct pbc_env* p, _stringpool* pool, const char
   const char* last = NULL;
 
   for (i = 0; i < extension_count; i++) {
-    struct pbc_rmessage* extension = pbc_rmessage_message(msg, "extension", i);
+    pbc_rmessage* extension = pbc_rmessage_message(msg, "extension", i);
     int field_name_sz = 0;
-    struct _field f;
+    _field f;
     const char* field_name = pbc_rmessage_string(extension, "name", 0, &field_name_sz);
     f.name = _concat_name(pool, prefix, prefix_sz, field_name, field_name_sz, NULL);
 
@@ -175,7 +175,7 @@ static void _register_extension(struct pbc_env* p, _stringpool* pool, const char
   _pbcP_init_message(p, last + 1);
 }
 
-static void _register_message(struct pbc_env* p, _stringpool* pool, struct pbc_rmessage* message_type,
+static void _register_message(pbc_env* p, _stringpool* pool, pbc_rmessage* message_type,
                               const char* prefix, int prefix_sz, pbc_array queue) {
   int name_sz;
   const char* name = pbc_rmessage_string(message_type, "name", 0, &name_sz);
@@ -185,8 +185,8 @@ static void _register_message(struct pbc_env* p, _stringpool* pool, struct pbc_r
   int field_count = pbc_rmessage_size(message_type, "field");
   int i;
   for (i = 0; i < field_count; i++) {
-    struct pbc_rmessage* field = pbc_rmessage_message(message_type, "field", i);
-    struct _field f;
+    pbc_rmessage* field = pbc_rmessage_message(message_type, "field", i);
+    _field f;
     int field_name_sz;
     const char* field_name = pbc_rmessage_string(field, "name", 0, &field_name_sz);
     f.name = _pbcS_build(pool, field_name, field_name_sz);
@@ -205,19 +205,19 @@ static void _register_message(struct pbc_env* p, _stringpool* pool, struct pbc_r
   int enum_count = pbc_rmessage_size(message_type, "enum_type");
 
   for (i = 0; i < enum_count; i++) {
-    struct pbc_rmessage* enum_type = pbc_rmessage_message(message_type, "enum_type", i);
+    pbc_rmessage* enum_type = pbc_rmessage_message(message_type, "enum_type", i);
     _register_enum(p, pool, enum_type, temp, sz);
   }
 
   // nested type
   int message_count = pbc_rmessage_size(message_type, "nested_type");
   for (i = 0; i < message_count; i++) {
-    struct pbc_rmessage* nested_type = pbc_rmessage_message(message_type, "nested_type", i);
+    pbc_rmessage* nested_type = pbc_rmessage_message(message_type, "nested_type", i);
     _register_message(p, pool, nested_type, temp, sz, queue);
   }
 }
 
-static void _register(struct pbc_env* p, struct pbc_rmessage* file, _stringpool* pool) {
+static void _register(pbc_env* p, pbc_rmessage* file, _stringpool* pool) {
   int package_sz;
   const char* package = pbc_rmessage_string(file, "package", 0, &package_sz);
 
@@ -228,13 +228,13 @@ static void _register(struct pbc_env* p, struct pbc_rmessage* file, _stringpool*
   int i;
 
   for (i = 0; i < enum_count; i++) {
-    struct pbc_rmessage* enum_type = pbc_rmessage_message(file, "enum_type", i);
+    pbc_rmessage* enum_type = pbc_rmessage_message(file, "enum_type", i);
     _register_enum(p, pool, enum_type, package, package_sz);
   }
 
   int message_count = pbc_rmessage_size(file, "message_type");
   for (i = 0; i < message_count; i++) {
-    struct pbc_rmessage* message_type = pbc_rmessage_message(file, "message_type", i);
+    pbc_rmessage* message_type = pbc_rmessage_message(file, "message_type", i);
     _register_message(p, pool, message_type, package, package_sz, queue);
   }
 
@@ -249,7 +249,7 @@ static void _register(struct pbc_env* p, struct pbc_rmessage* file, _stringpool*
 #define CHECK_FILE_EXIST 1
 #define CHECK_FILE_DEPENDENCY 2
 
-static int _check_file_name(struct pbc_env* p, struct pbc_rmessage* file, const char** fname) {
+static int _check_file_name(pbc_env* p, pbc_rmessage* file, const char** fname) {
   const char* filename = pbc_rmessage_string(file, "name", 0, NULL);
   //	printf("reg :%s\n",filename);
   if (_pbcM_sp_query(p->files, filename)) {
@@ -270,7 +270,7 @@ static int _check_file_name(struct pbc_env* p, struct pbc_rmessage* file, const 
   return CHECK_FILE_OK;
 }
 
-static int _register_no_dependency(struct pbc_env* p, struct pbc_rmessage** files, int n) {
+static int _register_no_dependency(pbc_env* p, pbc_rmessage** files, int n) {
   int r = 0;
   int i;
   for (i = 0; i < n; i++) {
@@ -296,14 +296,14 @@ static int _register_no_dependency(struct pbc_env* p, struct pbc_rmessage** file
   return r;
 }
 
-int pbc_register(struct pbc_env* p, pbc_slice* slice) {
-  struct pbc_rmessage* message = pbc_rmessage_new(p, "google.protobuf.FileDescriptorSet", slice);
+int pbc_register(pbc_env* p, pbc_slice* slice) {
+  pbc_rmessage* message = pbc_rmessage_new(p, "google.protobuf.FileDescriptorSet", slice);
   if (message == NULL) {
     p->lasterror = "register open google.protobuf.FileDescriptorSet fail";
     return 1;
   }
   int n = pbc_rmessage_size(message, "file");
-  struct pbc_rmessage** files = (struct pbc_rmessage**)alloca(n * sizeof(struct pbc_rmessage*));
+  pbc_rmessage** files = (pbc_rmessage**)alloca(n * sizeof(pbc_rmessage*));
   int i;
   if (n == 0) {
     p->lasterror = "register empty";

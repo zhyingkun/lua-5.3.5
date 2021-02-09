@@ -10,45 +10,45 @@
 #include <string.h>
 
 struct pbc_rmessage {
-  struct _message* msg;
-  map_sp* index; // key -> struct value *
+  _message* msg;
+  map_sp* index; // key string => value*
   heap* heap;
 };
 
-union _var {
+typedef union {
   pbc_var var;
   pbc_array array;
-  struct pbc_rmessage message;
-};
+  pbc_rmessage message;
+} _var;
 
-struct value {
-  struct _field* type;
-  union _var v;
-};
+typedef struct {
+  _field* type;
+  _var v;
+} value;
 
-int pbc_rmessage_next(struct pbc_rmessage* m, const char** key) {
-  struct value* v = (struct value*)_pbcM_sp_next(m->index, key);
+int pbc_rmessage_next(pbc_rmessage* m, const char** key) {
+  value* v = (value*)_pbcM_sp_next(m->index, key);
   if (*key == NULL) {
     return 0;
   }
   return _pbcP_type(v->type, NULL);
 }
 
-#define SIZE_VAR (offsetof(struct value, v) + sizeof(pbc_var))
-#define SIZE_ARRAY (offsetof(struct value, v) + sizeof(pbc_array))
-#define SIZE_MESSAGE (offsetof(struct value, v) + sizeof(struct pbc_rmessage))
+#define SIZE_VAR (offsetof(value, v) + sizeof(pbc_var))
+#define SIZE_ARRAY (offsetof(value, v) + sizeof(pbc_array))
+#define SIZE_MESSAGE (offsetof(value, v) + sizeof(pbc_rmessage))
 
-static struct value* read_string(heap* h, struct atom* a, struct _field* f, uint8_t* buffer) {
+static value* read_string(heap* h, atom* a, _field* f, uint8_t* buffer) {
   const char* temp = (const char*)(buffer + a->v.s.start);
   int len = a->v.s.end - a->v.s.start;
 
   if (len > 0 && temp[len - 1] == '\0') {
-    struct value* v = (struct value*)_pbcH_alloc(h, SIZE_VAR);
+    value* v = (value*)_pbcH_alloc(h, SIZE_VAR);
     v->v.var->s.str = temp;
     v->v.var->s.len = len;
     return v;
   } else {
-    struct value* v = (struct value*)_pbcH_alloc(h, SIZE_VAR + len + 1);
+    value* v = (value*)_pbcH_alloc(h, SIZE_VAR + len + 1);
     memcpy(((char*)v) + SIZE_VAR, temp, len);
     *(((char*)v) + SIZE_VAR + len) = '\0';
     v->v.var->s.str = ((char*)v) + SIZE_VAR;
@@ -57,7 +57,7 @@ static struct value* read_string(heap* h, struct atom* a, struct _field* f, uint
   }
 }
 
-static void read_string_var(heap* h, pbc_var var, struct atom* a, struct _field* f, uint8_t* buffer) {
+static void read_string_var(heap* h, pbc_var var, atom* a, _field* f, uint8_t* buffer) {
   const char* temp = (const char*)(buffer + a->v.s.start);
   int len = a->v.s.end - a->v.s.start;
   if (len == 0) {
@@ -75,25 +75,25 @@ static void read_string_var(heap* h, pbc_var var, struct atom* a, struct _field*
   }
 }
 
-static void _pbc_rmessage_new(struct pbc_rmessage* ret, struct _message* type, void* buffer, int size, heap* h);
+static void _pbc_rmessage_new(pbc_rmessage* ret, _message* type, void* buffer, int size, heap* h);
 
-static struct value* read_value(heap* h, struct _field* f, struct atom* a, uint8_t* buffer) {
-  struct value* v;
+static value* read_value(heap* h, _field* f, atom* a, uint8_t* buffer) {
+  value* v;
 
   switch (f->type) {
     case PTYPE_DOUBLE:
       CHECK_BIT64(a, NULL);
-      v = (struct value*)_pbcH_alloc(h, SIZE_VAR);
+      v = (value*)_pbcH_alloc(h, SIZE_VAR);
       v->v.var->real = read_double(a);
       break;
     case PTYPE_FLOAT:
       CHECK_BIT32(a, NULL);
-      v = (struct value*)_pbcH_alloc(h, SIZE_VAR);
+      v = (value*)_pbcH_alloc(h, SIZE_VAR);
       v->v.var->real = (double)read_float(a);
       break;
     case PTYPE_ENUM:
       CHECK_VARINT(a, NULL);
-      v = (struct value*)_pbcH_alloc(h, SIZE_VAR);
+      v = (value*)_pbcH_alloc(h, SIZE_VAR);
       v->v.var->e.id = a->v.i.low;
       v->v.var->e.name = (const char*)_pbcM_ip_query(f->type_name.e->id, a->v.i.low);
       break;
@@ -103,30 +103,30 @@ static struct value* read_value(heap* h, struct _field* f, struct atom* a, uint8
     case PTYPE_UINT32:
     case PTYPE_BOOL:
       CHECK_VARINT(a, NULL);
-      v = (struct value*)_pbcH_alloc(h, SIZE_VAR);
+      v = (value*)_pbcH_alloc(h, SIZE_VAR);
       v->v.var->integer = a->v.i;
       break;
     case PTYPE_FIXED32:
     case PTYPE_SFIXED32:
       CHECK_BIT32(a, NULL);
-      v = (struct value*)_pbcH_alloc(h, SIZE_VAR);
+      v = (value*)_pbcH_alloc(h, SIZE_VAR);
       v->v.var->integer = a->v.i;
       break;
     case PTYPE_FIXED64:
     case PTYPE_SFIXED64:
       CHECK_BIT64(a, NULL);
-      v = (struct value*)_pbcH_alloc(h, SIZE_VAR);
+      v = (value*)_pbcH_alloc(h, SIZE_VAR);
       v->v.var->integer = a->v.i;
       break;
     case PTYPE_SINT32:
       CHECK_VARINT(a, NULL);
-      v = (struct value*)_pbcH_alloc(h, SIZE_VAR);
+      v = (value*)_pbcH_alloc(h, SIZE_VAR);
       v->v.var->integer = a->v.i;
       _pbcV_dezigzag32(&(v->v.var->integer));
       break;
     case PTYPE_SINT64:
       CHECK_VARINT(a, NULL);
-      v = (struct value*)_pbcH_alloc(h, SIZE_VAR);
+      v = (value*)_pbcH_alloc(h, SIZE_VAR);
       v->v.var->integer = a->v.i;
       _pbcV_dezigzag64(&(v->v.var->integer));
       break;
@@ -136,13 +136,13 @@ static struct value* read_value(heap* h, struct _field* f, struct atom* a, uint8
       break;
     case PTYPE_BYTES:
       CHECK_LEND(a, NULL);
-      v = (struct value*)_pbcH_alloc(h, SIZE_VAR);
+      v = (value*)_pbcH_alloc(h, SIZE_VAR);
       v->v.var->s.str = (const char*)(buffer + a->v.s.start);
       v->v.var->s.len = a->v.s.end - a->v.s.start;
       break;
     case PTYPE_MESSAGE:
       CHECK_LEND(a, NULL);
-      v = (struct value*)_pbcH_alloc(h, SIZE_MESSAGE);
+      v = (value*)_pbcH_alloc(h, SIZE_MESSAGE);
       _pbc_rmessage_new(&(v->v.message), f->type_name.m, buffer + a->v.s.start, a->v.s.end - a->v.s.start, h);
       break;
     default:
@@ -152,7 +152,7 @@ static struct value* read_value(heap* h, struct _field* f, struct atom* a, uint8
   return v;
 }
 
-static void push_value_packed(struct _message* type, pbc_array array, struct _field* f, struct atom* aa,
+static void push_value_packed(_message* type, pbc_array array, _field* f, atom* aa,
                               uint8_t* buffer) {
   int n = _pbcP_unpack_packed((uint8_t*)buffer + aa->v.s.start, aa->v.s.end - aa->v.s.start, f->type, array);
   if (n <= 0) {
@@ -171,7 +171,7 @@ static void push_value_packed(struct _message* type, pbc_array array, struct _fi
   }
 }
 
-static void push_value_array(heap* h, pbc_array array, struct _field* f, struct atom* a, uint8_t* buffer) {
+static void push_value_array(heap* h, pbc_array array, _field* f, atom* a, uint8_t* buffer) {
   pbc_var v;
 
   switch (f->type) {
@@ -215,7 +215,7 @@ static void push_value_array(heap* h, pbc_array array, struct _field* f, struct 
       break;
     case PTYPE_MESSAGE: {
       CHECK_LEND(a, );
-      struct pbc_rmessage message;
+      pbc_rmessage message;
       _pbc_rmessage_new(&message, f->type_name.m, buffer + a->v.s.start, a->v.s.end - a->v.s.start, h);
       if (message.msg == NULL) {
         return;
@@ -231,7 +231,7 @@ static void push_value_array(heap* h, pbc_array array, struct _field* f, struct 
   _pbcA_push(array, v);
 }
 
-static void _pbc_rmessage_new(struct pbc_rmessage* ret, struct _message* type, void* buffer, int size, heap* h) {
+static void _pbc_rmessage_new(pbc_rmessage* ret, _message* type, void* buffer, int size, heap* h) {
   if (size == 0) {
     ret->msg = type;
     ret->index = _pbcM_sp_new(0, h);
@@ -245,7 +245,7 @@ static void _pbc_rmessage_new(struct pbc_rmessage* ret, struct _message* type, v
     memset(ret, 0, sizeof(*ret));
     return;
   }
-  struct context* ctx = (struct context*)_ctx;
+  context* ctx = (context*)_ctx;
 
   ret->msg = type;
   ret->index = _pbcM_sp_new(count, h);
@@ -255,18 +255,18 @@ static void _pbc_rmessage_new(struct pbc_rmessage* ret, struct _message* type, v
 
   for (i = 0; i < ctx->number; i++) {
     int id = ctx->a[i].wire_id >> 3;
-    struct _field* f = (struct _field*)_pbcM_ip_query(type->id, id);
+    _field* f = (_field*)_pbcM_ip_query(type->id, id); // type->id: id => _field
     if (f) {
       if (f->label == LABEL_REPEATED || f->label == LABEL_PACKED) {
-        struct value* v;
+        value* v;
         void** vv = _pbcM_sp_query_insert(ret->index, f->name);
         if (*vv == NULL) {
-          v = (struct value*)_pbcH_alloc(h, SIZE_ARRAY);
+          v = (value*)_pbcH_alloc(h, SIZE_ARRAY);
           v->type = f;
           _pbcA_open_heap(v->v.array, ret->heap);
           *vv = v;
         } else {
-          v = (struct value*)*vv;
+          v = (value*)*vv;
         }
         if (f->label == LABEL_PACKED) {
           push_value_packed(type, v->v.array, f, &(ctx->a[i]), (uint8_t*)buffer);
@@ -282,7 +282,7 @@ static void _pbc_rmessage_new(struct pbc_rmessage* ret, struct _message* type, v
           }
         }
       } else {
-        struct value* v = read_value(h, f, &(ctx->a[i]), (uint8_t*)buffer);
+        value* v = read_value(h, f, &(ctx->a[i]), (uint8_t*)buffer);
         if (v) {
           _pbcM_sp_insert(ret->index, f->name, v);
         } else {
@@ -295,13 +295,13 @@ static void _pbc_rmessage_new(struct pbc_rmessage* ret, struct _message* type, v
   _pbcC_close(_ctx);
 }
 
-struct pbc_rmessage* pbc_rmessage_new(struct pbc_env* env, const char* type_name, pbc_slice* slice) {
-  struct _message* msg = _pbcP_get_message(env, type_name);
+pbc_rmessage* pbc_rmessage_new(pbc_env* env, const char* type_name, pbc_slice* slice) {
+  _message* msg = _pbcP_get_message(env, type_name);
   if (msg == NULL) {
     env->lasterror = "Proto not found";
     return NULL;
   }
-  struct pbc_rmessage temp;
+  pbc_rmessage temp;
   heap* h = _pbcH_new(slice->len);
   _pbc_rmessage_new(&temp, msg, slice->buffer, slice->len, h);
   if (temp.msg == NULL) {
@@ -309,19 +309,19 @@ struct pbc_rmessage* pbc_rmessage_new(struct pbc_env* env, const char* type_name
     return NULL;
   }
 
-  struct pbc_rmessage* m = (struct pbc_rmessage*)_pbcH_alloc(temp.heap, sizeof(*m));
+  pbc_rmessage* m = (pbc_rmessage*)_pbcH_alloc(temp.heap, sizeof(*m));
   *m = temp;
   return m;
 }
 
-void pbc_rmessage_delete(struct pbc_rmessage* m) {
+void pbc_rmessage_delete(pbc_rmessage* m) {
   if (m) {
     _pbcH_delete(m->heap);
   }
 }
 
-const char* pbc_rmessage_string(struct pbc_rmessage* m, const char* key, int index, int* sz) {
-  struct value* v = (struct value*)_pbcM_sp_query(m->index, key);
+const char* pbc_rmessage_string(pbc_rmessage* m, const char* key, int index, int* sz) {
+  value* v = (value*)_pbcM_sp_query(m->index, key);
   int type = 0;
   pbc_var var;
   if (v == NULL) {
@@ -352,8 +352,8 @@ const char* pbc_rmessage_string(struct pbc_rmessage* m, const char* key, int ind
   return var->s.str;
 }
 
-uint32_t pbc_rmessage_integer(struct pbc_rmessage* m, const char* key, int index, uint32_t* hi) {
-  struct value* v = (struct value*)_pbcM_sp_query(m->index, key);
+uint32_t pbc_rmessage_integer(pbc_rmessage* m, const char* key, int index, uint32_t* hi) {
+  value* v = (value*)_pbcM_sp_query(m->index, key);
   pbc_var var;
   int type = 0;
   if (v == NULL) {
@@ -380,8 +380,8 @@ uint32_t pbc_rmessage_integer(struct pbc_rmessage* m, const char* key, int index
   return var->integer.low;
 }
 
-double pbc_rmessage_real(struct pbc_rmessage* m, const char* key, int index) {
-  struct value* v = (struct value*)_pbcM_sp_query(m->index, key);
+double pbc_rmessage_real(pbc_rmessage* m, const char* key, int index) {
+  value* v = (value*)_pbcM_sp_query(m->index, key);
   pbc_var var;
   if (v == NULL) {
     _pbcP_message_default(m->msg, key, var);
@@ -395,35 +395,35 @@ double pbc_rmessage_real(struct pbc_rmessage* m, const char* key, int index) {
   return var->real;
 }
 
-struct pbc_rmessage* pbc_rmessage_message(struct pbc_rmessage* rm, const char* key, int index) {
-  struct value* v = (struct value*)_pbcM_sp_query(rm->index, key);
+pbc_rmessage* pbc_rmessage_message(pbc_rmessage* rm, const char* key, int index) {
+  value* v = (value*)_pbcM_sp_query(rm->index, key);
   if (v == NULL) {
-    struct _field* f = (struct _field*)_pbcM_sp_query(rm->msg->name, key);
+    _field* f = (_field*)_pbcM_sp_query(rm->msg->name, key);
     if (f == NULL) {
       rm->msg->env->lasterror = "Invalid key for sub-message";
       // invalid key
       return NULL;
     }
-    struct _message* m = f->type_name.m;
+    _message* m = f->type_name.m;
 
     if (m->def == NULL) {
       // m->def will be free at the end (pbc_delete).
-      m->def = (struct pbc_rmessage*)_pbcM_malloc(sizeof(struct pbc_rmessage));
+      m->def = (pbc_rmessage*)_pbcM_malloc(sizeof(pbc_rmessage));
       m->def->msg = m;
       m->def->index = NULL;
     }
     return m->def;
   } else {
     if (v->type->label == LABEL_REPEATED) {
-      return (struct pbc_rmessage*)_pbcA_index_p(v->v.array, index);
+      return (pbc_rmessage*)_pbcA_index_p(v->v.array, index);
     } else {
       return &(v->v.message);
     }
   }
 }
 
-int pbc_rmessage_size(struct pbc_rmessage* m, const char* key) {
-  struct value* v = (struct value*)_pbcM_sp_query(m->index, key);
+int pbc_rmessage_size(pbc_rmessage* m, const char* key) {
+  value* v = (value*)_pbcM_sp_query(m->index, key);
   if (v == NULL) {
     return 0;
   }
