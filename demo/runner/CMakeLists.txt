@@ -32,10 +32,14 @@ source_group(src FILES ${RUNNER_SRC})
 
 add_executable(${PROJECT_NAME} ${RUNNER_SRC})
 target_link_libraries(${PROJECT_NAME} liblua)
-set_target_properties(${PROJECT_NAME} PROPERTIES
-	FOLDER "demo"
-	INSTALL_RPATH ./lib
-)
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "demo")
+if(APPLE)
+	set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH @executable_path/lib)
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+	set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH \$ORIGIN/lib)
+elseif(WIN32)
+	set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH ./lib)
+endif()
 
 # install(TARGETS ${PROJECT_NAME}
 # 	RUNTIME DESTINATION bin
