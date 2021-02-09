@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-static void read_file(const char* filename, struct pbc_slice* slice) {
+static void read_file(const char* filename, pbc_slice* slice) {
   FILE* f = fopen(filename, "rb");
   if (f == NULL) {
     slice->buffer = NULL;
@@ -23,6 +23,7 @@ static void read_file(const char* filename, struct pbc_slice* slice) {
 
 static void dump(uint8_t* buffer, int sz) {
   int i, j;
+  printf("dump: \n");
   for (i = 0; i < sz; i++) {
     printf("%02X ", buffer[i]);
     if (i % 16 == 15) {
@@ -41,8 +42,8 @@ static void dump(uint8_t* buffer, int sz) {
   printf("\n");
 }
 
-static void test_rmessage(struct pbc_env* env, struct pbc_slice* slice) {
-  struct pbc_rmessage* m = pbc_rmessage_new(env, "tutorial.Person", slice);
+static void test_rmessage(pbc_env* env, pbc_slice* slice) {
+  pbc_rmessage* m = pbc_rmessage_new(env, "tutorial.Person", slice);
   if (m == NULL) {
     printf("Error : %s", pbc_error(env));
     return;
@@ -58,7 +59,7 @@ static void test_rmessage(struct pbc_env* env, struct pbc_slice* slice) {
   printf("phone type [%s]\n", field_name);
 
   for (i = 0; i < phone_n; i++) {
-    struct pbc_rmessage* p = pbc_rmessage_message(m, "phone", i);
+    pbc_rmessage* p = pbc_rmessage_message(m, "phone", i);
     printf("\tnumber[%d] = %s\n", i, pbc_rmessage_string(p, "number", i, NULL));
     printf("\ttype[%d] = %s\n", i, pbc_rmessage_string(p, "type", i, NULL));
   }
@@ -73,14 +74,14 @@ static void test_rmessage(struct pbc_env* env, struct pbc_slice* slice) {
   pbc_rmessage_delete(m);
 }
 
-static struct pbc_wmessage* test_wmessage(struct pbc_env* env) {
-  struct pbc_wmessage* msg = pbc_wmessage_new(env, "tutorial.Person");
+static pbc_wmessage* test_wmessage(pbc_env* env) {
+  pbc_wmessage* msg = pbc_wmessage_new(env, "tutorial.Person");
 
   pbc_wmessage_string(msg, "name", "Alice", -1);
   pbc_wmessage_integer(msg, "id", 12345, 0);
   pbc_wmessage_string(msg, "email", "alice@unkown", -1);
 
-  struct pbc_wmessage* phone = pbc_wmessage_message(msg, "phone");
+  pbc_wmessage* phone = pbc_wmessage_message(msg, "phone");
   pbc_wmessage_string(phone, "number", "87654321", -1);
 
   phone = pbc_wmessage_message(msg, "phone");
@@ -96,12 +97,36 @@ static struct pbc_wmessage* test_wmessage(struct pbc_env* env) {
   return msg;
 }
 
+static void test_zykTest_rmessage(pbc_env* env, pbc_slice* slice) {
+  pbc_rmessage* m = pbc_rmessage_new(env, "zykTest.Hello", slice);
+  if (m == NULL) {
+    printf("Error : %s", pbc_error(env));
+    return;
+  }
+  printf("name = %s\n", pbc_rmessage_string(m, "name", 0, NULL));
+  printf("number = %d\n", pbc_rmessage_integer(m, "number", 0, NULL));
+
+  pbc_rmessage_delete(m);
+}
+
+static pbc_wmessage* test_zykTest_wmessage(pbc_env* env) {
+  pbc_wmessage* msg = pbc_wmessage_new(env, "zykTest.Hello");
+  pbc_wmessage_string(msg, "name", "zyk", -1);
+  pbc_wmessage_integer(msg, "number", 43, 0);
+
+  return msg;
+}
+
 int main() {
-  struct pbc_slice slice;
-  read_file("addressbook.pb", &slice);
+  pbc_slice slice;
+  // read_file("addressbook.pb", &slice);
+  read_file("zykTest.pb", &slice);
   if (slice.buffer == NULL)
     return 1;
-  struct pbc_env* env = pbc_new();
+
+  dump(slice.buffer, slice.len);
+
+  pbc_env* env = pbc_new();
   int r = pbc_register(env, &slice);
   if (r) {
     printf("Error : %s", pbc_error(env));
@@ -110,13 +135,15 @@ int main() {
 
   free(slice.buffer);
 
-  struct pbc_wmessage* msg = test_wmessage(env);
+  // pbc_wmessage* msg = test_wmessage(env);
+  pbc_wmessage* msg = test_zykTest_wmessage(env);
 
   pbc_wmessage_buffer(msg, &slice);
 
   dump(slice.buffer, slice.len);
 
-  test_rmessage(env, &slice);
+  // test_rmessage(env, &slice);
+  test_zykTest_rmessage(env, &slice);
 
   pbc_wmessage_delete(msg);
   pbc_delete(env);
