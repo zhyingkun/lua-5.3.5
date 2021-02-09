@@ -17,7 +17,7 @@ typedef union {
     const char* name;
   } e; // enum
   pbc_slice m; // message
-  void* p[2];
+  void* p[2]; // _message* and map_sp*
 } _pbc_var;
 typedef _pbc_var pbc_var[1];
 
