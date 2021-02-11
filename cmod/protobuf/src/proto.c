@@ -103,19 +103,19 @@ void _pbcP_push_message(pbc_env* p, const char* name, _field* f, pbc_array queue
   }
 }
 
-struct _iter {
+typedef struct {
   int count;
   map_kv* table;
-};
+} _iter;
 
 static void _count(void* p, void* ud) {
-  struct _iter* iter = (struct _iter*)ud;
+  _iter* iter = (_iter*)ud;
   iter->count++;
 }
 
 static void _set_table(void* p, void* ud) {
   _field* field = (_field*)p;
-  struct _iter* iter = (struct _iter*)ud;
+  _iter* iter = (_iter*)ud;
   iter->table[iter->count].id = field->id;
   iter->table[iter->count].pointer = field;
   ++iter->count;
@@ -139,7 +139,7 @@ _message* _pbcP_init_message(pbc_env* p, const char* name) {
     // extend message, delete old id map.
     _pbcM_ip_delete(m->id);
   }
-  struct _iter iter = {0, NULL};
+  _iter iter = {0, NULL};
   _pbcM_sp_foreach_ud(m->name, _count, &iter);
   iter.table = (map_kv*)_pbcM_malloc(iter.count * sizeof(map_kv));
   iter.count = 0;

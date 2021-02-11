@@ -759,7 +759,7 @@ static int _decode(lua_State* L) {
   return 1;
 }
 
-struct gcobj {
+typedef struct {
   pbc_env* env;
   int size_pat;
   int cap_pat;
@@ -767,10 +767,10 @@ struct gcobj {
   int size_msg;
   int cap_msg;
   pbc_rmessage** msg;
-};
+} gcobj;
 
 static int _clear_gcobj(lua_State* L) {
-  struct gcobj* obj = (struct gcobj*)lua_touserdata(L, 1);
+  gcobj* obj = (gcobj*)lua_touserdata(L, 1);
   int i;
   for (i = 0; i < obj->size_pat; i++) {
     pbc_pattern_delete(obj->pat[i]);
@@ -791,9 +791,9 @@ static int _clear_gcobj(lua_State* L) {
 }
 
 static int _gc(lua_State* L) {
-  struct gcobj* obj;
+  gcobj* obj;
   lua_settop(L, 1);
-  obj = (struct gcobj*)lua_newuserdata(L, sizeof(*obj));
+  obj = (gcobj*)lua_newuserdata(L, sizeof(*obj));
   obj->env = (pbc_env*)lua_touserdata(L, 1);
   obj->size_pat = 0;
   obj->cap_pat = 4;
@@ -811,7 +811,7 @@ static int _gc(lua_State* L) {
 }
 
 static int _add_pattern(lua_State* L) {
-  struct gcobj* obj = (struct gcobj*)lua_touserdata(L, 1);
+  gcobj* obj = (gcobj*)lua_touserdata(L, 1);
   if (obj->size_pat >= obj->cap_pat) {
     obj->cap_pat *= 2;
     obj->pat = (pbc_pattern**)_pbcM_realloc(obj->pat, obj->cap_pat * sizeof(pbc_pattern*));
@@ -822,7 +822,7 @@ static int _add_pattern(lua_State* L) {
 }
 
 static int _add_rmessage(lua_State* L) {
-  struct gcobj* obj = (struct gcobj*)lua_touserdata(L, 1);
+  gcobj* obj = (gcobj*)lua_touserdata(L, 1);
   if (obj->size_msg >= obj->cap_msg) {
     obj->cap_msg *= 2;
     obj->msg = (pbc_rmessage**)_pbcM_realloc(obj->msg, obj->cap_msg * sizeof(pbc_rmessage*));
