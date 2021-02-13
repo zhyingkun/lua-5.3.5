@@ -1,6 +1,8 @@
 local pbc = require("libprotobuf")
 local ParseVarint = require("varint").ParseVarint
 
+--- Configs for simple descriptor.proto Begin ------
+
 local Optional = false
 local Required = false
 local Repeated = true
@@ -37,6 +39,7 @@ local PBCFileConfig = {
 	{ "enum_id", Repeated, Int32 },
 }
 
+--- Configs for simple descriptor.proto End ------
 
 -- no end of string, maybe '\0' in the end of string
 local function NoEOS(str) return str:byte(-1) == 0 and str:sub(1, -2) or str end
@@ -202,7 +205,7 @@ local function OutputMessage(name, msg, prefix)
 	OutputLine(prefix .. "}")
 end
 
-local function FieldTableToString(fieldTbl, indent)
+local function FieldTableToProtoSrc(fieldTbl, indent)
 	local enums = MakeEnumArray(fieldTbl)
 	local messages = MakeMessageArray(fieldTbl)
 	local msgTree = ConstructMessageTree(messages, enums)	
@@ -224,6 +227,7 @@ local function FieldTableToString(fieldTbl, indent)
 	return table.concat(outputTbl, "\n")
 end
 
+--- Parse and Convert features ------
 
 local fd = io.open(arg[1], "rb")
 local msg = fd:read("a")
@@ -231,5 +235,5 @@ fd:close()
 fd = nil
 local fieldTbl = ParseVarint(msg, PBCFileConfig)
 -- print(tostring(fieldTbl, 16))
-local str = FieldTableToString(fieldTbl)
+local str = FieldTableToProtoSrc(fieldTbl)
 print(str)
