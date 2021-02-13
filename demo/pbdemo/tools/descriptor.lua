@@ -1,5 +1,5 @@
 local pbc = require("libprotobuf")
-local ParseVarint = require("varint")
+local ParseVarint = require("varint").ParseVarint
 
 --- Configs for google descriptor.proto Begin ------
 
@@ -237,7 +237,7 @@ local SourceCodeInfoConfig = {
 	} },
 }
 local FileDescriptorProtoConfig = {
-	{ "name", Optional, String },
+	{ "name", Optional, String }, -- TODO: consider generate file with name
 	{ "package", Optional, String },
 	{ "dependency", Repeated, String },
 	{ "message_type", Repeated, DescriptorProtoConfig },
@@ -245,9 +245,9 @@ local FileDescriptorProtoConfig = {
 	{ "service", Repeated, ServiceDescriptorProtoConfig },
 	{ "extension", Repeated, FieldDescriptorProtoConfig },
 	{ "options", Optional, FileOptionsConfig },
-	{ "source_code_info", Optional, SourceCodeInfoConfig },
+	{ "source_code_info", Optional, SourceCodeInfoConfig }, -- TODO: using source code info
 	{ "public_dependency", Repeated, Int32 },
-	{ "weak_dependency", Repeated, Int32 },
+	{ "weak_dependency", Repeated, error }, -- Int32, For Google-internal migration only.
 	{ "syntax", Optional, String },
 }
 local FileDescriptorSetConfig = {
@@ -300,6 +300,15 @@ end
 
 local function NoDot(str) return str:byte(1) == ("."):byte(1) and str:sub(2, -1) or str end
 
+local function OutputService(service, prefix)
+	OutputLine(prefix .. "service " .. service.name .. " {")
+	local subPrefix = prefix .. prefixIndent
+	for _, method in ipairs(service.method) do
+		OutputLine(subPrefix .. "rpc " .. method.name .. "(" .. NoDot(method.input_type) .. ") returns (" .. NoDot(method.output_type) .. ");")
+	end
+	OutputLine(prefix .. "}")
+end
+
 local OnlyRepeated = true
 local function OutputField(field, prefix)
 	local typeName = Type[field.type] or NoDot(field.type_name)
@@ -324,7 +333,10 @@ local function OutputMessage(msg, prefix)
 end
 
 local function OutputFile(file)
-	-- TODO: consider file.name
+	if file.syntax then
+		OutputLine("syntax = \"" .. file.syntax .. "\";")
+	end
+
 	if file.package then
 		OutputLine("package " .. file.package .. ";\n")
 	end
@@ -343,6 +355,10 @@ local function OutputFile(file)
 		OutputLine("")
 		OutputMessage(msg, "")
 	end
+	for _, srv in ipairs(file.service or {}) do
+		OutputLine("")
+		OutputService(srv, "")
+	end
 end
 
 local function OutputFileSet(fileSet)
@@ -351,18 +367,26 @@ local function OutputFileSet(fileSet)
 	end
 end
 
-local function FieldTableToString(fieldTbl, indent)
+local function FieldTableToProtoSrc(fieldTbl, indent)
 	outputTbl = {}
 	prefixIndent = indent or "  "
 	OutputFileSet(fieldTbl)
 	return table.concat(outputTbl, "\n")
 end
 
+--- Parse and Convert features ------
+
 local fd = io.open(arg[1], "rb")
 local msg = fd:read("a")
 fd:close()
 fd = nil
 local fieldTbl = ParseVarint(msg, FileDescriptorSetConfig)
-print(tostring(fieldTbl, 16))
-local str = FieldTableToString(fieldTbl)
+--[[
+local protobuf = require("protobuf")
+protobuf.register_file("_descriptor.pb")
+local fieldTbl = protobuf.decode("google._protobuf.FileDescriptorSet", msg)
+protobuf.extract(fieldTbl)
+--]]
+-- print(tostring(fieldTbl, 16))
+local str = FieldTableToProtoSrc(fieldTbl)
 print(str)
