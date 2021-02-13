@@ -19,8 +19,8 @@ typedef struct {
 
 typedef struct {
   const char* key;
-  map_ip* id;
-  map_si* name;
+  map_ip* id; // id -> string
+  map_si* name; // string -> id
   pbc_var default_v;
 } _enum;
 
