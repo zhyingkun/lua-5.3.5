@@ -121,6 +121,7 @@ static int _open_packed_varint(context* ctx, uint8_t* buffer, int size) {
   return i;
 }
 
+/*
 int _pbcC_open_packed(pbc_ctx _ctx, int ptype, void* buffer, int size) {
   context* ctx = (context*)_ctx;
   ctx->buffer = (char*)buffer;
@@ -190,6 +191,7 @@ int _pbcC_open_packed(pbc_ctx _ctx, int ptype, void* buffer, int size) {
 
   return ctx->number;
 }
+*/
 
 int _pbcC_open(pbc_ctx _ctx, void* buffer, int size) {
   context* ctx = (context*)_ctx;

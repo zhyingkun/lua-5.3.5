@@ -72,7 +72,7 @@ typedef struct _pbc_ctx {
 } pbc_ctx[1];
 
 int _pbcC_open(pbc_ctx, void* buffer, int size); // <=0 failed
-int _pbcC_open_packed(pbc_ctx _ctx, int ptype, void* buffer, int size);
+//int _pbcC_open_packed(pbc_ctx _ctx, int ptype, void* buffer, int size);
 void _pbcC_close(pbc_ctx);
 
 static inline double read_double(atom* a) {
