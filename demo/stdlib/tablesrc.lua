@@ -120,6 +120,7 @@ local function TableToLuaSource(tbl, indent)
 	return "return " .. TTLSRecursive(tbl, "")
 end
 
+--[[
 local tbl = {
 	hello = {
 		nice = "world",
@@ -131,3 +132,8 @@ local tbl = {
 local str = TableToLuaSource(tbl)
 print(str)
 -- print(tostring(tbl, 1))
+--]]
+
+return {
+	TableToLuaSource = TableToLuaSource,
+}
