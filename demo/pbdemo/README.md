@@ -14,5 +14,6 @@
     4. descriptor.lua: 根据 Google 版 descriptor.proto 协议配置，使用 varint 解码方法进行解析 pb 文件，并转化成对应的 proto 源码
     5. pbc.lua: 根据 pbc.proto 协议配置，使用 varint 解码方法进行解析 pbcbin 文件，并转化成对应的 proto 源码（目前 pbcbin 文件只有一个：descriptor.pbcbin）
     6. pbcbin.lua: 将 C 语言代码版的 descriptor.pbcbin 二进制数据写入独立文件中
-    7. varint.lua: 根据 varint 编码规则，将 varint 二进制数据解析成对应的键值对（键固定是数字）
+    7. pbcdesc.lua: 用 Lua 代码和 pbc.proto 协议手动生成简化版 descriptor 的二进制 varint 格式，内容与 descriptor.pbc.h 一致
+    8. varint.lua: 根据 varint 编码规则，将 varint 二进制数据解析成对应的键值对（键固定是数字）
 3. CMakeLists.txt: 用于编译该 Demo 的 CMake 配置文件
