@@ -272,7 +272,7 @@ static int register_internal(pbc_env* p, pbc_slice* slice) {
 
   set_enums(p, &file);
   set_msgs(FIELD_T, p, &file, queue);
-  _pbcB_register_fields(p, queue);
+  _pbcB_register_fields(p, queue); // deal with nested message reference
 
   _pbcA_close(queue);
   pbc_pattern_close_arrays(FILE_T, &file);
