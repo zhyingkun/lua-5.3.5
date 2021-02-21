@@ -270,7 +270,4 @@ local intArray = {
 	46,76,111,99,97,116,105,111,110,0,nil,
 }
 local str = string.char(function(idx) return intArray[idx] end)
-local fd = io.open("descriptor.pbcbin", "wb")
-fd:write(str)
-fd:close()
-fd = nil
+io.open("pb/descriptor.pbcbin", "wb"):write(str):close()
