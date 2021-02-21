@@ -237,3 +237,9 @@ local fieldTbl = ParseVarint(msg, PBCFileConfig)
 -- print(tostring(fieldTbl, 16))
 local str = FieldTableToProtoSrc(fieldTbl)
 print(str)
+
+package.path = package.path .. ";../../stdlib/?.lua"
+
+local tablesrc = require("tablesrc")
+local src = tablesrc.TableToLuaSource(fieldTbl, "\t")
+print("TableSrc:\n", src)
