@@ -7,4 +7,5 @@ project(lmod
 
 message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
 
+install(DIRECTORY common DESTINATION mod/lua/5.3)
 install(DIRECTORY protobuf DESTINATION mod/lua/5.3)
