@@ -1,5 +1,4 @@
-local pbc = require("libprotobuf")
-local varint = require("varint")
+local varint = require("protobuf.varint")
 local ParseVarint = varint.ParseVarint
 local PBType = varint.PBType
 local PBLabel = varint.PBLabel
@@ -12,6 +11,7 @@ local Repeated = PBLabel.Repeated
 
 local Int32 = PBType.Int32
 local String = PBType.String
+local Double = PBType.Double
 
 local Label = {
 	[0] = "optional",
@@ -27,7 +27,7 @@ local PBCFieldConfig = {
 	{ "type_name", Optional, String },
 	{ "default_int", Optional, Int32 },
 	{ "default_string", Optional, String },
-	{ "default_real", Optional, pbc.todouble },
+	{ "default_real", Optional, Double },
 }
 
 local PBCFileConfig = {
@@ -179,7 +179,7 @@ end
 
 local function OutputField(field, prefix)
 	local typeName = TypeName[field.type] or NoEOS(field.type_name:match(".*%.(.*)$"))
-	local label = Label[field.label]
+	local label = Label[field.label or 0]
 	assert(type(typeName) == "string" and type(label) == "string")
 	local statement = prefix .. label .. " " .. typeName .. " " .. NoEOS(field.name) .. " = " .. tostring(field.id) .. ";"
 	OutputLine(statement)
@@ -241,8 +241,6 @@ local fieldTbl = ParseVarint(msg, PBCFileConfig)
 local str = FieldTableToProtoSrc(fieldTbl)
 print(str)
 
-package.path = package.path .. ";../../stdlib/?.lua"
-
-local tablesrc = require("tablesrc")
+local tablesrc = require("common.tablesrc")
 local src = tablesrc.TableToLuaSource(fieldTbl, "\t")
 print("TableSrc:\n", src)
