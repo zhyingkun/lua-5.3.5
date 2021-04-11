@@ -171,8 +171,9 @@
 #define LUA_LDIR "!\\lua\\"
 #define LUA_CDIR "!\\"
 #define LUA_SHRDIR "!\\..\\share\\lua\\" LUA_VDIR "\\"
+#define LUA_ZYK_LDIR "!\\..\\mod\\lua\\" LUA_VDIR "\\"
 #define LUA_PATH_DEFAULT \
-  LUA_LDIR "?.lua;" LUA_LDIR "?\\init.lua;" LUA_CDIR "?.lua;" LUA_CDIR "?\\init.lua;" LUA_SHRDIR "?.lua;" LUA_SHRDIR \
+  LUA_ZYK_LDIR "?.lua;" LUA_LDIR "?.lua;" LUA_LDIR "?\\init.lua;" LUA_CDIR "?.lua;" LUA_CDIR "?\\init.lua;" LUA_SHRDIR "?.lua;" LUA_SHRDIR \
            "?\\init.lua;" \
            ".\\?.lua;" \
            ".\\?\\init.lua"
