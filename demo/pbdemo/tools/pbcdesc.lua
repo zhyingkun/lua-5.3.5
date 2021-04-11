@@ -599,7 +599,7 @@ local descriptor = {
 	name = "descriptor\000",
 }
 
-local protobuf = require("protobuf")
+local protobuf = require("protobuf.protobuf")
 protobuf.register_file("pb/pbc.pb")
 local pbcbin = protobuf.encode("pbc.file", descriptor)
 io.open("pb/desc.pbcbin", "wb"):write(pbcbin):close()
