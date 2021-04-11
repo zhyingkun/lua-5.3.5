@@ -1,5 +1,37 @@
 local pbc = require("libprotobuf")
 
+local PBType = {
+	Double = pbc.todouble,
+	Float = "Float",
+	Int64 = "Int64",
+	Uint64 = "Uint64",
+	Int32 = "Int32",
+	Fixed64 = "Fixed64",
+	Fixed32 = "Fixed32",
+	Bool = "Bool", -- as integer
+	String = "String",
+	Group = error,
+	Message = error,
+	Bytes = "Bytes", -- as string
+	Uint32 = "Uint32",
+	Enum = "Enum", -- as integer
+	Sfixed32 = "Sfixed32",
+	Sfixed64 = "Sfixed64",
+	Sint32 = "Sint32",
+	Sint64 = "Sint64",
+}
+
+local PBLabel = {
+	Optional = "Optional",
+	Required = "Required",
+	Repeated = "Repeated",
+}
+
+local function DefaultProcess(field, process)
+	assert(type(process) == "string")
+	return field
+end
+
 local useNumber = false
 local function ParseVarint(msg, config)
 	local fieldTbl = {}
@@ -8,7 +40,7 @@ local function ParseVarint(msg, config)
 		local fieldConfig = config[number]
 		assert(type(fieldConfig) == "table")
 		local key = useNumber and number or fieldConfig[1]
-		local bIsArray = fieldConfig[2]
+		local bIsArray = fieldConfig[2] == PBLabel.Repeated
 		local process = fieldConfig[3]
 		local value
 		local tProcess = type(process)
@@ -17,8 +49,7 @@ local function ParseVarint(msg, config)
 		elseif tProcess == "table" then
 			value = ParseVarint(field, process)
 		else
-			assert(tProcess == "nil")
-			value = field
+			value = DefaultProcess(field, process)
 		end
 		local oldField = fieldTbl[key]
 		if oldField == nil then
@@ -77,4 +108,6 @@ end
 return {
 	ParseVarint = ParseVarint,
 	ParseVarintRaw = ParseVarintRaw,
+	PBType = PBType,
+	PBLabel = PBLabel,
 }

@@ -1,30 +1,33 @@
 local pbc = require("libprotobuf")
-local ParseVarint = require("varint").ParseVarint
+local varint = require("varint")
+local ParseVarint = varint.ParseVarint
+local PBType = varint.PBType
+local PBLabel = varint.PBLabel
 
 --- Configs for google descriptor.proto Begin ------
 
-local Optional = false
-local Required = false
-local Repeated = true
+local Optional = PBLabel.Optional
+local Required = PBLabel.Required
+local Repeated = PBLabel.Repeated
 
-local Double = nil
-local Float = nil
-local Int64 = nil
-local Uint64 = nil
-local Int32 = nil
-local Fixed64 = nil
-local Fixed32 = nil
-local Bool = nil -- as integer
-local String = nil
-local Group = error
-local Message = error
-local Bytes = nil -- as string
-local Uint32 = nil
-local Enum = nil -- as integer
-local Sfixed32 = nil
-local Sfixed64 = nil
-local Sint32 = nil
-local Sint64 = nil
+local Double = PBType.Double
+local Float = PBType.Float
+local Int64 = PBType.Int64
+local Uint64 = PBType.Uint64
+local Int32 = PBType.Int32
+local Fixed64 = PBType.Fixed64
+local Fixed32 = PBType.Fixed32
+local Bool = PBType.Bool
+local String = PBType.String
+local Group = PBType.Group
+local Message = PBType.Message
+local Bytes = PBType.Bytes
+local Uint32 = PBType.Uint32
+local Enum = PBType.Enum
+local Sfixed32 = PBType.Sfixed32
+local Sfixed64 = PBType.Sfixed64
+local Sint32 = PBType.Sint32
+local Sint64 = PBType.Sint64
 
 --[[
 local Label = {
@@ -226,7 +229,7 @@ local FileOptionsConfig = {
 	[999] = { "uninterpreted_option", Repeated, UninterpretedOptionConfig },
 	[38] = nil,
 }
-local SourceCodeInfoConfig = {
+local SourceCodeInfoConfig = { -- NotUsedInConvertion
 	{ "location", Repeated, {
 		{ "path", Repeated, Int32 },
 		{ "span", Repeated, Int32 },
@@ -237,15 +240,15 @@ local SourceCodeInfoConfig = {
 	} },
 }
 local FileDescriptorProtoConfig = {
-	{ "name", Optional, String }, -- TODO: consider generate file with name
+	{ "name", Optional, String }, -- consider generate file with name
 	{ "package", Optional, String },
 	{ "dependency", Repeated, String },
 	{ "message_type", Repeated, DescriptorProtoConfig },
 	{ "enum_type", Repeated, EnumDescriptorProtoConfig },
 	{ "service", Repeated, ServiceDescriptorProtoConfig },
-	{ "extension", Repeated, FieldDescriptorProtoConfig },
+	{ "extension", Repeated, FieldDescriptorProtoConfig }, -- NotUsedInConvertion
 	{ "options", Optional, FileOptionsConfig },
-	{ "source_code_info", Optional, SourceCodeInfoConfig }, -- TODO: using source code info
+	{ "source_code_info", Optional, SourceCodeInfoConfig }, -- NotUsedInConvertion
 	{ "public_dependency", Repeated, Int32 },
 	{ "weak_dependency", Repeated, error }, -- Int32, For Google-internal migration only.
 	{ "syntax", Optional, String },
@@ -314,7 +317,15 @@ local function OutputField(field, prefix)
 	local typeName = Type[field.type] or NoDot(field.type_name)
 	assert(type(typeName) == "string")
 	local label = OnlyRepeated and field.label ~= 3 and "" or Label[field.label] .. " "
-	OutputLine(prefix .. label .. typeName .. " " .. field.name .. " = " .. tostring(field.number) .. ";")
+
+	local optionsStr = ""
+	if next(field.options or {}) then
+		for optionName, value in pairs(field.options) do
+			optionsStr = "[" .. optionName .. " = " .. value .. "]"
+		end
+	end
+
+	OutputLine(prefix .. label .. typeName .. " " .. field.name .. " = " .. tostring(field.number) .. " " .. optionsStr .. ";")
 end
 
 local function OutputMessage(msg, prefix)
@@ -338,15 +349,22 @@ local function OutputFile(file)
 	end
 
 	if file.package then
-		OutputLine("package " .. file.package .. ";\n")
+		OutputLine("package " .. file.package .. ";")
 	end
 
 	local public = {}
 	for _, idx in ipairs(file.public_dependency or {}) do public[idx + 1] = true end
+	if next(file.dependency or {}) then OutputLine("") end
 	for idx, dep in ipairs(file.dependency or {}) do
 		local publicStr = public[idx] and "public " or ""
 		OutputLine("import " .. publicStr .. "\"" .. dep .. "\";")
 	end
+
+	if next(file.options or {}) then OutputLine("") end
+	for optionName, value in pairs(file.options or {}) do
+		OutputLine("option " .. optionName .. " = " .. value .. ";")
+	end
+
 	for _, enum in ipairs(file.enum_type or {}) do
 		OutputLine("")
 		OutputEnum(enum, "")

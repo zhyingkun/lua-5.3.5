@@ -1,14 +1,17 @@
 local pbc = require("libprotobuf")
-local ParseVarint = require("varint").ParseVarint
+local varint = require("varint")
+local ParseVarint = varint.ParseVarint
+local PBType = varint.PBType
+local PBLabel = varint.PBLabel
 
 --- Configs for simple descriptor.proto Begin ------
 
-local Optional = false
-local Required = false
-local Repeated = true
+local Optional = PBLabel.Optional
+local Required = PBLabel.Required
+local Repeated = PBLabel.Repeated
 
-local Int32 = nil
-local String = nil
+local Int32 = PBType.Int32
+local String = PBType.String
 
 local Label = {
 	[0] = "optional",
