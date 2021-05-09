@@ -8,5 +8,5 @@ local msg = fd:read("a")
 fd:close()
 fd = nil
 
-local fieldTbl = require("varint").ParseVarintRaw(msg)
+local fieldTbl = require("protobuf.varint").ParseVarintRaw(msg)
 print(tostring(fieldTbl, 16))
