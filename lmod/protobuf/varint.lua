@@ -74,11 +74,15 @@ local function ParseVarintRaw(msg)
 		[0] = function(field) return field end,
 		[1] = HexDump,
 		[2] = function(field)
+			local escStr = string.escape(field)
 			local succeed, result = pcall(ParseVarintRaw, field)
 			if succeed then
+				if field == escStr then
+					result["message as string"] = field
+				end
 				return result
 			end
-			return string.escape(field)
+			return escStr
 		end,
 		[3] = function(field) error("Start group has been deprecated") end,
 		[4] = function(field) error("End group has been deprecated") end,
