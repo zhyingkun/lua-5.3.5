@@ -1,5 +1,5 @@
 local pbc = require("libprotobuf")
-local varint = require("varint")
+local varint = require("protobuf.varint")
 local ParseVarint = varint.ParseVarint
 local PBType = varint.PBType
 local PBLabel = varint.PBLabel
@@ -406,5 +406,6 @@ local fieldTbl = protobuf.decode("google._protobuf.FileDescriptorSet", msg)
 protobuf.extract(fieldTbl)
 --]]
 -- print(tostring(fieldTbl, 16))
+-- print(require("libjson").tostring(fieldTbl))
 local str = FieldTableToProtoSrc(fieldTbl)
 print(str)
