@@ -1,0 +1,70 @@
+{
+	"file": [
+		{
+			"name": "proto/test_oneof.proto",
+			"syntax": "proto3",
+			"package": "zykTest",
+			"message_type": [
+				{
+					"name": "WithoutOneOf",
+					"field": [
+						{
+							"label": 1,
+							"type": 9,
+							"name": "name",
+							"number": 1,
+							"json_name": "name"
+						},
+						{
+							"label": 1,
+							"type": 9,
+							"name": "tip",
+							"number": 2,
+							"json_name": "tip"
+						},
+						{
+							"label": 1,
+							"type": 5,
+							"name": "count",
+							"number": 3,
+							"json_name": "count"
+						}
+					]
+				},
+				{
+					"name": "WithOneOf",
+					"field": [
+						{
+							"label": 1,
+							"type": 9,
+							"name": "name",
+							"number": 1,
+							"json_name": "name"
+						},
+						{
+							"label": 1,
+							"type": 9,
+							"name": "tip",
+							"number": 2,
+							"json_name": "tip",
+							"oneof_index": 0
+						},
+						{
+							"label": 1,
+							"type": 5,
+							"name": "count",
+							"number": 3,
+							"json_name": "count",
+							"oneof_index": 0
+						}
+					],
+					"oneof_decl": [
+						{
+							"name": "attr"
+						}
+					]
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,99 @@
+{
+	"file": [
+		{
+			"name": "proto/test_map.proto",
+			"syntax": "proto3",
+			"package": "zykTest",
+			"message_type": [
+				{
+					"name": "WithMap",
+					"nested_type": [
+						{
+							"name": "AttrEntry",
+							"field": [
+								{
+									"label": 1,
+									"type": 5,
+									"name": "key",
+									"json_name": "key",
+									"number": 1
+								},
+								{
+									"label": 1,
+									"type": 9,
+									"name": "value",
+									"json_name": "value",
+									"number": 2
+								}
+							],
+							"options": {
+								"map_entry": 1
+							}
+						}
+					],
+					"field": [
+						{
+							"label": 1,
+							"type": 9,
+							"name": "name",
+							"number": 1,
+							"json_name": "name"
+						},
+						{
+							"label": 3,
+							"type": 11,
+							"name": "attr",
+							"number": 2,
+							"json_name": "attr",
+							"type_name": ".zykTest.WithMap.AttrEntry"
+						}
+					]
+				},
+				{
+					"name": "WithoutMap",
+					"nested_type": [
+						{
+							"options": {
+								"map_entry": 1
+							},
+							"field": [
+								{
+									"label": 1,
+									"type": 5,
+									"name": "key",
+									"json_name": "key",
+									"number": 1
+								},
+								{
+									"label": 1,
+									"type": 9,
+									"name": "value",
+									"json_name": "value",
+									"number": 2
+								}
+							],
+							"name": "AttrEntry"
+						}
+					],
+					"field": [
+						{
+							"label": 1,
+							"type": 9,
+							"name": "name",
+							"json_name": "name",
+							"number": 1
+						},
+						{
+							"label": 3,
+							"type": 11,
+							"name": "attr",
+							"number": 2,
+							"json_name": "attr",
+							"type_name": ".zykTest.WithoutMap.AttrEntry"
+						}
+					]
+				}
+			]
+		}
+	]
+}

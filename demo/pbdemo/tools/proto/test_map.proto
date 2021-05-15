@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package zykTest;
+
+message WithMap {
+  string name = 1;
+  map<int32, string> attr = 2;
+}
+
+message WithoutMap {
+  message AttrEntry {
+    option map_entry = true;
+    int32 key = 1;
+    string value = 2;
+  }
+  string name = 1;
+  repeated AttrEntry attr = 2;
+}

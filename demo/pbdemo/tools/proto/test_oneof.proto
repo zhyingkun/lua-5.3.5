@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package zykTest;
+
+message WithoutOneOf {
+  string name = 1;
+  string tip = 2;
+  int32 count = 3;
+}
+
+message WithOneOf {
+  string name = 1;
+  oneof attr {
+    string tip = 2;
+    int32 count = 3;
+  }
+}

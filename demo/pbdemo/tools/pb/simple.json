@@ -1,0 +1,30 @@
+{
+	"file": [
+		{
+			"name": "proto/simple.proto",
+			"syntax": "proto3",
+			"package": "zykTest",
+			"message_type": [
+				{
+					"name": "Simple",
+					"field": [
+						{
+							"label": 1,
+							"type": 9,
+							"name": "name",
+							"number": 1,
+							"json_name": "name"
+						},
+						{
+							"label": 1,
+							"type": 5,
+							"name": "count",
+							"number": 2,
+							"json_name": "count"
+						}
+					]
+				}
+			]
+		}
+	]
+}
