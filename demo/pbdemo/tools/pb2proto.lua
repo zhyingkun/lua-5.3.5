@@ -1,3 +1,44 @@
+--- Configs for option Begin ------
+local function AsString(value) return "\"" .. value .. "\"" end
+local function AsBool(value) return value == 1 and "true" or "false" end
+
+local FileOptionsSrc = {
+	java_package = AsString,
+	java_outer_classname = AsString,
+	java_multiple_files = AsBool,
+	java_generate_equals_and_hash = AsBool,
+	java_string_check_utf8 = AsBool,
+	optimize_for = function(value)
+		local OptimizeMode = { "SPEED", "CODE_SIZE", "LITE_RUNTIME" }
+		return OptimizeMode[value]
+	end,
+	go_package = AsString,
+	cc_generic_services = AsBool,
+	java_generic_services = AsBool,
+	py_generic_services = AsBool,
+	php_generic_services = AsBool,
+	deprecated = AsBool,
+	cc_enable_arenas = AsBool,
+	objc_class_prefix = AsString,
+	csharp_namespace = AsString,
+	swift_prefix = AsString,
+	php_class_prefix = AsString,
+	php_namespace = AsString,
+	php_metadata_namespace = AsString,
+	ruby_package = AsString,
+}
+local EnumOptionsSrc = {
+	allow_alias = AsBool,
+	deprecated = AsBool,
+}
+
+local function GetOptionSrc(config, name, value)
+	local func = config[name]
+	if func then return func(value) end
+	return "UninterpretedOption"
+end
+--- Configs for option End ------
+
 local outputTbl
 local prefixIndent
 local insert = table.insert
@@ -31,9 +72,22 @@ local Type = {
 	"sint64",
 }
 
+local function OutputOptions(options, config)
+	for optionName, value in pairs(options or {}) do
+		local optionSrc = GetOptionSrc(config, optionName, value)
+		OutputLine("option " .. optionName .. " = " .. optionSrc .. ";")
+	end
+end
+local function OutputReserved()
+end
+
 local function OutputEnum(enum, prefix)
 	OutputLine(prefix .. "enum " .. enum.name .. " {")
 	local subPrefix = prefix .. prefixIndent
+
+	OutputOptions(enum.options, EnumOptionsSrc)
+	OutputReserved()
+
 	for _, v in ipairs(enum.value) do
 		OutputLine(subPrefix .. v.name .. " = " .. v.number .. ";")
 	end
@@ -101,7 +155,8 @@ local function OutputFile(file)
 
 	if next(file.options or {}) then OutputLine("") end
 	for optionName, value in pairs(file.options or {}) do
-		OutputLine("option " .. optionName .. " = " .. value .. ";")
+		local optionSrc = GetOptionSrc(FileOptionsSrc, optionName, value)
+		OutputLine("option " .. optionName .. " = " .. optionSrc .. ";")
 	end
 
 	for _, enum in ipairs(file.enum_type or {}) do
