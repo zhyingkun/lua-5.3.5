@@ -1,48 +1,8 @@
-local varint = require("protobuf.varint")
-local ParseVarint = varint.ParseVarint
-local PBType = varint.PBType
-local PBLabel = varint.PBLabel
-
---- Configs for simple descriptor.proto Begin ------
-
-local Optional = PBLabel.Optional
-local Required = PBLabel.Required
-local Repeated = PBLabel.Repeated
-
-local Int32 = PBType.Int32
-local String = PBType.String
-local Double = PBType.Double
-
 local Label = {
 	[0] = "optional",
 	"required",
 	"repeated"
 }
-
-local PBCFieldConfig = {
-	{ "name", Optional, String },
-	{ "id", Optional, Int32 },
-	{ "label", Optional, Int32 }, -- function(field) return Label[field] end
-	{ "type", Optional, Int32 },
-	{ "type_name", Optional, String },
-	{ "default_int", Optional, Int32 },
-	{ "default_string", Optional, String },
-	{ "default_real", Optional, Double },
-}
-
-local PBCFileConfig = {
-	{ "name", Optional, String },
-	{ "dependency", Repeated, String },
-	{ "message_name", Repeated, String },
-	{ "message_size", Repeated, Int32 },
-	{ "message_field", Repeated, PBCFieldConfig },
-	{ "enum_name", Repeated, String },
-	{ "enum_size", Repeated, Int32 },
-	{ "enum_string", Repeated, String },
-	{ "enum_id", Repeated, Int32 },
-}
-
---- Configs for simple descriptor.proto End ------
 
 -- no end of string, maybe '\0' in the end of string
 local function NoEOS(str) return str:byte(-1) == 0 and str:sub(1, -2) or str end
@@ -231,6 +191,12 @@ local function FieldTableToProtoSrc(fieldTbl, indent)
 end
 
 --- Parse and Convert features ------
+
+local varint = require("protobuf.varint")
+local ParseVarint = varint.ParseVarint
+local PBType = varint.PBType
+local PBLabel = varint.PBLabel
+local PBCFileConfig = require("protobuf.pbc_config")(PBLabel, PBType)
 
 local fd = io.open(arg[1], "rb")
 local msg = fd:read("a")
