@@ -28,15 +28,22 @@ option ruby_package = "foo";
 enum Mode {
   option allow_alias = true;
   option deprecated = false;
-
+  reserved 2, 4, 6 to 11;
+  reserved "Add", "Minus";
   None = 0;
   Increase = 1;
   Plus = 1;
-  Decrease = 2;
+  Decrease = 3;
 }
 
 message Decompile {
+  reserved 2, 15, 9 to 11;
+  reserved "foo", "bar";
   string name = 1;
+  message NestCnt {
+    int32 count = 1;
+  }
+  NestCnt cnt = 3;
 }
 
 message DecompileRsp {

@@ -31,6 +31,15 @@ local EnumOptionsSrc = {
 	allow_alias = AsBool,
 	deprecated = AsBool,
 }
+local MessageOptionsSrc = {
+	message_set_wire_format = AsBool,
+	no_standard_descriptor_accessor = AsBool,
+	deprecated = AsBool,
+	map_entry = AsBool,
+}
+local ServiceOptionsSrc = {
+	deprecated = AsBool,
+}
 
 local function GetOptionSrc(config, name, value)
 	local func = config[name]
@@ -39,10 +48,24 @@ local function GetOptionSrc(config, name, value)
 end
 --- Configs for option End ------
 
+local oneIndent
+local indentCnt = 0
+local function IncreaseIndent() indentCnt = indentCnt + 1 end
+local function DecreaseIndent() indentCnt = indentCnt - 1 end
+local indentCache = { [0] = "" }
+local function GetCurrentIndent()
+	local indent = indentCache[indentCnt]
+	if not indent then
+		indent = string.rep(oneIndent, indentCnt)
+		indentCache[indentCnt] = indent	
+	end
+	return indent
+end
+
 local outputTbl
-local prefixIndent
 local insert = table.insert
 local function OutputLine(str)
+	if str ~= "" then str = GetCurrentIndent() .. str end
 	insert(outputTbl, str)
 end
 
@@ -78,35 +101,86 @@ local function OutputOptions(options, config)
 		OutputLine("option " .. optionName .. " = " .. optionSrc .. ";")
 	end
 end
-local function OutputReserved()
+local function OutputReserved(ranges, names)
+	local rangeStrs = {}
+	for _, range in ipairs(ranges or {}) do
+		local s = range["start"]
+		local e = range["end"]
+		local str = tostring(s)
+		if s ~= e then
+			str = str .. " to " .. tostring(e)
+		end
+		table.insert(rangeStrs, str)
+	end
+	if next(rangeStrs) then
+		OutputLine("reserved " .. table.concat(rangeStrs, ", ") .. ";")
+	end
+	local nameStrs = {}
+	for _, name in ipairs(names or {}) do
+		table.insert(nameStrs, "\"" .. name .. "\"")
+	end
+	if next(nameStrs) then
+		OutputLine("reserved " .. table.concat(nameStrs, ", ") .. ";")
+	end
 end
 
-local function OutputEnum(enum, prefix)
-	OutputLine(prefix .. "enum " .. enum.name .. " {")
-	local subPrefix = prefix .. prefixIndent
+local function OutputEnum(enum)
+	OutputLine("enum " .. enum.name .. " {")
+	IncreaseIndent()
 
 	OutputOptions(enum.options, EnumOptionsSrc)
-	OutputReserved()
+	OutputReserved(enum.reserved_range, enum.reserved_name)
 
 	for _, v in ipairs(enum.value) do
-		OutputLine(subPrefix .. v.name .. " = " .. v.number .. ";")
+		OutputLine(v.name .. " = " .. v.number .. ";")
 	end
-	OutputLine(prefix .. "}")
+	DecreaseIndent()
+	OutputLine("}")
 end
 
 local function NoDot(str) return str:byte(1) == ("."):byte(1) and str:sub(2, -1) or str end
 
-local function OutputService(service, prefix)
-	OutputLine(prefix .. "service " .. service.name .. " {")
-	local subPrefix = prefix .. prefixIndent
+--[[
+local MethodOptionsSrc = {
+	deprecated = AsBool,
+	idempotency_level = function(value)
+		local IdempotencyLevel = {
+			[0] = "IDEMPOTENCY_UNKNOWN",
+			"NO_SIDE_EFFECTS",
+			"IDEMPOTENT",
+		}
+		return IdempotencyLevel[value]
+	end,
+}
+--]]
+local function OutputService(service)
+	OutputLine("service " .. service.name .. " {")
+	IncreaseIndent()
+	OutputOptions(service.options, ServiceOptionsSrc)
 	for _, method in ipairs(service.method) do
-		OutputLine(subPrefix .. "rpc " .. method.name .. "(" .. NoDot(method.input_type) .. ") returns (" .. NoDot(method.output_type) .. ");")
+		OutputLine("rpc " .. method.name .. "(" .. NoDot(method.input_type) .. ") returns (" .. NoDot(method.output_type) .. ");")
 	end
-	OutputLine(prefix .. "}")
+	DecreaseIndent()
+	OutputLine("}")
 end
-
+--[[
+local FieldOptionsSrc = {
+	ctype = function(value)
+		local CType = { [0] = "STRING", "CORD", "STRING_PIECE" }
+		return CType[value]
+	end,
+	packed = AsBool,
+	jstype = function(value)
+		local JSType = { [0] = "JS_NORMAL", "JS_STRING", "JS_NUMBER" }
+		return JSType[value]
+	end,
+	lazy = AsBool,
+	deprecated = AsBool,
+	weak = AsBool,
+}
+--]]
 local OnlyRepeated = true
-local function OutputField(field, prefix)
+local function OutputField(field)
 	local typeName = Type[field.type] or NoDot(field.type_name)
 	assert(type(typeName) == "string")
 	local label = OnlyRepeated and field.label ~= 3 and "" or Label[field.label] .. " "
@@ -118,22 +192,25 @@ local function OutputField(field, prefix)
 		end
 	end
 
-	OutputLine(prefix .. label .. typeName .. " " .. field.name .. " = " .. tostring(field.number) .. " " .. optionsStr .. ";")
+	OutputLine(label .. typeName .. " " .. field.name .. " = " .. tostring(field.number) .. " " .. optionsStr .. ";")
 end
 
-local function OutputMessage(msg, prefix)
-	OutputLine(prefix .. "message " .. msg.name .. " {")
-	local subPrefix = prefix .. prefixIndent
+local function OutputMessage(msg)
+	OutputLine("message " .. msg.name .. " {")
+	IncreaseIndent()
+	OutputOptions(msg.options, MessageOptionsSrc)
+	OutputReserved(msg.reserved_range, msg.reserved_name)
 	for _, enum in ipairs(msg.enum_type or {}) do
-		OutputEnum(enum, subPrefix)
+		OutputEnum(enum)
 	end
 	for _, message in ipairs(msg.nested_type or {}) do
-		OutputMessage(message, subPrefix)
+		OutputMessage(message)
 	end
 	for _, field in ipairs(msg.field or {}) do
-		OutputField(field, subPrefix)
+		OutputField(field)
 	end
-	OutputLine(prefix .. "}")
+	DecreaseIndent()
+	OutputLine("}")
 end
 
 local function OutputFile(file)
@@ -161,15 +238,15 @@ local function OutputFile(file)
 
 	for _, enum in ipairs(file.enum_type or {}) do
 		OutputLine("")
-		OutputEnum(enum, "")
+		OutputEnum(enum)
 	end
 	for _, msg in ipairs(file.message_type or {}) do
 		OutputLine("")
-		OutputMessage(msg, "")
+		OutputMessage(msg)
 	end
 	for _, srv in ipairs(file.service or {}) do
 		OutputLine("")
-		OutputService(srv, "")
+		OutputService(srv)
 	end
 end
 
@@ -181,7 +258,7 @@ end
 
 local function FieldTableToProtoSrc(fieldTbl, indent)
 	outputTbl = {}
-	prefixIndent = indent or "  "
+	oneIndent = indent or "  "
 	OutputFileSet(fieldTbl)
 	return table.concat(outputTbl, "\n")
 end
