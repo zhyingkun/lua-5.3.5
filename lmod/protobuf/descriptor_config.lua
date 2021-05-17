@@ -84,8 +84,8 @@ return function(PBLabel, PBType)
 		{"value", Repeated, EnumValueDescriptorProtoConfig},
 		{"options", Optional, EnumOptionsConfig},
 		{"reserved_range", Repeated, {
-			{"start", Optional, Int32},
-			{"end", Optional, Int32},
+			{"start", Optional, Int32}, -- Inclusive
+			{"end", Optional, Int32}, -- Exclusive
 		} },
 		{"reserved_name", Repeated, String},
 	}
