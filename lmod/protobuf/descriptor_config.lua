@@ -51,7 +51,7 @@ return function(PBLabel, PBType)
 		"TYPE_SINT64",
 	}
 	]]
-	local UninterpretedOptionConfig = {
+	local UninterpretedOptionConfig = { -- NotUsedInConvertion
 		nil,
 		{"name", Repeated, {
 			{"name_part", Required, String},
@@ -66,7 +66,7 @@ return function(PBLabel, PBType)
 	}
 	local EnumValueOptionsConfig = {
 		{"deprecated", Optional, Bool},
-		{"uninterpreted_option", Repeated, UninterpretedOptionConfig},
+		{"uninterpreted_option", Repeated, UninterpretedOptionConfig}, -- NotUsedInConvertion
 	}
 	local EnumValueDescriptorProtoConfig = {
 		{"name", Optional, String},
@@ -77,7 +77,7 @@ return function(PBLabel, PBType)
 		nil,
 		{"allow_alias", Optional, Bool},
 		{"deprecated", Optional, Bool},
-		[999] = {"uninterpreted_option", Repeated, UninterpretedOptionConfig},
+		[999] = {"uninterpreted_option", Repeated, UninterpretedOptionConfig}, -- NotUsedInConvertion
 	}
 	local EnumDescriptorProtoConfig = {
 		{"name", Optional, String},
@@ -110,7 +110,7 @@ return function(PBLabel, PBType)
 		{ "lazy", Optional, Bool },
 		{ "jstype", Optional, Enum },
 		[10] = { "weak", Optional, Bool },
-		[999] = { "uninterpreted_option", Repeated, UninterpretedOptionConfig },
+		[999] = { "uninterpreted_option", Repeated, UninterpretedOptionConfig }, -- NotUsedInConvertion
 	}
 	local FieldDescriptorProtoConfig = {
 		{ "name", Optional, String },
@@ -125,7 +125,7 @@ return function(PBLabel, PBType)
 		{ "json_name", Optional, String },
 		[17] = { "proto3_optional", Optional, Bool },
 	}
-	local ExtensionRangeOptionsConfig = {
+	local ExtensionRangeOptionsConfig = { -- NotUsedInConvertion
 		[999] = { "uninterpreted_option", Repeated, UninterpretedOptionConfig },
 	}
 	local MessageOptionsConfig = {
@@ -135,26 +135,26 @@ return function(PBLabel, PBType)
 		[7] = { "map_entry", Optional, Bool },
 		[8] = nil,
 		[9] = nil,
-		[999] = { "uninterpreted_option", Repeated, UninterpretedOptionConfig },
+		[999] = { "uninterpreted_option", Repeated, UninterpretedOptionConfig }, -- NotUsedInConvertion
 	}
-	local OneofOptionsConfig = {
+	local OneofOptionsConfig = { -- NotUsedInConvertion
 		[999] = { "uninterpreted_option", Repeated, UninterpretedOptionConfig },
 	}
 	local OneofDescriptorProtoConfig = {
 		{ "name", Optional, String },
-		{ "options", Optional, OneofOptionsConfig },
+		{ "options", Optional, OneofOptionsConfig }, -- NotUsedInConvertion
 	}
 	local DescriptorProtoConfig = {
 		{ "name", Optional, String },
 		{ "field", Repeated, FieldDescriptorProtoConfig },
 		{ "nested_type", Repeated, "self recursive" },
 		{ "enum_type", Repeated, EnumDescriptorProtoConfig },
-		{ "extension_range", Repeated, {
+		{ "extension_range", Repeated, { -- NotUsedInConvertion
 			{ "start", Optional, Int32 },
 			{ "end", Optional, Int32 },
 			{ "options", Optional, ExtensionRangeOptionsConfig },
 		} },
-		{ "extension", Repeated, FieldDescriptorProtoConfig },
+		{ "extension", Repeated, FieldDescriptorProtoConfig }, -- NotUsedInConvertion
 		{ "options", Optional, MessageOptionsConfig },
 		{ "oneof_decl", Repeated, OneofDescriptorProtoConfig },
 		{ "reserved_range", Repeated, {
@@ -174,7 +174,7 @@ return function(PBLabel, PBType)
 	local MethodOptionsConfig = {
 		[33] = { "deprecated", Optional, Bool },
 		[34] = { "idempotency_level", Optional, Enum },
-		[999] = { "uninterpreted_option", Repeated, UninterpretedOptionConfig },
+		[999] = { "uninterpreted_option", Repeated, UninterpretedOptionConfig }, -- NotUsedInConvertion
 	}
 	local MethodDescriptorProtoConfig = {
 		{ "name", Optional, String },
@@ -186,7 +186,7 @@ return function(PBLabel, PBType)
 	}
 	local ServiceOptionsConfig = {
 		{ "deprecated", Optional, Bool },
-		{ "uninterpreted_option", Repeated, UninterpretedOptionConfig },
+		{ "uninterpreted_option", Repeated, UninterpretedOptionConfig }, -- NotUsedInConvertion
 	}
 	local ServiceDescriptorProtoConfig = {
 		{ "name", Optional, String },
@@ -221,7 +221,7 @@ return function(PBLabel, PBType)
 		[41] = { "php_namespace", Optional, String },
 		[44] = { "php_metadata_namespace", Optional, String },
 		[45] = { "ruby_package", Optional, String },
-		[999] = { "uninterpreted_option", Repeated, UninterpretedOptionConfig },
+		[999] = { "uninterpreted_option", Repeated, UninterpretedOptionConfig }, -- NotUsedInConvertion
 		[38] = nil,
 	}
 	local SourceCodeInfoConfig = { -- NotUsedInConvertion
