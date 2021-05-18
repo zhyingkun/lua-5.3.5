@@ -32,7 +32,7 @@ enum Mode {
   reserved "Add", "Minus";
   None = 0;
   Increase = 1;
-  Plus = 1;
+  Plus = 1 [deprecated = true];
   Decrease = 3;
 }
 
@@ -41,15 +41,27 @@ message Decompile {
   reserved "foo", "bar";
   string name = 1;
   message NestCnt {
-    int32 count = 1;
+    int32 count = 1 [json_name = "what"];
   }
   NestCnt cnt = 3;
 }
 
 message DecompileRsp {
   string result = 1;
+  repeated int32 pages = 2 [packed = true, lazy = false];
+  oneof sort {
+    string style = 3;
+    int32 length = 4;
+  }
+  oneof mode {
+    string name = 5;
+    int32 time = 6;
+  }
 }
 
 service CompileService {
-  rpc Compile(Decompile) returns (DecompileRsp);
+  rpc Compile(Decompile) returns (DecompileRsp) {
+    option deprecated = false;
+    option idempotency_level = IDEMPOTENT;
+  }
 }

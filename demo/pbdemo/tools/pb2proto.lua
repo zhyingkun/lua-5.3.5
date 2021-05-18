@@ -31,14 +31,42 @@ local EnumOptionsSrc = {
 	allow_alias = AsBool,
 	deprecated = AsBool,
 }
+local EnumValueOptionsSrc = {
+	deprecated = AsBool,
+}
 local MessageOptionsSrc = {
 	message_set_wire_format = AsBool,
 	no_standard_descriptor_accessor = AsBool,
 	deprecated = AsBool,
 	map_entry = AsBool,
 }
+local FieldOptionsSrc = {
+	ctype = function(value)
+		local CType = { [0] = "STRING", "CORD", "STRING_PIECE" }
+		return CType[value]
+	end,
+	packed = AsBool,
+	jstype = function(value)
+		local JSType = { [0] = "JS_NORMAL", "JS_STRING", "JS_NUMBER" }
+		return JSType[value]
+	end,
+	lazy = AsBool,
+	deprecated = AsBool,
+	weak = AsBool,
+}
 local ServiceOptionsSrc = {
 	deprecated = AsBool,
+}
+local MethodOptionsSrc = {
+	deprecated = AsBool,
+	idempotency_level = function(value)
+		local IdempotencyLevel = {
+			[0] = "IDEMPOTENCY_UNKNOWN",
+			"NO_SIDE_EFFECTS",
+			"IDEMPOTENT",
+		}
+		return IdempotencyLevel[value]
+	end,
 }
 
 local function GetOptionSrc(config, name, value)
@@ -46,8 +74,20 @@ local function GetOptionSrc(config, name, value)
 	if func then return func(value) end
 	return "UninterpretedOption"
 end
+local function GetOneLineOptionSrc(config, options, other)
+	local srcTbl = other or {}
+	for optionName, value in pairs(options or {}) do
+		local src = GetOptionSrc(config, optionName, value)
+		table.insert(srcTbl, optionName .. " = " .. src)
+	end
+	if next(srcTbl) then
+		return " [" .. table.concat(srcTbl, ", ") .. "]"
+	end
+	return ""
+end
 --- Configs for option End ------
 
+--- Output source to buffer Start ------
 local oneIndent
 local indentCnt = 0
 local function IncreaseIndent() indentCnt = indentCnt + 1 end
@@ -68,6 +108,7 @@ local function OutputLine(str)
 	if str ~= "" then str = GetCurrentIndent() .. str end
 	insert(outputTbl, str)
 end
+--- Output source to buffer End ------
 
 local Label = {
 	"optional",
@@ -132,7 +173,8 @@ local function OutputEnum(enum)
 	OutputReserved(enum.reserved_range, enum.reserved_name)
 
 	for _, v in ipairs(enum.value) do
-		OutputLine(v.name .. " = " .. v.number .. ";")
+		local optionsStr = GetOneLineOptionSrc(EnumValueOptionsSrc, v.options)
+		OutputLine(v.name .. " = " .. v.number .. optionsStr .. ";")
 	end
 	DecreaseIndent()
 	OutputLine("}")
@@ -140,59 +182,46 @@ end
 
 local function NoDot(str) return str:byte(1) == ("."):byte(1) and str:sub(2, -1) or str end
 
---[[
-local MethodOptionsSrc = {
-	deprecated = AsBool,
-	idempotency_level = function(value)
-		local IdempotencyLevel = {
-			[0] = "IDEMPOTENCY_UNKNOWN",
-			"NO_SIDE_EFFECTS",
-			"IDEMPOTENT",
-		}
-		return IdempotencyLevel[value]
-	end,
-}
---]]
 local function OutputService(service)
 	OutputLine("service " .. service.name .. " {")
 	IncreaseIndent()
 	OutputOptions(service.options, ServiceOptionsSrc)
 	for _, method in ipairs(service.method) do
-		OutputLine("rpc " .. method.name .. "(" .. NoDot(method.input_type) .. ") returns (" .. NoDot(method.output_type) .. ");")
+		local subFix = ";"
+		if method.options then subFix = " {" end
+		OutputLine("rpc " .. method.name .. "(" .. NoDot(method.input_type) .. ") returns (" .. NoDot(method.output_type) .. ")" .. subFix)
+		if method.options then
+			IncreaseIndent()
+			OutputOptions(method.options, MethodOptionsSrc)
+			DecreaseIndent()
+			OutputLine("}")
+		end
 	end
 	DecreaseIndent()
 	OutputLine("}")
 end
---[[
-local FieldOptionsSrc = {
-	ctype = function(value)
-		local CType = { [0] = "STRING", "CORD", "STRING_PIECE" }
-		return CType[value]
-	end,
-	packed = AsBool,
-	jstype = function(value)
-		local JSType = { [0] = "JS_NORMAL", "JS_STRING", "JS_NUMBER" }
-		return JSType[value]
-	end,
-	lazy = AsBool,
-	deprecated = AsBool,
-	weak = AsBool,
-}
---]]
+
 local OnlyRepeated = true
 local function OutputField(field)
 	local typeName = Type[field.type] or NoDot(field.type_name)
 	assert(type(typeName) == "string")
 	local label = OnlyRepeated and field.label ~= 3 and "" or Label[field.label] .. " "
-
-	local optionsStr = ""
-	if next(field.options or {}) then
-		for optionName, value in pairs(field.options) do
-			optionsStr = "[" .. optionName .. " = " .. value .. "]"
-		end
+	local other = {}
+	if field.json_name ~= field.name then
+		table.insert(other, "json_name = \"" .. field.json_name .. "\"")
 	end
+	local optionsStr = GetOneLineOptionSrc(FieldOptionsSrc, field.options, other)
+	OutputLine(label .. typeName .. " " .. field.name .. " = " .. tostring(field.number) .. optionsStr .. ";")
+end
 
-	OutputLine(label .. typeName .. " " .. field.name .. " = " .. tostring(field.number) .. " " .. optionsStr .. ";")
+local function OutputOneofFields(decl, fields)
+	OutputLine("oneof " .. decl.name .. " {")
+	IncreaseIndent()
+	for _, field in ipairs(fields) do
+		OutputField(field)
+	end
+	DecreaseIndent()
+	OutputLine("}")
 end
 
 local function OutputMessage(msg)
@@ -206,9 +235,27 @@ local function OutputMessage(msg)
 	for _, message in ipairs(msg.nested_type or {}) do
 		OutputMessage(message)
 	end
+	local normalFields = {}
+	local oneofs = {}
 	for _, field in ipairs(msg.field or {}) do
+		if field.oneof_index then
+			local oneof = oneofs[field.oneof_index]
+			if not oneof then
+				oneof = {}
+				oneofs[field.oneof_index] = oneof
+			end
+			table.insert(oneof, field)
+		else
+			table.insert(normalFields, field)
+		end
+	end
+	for _, field in ipairs(normalFields) do
 		OutputField(field)
 	end
+	for idx, decl in ipairs(msg.oneof_decl or {}) do
+		OutputOneofFields(decl, oneofs[idx - 1])
+	end
+
 	DecreaseIndent()
 	OutputLine("}")
 end
