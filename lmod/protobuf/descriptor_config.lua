@@ -123,7 +123,7 @@ return function(PBLabel, PBType)
 		{ "options", Optional, FieldOptionsConfig },
 		{ "oneof_index", Optional, Int32 },
 		{ "json_name", Optional, String },
-		[17] = { "proto3_optional", Optional, Bool },
+		[17] = { "proto3_optional", Optional, Bool }, -- NotUsedInConvertion
 	}
 	local ExtensionRangeOptionsConfig = { -- NotUsedInConvertion
 		[999] = { "uninterpreted_option", Repeated, UninterpretedOptionConfig },
