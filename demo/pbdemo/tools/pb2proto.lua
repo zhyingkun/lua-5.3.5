@@ -189,7 +189,9 @@ local function OutputService(service)
 	for _, method in ipairs(service.method) do
 		local subFix = ";"
 		if method.options then subFix = " {" end
-		OutputLine("rpc " .. method.name .. "(" .. NoDot(method.input_type) .. ") returns (" .. NoDot(method.output_type) .. ")" .. subFix)
+		local client = method.client_streaming == 1 and "stream " or ""
+		local server = method.server_streaming == 1 and "stream " or ""
+		OutputLine("rpc " .. method.name .. "(" .. client .. NoDot(method.input_type) .. ") returns (" .. server .. NoDot(method.output_type) .. ")" .. subFix)
 		if method.options then
 			IncreaseIndent()
 			OutputOptions(method.options, MethodOptionsSrc)
