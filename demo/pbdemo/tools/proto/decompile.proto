@@ -60,7 +60,7 @@ message DecompileRsp {
 }
 
 service CompileService {
-  rpc Compile(Decompile) returns (DecompileRsp) {
+  rpc Compile(Decompile) returns (stream DecompileRsp) {
     option deprecated = false;
     option idempotency_level = IDEMPOTENT;
   }
