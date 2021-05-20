@@ -1,8 +1,25 @@
-local Label = {
-	[0] = "optional",
-	"required",
-	"repeated"
-}
+--- Output source to buffer Start ------
+local oneIndent
+local indentCnt = 0
+local function IncreaseIndent() indentCnt = indentCnt + 1 end
+local function DecreaseIndent() indentCnt = indentCnt - 1 end
+local indentCache = { [0] = "" }
+local function GetCurrentIndent()
+	local indent = indentCache[indentCnt]
+	if not indent then
+		indent = string.rep(oneIndent, indentCnt)
+		indentCache[indentCnt] = indent	
+	end
+	return indent
+end
+
+local outputTbl
+local insert = table.insert
+local function OutputLine(str)
+	if str ~= "" then str = GetCurrentIndent() .. str end
+	insert(outputTbl, str)
+end
+--- Output source to buffer End ------
 
 -- no end of string, maybe '\0' in the end of string
 local function NoEOS(str) return str:byte(-1) == 0 and str:sub(1, -2) or str end
@@ -109,7 +126,13 @@ local function FindPackageName(msgTree)
 	return table.concat(package, "."), newTree
 end
 
-local TypeName = {
+local Label = {
+	[0] = "optional",
+	"required",
+	"repeated"
+}
+
+local Type = {
 	"double",
 	"float",
 	"int64",
@@ -130,51 +153,47 @@ local TypeName = {
 	"sint64",
 }
 
-local outputTbl
-local prefixIndent
-local insert = table.insert
-local function OutputLine(str)
-	insert(outputTbl, str)
-end
-
-local function OutputField(field, prefix)
-	local typeName = TypeName[field.type] or NoEOS(field.type_name:match(".*%.(.*)$"))
+local function OutputField(field)
+	local typeName = Type[field.type] or NoEOS(field.type_name:match(".*%.(.*)$"))
 	local label = Label[field.label or 0]
 	assert(type(typeName) == "string" and type(label) == "string")
-	local statement = prefix .. label .. " " .. typeName .. " " .. NoEOS(field.name) .. " = " .. tostring(field.id) .. ";"
+	local statement = label .. " " .. typeName .. " " .. NoEOS(field.name) .. " = " .. tostring(field.id) .. ";"
 	OutputLine(statement)
 end
 
-local function OutputEnum(name, enum, prefix)
-	OutputLine(prefix .. "enum " .. name .. " {")
-	local subPrefix = prefix .. prefixIndent
+local function OutputEnum(name, enum)
+	OutputLine("enum " .. name .. " {")
+	IncreaseIndent()
 	for idx, id in ipairs(enum._ids_) do
-		OutputLine(subPrefix .. enum._strs_[idx] .. " = " .. tostring(id) .. ";")
+		OutputLine(enum._strs_[idx] .. " = " .. tostring(id) .. ";")
 	end
-	OutputLine(prefix .. "}")
+	DecreaseIndent()
+	OutputLine("}")
 end
 
-local function OutputMessage(name, msg, prefix)
-	OutputLine(prefix .. "message " .. name .. " {")
+local function OutputMessage(name, msg)
+	OutputLine("message " .. name .. " {")
+	IncreaseIndent()
 	local fields = msg._fields_ or {}
 	local enums = msg._enums_ or {}
 	assert(type(fields) == "table" and type(enums) == "table")
 	msg._fields_ = nil
 	msg._enums_ = nil
-	local subPrefix = prefix .. prefixIndent
-	for eName, enum in pairs(enums) do OutputEnum(eName, enum, subPrefix) end
-	for sName, subMsg in pairs(msg) do OutputMessage(sName, subMsg, subPrefix) end
-	for _, field in ipairs(fields) do OutputField(field, subPrefix) end
-	OutputLine(prefix .. "}")
+	for eName, enum in pairs(enums) do OutputEnum(eName, enum) end
+	for sName, subMsg in pairs(msg) do OutputMessage(sName, subMsg) end
+	for _, field in ipairs(fields) do OutputField(field) end
+	DecreaseIndent()
+	OutputLine("}")
 end
 
 local function FieldTableToProtoSrc(fieldTbl, indent)
+	outputTbl = {}
+	oneIndent = indent or "  "
 	local enums = MakeEnumArray(fieldTbl)
 	local messages = MakeMessageArray(fieldTbl)
 	local msgTree = ConstructMessageTree(messages, enums)	
 	local pkgName, msgTree = FindPackageName(msgTree)
-	outputTbl = {}
-	prefixIndent = indent or "  "
+	OutputLine("syntax = \"proto2\";")
 	OutputLine("package " .. pkgName .. ";")
 	local enums = msgTree._enums_ or {}
 	assert(type(enums) == "table")
@@ -207,6 +226,6 @@ local fieldTbl = ParseVarint(msg, PBCFileConfig)
 local str = FieldTableToProtoSrc(fieldTbl)
 print(str)
 
-local tablesrc = require("common.tablesrc")
-local src = tablesrc.TableToLuaSource(fieldTbl, "\t")
-print("TableSrc:\n", src)
+-- local tablesrc = require("common.tablesrc")
+-- local src = tablesrc.TableToLuaSource(fieldTbl, "\t")
+-- print("TableSrc:\n", src)
