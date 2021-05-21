@@ -320,11 +320,13 @@ local PBLabel = varint.PBLabel
 local FileDescriptorSetConfig = require("protobuf.descriptor_config")(PBLabel, PBType)
 local ParseVarint = varint.ParseVarint
 
+--[[
 local fd = io.open(arg[1], "rb")
 local msg = fd:read("a")
 fd:close()
 fd = nil
 local fieldTbl = ParseVarint(msg, FileDescriptorSetConfig)
+--]]
 --[[
 local protobuf = require("protobuf")
 protobuf.register_file("_descriptor.pb")
@@ -333,5 +335,9 @@ protobuf.extract(fieldTbl)
 --]]
 -- print(tostring(fieldTbl, 16))
 -- print(require("libjson").tostring(fieldTbl))
-local str = FieldTableToProtoSrc(fieldTbl)
-print(str)
+-- local str = FieldTableToProtoSrc(fieldTbl)
+-- print(str)
+
+return function(pbbin)
+	return FieldTableToProtoSrc(ParseVarint(pbbin, FileDescriptorSetConfig))
+end
