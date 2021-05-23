@@ -73,6 +73,7 @@ static char* wiretype_decode(uint8_t* buffer, int cap, atom* a, int start) {
   }
 }
 
+/*
 static inline int _decode_varint(uint8_t* buffer, int size, atom* a) {
   a->wire_id = WT_VARINT;
   if (size < 10) {
@@ -121,7 +122,6 @@ static int _open_packed_varint(context* ctx, uint8_t* buffer, int size) {
   return i;
 }
 
-/*
 int _pbcC_open_packed(pbc_ctx _ctx, int ptype, void* buffer, int size) {
   context* ctx = (context*)_ctx;
   ctx->buffer = (char*)buffer;
