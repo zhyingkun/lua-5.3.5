@@ -243,7 +243,7 @@ static void _pbc_rmessage_new(pbc_rmessage* ret, _message* type, void* buffer, i
   if (count <= 0) {
     type->env->lasterror = "rmessage decode context error";
     memset(ret, 0, sizeof(*ret));
-    return;
+    goto _return;
   }
   context* ctx = (context*)_ctx;
 
@@ -273,12 +273,14 @@ static void _pbc_rmessage_new(pbc_rmessage* ret, _message* type, void* buffer, i
           if (pbc_array_size(v->v.array) == 0) {
             type->env->lasterror = "rmessage decode packed data error";
             *vv = NULL;
+            break;
           }
         } else {
           push_value_array(h, v->v.array, f, &(ctx->a[i]), (uint8_t*)buffer);
           if (pbc_array_size(v->v.array) == 0) {
             type->env->lasterror = "rmessage decode repeated data error";
             *vv = NULL;
+            break;
           }
         }
       } else {
@@ -287,11 +289,12 @@ static void _pbc_rmessage_new(pbc_rmessage* ret, _message* type, void* buffer, i
           _pbcM_sp_insert(ret->index, f->name, v);
         } else {
           type->env->lasterror = "rmessage decode data error";
+          break;
         }
       }
     }
   }
-
+_return:
   _pbcC_close(_ctx);
 }
 

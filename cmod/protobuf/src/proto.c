@@ -64,6 +64,10 @@ void pbc_delete(pbc_env* p) {
   _pbcM_sp_delete(p->files);
 
   _pbcM_free(p);
+
+#ifndef NDEBUG
+  _pbcM_memory();
+#endif
 }
 
 _enum* _pbcP_push_enum(pbc_env* p, const char* name, map_kv* table, int sz) {
@@ -81,8 +85,7 @@ _enum* _pbcP_push_enum(pbc_env* p, const char* name, map_kv* table, int sz) {
   return v;
 }
 
-// _pbcP_push_field_to_message
-void _pbcP_push_message(pbc_env* p, const char* name, _field* f, pbc_array queue) {
+_message* _pbcP_create_message(pbc_env* p, const char* name) {
   _message* m = (_message*)_pbcM_sp_query(p->msgs, name);
   if (m == NULL) {
     m = (_message*)_pbcM_malloc(sizeof(*m));
@@ -93,6 +96,10 @@ void _pbcP_push_message(pbc_env* p, const char* name, _field* f, pbc_array queue
     m->env = p;
     _pbcM_sp_insert(p->msgs, name, m);
   }
+  return m;
+}
+
+void _pbcP_push_field_to_message(_message* m, _field* f, pbc_array queue) {
   _field* field = (_field*)_pbcM_malloc(sizeof(*field));
   memcpy(field, f, sizeof(*f));
   _pbcM_sp_insert(m->name, field->name, field);
@@ -121,20 +128,7 @@ static void _set_table(void* p, void* ud) {
   ++iter->count;
 }
 
-// _pbcP_build_message_idmap
-_message* _pbcP_init_message(pbc_env* p, const char* name) {
-  _message* m = (_message*)_pbcM_sp_query(p->msgs, name);
-  if (m == NULL) {
-    m = (_message*)_pbcM_malloc(sizeof(*m));
-    m->def = NULL;
-    m->key = name;
-    m->id = NULL;
-    m->name = _pbcM_sp_new(0, NULL);
-    m->env = p;
-    _pbcM_sp_insert(p->msgs, name, m);
-
-    return m;
-  }
+void _pbcP_build_message_idmap(_message* m) {
   if (m->id) {
     // extend message, delete old id map.
     _pbcM_ip_delete(m->id);
@@ -148,8 +142,6 @@ _message* _pbcP_init_message(pbc_env* p, const char* name) {
   m->id = _pbcM_ip_new(iter.table, iter.count);
 
   _pbcM_free(iter.table);
-
-  return m;
 }
 
 int _pbcP_message_default(_message* m, const char* name, pbc_var defv) {

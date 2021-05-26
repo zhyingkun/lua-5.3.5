@@ -120,13 +120,14 @@ static void set_default(_field* f, field_t* input) {
 
 static void set_msg_one(pbc_pattern* FIELD_T, pbc_env* p, file_t* file, const char* name,
                         int start, int sz, pbc_array queue) {
+  _message* m = _pbcP_create_message(p, name);
   int i;
   for (i = 0; i < sz; i++) {
     pbc_var _field_;
-    _pbcA_index(file->message_field, start + i, _field_);
+    _pbcA_index(file->message_field, start + i, _field_); // get field pb binary
     field_t field;
 
-    int ret = pbc_pattern_unpack(FIELD_T, &_field_->m, &field);
+    int ret = pbc_pattern_unpack(FIELD_T, &_field_->m, &field); // extract pb binary
     if (ret != 0) {
       continue;
     }
@@ -138,11 +139,11 @@ static void set_msg_one(pbc_pattern* FIELD_T, pbc_env* p, file_t* file, const ch
     f.type_name.n = (const char*)field.type_name.buffer;
     set_default(&f, &field);
 
-    _pbcP_push_message(p, name, &f, queue);
+    _pbcP_push_field_to_message(m, &f, queue);
 
     // don't need to close pattern since no array
   }
-  _pbcP_init_message(p, name);
+  _pbcP_build_message_idmap(m);
 }
 
 static void set_msgs(pbc_pattern* FIELD_T, pbc_env* p, file_t* file, pbc_array queue) {

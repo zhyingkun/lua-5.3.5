@@ -150,8 +150,7 @@ static void _register_extension(pbc_env* p, _stringpool* pool, const char* prefi
     return;
   int i;
 
-  const char* last = NULL;
-
+  _message* last = NULL;
   for (i = 0; i < extension_count; i++) {
     pbc_rmessage* extension = pbc_rmessage_message(msg, "extension", i);
     int field_name_sz = 0;
@@ -162,17 +161,17 @@ static void _register_extension(pbc_env* p, _stringpool* pool, const char* prefi
     _register_field(extension, &f, pool);
 
     const char* extendee = pbc_rmessage_string(extension, "extendee", 0, NULL);
+    _message* m = _pbcP_create_message(p, extendee + 1);
+    _pbcP_push_field_to_message(m, &f, queue);
 
-    _pbcP_push_message(p, extendee + 1, &f, queue);
-
-    if (last == NULL) {
-      last = extendee;
-    } else if (strcmp(extendee, last) != 0) {
-      _pbcP_init_message(p, last + 1);
-      last = extendee;
+    if (last != m) {
+      if (last != NULL) {
+        _pbcP_build_message_idmap(last);
+      }
+      last = m;
     }
   }
-  _pbcP_init_message(p, last + 1);
+  _pbcP_build_message_idmap(last);
 }
 
 static void _register_message(pbc_env* p, _stringpool* pool, pbc_rmessage* message_type,
@@ -183,6 +182,7 @@ static void _register_message(pbc_env* p, _stringpool* pool, pbc_rmessage* messa
   const char* temp = _concat_name(pool, prefix, prefix_sz, name, name_sz, &sz);
 
   int field_count = pbc_rmessage_size(message_type, "field");
+  _message* m = _pbcP_create_message(p, temp);
   int i;
   for (i = 0; i < field_count; i++) {
     pbc_rmessage* field = pbc_rmessage_message(message_type, "field", i);
@@ -193,10 +193,9 @@ static void _register_message(pbc_env* p, _stringpool* pool, pbc_rmessage* messa
 
     _register_field(field, &f, pool);
 
-    _pbcP_push_message(p, temp, &f, queue);
+    _pbcP_push_field_to_message(m, &f, queue);
   }
-
-  _pbcP_init_message(p, temp);
+  _pbcP_build_message_idmap(m);
 
   _register_extension(p, pool, temp, sz, message_type, queue);
 

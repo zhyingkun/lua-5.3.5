@@ -49,8 +49,10 @@ struct pbc_env {
   const char* lasterror;
 };
 
-_message* _pbcP_init_message(pbc_env* p, const char* name);
-void _pbcP_push_message(pbc_env* p, const char* name, _field* f, pbc_array queue);
+_message* _pbcP_create_message(pbc_env* p, const char* name);
+void _pbcP_push_field_to_message(_message* m, _field* f, pbc_array queue);
+void _pbcP_build_message_idmap(_message* m);
+
 _enum* _pbcP_push_enum(pbc_env* p, const char* name, map_kv* table, int sz);
 int _pbcP_message_default(_message* m, const char* name, pbc_var defv);
 _message* _pbcP_get_message(pbc_env* p, const char* name);
