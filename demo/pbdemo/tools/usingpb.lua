@@ -19,9 +19,22 @@ for name, isdir in libdir.dirs("./pb") do
 	end
 end
 
-local wdbin = protobuf.encode("zykTest.Simple", {
-	name = "john",
+local tbl = {
+	name = {
+		"john",
+	},
 	count = 1,
-})
+}
+for i = 1, 19, 1 do
+	table.insert(tbl.name, tostring(i))
+end
+local wdbin = protobuf.encode("zykTest.Simple", tbl)
+-- io.open("pb/err.wdbin", "wb"):write(wdbin):close()
 local obj = protobuf.decode("zykTest.Simple", wdbin)
-print(tostring(obj, 1))
+print(tostring(obj, 16))
+
+-- local btbl = {}
+-- for b in string.bytes(wdbin) do
+-- 	table.insert(btbl, string.format("0x%X", b))
+-- end
+-- print(table.concat(btbl, ", "))
