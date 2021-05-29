@@ -45,7 +45,8 @@ void pbc_delete(pbc_env*);
 int pbc_register(pbc_env*, pbc_slice* slice);
 int pbc_type(pbc_env*, const char* type_name, const char* key, const char** type);
 const char* pbc_error(pbc_env*);
-int pbc_memory();
+typedef void (*pbc_realloc_cb)(void* old_ptr, void* new_ptr, size_t new_size);
+void pbc_set_realloc_cb(pbc_realloc_cb cb);
 
 // callback api
 typedef union {

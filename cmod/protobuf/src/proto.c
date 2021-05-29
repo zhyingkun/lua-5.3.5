@@ -9,8 +9,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-int pbc_memory() {
-  return _pbcM_memory();
+void pbc_set_realloc_cb(pbc_realloc_cb cb) {
+  _pbcM_set_realloc_cb((_pbcM_realloc_cb)cb);
 }
 
 const char* pbc_error(pbc_env* p) {

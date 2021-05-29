@@ -3,26 +3,35 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static int _g = 0;
+static _pbcM_realloc_cb realloc_cb = (_pbcM_realloc_cb)NULL;
 
 void* _pbcM_malloc(size_t sz) {
-  ++_g;
-  return malloc(sz);
+  void* ptr = malloc(sz);
+  if (realloc_cb) {
+    realloc_cb(NULL, ptr, sz);
+  }
+  return ptr;
 }
 
 void _pbcM_free(void* p) {
   if (p) {
-    --_g;
     free(p);
+    if (realloc_cb) {
+      realloc_cb(p, NULL, 0);
+    }
   }
 }
 
 void* _pbcM_realloc(void* p, size_t sz) {
-  return realloc(p, sz);
+  void* ptr = realloc(p, sz);
+  if (realloc_cb) {
+    realloc_cb(p, ptr, sz);
+  }
+  return ptr;
 }
 
-int _pbcM_memory() {
-  return _g;
+void _pbcM_set_realloc_cb(_pbcM_realloc_cb cb) {
+  realloc_cb = cb;
 }
 
 heap* _pbcH_new(int pagesize) {
