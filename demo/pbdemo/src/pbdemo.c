@@ -10,14 +10,17 @@ static void read_file(const char* filename, pbc_slice* slice) {
   if (f == NULL) {
     slice->buffer = NULL;
     slice->len = 0;
+    printf("Error No such file: %s\n", filename);
     return;
   }
   fseek(f, 0, SEEK_END);
   slice->len = ftell(f);
   fseek(f, 0, SEEK_SET);
   slice->buffer = malloc(slice->len);
-  if (fread(slice->buffer, 1, slice->len, f) == 0)
+  if (fread(slice->buffer, 1, slice->len, f) == 0) {
+    printf("Error Read file failed: %s\n", filename);
     exit(1);
+  }
   fclose(f);
 }
 
@@ -38,115 +41,55 @@ static void dump(uint8_t* buffer, int sz) {
       printf("\n");
     }
   }
-
   printf("\n");
 }
 
-static void test_rmessage(pbc_env* env, pbc_slice* slice) {
-  pbc_rmessage* m = pbc_rmessage_new(env, "tutorial.Person", slice);
-  if (m == NULL) {
-    printf("Error : %s", pbc_error(env));
-    return;
-  }
-  printf("name = %s\n", pbc_rmessage_string(m, "name", 0, NULL));
-  printf("id = %d\n", pbc_rmessage_integer(m, "id", 0, NULL));
-  printf("email = %s\n", pbc_rmessage_string(m, "email", 0, NULL));
-
-  int phone_n = pbc_rmessage_size(m, "phone");
-  int i;
-  const char* field_name;
-  pbc_type(env, "tutorial.Person", "phone", &field_name);
-  printf("phone type [%s]\n", field_name);
-
-  for (i = 0; i < phone_n; i++) {
-    pbc_rmessage* p = pbc_rmessage_message(m, "phone", i);
-    printf("\tnumber[%d] = %s\n", i, pbc_rmessage_string(p, "number", i, NULL));
-    printf("\ttype[%d] = %s\n", i, pbc_rmessage_string(p, "type", i, NULL));
-  }
-
-  int n = pbc_rmessage_size(m, "test");
-
-  for (i = 0; i < n; i++) {
-    printf("test[%d] = %d\n", i, pbc_rmessage_integer(m, "test", i, NULL));
-  }
-
-  printf("tutorial.Ext.test = %d\n", pbc_rmessage_integer(m, "tutorial.Ext.test", 0, NULL));
-  pbc_rmessage_delete(m);
-}
-
-static pbc_wmessage* test_wmessage(pbc_env* env) {
-  pbc_wmessage* msg = pbc_wmessage_new(env, "tutorial.Person");
-
-  pbc_wmessage_string(msg, "name", "Alice", -1);
-  pbc_wmessage_integer(msg, "id", 12345, 0);
-  pbc_wmessage_string(msg, "email", "alice@unkown", -1);
-
-  pbc_wmessage* phone = pbc_wmessage_message(msg, "phone");
-  pbc_wmessage_string(phone, "number", "87654321", -1);
-
-  phone = pbc_wmessage_message(msg, "phone");
-  pbc_wmessage_string(phone, "number", "13901234567", -1);
-  pbc_wmessage_string(phone, "type", "MOBILE", -1);
-
-  pbc_wmessage_integer(msg, "test", -123, 0);
-  pbc_wmessage_integer(msg, "test", 12345, 0);
-  pbc_wmessage_integer(msg, "test", 1234567, 0);
-
-  pbc_wmessage_integer(msg, "tutorial.Ext.test", 54321, 0);
-
-  return msg;
-}
-
-static void test_zykTest_rmessage(pbc_env* env, pbc_slice* slice) {
-  pbc_rmessage* m = pbc_rmessage_new(env, "zykTest.Hello", slice);
-  if (m == NULL) {
-    printf("Error : %s", pbc_error(env));
-    return;
-  }
-  printf("name = %s\n", pbc_rmessage_string(m, "name", 0, NULL));
-  printf("number = %d\n", pbc_rmessage_integer(m, "number", 0, NULL));
-
-  pbc_rmessage_delete(m);
-}
-
-static pbc_wmessage* test_zykTest_wmessage(pbc_env* env) {
-  pbc_wmessage* msg = pbc_wmessage_new(env, "zykTest.Hello");
-  pbc_wmessage_string(msg, "name", "zyk", -1);
-  pbc_wmessage_integer(msg, "number", 43, 0);
-
-  return msg;
+void print_pbc_memory_count() {
+  printf("PBC memory retain count: %d\n", pbc_memory());
 }
 
 int main() {
   pbc_slice slice;
-  // read_file("addressbook.pb", &slice);
-  read_file("zykTest.pb", &slice);
+  read_file("pb/simple.pb", &slice);
   if (slice.buffer == NULL)
     return 1;
 
   dump(slice.buffer, slice.len);
 
+  print_pbc_memory_count();
   pbc_env* env = pbc_new();
+  print_pbc_memory_count();
   int r = pbc_register(env, &slice);
   if (r) {
-    printf("Error : %s", pbc_error(env));
+    printf("Error : %s\n", pbc_error(env));
     return 1;
   }
 
   free(slice.buffer);
+  slice.buffer = NULL;
+  slice.len = 0;
 
-  // pbc_wmessage* msg = test_wmessage(env);
-  pbc_wmessage* msg = test_zykTest_wmessage(env);
+  print_pbc_memory_count();
+  pbc_wmessage* msg = pbc_wmessage_new(env, "zykTest.Simple");
+  pbc_wmessage_string(msg, "name", "zyk", 0);
+  pbc_wmessage_integer(msg, "count", 43, 0);
 
   pbc_wmessage_buffer(msg, &slice);
-
   dump(slice.buffer, slice.len);
 
-  // test_rmessage(env, &slice);
-  test_zykTest_rmessage(env, &slice);
+  pbc_rmessage* m = pbc_rmessage_new(env, "zykTest.Simple", &slice);
+  if (m == NULL) {
+    printf("Error : %s\n", pbc_error(env));
+    return 1;
+  }
+  printf("name = %s\n", pbc_rmessage_string(m, "name", 0, NULL));
+  printf("count = %d\n", pbc_rmessage_integer(m, "count", 0, NULL));
+  pbc_rmessage_delete(m);
 
   pbc_wmessage_delete(msg);
-  pbc_delete(env);
+  print_pbc_memory_count();
 
+  pbc_delete(env);
+  print_pbc_memory_count();
   return 0;
 }
