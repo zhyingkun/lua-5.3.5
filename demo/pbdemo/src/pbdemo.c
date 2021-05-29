@@ -48,8 +48,20 @@ static void dump(uint8_t* buffer, int sz) {
   printf("\n");
 }
 
+static size_t _count = 0;
+
+void realloc_callback(void* old_ptr, void* new_ptr, size_t new_size) {
+  (void)new_size;
+  if (old_ptr == NULL) {
+    _count++;
+  }
+  if (new_ptr == NULL) {
+    _count--;
+  }
+}
+
 void print_pbc_memory_count() {
-  printf("PBC memory retain count: %d\n", pbc_memory());
+  printf("PBC memory retain count: %ld\n", _count);
 }
 
 int main() {
@@ -60,6 +72,7 @@ int main() {
   }
   dump(pbslice.buffer, pbslice.len);
 
+  pbc_set_realloc_cb(realloc_callback);
   print_pbc_memory_count();
   pbc_env* env = pbc_new();
   print_pbc_memory_count();
@@ -83,8 +96,8 @@ int main() {
   pbc_wmessage_buffer(msg, &slice); // slice.buffer point to msg.ptr
   dump(slice.buffer, slice.len);
 
-  const char* buf_start = slice.buffer;
-  const char* buf_end = slice.buffer + slice.len;
+  char* buf_start = slice.buffer;
+  char* buf_end = slice.buffer + slice.len;
   printf("slice.buffer: %p, end: %p\n", buf_start, buf_end);
   pbc_rmessage* m = pbc_rmessage_new(env, "zykTest.Simple", &slice);
   pbc_wmessage_delete(msg);
@@ -97,6 +110,10 @@ int main() {
     printf("count = %d\n", pbc_rmessage_integer(m, "count", 0, NULL));
     const char* buf = pbc_rmessage_string(m, "buffer", 0, NULL);
     printf("buffer ptr: %p, IsInDeletedMemory: %s\n", buf, (buf >= buf_start && buf < buf_end) ? "true" : "false");
+    printf("buffer = %s\n", buf);
+    for (int i = 0; i < slice.len; i++) {
+      buf_start[i] = 'A';
+    }
     printf("buffer = %s\n", buf);
     pbc_rmessage_delete(m);
   }
