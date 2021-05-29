@@ -77,18 +77,27 @@ int main() {
   pbc_wmessage* msg = pbc_wmessage_new(env, "zykTest.Simple");
   pbc_wmessage_string(msg, "name", "zyk", 0);
   pbc_wmessage_integer(msg, "count", 43, 0);
+  pbc_wmessage_string(msg, "buffer", "TestBytes", 0);
 
   pbc_slice slice;
   pbc_wmessage_buffer(msg, &slice); // slice.buffer point to msg.ptr
   dump(slice.buffer, slice.len);
 
+  const char* buf_start = slice.buffer;
+  const char* buf_end = slice.buffer + slice.len;
+  printf("slice.buffer: %p, end: %p\n", buf_start, buf_end);
   pbc_rmessage* m = pbc_rmessage_new(env, "zykTest.Simple", &slice);
   pbc_wmessage_delete(msg);
   if (m == NULL) {
     printf("Error : %s\n", pbc_error(env));
   } else {
-    printf("name = %s\n", pbc_rmessage_string(m, "name", 0, NULL));
+    const char* name = pbc_rmessage_string(m, "name", 0, NULL);
+    printf("name ptr: %p, IsInDeletedMemory: %s\n", name, (name >= buf_start && name < buf_end) ? "true" : "false");
+    printf("name = %s\n", name);
     printf("count = %d\n", pbc_rmessage_integer(m, "count", 0, NULL));
+    const char* buf = pbc_rmessage_string(m, "buffer", 0, NULL);
+    printf("buffer ptr: %p, IsInDeletedMemory: %s\n", buf, (buf >= buf_start && buf < buf_end) ? "true" : "false");
+    printf("buffer = %s\n", buf);
     pbc_rmessage_delete(m);
   }
   print_pbc_memory_count();

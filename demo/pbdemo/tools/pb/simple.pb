@@ -1,6 +1,7 @@
 
-Y
-proto/simple.protozykTest"2
+q
+proto/simple.protozykTest"J
 Simple
 name (	Rname
-count (Rcountbproto3
+count (Rcount
+buffer (Rbufferbproto3

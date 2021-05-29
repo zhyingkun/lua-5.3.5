@@ -5,4 +5,5 @@ package zykTest;
 message Simple {
   repeated string name = 1;
   int32 count = 2;
+  bytes buffer = 3;
 }
