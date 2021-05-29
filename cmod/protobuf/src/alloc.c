@@ -21,8 +21,8 @@ void* _pbcM_realloc(void* p, size_t sz) {
   return realloc(p, sz);
 }
 
-void _pbcM_memory() {
-  printf("%d\n", _g);
+int _pbcM_memory() {
+  return _g;
 }
 
 heap* _pbcH_new(int pagesize) {

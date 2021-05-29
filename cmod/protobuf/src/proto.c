@@ -9,6 +9,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+int pbc_memory() {
+  return _pbcM_memory();
+}
+
 const char* pbc_error(pbc_env* p) {
   const char* err = p->lasterror;
   p->lasterror = "";
@@ -64,10 +68,6 @@ void pbc_delete(pbc_env* p) {
   _pbcM_sp_delete(p->files);
 
   _pbcM_free(p);
-
-#ifndef NDEBUG
-  _pbcM_memory();
-#endif
 }
 
 _enum* _pbcP_push_enum(pbc_env* p, const char* name, map_kv* table, int sz) {

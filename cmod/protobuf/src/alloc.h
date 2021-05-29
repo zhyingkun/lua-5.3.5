@@ -7,7 +7,7 @@
 void* _pbcM_malloc(size_t sz);
 void _pbcM_free(void* p);
 void* _pbcM_realloc(void* p, size_t sz);
-void _pbcM_memory();
+int _pbcM_memory();
 
 struct _heap_page;
 typedef struct _heap_page heap_page;
