@@ -48,7 +48,7 @@ static void free_msg(void* p) {
   if (m->id)
     _pbcM_ip_delete(m->id);
   _pbcM_free(m->def);
-  _pbcM_sp_foreach(m->name, free);
+  _pbcM_sp_foreach(m->name, _pbcM_free);
   _pbcM_sp_delete(m->name);
   _pbcM_free(p);
 }
