@@ -17,9 +17,13 @@ static void read_file(const char* filename, pbc_slice* slice) {
   slice->len = ftell(f);
   fseek(f, 0, SEEK_SET);
   slice->buffer = malloc(slice->len);
-  if (fread(slice->buffer, 1, slice->len, f) == 0) {
+  if (slice->buffer == NULL) {
+    printf("Error Malloc memory for file: %s\n", filename);
+  } else if (fread(slice->buffer, 1, slice->len, f) == 0) {
+    free(slice->buffer);
+    slice->buffer = NULL;
+    slice->len = 0;
     printf("Error Read file failed: %s\n", filename);
-    exit(1);
   }
   fclose(f);
 }
@@ -49,46 +53,65 @@ void print_pbc_memory_count() {
 }
 
 int main() {
-  pbc_slice slice;
-  read_file("pb/simple.pb", &slice);
-  if (slice.buffer == NULL)
+  pbc_slice pbslice;
+  read_file("pb/simple.pb", &pbslice);
+  if (pbslice.buffer == NULL) {
     return 1;
-
-  dump(slice.buffer, slice.len);
+  }
+  dump(pbslice.buffer, pbslice.len);
 
   print_pbc_memory_count();
   pbc_env* env = pbc_new();
   print_pbc_memory_count();
-  int r = pbc_register(env, &slice);
+  int r = pbc_register(env, &pbslice);
   if (r) {
     printf("Error : %s\n", pbc_error(env));
-    return 1;
+    goto _return;
   }
 
-  free(slice.buffer);
-  slice.buffer = NULL;
-  slice.len = 0;
+  free(pbslice.buffer);
+  pbslice.buffer = NULL;
+  pbslice.len = 0;
 
   print_pbc_memory_count();
   pbc_wmessage* msg = pbc_wmessage_new(env, "zykTest.Simple");
   pbc_wmessage_string(msg, "name", "zyk", 0);
   pbc_wmessage_integer(msg, "count", 43, 0);
 
-  pbc_wmessage_buffer(msg, &slice);
+  pbc_slice slice;
+  pbc_wmessage_buffer(msg, &slice); // slice.buffer point to msg.ptr
   dump(slice.buffer, slice.len);
 
   pbc_rmessage* m = pbc_rmessage_new(env, "zykTest.Simple", &slice);
+  pbc_wmessage_delete(msg);
   if (m == NULL) {
     printf("Error : %s\n", pbc_error(env));
-    return 1;
+  } else {
+    printf("name = %s\n", pbc_rmessage_string(m, "name", 0, NULL));
+    printf("count = %d\n", pbc_rmessage_integer(m, "count", 0, NULL));
+    pbc_rmessage_delete(m);
   }
-  printf("name = %s\n", pbc_rmessage_string(m, "name", 0, NULL));
-  printf("count = %d\n", pbc_rmessage_integer(m, "count", 0, NULL));
-  pbc_rmessage_delete(m);
-
-  pbc_wmessage_delete(msg);
   print_pbc_memory_count();
 
+  pbc_slice wdslice;
+  //    read_file("wdbin/simple_right.wdbin", &wdslice);
+  read_file("wdbin/simple_err.wdbin", &wdslice);
+  if (wdslice.buffer == NULL) {
+    goto _return;
+  }
+  pbc_rmessage* wdm = pbc_rmessage_new(env, "zykTest.Simple", &wdslice);
+  free(wdslice.buffer);
+  wdslice.buffer = NULL;
+  wdslice.len = 0;
+  if (wdm == NULL) {
+    printf("Error : %s\n", pbc_error(env));
+  } else {
+    printf("name = %s\n", pbc_rmessage_string(wdm, "name", 0, NULL));
+    printf("count = %d\n", pbc_rmessage_integer(wdm, "count", 0, NULL));
+    pbc_rmessage_delete(wdm);
+  }
+
+_return:
   pbc_delete(env);
   print_pbc_memory_count();
   return 0;
