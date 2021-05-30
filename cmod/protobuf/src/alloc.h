@@ -14,6 +14,7 @@ struct _heap_page;
 typedef struct _heap_page heap_page;
 struct _heap_page {
   heap_page* next;
+  size_t size;
 };
 
 typedef struct {
@@ -24,6 +25,7 @@ typedef struct {
 
 heap* _pbcH_new(int pagesize);
 void _pbcH_delete(heap*);
+size_t _pbcH_memsize(heap* h);
 void* _pbcH_alloc(heap*, int size);
 
 #define HMALLOC(size) ((h) ? _pbcH_alloc(h, size) : _pbcM_malloc(size))

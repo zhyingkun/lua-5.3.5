@@ -44,6 +44,7 @@ heap* _pbcH_new(int pagesize) {
   h->size = cap;
   h->used = 0;
   h->current->next = NULL;
+  h->current->size = sizeof(heap_page) + cap;
   return h;
 }
 
@@ -60,16 +61,32 @@ void _pbcH_delete(heap* h) {
   _pbcM_free(h);
 }
 
+size_t _pbcH_memsize(heap* h) {
+  size_t sz = sizeof(heap);
+  heap_page* p = h->current;
+  heap_page* next = p->next;
+  for (;;) {
+    sz += p->size;
+    if (next == NULL)
+      break;
+    p = next;
+    next = p->next;
+  }
+  return sz;
+}
+
 void* _pbcH_alloc(heap* h, int size) {
   size = (size + 3) & ~3; // 4 bytes align
   if (h->size - h->used < size) {
-    heap_page* p;
+    size_t page_size = 0;
     if (size < h->size) {
-      p = (heap_page*)_pbcM_malloc(sizeof(heap_page) + h->size);
+      page_size = sizeof(heap_page) + h->size;
     } else {
-      p = (heap_page*)_pbcM_malloc(sizeof(heap_page) + size);
+      page_size = sizeof(heap_page) + size;
     }
+    heap_page* p = (heap_page*)_pbcM_malloc(page_size);
     p->next = h->current;
+    p->size = page_size;
     h->current = p;
     h->used = size;
     return (p + 1);
