@@ -53,7 +53,7 @@ typedef struct {
 } slice;
 
 typedef struct {
-  int wire_id;
+  int wire_id; // the key and wire_type: (field_number << 3) | wire_type
   union {
     slice s;
     longlong i;

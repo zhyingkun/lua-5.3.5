@@ -164,25 +164,22 @@ static void set_field_one(pbc_env* p, _field* f) {
   const char* type_name = f->type_name.n;
   if (f->type == PTYPE_MESSAGE) {
     f->type_name.m = (_message*)_pbcM_sp_query(p->msgs, type_name);
-    //		printf("MESSAGE: %s %p\n",type_name, f->type_name.m);
   } else if (f->type == PTYPE_ENUM) {
     f->type_name.e = (_enum*)_pbcM_sp_query(p->enums, type_name);
-    //		printf("ENUM: %s %p ",type_name, f->type_name.e);
-    const char* str = f->default_v->s.str;
+    const char* str = f->default_v->s.str; // data from set_default
     if (str && str[0]) {
       int err = _pbcM_si_query(f->type_name.e->name, str, &(f->default_v->e.id));
       if (err < 0)
         goto _default;
       f->default_v->e.name = (const char*)_pbcM_ip_query(f->type_name.e->id, f->default_v->e.id);
-      //			printf("[%s %d]\n",str,f->default_v->e.id);
     } else {
     _default:
-      memcpy(f->default_v, f->type_name.e->default_v, sizeof(pbc_var));
-      //			printf("(%s %d)\n",f->default_v->e.name,f->default_v->e.id);
+      memcpy(f->default_v, f->type_name.e->default_v, sizeof(pbc_var)); // default_v data from _pbcP_push_enum
     }
   }
 }
 
+// deal with nested message reference
 void _pbcB_register_fields(pbc_env* p, pbc_array queue) {
   int sz = pbc_array_size(queue);
   int i;
@@ -260,7 +257,7 @@ static int register_internal(pbc_env* p, pbc_slice* slice) {
   int ret = 0;
 
   file_t file;
-  int r = pbc_pattern_unpack(FILE_T, slice, &file);
+  int r = pbc_pattern_unpack(FILE_T, slice, &file); // extract pb binary according to FILE_T, save in &file
   if (r != 0) {
     ret = 1;
     goto _return;

@@ -12,10 +12,16 @@
 
 #define INNER_ATOM ((PBC_CONTEXT_CAP - sizeof(context)) / sizeof(atom))
 
+// buffer: pb binary data, key-value pairs
+// cap: the length of buffer
+// a: decode one key-value pair, save decode data in atom a
+// start: the index of current buffer in total buffer
+// return: next buffer pointer for decode, NULL for error
 static char* wiretype_decode(uint8_t* buffer, int cap, atom* a, int start) {
+  // first: decode a key, a varint 32bit integer
   uint8_t temp[10];
-  longlong r;
-  int len;
+  longlong r; // the key integer
+  int len; // decode eated length
   if (cap >= 10) {
     len = _pbcV_decode(buffer, &r);
     if (r.hi != 0)
@@ -29,10 +35,11 @@ static char* wiretype_decode(uint8_t* buffer, int cap, atom* a, int start) {
 
   int wiretype = r.low & 7;
   a->wire_id = r.low;
-  buffer += len;
+  buffer += len; // for decode the value
   start += len;
   cap -= len;
 
+  // second: decode a value, according to the wire_type
   switch (wiretype) {
     case WT_VARINT:
       if (cap >= 10) {
@@ -50,7 +57,7 @@ static char* wiretype_decode(uint8_t* buffer, int cap, atom* a, int start) {
       a->v.i.low = buffer[0] | buffer[1] << 8 | buffer[2] << 16 | buffer[3] << 24;
       a->v.i.hi = buffer[4] | buffer[5] << 8 | buffer[6] << 16 | buffer[7] << 24;
       return (char*)buffer + 8;
-    case WT_LEND:
+    case WT_LEND: // does not save the data, only save the start pointer and end pointer
       if (cap >= 10) {
         len = _pbcV_decode(buffer, &r);
       } else {
@@ -193,6 +200,7 @@ int _pbcC_open_packed(pbc_ctx _ctx, int ptype, void* buffer, int size) {
 }
 */
 
+// decode one layer pb binary, store in atom array ctx->a
 int _pbcC_open(pbc_ctx _ctx, void* buffer, int size) {
   context* ctx = (context*)_ctx;
   ctx->buffer = (char*)buffer;
