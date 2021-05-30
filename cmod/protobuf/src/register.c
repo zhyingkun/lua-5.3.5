@@ -137,7 +137,11 @@ static void _register_field(pbc_rmessage* field, _field* f, _stringpool* pool) {
       f->label = LABEL_PACKED;
     }
   }
-  f->type_name.n = pbc_rmessage_string(field, "type_name", 0, NULL) + 1; // abandon prefix '.'
+  if (f->type == PTYPE_MESSAGE && f->type == PTYPE_ENUM) {
+    f->type_name.n = pbc_rmessage_string(field, "type_name", 0, NULL) + 1; // abandon prefix '.'
+  } else {
+    f->type_name.n = NULL;
+  }
   int vsz;
   const char* default_value = pbc_rmessage_string(field, "default_value", 0, &vsz);
   _set_default(pool, f, f->type, default_value, vsz);
@@ -200,9 +204,7 @@ static void _register_message(pbc_env* p, _stringpool* pool, pbc_rmessage* messa
   _register_extension(p, pool, temp, sz, message_type, queue);
 
   // nested enum
-
   int enum_count = pbc_rmessage_size(message_type, "enum_type");
-
   for (i = 0; i < enum_count; i++) {
     pbc_rmessage* enum_type = pbc_rmessage_message(message_type, "enum_type", i);
     _register_enum(p, pool, enum_type, temp, sz);
@@ -250,7 +252,6 @@ static void _register(pbc_env* p, pbc_rmessage* file, _stringpool* pool) {
 
 static int _check_file_name(pbc_env* p, pbc_rmessage* file, const char** fname) {
   const char* filename = pbc_rmessage_string(file, "name", 0, NULL);
-  //	printf("reg :%s\n",filename);
   if (_pbcM_sp_query(p->files, filename)) {
     return CHECK_FILE_EXIST;
   }

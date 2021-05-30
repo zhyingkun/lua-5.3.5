@@ -1073,3 +1073,8 @@ _error:
 void pbc_pattern_delete(pbc_pattern* pat) {
   _pbcM_free(pat);
 }
+
+size_t pbc_pattern_memsize(pbc_pattern* pat) {
+  int n = pat->count;
+  return sizeof(pbc_pattern) + (sizeof(_pattern_field)) * (n - 1);
+}

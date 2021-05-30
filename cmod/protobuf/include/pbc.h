@@ -69,6 +69,7 @@ int pbc_decode(pbc_env* env, const char* type_name, pbc_slice* slice, pbc_decode
 
 pbc_rmessage* pbc_rmessage_new(pbc_env* env, const char* type_name, pbc_slice* slice);
 void pbc_rmessage_delete(pbc_rmessage*);
+size_t pbc_rmessage_memsize(pbc_rmessage* m);
 
 uint32_t pbc_rmessage_integer(pbc_rmessage*, const char* key, int index, uint32_t* hi);
 double pbc_rmessage_real(pbc_rmessage*, const char* key, int index);
@@ -100,6 +101,7 @@ void pbc_array_push_real(pbc_array array, double v);
 
 pbc_pattern* pbc_pattern_new(pbc_env*, const char* message, const char* format, ...);
 void pbc_pattern_delete(pbc_pattern*);
+size_t pbc_pattern_memsize(pbc_pattern* pat);
 
 // return unused bytes , -1 for error
 int pbc_pattern_pack(pbc_pattern*, void* input, pbc_slice* s);

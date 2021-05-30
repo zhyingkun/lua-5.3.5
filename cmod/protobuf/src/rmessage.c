@@ -323,6 +323,13 @@ void pbc_rmessage_delete(pbc_rmessage* m) {
   }
 }
 
+size_t pbc_rmessage_memsize(pbc_rmessage* m) {
+  if (m) {
+    return _pbcH_memsize(m->heap);
+  }
+  return 0;
+}
+
 const char* pbc_rmessage_string(pbc_rmessage* m, const char* key, int index, int* sz) {
   value* v = (value*)_pbcM_sp_query(m->index, key);
   int type = 0;

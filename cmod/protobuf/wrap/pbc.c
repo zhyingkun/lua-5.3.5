@@ -59,14 +59,27 @@ static int _env_register(lua_State* L) {
 
 static int _env_enum_id(lua_State* L) {
   pbc_env* env = (pbc_env*)checkuserdata(L, 1);
-  size_t sz = 0;
-  const char* enum_type = luaL_checklstring(L, 2, &sz);
-  const char* enum_name = luaL_checklstring(L, 3, &sz);
+  const char* enum_type = luaL_checklstring(L, 2, NULL);
+  const char* enum_name = luaL_checklstring(L, 3, NULL);
   int32_t enum_id = pbc_enum_id(env, enum_type, enum_name);
   if (enum_id < 0)
     return 0;
   lua_pushinteger(L, enum_id);
   return 1;
+}
+
+static int _env_type(lua_State* L) {
+  pbc_env* env = (pbc_env*)checkuserdata(L, 1);
+  const char* type_name = luaL_checkstring(L, 2);
+  const char* key = luaL_optstring(L, 3, NULL); // maybe key is NULL
+  const char* type = NULL;
+  int ret = pbc_type(env, type_name, key, &type);
+  lua_pushinteger(L, ret);
+  if (type == NULL) {
+    return 1;
+  }
+  lua_pushstring(L, type);
+  return 2;
 }
 
 static int _rmessage_new(lua_State* L) {
@@ -91,37 +104,33 @@ static int _rmessage_new(lua_State* L) {
 static int _rmessage_delete(lua_State* L) {
   pbc_rmessage* m = (pbc_rmessage*)checkuserdata(L, 1);
   pbc_rmessage_delete(m);
-
   return 0;
 }
 
 static int _rmessage_int(lua_State* L) {
   pbc_rmessage* m = (pbc_rmessage*)checkuserdata(L, 1);
   const char* key = luaL_checkstring(L, 2);
-  int index = luaL_checkinteger(L, 3);
+  int index = luaL_optinteger(L, 3, 0);
   uint32_t hi, low;
   low = pbc_rmessage_integer(m, key, index, &hi);
   int64_t v = (int64_t)((uint64_t)hi << 32 | (uint64_t)low);
   lua_pushinteger(L, v);
-
   return 1;
 }
 
 static int _rmessage_real(lua_State* L) {
   pbc_rmessage* m = (pbc_rmessage*)checkuserdata(L, 1);
   const char* key = luaL_checkstring(L, 2);
-  int index = luaL_checkinteger(L, 3);
+  int index = luaL_optinteger(L, 3, 0);
   double v = pbc_rmessage_real(m, key, index);
-
   lua_pushnumber(L, v);
-
   return 1;
 }
 
 static int _rmessage_string(lua_State* L) {
   pbc_rmessage* m = (pbc_rmessage*)checkuserdata(L, 1);
   const char* key = luaL_checkstring(L, 2);
-  int index = lua_tointeger(L, 3);
+  int index = luaL_optinteger(L, 3, 0);
   int sz = 0;
   const char* v = pbc_rmessage_string(m, key, index, &sz);
   lua_pushlstring(L, v, sz);
@@ -131,7 +140,7 @@ static int _rmessage_string(lua_State* L) {
 static int _rmessage_message(lua_State* L) {
   pbc_rmessage* m = (pbc_rmessage*)checkuserdata(L, 1);
   const char* key = luaL_checkstring(L, 2);
-  int index = lua_tointeger(L, 3);
+  int index = luaL_optinteger(L, 3, 0);
   pbc_rmessage* v = pbc_rmessage_message(m, key, index);
   lua_pushlightuserdata(L, v);
   return 1;
@@ -140,34 +149,9 @@ static int _rmessage_message(lua_State* L) {
 static int _rmessage_size(lua_State* L) {
   pbc_rmessage* m = (pbc_rmessage*)checkuserdata(L, 1);
   const char* key = luaL_checkstring(L, 2);
-
   int sz = pbc_rmessage_size(m, key);
-
   lua_pushinteger(L, sz);
-
   return 1;
-}
-
-static int _env_type(lua_State* L) {
-  lua_settop(L, 3);
-  pbc_env* env = (pbc_env*)checkuserdata(L, 1);
-  const char* type_name = luaL_checkstring(L, 2);
-  if (lua_isnil(L, 3)) {
-    int ret = pbc_type(env, type_name, NULL, NULL);
-    lua_pushboolean(L, ret);
-    return 1;
-  }
-  const char* key = luaL_checkstring(L, 3);
-  const char* type = NULL;
-  int ret = pbc_type(env, type_name, key, &type);
-  lua_pushinteger(L, ret);
-  if (type == NULL) {
-    return 1;
-  }
-  {
-    lua_pushstring(L, type);
-    return 2;
-  }
 }
 
 static int _wmessage_new(lua_State* L) {
@@ -181,7 +165,6 @@ static int _wmessage_new(lua_State* L) {
 static int _wmessage_delete(lua_State* L) {
   pbc_wmessage* m = (pbc_wmessage*)lua_touserdata(L, 1);
   pbc_wmessage_delete(m);
-
   return 0;
 }
 
@@ -190,7 +173,6 @@ static int _wmessage_real(lua_State* L) {
   const char* key = luaL_checkstring(L, 2);
   double number = luaL_checknumber(L, 3);
   pbc_wmessage_real(m, key, number);
-
   return 0;
 }
 
@@ -203,7 +185,6 @@ static int _wmessage_string(lua_State* L) {
   if (err) {
     return luaL_error(L, "Write string error : %s", v);
   }
-
   return 0;
 }
 
@@ -212,7 +193,6 @@ static int _wmessage_message(lua_State* L) {
   const char* key = luaL_checkstring(L, 2);
   pbc_wmessage* ret = pbc_wmessage_message(m, key);
   lua_pushlightuserdata(L, ret);
-
   return 1;
 }
 
@@ -228,7 +208,6 @@ static int _wmessage_int(lua_State* L) {
   }
   uint32_t hi = (uint32_t)(number >> 32);
   pbc_wmessage_integer(m, key, (uint32_t)number, hi);
-
   return 0;
 }
 
@@ -273,14 +252,12 @@ static int _pattern_new(lua_State* L) {
     return luaL_error(L, "create patten %s (%s) failed", message, format);
   }
   lua_pushlightuserdata(L, pat);
-
   return 1;
 }
 
 static int _pattern_delete(lua_State* L) {
   pbc_pattern* pat = (pbc_pattern*)lua_touserdata(L, 1);
   pbc_pattern_delete(pat);
-
   return 0;
 }
 
@@ -810,6 +787,23 @@ static int _gc(lua_State* L) {
   return 1;
 }
 
+static int _gc_memsize(lua_State* L) {
+  luaL_checktype(L, 1, LUA_TUSERDATA);
+  gcobj* obj = (gcobj*)lua_touserdata(L, 1);
+  size_t sz = sizeof(gcobj);
+  sz += obj->cap_pat * sizeof(pbc_pattern*);
+  sz += obj->cap_msg * sizeof(pbc_rmessage*);
+  int i;
+  for (i = 0; i < obj->size_msg; i++) {
+    sz += pbc_rmessage_memsize(obj->msg[i]);
+  }
+  for (i = 0; i < obj->size_pat; i++) {
+    sz += pbc_pattern_memsize(obj->pat[i]);
+  }
+  lua_pushinteger(L, sz);
+  return 1;
+}
+
 static int _add_pattern(lua_State* L) {
   gcobj* obj = (gcobj*)lua_touserdata(L, 1);
   if (obj->size_pat >= obj->cap_pat) {
@@ -994,6 +988,7 @@ LUAMOD_API int luaopen_libprotobuf(lua_State* L) {
   luaL_Reg reg[] = {
       {"_env_new", _env_new},
       {"_env_register", _env_register},
+      {"_env_enum_id", _env_enum_id},
       {"_env_type", _env_type},
       {"_rmessage_new", _rmessage_new},
       {"_rmessage_delete", _rmessage_delete},
@@ -1018,9 +1013,9 @@ LUAMOD_API int luaopen_libprotobuf(lua_State* L) {
       {"_last_error", _last_error},
       {"_decode", _decode},
       {"_gc", _gc},
+      {"_gc_memsize", _gc_memsize},
       {"_add_pattern", _add_pattern},
       {"_add_rmessage", _add_rmessage},
-      {"_env_enum_id", _env_enum_id},
       {"next", l_pbc_next},
       {"varints", l_pbc_varints},
       {"enzigzag", l_pbc_enzigzag},
