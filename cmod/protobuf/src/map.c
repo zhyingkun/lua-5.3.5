@@ -52,6 +52,11 @@ void _pbcM_si_delete(map_si* map) {
   _pbcM_free(map);
 }
 
+size_t _pbcM_si_memsize(map_si* map) {
+  size_t size = map->size;
+  return sizeof(map_si) + (size - 1) * sizeof(_pbcM_si_slot);
+}
+
 int _pbcM_si_query(map_si* map, const char* key, int* result) {
   size_t hash_full = calc_hash(key);
   size_t hash = hash_full % map->size;
@@ -136,6 +141,17 @@ void _pbcM_ip_delete(map_ip* map) {
   }
 }
 
+size_t _pbcM_ip_memsize(map_ip* map) {
+  size_t sz = sizeof(map_ip);
+  if (map->slot != NULL) {
+    sz += sizeof(_pbcM_ip_slot) * map->hash_size;
+  }
+  if (map->array != NULL) {
+    sz += sizeof(void*) * map->array_size;
+  }
+  return sz;
+}
+
 static void _inject(map_kv* table, map_ip* map) {
   if (map->array) {
     int n = 0;
@@ -195,6 +211,7 @@ map_sp* _pbcM_sp_new(int max, heap* h) {
     cap *= 2;
   }
   ret->cap = cap;
+  ret->mem_waste = 0;
   ret->size = 0;
   ret->slot = (_pbcM_sp_slot*)HMALLOC(ret->cap * sizeof(_pbcM_sp_slot));
   memset(ret->slot, 0, sizeof(_pbcM_sp_slot) * ret->cap);
@@ -207,6 +224,13 @@ void _pbcM_sp_delete(map_sp* map) {
     _pbcM_free(map->slot);
     _pbcM_free(map);
   }
+}
+
+size_t _pbcM_sp_memsize(map_sp* map) {
+  size_t sz = sizeof(map_sp);
+  sz += map->mem_waste;
+  sz += map->cap * sizeof(_pbcM_sp_slot);
+  return sz;
 }
 
 static void _pbcM_sp_rehash(map_sp* map);
@@ -252,6 +276,8 @@ static void _pbcM_sp_rehash(map_sp* map) {
   }
   if (h == NULL) {
     _pbcM_free(old_slot);
+  } else {
+    map->mem_waste += map->cap / 2;
   }
 }
 
