@@ -11,6 +11,7 @@ _stringpool* _pbcS_new(void) {
   ret->buffer = (char*)(ret + 1);
   ret->len = 0;
   ret->next = NULL;
+  ret->memsize = sizeof(_stringpool) + PAGE_SIZE;
   return ret;
 }
 
@@ -20,6 +21,16 @@ void _pbcS_delete(_stringpool* pool) {
     _pbcM_free(pool);
     pool = next;
   }
+}
+
+size_t _pbcS_memsize(_stringpool* pool) {
+  size_t sz = 0;
+  while (pool) {
+    _stringpool* next = pool->next;
+    sz += next->memsize;
+    pool = next;
+  }
+  return sz;
 }
 
 const char* _pbcS_build(_stringpool* pool, const char* str, int sz) {
@@ -35,6 +46,7 @@ const char* _pbcS_build(_stringpool* pool, const char* str, int sz) {
     next->buffer = (char*)(next + 1);
     memcpy(next->buffer, str, s);
     next->len = s;
+    next->memsize = sizeof(_stringpool) + s;
     next->next = pool->next;
     pool->next = next;
     return next->buffer;
@@ -43,6 +55,7 @@ const char* _pbcS_build(_stringpool* pool, const char* str, int sz) {
   next->buffer = pool->buffer;
   next->next = pool->next;
   next->len = pool->len;
+  next->memsize = sizeof(_stringpool) + PAGE_SIZE;
 
   pool->next = next;
   pool->buffer = (char*)(next + 1);
