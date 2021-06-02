@@ -42,6 +42,13 @@ static int _env_new(lua_State* L) {
   return 1;
 }
 
+static int _env_memsize(lua_State* L) {
+  pbc_env* env = (pbc_env*)checkuserdata(L, 1);
+  size_t sz = pbc_memsize(env);
+  lua_pushinteger(L, sz);
+  return 1;
+}
+
 static int _env_register(lua_State* L) {
   pbc_env* env = (pbc_env*)checkuserdata(L, 1);
   size_t sz = 0;
@@ -826,6 +833,30 @@ static int _add_rmessage(lua_State* L) {
   return 0;
 }
 
+#define REALLOC_CALLBACK "_pbc_realloc_cb_"
+static void l_pbc_realloc_cb(void* ud, void* old_ptr, void* new_ptr, size_t new_size) {
+  lua_State* L = (lua_State*)ud;
+  lua_pushliteral(L, REALLOC_CALLBACK);
+  lua_rawget(L, LUA_REGISTRYINDEX);
+  lua_pushlightuserdata(L, old_ptr);
+  lua_pushlightuserdata(L, new_ptr);
+  lua_pushinteger(L, new_size);
+  lua_call(L, 3, 0);
+}
+
+static int l_pbc_set_realloc_cb(lua_State* L) {
+  int t = lua_type(L, 1);
+  if (t == LUA_TFUNCTION) {
+    pbc_set_realloc_cb(l_pbc_realloc_cb, (void*)L);
+    lua_pushliteral(L, REALLOC_CALLBACK);
+    lua_pushvalue(L, 1);
+    lua_rawset(L, LUA_REGISTRYINDEX);
+  } else {
+    pbc_set_realloc_cb(NULL, NULL);
+  }
+  return 0;
+}
+
 static int l_pbc_next(lua_State* L) {
   size_t cap = 0;
   const char* buffer = luaL_checklstring(L, 1, &cap);
@@ -987,6 +1018,7 @@ static int l_pbc_tointeger(lua_State* L) {
 LUAMOD_API int luaopen_libprotobuf(lua_State* L) {
   luaL_Reg reg[] = {
       {"_env_new", _env_new},
+      {"_env_memsize", _env_memsize},
       {"_env_register", _env_register},
       {"_env_enum_id", _env_enum_id},
       {"_env_type", _env_type},
@@ -1016,6 +1048,7 @@ LUAMOD_API int luaopen_libprotobuf(lua_State* L) {
       {"_gc_memsize", _gc_memsize},
       {"_add_pattern", _add_pattern},
       {"_add_rmessage", _add_rmessage},
+      {"set_realloc_cb", l_pbc_set_realloc_cb},
       {"next", l_pbc_next},
       {"varints", l_pbc_varints},
       {"enzigzag", l_pbc_enzigzag},
