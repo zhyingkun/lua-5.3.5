@@ -52,8 +52,11 @@ struct pbc_env {
 _message* _pbcP_create_message(pbc_env* p, const char* name);
 void _pbcP_push_field_to_message(_message* m, _field* f, pbc_array queue);
 void _pbcP_build_message_idmap(_message* m);
+size_t _pbcP_message_memsize(_message* m);
 
 _enum* _pbcP_push_enum(pbc_env* p, const char* name, map_kv* table, int sz);
+size_t _pbcP_enum_memsize(_enum* e);
+
 int _pbcP_message_default(_message* m, const char* name, pbc_var defv);
 _message* _pbcP_get_message(pbc_env* p, const char* name);
 int _pbcP_type(_field* field, const char** type);

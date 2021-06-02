@@ -42,6 +42,8 @@ typedef struct pbc_wmessage pbc_wmessage;
 
 pbc_env* pbc_new(void);
 void pbc_delete(pbc_env*);
+size_t pbc_memsize(pbc_env* p);
+
 int pbc_register(pbc_env*, pbc_slice* slice);
 int pbc_type(pbc_env*, const char* type_name, const char* key, const char** type);
 const char* pbc_error(pbc_env*);

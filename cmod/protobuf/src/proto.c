@@ -70,6 +70,35 @@ void pbc_delete(pbc_env* p) {
   _pbcM_free(p);
 }
 
+static void memsize_enum(void* p, void* ud) {
+  _enum* e = (_enum*)p;
+  size_t* sz = (size_t*)ud;
+  *sz += _pbcP_enum_memsize(e);
+}
+
+static void memsize_msg(void* p, void* ud) {
+  _message* m = (_message*)p;
+  size_t* sz = (size_t*)ud;
+  *sz += _pbcP_message_memsize(m);
+}
+
+static void memsize_file(void* p, void* ud) {
+  _stringpool* pool = (_stringpool*)p;
+  size_t* sz = (size_t*)ud;
+  *sz += _pbcS_memsize(pool);
+}
+
+size_t pbc_memsize(pbc_env* p) {
+  size_t sz = sizeof(pbc_env);
+  sz += _pbcM_sp_memsize(p->enums);
+  sz += _pbcM_sp_memsize(p->msgs);
+  sz += _pbcM_sp_memsize(p->files);
+  _pbcM_sp_foreach_ud(p->enums, memsize_enum, (void*)&sz);
+  _pbcM_sp_foreach_ud(p->msgs, memsize_msg, (void*)&sz);
+  _pbcM_sp_foreach_ud(p->files, memsize_file, (void*)&sz);
+  return sz;
+}
+
 _enum* _pbcP_push_enum(pbc_env* p, const char* name, map_kv* table, int sz) {
   void* check = _pbcM_sp_query(p->enums, name);
   if (check)
@@ -85,6 +114,13 @@ _enum* _pbcP_push_enum(pbc_env* p, const char* name, map_kv* table, int sz) {
   return v;
 }
 
+size_t _pbcP_enum_memsize(_enum* e) {
+  size_t sz = sizeof(_enum);
+  sz += _pbcM_ip_memsize(e->id);
+  sz += _pbcM_si_memsize(e->name);
+  return sz;
+}
+
 _message* _pbcP_create_message(pbc_env* p, const char* name) {
   _message* m = (_message*)_pbcM_sp_query(p->msgs, name);
   if (m == NULL) {
@@ -97,6 +133,21 @@ _message* _pbcP_create_message(pbc_env* p, const char* name) {
     _pbcM_sp_insert(p->msgs, name, m);
   }
   return m;
+}
+
+static void memsize_field(void* p, void* ud) {
+  // _field* field = (_field*)p;
+  size_t* sz = (size_t*)ud;
+  *sz += sizeof(_field);
+}
+
+size_t _pbcP_message_memsize(_message* m) {
+  size_t sz = sizeof(_message);
+  sz += _pbcM_ip_memsize(m->id);
+  sz += _pbcM_sp_memsize(m->name);
+  sz += pbc_rmessage_memsize(m->def);
+  _pbcM_sp_foreach_ud(m->name, memsize_field, (void*)&sz);
+  return sz;
 }
 
 void _pbcP_push_field_to_message(_message* m, _field* f, pbc_array queue) {
