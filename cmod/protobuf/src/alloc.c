@@ -4,11 +4,12 @@
 #include <stdio.h>
 
 static _pbcM_realloc_cb realloc_cb = (_pbcM_realloc_cb)NULL;
+static void* realloc_ud = NULL;
 
 void* _pbcM_malloc(size_t sz) {
   void* ptr = malloc(sz);
   if (realloc_cb) {
-    realloc_cb(NULL, ptr, sz);
+    realloc_cb(realloc_ud, NULL, ptr, sz);
   }
   return ptr;
 }
@@ -17,7 +18,7 @@ void _pbcM_free(void* p) {
   if (p) {
     free(p);
     if (realloc_cb) {
-      realloc_cb(p, NULL, 0);
+      realloc_cb(realloc_ud, p, NULL, 0);
     }
   }
 }
@@ -25,13 +26,14 @@ void _pbcM_free(void* p) {
 void* _pbcM_realloc(void* p, size_t sz) {
   void* ptr = realloc(p, sz);
   if (realloc_cb) {
-    realloc_cb(p, ptr, sz);
+    realloc_cb(realloc_ud, p, ptr, sz);
   }
   return ptr;
 }
 
-void _pbcM_set_realloc_cb(_pbcM_realloc_cb cb) {
+void _pbcM_set_realloc_cb(_pbcM_realloc_cb cb, void* ud) {
   realloc_cb = cb;
+  realloc_ud = ud;
 }
 
 heap* _pbcH_new(int pagesize) {
