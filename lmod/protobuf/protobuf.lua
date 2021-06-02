@@ -34,18 +34,21 @@ function M.lasterror()
 	return c._last_error(P)
 end
 
-local decode_type_cache = {}
+local decode_type_cache = {} -- MessageName=>{ FieldName=>function(tbl, FieldName) return DefaultName end }
 local _R_meta = {}
 
 function _R_meta:__index(key)
+	-- self is not _R_meta, self is the one which setmetatable with _R_meta
+	-- self._CType is MessageName, key is FieldName
 	local v = decode_type_cache[self._CType][key](self, key)
 	self[key] = v
-	return v
+	return v -- v is DefaultValue
 end
 
 local _reader = {}
 
 function _reader:real(key)
+	-- self is not _reader
 	return c._rmessage_real(self._CObj , key , 0)
 end
 
@@ -151,9 +154,9 @@ _reader[4] = function(msg) return _reader.string end
 _reader[5] = function(msg) return _reader.string end
 _reader[6] = function(msg)
 	local message = _reader.message
-	return	function(self,key)
-			return message(self, key, msg)
-		end
+	return function(self,key)
+		return message(self, key, msg)
+	end
 end
 _reader[7] = _reader[1]
 _reader[8] = _reader[1]
@@ -180,17 +183,17 @@ _reader[128+11] = _reader[128+7]
 
 local _decode_type_meta = {}
 
-function _decode_type_meta:__index(key)
+function _decode_type_meta:__index(key) -- key is FieldName
 	local t, msg = c._env_type(P, self._CType, key)
 	local func = assert(_reader[t],key)(msg)
 	self[key] = func
-	return func
+	return func -- function(tbl, FieldName) return DefaultName end
 end
 
 setmetatable(decode_type_cache , {
-	__index = function(self, key)
+	__index = function(self, key) -- key is MessageName
 		local v = setmetatable({ _CType = key } , _decode_type_meta)
-		self[key] = v
+		self[key] = v -- v is a table: FieldName=>function(tbl, FieldName) return DefaultName end
 		return v
 	end
 })
@@ -198,7 +201,7 @@ setmetatable(decode_type_cache , {
 local function decode_message( message , buffer, length)
 	local rmessage = c._rmessage_new(P, message, buffer, length)
 	if rmessage then
-		local self = {
+		local self = { -- FieldName=>DefaultValue
 			_CObj = rmessage,
 			_CType = message,
 		}
@@ -209,6 +212,7 @@ end
 
 ----------- encode ----------------
 
+-- MessageName => { FieldName => encoder: function(wmessage, FieldName, value) end }
 local encode_type_cache = {}
 
 local function encode_message(CObj, message_type, t)
@@ -303,7 +307,7 @@ _writer[128+11] = _writer[128+7]
 
 local _encode_type_meta = {}
 
-function _encode_type_meta:__index(key)
+function _encode_type_meta:__index(key) -- key is FieldName
 	local t, msg = c._env_type(P, self._CType, key)
 	local func = assert(_writer[t],key)(msg)
 	self[key] = func
@@ -311,10 +315,10 @@ function _encode_type_meta:__index(key)
 end
 
 setmetatable(encode_type_cache , {
-	__index = function(self, key)
+	__index = function(self, key) -- key is MessageName
 		local v = setmetatable({ _CType = key } , _encode_type_meta)
 		self[key] = v
-		return v
+		return v -- FieldName => encoder
 	end
 })
 
@@ -428,9 +432,10 @@ local function default_table(typename)
 		return v
 	end
 
-	local default_inst = assert(decode_message(typename , ""))
+	local default_inst = assert(decode_message(typename , "")) -- typename is MessageName
 	v = { 
-		__index = function(tb, key)
+		__index = function(tb, key) -- key is FieldName, find for DefaultValue
+			-- default_inst: for MessageName only, FieldName=>DefaultValue
 			local ret = default_inst[key]
 			if 'table' ~= type(ret) then
 				return ret
