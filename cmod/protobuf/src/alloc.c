@@ -44,7 +44,7 @@ heap* _pbcH_new(int pagesize) {
   h->size = cap;
   h->used = 0;
   h->current->next = NULL;
-  h->current->size = sizeof(heap_page) + cap;
+  h->current->memsize = sizeof(heap_page) + cap;
   return h;
 }
 
@@ -66,7 +66,7 @@ size_t _pbcH_memsize(heap* h) {
   heap_page* p = h->current;
   heap_page* next = p->next;
   for (;;) {
-    sz += p->size;
+    sz += p->memsize;
     if (next == NULL)
       break;
     p = next;
@@ -86,7 +86,7 @@ void* _pbcH_alloc(heap* h, int size) {
     }
     heap_page* p = (heap_page*)_pbcM_malloc(page_size);
     p->next = h->current;
-    p->size = page_size;
+    p->memsize = page_size;
     h->current = p;
     h->used = size;
     return (p + 1);

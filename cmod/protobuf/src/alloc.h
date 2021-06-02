@@ -14,7 +14,7 @@ struct _heap_page;
 typedef struct _heap_page heap_page;
 struct _heap_page {
   heap_page* next;
-  size_t size;
+  size_t memsize;
 };
 
 typedef struct {
