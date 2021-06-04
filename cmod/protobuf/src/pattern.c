@@ -524,28 +524,25 @@ static int _pack_field(_pattern_field* pf, int ctype, pbc_slice* s, void* input)
       wiretype = WT_VARINT;
       goto _number;
     case PTYPE_STRING:
-      wiretype = WT_LEND;
       input_slice = (pbc_slice*)input;
-      if (input_slice->len >= 0)
-        goto _string;
-      string_slice.buffer = input_slice->buffer;
-      string_slice.len = strlen((const char*)string_slice.buffer) - input_slice->len;
-      input_slice = &string_slice;
-
+      if (input_slice->len < 0) {
+        string_slice.buffer = input_slice->buffer;
+        string_slice.len = strlen((const char*)string_slice.buffer) - input_slice->len;
+        input_slice = &string_slice;
+      }
       goto _string;
     case PTYPE_MESSAGE:
     case PTYPE_BYTES:
-      wiretype = WT_LEND;
-      goto _bytes;
+      input_slice = (pbc_slice*)input;
+      goto _string;
     default:
       break;
   }
 
   return 0;
-_bytes:
-  input_slice = (pbc_slice*)input;
 _string:
-  len = _pack_wiretype(pf->id << 3 | WT_LEND, s);
+  wiretype = WT_LEND;
+  len = _pack_wiretype(pf->id << 3 | wiretype, s);
   if (len < 0) {
     return len;
   }
