@@ -55,6 +55,13 @@ void pbc_wmessage_delete(pbc_wmessage* m) {
   }
 }
 
+size_t pbc_wmessage_memsize(pbc_wmessage* m) {
+  if (m) {
+    return _pbcH_memsize(m->heap);
+  }
+  return 0;
+}
+
 static void _expand_message(pbc_wmessage* m, int sz) {
   if (m->ptr + sz > m->endptr) {
     int cap = m->endptr - m->buffer;
@@ -377,7 +384,7 @@ static void _pack_packed_varint(_packed* p, pbc_wmessage* m) {
   int n = pbc_array_size(p->data);
 
   int offset = m->ptr - m->buffer;
-  int len = n * 2;
+  int len = n * 2; // guess length
   if (p->ptype == PTYPE_BOOL) {
     len = n;
   }
@@ -427,6 +434,9 @@ static void _pack_packed_varint(_packed* p, pbc_wmessage* m) {
       m->type->env->lasterror = "wmessage type error when pack packed";
       break;
   }
+  // end_offset == offset + len_len + end_len
+  // m->buffer => |---offset---|--len_len--|---end_len---|
+  // should be => |---offset---|--end_len_len--|---end_len---|
   int end_offset = m->ptr - m->buffer;
   int end_len = end_offset - (offset + len_len);
   if (end_len != len) {

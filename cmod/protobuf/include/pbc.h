@@ -82,6 +82,7 @@ int pbc_rmessage_next(pbc_rmessage*, const char** key);
 
 pbc_wmessage* pbc_wmessage_new(pbc_env* env, const char* type_name);
 void pbc_wmessage_delete(pbc_wmessage*);
+size_t pbc_wmessage_memsize(pbc_wmessage* m);
 
 // for negative integer, pass -1 to hi
 int pbc_wmessage_integer(pbc_wmessage*, const char* key, uint32_t low, uint32_t hi);
