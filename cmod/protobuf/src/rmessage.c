@@ -75,6 +75,32 @@ static void read_string_var(heap* h, pbc_var var, atom* a, _field* f, uint8_t* b
   }
 }
 
+static value* read_bytes(heap* h, atom* a, _field* f, uint8_t* buffer) {
+  const char* temp = (const char*)(buffer + a->v.s.start);
+  int len = a->v.s.end - a->v.s.start;
+  value* v = (value*)_pbcH_alloc(h, SIZE_VAR + len + 1);
+  memcpy(((char*)v) + SIZE_VAR, temp, len);
+  *(((char*)v) + SIZE_VAR + len) = '\0';
+  v->v.var->s.str = ((char*)v) + SIZE_VAR;
+  v->v.var->s.len = len;
+  return v;
+}
+
+static void read_bytes_var(heap* h, pbc_var var, atom* a, _field* f, uint8_t* buffer) {
+  const char* temp = (const char*)(buffer + a->v.s.start);
+  int len = a->v.s.end - a->v.s.start;
+  if (len == 0) {
+    var->s.str = "";
+    var->s.len = 0;
+  } else {
+    char* temp2 = (char*)_pbcH_alloc(h, len + 1);
+    memcpy(temp2, temp, len);
+    temp2[len] = '\0';
+    var->s.str = temp2;
+    var->s.len = -len;
+  }
+}
+
 static void _pbc_rmessage_new(pbc_rmessage* ret, _message* type, void* buffer, int size, heap* h);
 
 static value* read_value(heap* h, _field* f, atom* a, uint8_t* buffer) {
@@ -136,9 +162,10 @@ static value* read_value(heap* h, _field* f, atom* a, uint8_t* buffer) {
       break;
     case PTYPE_BYTES:
       CHECK_LEND(a, NULL);
-      v = (value*)_pbcH_alloc(h, SIZE_VAR);
-      v->v.var->s.str = (const char*)(buffer + a->v.s.start);
-      v->v.var->s.len = a->v.s.end - a->v.s.start;
+      // v = (value*)_pbcH_alloc(h, SIZE_VAR);
+      // v->v.var->s.str = (const char*)(buffer + a->v.s.start);
+      // v->v.var->s.len = a->v.s.end - a->v.s.start;
+      v = read_bytes(h, a, f, buffer);
       break;
     case PTYPE_MESSAGE:
       CHECK_LEND(a, NULL);
@@ -210,8 +237,9 @@ static void push_value_array(heap* h, pbc_array array, _field* f, atom* a, uint8
       break;
     case PTYPE_BYTES:
       CHECK_LEND(a, );
-      v->s.str = (const char*)(buffer + a->v.s.start);
-      v->s.len = a->v.s.end - a->v.s.start;
+      // v->s.str = (const char*)(buffer + a->v.s.start);
+      // v->s.len = a->v.s.end - a->v.s.start;
+      read_bytes_var(h, v, a, f, buffer);
       break;
     case PTYPE_MESSAGE: {
       CHECK_LEND(a, );
