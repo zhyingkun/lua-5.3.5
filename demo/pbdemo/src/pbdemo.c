@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 
 static void read_file(const char* filename, pbc_slice* slice) {
   FILE* f = fopen(filename, "rb");
@@ -50,7 +51,8 @@ static void dump(uint8_t* buffer, int sz) {
 
 static size_t _count = 0;
 
-void realloc_callback(void* old_ptr, void* new_ptr, size_t new_size) {
+void realloc_callback(void* ud, void* old_ptr, void* new_ptr, size_t new_size) {
+  (void)ud;
   (void)new_size;
   if (old_ptr == NULL) {
     _count++;
@@ -72,7 +74,7 @@ int main() {
   }
   dump(pbslice.buffer, pbslice.len);
 
-  pbc_set_realloc_cb(realloc_callback);
+  pbc_set_realloc_cb(realloc_callback, NULL);
   print_pbc_memory_count();
   pbc_env* env = pbc_new();
   print_pbc_memory_count();
@@ -136,6 +138,53 @@ int main() {
     printf("count = %d\n", pbc_rmessage_integer(wdm, "count", 0, NULL));
     pbc_rmessage_delete(wdm);
   }
+
+  typedef struct {
+    pbc_array name;
+    int32_t count;
+    pbc_slice buffer;
+  } Simple;
+  pbc_pattern* Simple_p = pbc_pattern_new(
+      env,
+      "zykTest.Simple",
+      "name %a count %d buffer %s",
+      offsetof(Simple, name),
+      offsetof(Simple, count),
+      offsetof(Simple, buffer));
+  Simple myData;
+  pbc_pattern_set_default(Simple_p, (void*)&myData);
+  pbc_slice name1 = {"john", 5};
+  pbc_slice name2 = {"tony", 5};
+  pbc_array_push_slice(myData.name, &name1);
+  pbc_array_push_slice(myData.name, &name2);
+  myData.count = 43;
+  myData.buffer.buffer = "what";
+  myData.buffer.len = 5;
+  // string will be deep copy to ser_slice
+  int cap = 16;
+  char* temp = malloc(cap);
+  pbc_slice ser_slice;
+  for (;;) {
+    ser_slice.buffer = temp;
+    ser_slice.len = cap;
+    int ret = pbc_pattern_pack(Simple_p, (void*)&myData, &ser_slice);
+    if (ret >= 0) {
+      break;
+    }
+    cap = cap * 2;
+    temp = realloc(temp, cap);
+  }
+  pbc_pattern_close_arrays(Simple_p, (void*)&myData);
+  dump(ser_slice.buffer, ser_slice.len);
+  Simple newData;
+  pbc_pattern_unpack(Simple_p, &ser_slice, &newData);
+  pbc_slice* ptr = pbc_array_slice(newData.name, 1);
+  printf("name: %s, count: %d, buffer: %s\n", (char*)ptr->buffer, newData.count, (char*)newData.buffer.buffer);
+  printf("name ptr: %p, buffer ptr: %p\n", ptr->buffer, newData.buffer.buffer);
+  printf("temp ptr: %p, end ptr: %p\n", temp, temp + cap);
+  pbc_pattern_close_arrays(Simple_p, (void*)&newData);
+  free(temp);
+  pbc_pattern_delete(Simple_p);
 
 _return:
   pbc_delete(env);
