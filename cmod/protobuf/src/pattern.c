@@ -12,6 +12,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdarg.h>
+#include <assert.h>
 
 static void set_default_v(void* output, int ctype, pbc_var defv) {
   switch (ctype) {
@@ -495,6 +496,10 @@ static int _pack_number(int ptype, int ctype, pbc_slice* s, void* input) {
   }
 }
 
+// s is the buffer to store pb binary data, s->len will decrease and s->buffer will increase when store data in s
+// input is the Struct field pointer which points to the value, type of that value is ctype
+// when input is a pbc_slice, pbc_slice.len < 0 means add more len bytes after it
+// return the length of store data
 static int _pack_field(_pattern_field* pf, int ctype, pbc_slice* s, void* input) {
   int wiretype;
   int ret = 0;
@@ -601,7 +606,7 @@ static int _pack_packed_fixed(_pattern_field* pf, int width, pbc_slice* s, pbc_a
     return -1;
   int i;
   for (i = 0; i < n; i++) {
-    _pack_number(pf->ptype, CTYPE_VAR, s, _pbcA_index_p(array, i));
+    assert(_pack_number(pf->ptype, CTYPE_VAR, s, _pbcA_index_p(array, i)) == width);
   }
 
   return len + n * width;
@@ -731,8 +736,12 @@ static bool _is_default(_pattern_field* pf, void* in) {
   return false;
 }
 
+// input is a pointer points to a Struct, field offset set in pat
+// s is a slice which is the buffer for store packed pb binary
+// s->len will store the length of the data which store in s->buffer
+// return the length of the rest
 int pbc_pattern_pack(pbc_pattern* pat, void* input, pbc_slice* s) {
-  pbc_slice slice = *s;
+  pbc_slice slice = *s; // copy s->buffer and s->len
   int i;
   for (i = 0; i < pat->count; i++) {
     _pattern_field* pf = &pat->f[i];
@@ -744,7 +753,7 @@ int pbc_pattern_pack(pbc_pattern* pat, void* input, pbc_slice* s) {
           break;
         }
       case LABEL_REQUIRED:
-        len = _pack_field(pf, pf->ctype, &slice, in);
+        len = _pack_field(pf, pf->ctype, &slice, in); // slice will be changed
         break;
       case LABEL_REPEATED:
         len = _pack_repeated(pf, &slice, (_pbc_array*)in);
@@ -757,12 +766,14 @@ int pbc_pattern_pack(pbc_pattern* pat, void* input, pbc_slice* s) {
       return len;
     }
   }
+  // slice.buffer points to the rest of the buffer
   int len = (char*)slice.buffer - (char*)s->buffer;
   int ret = s->len - len;
   s->len = len;
   return ret;
 }
 
+// parsing one layer only, treat Message as String, String slice points to pb binary itself
 int pbc_pattern_unpack(pbc_pattern* pat, pbc_slice* s, void* output) {
   if (s->len == 0) {
     pbc_pattern_set_default(pat, output);

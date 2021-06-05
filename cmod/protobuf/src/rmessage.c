@@ -354,7 +354,7 @@ const char* pbc_rmessage_string(pbc_rmessage* m, const char* key, int index, int
 
   if (sz) {
     int len = var->s.len;
-    if (len < 0) {
+    if (len < 0) { // read_string_var
       len = -len;
     }
     *sz = len;
