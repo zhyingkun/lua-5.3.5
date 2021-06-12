@@ -3,36 +3,35 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static _pbcM_realloc_cb realloc_cb = (_pbcM_realloc_cb)NULL;
+static _pbcM_realloc_fn realloc_fn = (_pbcM_realloc_fn)NULL;
 static void* realloc_ud = NULL;
 
 void* _pbcM_malloc(size_t sz) {
-  void* ptr = malloc(sz);
-  if (realloc_cb) {
-    realloc_cb(realloc_ud, NULL, ptr, sz);
+  if (realloc_fn) {
+    return realloc_fn(realloc_ud, NULL, sz);
   }
-  return ptr;
+  return malloc(sz);
 }
 
 void _pbcM_free(void* p) {
   if (p) {
-    free(p);
-    if (realloc_cb) {
-      realloc_cb(realloc_ud, p, NULL, 0);
+    if (realloc_fn) {
+      realloc_fn(realloc_ud, p, 0);
+    } else {
+      free(p);
     }
   }
 }
 
 void* _pbcM_realloc(void* p, size_t sz) {
-  void* ptr = realloc(p, sz);
-  if (realloc_cb) {
-    realloc_cb(realloc_ud, p, ptr, sz);
+  if (realloc_fn) {
+    return realloc_fn(realloc_ud, p, sz);
   }
-  return ptr;
+  return realloc(p, sz);
 }
 
-void _pbcM_set_realloc_cb(_pbcM_realloc_cb cb, void* ud) {
-  realloc_cb = cb;
+void _pbcM_set_realloc_fn(_pbcM_realloc_fn fn, void* ud) {
+  realloc_fn = fn;
   realloc_ud = ud;
 }
 

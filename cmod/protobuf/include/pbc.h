@@ -47,8 +47,8 @@ size_t pbc_memsize(pbc_env* p);
 int pbc_register(pbc_env*, pbc_slice* slice);
 int pbc_type(pbc_env*, const char* type_name, const char* key, const char** type);
 const char* pbc_error(pbc_env*);
-typedef void (*pbc_realloc_cb)(void* ud, void* old_ptr, void* new_ptr, size_t new_size);
-void pbc_set_realloc_cb(pbc_realloc_cb cb, void* ud);
+typedef void* (*pbc_realloc_fn)(void* ud, void* old_ptr, size_t new_size);
+void pbc_set_realloc_fn(pbc_realloc_fn fn, void* ud);
 
 // callback api
 typedef union {

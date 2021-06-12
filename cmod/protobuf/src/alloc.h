@@ -7,8 +7,8 @@
 void* _pbcM_malloc(size_t sz);
 void _pbcM_free(void* p);
 void* _pbcM_realloc(void* p, size_t sz);
-typedef void (*_pbcM_realloc_cb)(void* ud, void* old_ptr, void* new_ptr, size_t new_size);
-void _pbcM_set_realloc_cb(_pbcM_realloc_cb cb, void* ud);
+typedef void* (*_pbcM_realloc_fn)(void* ud, void* old_ptr, size_t new_size);
+void _pbcM_set_realloc_fn(_pbcM_realloc_fn fn, void* ud);
 
 struct _heap_page;
 typedef struct _heap_page heap_page;

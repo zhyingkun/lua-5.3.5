@@ -834,25 +834,35 @@ static int _add_rmessage(lua_State* L) {
 }
 
 #define REALLOC_CALLBACK "_pbc_realloc_cb_"
-static void l_pbc_realloc_cb(void* ud, void* old_ptr, void* new_ptr, size_t new_size) {
+static void* l_pbc_realloc_fn(void* ud, void* old_ptr, size_t new_size) {
+  void* new_ptr = NULL;
+  if (old_ptr == NULL) { // malloc
+    new_ptr = malloc(new_size);
+  } else if (new_size == 0) { // free
+    free(old_ptr);
+  } else { // realloc
+    new_ptr = realloc(old_ptr, new_size);
+  }
   lua_State* L = (lua_State*)ud;
-  lua_pushliteral(L, REALLOC_CALLBACK);
-  lua_rawget(L, LUA_REGISTRYINDEX);
+  lua_checkstack(L, 4);
+  lua_getfield(L, LUA_REGISTRYINDEX, REALLOC_CALLBACK);
   lua_pushlightuserdata(L, old_ptr);
   lua_pushlightuserdata(L, new_ptr);
   lua_pushinteger(L, new_size);
   lua_call(L, 3, 0);
+  return new_ptr;
 }
 
+// only the set realloc lua_State receive the callback
 static int l_pbc_set_realloc_cb(lua_State* L) {
   int t = lua_type(L, 1);
   if (t == LUA_TFUNCTION) {
-    pbc_set_realloc_cb(l_pbc_realloc_cb, (void*)L);
+    pbc_set_realloc_fn(l_pbc_realloc_fn, (void*)L);
     lua_pushliteral(L, REALLOC_CALLBACK);
     lua_pushvalue(L, 1);
     lua_rawset(L, LUA_REGISTRYINDEX);
   } else {
-    pbc_set_realloc_cb(NULL, NULL);
+    pbc_set_realloc_fn(NULL, NULL);
   }
   return 0;
 }
