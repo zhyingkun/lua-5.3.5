@@ -54,3 +54,5 @@ local tbl = json.parse(str)
 print("json parse again:", tostring(tbl, 16))
 
 print("Memory: ", AllocCount, tostring(AllocMem, 1))
+
+json.tostring({tbl, tbl}) -- will fire error

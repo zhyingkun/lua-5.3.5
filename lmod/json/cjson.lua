@@ -9,7 +9,12 @@ local function IsSequence(tbl)
 	return true
 end
 local LuaValueToCJson
+local TableUnique
 local function TableToCJson(tbl)
+	if TableUnique[tbl] then
+		error("Error: table contains ring")
+	end
+	TableUnique[tbl] = true
 	local bIsSeq = IsSequence(tbl)
 	local item
 	if bIsSeq then
@@ -95,7 +100,9 @@ end
 --]]
 function M.tostring(value, convertFunc, bUnFormatted)
 	ConvertFunc = type(convertFunc) == "function" and convertFunc or nil
+	TableUnique = {}
 	local item = LuaValueToCJson(value)
+	TableUnique = nil
 	if not item then return "" end
 	local str = c.print(item, bUnFormatted)
 	c.delete(item)
