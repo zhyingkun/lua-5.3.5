@@ -32,6 +32,20 @@
 #include <ctype.h>
 #include "cJSON.h"
 
+/* The cJSON structure: */
+struct cJSON {
+  struct cJSON *next, *prev; /* next/prev allow you to walk array/object chains. Alternatively, use GetArraySize/GetArrayItem/GetObjectItem */
+  struct cJSON* child; /* An array or object item will have a child pointer pointing to a chain of the items in the array/object. */
+
+  int type; /* The type of the item, as above. */
+
+  char* valuestring; /* The item's string, if type==cJSON_String */
+  int valueint; /* The item's number, if type==cJSON_Number */
+  double valuedouble; /* The item's number, if type==cJSON_Number */
+
+  char* string; /* The item's name string, if this item is the child of, or is in the list of subitems of an object. */
+};
+
 static const char* ep;
 
 const char* cJSON_GetErrorPtr(void) {
@@ -96,6 +110,32 @@ void cJSON_Delete(cJSON* c) {
     cJSON_free(c);
     c = next;
   }
+}
+
+/* Free string buffer */
+void cJSON_FreeBuffer(char* buffer) {
+  cJSON_free((void*)buffer);
+}
+
+/* Get item type */
+int cJSON_Type(cJSON* item) {
+  return item->type;
+}
+
+/* Get string value */
+const char* cJSON_GetString(cJSON* item) {
+  if (cJSON_NoVariant(item->type) == cJSON_String) {
+    return item->valuestring;
+  }
+  return NULL;
+}
+
+/* Get number value */
+double cJSON_GetNumber(cJSON* item) {
+  if (cJSON_NoVariant(item->type) == cJSON_Number) {
+    return item->valuedouble;
+  }
+  return 0.0;
 }
 
 /* Parse the input text to generate a number, and populate the result into item. */
@@ -1151,6 +1191,30 @@ void cJSON_ReplaceItemInObject(cJSON* object, const char* string, cJSON* newitem
   if (c) {
     newitem->string = cJSON_strdup(string);
     cJSON_ReplaceItemInArray(object, i, newitem);
+  }
+}
+
+/* Traverse array items. */
+void cJSON_ForEachSubItemInArray(cJSON* item, cJSON_TraverseArrayFunc func, void* ud) {
+  if (cJSON_NoVariant(item->type) != cJSON_Array) {
+    return;
+  }
+  cJSON* child = item->child;
+  size_t idx = 0;
+  while (child) {
+    func(ud, idx, child);
+    child = child->next;
+    idx++;
+  }
+}
+void cJSON_ForEachSubItemInObject(cJSON* item, cJSON_TraverseObjectFunc func, void* ud) {
+  if (cJSON_NoVariant(item->type) != cJSON_Object) {
+    return;
+  }
+  cJSON* child = item->child;
+  while (child) {
+    func(ud, child->string, child);
+    child = child->next;
   }
 }
 

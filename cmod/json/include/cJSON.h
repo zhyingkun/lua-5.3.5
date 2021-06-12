@@ -39,19 +39,9 @@ extern "C" {
 #define cJSON_IsReference 256
 #define cJSON_StringIsConst 512
 
-/* The cJSON structure: */
-typedef struct cJSON {
-  struct cJSON *next, *prev; /* next/prev allow you to walk array/object chains. Alternatively, use GetArraySize/GetArrayItem/GetObjectItem */
-  struct cJSON* child; /* An array or object item will have a child pointer pointing to a chain of the items in the array/object. */
+#define cJSON_NoVariant(type) ((type) & (~(cJSON_IsReference | cJSON_StringIsConst)))
 
-  int type; /* The type of the item, as above. */
-
-  char* valuestring; /* The item's string, if type==cJSON_String */
-  int valueint; /* The item's number, if type==cJSON_Number */
-  double valuedouble; /* The item's number, if type==cJSON_Number */
-
-  char* string; /* The item's name string, if this item is the child of, or is in the list of subitems of an object. */
-} cJSON;
+typedef struct cJSON cJSON;
 
 typedef struct cJSON_Hooks {
   void* (*malloc_fn)(size_t sz);
@@ -71,6 +61,14 @@ extern char* cJSON_PrintUnformatted(cJSON* item);
 extern char* cJSON_PrintBuffered(cJSON* item, int prebuffer, int fmt);
 /* Delete a cJSON entity and all subentities. */
 extern void cJSON_Delete(cJSON* c);
+/* Free string buffer */
+extern void cJSON_FreeBuffer(char* buffer);
+/* Get item type */
+extern int cJSON_Type(cJSON* item);
+/* Get string value */
+extern const char* cJSON_GetString(cJSON* item);
+/* Get number value */
+extern double cJSON_GetNumber(cJSON* item);
 
 /* Returns the number of items in an array (or object). */
 extern int cJSON_GetArraySize(cJSON* array);
@@ -116,6 +114,12 @@ extern void cJSON_DeleteItemFromObject(cJSON* object, const char* string);
 extern void cJSON_InsertItemInArray(cJSON* array, int which, cJSON* newitem); /* Shifts pre-existing items to the right. */
 extern void cJSON_ReplaceItemInArray(cJSON* array, int which, cJSON* newitem);
 extern void cJSON_ReplaceItemInObject(cJSON* object, const char* string, cJSON* newitem);
+
+/* Traverse array items. */
+typedef void (*cJSON_TraverseArrayFunc)(void* ud, int key, cJSON* subitem);
+extern void cJSON_ForEachSubItemInArray(cJSON* item, cJSON_TraverseArrayFunc func, void* ud);
+typedef void (*cJSON_TraverseObjectFunc)(void* ud, const char* key, cJSON* subitem);
+extern void cJSON_ForEachSubItemInObject(cJSON* item, cJSON_TraverseObjectFunc func, void* ud);
 
 /* Duplicate a cJSON item */
 extern cJSON* cJSON_Duplicate(cJSON* item, int recurse);
