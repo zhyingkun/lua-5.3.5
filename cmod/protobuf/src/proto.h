@@ -13,7 +13,7 @@ typedef struct {
   const char* key;
   map_ip* id; // id -> _field
   map_sp* name; // string -> _field
-  pbc_rmessage* def; // default message
+  pbc_rmessage* def; // empty rmessage, only for cache, default value store in _field
   pbc_env* env;
 } _message;
 
@@ -34,7 +34,7 @@ typedef struct {
   const char* name;
   int type;
   int label;
-  pbc_var default_v;
+  pbc_var default_v; // real default value
   union {
     const char* n;
     _message* m;
