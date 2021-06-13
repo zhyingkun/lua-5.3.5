@@ -45,7 +45,7 @@ tbl.func = print
 local str = json.tostring(tbl, function(value)
 	print("zykTest:", value)
 	if value == print then return "func: print" end
-end, false)
+end, true)
 print("json tostring:", str)
 print("json minify:", json.minify(str))
 PrintMemory()

@@ -98,13 +98,13 @@ function convertFunc(value)
 	return nil/bool/number/string/table -- nil for drop it
 end
 --]]
-function M.tostring(value, convertFunc, bUnFormatted)
+function M.tostring(value, convertFunc, fmt)
 	ConvertFunc = type(convertFunc) == "function" and convertFunc or nil
 	TableUnique = {}
 	local item = LuaValueToCJson(value)
 	TableUnique = nil
 	if not item then return "" end
-	local str = c.print(item, bUnFormatted)
+	local str = c.print(item, fmt)
 	c.delete(item)
 	return str
 end

@@ -130,10 +130,10 @@ static int json_duplicate(lua_State* L) {
   lua_pushlightuserdata(L, (void*)dup);
   return 1;
 }
-// print(cJsonPtr, bUnFormatted) => string
+// print(cJsonPtr, fmt) => string
 static int json_print(lua_State* L) {
   cJSON* item = check_cJSON_ptr(L, 1);
-  int fmt = lua_toboolean(L, 2) ? 0 : 1;
+  int fmt = lua_toboolean(L, 2);
   char* str = cJSON_PrintBuffered(item, 1024, fmt);
   if (str == NULL) {
     return 0;
