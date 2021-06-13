@@ -203,6 +203,26 @@ local function OutputService(service)
 	OutputLine("}")
 end
 
+local FieldDefaultValue = { -- fieldType => function(value) return OptionStr end
+	tonumber,
+	tonumber,
+	math.tointeger,
+	math.tointeger,
+	math.tointeger,
+	math.tointeger,
+	math.tointeger,
+	function(value) return ({["true"] = true, ["false"] = false})[value] end,
+	function(value) return [["]] .. value .. [["]] end,
+	nil, -- TYPE_GROUP
+	nil, -- TYPE_MESSAGE
+	function(value) return [["]] .. value .. [["]] end,
+	math.tointeger,
+	nil, -- TYPE_ENUM
+	math.tointeger,
+	math.tointeger,
+	math.tointeger,
+	math.tointeger,
+}
 local OnlyRepeated = true
 local function OutputField(field)
 	local typeName = Type[field.type] or NoDot(field.type_name)
@@ -211,6 +231,9 @@ local function OutputField(field)
 	local other = {}
 	if field.json_name ~= field.name then
 		table.insert(other, "json_name = \"" .. field.json_name .. "\"")
+	end
+	if field.default_value ~= nil then
+		table.insert(other, "default = " .. FieldDefaultValue[field.type](field.default_value))
 	end
 	local optionsStr = GetOneLineOptionSrc(FieldOptionsSrc, field.options, other)
 	OutputLine(label .. typeName .. " " .. field.name .. " = " .. tostring(field.number) .. optionsStr .. ";")
