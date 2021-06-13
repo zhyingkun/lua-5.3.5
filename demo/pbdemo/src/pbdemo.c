@@ -51,17 +51,20 @@ static void dump(uint8_t* buffer, int sz) {
 
 static size_t _count = 0;
 
-void realloc_callback(void* ud, void* old_ptr, void* new_ptr, size_t new_size) {
+static void* realloc_fn(void* ud, void* old_ptr, size_t new_size) {
   (void)ud;
-  (void)new_size;
-  if (old_ptr == NULL) {
+  void* new_ptr = NULL;
+  if (old_ptr == NULL) { // malloc
+    new_ptr = malloc(new_size);
     _count++;
-  }
-  if (new_ptr == NULL) {
+  } else if (new_size == 0) { // free
+    free(old_ptr);
     _count--;
+  } else { // realloc
+    new_ptr = realloc(old_ptr, new_size);
   }
+  return new_ptr;
 }
-
 void print_pbc_memory_count() {
   printf("PBC memory retain count: %ld\n", _count);
 }
@@ -74,7 +77,7 @@ int main() {
   }
   dump(pbslice.buffer, pbslice.len);
 
-  pbc_set_realloc_cb(realloc_callback, NULL);
+  pbc_set_realloc_fn(realloc_fn, NULL);
   print_pbc_memory_count();
   pbc_env* env = pbc_new();
   print_pbc_memory_count();
