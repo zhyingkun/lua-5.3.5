@@ -138,6 +138,7 @@ static void push_byte(int byte, pbc_slice* data, int idx) {
 }
 
 static void read_stdin(int mode, pbc_slice* data) {
+  (void)mode;
   data->len = 128;
   data->buffer = malloc(data->len);
   int idx = 0;
@@ -154,6 +155,7 @@ static void read_stdin(int mode, pbc_slice* data) {
 }
 
 static void usage(const char* argv0) {
+  (void)argv0;
   printf("  -h help.\n"
          "  -p <filename.pb> protobuf file\n"
          "  -m <messagename>\n"
