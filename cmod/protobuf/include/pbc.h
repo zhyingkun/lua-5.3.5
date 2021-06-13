@@ -21,6 +21,9 @@
 #define PBC_UNKNOWN 12
 #define PBC_REPEATED 128
 
+#define pbc_novariant(t) ((t) & (~PBC_REPEATED))
+#define pbc_isrepeated(t) ((t)&PBC_REPEATED)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -66,6 +69,7 @@ typedef union {
 
 typedef void (*pbc_decoder)(void* ud, int type, const char* type_name, pbc_value* v, int id, const char* key);
 int pbc_decode(pbc_env* env, const char* type_name, pbc_slice* slice, pbc_decoder f, void* ud);
+int pbc_default(pbc_env* env, const char* type_name, pbc_decoder f, void* ud);
 
 // message api
 

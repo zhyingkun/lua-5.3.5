@@ -329,3 +329,65 @@ int pbc_decode(pbc_env* env, const char* type_name, pbc_slice* slice, pbc_decode
   _pbcC_close(_ctx);
   return ctx->number;
 }
+
+typedef struct {
+  pbc_decoder cb;
+  void* ud;
+} argus;
+static void foreach_field(void* p, void* ud) {
+  argus* p_argu = (argus*)ud;
+  _field* f = (_field*)p;
+  pbc_value v;
+  const char* type_name = NULL;
+  int type = _pbcP_type(f, &type_name);
+  assert(type != 0);
+  if (type_name == NULL) {
+    type_name = TYPENAME[type & ~PBC_REPEATED];
+  }
+  switch (f->type) {
+    case PTYPE_DOUBLE:
+    case PTYPE_FLOAT:
+      v.f = f->default_v->real;
+      break;
+    case PTYPE_ENUM:
+      v.e.id = f->default_v->e.id;
+      v.e.name = f->default_v->e.name;
+      break;
+    case PTYPE_INT64:
+    case PTYPE_UINT64:
+    case PTYPE_FIXED64:
+    case PTYPE_SFIXED64:
+    case PTYPE_INT32:
+    case PTYPE_UINT32:
+    case PTYPE_BOOL:
+    case PTYPE_FIXED32:
+    case PTYPE_SFIXED32:
+    case PTYPE_SINT32:
+    case PTYPE_SINT64:
+      v.i.low = f->default_v->integer.low;
+      v.i.hi = f->default_v->integer.hi;
+      break;
+    case PTYPE_STRING:
+    case PTYPE_BYTES:
+      v.s.buffer = (void*)f->default_v->s.str;
+      v.s.len = f->default_v->s.len;
+      break;
+    case PTYPE_MESSAGE:
+      v.s.buffer = f->default_v->m.buffer;
+      v.s.len = f->default_v->m.len;
+      break;
+    default:
+      assert(0);
+      break;
+  }
+  p_argu->cb(p_argu->ud, type, type_name, &v, f->id, f->name);
+}
+int pbc_default(pbc_env* p, const char* type_name, pbc_decoder f, void* ud) {
+  _message* m = _pbcP_get_message(p, type_name);
+  if (m == NULL) {
+    return -1;
+  }
+  argus argu = {f, ud};
+  _pbcM_sp_foreach_ud(m->name, foreach_field, (void*)&argu);
+  return 0;
+}
