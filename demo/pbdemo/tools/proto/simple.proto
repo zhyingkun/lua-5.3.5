@@ -2,8 +2,14 @@ syntax = "proto3";
 
 package zykTest;
 
+message SubSimple {
+  int32 len = 1;
+  string foo = 2;
+}
+
 message Simple {
   repeated string name = 1;
   int32 count = 2;
   bytes buffer = 3;
+  SubSimple sub = 4;
 }

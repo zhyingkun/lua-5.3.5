@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+package zykTest;
+
+message DefaultValue {
+  optional sint32 zigzag = 1 [default = 43];
+  optional string str = 2 [default = "hello world!"];
+  optional double number = 4 [default = 1.2];
+  optional fixed32 fixint = 5 [default = 4953];
+  optional int32 negint = 6 [default = -1];
+}
