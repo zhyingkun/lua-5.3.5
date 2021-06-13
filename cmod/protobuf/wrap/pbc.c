@@ -1025,6 +1025,138 @@ static int l_pbc_tointeger(lua_State* L) {
   return 1;
 }
 
+typedef struct {
+  lua_State* L;
+  pbc_env* env;
+} UD;
+
+static void l_pbc_decode_pure_cb(void* ud, int type, const char* type_name, pbc_value* v, int id, const char* key) {
+  lua_State* L = ((UD*)ud)->L;
+  if (key == NULL) {
+    // undefined field
+    return;
+  }
+  int nvt = pbc_novariant(type);
+  if (nvt == PBC_MESSAGE) {
+    lua_newtable(L);
+    pbc_env* env = ((UD*)ud)->env;
+    pbc_slice slice = v->s;
+    int n = pbc_decode(env, nvt, &slice, l_pbc_decode_pure_cb, ud);
+    if (n < 0) {
+      lua_pop(L, 1);
+      lua_pushnil(L);
+    }
+  } else {
+    push_value(L, nvt, type_name, v);
+  }
+  if (pbc_isrepeated(type)) {
+    lua_getfield(L, -2, key); // rep, value, tbl
+    if (lua_isnil(L, -1)) {
+      lua_pop(L, 1);
+      lua_newtable(L);
+      lua_pushvalue(L, -1);
+      lua_setfield(L, -4, key);
+    }
+    int n = lua_rawlen(L, -1);
+    lua_insert(L, -2); // value, rep, tbl
+    lua_rawseti(L, -2, n + 1);
+    lua_pop(L, 1);
+  } else {
+    lua_setfield(L, -2, key);
+  }
+}
+static int l_pbc_decode_pure(lua_State* L) {
+  struct pbc_env* env = (struct pbc_env*)checkuserdata(L, 1);
+  const char* type = luaL_checkstring(L, 2);
+  pbc_slice slice;
+  size_t len;
+  slice.buffer = (void*)luaL_checklstring(L, 3, &len);
+  slice.len = (int)len;
+  lua_newtable(L);
+  UD ud = {L, env};
+  int n = pbc_decode(env, type, &slice, l_pbc_decode_pure_cb, (void*)&ud);
+  if (n < 0) {
+    return 0;
+  }
+  return 1;
+}
+
+static void default_cb(void* ud, int type, const char* type_name, pbc_value* v, int id, const char* key) {
+  lua_State* L = ((UD*)ud)->L;
+  lua_getfield(L, -1, key);
+  int t = lua_type(L, -1);
+  lua_pop(L, 1);
+  if (t != LUA_TNIL) {
+    return;
+  }
+  if (pbc_isrepeated(type)) {
+    lua_newtable(L);
+    lua_setfield(L, -2, key);
+    return;
+  }
+  switch (type) {
+    case PBC_INT:
+    case PBC_FIXED64:
+    case PBC_FIXED32:
+    case PBC_INT64:
+    case PBC_UINT: {
+      uint64_t integer = (uint64_t)v->i.low | (uint64_t)v->i.hi << 32;
+      lua_pushinteger(L, integer);
+    } break;
+    case PBC_REAL: {
+      union {
+        uint64_t i;
+        double d;
+      } u;
+      u.i = (uint64_t)v->i.low | (uint64_t)v->i.hi << 32;
+      lua_pushnumber(L, u.d);
+    } break;
+    case PBC_BOOL:
+      lua_pushinteger(L, v->i.low);
+      break;
+    case PBC_ENUM:
+      lua_pushstring(L, v->e.name);
+      break;
+    case PBC_STRING:
+    case PBC_BYTES:
+      lua_pushlstring(L, v->s.buffer, v->s.len);
+      break;
+    case PBC_MESSAGE: {
+      lua_newtable(L);
+      pbc_env* env = ((UD*)ud)->env;
+      int n = pbc_default(env, type_name, default_cb, ud);
+      if (n < 0) {
+        lua_pop(L, 1);
+        return;
+      }
+    } break;
+    default:
+      return;
+  }
+  lua_setfield(L, -2, key);
+}
+static int l_pbc_decode(lua_State* L) {
+#define ArgumentCount 3
+  lua_settop(L, ArgumentCount);
+  lua_pushcfunction(L, l_pbc_decode_pure);
+  for (int i = 1; i <= ArgumentCount; i++) {
+    lua_pushvalue(L, i);
+  }
+  lua_call(L, ArgumentCount, 1);
+#undef ArgumentCount
+  if (lua_isnil(L, -1)) {
+    return 0;
+  }
+  struct pbc_env* env = (struct pbc_env*)checkuserdata(L, 1);
+  const char* type = luaL_checkstring(L, 2);
+  UD ud = {L, env};
+  int n = pbc_default(env, type, default_cb, (void*)&ud);
+  if (n < 0) {
+    return 0;
+  }
+  return 1;
+}
+
 LUAMOD_API int luaopen_libprotobuf(lua_State* L) {
   luaL_Reg reg[] = {
       {"_env_new", _env_new},
@@ -1065,6 +1197,8 @@ LUAMOD_API int luaopen_libprotobuf(lua_State* L) {
       {"dezigzag", l_pbc_dezigzag},
       {"todouble", l_pbc_todouble},
       {"tointeger", l_pbc_tointeger},
+      {"decode_pure", l_pbc_decode_pure},
+      {"decode", l_pbc_decode},
       {NULL, NULL},
   };
 
