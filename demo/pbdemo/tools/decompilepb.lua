@@ -1,16 +1,32 @@
-local pbdir = arg[1]
+local pbdir = arg[1] -- maybe only one pb file
 local protodir = arg[2]
 
-if not pbdir or not protodir then
-	error("Usage: lua " .. arg[0] .. " <pbdir> <protodir>")
+if not pbdir then
+	local usage = [[
+	Usage: lua %s <pbdir> <protodir>
+	Or: lua %s <pbfile>]]
+	local script = arg[0]
+	print(string.format(usage, script, script))
+	return
 end
 
 local pb2proto = require("protobuf.pb2proto")
-function decompilepb(pbPath, protoPath)
-	local fd = io.open(pbPath, "rb")
-	local pbbin = fd:read("a")
+local function ReadBinaryFileAll(file)
+	local fd = io.open(file, "rb")
+	local binary = fd:read("a")
 	fd:close()
-	fd = nil
+	return binary
+end
+
+if not protodir then
+	local pbbin = ReadBinaryFileAll(pbdir)
+	local proto = pb2proto(pbbin)
+	print(proto)
+	return
+end 
+
+function decompilepb(pbPath, protoPath)
+	local pbbin = ReadBinaryFileAll(pbPath)
 	local proto = pb2proto(pbbin)
 	io.open(protoPath, "wb"):write(proto):close()
 end
