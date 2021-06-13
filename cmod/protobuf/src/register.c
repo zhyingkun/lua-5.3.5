@@ -137,7 +137,7 @@ static void _register_field(pbc_rmessage* field, _field* f, _stringpool* pool) {
       f->label = LABEL_PACKED;
     }
   }
-  if (f->type == PTYPE_MESSAGE && f->type == PTYPE_ENUM) {
+  if (f->type == PTYPE_MESSAGE || f->type == PTYPE_ENUM) {
     f->type_name.n = pbc_rmessage_string(field, "type_name", 0, NULL) + 1; // abandon prefix '.'
   } else {
     f->type_name.n = NULL;
