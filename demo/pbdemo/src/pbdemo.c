@@ -101,8 +101,8 @@ int main() {
   pbc_wmessage_buffer(msg, &slice); // slice.buffer point to msg.ptr
   dump(slice.buffer, slice.len);
 
-  char* buf_start = slice.buffer;
-  char* buf_end = slice.buffer + slice.len;
+  char* buf_start = (char*)slice.buffer;
+  char* buf_end = (char*)slice.buffer + slice.len;
   printf("slice.buffer: %p, end: %p\n", buf_start, buf_end);
   pbc_rmessage* m = pbc_rmessage_new(env, "zykTest.Simple", &slice);
   pbc_wmessage_delete(msg);
