@@ -1,11 +1,14 @@
-local cpath
+local cpath, path
 local isWin = os.sysname == "Windows"
 if isWin then
 	cpath = ".\\cmods\\?.dll;"
+	path = ".\\lmods\\?.lua;"
 else
 	cpath = "./cmods/?.so;"
+	path = "./lmods/?.lua;"
 end
 package.cpath = cpath .. package.cpath
+package.path = path .. package.path
 
 local exe = require("libdir").basename(arg[0])
 if os.sysname == "Windows" then
