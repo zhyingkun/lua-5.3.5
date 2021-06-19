@@ -1393,9 +1393,33 @@ LUALIB_API lua_State* luaL_newstate_z(void) {
   return L;
 }
 
-LUA_API void luaL_close_z(lua_State* L) {
+LUALIB_API void luaL_close_z(lua_State* L) {
   pool_release((MemPool*)L->l_G->ud);
   lua_close(L);
+}
+
+LUALIB_API void luaL_atexit(lua_State* L) {
+  luaL_checktype(L, -1, LUA_TFUNCTION);
+  int funcIdx = lua_gettop(L);
+  if (lua_getfield(L, LUA_REGISTRYINDEX, LUA_ATEXIT) != LUA_TTABLE) {
+    lua_pop(L, 1);
+    lua_newtable(L);
+    lua_pushvalue(L, -1);
+    lua_setfield(L, LUA_REGISTRYINDEX, LUA_ATEXIT);
+  }
+  int tblIdx = funcIdx + 1;
+  lua_pushnil(L);
+  while (lua_next(L, -2)) {
+    if (lua_rawequal(L, -1, funcIdx)) {
+      lua_pop(L, 4);
+      return;
+    }
+    lua_pop(L, 1);
+  }
+  int key = lua_rawlen(L, tblIdx) + 1;
+  lua_pushvalue(L, funcIdx); // func, tbl, func
+  lua_seti(L, tblIdx, key);
+  lua_pop(L, 2);
 }
 
 /*

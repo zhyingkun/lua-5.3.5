@@ -434,6 +434,15 @@ static int handle_script(lua_State* L, char** argv) {
     int n = pushargs(L); /* push arguments to script */
     status = docall(L, n, LUA_MULTRET);
   }
+  if (status == LUA_OK) {
+    if (lua_getfield(L, LUA_REGISTRYINDEX, LUA_ATEXIT) == LUA_TTABLE) {
+      lua_pushnil(L);
+      while (lua_next(L, -2)) {
+        lua_pcall(L, 0, 0, 0);
+      }
+    }
+    lua_pop(L, 1);
+  }
   return report(L, status);
 }
 
