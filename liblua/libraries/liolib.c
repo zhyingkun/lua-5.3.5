@@ -671,6 +671,42 @@ static int f_fileno(lua_State* L) {
   return 1;
 }
 
+static int io_readfile(lua_State* L) {
+  const char* filename = luaL_checkstring(L, 1);
+  FILE* f = fopen(filename, "rb");
+  if (f == NULL) {
+    return luaL_fileresult(L, 0, filename);
+  }
+  read_all(L, f);
+  int result = 1;
+  if (ferror(f)) {
+    result = luaL_fileresult(L, 0, filename);
+  }
+  if (fclose(f)) {
+    result = luaL_fileresult(L, 0, filename);
+  }
+  return result;
+}
+
+static int io_writefile(lua_State* L) {
+  const char* filename = luaL_checkstring(L, 1);
+  size_t len;
+  const char* str = luaL_checklstring(L, 2, &len);
+  FILE* f = fopen(filename, "wb");
+  if (f == NULL) {
+    return luaL_fileresult(L, 0, filename);
+  }
+  lua_pushboolean(L, 1);
+  int result = 1;
+  if (fwrite(str, sizeof(char), len, f) != len) {
+    result = luaL_fileresult(L, 0, filename);
+  }
+  if (fclose(f)) {
+    result = luaL_fileresult(L, 0, filename);
+  }
+  return 1;
+}
+
 /*
 ** functions for 'io' library
 */
@@ -686,6 +722,8 @@ static const luaL_Reg iolib[] = {
     {"tmpfile", io_tmpfile},
     {"type", io_type},
     {"write", io_write},
+    {"readfile", io_readfile},
+    {"writefile", io_writefile},
     {NULL, NULL},
 };
 
