@@ -147,6 +147,15 @@ static void uvwrap_work_hello(uv_work_t* req) {
   printf("Hello work queue!\n");
 }
 
+static int uvwrap_atexit(lua_State* L) {
+  uv_loop_t* loop = uv_default_loop();
+  if (loop) {
+    uv_run(loop, UV_RUN_DEFAULT);
+    uv_loop_close(loop);
+  }
+  return 0;
+}
+
 static luaL_Reg uvwrap_fs_funcs[] = {
     {"open", uvwrap_fs_open},
     {"close", uvwrap_fs_close},
@@ -215,5 +224,8 @@ UV_EXTERN LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
 
   uvwrap_stream_init_metatable(L);
   uvwrap_tcp_init_metatable(L);
+
+  lua_pushcfunction(L, uvwrap_atexit);
+  luaL_atexit(L);
   return 1;
 }
