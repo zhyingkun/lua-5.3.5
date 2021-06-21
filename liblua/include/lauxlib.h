@@ -89,6 +89,8 @@ LUALIB_API int(luaL_getsubtable)(lua_State* L, int idx, const char* fname);
 
 LUALIB_API void(luaL_traceback)(lua_State* L, lua_State* L1, const char* msg, int level);
 
+LUALIB_API void(luaL_ptraceback)(lua_State* L);
+
 LUALIB_API void(luaL_requiref)(lua_State* L, const char* modname, lua_CFunction openf, int glb);
 
 LUALIB_API const char*(luaL_protoinfo)(lua_State* L, int idx, int recursive, const char* options);

@@ -160,6 +160,12 @@ LUALIB_API void luaL_traceback(lua_State* L, lua_State* L1, const char* msg, int
   lua_concat(L, lua_gettop(L) - top);
 }
 
+LUALIB_API void luaL_ptraceback(lua_State* L) {
+  luaL_traceback(L, L, NULL, 0);
+  printf("%s\n", lua_tostring(L, -1));
+  lua_pop(L, 1);
+}
+
 /* }====================================================== */
 
 /*
