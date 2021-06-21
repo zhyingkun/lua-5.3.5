@@ -26,7 +26,7 @@ LUAI_DDEF int uvwrap_tcp_new(lua_State* L) {
 }
 
 static int uvwrap_tcp_bind(lua_State* L) {
-  uv_tcp_t* handle = luaL_checkudata(L, 1, UVWRAP_TCP_TYPE);
+  uv_tcp_t* handle = (uv_tcp_t*)luaL_checkudata(L, 1, UVWRAP_TCP_TYPE);
   const char* ip = luaL_checkstring(L, 2);
   int port = luaL_checkinteger(L, 3);
   int ipv6only = lua_toboolean(L, 4);
