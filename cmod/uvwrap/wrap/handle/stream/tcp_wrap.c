@@ -11,8 +11,8 @@
 
 #include <objectpool.h>
 #include <uvwrap.h>
-#include <uvstreamwrap.h>
-#include <uvtcpwrap.h>
+#include <stream_wrap.h>
+#include <tcp_wrap.h>
 
 LUAI_DDEF int uvwrap_tcp_new(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);

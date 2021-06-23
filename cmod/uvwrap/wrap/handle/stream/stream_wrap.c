@@ -11,7 +11,7 @@
 
 #include <objectpool.h>
 #include <uvwrap.h>
-#include <uvstreamwrap.h>
+#include <stream_wrap.h>
 
 // sidx => object
 //         stream metatable

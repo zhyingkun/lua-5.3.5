@@ -14,9 +14,9 @@
 #include <uv.h>
 
 #include <objectpool.h>
-#include <uvfswrap.h>
-#include <uvstreamwrap.h>
-#include <uvtcpwrap.h>
+#include <fs_wrap.h>
+#include <stream_wrap.h>
+#include <tcp_wrap.h>
 #include <uvwrap.h>
 
 static int uvwrap_default_loop(lua_State* L) {

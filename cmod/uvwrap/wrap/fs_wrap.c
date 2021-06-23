@@ -1,4 +1,4 @@
-#define uvfswrap_c
+#define fs_wrap_c
 
 #include <lprefix.h> // must include first
 
@@ -11,7 +11,7 @@
 
 #include <objectpool.h>
 #include <uvwrap.h>
-#include <uvfswrap.h>
+#include <fs_wrap.h>
 
 #define GET_BUF(req, buf) buf = &(((uvwrap_fs_buf_t*)req)->buf)
 
