@@ -162,8 +162,56 @@ LUALIB_API void luaL_traceback(lua_State* L, lua_State* L1, const char* msg, int
 
 LUALIB_API void luaL_ptraceback(lua_State* L) {
   luaL_traceback(L, L, NULL, 0);
-  printf("%s\n", lua_tostring(L, -1));
+  fprintf(stderr, "%s\n", lua_tostring(L, -1));
   lua_pop(L, 1);
+}
+
+LUALIB_API void luaL_pstack(lua_State* L, int level) {
+  lua_Debug ar;
+  int depth = lua_getstackdepth(L, &ar) - 1 + 1;
+  if (level < -1 || level > depth) {
+    fprintf(stderr, "Level out of range: [%d, %d]\n", -1, depth);
+    return;
+  }
+  int lstart, lend;
+  if (level == -1) {
+    lstart = 0;
+    lend = depth;
+  } else {
+    lstart = lend = level;
+  }
+  for (int l = lstart; l <= lend; l++) {
+    int idxstart = 0;
+    lua_getstack(L, l, &ar);
+    StkId top;
+    StkId bottom = ar.i_ci->func;
+    if (l == 0) {
+      top = L->top;
+    } else {
+      lua_Debug ar_;
+      lua_getstack(L, l - 1, &ar_);
+      top = ar_.i_ci->func;
+    }
+    int idxend = top - bottom - 1;
+    lua_getinfo(L, "Slnt", &ar); // get info from ar->i_ci
+    pushfuncname(L, &ar);
+    const char* name = lua_tostring(L, -1);
+    for (int idx = idxend; idx >= idxstart; idx--) {
+      lua_pushstackvalue(L, l, idx);
+#define FMT_FUNC "func => (%p) Stack[%d] = %s -> %s\n"
+#define FMT_NORM "        (%p) Stack[%d] = %s %s\n"
+      const char* fmt = idx == idxstart ? FMT_FUNC : FMT_NORM;
+      StkId ptr = bottom + idx;
+      const char* str = luaL_tolstring(L, -1, NULL);
+      const char* funcname = idx == idxstart ? name : "";
+      fprintf(stderr, fmt, ptr, idx, str, funcname);
+#undef FMT_FUNC
+#undef FMT_NORM
+      lua_pop(L, 2);
+    }
+    lua_pop(L, 1);
+  }
+  printf("L->stack(%p)\n", L->stack);
 }
 
 /* }====================================================== */
@@ -798,6 +846,8 @@ LUALIB_API const char* luaL_tolstring(lua_State* L, int idx, size_t* len) {
         const char* kind = (tt == LUA_TSTRING) ? lua_tostring(L, -1) : luaL_typename(L, idx);
         if (lua_type(L, idx) == LUA_TLIGHTUSERDATA) {
           kind = "lightuserdata";
+        } else if (lua_iscfunction(L, idx)) {
+          kind = "cfunction";
         }
         lua_pushfstring(L, "%s: %p", kind, lua_topointer(L, idx));
         if (tt != LUA_TNIL)
