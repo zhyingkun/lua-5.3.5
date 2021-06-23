@@ -181,6 +181,9 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 6. 增加 luaL_escape 方法，用于转义字符串，支持任意二进制数据的转义
 7. 增加 luaL_isvar 方法，用于判断目标字符串是否为合法的 Lua 变量名
 8. 增加 luaL_atexit 方法，用于在 lua 命令执行完脚本之后自动执行一系列函数
+9. 增加 lua_pushstackvalue 方法，用于支持访问当前 Lua 栈中的任意槽位
+10. 增加 luaL_ptraceback 方法，用于调试时打印 Lua 调用栈
+11. 增加 luaL_pstack 方法，用于调试时打印 Lua 栈槽内容
 
 ---
 
