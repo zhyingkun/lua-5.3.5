@@ -27,74 +27,55 @@ elseif(WIN32)
 	set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 endif()
 
-include_directories(../../liblua/include)
-include_directories(../../liblua/core)
-include_directories(./include)
-include_directories(./src)
+set(
+	EXTERNAL_INCLUDE_DIRS
+	../../liblua/include
+	../../liblua/core
+)
+
+foreach(INCLUDE_DIR ${EXTERNAL_INCLUDE_DIRS})
+	include_directories(${INCLUDE_DIR})
+endforeach(INCLUDE_DIR)
+
+set(
+	MODULE_DIRS
+	include
+	src
+	wrap
+	wrap/handle
+	wrap/handle/stream
+)
+set(
+	NOT_INCLUDE_DIR
+	include/uv
+)
+if(APPLE)
+	list(APPEND MODULE_DIRS src/unix src/unix/macosx)
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+	list(APPEND MODULE_DIRS src/unix src/unix/linux)
+elseif(WIN32)
+	list(APPEND MODULE_DIRS src/win)
+endif()
 
 set(UVWRAP_MOD_SRC)
 set(UVWRAP_HEADERS)
-foreach(SRC_DIR wrap wrap/handle wrap/handle/stream)
+function(add_files SRC_DIR)
+endfunction(add_files)
+foreach(SRC_DIR ${MODULE_DIRS})
 	include_directories(${SRC_DIR})
+endforeach(SRC_DIR)
+foreach(SRC_DIR ${MODULE_DIRS} ${NOT_INCLUDE_DIR})
+	set(_SRC_)
 	aux_source_directory(${SRC_DIR} _SRC_)
+	set(_HEADERS_)
 	file(GLOB _HEADERS_ "${SRC_DIR}/*.h")
 	source_group(${SRC_DIR} FILES ${_SRC_} ${_HEADERS_})
 	list(APPEND UVWRAP_MOD_SRC ${_SRC_})
 	list(APPEND UVWRAP_HEADERS ${_HEADERS_})
 endforeach(SRC_DIR)
 
-file(GLOB UV_PUBLIC_HEADERS "./include/*.h")
-source_group(include FILES ${UV_PUBLIC_HEADERS})
-file(GLOB UV_PUBLIC_UV_HEADERS "./include/uv/*.h")
-source_group("include/uv" FILES ${UV_PUBLIC_UV_HEADERS})
-include_directories(./src)
-file(GLOB UV_PRIVATE_HEADERS "./src/*.h")
-source_group(src FILES ${UV_PRIVATE_HEADERS})
-if(APPLE)
-	include_directories(./src/unix)
-	file(GLOB UV_HEADERS_UNIX "./src/unix/*.h")
-	source_group(unix FILES ${UV_HEADERS_UNIX})
-	# include_directories(./src/unix/macosx)
-	# file(GLOB UV_HEADERS_UNIX_MACOSX "./src/unix/macosx/*.h")
-	# source_group(macosx FILES ${UV_HEADERS_UNIX_MACOSX})
-	list(APPEND UV_PRIVATE_HEADERS ${UV_HEADERS_UNIX})
-elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	include_directories(./src/unix)
-	file(GLOB UV_HEADERS_UNIX "./src/unix/*.h")
-	source_group(unix FILES ${UV_HEADERS_UNIX})
-	include_directories(./src/unix/linux)
-	file(GLOB UV_HEADERS_UNIX_LINUX "./src/unix/linux/*.h")
-	source_group(linux FILES ${UV_HEADERS_UNIX_LINUX})
-	list(APPEND UV_PRIVATE_HEADERS ${UV_HEADERS_UNIX} ${UV_HEADERS_UNIX_LINUX})
-elseif(WIN32)
-	include_directories(./src/win)
-	file(GLOB UV_HEADERS_WIN "./src/win/*.h")
-	source_group(win FILES ${UV_HEADERS_WIN})
-	list(APPEND UV_PRIVATE_HEADERS ${UV_HEADERS_WIN})
-endif()
-
-aux_source_directory(./src UV_SOURCES)
-source_group(src FILES ${UV_SOURCES})
-if(APPLE)
-	aux_source_directory(./src/unix UV_SOURCES_UNIX)
-	source_group(unix FILES ${UV_SOURCES_UNIX})
-	aux_source_directory(./src/unix/macosx UV_SOURCES_UNIX_MACOSX)
-	source_group(macosx FILES ${UV_SOURCES_UNIX_MACOSX})
-	list(APPEND UV_SOURCES ${UV_SOURCES_UNIX} ${UV_SOURCES_UNIX_MACOSX})
-elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	aux_source_directory(./src/unix UV_SOURCES_UNIX)
-	source_group(unix FILES ${UV_SOURCES_UNIX})
-	aux_source_directory(./src/unix/linux UV_SOURCES_UNIX_LINUX)
-	source_group(linux FILES ${UV_SOURCES_UNIX_LINUX})
-	list(APPEND UV_SOURCES ${UV_SOURCES_UNIX} ${UV_SOURCES_UNIX_LINUX})
-elseif(WIN32)
-	aux_source_directory(./src/win UV_SOURCES_WIN)
-	source_group(win FILES ${UV_SOURCES_WIN})
-	list(APPEND UV_SOURCES ${UV_SOURCES_WIN})
-endif()
-
 # dynamic load library  .so .bundle
-add_library(${PROJECT_NAME} MODULE ${UVWRAP_MOD_SRC} ${UVWRAP_HEADERS} ${UV_SOURCES} ${UV_PUBLIC_HEADERS} ${UV_PUBLIC_UV_HEADERS} ${UV_PRIVATE_HEADERS})
+add_library(${PROJECT_NAME} MODULE ${UVWRAP_MOD_SRC} ${UVWRAP_HEADERS})
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	FOLDER "cmod"
 	# OUTPUT_NAME ${PROJECT_NAME}
