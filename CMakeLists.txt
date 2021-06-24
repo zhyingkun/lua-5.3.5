@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
+
+set(CMAKE_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk)
+
 project(lua-5.3.5
 	VERSION 5.3.5
 	# DESCRIPTION "Lua project" # cmake version >= 3.9
