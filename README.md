@@ -93,6 +93,7 @@ ndk-build -B # rebuild project
     - dir: 《Lua 程序设计》中的遍历文件夹，加了 Win 版实现
     - gb2312: 类似 utf8 标准库实现的 gb2312 模块
     - hello: helloworld
+    - json: 封装了 JSON 模块，底层使用 cJSON，支持 Table 与 JSON 字符串互转
     - lproc: 《Lua 程序设计》中的多线程模块，使用 pthread
     - luasocket: 封装了 socket 接口，代码来自[LuaSocket](https://github.com/diegonehab/luasocket)
     - man: 标准库函数简易文档，方便命令行操作时使用
@@ -102,9 +103,10 @@ ndk-build -B # rebuild project
     - c-call-lua: C 作为宿主，调用 Lua 来完成操作
     - c-lang: C 语言特性示例
     - lpg: 《Lua Programming Gems》中的一部分案例代码
+    - pbdemo: 使用 ProtocolBuffer 的示例，包含协议示例
     - pil: 《Lua 程序设计》中的一部分示例代码
-    - protobuf: protobuf 特性示例
     - runner: Lua 环境的独立运行工具
+    - scripts: 用于测试的 Lua 脚本
     - stdlib: 用 Lua 语言实现的部分 Lua 标准库函数
     - uvwrap: Lua 代码层对 libuv 的封装，方便使用
 3. etc: 工程杂项
@@ -117,13 +119,18 @@ ndk-build -B # rebuild project
     - include: Lua 源码中的外部使用头文件单独放到一个文件夹中
     - libraries: Lua 自带的官方标准库
     - test: 扩展 Lua 功能的测试代码
-5. lua: Lua 官方命令行工具，带编译器和虚拟机，依赖 Lua 库
-6. luac: Lua 官方命令行编译器
-7. luawithlib: 包含 lua 和 luaC 模块的运行时动态库（iOS 下是静态库）
+5. lmod: Lua 语言实现的工具模块
+    - common: 通用功能
+    - json: JSON 模块的 Lua 层封装
+    - libuv: libuv 模块的 Lua 封装
+    - protobuf: protobuf 模块的 Lua 封装
+6. lua: Lua 官方命令行工具，带编译器和虚拟机，依赖 Lua 库
+7. luac: Lua 官方命令行编译器
+8. luawithlib: 包含 lua 和 luaC 模块的运行时动态库（iOS 下是静态库）
     - Android: 安卓的 ndk-build 相关配置
     - iOS: Xcode 工程
     - MacOS: 用于生成 MacOSX 下运行的 bundle
-8. tools: 相关工具
+9. tools: 相关工具
     - luatoken: 用于查看词法分析 Token 的整数类型对应的含义
     - luatt: 用于查看 Lua Tag Type 的整数类型对应的含义
     - pbdump: 用于查看 protobuf 二进制信息
