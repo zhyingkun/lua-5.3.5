@@ -9,8 +9,8 @@ project(luac
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug")
 endif()
-message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
-message(STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
+# message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
+# message(STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
 
 if(APPLE)
 	set(CMAKE_C_FLAGS         "-std=gnu99 -Wall -Wextra")

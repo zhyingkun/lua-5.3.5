@@ -9,8 +9,8 @@ project(gb2312
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug")
 endif()
-message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
-message(STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
+# message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
+# message(STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
 
 # LUA_BUILD_AS_DLL are for all windows components, include liblua, cmod library, and user exe which use liblua
 if(APPLE)

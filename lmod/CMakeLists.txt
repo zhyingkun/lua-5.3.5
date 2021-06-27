@@ -5,7 +5,7 @@ project(lmod
 	# HOMEPAGE_URL "www.zhyingkun.com"
 )
 
-message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
+# message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
 
 foreach(LMOD_DIR common json libuv protobuf)
 	install(DIRECTORY ${LMOD_DIR} DESTINATION mod/lua/5.3)

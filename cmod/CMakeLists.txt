@@ -6,7 +6,7 @@ project(cmod
 	LANGUAGES C CXX
 )
 
-message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
+# message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
 
 add_subdirectory(hello)
 add_subdirectory(luasocket)

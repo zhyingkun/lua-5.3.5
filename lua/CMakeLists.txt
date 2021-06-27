@@ -9,8 +9,8 @@ project(lua
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug")
 endif()
-message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
-message(STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
+# message(STATUS "CMakeLists.txt for ${PROJECT_NAME}")
+# message(STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
 
 # LUA_USE_MACOSX and LUA_USE_LINUX are only available for lua.c and liblua, not for user
 if(APPLE)
