@@ -141,6 +141,7 @@
 ** Configuration for Paths.
 ** ===================================================================
 */
+// clang-format off
 
 /*
 ** LUA_PATH_SEP is the character that separates templates in a path.
@@ -168,33 +169,39 @@
 ** In Windows, any exclamation mark ('!') in the path is replaced by the
 ** path of the directory of the executable file of the current process.
 */
-#define LUA_LDIR "!\\lua\\"
-#define LUA_CDIR "!\\"
-#define LUA_SHRDIR "!\\..\\share\\lua\\" LUA_VDIR "\\"
-#define LUA_ZYK_LDIR "!\\..\\mod\\lua\\" LUA_VDIR "\\"
+#define LUA_LDIR    "!\\lua\\"
+#define LUA_CDIR    "!\\"
+#define LUA_SHRDIR  "!\\..\\share\\lua\\" LUA_VDIR "\\"
+#define ZYK_LDIR    "!\\..\\mod\\lua\\" LUA_VDIR "\\"
 #define LUA_PATH_DEFAULT \
-  LUA_ZYK_LDIR "?.lua;" LUA_LDIR "?.lua;" LUA_LDIR "?\\init.lua;" LUA_CDIR "?.lua;" LUA_CDIR "?\\init.lua;" LUA_SHRDIR "?.lua;" LUA_SHRDIR \
-           "?\\init.lua;" \
-           ".\\?.lua;" \
-           ".\\?\\init.lua"
+        ZYK_LDIR "?.lua;" ZYK_LDIR "?\\init.lua;" \
+        LUA_LDIR "?.lua;" LUA_LDIR "?\\init.lua;" \
+        LUA_CDIR "?.lua;" LUA_CDIR "?\\init.lua;" \
+        LUA_SHRDIR "?.lua;" LUA_SHRDIR "?\\init.lua;" \
+        ".\\?.lua;" ".\\?\\init.lua"
 #define LUA_CPATH_DEFAULT \
-  LUA_CDIR "?.dll;" LUA_CDIR "..\\lib\\lua\\" LUA_VDIR "\\?.dll;" LUA_CDIR "loadall.dll;" \
-           ".\\?.dll"
+        LUA_CDIR "?.dll;" \
+        LUA_CDIR "..\\lib\\lua\\" LUA_VDIR "\\?.dll;" \
+        LUA_CDIR "loadall.dll;" \
+        ".\\?.dll"
 
 #else /* }{ */
 
-#define LUA_ROOT "/usr/local/"
-#define LUA_LDIR LUA_ROOT "share/lua/" LUA_VDIR "/"
-#define LUA_CDIR LUA_ROOT "lib/lua/" LUA_VDIR "/"
-#define LUA_ZYK_LDIR LUA_ROOT "zyk/lua/mod/lua/" LUA_VDIR "/"
-#define LUA_ZYK_CDIR LUA_ROOT "zyk/lua/lib/lua/" LUA_VDIR "/"
+#define LUA_ROOT  "/usr/local/"
+#define LUA_LDIR  LUA_ROOT "share/lua/" LUA_VDIR "/"
+#define LUA_CDIR  LUA_ROOT "lib/lua/" LUA_VDIR "/"
+#define ZYK_LDIR  LUA_ROOT "zyk/lua/mod/lua/" LUA_VDIR "/"
+#define ZYK_CDIR  LUA_ROOT "zyk/lua/lib/lua/" LUA_VDIR "/"
 #define LUA_PATH_DEFAULT \
-  LUA_ZYK_LDIR "?.lua;" LUA_LDIR "?.lua;" LUA_LDIR "?/init.lua;" LUA_CDIR "?.lua;" LUA_CDIR "?/init.lua;" \
-           "./?.lua;" \
-           "./?/init.lua"
+        ZYK_LDIR "?.lua;" ZYK_LDIR "?/init.lua;" \
+        LUA_LDIR "?.lua;" LUA_LDIR "?/init.lua;" \
+        LUA_CDIR "?.lua;" LUA_CDIR "?/init.lua;" \
+        "./?.lua;" "./?/init.lua"
 #define LUA_CPATH_DEFAULT \
-  LUA_ZYK_CDIR "?.so;" LUA_CDIR "?.so;" LUA_CDIR "loadall.so;" \
-               "./?.so"
+        ZYK_CDIR "?.so;" \
+        LUA_CDIR "?.so;" \
+        LUA_CDIR "loadall.so;" \
+        "./?.so"
 #endif /* } */
 
 /*
@@ -208,6 +215,7 @@
 #define LUA_DIRSEP "/"
 #endif
 
+// clang-format on
 /* }================================================================== */
 
 /*
