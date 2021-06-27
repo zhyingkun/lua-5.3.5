@@ -175,6 +175,7 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 19. 增加 string.isvar 函数，用于判断目标字符串是否为合法的 Lua 变量名
 20. 全局表中增加 "NULL" 字段，值为 lightuserdata 类型的 NULL
 21. 增加 io.readfile 和 io.writefile 两个函数，用于进行快速的全内容文件读写
+22. 非 Win 环境下，package.path 增加 "/usr/local/zyk/lua/mod/lua/5.3/?.lua" 搜索路径；Win 环境下，package.path 增加 "(lua.exe 所在目录)/../mod/lua/5.3/?.lua" 搜索路径
 
 ---
 
