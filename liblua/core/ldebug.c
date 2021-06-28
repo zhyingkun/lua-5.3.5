@@ -129,16 +129,26 @@ LUA_API int lua_getstackdepth(lua_State* L, lua_Debug* ar) {
 LUA_API int lua_pushstackvalue(lua_State* L, int level, int idx) {
   lua_Debug ar;
   CallInfo* ci;
+  int count = 0;
+  StkId base = NULL;
   if (lua_getstack(L, level, &ar)) {
     ci = ar.i_ci;
-    int count = ci->top - ci->func;
-    if (idx >= 0 && idx < count) {
-      lua_lock(L);
-      setobj2s(L, L->top, ci->func + idx);
-      api_incr_top(L);
-      lua_unlock(L);
-      return 1;
-    }
+    count = ci->top - ci->func;
+    base = ci->func;
+  } else if (level == 0) {
+    count = L->top - L->stack;
+    base = L->stack;
+  } else if (lua_getstack(L, level - 1, &ar)) {
+    ci = ar.i_ci;
+    count = ci->func - L->stack;
+    base = L->stack;
+  }
+  if (idx >= 0 && idx < count && base != NULL) {
+    lua_lock(L);
+    setobj2s(L, L->top, base + idx);
+    api_incr_top(L);
+    lua_unlock(L);
+    return 1;
   }
   return 0;
 }

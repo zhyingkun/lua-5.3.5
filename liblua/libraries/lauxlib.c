@@ -176,15 +176,13 @@ LUALIB_API void luaL_pstack(lua_State* L, int level) {
   int lstart, lend;
   if (level == -1) {
     lstart = 0;
-    lend = depth;
+    lend = depth + lua_getstack(L, depth, &ar);
   } else {
     lstart = lend = level;
   }
   for (int l = lstart; l <= lend; l++) {
-    int idxstart = 0;
-    lua_getstack(L, l, &ar);
     StkId top;
-    StkId bottom = ar.i_ci->func;
+    StkId bottom;
     if (l == 0) {
       top = L->top;
     } else {
@@ -192,26 +190,39 @@ LUALIB_API void luaL_pstack(lua_State* L, int level) {
       lua_getstack(L, l - 1, &ar_);
       top = ar_.i_ci->func;
     }
-    int idxend = top - bottom - 1;
-    lua_getinfo(L, "Slnt", &ar); // get info from ar->i_ci
-    pushfuncname(L, &ar);
+    if (lua_getstack(L, l, &ar)) {
+      bottom = ar.i_ci->func;
+      lua_getinfo(L, "Slnt", &ar); // get info from ar->i_ci
+      pushfuncname(L, &ar);
+    } else {
+      bottom = L->stack;
+      lua_pushliteral(L, "");
+    }
     const char* name = lua_tostring(L, -1);
+    int idxstart = 0;
+    int idxend = top - bottom - 1;
     for (int idx = idxend; idx >= idxstart; idx--) {
       lua_pushstackvalue(L, l, idx);
+#define FMT_STAC "L->stack(%p) Stack[%d] = %s %s\n"
 #define FMT_FUNC "func => (%p) Stack[%d] = %s -> %s\n"
 #define FMT_NORM "        (%p) Stack[%d] = %s %s\n"
-      const char* fmt = idx == idxstart ? FMT_FUNC : FMT_NORM;
+      const char* fmt = idx == idxstart ? bottom == L->stack ? FMT_STAC : FMT_FUNC : FMT_NORM;
       StkId ptr = bottom + idx;
-      const char* str = luaL_tolstring(L, -1, NULL);
+      size_t length = 0;
+      const char* str = luaL_tolstring(L, -1, &length);
+      char* dst = (char*)malloc(length * 4 + 1);
+      length = luaL_escape(dst, str, length);
+      dst[length] = '\0';
       const char* funcname = idx == idxstart ? name : "";
-      fprintf(stderr, fmt, ptr, idx, str, funcname);
+      fprintf(stderr, fmt, ptr, idx, dst, funcname);
+      free(dst);
+#undef FMT_STAC
 #undef FMT_FUNC
 #undef FMT_NORM
       lua_pop(L, 2);
     }
     lua_pop(L, 1);
   }
-  printf("L->stack(%p)\n", L->stack);
 }
 
 /* }====================================================== */
