@@ -169,6 +169,7 @@ LUALIB_API void luaL_ptraceback(lua_State* L) {
 LUALIB_API void luaL_pstack(lua_State* L, int level) {
   lua_Debug ar;
   int depth = lua_getstackdepth(L, &ar);
+  depth += lua_getstack(L, depth, &ar);
   if (level < -1 || level > depth) {
     fprintf(stderr, "Level out of range: [%d, %d]\n", -1, depth);
     return;
@@ -176,7 +177,7 @@ LUALIB_API void luaL_pstack(lua_State* L, int level) {
   int lstart, lend;
   if (level == -1) {
     lstart = 0;
-    lend = depth + lua_getstack(L, depth, &ar);
+    lend = depth;
   } else {
     lstart = lend = level;
   }
