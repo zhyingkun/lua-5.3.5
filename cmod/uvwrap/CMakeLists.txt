@@ -32,11 +32,6 @@ set(
 	../../liblua/include
 	../../liblua/core
 )
-
-foreach(INCLUDE_DIR ${EXTERNAL_INCLUDE_DIRS})
-	include_directories(${INCLUDE_DIR})
-endforeach(INCLUDE_DIR)
-
 set(
 	MODULE_DIRS
 	include
@@ -57,11 +52,10 @@ elseif(WIN32)
 	list(APPEND MODULE_DIRS src/win)
 endif()
 
-set(UVWRAP_MOD_SRC)
-set(UVWRAP_HEADERS)
-function(add_files SRC_DIR)
-endfunction(add_files)
-foreach(SRC_DIR ${MODULE_DIRS})
+set(MODULE_SRC)
+set(MODULE_HEADERS)
+
+foreach(SRC_DIR ${MODULE_DIRS} ${EXTERNAL_INCLUDE_DIRS})
 	include_directories(${SRC_DIR})
 endforeach(SRC_DIR)
 foreach(SRC_DIR ${MODULE_DIRS} ${NOT_INCLUDE_DIR})
@@ -70,12 +64,12 @@ foreach(SRC_DIR ${MODULE_DIRS} ${NOT_INCLUDE_DIR})
 	set(_HEADERS_)
 	file(GLOB _HEADERS_ "${SRC_DIR}/*.h")
 	source_group(${SRC_DIR} FILES ${_SRC_} ${_HEADERS_})
-	list(APPEND UVWRAP_MOD_SRC ${_SRC_})
-	list(APPEND UVWRAP_HEADERS ${_HEADERS_})
+	list(APPEND MODULE_SRC ${_SRC_})
+	list(APPEND MODULE_HEADERS ${_HEADERS_})
 endforeach(SRC_DIR)
 
 # dynamic load library  .so .bundle
-add_library(${PROJECT_NAME} MODULE ${UVWRAP_MOD_SRC} ${UVWRAP_HEADERS})
+add_library(${PROJECT_NAME} MODULE ${MODULE_SRC} ${MODULE_HEADERS})
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	FOLDER "cmod"
 	# OUTPUT_NAME ${PROJECT_NAME}
