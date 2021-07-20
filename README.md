@@ -176,6 +176,7 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 20. 全局表中增加 "NULL" 字段，值为 lightuserdata 类型的 NULL
 21. 增加 io.readfile 和 io.writefile 两个函数，用于进行快速的全内容文件读写
 22. 非 Win 环境下，package.path 增加 "/usr/local/zyk/lua/mod/lua/5.3/?.lua" 搜索路径；Win 环境下，package.path 增加 "(lua.exe 所在目录)/../mod/lua/5.3/?.lua" 搜索路径
+23. 增加 debug.inject 函数，用于在运行时某个上下文中插入一段代码，底层通过 luaL_inject 来实现
 
 ---
 
@@ -192,6 +193,7 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 9. 增加 lua_pushstackvalue 方法，用于支持访问当前 Lua 栈中的任意槽位
 10. 增加 luaL_ptraceback 方法，用于调试时打印 Lua 调用栈
 11. 增加 luaL_pstack 方法，用于调试时打印 Lua 栈槽内容
+12. 增加 luaL_inject 方法，用于在运行时某个上下文中插入一段代码
 
 ---
 
