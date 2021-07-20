@@ -564,6 +564,13 @@ static int db_protoinfo(lua_State* L) {
   return 1;
 }
 
+static int db_inject(lua_State* L) {
+  size_t len;
+  const char* source = luaL_checklstring(L, 1, &len);
+  int level = luaL_optinteger(L, 2, 0);
+  return luaL_inject(L, source, len, level);
+}
+
 static const luaL_Reg dblib[] = {
     {"debug", db_debug},
     {"getuservalue", db_getuservalue},
@@ -588,6 +595,7 @@ static const luaL_Reg dblib[] = {
     {"protoinfo", db_protoinfo},
     {"upvalues", db_upvalues},
     {"locals", db_locals},
+    {"inject", db_inject},
     {NULL, NULL},
 };
 

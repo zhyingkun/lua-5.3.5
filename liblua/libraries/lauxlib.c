@@ -1052,7 +1052,7 @@ typedef struct {
   int level;
   int current_level;
   int idx_tables;
-  StringBuffer buffer;
+  StringBuffer buffer[1];
 } DetailStr;
 
 // [-0, +0], need 2 slot
@@ -1098,7 +1098,7 @@ static const char* tab_str = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
 // idx points to a table, detail->level > 0
 static void recursive_tostring(DetailStr* detail, int idx) {
   lua_State* L = detail->L;
-  StringBuffer* b = &detail->buffer;
+  StringBuffer* b = detail->buffer;
   idx = lua_absindex(L, idx);
   lua_checkstack(L, 4); // 4 is the needed max stack slot for ds_recordsubtable
 
@@ -1150,24 +1150,24 @@ LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int 
   if (level > MAX_TAB_SIZE) {
     level = MAX_TAB_SIZE;
   }
-  DetailStr dStr;
-  dStr.L = L;
+  DetailStr dStr[1];
+  dStr->L = L;
   lua_pushnil(L); // [-0, +1]
-  strbuff_init(&dStr.buffer, L, -1, DEFAULT_BUFFER_SIZE);
-  dStr.level = level;
-  dStr.current_level = 0;
+  strbuff_init(dStr->buffer, L, -1, DEFAULT_BUFFER_SIZE);
+  dStr->level = level;
+  dStr->current_level = 0;
   // table for record which has been walk through
   lua_createtable(L, 0, 8); // [-0, +1]
-  dStr.idx_tables = lua_gettop(L);
-  recursive_tostring(&dStr, idx);
+  dStr->idx_tables = lua_gettop(L);
+  recursive_tostring(dStr, idx);
   lua_pop(L, 1); // [-1, +0]
   // get the length and address from the TString
-  size_t length = dStr.buffer.n;
+  size_t length = dStr->buffer->n;
   if (len != NULL) {
     *len = length;
   }
-  const char* result = lua_pushlstring(L, dStr.buffer.b, length);
-  strbuff_destroy(&dStr.buffer);
+  const char* result = lua_pushlstring(L, dStr->buffer->b, length);
+  strbuff_destroy(dStr->buffer);
   lua_remove(L, -2); // [-1, +0]
   // now we have the string in the top of lua stack
   return result;
@@ -2083,8 +2083,7 @@ LUALIB_API const char* luaL_protoinfo(lua_State* L, int idx, int recursive, cons
   options = options != NULL ? options : "hcklupz";
   int z = strchr(options, 'z') ? 1 : 0;
 
-  StringBuffer buffer;
-  StringBuffer* b = &buffer;
+  StringBuffer b[1];
   lua_pushnil(L); // [-0, +1]
   strbuff_init(b, L, -1, DEFAULT_BUFFER_SIZE);
 
@@ -2095,6 +2094,118 @@ LUALIB_API const char* luaL_protoinfo(lua_State* L, int idx, int recursive, cons
   strbuff_destroy(b);
   lua_remove(L, -2); // [-1, +0]
   return result;
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Inject lua code in runtime
+** =======================================================
+*/
+
+#define FULL_SOURCE_TEMPLATE \
+  "local %s\n" \
+  "return function(...)\n" \
+  "  %s\n" \
+  "end, function()\n" \
+  "  return {%s}\n" \
+  "end\n"
+
+LUALIB_API int luaL_inject(lua_State* L, const char* source, size_t len, int level) {
+  lua_checkstack(L, 9);
+  if (len == 0) {
+    len = strlen(source);
+  }
+  lua_Debug ar;
+  int targetlevel = level + 1;
+  if (!lua_getstack(L, targetlevel, &ar)) { // level + 1 for outer scope
+    luaL_error(L, "Get stack with level %d failed!", level);
+  }
+  lua_createtable(L, 8, 0); // upvalue name => index
+  int upvalue_index = lua_gettop(L);
+  lua_createtable(L, 8, 0); // local name => value
+  int local_value = lua_gettop(L);
+
+  StringBuffer args[1];
+  lua_pushnil(L);
+  strbuff_init(args, L, -1, 128);
+  StringBuffer locals[1];
+  lua_pushnil(L);
+  strbuff_init(locals, L, -1, 128);
+  const char* name = NULL;
+  for (int i = 1; (name = lua_getlocal(L, &ar, i)) != NULL; i++) {
+    // "(*temporary)", "(for index)", "(for limit)", "(for step)", "(for generator)", "(for state)", "(for control)"
+    if (*name != '(') {
+      lua_setfield(L, local_value, name); // save the local value
+      strbuff_addfstring(args, "%s,", name);
+      strbuff_addfstring(locals, "[%d]=%s,", i, name);
+    } else {
+      lua_pop(L, 1); // pop the local value
+    }
+  }
+  lua_getinfo(L, "f", &ar); // push the target level function
+  int levelfidx = lua_gettop(L);
+  for (int i = 1; (name = lua_getupvalue(L, levelfidx, i)) != NULL; i++) {
+    lua_pop(L, 1); // pop the upvalue
+    lua_pushinteger(L, i);
+    lua_setfield(L, upvalue_index, name);
+    strbuff_addfstring(args, "%s,", name);
+  }
+  strbuff_addliteral(args, "_");
+  strbuff_addlstring(args, "\0", 1);
+  strbuff_addlstring(locals, "\0", 1);
+
+  StringBuffer fullsource[1];
+  lua_pushnil(L);
+  strbuff_init(fullsource, L, -1, 1024);
+  strbuff_addfstring(fullsource, FULL_SOURCE_TEMPLATE, args->b, source, locals->b);
+
+  int status = luaL_loadbuffer(L, fullsource->b, fullsource->n, "inject");
+
+  strbuff_destroy(args);
+  strbuff_destroy(locals);
+  strbuff_destroy(fullsource);
+
+  if (status != LUA_OK) {
+    return lua_error(L);
+  }
+
+  lua_call(L, 0, 2); // call the loader
+
+  int updateidx = lua_gettop(L);
+  lua_pushvalue(L, -2);
+  int funcidx = lua_gettop(L);
+  for (int i = 1; (name = lua_getupvalue(L, funcidx, i)) != NULL; i++) {
+    lua_pop(L, 1); // pop the upvalue
+    if (lua_getfield(L, local_value, name) != LUA_TNIL) {
+      lua_setupvalue(L, funcidx, i); // ignore the return name
+    } else {
+      lua_pop(L, 1);
+    }
+    if (lua_getfield(L, upvalue_index, name) != LUA_TNIL && lua_isinteger(L, -1)) {
+      lua_upvaluejoin(L, funcidx, i, levelfidx, lua_tointeger(L, -1));
+    }
+    lua_pop(L, 1);
+  }
+  int nargs = 0;
+  for (int i = 1; (name = lua_getlocal(L, &ar, -i)) != NULL; i++) { // name: "(*vararg)"
+    nargs++;
+  }
+  lua_call(L, nargs, LUA_MULTRET); // run the inject code
+  int nresults = lua_gettop(L) - updateidx;
+
+  lua_checkstack(L, 3);
+  lua_pushvalue(L, updateidx);
+  lua_call(L, 0, 1); // call the update function
+  int tblidx = lua_gettop(L);
+  lua_pushnil(L);
+  while (lua_next(L, tblidx)) {
+    lua_setlocal(L, &ar, lua_tointeger(L, -2));
+  }
+  lua_pop(L, 1);
+
+  return nresults;
 }
 
 /* }====================================================== */
