@@ -177,6 +177,8 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 21. 增加 io.readfile 和 io.writefile 两个函数，用于进行快速的全内容文件读写
 22. 非 Win 环境下，package.path 增加 "/usr/local/zyk/lua/mod/lua/5.3/?.lua" 搜索路径；Win 环境下，package.path 增加 "(lua.exe 所在目录)/../mod/lua/5.3/?.lua" 搜索路径
 23. 增加 debug.inject 函数，用于在运行时某个上下文中插入一段代码，底层通过 luaL_inject 来实现
+24. Lua 命令的 arg 表增加 argc 和 argv 两个字段，值为 main 函数的参数
+25. 增加 string 元表的\_\_div 元方法，用于方便路径拼接
 
 ---
 
@@ -194,6 +196,8 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 10. 增加 luaL_ptraceback 方法，用于调试时打印 Lua 调用栈
 11. 增加 luaL_pstack 方法，用于调试时打印 Lua 栈槽内容
 12. 增加 luaL_inject 方法，用于在运行时某个上下文中插入一段代码
+13. 增加 luaL_testudata_recursive 方法，用于递归的测试某个对象是否对应的用户类型
+14. 增加 luaL_checkudata_recursive 方法，递归测试用户类型失败则抛出异常
 
 ---
 

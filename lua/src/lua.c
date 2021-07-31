@@ -220,7 +220,11 @@ static void createargtable(lua_State* L, char** argv, int argc, int script) {
   if (script == argc)
     script = 0; /* no script name? */
   narg = argc - (script + 1); /* number of positive indices */
-  lua_createtable(L, narg, script + 1);
+  lua_createtable(L, narg, script + 1 + 2);
+  lua_pushlightuserdata(L, (void*)argv);
+  lua_setfield(L, -2, "argv");
+  lua_pushinteger(L, argc);
+  lua_setfield(L, -2, "argc");
   for (i = 0; i < argc; i++) {
     lua_pushstring(L, argv[i]);
     lua_rawseti(L, -2, i - script);

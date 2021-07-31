@@ -401,6 +401,32 @@ LUALIB_API void* luaL_checkudata(lua_State* L, int ud, const char* tname) {
   return p;
 }
 
+LUALIB_API void* luaL_testudata_recursive(lua_State* L, int ud, const char* tname) {
+  void* p = lua_touserdata(L, ud);
+  if (p != NULL) { /* value is a userdata? */
+    int udidx = lua_absindex(L, ud);
+    luaL_getmetatable(L, tname);
+    int tidx = lua_gettop(L);
+    lua_pushvalue(L, udidx);
+    while (lua_getmetatable(L, -1)) {
+      if (lua_rawequal(L, -1, tidx)) {
+        lua_pop(L, 3);
+        return p;
+      }
+      lua_remove(L, -2);
+    }
+    lua_pop(L, 2);
+  }
+  return NULL; /* value is not a userdata with a metatable */
+}
+
+LUALIB_API void* luaL_checkudata_recursive(lua_State* L, int ud, const char* tname) {
+  void* p = luaL_testudata_recursive(L, ud, tname);
+  if (p == NULL)
+    typeerror(L, ud, tname);
+  return p;
+}
+
 /* }====================================================== */
 
 /*

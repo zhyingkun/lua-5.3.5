@@ -1664,6 +1664,21 @@ static int str_isvar(lua_State* L) {
 
 /* }====================================================== */
 
+#if defined(_WIN32)
+#define SEP "\\"
+#else
+#define SEP "/"
+#endif
+
+static int str_catpath(lua_State* L) {
+  lua_pushliteral(L, SEP); // path separate
+  lua_insert(L, -2);
+  lua_concat(L, 3);
+  return 1;
+}
+
+#undef SEP
+
 static const luaL_Reg strlib[] = {
     {"byte", str_byte},
     {"bytes", str_bytes},
@@ -1696,6 +1711,8 @@ static void createmetatable(lua_State* L) {
   lua_pop(L, 1); /* pop dummy string */
   lua_pushvalue(L, -2); /* get string library */
   lua_setfield(L, -2, "__index"); /* metatable.__index = string */
+  lua_pushcfunction(L, str_catpath); /* push meta function */
+  lua_setfield(L, -2, "__div"); /* metatable.__div = str_catpath */
   lua_pop(L, 1); /* pop metatable */
 }
 
