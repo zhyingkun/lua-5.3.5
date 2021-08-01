@@ -383,7 +383,7 @@ static const luaL_Reg FS_FUNCTION(funcs)[] = {
     {NULL, NULL},
 };
 
-static const luaL_Enum UVWRAP_ENUM(open_flags)[] = {
+static const luaL_Enum UVWRAP_ENUM(open_flag)[] = {
     {"APPEND", UV_FS_O_APPEND},
     {"CREAT", UV_FS_O_CREAT},
     {"DIRECT", UV_FS_O_DIRECT},
@@ -412,7 +412,7 @@ static const luaL_Enum UVWRAP_ENUM(open_flags)[] = {
 void FS_FUNCTION(init)(lua_State* L) {
   luaL_newlib(L, FS_FUNCTION(funcs));
 
-  REGISTER_ENUM(open_flags);
+  REGISTER_ENUM(open_flag);
 
   lua_setfield(L, -2, "fs");
 }
