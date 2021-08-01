@@ -1,155 +1,209 @@
 #define uvstreamwrap_c
-
-#include <lprefix.h> // must include first
-
-#include <stdlib.h>
-
-#include <lua.h>
-#include <lauxlib.h>
-
-#include <uv.h>
-
-#include <objectpool.h>
 #include <uvwrap.h>
-#include <stream_wrap.h>
 
-// sidx => object
-//         stream metatable
-//         object metatable
+#define STREAM_CALLBACK(name) UVWRAP_CALLBACK(stream, name)
 
-static uv_stream_t* luaL_checkstream(lua_State* L, int idx) {
-  uv_stream_t* ptr = (uv_stream_t*)lua_topointer(L, idx);
-  if (ptr != NULL) {
-    lua_pushvalue(L, idx);
-    int idxobj = lua_gettop(L);
-    luaL_getmetatable(L, UVWRAP_STREAM_TYPE);
-    int idxsm = idxobj + 1; // index of stream metatable
-    int idxom = idxobj + 2; // index of object metatable
-    while (lua_getmetatable(L, idxobj)) {
-      if (lua_rawequal(L, idxsm, idxom)) {
-        lua_pop(L, 3);
-        return ptr;
-      }
-      lua_replace(L, idxobj);
-    }
-    lua_pop(L, 2);
-  }
-  luaL_error(L, "need libuv stream object");
-  return NULL;
+void STREAM_FUNCTION(ctor)(lua_State* L, uv_stream_t* handle) {
+  HANDLE_FUNCTION(ctor)
+  (L, (uv_handle_t*)handle);
 }
 
-static void on_stream_connection(uv_stream_t* server, int status) {
-  lua_State* L = (lua_State*)uv_handle_get_data((uv_handle_t*)server);
-  PUSH_HOLD_OBJECT(L, server, 0);
-  PUSH_HOLD_OBJECT(L, server, 1);
+static void STREAM_CALLBACK(shutdown)(uv_shutdown_t* req, int status) {
+  lua_State* L;
+  PUSH_REQ_CALLBACK_CLEAN(L, req);
   lua_pushinteger(L, status);
-  lua_pcall(L, 2, 0, 0);
-  UNHOLD_LUA_OBJECT(L, server, 0);
-  UNHOLD_LUA_OBJECT(L, server, 1);
+  MEMORY_FUNCTION(free)
+  (req);
+  CALL_LUA_FUNCTION(L, 1, 0);
+}
+// Shutdown the outgoing (write) side of a duplex stream
+static int STREAM_FUNCTION(shutdown)(lua_State* L) {
+  uv_stream_t* handle = luaL_checkstream(L, 1);
+  luaL_checktype(L, 2, LUA_TFUNCTION);
+
+  uv_shutdown_t* req = (uv_shutdown_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_shutdown_t));
+  int err = uv_shutdown(req, handle, STREAM_CALLBACK(shutdown));
+  CHECK_ERROR(L, err);
+  SET_REQ_CALLBACK(L, 2, req);
+  return 0;
 }
 
-static int uvwrap_stream_listen(lua_State* L) {
-#define hold_handle 1
+static void STREAM_CALLBACK(listen)(uv_stream_t* handle, int status) {
+  lua_State* L;
+  PUSH_HANDLE_CALLBACK(L, handle, IDX_STREAM_LISTEN);
+  lua_pushinteger(L, status);
+  CALL_LUA_FUNCTION(L, 1, 0);
+}
+static int STREAM_FUNCTION(listen)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
   int backlog = luaL_checkinteger(L, 2);
-#define idx 3
-  luaL_checktype(L, idx, LUA_TFUNCTION);
-  HOLD_LUA_OBJECT(L, handle, 0, idx);
-  HOLD_LUA_OBJECT(L, handle, 1, hold_handle);
-#undef idx
-#undef hold_handle
-  uv_handle_set_data((uv_handle_t*)handle, (void*)L);
-  int ret = uv_listen(handle, backlog, on_stream_connection);
-  lua_pushinteger(L, ret);
-  return 1;
+  luaL_checktype(L, 3, LUA_TFUNCTION);
+
+  int err = uv_listen(handle, backlog, STREAM_CALLBACK(listen));
+  CHECK_ERROR(L, err);
+  SET_HANDLE_CALLBACK(L, handle, IDX_STREAM_LISTEN, 3);
+  return 0;
 }
 
-static int uvwrap_stream_accept(lua_State* L) {
+static int STREAM_FUNCTION(accept)(lua_State* L) {
   uv_stream_t* server = luaL_checkstream(L, 1);
   uv_stream_t* client = luaL_checkstream(L, 2);
-  lua_pushinteger(L, uv_accept(server, client));
+  int err = uv_accept(server, client);
+  lua_pushinteger(L, err);
   return 1;
 }
 
-static void on_stream_read_start(uv_stream_t* client, ssize_t nread, const uv_buf_t* buf) {
-  lua_State* L = (lua_State*)uv_handle_get_data((uv_handle_t*)client);
-  PUSH_HOLD_OBJECT(L, client, 0);
-  PUSH_HOLD_OBJECT(L, client, 1);
-  lua_pushinteger(L, nread);
+static void STREAM_CALLBACK(read_start)(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
+  lua_State* L;
+  PUSH_HANDLE_CALLBACK(L, handle, IDX_STREAM_READ_START);
+  lua_pushinteger(L, nread); // nread == 0 means No data in buffer, nread == UV_EOF means EOF
   if (nread > 0) {
     lua_pushlstring(L, buf->base, nread);
   } else {
     lua_pushnil(L);
   }
-  uvwrap_free_buffer((uv_handle_t*)client, buf);
-  lua_pcall(L, 3, 0, 0);
-  UNHOLD_LUA_OBJECT(L, client, 0);
-  UNHOLD_LUA_OBJECT(L, client, 1);
+  MEMORY_FUNCTION(buf_free)
+  (buf);
+  CALL_LUA_FUNCTION(L, 2, 0);
+}
+static int STREAM_FUNCTION(read_start)(lua_State* L) {
+  uv_stream_t* handle = luaL_checkstream(L, 1);
+  luaL_checktype(L, 2, LUA_TFUNCTION);
+
+  int err = uv_read_start(handle, MEMORY_FUNCTION(buf_alloc), STREAM_CALLBACK(read_start));
+  CHECK_ERROR(L, err);
+  SET_HANDLE_CALLBACK(L, handle, IDX_STREAM_READ_START, 2);
+  return 0;
 }
 
-static int uvwrap_stream_read_start(lua_State* L) {
-#define hold_handle 1
-  uv_stream_t* handle = luaL_checkstream(L, hold_handle);
-#define idx 2
-  luaL_checktype(L, idx, LUA_TFUNCTION);
-  HOLD_LUA_OBJECT(L, handle, 0, idx);
-  HOLD_LUA_OBJECT(L, handle, 1, hold_handle);
-#undef idx
-#undef hold_handle
-  uv_handle_set_data((uv_handle_t*)handle, (void*)L);
-  int ret = uv_read_start(handle, uvwrap_alloc_buffer, on_stream_read_start);
-  lua_pushinteger(L, ret);
-  return 1;
+static int STREAM_FUNCTION(read_stop)(lua_State* L) {
+  uv_stream_t* handle = luaL_checkstream(L, 1);
+  int err = uv_read_stop(handle);
+  CHECK_ERROR(L, err);
+  return 0;
 }
 
-static void on_stream_write(uv_write_t* req, int status) {
+static void STREAM_CALLBACK(write)(uv_write_t* req, int status) {
   lua_State* L;
-  PUSH_REQ_CALLBACK(L, req);
+  PUSH_REQ_CALLBACK_CLEAN(L, req);
+  UNHOLD_REQ_PARAM(L, req, 1);
+  MEMORY_FUNCTION(free)
+  (req);
   lua_pushinteger(L, status);
-  lua_pcall(L, 1, 0, 0);
-  CLEAR_REQ_CALLBACK(L, req);
-  UNHOLD_LUA_OBJECT(L, req, 1);
-  UNHOLD_LUA_OBJECT(L, req, 2);
-  uvwrap_write_buf_t_free((uvwrap_write_buf_t*)req);
+  CALL_LUA_FUNCTION(L, 1, 0);
+}
+static int STREAM_FUNCTION(write)(lua_State* L) {
+  uv_stream_t* handle = luaL_checkstream(L, 1);
+  size_t len;
+  const char* data = luaL_checklstring(L, 2, &len);
+  luaL_checktype(L, 3, LUA_TFUNCTION);
+
+  uv_write_t* req = (uv_write_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_write_t));
+  BUFS_INIT(data, len);
+  int err = uv_write(req, handle, BUFS, NBUFS, STREAM_CALLBACK(write));
+  CHECK_ERROR(L, err);
+  SET_REQ_CALLBACK(L, 3, req);
+  HOLD_REQ_PARAM(L, req, 1, 2);
+  return 0;
 }
 
-static int uvwrap_stream_write(lua_State* L) {
-#define hold_handle 1
-  uv_stream_t* handle = luaL_checkstream(L, hold_handle);
-#define hold_data 2
+static void STREAM_CALLBACK(write2)(uv_write_t* req, int status) {
+  lua_State* L;
+  PUSH_REQ_CALLBACK_CLEAN(L, req);
+  UNHOLD_REQ_PARAM(L, req, 1);
+  MEMORY_FUNCTION(free)
+  (req);
+  lua_pushinteger(L, status);
+  CALL_LUA_FUNCTION(L, 1, 0);
+}
+static int STREAM_FUNCTION(write2)(lua_State* L) {
+  uv_stream_t* handle = luaL_checkstream(L, 1);
   size_t len;
-  const char* data = luaL_checklstring(L, hold_data, &len);
-#define idx 3
-  luaL_checktype(L, idx, LUA_TFUNCTION);
-  uvwrap_write_buf_t* wreq = uvwrap_write_buf_t_alloc();
-  wreq->buf.base = (char*)data;
-  wreq->buf.len = len;
-  uv_write_cb cb;
-  SET_REQ_CALLBACK(L, idx, wreq, cb, on_stream_write);
-  HOLD_LUA_OBJECT(L, handle, 1, hold_handle);
-  HOLD_LUA_OBJECT(L, handle, 2, hold_data);
-#undef idx
-#undef hold_data
-#undef hold_handle
-  int ret = uv_write(&wreq->req, handle, &wreq->buf, 1, cb);
-  lua_pushinteger(L, ret);
+  const char* data = luaL_checklstring(L, 2, &len);
+  uv_stream_t* send_handle = luaL_checkstream(L, 3);
+  luaL_checktype(L, 4, LUA_TFUNCTION);
+
+  uv_write_t* req = (uv_write_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_write_t));
+  BUFS_INIT(data, len);
+  int err = uv_write2(req, handle, BUFS, NBUFS, send_handle, STREAM_CALLBACK(write2));
+  CHECK_ERROR(L, err);
+  SET_REQ_CALLBACK(L, 4, req);
+  HOLD_REQ_PARAM(L, req, 1, 2);
+  return 0;
+}
+
+static int STREAM_FUNCTION(try_write)(lua_State* L) {
+  uv_stream_t* handle = luaL_checkstream(L, 1);
+  size_t len;
+  const char* data = luaL_checklstring(L, 2, &len);
+
+  BUFS_INIT(data, len);
+  int err = uv_try_write(handle, BUFS, NBUFS);
+  lua_pushinteger(L, err);
   return 1;
 }
 
-const luaL_Reg uvwrap_stream_metafunc[] = {
-    {"listen", uvwrap_stream_listen},
-    {"accept", uvwrap_stream_accept},
-    {"read_start", uvwrap_stream_read_start},
-    {"write", uvwrap_stream_write},
+static int STREAM_FUNCTION(is_readable)(lua_State* L) {
+  uv_stream_t* handle = luaL_checkstream(L, 1);
+  lua_pushboolean(L, uv_is_readable(handle));
+  return 1;
+}
+
+static int STREAM_FUNCTION(is_writable)(lua_State* L) {
+  uv_stream_t* handle = luaL_checkstream(L, 1);
+  lua_pushboolean(L, uv_is_writable(handle));
+  return 1;
+}
+
+static int STREAM_FUNCTION(set_blocking)(lua_State* L) {
+  uv_stream_t* handle = luaL_checkstream(L, 1);
+  int err = uv_stream_set_blocking(handle, lua_toboolean(L, 2));
+  CHECK_ERROR(L, err);
+  return 1;
+}
+
+static int STREAM_FUNCTION(get_write_queue_size)(lua_State* L) {
+  uv_stream_t* handle = luaL_checkstream(L, 1);
+  lua_pushinteger(L, uv_stream_get_write_queue_size(handle));
+  return 1;
+}
+
+int STREAM_FUNCTION(__gc)(lua_State* L) {
+  return HANDLE_FUNCTION(__gc)(L);
+}
+
+#define EMPLACE_STREAM_FUNCTION(name) \
+  { #name, STREAM_FUNCTION(name) }
+
+static const luaL_Reg uvwrap_stream_metafuncs[] = {
+    EMPLACE_STREAM_FUNCTION(shutdown),
+    EMPLACE_STREAM_FUNCTION(listen),
+    EMPLACE_STREAM_FUNCTION(accept),
+    EMPLACE_STREAM_FUNCTION(read_start),
+    EMPLACE_STREAM_FUNCTION(read_stop),
+    EMPLACE_STREAM_FUNCTION(write),
+    EMPLACE_STREAM_FUNCTION(write2),
+    EMPLACE_STREAM_FUNCTION(try_write),
+    EMPLACE_STREAM_FUNCTION(is_readable),
+    EMPLACE_STREAM_FUNCTION(is_writable),
+    EMPLACE_STREAM_FUNCTION(set_blocking),
+    EMPLACE_STREAM_FUNCTION(get_write_queue_size),
     {NULL, NULL},
 };
 
-LUAI_DDEF void uvwrap_stream_init_metatable(lua_State* L) {
+static void STREAM_FUNCTION(init_metatable)(lua_State* L) {
   luaL_newmetatable(L, UVWRAP_STREAM_TYPE);
-  luaL_setfuncs(L, uvwrap_stream_metafunc, 0);
+  luaL_setfuncs(L, uvwrap_stream_metafuncs, 0);
 
   lua_pushvalue(L, -1);
   lua_setfield(L, -2, "__index");
 
+  luaL_setmetatable(L, UVWRAP_HANDLE_TYPE);
+
   lua_pop(L, 1);
+}
+
+void STREAM_FUNCTION(init)(lua_State* L) {
+  STREAM_FUNCTION(init_metatable)
+  (L);
 }

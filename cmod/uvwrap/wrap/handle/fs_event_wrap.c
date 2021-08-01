@@ -1,96 +1,100 @@
 #define fs_event_wrap_c
-
-#include <lprefix.h> // must include first
+#include <uvwrap.h>
 
 #include <stdlib.h>
 
-#include <lua.h>
-#include <lauxlib.h>
+#define FS_EVENT_FUNCTION(name) UVWRAP_FUNCTION(fs_event, name)
+#define FS_EVENT_CALLBACK(name) UVWRAP_CALLBACK(fs_event, name)
 
-#include <uv.h>
+int FS_EVENT_FUNCTION(new)(lua_State* L) {
+  uv_loop_t* loop = luaL_checkuvloop(L, 1);
+  uv_fs_event_t* handle = (uv_fs_event_t*)lua_newuserdata(L, sizeof(uv_fs_event_t));
+  luaL_setmetatable(L, UVWRAP_FS_EVENT_TYPE);
+  int err = uv_fs_event_init(loop, handle);
+  CHECK_ERROR(L, err);
+  HANDLE_FUNCTION(ctor)
+  (L, (uv_handle_t*)handle);
+  return 1;
+}
 
-#include <uvwrap.h>
-#include <fs_event_wrap.h>
+void FS_EVENT_CALLBACK(start)(uv_fs_event_t* handle, const char* filename, int events, int status) {
+  lua_State* L;
+  PUSH_HANDLE_CALLBACK(L, handle, IDX_FS_EVENT_START);
+  lua_pushstring(L, filename);
+  lua_pushinteger(L, events);
+  lua_pushinteger(L, status);
+  CALL_LUA_FUNCTION(L, 3, 0);
+}
+static int FS_EVENT_FUNCTION(start)(lua_State* L) {
+  uv_fs_event_t* handle = luaL_checkfs_event(L, 1);
+  luaL_checktype(L, 2, LUA_TFUNCTION);
+  const char* filepath = luaL_checkstring(L, 3);
+  unsigned int flags = luaL_checkinteger(L, 4);
 
-LUAI_DDEF int uvwrap_fs_event_new(lua_State* L) {
-    uv_loop_t* loop = luaL_checkuvloop(L, 1);
-    uv_fs_event_t* handle = (uv_fs_event_t*)lua_newuserdata(L, sizeof(uv_fs_event_t));
-    luaL_setmetatable(L, UVWRAP_FS_EVENT_TYPE);
-    uv_fs_event_init(loop, handle);
+  int err = uv_fs_event_start(handle, FS_EVENT_CALLBACK(start), filepath, flags);
+  CHECK_ERROR(L, err);
+  SET_HANDLE_CALLBACK(L, handle, IDX_FS_EVENT_START, 2);
+  return 1;
+}
+
+static int FS_EVENT_FUNCTION(stop)(lua_State* L) {
+  uv_fs_event_t* handle = luaL_checkfs_event(L, 1);
+  int err = uv_fs_event_stop(handle);
+  CHECK_ERROR(L, err);
+  return 0;
+}
+
+static int FS_EVENT_FUNCTION(getpath)(lua_State* L) {
+  uv_fs_event_t* handle = luaL_checkfs_event(L, 1);
+  char buffer[PATH_MAX];
+  size_t size = PATH_MAX;
+  char* path = buffer;
+  int ret = uv_fs_event_getpath(handle, path, &size);
+  if (ret == UV_ENOBUFS) {
+    path = MEMORY_FUNCTION(malloc)(size);
+    ret = uv_fs_event_getpath(handle, path, &size);
+  }
+  if (ret == UVWRAP_OK) {
+    lua_pushlstring(L, path, size);
+  } else {
+    lua_pushnil(L);
+  }
+  if (path != buffer) {
+    MEMORY_FUNCTION(free)
+    (path);
+  }
+  if (ret == UVWRAP_OK) {
     return 1;
+  }
+  lua_pushinteger(L, ret);
+  return 2;
 }
 
-void run_command(uv_fs_event_t* handle, const char* filename, int events, int status) {
-  (void)status;
-  char path[1024];
-  size_t size = 1023;
-  // Does not handle error if path is longer than 1023.
-  uv_fs_event_getpath(handle, path, &size);
-  path[size] = '\0';
-
-  fprintf(stderr, "Change detected in %s: ", path);
-  if (events & UV_RENAME)
-    fprintf(stderr, "renamed");
-  if (events & UV_CHANGE)
-    fprintf(stderr, "changed");
-
-  fprintf(stderr, " %s\n", filename ? filename : "");
-
-    // TODO: 这里有两个文件路径，一个是filename，一个是getpath得到的，两个分别是什么？如果说path是监控的那个，那回调函数中就不需要去处理它了
-    // 回调函数也把handle传递回Lua
-}
-LUAI_DDEF int uvwrap_fs_event_start(lua_State* L) {
-    uv_fs_event_t* handle = (uv_fs_event_t*)luaL_checkudata(L, 1, UVWRAP_FS_EVENT_TYPE);
-    luaL_checktype(L, 2, LUA_TFUNCTION);
-    const char* filepath = luaL_checkstring(L, 3);
-    int flags = luaL_checkinteger(L, 4);
-    // TODO: Store callback function, handle return error, handle对应的UserData也需要缓存在Lua中
-    uv_fs_event_start(handle, run_command, filepath, (unsigned int)flags);
-    return 1;
-}
-LUAI_DDEF int uvwrap_fs_event_stop(lua_State* L) {
-    uv_fs_event_t* handle = (uv_fs_event_t*)luaL_checkudata(L, 1, UVWRAP_FS_EVENT_TYPE);
-    uv_fs_event_stop(handle);
-    // TODO: Clear callback function in Lua
-    return 1;
-}
-LUAI_DDEF int uvwrap_fs_event_getpath(lua_State* L) {
-    uv_fs_event_t* handle = (uv_fs_event_t*)luaL_checkudata(L, 1, UVWRAP_FS_EVENT_TYPE);
-#define GETPATH_BUFFER_SIZE 1024
-    char buffer[GETPATH_BUFFER_SIZE];
-    size_t size = GETPATH_BUFFER_SIZE;
-#undef GETPATH_BUFFER_SIZE
-    char* path = buffer;
-    int ret = uv_fs_event_getpath(handle, path, &size);
-    if (ret == UV_ENOBUFS) {
-        path = malloc(size);
-        ret = uv_fs_event_getpath(handle, path, &size);
-    }
-    if (ret == 0) {
-        lua_pushlstring(L, path, size);
-    } else {
-        lua_pushnil(L);
-    }
-    if (path != buffer) {
-        free(path);
-    }
-    lua_pushinteger(L, ret);
-    return 2;
+static int FS_EVENT_FUNCTION(__gc)(lua_State* L) {
+  uv_fs_event_t* handle = luaL_checkfs_event(L, 1);
+  uv_fs_event_stop(handle);
+  return HANDLE_FUNCTION(__gc)(L);
 }
 
-const luaL_Reg uvwrap_fs_event_metafunc[] = {
-    {"start", uvwrap_fs_event_start},
-    {"stop", uvwrap_fs_event_stop},
-    {"getpath", uvwrap_fs_event_getpath},
+#define EMPLACE_FS_EVENT_FUNCTION(name) \
+  { #name, FS_EVENT_FUNCTION(name) }
+
+const luaL_Reg FS_EVENT_FUNCTION(metafuncs)[] = {
+    EMPLACE_FS_EVENT_FUNCTION(start),
+    EMPLACE_FS_EVENT_FUNCTION(stop),
+    EMPLACE_FS_EVENT_FUNCTION(getpath),
+    EMPLACE_FS_EVENT_FUNCTION(__gc),
     {NULL, NULL},
 };
 
-LUAI_DDEF void uvwrap_fs_event_init_metatable(lua_State* L) {
+static void FS_EVENT_FUNCTION(init_metatable)(lua_State* L) {
   luaL_newmetatable(L, UVWRAP_FS_EVENT_TYPE);
-  luaL_setfuncs(L, uvwrap_fs_event_metafunc, 0);
+  luaL_setfuncs(L, FS_EVENT_FUNCTION(metafuncs), 0);
 
   lua_pushvalue(L, -1);
   lua_setfield(L, -2, "__index");
 
   lua_pop(L, 1);
 }
+
+DEFINE_INIT_API_FUNCTION(fs_event)
