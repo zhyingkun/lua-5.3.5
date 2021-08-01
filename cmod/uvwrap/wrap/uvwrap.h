@@ -157,6 +157,7 @@ void UTILS_PUSH_FUNCTION(addrinfo)(lua_State* L, const struct addrinfo* info);
 void UTILS_PUSH_FUNCTION(uv_passwd_t)(lua_State* L, const uv_passwd_t* pwd);
 void UTILS_PUSH_FUNCTION(uv_rusage_t)(lua_State* L, const uv_rusage_t* rusage);
 void UTILS_PUSH_FUNCTION(uv_cpu_info_t)(lua_State* L, const uv_cpu_info_t* cpu_info);
+void UTILS_PUSH_FUNCTION(uv_statfs_t)(lua_State* L, const uv_statfs_t* statfs);
 
 /* }====================================================== */
 
@@ -360,6 +361,9 @@ void luaL_setenums(lua_State* L, const luaL_Enum* l);
 #define lua_pushuv_cpu_info_t(L, cpu_info) \
   UTILS_PUSH_FUNCTION(uv_cpu_info_t) \
   (L, cpu_info)
+#define lua_pushuv_statfs_t(L, statfs) \
+  UTILS_PUSH_FUNCTION(uv_statfs_t) \
+  (L, statfs)
 
 /* }====================================================== */
 

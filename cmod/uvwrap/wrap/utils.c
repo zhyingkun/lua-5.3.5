@@ -216,4 +216,29 @@ void UTILS_PUSH_FUNCTION(uv_cpu_info_t)(lua_State* L, const uv_cpu_info_t* cpu_i
   SET_CPUINFO_CPUTIMES(cpu_times);
 }
 
+#define SET_STATFS_INT(name) \
+  SET_FIELD(integer, #name, statfs->f_##name)
+#define SET_STATFS_SPARE(index) \
+  lua_pushinteger(L, statfs->f_spare[index]); \
+  lua_rawseti(L, -2, index)
+
+void UTILS_PUSH_FUNCTION(uv_statfs_t)(lua_State* L, const uv_statfs_t* statfs) {
+  lua_createtable(L, 0, 8);
+
+  SET_STATFS_INT(type);
+  SET_STATFS_INT(bsize);
+  SET_STATFS_INT(blocks);
+  SET_STATFS_INT(bfree);
+  SET_STATFS_INT(bavail);
+  SET_STATFS_INT(files);
+  SET_STATFS_INT(ffree);
+
+  lua_createtable(L, 4, 0);
+  SET_STATFS_SPARE(0);
+  SET_STATFS_SPARE(1);
+  SET_STATFS_SPARE(2);
+  SET_STATFS_SPARE(3);
+  lua_setfield(L, -2, "spare");
+}
+
 /* }====================================================== */
