@@ -33,7 +33,7 @@ source_group(src FILES ${ASCII_SRC})
 
 add_executable(${PROJECT_NAME} ${ASCII_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES
-	FOLDER "demo"
+	FOLDER "demo/c-lang"
 	# INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib
 )
 
