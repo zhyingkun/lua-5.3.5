@@ -14,11 +14,11 @@ endif()
 
 # LUA_BUILD_AS_DLL are for all windows components, include liblua, cmod library, and user exe which use liblua
 if(APPLE)
-	set(CMAKE_C_FLAGS         "-std=gnu99 -Wall -Wextra -fvisibility=hidden -Wstrict-prototypes -Wno-unused-parameter -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_DARWIN_UNLIMITED_SELECT=1 -D_DARWIN_USE_64_BIT_INODE=1")
+	set(CMAKE_C_FLAGS         "-std=gnu99 -Wall -Wextra -Wstrict-prototypes -Wno-unused-parameter -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_DARWIN_UNLIMITED_SELECT=1 -D_DARWIN_USE_64_BIT_INODE=1") # -fvisibility=hidden 
 	set(CMAKE_C_FLAGS_DEBUG   "-g")
 	set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	set(CMAKE_C_FLAGS         "-std=gnu99 -Wall -Wextra -fvisibility=hidden -Wstrict-prototypes -Wno-unused-parameter -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_GNU_SOURCE -D_POSIX_C_SOURCE=200112")
+	set(CMAKE_C_FLAGS         "-std=gnu99 -Wall -Wextra -Wstrict-prototypes -Wno-unused-parameter -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_GNU_SOURCE -D_POSIX_C_SOURCE=200112") # -fvisibility=hidden 
 	set(CMAKE_C_FLAGS_DEBUG   "-g")
 	set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 elseif(WIN32)
