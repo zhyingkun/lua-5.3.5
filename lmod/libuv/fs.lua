@@ -1,23 +1,24 @@
 local uvwrap = require("libuvwrap")
-local loop = uvwrap.default_loop()
+local loop = uvwrap.loop.default()
 
 local fs = uvwrap.fs
-local fs_open = fs.open
-local fs_close = fs.close
-local fs_read = fs.read
 
-local M = {}
-
-function M.open(filename, flags, mode, cb)
-	return fs_open(loop, filename, flags, mode, cb)
-end
-
-function M.close(fd, cb)
-	return fs_close(loop, fd, cb)
-end
-
-function M.read(fd, offset, cb)
-	return fs_read(loop, fd, offset, cb)
-end
+local M = setmetatable({}, {
+	__index = function(self, name)
+		local value = fs[name]
+		if not value then return end
+		local t = type(value)
+		if t == "function" then
+			local function func(...)
+				return value(loop, ...)
+			end
+			self[name] = func
+			return func
+		else
+			self[name] = value
+			return value
+		end
+	end
+})
 
 return M
