@@ -72,4 +72,9 @@ static const luaL_Reg TTY_FUNCTION(funcs)[] = {
     {NULL, NULL},
 };
 
+static int TTY_FUNCTION(__call)(lua_State* L) {
+  lua_remove(L, 1);
+  return TTY_FUNCTION(new)(L);
+}
+
 DEFINE_INIT_API_METATABLE(tty)

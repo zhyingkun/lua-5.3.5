@@ -4,15 +4,60 @@
 #define PROCESS_FUNCTION(name) UVWRAP_FUNCTION(process, name)
 #define PROCESS_CALLBACK(name) UVWRAP_CALLBACK(process, name)
 
-int PROCESS_FUNCTION(new)(lua_State* L) {
-  uv_loop_t* loop = luaL_checkuvloop(L, 1);
+static void PROCESS_CALLBACK(spawn)(uv_process_t* handle, int64_t exit_status, int term_signal) {
+  lua_State* L;
+  GET_HANDLE_DATA(L, handle);
+  PUSH_HANDLE_CALLBACK(L, handle, IDX_PROCESS_SPAWN);
+  lua_pushinteger(L, exit_status);
+  lua_pushinteger(L, term_signal);
+  CALL_LUA_FUNCTION(L, 2, 0);
+}
+#define PARSE_OPTIONS_ID(L, options, name, type) \
+  lua_getfield(L, -1, #name); \
+  if (lua_isinteger(L, -1)) { \
+    options->name = (type)lua_tointeger(L, -1); \
+  } \
+  lua_pop(L, 1)
+static void parse_spawn_options(lua_State* L, uv_process_t* handle, uv_process_options_t* options) {
+  int optidx = lua_gettop(L);
+  if (lua_getfield(L, optidx, "file") != LUA_TSTRING) {
+    luaL_error(L, "spawn options must contain file field");
+  }
+  options->file = lua_tostring(L, -1);
 
-  uv_process_options_t options;
+  if (lua_getfield(L, optidx, "args") == LUA_TTABLE) {
+  }
+  options->args = NULL;
+  options->env = NULL;
+  options->stdio_count = 0;
+  options->stdio = NULL;
+
+  lua_pop(L, 1);
+  if (lua_getfield(L, optidx, "exit_cb") == LUA_TFUNCTION) {
+    SET_HANDLE_CALLBACK(L, handle, IDX_PROCESS_SPAWN, -1);
+    options->exit_cb = PROCESS_CALLBACK(spawn);
+  }
+  lua_pop(L, 1);
+  if (lua_getfield(L, optidx, "cwd") == LUA_TSTRING) {
+    options->cwd = lua_tostring(L, -1);
+  }
+  lua_pop(L, 1);
+  PARSE_OPTIONS_ID(L, options, flags, unsigned int);
+  PARSE_OPTIONS_ID(L, options, uid, uv_uid_t);
+  PARSE_OPTIONS_ID(L, options, gid, uv_gid_t);
+}
+int PROCESS_FUNCTION(spawn)(lua_State* L) {
+  uv_loop_t* loop = luaL_checkuvloop(L, 1);
+  luaL_checktype(L, 2, LUA_TTABLE);
+  lua_settop(L, 2);
 
   uv_process_t* handle = (uv_process_t*)lua_newuserdata(L, sizeof(uv_process_t));
   luaL_setmetatable(L, UVWRAP_PROCESS_TYPE);
 
-  int err = uv_spawn(loop, handle, &options);
+  uv_process_options_t options[1] = {};
+  parse_spawn_options(L, handle, options);
+
+  int err = uv_spawn(loop, handle, options);
   CHECK_ERROR(L, err);
   HANDLE_FUNCTION(ctor)
   (L, (uv_handle_t*)handle);
@@ -133,5 +178,10 @@ static const luaL_Reg PROCESS_FUNCTION(funcs)[] = {
     EMPLACE_PROCESS_FUNCTION(chdir),
     {NULL, NULL},
 };
+
+static int PROCESS_FUNCTION(__call)(lua_State* L) {
+  lua_remove(L, 1);
+  return PROCESS_FUNCTION(spawn)(L);
+}
 
 DEFINE_INIT_API_METATABLE(process)

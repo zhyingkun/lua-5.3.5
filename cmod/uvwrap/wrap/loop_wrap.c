@@ -15,7 +15,7 @@ static int LOOP_FUNCTION(default)(lua_State* L) {
   return 1;
 }
 
-static int LOOP_FUNCTION(new)(lua_State* L) {
+static int LOOP_FUNCTION(__call)(lua_State* L) {
   uv_loop_t* loop = MEMORY_FUNCTION(malloc)(sizeof(uv_loop_t));
   if (loop == NULL) {
     return 0;

@@ -9,6 +9,7 @@
 5. 回调函数传入的结构体指针要么有对应的 API 进行 free，要么就是直接指向 request 结构的一个字段，所以，需要深复制之后才能 free 掉 request
 6. handle 是长期存在的，request 是针对一次异步调用期间存在的
 7. 某个 request 异步过程对应的 handle 被 close 了的话，对应的异步回调也会调用并在 status 参数传入 UV_CANCLE
+8. 传递给 uv_spawn 的 options 中，file 不能为 NULL，args 可以为 NULL
 
 ## 注入 Lua
 

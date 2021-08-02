@@ -50,7 +50,7 @@
 
 #define REGISTE_META_NEW_FUNC(module) \
   lua_createtable(L, 0, 1); \
-  lua_pushcfunction(L, UVWRAP_FUNCTION(module, new)); \
+  lua_pushcfunction(L, UVWRAP_FUNCTION(module, __call)); \
   lua_setfield(L, -2, "__call"); \
   lua_setmetatable(L, -2)
 
@@ -258,6 +258,7 @@ void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf);
 #define IDX_SIGNAL_START IDX_HANDLE_CALLBACK
 #define IDX_TIMER_START IDX_HANDLE_CALLBACK
 #define IDX_UDP_RECV_START IDX_HANDLE_CALLBACK
+#define IDX_PROCESS_SPAWN IDX_HANDLE_CALLBACK
 
 #define IDX_STREAM_LISTEN IDX_HANDLE_CALLBACK
 #define IDX_STREAM_READ_START IDX_HANDLE_CALLBACK // listen and read will not in the same stream
