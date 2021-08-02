@@ -136,7 +136,7 @@ static int LOOP_FUNCTION(queue_work)(lua_State* L) {
   uv_work_cb work_cb = (uv_work_cb)lua_touserdata(L, 2);
   uv_work_t* req = (uv_work_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_work_t));
 
-  int err = uv_queue_work(loop, req, work_cb, on_loop_queue_work);
+  int err = uv_queue_work(loop, req, work_cb, LOOP_CALLBACK(queue_work));
 
   CHECK_ERROR(L, err);
   SET_REQ_CALLBACK(L, 3, req);

@@ -26,7 +26,7 @@ void* MEMORY_FUNCTION(calloc)(size_t count, size_t size) {
 void MEMORY_FUNCTION(buf_alloc)(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
   (void)handle;
   buf->base = (char*)MEMORY_FUNCTION(malloc)(suggested_size);
-  buf->len = suggested_size;
+  buf->len = (size_t)suggested_size;
 }
 
 void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf) {
@@ -69,9 +69,13 @@ void luaL_setenums(lua_State* L, const luaL_Enum* l) {
 ** =======================================================
 */
 
-#define SET_FIELD(type, key, value...) \
-  lua_push##type(L, ##value); \
+#define SET_FIELD(type, key, value) \
+  lua_push##type(L, value); \
   lua_setfield(L, -2, key)
+#define SET_FIELD_2(type, key, value, arg) \
+  lua_push##type(L, value, arg); \
+  lua_setfield(L, -2, key)
+
 #define SET_STAT_INT(name) \
   SET_FIELD(integer, #name, stat->st_##name)
 #define SET_STAT_TIMESPEC(name) \
@@ -106,7 +110,9 @@ void UTILS_PUSH_FUNCTION(uv_stat_t)(lua_State* L, const uv_stat_t* stat) {
 
 void UTILS_PUSH_FUNCTION(sockaddr)(lua_State* L, const struct sockaddr* addr, size_t len) {
   struct sockaddr_storage* addr_storage = SOCKADDR_FUNCTION(create)(L);
-  memcpy((void*)addr_storage, (void*)addr, MIN(len, sizeof(struct sockaddr_storage)));
+#define MIN_LEN(a, b) ((a) > (b) ? (b) : (a))
+  memcpy((void*)addr_storage, (void*)addr, MIN_LEN(len, sizeof(struct sockaddr_storage)));
+#undef MIN_LEN
   if (len < sizeof(struct sockaddr_storage)) {
     memset((void*)(((char*)addr_storage) + len), 0, sizeof(struct sockaddr_storage) - len);
   }
@@ -122,7 +128,7 @@ void UTILS_PUSH_FUNCTION(physaddr)(lua_State* L, const char* addr) {
 #define SET_UV_INTERFACE_ADDRESS_T_PHYSADDR(name) \
   SET_FIELD(physaddr, #name, addr->name)
 #define SET_UV_INTERFACE_ADDRESS_T_SOCKADDR(name) \
-  SET_FIELD(sockaddr, #name, (struct sockaddr*)&(addr->name), sizeof(addr->name))
+  SET_FIELD_2(sockaddr, #name, (struct sockaddr*)&(addr->name), sizeof(addr->name))
 
 void UTILS_PUSH_FUNCTION(uv_interface_address_t)(lua_State* L, const uv_interface_address_t* addr) {
   lua_createtable(L, 0, 4);
@@ -138,7 +144,7 @@ void UTILS_PUSH_FUNCTION(uv_interface_address_t)(lua_State* L, const uv_interfac
 #define SET_ADDRINFO_STRING(name) \
   SET_FIELD(string, #name, info->ai_##name)
 #define SET_ADDRINFO_SOCKADDR(name) \
-  SET_FIELD(sockaddr, #name, info->ai_##name, info->ai_##name##len)
+  SET_FIELD_2(sockaddr, #name, info->ai_##name, info->ai_##name##len)
 
 void UTILS_PUSH_FUNCTION(addrinfo)(lua_State* L, const struct addrinfo* info) {
   lua_createtable(L, 0, 6);

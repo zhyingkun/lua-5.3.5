@@ -30,7 +30,7 @@ static int OS_FUNCTION(get_passwd)(lua_State* L) {
   return 1;
 }
 
-static int OS_FUNCTION(environ)(lua_State* L) {
+static int OS_FUNCTION(environ_)(lua_State* L) {
   uv_env_item_t* envitems = NULL;
   int count = 0;
   int err = uv_os_environ(&envitems, &count);
@@ -90,7 +90,7 @@ static int OS_FUNCTION(gethostname)(lua_State* L) {
 }
 
 static int OS_FUNCTION(getpriority)(lua_State* L) {
-  uv_pid_t pid = luaL_checkinteger(L, 1);
+  uv_pid_t pid = (uv_pid_t)luaL_checkinteger(L, 1);
   int priority = 0;
   int err = uv_os_getpriority(pid, &priority);
   CHECK_ERROR(L, err);
@@ -99,8 +99,8 @@ static int OS_FUNCTION(getpriority)(lua_State* L) {
 }
 
 static int OS_FUNCTION(setpriority)(lua_State* L) {
-  uv_pid_t pid = luaL_checkinteger(L, 1);
-  int priority = luaL_checkinteger(L, 2);
+  uv_pid_t pid = (uv_pid_t)luaL_checkinteger(L, 1);
+  int priority = (int)luaL_checkinteger(L, 2);
   int err = uv_os_setpriority(pid, priority);
   CHECK_ERROR(L, err);
   return 0;
@@ -138,7 +138,7 @@ static const luaL_Reg OS_FUNCTION(funcs)[] = {
     EMPLACE_OS_FUNCTION(homedir),
     EMPLACE_OS_FUNCTION(tmpdir),
     EMPLACE_OS_FUNCTION(get_passwd),
-    EMPLACE_OS_FUNCTION(environ),
+    {"environ", OS_FUNCTION(environ_)}, // compile error in windows without '_'
     EMPLACE_OS_FUNCTION(getenv),
     EMPLACE_OS_FUNCTION(setenv),
     EMPLACE_OS_FUNCTION(unsetenv),
