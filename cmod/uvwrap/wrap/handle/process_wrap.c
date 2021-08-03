@@ -4,6 +4,62 @@
 #define PROCESS_FUNCTION(name) UVWRAP_FUNCTION(process, name)
 #define PROCESS_CALLBACK(name) UVWRAP_CALLBACK(process, name)
 
+#define STDIOCONT_FUNCTION(name) UVWRAP_FUNCTION(stdiocont, name)
+
+typedef struct {
+  int maxsz;
+  int count;
+  uv_stdio_container_t stdio[1];
+} uvwrap_stdio_container_t;
+
+static int STDIOCONT_FUNCTION(new)(lua_State* L) {
+  int maxsz = luaL_optinteger(L, 1, 3);
+  if (maxsz < 3) {
+    maxsz = 3;
+  }
+  size_t sz = sizeof(uvwrap_stdio_container_t) + sizeof(uv_stdio_container_t) * (maxsz - 1);
+  uvwrap_stdio_container_t* container = (uvwrap_stdio_container_t*)lua_newuserdata(L, sz);
+  luaL_setmetatable(L, UVWRAP_STDIOCONT_TYPE);
+  container->maxsz = maxsz;
+  container->count = 0;
+  return 1;
+}
+
+static int STDIOCONT_FUNCTION(add)(lua_State* L) {
+  uvwrap_stdio_container_t* container = luaL_checkstdiocont(L, 1);
+  if (container->count >= container->maxsz) {
+    luaL_error(L, "container has no more slot");
+  }
+  uv_stdio_flags flags = (uv_stdio_flags)luaL_checkinteger(L, 2);
+  if (!lua_isinteger(L, 3) && !luaL_testudata_recursive(L, -1, UVWRAP_STREAM_TYPE)) {
+    luaL_error(L, "param 3 must be integer fd or uv_stream_t*");
+  }
+  int i = container->count;
+  container->stdio[i].flags = flags;
+  if (lua_isinteger(L, 3)) {
+    container->stdio[i].data.fd = lua_tointeger(L, 3);
+  } else {
+    container->stdio[i].data.stream = (uv_stream_t*)lua_touserdata(L, 3);
+  }
+  container->count++;
+  return 0;
+}
+
+static const luaL_Reg STDIOCONT_FUNCTION(metafuncs)[] = {
+    {"add", STDIOCONT_FUNCTION(add)},
+    {NULL, NULL},
+};
+
+static void STDIOCONT_FUNCTION(init_metatable)(lua_State* L) {
+  luaL_newmetatable(L, UVWRAP_PROCESS_TYPE);
+  luaL_setfuncs(L, STDIOCONT_FUNCTION(metafuncs), 0);
+
+  lua_pushvalue(L, -1);
+  lua_setfield(L, -2, "__index");
+
+  lua_pop(L, 1);
+}
+
 static void PROCESS_CALLBACK(spawn)(uv_process_t* handle, int64_t exit_status, int term_signal) {
   lua_State* L;
   GET_HANDLE_DATA(L, handle);
@@ -12,33 +68,83 @@ static void PROCESS_CALLBACK(spawn)(uv_process_t* handle, int64_t exit_status, i
   lua_pushinteger(L, term_signal);
   CALL_LUA_FUNCTION(L, 2, 0);
 }
+#define GET_SIZE_OF(name) \
+  int idx_##name = 0; \
+  if (lua_getfield(L, optidx, #name) != LUA_TNIL) { \
+    if (!lua_istable(L, -1)) { \
+      luaL_error(L, "spawn process %s must be table", #name); \
+    } \
+    idx_##name = lua_gettop(L); \
+    sz_##name = luaL_len(L, -1); \
+  }
+#define EMPLACE_PTR_FOR(name) \
+  for (size_t i = 0; i < sz_##name; i++) { \
+    if (lua_rawgeti(L, idx_##name, i + 1) != LUA_TSTRING) { \
+      luaL_error(L, "spawn process arg must be string"); \
+    } \
+    ptr_##name[i] = (char*)lua_tostring(L, -1); \
+    lua_pop(L, 1); \
+  } \
+  ptr_##name[sz_##name] = NULL
 #define PARSE_OPTIONS_ID(L, options, name, type) \
-  lua_getfield(L, -1, #name); \
-  if (lua_isinteger(L, -1)) { \
+  if (lua_getfield(L, -1, #name) != LUA_TNIL) { \
+    if (!lua_isinteger(L, -1)) { \
+      luaL_error(L, "spawn process %s must be a integer", #name); \
+    } \
     options->name = (type)lua_tointeger(L, -1); \
   } \
   lua_pop(L, 1)
 static void parse_spawn_options(lua_State* L, uv_process_t* handle, uv_process_options_t* options) {
   int optidx = lua_gettop(L);
   if (lua_getfield(L, optidx, "file") != LUA_TSTRING) {
-    luaL_error(L, "spawn options must contain file field");
+    luaL_error(L, "spawn options must contain string 'file' field");
   }
   options->file = lua_tostring(L, -1);
-
-  if (lua_getfield(L, optidx, "args") == LUA_TTABLE) {
-  }
-  options->args = NULL;
-  options->env = NULL;
-  options->stdio_count = 0;
-  options->stdio = NULL;
-
   lua_pop(L, 1);
-  if (lua_getfield(L, optidx, "exit_cb") == LUA_TFUNCTION) {
+
+  char** ptr_args = NULL;
+  char** ptr_env = NULL;
+  size_t sz_args = 0;
+  size_t sz_env = 0;
+  GET_SIZE_OF(args);
+  GET_SIZE_OF(env);
+  size_t sz_total = sz_args + sz_env;
+  if (sz_total > 0) {
+    sz_total += 2;
+    sz_total *= sizeof(char*);
+    ptr_args = (char**)lua_newuserdata(L, sz_total);
+    lua_insert(L, -3);
+    ptr_env = ptr_args + sz_args + 1;
+    EMPLACE_PTR_FOR(args);
+    EMPLACE_PTR_FOR(env);
+  }
+  lua_pop(L, 2);
+
+  options->args = ptr_args;
+  options->env = ptr_env;
+
+  if (lua_getfield(L, optidx, "stdio_container") != LUA_TNIL) {
+    if (!luaL_testudata_recursive(L, -1, UVWRAP_STDIOCONT_TYPE)) {
+      luaL_error(L, "spawn process stdio_container must be container type");
+    }
+    uvwrap_stdio_container_t* container = (uvwrap_stdio_container_t*)lua_touserdata(L, -1);
+    options->stdio_count = container->count;
+    options->stdio = container->stdio;
+  }
+  lua_pop(L, 1);
+
+  if (lua_getfield(L, optidx, "exit_cb") != LUA_TNIL) {
+    if (!lua_isfunction(L, -1)) {
+      luaL_error(L, "spawn process exit_cb must be a function");
+    }
     SET_HANDLE_CALLBACK(L, handle, IDX_PROCESS_SPAWN, -1);
     options->exit_cb = PROCESS_CALLBACK(spawn);
   }
   lua_pop(L, 1);
-  if (lua_getfield(L, optidx, "cwd") == LUA_TSTRING) {
+  if (lua_getfield(L, optidx, "cwd") != LUA_TNIL) {
+    if (!lua_isstring(L, -1)) {
+      luaL_error(L, "spawn process cwd must be a string");
+    }
     options->cwd = lua_tostring(L, -1);
   }
   lua_pop(L, 1);
@@ -55,7 +161,9 @@ int PROCESS_FUNCTION(spawn)(lua_State* L) {
   luaL_setmetatable(L, UVWRAP_PROCESS_TYPE);
 
   uv_process_options_t options[1] = {};
+  lua_pushvalue(L, 2);
   parse_spawn_options(L, handle, options);
+  lua_pushvalue(L, 3);
 
   int err = uv_spawn(loop, handle, options);
   CHECK_ERROR(L, err);
@@ -176,6 +284,7 @@ static const luaL_Reg PROCESS_FUNCTION(funcs)[] = {
     EMPLACE_PROCESS_FUNCTION(exepath),
     EMPLACE_PROCESS_FUNCTION(cwd),
     EMPLACE_PROCESS_FUNCTION(chdir),
+    {"stdio_container", STDIOCONT_FUNCTION(new)},
     {NULL, NULL},
 };
 
@@ -184,4 +293,30 @@ static int PROCESS_FUNCTION(__call)(lua_State* L) {
   return PROCESS_FUNCTION(spawn)(L);
 }
 
-DEFINE_INIT_API_METATABLE(process)
+static const luaL_Enum UVWRAP_ENUM(process_flag)[] = {
+    {"SETUID", UV_PROCESS_SETUID},
+    {"SETGID", UV_PROCESS_SETGID},
+    {"WINDOWS_VERBATIM_ARGUMENTS", UV_PROCESS_WINDOWS_VERBATIM_ARGUMENTS},
+    {"DETACHED", UV_PROCESS_DETACHED},
+    {"WINDOWS_HIDE", UV_PROCESS_WINDOWS_HIDE},
+    {"WINDOWS_HIDE_CONSOLE", UV_PROCESS_WINDOWS_HIDE_CONSOLE},
+    {"WINDOWS_HIDE_GUI", UV_PROCESS_WINDOWS_HIDE_GUI},
+};
+static const luaL_Enum UVWRAP_ENUM(stdio_flag)[] = {
+    {"IGNORE", UV_IGNORE},
+    {"CREATE_PIPE", UV_CREATE_PIPE},
+    {"INHERIT_FD", UV_INHERIT_FD},
+    {"INHERIT_STREAM", UV_INHERIT_STREAM},
+    {"READABLE_PIPE", UV_READABLE_PIPE},
+    {"WRITABLE_PIPE", UV_WRITABLE_PIPE},
+    {"OVERLAPPED_PIPE", UV_OVERLAPPED_PIPE},
+};
+
+DEFINE_INIT_API_BEGIN(process)
+PUSH_LIB_TABLE(process);
+REGISTER_ENUM(process_flag);
+REGISTER_ENUM(stdio_flag);
+REGISTE_META_NEW_FUNC(process);
+INVOKE_INIT_METATABLE(process);
+INVOKE_INIT_METATABLE(stdiocont);
+DEFINE_INIT_API_END(process)

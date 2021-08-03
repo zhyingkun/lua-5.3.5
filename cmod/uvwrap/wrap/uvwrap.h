@@ -115,6 +115,7 @@ DECLARE_HANDLE_API(fs_poll)
 #define UVWRAP_IDLE_TYPE "uv_idle_t*"
 DECLARE_HANDLE_API(misc)
 #define UVWRAP_PROCESS_TYPE "uv_process_t*"
+#define UVWRAP_STDIOCONT_TYPE "uv_stdio_container_t*"
 DECLARE_HANDLE_API(process)
 #define UVWRAP_SIGNAL_TYPE "uv_signal_t*"
 DECLARE_HANDLE_API(signal)
@@ -337,6 +338,7 @@ void luaL_setenums(lua_State* L, const luaL_Enum* l);
 
 #define luaL_checksockaddr(L, idx) (struct sockaddr*)luaL_checkudata(L, idx, UVWRAP_SOCKADDR_TYPE)
 #define luaL_checkphysaddr(L, idx) (char*)luaL_checkudata(L, idx, UVWRAP_PHYSADDR_TYPE)
+#define luaL_checkstdiocont(L, idx) (uvwrap_stdio_container_t*)luaL_checkudata(L, idx, UVWRAP_STDIOCONT_TYPE)
 
 #define lua_pushuv_stat_t(L, stat) \
   UTILS_PUSH_FUNCTION(uv_stat_t) \
