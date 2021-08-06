@@ -1,5 +1,6 @@
 #define process_wrap_c
 #include <uvwrap.h>
+#include <string.h>
 
 #define PROCESS_FUNCTION(name) UVWRAP_FUNCTION(process, name)
 #define PROCESS_CALLBACK(name) UVWRAP_CALLBACK(process, name)
