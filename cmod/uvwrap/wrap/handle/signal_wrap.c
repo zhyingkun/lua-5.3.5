@@ -96,21 +96,28 @@ static const luaL_Reg SIGNAL_FUNCTION(funcs)[] = {
 static const luaL_Enum UVWRAP_ENUM(sig_num)[] = {
     {"SIGHUP", SIGHUP},
     {"SIGINT", SIGINT},
+#if !defined(_WIN32)
     {"SIGQUIT", SIGQUIT},
-    {"SIGILL", SIGILL},
-    {"SIGTRAP", SIGTRAP},
-    {"SIGABRT", SIGABRT},
-#if defined(_WIN32)
-    {"SIGEMT", SIGEMT},
 #endif
+    {"SIGILL", SIGILL},
+#if !defined(_WIN32)
+    {"SIGTRAP", SIGTRAP},
+#endif
+    {"SIGABRT", SIGABRT},
+    // {"SIGEMT", SIGEMT},
     {"SIGFPE", SIGFPE},
     {"SIGKILL", SIGKILL},
+#if !defined(_WIN32)
     {"SIGBUS", SIGBUS},
+#endif
     {"SIGSEGV", SIGSEGV},
+#if !defined(_WIN32)
     {"SIGSYS", SIGSYS},
     {"SIGPIPE", SIGPIPE},
     {"SIGALRM", SIGALRM},
+#endif
     {"SIGTERM", SIGTERM},
+#if !defined(_WIN32)
     {"SIGURG", SIGURG},
     {"SIGSTOP", SIGSTOP},
     {"SIGTSTP", SIGTSTP},
@@ -118,23 +125,28 @@ static const luaL_Enum UVWRAP_ENUM(sig_num)[] = {
     {"SIGCHLD", SIGCHLD},
     {"SIGTTIN", SIGTTIN},
     {"SIGTTOU", SIGTTOU},
-#if !defined(__APPLE__)
+#endif
+#if defined(__linux__)
     {"SIGIO", SIGIO},
 #endif
+#if !defined(_WIN32)
     {"SIGXCPU", SIGXCPU},
     {"SIGXFSZ", SIGXFSZ},
     {"SIGVTALRM", SIGVTALRM},
     {"SIGPROF", SIGPROF},
+#endif
 #if !defined(__APPLE__)
     {"SIGWINCH", SIGWINCH},
+#endif
+#if defined(__linux__)
     {"SIGPWR", SIGPWR},
 #endif
+#if !defined(_WIN32)
     {"SIGUSR1", SIGUSR1},
     {"SIGUSR2", SIGUSR2},
-#if defined(_WIN32)
-    {"SIGRTMIN", SIGRTMIN},
-    {"SIGRTMAX", SIGRTMAX},
 #endif
+    // {"SIGRTMIN", SIGRTMIN},
+    // {"SIGRTMAX", SIGRTMAX},
 };
 
 DEFINE_INIT_API_BEGIN(signal)
