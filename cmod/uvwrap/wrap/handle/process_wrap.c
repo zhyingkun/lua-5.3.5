@@ -162,7 +162,7 @@ int PROCESS_FUNCTION(new)(lua_State* L) {
   uv_process_t* handle = (uv_process_t*)lua_newuserdata(L, sizeof(uv_process_t));
   luaL_setmetatable(L, UVWRAP_PROCESS_TYPE);
 
-  uv_process_options_t options[1] = {};
+  uv_process_options_t options[1] = {0};
   lua_pushvalue(L, 2);
   parse_spawn_options(L, handle, options);
   lua_pushvalue(L, 3);
