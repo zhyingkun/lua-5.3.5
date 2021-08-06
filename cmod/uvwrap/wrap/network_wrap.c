@@ -150,7 +150,7 @@ static int SOCKADDR_FUNCTION(__eq)(lua_State* L) {
         eq = 1;
       }
     } else {
-      luaL_error(L, "sockaddr compare does not support family: %d", (int)family);
+      luaL_error(L, "sockaddr compare does not support family: %d", (int)addr1->sa_family);
     }
   }
   lua_pushboolean(L, eq);
