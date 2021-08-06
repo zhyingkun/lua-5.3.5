@@ -100,7 +100,7 @@ static const luaL_Enum UVWRAP_ENUM(sig_num)[] = {
     {"SIGILL", SIGILL},
     {"SIGTRAP", SIGTRAP},
     {"SIGABRT", SIGABRT},
-#if !defined(__APPLE__)
+#if defined(_WIN32)
     {"SIGEMT", SIGEMT},
 #endif
     {"SIGFPE", SIGFPE},
@@ -131,7 +131,7 @@ static const luaL_Enum UVWRAP_ENUM(sig_num)[] = {
 #endif
     {"SIGUSR1", SIGUSR1},
     {"SIGUSR2", SIGUSR2},
-#if !defined(__APPLE__)
+#if defined(_WIN32)
     {"SIGRTMIN", SIGRTMIN},
     {"SIGRTMAX", SIGRTMAX},
 #endif
