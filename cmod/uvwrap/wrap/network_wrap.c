@@ -137,14 +137,13 @@ static int SOCKADDR_FUNCTION(__eq)(lua_State* L) {
   struct sockaddr* addr2 = luaL_checksockaddr(L, 2);
   int eq = 0;
   if (addr1->sa_family == addr2->sa_family) {
-    sa_family_t family = addr1->sa_family;
-    if (family == AF_INET) {
+    if (addr1->sa_family == AF_INET) {
       struct sockaddr_in* in1 = (struct sockaddr_in*)addr1;
       struct sockaddr_in* in2 = (struct sockaddr_in*)addr2;
       if (in1->sin_port == in2->sin_port && in1->sin_addr.s_addr == in2->sin_addr.s_addr) {
         eq = 1;
       }
-    } else if (family == AF_INET6) {
+    } else if (addr1->sa_family == AF_INET6) {
       struct sockaddr_in6* in1 = (struct sockaddr_in6*)addr1;
       struct sockaddr_in6* in2 = (struct sockaddr_in6*)addr2;
       if (in1->sin6_port == in2->sin6_port && memcmp(in1->sin6_addr.s6_addr, in2->sin6_addr.s6_addr, sizeof(in1->sin6_addr.s6_addr)) == 0) {
