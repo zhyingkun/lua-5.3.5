@@ -704,7 +704,7 @@ static int io_writefile(lua_State* L) {
   if (fclose(f)) {
     result = luaL_fileresult(L, 0, filename);
   }
-  return 1;
+  return result;
 }
 
 /*
