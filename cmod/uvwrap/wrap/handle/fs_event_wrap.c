@@ -94,7 +94,31 @@ static void FS_EVENT_FUNCTION(init_metatable)(lua_State* L) {
   lua_pushvalue(L, -1);
   lua_setfield(L, -2, "__index");
 
+  luaL_setmetatable(L, UVWRAP_HANDLE_TYPE);
+
   lua_pop(L, 1);
 }
 
-DEFINE_INIT_API_FUNCTION(fs_event)
+static const luaL_Reg FS_EVENT_FUNCTION(funcs)[] = {
+    EMPLACE_FS_EVENT_FUNCTION(new),
+    {NULL, NULL},
+};
+
+static const luaL_Enum UVWRAP_ENUM(event_type)[] = {
+    {"RENAME", UV_RENAME},
+    {"CHANGE", UV_CHANGE},
+    {NULL, 0},
+};
+static const luaL_Enum UVWRAP_ENUM(event_flag)[] = {
+    {"WATCH_ENTRY", UV_FS_EVENT_WATCH_ENTRY},
+    {"STAT", UV_FS_EVENT_STAT},
+    {"RECURSIVE", UV_FS_EVENT_RECURSIVE},
+    {NULL, 0},
+};
+
+DEFINE_INIT_API_BEGIN(fs_event)
+PUSH_LIB_TABLE(fs_event);
+REGISTE_ENUM(event_type);
+REGISTE_ENUM(event_flag);
+INVOKE_INIT_METATABLE(fs_event);
+DEFINE_INIT_API_END(fs_event)

@@ -27,12 +27,20 @@ static void HANDLE_CALLBACK(close)(uv_handle_t* handle) {
   PUSH_HANDLE_CLOSE_CALLBACK_CLEAN(L, handle);
   UNHOLD_HANDLE_ITSELF(L, handle);
   CLEAR_HANDLE_CALLBACK(L, handle, IDX_HANDLE_CALLBACK);
-  CALL_LUA_FUNCTION(L, 0, 0);
+  if (lua_isfunction(L, -1)) {
+    CALL_LUA_FUNCTION(L, 0, 0);
+  } else {
+    lua_pop(L, 1);
+  }
 }
 static int HANDLE_FUNCTION(close)(lua_State* L) {
   uv_handle_t* handle = luaL_checkhandle(L, 1);
   if (!uv_is_closing(handle)) {
-    luaL_checktype(L, 2, LUA_TFUNCTION);
+    lua_settop(L, 2);
+    if (!lua_isfunction(L, 2)) {
+      lua_pushnil(L);
+      lua_replace(L, 2);
+    }
     SET_HANDLE_CLOSE_CALLBACK(L, handle, 2);
     HOLD_HANDLE_ITSELF(L, handle, 1);
     uv_close(handle, HANDLE_CALLBACK(close));

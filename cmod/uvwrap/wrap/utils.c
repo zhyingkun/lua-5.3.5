@@ -61,6 +61,13 @@ void luaL_setenums(lua_State* L, const luaL_Enum* l) {
   }
 }
 
+void luaL_setenums_r(lua_State* L, const luaL_Enum* l) {
+  for (; l->name != NULL; l++) { /* fill the table with given enums */
+    lua_pushstring(L, l->name);
+    lua_rawseti(L, -2, l->value);
+  }
+}
+
 /* }====================================================== */
 
 /*

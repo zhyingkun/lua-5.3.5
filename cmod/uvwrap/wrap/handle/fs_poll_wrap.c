@@ -99,4 +99,12 @@ static void FS_POLL_FUNCTION(init_metatable)(lua_State* L) {
   lua_pop(L, 1);
 }
 
-DEFINE_INIT_API_FUNCTION(fs_poll)
+static const luaL_Reg FS_POLL_FUNCTION(funcs)[] = {
+    EMPLACE_FS_POLL_FUNCTION(new),
+    {NULL, NULL},
+};
+
+DEFINE_INIT_API_BEGIN(fs_poll)
+PUSH_LIB_TABLE(fs_poll);
+INVOKE_INIT_METATABLE(fs_poll);
+DEFINE_INIT_API_END(fs_poll)

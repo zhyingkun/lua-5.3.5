@@ -95,4 +95,12 @@ static void TIMER_FUNCTION(init_metatable)(lua_State* L) {
   lua_pop(L, 1);
 }
 
-DEFINE_INIT_API_FUNCTION(timer)
+static const luaL_Reg TIMER_FUNCTION(funcs)[] = {
+    EMPLACE_TIMER_FUNCTION(new),
+    {NULL, NULL},
+};
+
+DEFINE_INIT_API_BEGIN(timer)
+PUSH_LIB_TABLE(timer);
+INVOKE_INIT_METATABLE(timer);
+DEFINE_INIT_API_END(timer)

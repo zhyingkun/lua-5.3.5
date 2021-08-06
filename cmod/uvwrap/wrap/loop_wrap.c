@@ -15,7 +15,7 @@ static int LOOP_FUNCTION(default)(lua_State* L) {
   return 1;
 }
 
-static int LOOP_FUNCTION(__call)(lua_State* L) {
+static int LOOP_FUNCTION(new)(lua_State* L) {
   uv_loop_t* loop = MEMORY_FUNCTION(malloc)(sizeof(uv_loop_t));
   if (loop == NULL) {
     return 0;
@@ -153,6 +153,7 @@ static void LOOP_FUNCTION(work_hello)(uv_work_t* req) {
 
 static const luaL_Reg LOOP_FUNCTION(funcs)[] = {
     EMPLACE_LOOP_FUNCTION(default),
+    EMPLACE_LOOP_FUNCTION(new),
     EMPLACE_LOOP_FUNCTION(close),
     EMPLACE_LOOP_FUNCTION(alive),
     EMPLACE_LOOP_FUNCTION(run),
@@ -184,8 +185,7 @@ void LOOP_FUNCTION(init)(lua_State* L) {
 
   luaL_newlib(L, LOOP_FUNCTION(funcs));
 
-  REGISTE_META_NEW_FUNC(loop);
-  REGISTER_ENUM(run_mode);
+  REGISTE_ENUM(run_mode);
 
   lua_pushinteger(L, uv_loop_size());
   lua_setfield(L, -2, "loop_size");

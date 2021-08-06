@@ -59,12 +59,15 @@ static const luaL_Reg uvwrap_funcs[] = {
     {NULL, NULL},
 };
 
+// clang-format off
 static const luaL_Enum UVWRAP_ENUM(err_code)[] = {
 #define XX(name, msg) {#name, UV_##name},
     UV_ERRNO_MAP(XX)
 #undef XX
-        {NULL, 0},
+    {"OK", UVWRAP_OK},
+    {NULL, 0},
 };
+// clang-format on
 
 LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
   int err = uv_replace_allocator(
@@ -76,7 +79,7 @@ LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
 
   luaL_newlib(L, uvwrap_funcs);
 
-  REGISTER_ENUM(err_code);
+  REGISTE_ENUM(err_code);
 
   lua_pushinteger(L, uv_version());
   lua_setfield(L, -2, "version");
@@ -88,27 +91,27 @@ LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
   lua_pushcfunction(L, uvwrap_atexit);
   luaL_atexit(L);
 
-  uvwrap_handle_init(L);
-  uvwrap_stream_init(L);
+  CALL_MODULE_INIT(handle);
+  CALL_MODULE_INIT(stream);
 
-  uvwrap_pipe_init(L);
-  uvwrap_tcp_init(L);
-  uvwrap_tty_init(L);
+  CALL_MODULE_INIT(pipe);
+  CALL_MODULE_INIT(tcp);
+  CALL_MODULE_INIT(tty);
 
-  uvwrap_fs_event_init(L);
-  uvwrap_fs_poll_init(L);
-  uvwrap_misc_init(L);
-  uvwrap_process_init(L);
-  uvwrap_signal_init(L);
-  uvwrap_timer_init(L);
-  uvwrap_udp_init(L);
+  CALL_MODULE_INIT(fs_event);
+  CALL_MODULE_INIT(fs_poll);
+  CALL_MODULE_INIT(misc);
+  CALL_MODULE_INIT(process);
+  CALL_MODULE_INIT(signal);
+  CALL_MODULE_INIT(timer);
+  CALL_MODULE_INIT(udp);
 
-  uvwrap_debug_init(L);
-  uvwrap_fs_init(L);
-  uvwrap_loop_init(L);
-  uvwrap_network_init(L);
-  uvwrap_os_init(L);
-  uvwrap_sys_init(L);
+  CALL_MODULE_INIT(debug);
+  CALL_MODULE_INIT(fs);
+  CALL_MODULE_INIT(loop);
+  CALL_MODULE_INIT(network);
+  CALL_MODULE_INIT(os);
+  CALL_MODULE_INIT(sys);
 
   return 1;
 }

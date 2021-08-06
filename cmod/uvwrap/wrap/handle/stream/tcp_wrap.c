@@ -130,14 +130,12 @@ static void TCP_FUNCTION(init_metatable)(lua_State* L) {
   lua_pop(L, 1);
 }
 
-// static const luaL_Reg TCP_FUNCTION(funcs)[] = {
-//     {NULL, NULL},
-// };
+static const luaL_Reg TCP_FUNCTION(funcs)[] = {
+    EMPLACE_TCP_FUNCTION(new),
+    {NULL, NULL},
+};
 
-// DEFINE_INIT_API_BEGIN(tcp)
-// PUSH_LIB_TABLE(tcp);
-// REGISTE_META_NEW_FUNC(tcp);
-// INVOKE_INIT_METATABLE(tcp);
-// DEFINE_INIT_API_END(tcp)
-
-DEFINE_INIT_API_FUNCTION(tcp)
+DEFINE_INIT_API_BEGIN(tcp)
+PUSH_LIB_TABLE(tcp);
+INVOKE_INIT_METATABLE(tcp);
+DEFINE_INIT_API_END(tcp)

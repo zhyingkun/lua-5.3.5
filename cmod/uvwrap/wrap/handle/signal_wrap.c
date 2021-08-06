@@ -88,4 +88,58 @@ static void SIGNAL_FUNCTION(init_metatable)(lua_State* L) {
   lua_pop(L, 1);
 }
 
-DEFINE_INIT_API_FUNCTION(signal)
+static const luaL_Reg SIGNAL_FUNCTION(funcs)[] = {
+    EMPLACE_SIGNAL_FUNCTION(new),
+    {NULL, NULL},
+};
+
+static const luaL_Enum UVWRAP_ENUM(sig_num)[] = {
+    {"SIGHUP", SIGHUP},
+    {"SIGINT", SIGINT},
+    {"SIGQUIT", SIGQUIT},
+    {"SIGILL", SIGILL},
+    {"SIGTRAP", SIGTRAP},
+    {"SIGABRT", SIGABRT},
+#if !defined(__APPLE__)
+    {"SIGEMT", SIGEMT},
+#endif
+    {"SIGFPE", SIGFPE},
+    {"SIGKILL", SIGKILL},
+    {"SIGBUS", SIGBUS},
+    {"SIGSEGV", SIGSEGV},
+    {"SIGSYS", SIGSYS},
+    {"SIGPIPE", SIGPIPE},
+    {"SIGALRM", SIGALRM},
+    {"SIGTERM", SIGTERM},
+    {"SIGURG", SIGURG},
+    {"SIGSTOP", SIGSTOP},
+    {"SIGTSTP", SIGTSTP},
+    {"SIGCONT", SIGCONT},
+    {"SIGCHLD", SIGCHLD},
+    {"SIGTTIN", SIGTTIN},
+    {"SIGTTOU", SIGTTOU},
+#if !defined(__APPLE__)
+    {"SIGIO", SIGIO},
+#endif
+    {"SIGXCPU", SIGXCPU},
+    {"SIGXFSZ", SIGXFSZ},
+    {"SIGVTALRM", SIGVTALRM},
+    {"SIGPROF", SIGPROF},
+#if !defined(__APPLE__)
+    {"SIGWINCH", SIGWINCH},
+    {"SIGPWR", SIGPWR},
+#endif
+    {"SIGUSR1", SIGUSR1},
+    {"SIGUSR2", SIGUSR2},
+#if !defined(__APPLE__)
+    {"SIGRTMIN", SIGRTMIN},
+    {"SIGRTMAX", SIGRTMAX},
+#endif
+};
+
+DEFINE_INIT_API_BEGIN(signal)
+PUSH_LIB_TABLE(signal);
+REGISTE_ENUM(sig_num);
+REGISTE_ENUM_R(sig_num, sig_name);
+INVOKE_INIT_METATABLE(signal);
+DEFINE_INIT_API_END(signal)

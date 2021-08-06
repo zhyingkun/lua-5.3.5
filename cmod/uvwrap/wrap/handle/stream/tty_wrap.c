@@ -68,13 +68,12 @@ static int TTY_FUNCTION(reset_mode)(lua_State* L) {
 }
 
 static const luaL_Reg TTY_FUNCTION(funcs)[] = {
+    EMPLACE_TTY_FUNCTION(new),
     EMPLACE_TTY_FUNCTION(reset_mode),
     {NULL, NULL},
 };
 
-static int TTY_FUNCTION(__call)(lua_State* L) {
-  lua_remove(L, 1);
-  return TTY_FUNCTION(new)(L);
-}
-
-DEFINE_INIT_API_METATABLE(tty)
+DEFINE_INIT_API_BEGIN(tty)
+PUSH_LIB_TABLE(tty);
+INVOKE_INIT_METATABLE(tty);
+DEFINE_INIT_API_END(tty)

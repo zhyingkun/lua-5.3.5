@@ -54,9 +54,13 @@
   lua_setfield(L, -2, "__call"); \
   lua_setmetatable(L, -2)
 
-#define REGISTER_ENUM(name) \
+#define REGISTE_ENUM(name) \
   luaL_newenum(L, UVWRAP_ENUM(name)); \
   lua_setfield(L, -2, #name)
+
+#define REGISTE_ENUM_R(name, name_r) \
+  luaL_newenum_r(L, UVWRAP_ENUM(name)); \
+  lua_setfield(L, -2, #name_r)
 
 #define DEFINE_INIT_API_TABLE(module) \
   DEFINE_INIT_API_BEGIN(module) \
@@ -87,6 +91,10 @@
 ** Declare api
 ** =======================================================
 */
+
+#define CALL_MODULE_INIT(module) \
+  UVWRAP_FUNCTION(module, init) \
+  (L)
 
 #define DECLARE_INIT_API(module) \
   void UVWRAP_FUNCTION(module, init)(lua_State * L);
@@ -308,7 +316,9 @@ typedef struct {
 } luaL_Enum;
 
 void luaL_setenums(lua_State* L, const luaL_Enum* l);
+void luaL_setenums_r(lua_State* L, const luaL_Enum* l);
 #define luaL_newenum(L, l) (luaL_checkversion(L), luaL_newlibtable(L, l), luaL_setenums(L, l))
+#define luaL_newenum_r(L, l) (luaL_checkversion(L), luaL_newlibtable(L, l), luaL_setenums_r(L, l))
 
 /* }====================================================== */
 

@@ -136,4 +136,12 @@ static void PIPE_FUNCTION(init_metatable)(lua_State* L) {
   lua_pop(L, 1);
 }
 
-DEFINE_INIT_API_FUNCTION(pipe)
+static const luaL_Reg PIPE_FUNCTION(funcs)[] = {
+    EMPLACE_PIPE_FUNCTION(new),
+    {NULL, NULL},
+};
+
+DEFINE_INIT_API_BEGIN(pipe)
+PUSH_LIB_TABLE(pipe);
+INVOKE_INIT_METATABLE(pipe);
+DEFINE_INIT_API_END(pipe)

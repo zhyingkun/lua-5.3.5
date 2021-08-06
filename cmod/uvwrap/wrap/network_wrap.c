@@ -89,7 +89,19 @@ static int SOCKADDR_FUNCTION(port)(lua_State* L) {
 
 static int SOCKADDR_FUNCTION(ip6_scope_id)(lua_State* L) {
   struct sockaddr_in6* addr = (struct sockaddr_in6*)luaL_checksockaddr(L, 1);
+  if (addr->sin6_family != AF_INET6) {
+    luaL_error(L, "Error sockaddr family: %d", addr->sin6_family);
+  }
   lua_pushinteger(L, addr->sin6_scope_id);
+  return 1;
+}
+
+static int SOCKADDR_FUNCTION(ip6_flowinfo)(lua_State* L) {
+  struct sockaddr_in6* addr = (struct sockaddr_in6*)luaL_checksockaddr(L, 1);
+  if (addr->sin6_family != AF_INET6) {
+    luaL_error(L, "Error sockaddr family: %d", addr->sin6_family);
+  }
+  lua_pushinteger(L, addr->sin6_flowinfo);
   return 1;
 }
 
@@ -120,6 +132,32 @@ static int SOCKADDR_FUNCTION(__tostring)(lua_State* L) {
   return 1;
 }
 
+static int SOCKADDR_FUNCTION(__eq)(lua_State* L) {
+  struct sockaddr* addr1 = luaL_checksockaddr(L, 1);
+  struct sockaddr* addr2 = luaL_checksockaddr(L, 2);
+  int eq = 0;
+  if (addr1->sa_family == addr2->sa_family) {
+    sa_family_t family = addr1->sa_family;
+    if (family == AF_INET) {
+      struct sockaddr_in* in1 = (struct sockaddr_in*)addr1;
+      struct sockaddr_in* in2 = (struct sockaddr_in*)addr2;
+      if (in1->sin_port == in2->sin_port && in1->sin_addr.s_addr == in2->sin_addr.s_addr) {
+        eq = 1;
+      }
+    } else if (family == AF_INET6) {
+      struct sockaddr_in6* in1 = (struct sockaddr_in6*)addr1;
+      struct sockaddr_in6* in2 = (struct sockaddr_in6*)addr2;
+      if (in1->sin6_port == in2->sin6_port && memcmp(in1->sin6_addr.s6_addr, in2->sin6_addr.s6_addr, sizeof(in1->sin6_addr.s6_addr)) == 0) {
+        eq = 1;
+      }
+    } else {
+      luaL_error(L, "sockaddr compare does not support family: %d", (int)family);
+    }
+  }
+  lua_pushboolean(L, eq);
+  return 1;
+}
+
 #define EMPLACE_SOCKADDR_FUNCTION(name) \
   { #name, SOCKADDR_FUNCTION(name) }
 
@@ -131,7 +169,9 @@ const luaL_Reg SOCKADDR_FUNCTION(metafuncs)[] = {
     EMPLACE_SOCKADDR_FUNCTION(name),
     EMPLACE_SOCKADDR_FUNCTION(port),
     EMPLACE_SOCKADDR_FUNCTION(ip6_scope_id),
+    EMPLACE_SOCKADDR_FUNCTION(ip6_flowinfo),
     EMPLACE_SOCKADDR_FUNCTION(__tostring),
+    EMPLACE_SOCKADDR_FUNCTION(__eq),
     /* placeholders */
     {"__index", NULL},
     {NULL, NULL},
@@ -368,9 +408,9 @@ static const luaL_Enum UVWRAP_ENUM(socktype)[] = {
 void NETWORK_FUNCTION(init)(lua_State* L) {
   luaL_newlib(L, NETWORK_FUNCTION(funcs));
 
-  REGISTER_ENUM(address_family);
-  REGISTER_ENUM(protocol);
-  REGISTER_ENUM(socktype);
+  REGISTE_ENUM(address_family);
+  REGISTE_ENUM(protocol);
+  REGISTE_ENUM(socktype);
 
   lua_setfield(L, -2, "network");
 

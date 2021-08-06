@@ -103,7 +103,7 @@ static int STREAM_FUNCTION(write)(lua_State* L) {
   int err = uv_write(req, handle, BUFS, NBUFS, STREAM_CALLBACK(write));
   CHECK_ERROR(L, err);
   SET_REQ_CALLBACK(L, 3, req);
-  HOLD_REQ_PARAM(L, req, 1, 2);
+  HOLD_REQ_PARAM(L, req, 1, 3);
   return 0;
 }
 
@@ -128,7 +128,7 @@ static int STREAM_FUNCTION(write2)(lua_State* L) {
   int err = uv_write2(req, handle, BUFS, NBUFS, send_handle, STREAM_CALLBACK(write2));
   CHECK_ERROR(L, err);
   SET_REQ_CALLBACK(L, 4, req);
-  HOLD_REQ_PARAM(L, req, 1, 2);
+  HOLD_REQ_PARAM(L, req, 1, 4);
   return 0;
 }
 

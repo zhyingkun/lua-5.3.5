@@ -65,10 +65,17 @@
     luaL_setmetatable(L, UVWRAP_HANDLE_TYPE); \
 \
     lua_pop(L, 1); \
-  }
+  } \
+\
+  static const luaL_Reg UVWRAP_FUNCTION(name, funcs)[] = { \
+      {"new", UVWRAP_FUNCTION(name, new)}, \
+      {NULL, NULL}, \
+  };
+
+// lua_pushcfunction(L, UVWRAP_FUNCTION(name, new));
 
 #define REGISTE_MISC_HANDLE(name) \
-  lua_pushcfunction(L, UVWRAP_FUNCTION(name, new)); \
+  PUSH_LIB_TABLE(name); \
   lua_setfield(L, -2, #name); \
   UVWRAP_FUNCTION(name, init_metatable) \
   (L)

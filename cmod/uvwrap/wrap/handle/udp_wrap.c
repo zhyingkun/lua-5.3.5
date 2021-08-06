@@ -228,22 +228,38 @@ const luaL_Reg UDP_FUNCTION(metafuncs)[] = {
     {NULL, NULL},
 };
 
+static void UDP_FUNCTION(init_metatable)(lua_State* L) {
+  luaL_newmetatable(L, UVWRAP_UDP_TYPE);
+  luaL_setfuncs(L, UDP_FUNCTION(metafuncs), 0);
+
+  lua_pushvalue(L, -1);
+  lua_setfield(L, -2, "__index");
+
+  luaL_setmetatable(L, UVWRAP_HANDLE_TYPE);
+
+  lua_pop(L, 1);
+}
+
+static const luaL_Reg UDP_FUNCTION(funcs)[] = {
+    EMPLACE_UDP_FUNCTION(new),
+    {NULL, NULL},
+};
+
 static const luaL_Enum UVWRAP_ENUM(membership)[] = {
     {"LEAVE_GROUP", UV_LEAVE_GROUP},
     {"JOIN_GROUP", UV_JOIN_GROUP},
     {NULL, 0},
 };
+static const luaL_Enum UVWRAP_ENUM(udp_flag)[] = {
+    {"IPV6ONLY", UV_UDP_IPV6ONLY},
+    {"PARTIAL", UV_UDP_PARTIAL},
+    {"REUSEADDR", UV_UDP_REUSEADDR},
+    {NULL, 0},
+};
 
-static void UDP_FUNCTION(init_metatable)(lua_State* L) {
-  luaL_newmetatable(L, UVWRAP_UDP_TYPE);
-  luaL_setfuncs(L, UDP_FUNCTION(metafuncs), 0);
-
-  REGISTER_ENUM(membership);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  lua_pop(L, 1);
-}
-
-DEFINE_INIT_API_FUNCTION(udp)
+DEFINE_INIT_API_BEGIN(udp)
+PUSH_LIB_TABLE(udp);
+REGISTE_ENUM(membership);
+REGISTE_ENUM(udp_flag);
+INVOKE_INIT_METATABLE(udp);
+DEFINE_INIT_API_END(udp)
