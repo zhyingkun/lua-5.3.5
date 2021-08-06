@@ -35,7 +35,7 @@ static int SYS_FUNCTION(cpu_info)(lua_State* L) {
   lua_createtable(L, 0, count);
   for (int i = 0; i < count; i++) {
     lua_pushuv_cpu_info_t(L, cpu_infos + i);
-    lua_setfield(L, -2, i + 1);
+    lua_rawseti(L, -2, i + 1);
   }
   uv_free_cpu_info(cpu_infos, count);
   return 1;

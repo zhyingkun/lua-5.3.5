@@ -11,6 +11,7 @@
 #include <uv.h>
 
 #include <stdlib.h>
+#include <string.h>
 
 #define UVWRAP_OK 0
 #if defined(_WIN32)
