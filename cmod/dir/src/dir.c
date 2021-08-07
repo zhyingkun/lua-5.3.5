@@ -4,7 +4,7 @@
 #if defined(__APPLE__)
 #define _DARWIN_C_SOURCE
 #elif defined(__linux__)
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 #endif
 
 #include <lprefix.h> // must include first
@@ -276,8 +276,7 @@ static int l_abspath(lua_State* L) {
   if (len >= 3 && isalpha(path[0]) && path[1] == ':' && (path[2] == '/' || path[2] == '\\')) {
     strcpy(buff, path); // absolute path
   } else {
-    (void)getcwd(buff, PATH_MAX);
-    if (len > 0) {
+    if (getcwd(buff, PATH_MAX) != NULL && len > 0) {
       strcat(buff, "\\");
       strcat(buff, path);
     }
@@ -286,8 +285,7 @@ static int l_abspath(lua_State* L) {
   if (*path == '/') {
     strcpy(buff, path); // absolute path
   } else {
-    (void)getcwd(buff, PATH_MAX);
-    if (len > 0) {
+    if (getcwd(buff, PATH_MAX) != NULL && len > 0) {
       strcat(buff, "/");
       strcat(buff, path);
     }
