@@ -8,9 +8,7 @@
 #ifdef _WIN32
 #include <malloc.h>
 #define alloca _alloca
-#endif
-
-#ifdef __APPLE__
+#else
 #include <alloca.h>
 #endif
 
