@@ -1041,7 +1041,7 @@ static void l_pbc_decode_pure_cb(void* ud, int type, const char* type_name, pbc_
     lua_newtable(L);
     pbc_env* env = ((UD*)ud)->env;
     pbc_slice slice = v->s;
-    int n = pbc_decode(env, nvt, &slice, l_pbc_decode_pure_cb, ud);
+    int n = pbc_decode(env, type_name, &slice, l_pbc_decode_pure_cb, ud);
     if (n < 0) {
       lua_pop(L, 1);
       lua_pushnil(L);
