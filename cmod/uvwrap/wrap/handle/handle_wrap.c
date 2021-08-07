@@ -99,9 +99,14 @@ static int HANDLE_FUNCTION(fileno)(lua_State* L) {
   uv_handle_t* handle = luaL_checkhandle(L, 1);
   uv_os_fd_t fd;
   int err = uv_fileno(handle, &fd);
-  CHECK_ERROR(L, err);
-  lua_pushinteger(L, fd);
-  return 1;
+  if (err == UVWRAP_OK) {
+    lua_pushinteger(L, fd);
+    return 1;
+  } else {
+    lua_pushnil(L);
+    lua_pushinteger(L, err);
+    return 2;
+  }
 }
 
 static int HANDLE_FUNCTION(get_loop)(lua_State* L) {

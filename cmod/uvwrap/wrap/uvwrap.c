@@ -3,6 +3,34 @@
 #define uvwrap_c
 #include <uvwrap.h>
 
+static int uvwrap_set_msgh(lua_State* L) {
+  lua_settop(L, 1);
+  lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)ERROR_FUNCTION(msgh));
+  return 0;
+}
+
+static void alloc_callback(void* ud, void* old_ptr, void* new_ptr, size_t new_size) {
+  lua_State* L = (lua_State*)ud;
+  lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)alloc_callback);
+  lua_pushlightuserdata(L, old_ptr);
+  lua_pushlightuserdata(L, new_ptr);
+  lua_pushinteger(L, new_size);
+  CALL_LUA_FUNCTION(L, 3, 0);
+}
+
+static int uvwrap_set_realloc_cb(lua_State* L) {
+  lua_settop(L, 1);
+  if (lua_isfunction(L, 1)) {
+    MEMORY_FUNCTION(set_memcb)
+    (alloc_callback, (void*)L);
+    lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)alloc_callback);
+  } else {
+    MEMORY_FUNCTION(set_memcb)
+    (NULL, NULL);
+  }
+  return 0;
+}
+
 static int uvwrap_err_name(lua_State* L) {
   int err = luaL_checkinteger(L, 1);
   const char* name = uv_err_name(err);
@@ -49,6 +77,8 @@ static void setup_args(lua_State* L) {
 }
 
 static const luaL_Reg uvwrap_funcs[] = {
+    {"set_msgh", uvwrap_set_msgh},
+    {"set_realloc_cb", uvwrap_set_realloc_cb},
     {"err_name", uvwrap_err_name},
     {"strerror", uvwrap_strerror},
     {"translate_sys_error", uvwrap_translate_sys_error},

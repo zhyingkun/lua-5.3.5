@@ -7,20 +7,43 @@
 ** =======================================================
 */
 
+static MEMORY_FUNCTION(memcb) memcb_fn = NULL;
+static void* memcb_ud = NULL;
+
+void MEMORY_FUNCTION(set_memcb)(MEMORY_FUNCTION(memcb) fn, void* ud) {
+  memcb_fn = fn;
+  memcb_ud = ud;
+}
+
 void* MEMORY_FUNCTION(malloc)(size_t size) {
-  return malloc(size);
+  void* new_ptr = malloc(size);
+  if (memcb_fn) {
+    memcb_fn(memcb_ud, NULL, new_ptr, size);
+  }
+  return new_ptr;
 }
 
 void MEMORY_FUNCTION(free)(void* ptr) {
   free((void*)ptr);
+  if (memcb_fn) {
+    memcb_fn(memcb_ud, ptr, NULL, 0);
+  }
 }
 
 void* MEMORY_FUNCTION(realloc)(void* ptr, size_t size) {
-  return realloc(ptr, size);
+  void* new_ptr = realloc(ptr, size);
+  if (memcb_fn) {
+    memcb_fn(memcb_ud, ptr, new_ptr, size);
+  }
+  return new_ptr;
 }
 
 void* MEMORY_FUNCTION(calloc)(size_t count, size_t size) {
-  return calloc(count, size);
+  void* new_ptr = calloc(count, size);
+  if (memcb_fn) {
+    memcb_fn(memcb_ud, NULL, new_ptr, count * size);
+  }
+  return new_ptr;
 }
 
 void MEMORY_FUNCTION(buf_alloc)(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
@@ -38,12 +61,23 @@ void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf) {
 
 /*
 ** {======================================================
-** Memory allocator
+** Error check
 ** =======================================================
 */
 
 int ERROR_FUNCTION(check)(lua_State* L, int err) {
   return luaL_error(L, "Error:[%s] %s", uv_err_name(err), uv_strerror(err));
+}
+
+int ERROR_FUNCTION(msgh)(lua_State* L) {
+  if (lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)ERROR_FUNCTION(msgh)) == LUA_TFUNCTION) {
+    lua_insert(L, -2);
+    lua_pcall(L, 1, 1, 0);
+  } else {
+    lua_pop(L, 1);
+    luaL_traceback(L, L, lua_tostring(L, -1), 1);
+  }
+  return 1;
 }
 
 /* }====================================================== */
@@ -134,6 +168,8 @@ void UTILS_PUSH_FUNCTION(physaddr)(lua_State* L, const char* addr) {
   SET_FIELD(string, #name, addr->name)
 #define SET_UV_INTERFACE_ADDRESS_T_PHYSADDR(name) \
   SET_FIELD(physaddr, #name, addr->name)
+#define SET_UV_INTERFACE_ADDRESS_T_BOOLEAN(name) \
+  SET_FIELD(boolean, #name, addr->name)
 #define SET_UV_INTERFACE_ADDRESS_T_SOCKADDR(name) \
   SET_FIELD_2(sockaddr, #name, (struct sockaddr*)&(addr->name), sizeof(addr->name))
 
@@ -142,6 +178,7 @@ void UTILS_PUSH_FUNCTION(uv_interface_address_t)(lua_State* L, const uv_interfac
 
   SET_UV_INTERFACE_ADDRESS_T_STRING(name);
   SET_UV_INTERFACE_ADDRESS_T_PHYSADDR(phys_addr);
+  SET_UV_INTERFACE_ADDRESS_T_BOOLEAN(is_internal);
   SET_UV_INTERFACE_ADDRESS_T_SOCKADDR(address);
   SET_UV_INTERFACE_ADDRESS_T_SOCKADDR(netmask);
 }

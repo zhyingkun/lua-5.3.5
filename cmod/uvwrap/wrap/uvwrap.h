@@ -180,6 +180,7 @@ void UTILS_PUSH_FUNCTION(uv_statfs_t)(lua_State* L, const uv_statfs_t* statfs);
 #define ERROR_FUNCTION(name) UVWRAP_FUNCTION(error, name)
 
 int ERROR_FUNCTION(check)(lua_State* L, int err);
+int ERROR_FUNCTION(msgh)(lua_State* L);
 
 #define CHECK_ERROR(L, err) \
   if (err != UVWRAP_OK) \
@@ -202,6 +203,9 @@ void* MEMORY_FUNCTION(calloc)(size_t count, size_t size);
 
 void MEMORY_FUNCTION(buf_alloc)(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf);
 void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf);
+
+typedef void (*MEMORY_FUNCTION(memcb))(void* ud, void* old_ptr, void* new_ptr, size_t new_size);
+void MEMORY_FUNCTION(set_memcb)(MEMORY_FUNCTION(memcb) fn, void* ud);
 
 /* }====================================================== */
 
@@ -287,7 +291,16 @@ void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf);
     UNHOLD_LUA_OBJECT(L, handle, IDX_HANDLE_CLOSE); \
   } while (0)
 
-#define CALL_LUA_FUNCTION(L, nargs, nresult) lua_pcall(L, nargs, nresult, 0) // must be pcall
+#define CALL_LUA_FUNCTION(L, nargs, nresult) /* must be pcall */ \
+  lua_pushcfunction(L, ERROR_FUNCTION(msgh)); \
+  int msgh = lua_gettop(L) - (nargs + 1); \
+  lua_insert(L, msgh); \
+  if (lua_pcall(L, nargs, 0, msgh) != LUA_OK) { \
+    if (!lua_isnil(L, -1)) { \
+      printf("Error: %s\n", lua_tostring(L, -1)); \
+    } \
+    lua_pop(L, 1); \
+  }
 
 /* }====================================================== */
 
