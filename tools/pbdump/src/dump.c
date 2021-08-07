@@ -15,7 +15,7 @@ static void read_file(const char* filename, pbc_slice* slice) {
   slice->len = ftell(f);
   fseek(f, 0, SEEK_SET);
   slice->buffer = malloc(slice->len);
-  if (fread(slice->buffer, 1, slice->len, f) != slice->len) {
+  if (fread(slice->buffer, 1, slice->len, f) != (size_t)slice->len) {
     fprintf(stderr, "Read file %s error\n", filename);
   }
   fclose(f);
