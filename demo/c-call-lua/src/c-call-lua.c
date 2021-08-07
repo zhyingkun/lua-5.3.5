@@ -243,7 +243,9 @@ static void test_person(lua_State* L) {
 
   lua_setglobal(L, "one");
 
-  luaL_dostring(L, access_person);
+  if (luaL_dostring(L, access_person) != LUA_OK) {
+    lua_pop(L, 1);
+  }
 
   const char* name = lua_tostring(p->dataL, p->idName);
   int age = lua_tointeger(p->dataL, p->idAge);
@@ -528,7 +530,9 @@ int main(int argc, char const* argv[]) {
   print_lua_registry_table(L);
 
   assert(lua_gettop(L) == 0);
-  (void)luaL_dostring(L, main_as_coroutine);
+  if (luaL_dostring(L, main_as_coroutine) != LUA_OK) {
+    lua_pop(L, 1);
+  }
   assert(lua_gettop(L) == 0);
   lua_getglobal(L, "main_coroutine");
   lua_pushliteral(L, "zykTest");
