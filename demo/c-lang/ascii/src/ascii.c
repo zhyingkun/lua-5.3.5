@@ -4,6 +4,8 @@
 #include <lctype.c>
 
 int main(int argc, const char* argv[]) {
+  (void)argc;
+  (void)argv;
   printf("sizeof(luai_ctype_): %lu\n", sizeof(luai_ctype_));
   //   for (int i = 0; i < 256; i++) {
   //     printf("%c, %d, is printable: %s\n", (char)i, i, lisprint(i) ? "true" : "false");
