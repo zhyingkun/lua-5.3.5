@@ -1,31 +1,94 @@
-local function WalkFiles(directory, suffix, escape, callback)
-	local function ShouldEscape(file)
-		for _, name in ipairs(escape) do
-			if name == file then return true end
-		end
-		return false
+local uvwrap = require("libuvwrap")
+local loop = uvwrap.loop.default()
+
+local function make_mt_index(module)
+	return function(self, name)
+		local value = uvwrap[module][name]
+		self[name] = value
+		return value
 	end
-	for name, isdir in require("libdir").dirs(directory) do
-		if not isdir and name:find(suffix .. "$") and not ShouldEscape(name) then
-			callback(name)
+end
+
+local function make_mt_loop_index(module)
+	return function(self, name)
+		local value = uvwrap[module][name]
+		if not value then return end
+		local t = type(value)
+		if t == "function" then
+			local function func(...)
+				return value(loop, ...)
+			end
+			self[name] = func
+			return func
+		else
+			self[name] = value
+			return value
 		end
 	end
 end
 
-local ModName, AbsPath = ...
-local Default = ".init"
-if ModName:sub(-(#Default), -1) == Default then
-	ModName = ModName:sub(1, -(#Default) - 1)
+local function make_func_loop(func)
+	return function(...)
+		return func(loop, ...)
+	end
 end
-local AbsDir = require("libdir").dirname(AbsPath)
 
-local ManualList = {}
-local Suffix = ".lua"
-WalkFiles(AbsDir, Suffix, {
-	"init.lua"
-}, function(filename)
-	filename = filename:sub(1, -(#Suffix) - 1)
-	ManualList[filename] = require(ModName .. "." .. filename)
-end)
-
-return ManualList
+return setmetatable({
+	loop = setmetatable({
+		default = uvwrap.loop.default,
+		new = uvwrap.loop.new,
+		queue_work = uvwrap.loop.queue_work,
+	}, {
+		__index = make_mt_loop_index("loop"),
+	}),
+	fs = setmetatable({}, {
+		__index = make_mt_loop_index("fs"),
+	}),
+	network = setmetatable({
+		getaddrinfo = make_func_loop(uvwrap.network.getaddrinfo),
+		getnameinfo = make_func_loop(uvwrap.network.getnameinfo),
+	}, {
+		__index = make_mt_index("network"),
+	}),
+	tcp = setmetatable({
+		new = make_func_loop(uvwrap.tcp.new),
+	}, {
+		__index = make_mt_index("tcp"),
+	}),
+	udp = setmetatable({
+		new = make_func_loop(uvwrap.udp.new),
+	}, {
+		__index = make_mt_index("udp"),
+	}),
+	fs_event = setmetatable({
+		new = make_func_loop(uvwrap.fs_event.new),
+	}, {
+		__index = make_mt_index("fs_event"),
+	}),
+	process = setmetatable({
+		new = make_func_loop(uvwrap.process.new),
+	}, {
+		__index = make_mt_index("process"),
+	}),
+	timer = setmetatable({
+		new = make_func_loop(uvwrap.timer.new),
+	}, {
+		__index = make_mt_index("timer"),
+	}),
+	idle = setmetatable({
+		new = make_func_loop(uvwrap.idle.new),
+	}, {
+		__index = make_mt_index("idle"),
+	}),
+	signal = setmetatable({
+		new = make_func_loop(uvwrap.signal.new),
+	}, {
+		__index = make_mt_index("signal"),
+	}),
+}, {
+	__index = function(self, name)
+		local value = uvwrap[name]
+		self[name] = value
+		return value
+	end
+})
