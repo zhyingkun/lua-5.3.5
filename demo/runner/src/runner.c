@@ -26,8 +26,9 @@ static void resolve_absolute_path(char* script, int len, const char* runner) {
   if (n == 0 || n == nsize || (lb = strrchr(script, '\\')) == NULL) {
     fprintf(stderr, "unable to get ModuleFileName, use default path\n");
     fflush(stderr);
-    (void)getcwd(script, nsize);
-    strcat(script, "\\");
+    if (getcwd(script, nsize) != NULL) {
+      strcat(script, "\\");
+    }
   } else {
     *(++lb) = '\0';
   }
@@ -36,9 +37,10 @@ static void resolve_absolute_path(char* script, int len, const char* runner) {
 #define DEFAULT_SCRIPT "scripts/run.lua"
 static void resolve_absolute_path(char* script, int len, const char* runner) {
   if (*runner != '/') {
-    (void)getcwd(script, len);
-    strcat(script, "/");
-    strcat(script, runner);
+    if (getcwd(script, len) != NULL) {
+      strcat(script, "/");
+      strcat(script, runner);
+    }
   } else {
     strcpy(script, runner);
   }
