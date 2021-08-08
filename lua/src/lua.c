@@ -428,6 +428,10 @@ static int pushargs(lua_State* L) {
   return n;
 }
 
+int exception_msgh(lua_State* L) {
+  luaL_traceback(L, L, lua_tostring(L, -1), 1);
+  return 1;
+}
 static int handle_script(lua_State* L, char** argv) {
   int status;
   const char* fname = argv[0];
@@ -440,10 +444,16 @@ static int handle_script(lua_State* L, char** argv) {
   }
   if (status == LUA_OK) {
     if (lua_getfield(L, LUA_REGISTRYINDEX, LUA_ATEXIT) == LUA_TTABLE) {
+      int aeidx = lua_gettop(L);
+      lua_pushcfunction(L, exception_msgh);
       lua_pushnil(L);
-      while (lua_next(L, -2)) {
-        lua_pcall(L, 0, 0, 0);
+      while (lua_next(L, aeidx)) {
+        if (lua_pcall(L, 0, 0, aeidx + 1) != LUA_OK) {
+          printf("Call atexit failed: %s", lua_tostring(L, -1));
+          lua_pop(L, 1);
+        }
       }
+      lua_pop(L, 1);
     }
     lua_pop(L, 1);
   }
