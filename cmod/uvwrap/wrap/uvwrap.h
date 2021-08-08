@@ -237,6 +237,7 @@ void MEMORY_FUNCTION(set_memcb)(MEMORY_FUNCTION(memcb) fn, void* ud);
 #define PUSH_REQ_CALLBACK_CLEAN(L, req) \
   do { \
     L = (lua_State*)uv_req_get_data((uv_req_t*)req); \
+    luaL_checkstack(L, LUA_MINSTACK, "request callback"); \
     PUSH_HOLD_OBJECT(L, req, 0); \
     UNHOLD_LUA_OBJECT(L, req, 0); \
   } while (0)
@@ -254,6 +255,7 @@ void MEMORY_FUNCTION(set_memcb)(MEMORY_FUNCTION(memcb) fn, void* ud);
 #define PUSH_HANDLE_CALLBACK(L, handle, num) \
   do { \
     GET_HANDLE_DATA(L, handle); \
+    luaL_checkstack(L, LUA_MINSTACK, "handle callback"); \
     PUSH_HOLD_OBJECT(L, handle, num); \
   } while (0)
 #define CLEAR_HANDLE_CALLBACK(L, handle, num) \
@@ -287,6 +289,7 @@ void MEMORY_FUNCTION(set_memcb)(MEMORY_FUNCTION(memcb) fn, void* ud);
 #define PUSH_HANDLE_CLOSE_CALLBACK_CLEAN(L, handle) \
   do { \
     GET_HANDLE_DATA(L, handle); \
+    luaL_checkstack(L, LUA_MINSTACK, "handle close callback"); \
     PUSH_HOLD_OBJECT(L, handle, IDX_HANDLE_CLOSE); \
     UNHOLD_LUA_OBJECT(L, handle, IDX_HANDLE_CLOSE); \
   } while (0)
@@ -300,7 +303,8 @@ void MEMORY_FUNCTION(set_memcb)(MEMORY_FUNCTION(memcb) fn, void* ud);
       printf("Error: %s\n", lua_tostring(L, -1)); \
     } \
     lua_pop(L, 1); \
-  }
+  } \
+  lua_pop(L, 1)
 
 /* }====================================================== */
 
