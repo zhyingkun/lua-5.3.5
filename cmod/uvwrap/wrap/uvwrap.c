@@ -91,10 +91,19 @@ static const luaL_Reg uvwrap_funcs[] = {
 
 // clang-format off
 static const luaL_Enum UVWRAP_ENUM(err_code)[] = {
+    {"OK", UVWRAP_OK},
 #define XX(name, msg) {#name, UV_##name},
     UV_ERRNO_MAP(XX)
 #undef XX
-    {"OK", UVWRAP_OK},
+    {NULL, 0},
+};
+static const luaL_Enum UVWRAP_ENUM(handle_type)[] = {
+    {"UNKNOWN_HANDLE", UV_UNKNOWN_HANDLE},
+#define XX(uc, lc) {#uc, UV_##uc},
+    UV_HANDLE_TYPE_MAP(XX)
+#undef XX
+    {"FILE", UV_FILE},
+    {"MAX", UV_HANDLE_TYPE_MAX},
     {NULL, 0},
 };
 // clang-format on
@@ -110,6 +119,7 @@ LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
   luaL_newlib(L, uvwrap_funcs);
 
   REGISTE_ENUM(err_code);
+  REGISTE_ENUM(handle_type);
 
   lua_pushinteger(L, uv_version());
   lua_setfield(L, -2, "version");
