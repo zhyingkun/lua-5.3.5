@@ -32,7 +32,7 @@ static int SYS_FUNCTION(cpu_info)(lua_State* L) {
   int count = 0;
   int err = uv_cpu_info(&cpu_infos, &count);
   CHECK_ERROR(L, err);
-  lua_createtable(L, 0, count);
+  lua_createtable(L, count, 0);
   for (int i = 0; i < count; i++) {
     lua_pushuv_cpu_info_t(L, cpu_infos + i);
     lua_rawseti(L, -2, i + 1);
