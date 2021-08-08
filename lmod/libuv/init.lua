@@ -85,6 +85,11 @@ return setmetatable({
 	}, {
 		__index = make_mt_index("signal"),
 	}),
+	pipe = setmetatable({
+		new = make_func_loop(uvwrap.pipe.new),
+	}, {
+		__index = make_mt_index("pipe"),
+	}),
 }, {
 	__index = function(self, name)
 		local value = uvwrap[name]
