@@ -71,7 +71,10 @@ static int ptest_lua_getstackdepth1(lua_State* L) {
   CuAssertIntEquals(tc, 1, lua_getstackdepth(L, NULL));
   lua_pushcfunction(L, ptest_lua_getstackdepth2);
   lua_pushlightuserdata(L, (void*)tc);
-  lua_pcall(L, 1, 0, 0);
+  if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
+    printf("pcall error: %s\n", lua_tostring(L, -1));
+    lua_pop(L, 1);
+  }
   return 0;
 }
 static int ptest_lua_getstackdepth(lua_State* L) {
@@ -80,7 +83,11 @@ static int ptest_lua_getstackdepth(lua_State* L) {
   CuAssertIntEquals(tc, 0, lua_getstackdepth(L, NULL));
   lua_pushcfunction(L, ptest_lua_getstackdepth1);
   lua_pushlightuserdata(L, (void*)tc);
-  lua_pcall(L, 1, 0, 0);
+  if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
+    printf("pcall error: %s\n", lua_tostring(L, -1));
+    lua_pop(L, 1);
+  }
+  return 0;
   return 0;
 }
 
@@ -94,7 +101,11 @@ void Test_lua_getstackdepth(CuTest* tc) {
   CuAssertIntEquals(tc, 0, lua_getstackdepth(L, NULL));
   lua_pushcfunction(L, ptest_lua_getstackdepth);
   lua_pushlightuserdata(L, (void*)tc);
-  lua_pcall(L, 1, 0, 0);
+  if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
+    printf("pcall error: %s\n", lua_tostring(L, -1));
+    lua_pop(L, 1);
+  }
+  return 0;
 
   CuAssertIntEquals(tc, 0, lua_gettop(L));
   lua_close(L);
@@ -109,7 +120,7 @@ void Test_db_getspecialkeys(CuTest* tc) {
   lua_getfield(L, -1, "getspecialkeys");
   CuAssertIntEquals(tc, 2, lua_gettop(L));
   CuAssertTrue(tc, lua_type(L, -1) == LUA_TFUNCTION);
-  lua_pcall(L, 0, 1, 0);
+  lua_pcall(L, 0, 1, 0); // if error occur, pcall result is the string,
   CuAssertIntEquals(tc, 2, lua_gettop(L));
   CuAssertTrue(tc, lua_type(L, -1) == LUA_TTABLE);
   lua_getfield(L, -1, "CLIBS");
@@ -155,7 +166,7 @@ void Test_db_tablemem(CuTest* tc) {
   CuAssertIntEquals(tc, 2, lua_gettop(L));
   CuAssertTrue(tc, lua_type(L, -1) == LUA_TFUNCTION);
   lua_newtable(L);
-  lua_pcall(L, 1, 3, 0);
+  lua_pcall(L, 1, 3, 0); // after assert check the pcall result
   CuAssertIntEquals(tc, 4, lua_gettop(L));
   CuAssertTrue(tc, lua_type(L, -1) == LUA_TNUMBER);
   CuAssertTrue(tc, lua_type(L, -2) == LUA_TNUMBER);

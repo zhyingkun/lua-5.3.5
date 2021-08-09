@@ -330,7 +330,7 @@ static void load_and_run_lua_code(lua_State* L) {
     printf("luaL_loadstring error, funcRet: %d return: %s\n", funcRet, lua_tostring(L, 1));
   } else {
     funcRet = lua_pcall(L, 0, 1, 0);
-    printf("lua_pcall return: %lld\n", lua_tointeger(L, 1));
+    printf("lua_pcall return flag: %d, value: %lld\n", funcRet, lua_tointeger(L, 1));
   }
   lua_pop(L, 1); // pop string pushed by luaL_loadstring or lua_pcall
   printf("===================================\n");

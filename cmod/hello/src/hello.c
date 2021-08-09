@@ -160,7 +160,11 @@ static int cfunc(lua_State* L) {
   printf("myVal: %d\n", myVal);
   lua_getglobal(L, "lfunc");
   lua_pushnumber(L, 13);
-  lua_pcall(L, 1, 0, 0);
+  if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
+    printf("pcall error: %s\n", lua_tostring(L, -1));
+    lua_pop(L, 1);
+  }
+  return 0;
   printf("/////////////////////////////////////\n");
   return 0;
 }
