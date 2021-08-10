@@ -10,6 +10,11 @@ local err_code = libuv.err_code
 local OK = err_code.OK
 local EOF = err_code.EOF
 
+
+libuv.set_msgh(function(msg)
+	print("In custom msg handler:", msg, debug.traceback())
+end)
+
 local function TcpServer()
 	local tcpSocket = tcp.new()
 	local sockAddr = network.sockaddr()
