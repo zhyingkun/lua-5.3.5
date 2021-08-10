@@ -4,14 +4,16 @@
 #define LOOP_FUNCTION(name) UVWRAP_FUNCTION(loop, name)
 #define LOOP_CALLBACK(name) UVWRAP_CALLBACK(loop, name)
 
-uv_loop_t* default_loop;
+uv_loop_t* default_loop = NULL;
 
 static int LOOP_FUNCTION(default)(lua_State* L) {
-  uv_loop_t* loop = uv_default_loop();
-  if (loop == NULL) {
+  if (default_loop == NULL) {
+    default_loop = uv_default_loop();
+  }
+  if (default_loop == NULL) {
     return 0;
   }
-  lua_pushlightuserdata(L, (void*)loop);
+  lua_pushlightuserdata(L, (void*)default_loop);
   return 1;
 }
 
@@ -33,9 +35,13 @@ static int LOOP_FUNCTION(new)(lua_State* L) {
 static int LOOP_FUNCTION(close)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
   int result = uv_loop_close(loop);
-  if (result != UV_EBUSY && loop != default_loop) {
-    MEMORY_FUNCTION(free)
-    (loop);
+  if (result != UV_EBUSY) {
+    if (loop == default_loop) {
+      default_loop = NULL;
+    } else {
+      MEMORY_FUNCTION(free)
+      (loop);
+    }
   }
   lua_pushinteger(L, result);
   return 1;
@@ -181,8 +187,6 @@ static const luaL_Enum UVWRAP_ENUM(run_mode)[] = {
 };
 
 void LOOP_FUNCTION(init)(lua_State* L) {
-  default_loop = uv_default_loop();
-
   luaL_newlib(L, LOOP_FUNCTION(funcs));
 
   REGISTE_ENUM(run_mode);
