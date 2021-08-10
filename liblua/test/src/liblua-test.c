@@ -88,7 +88,6 @@ static int ptest_lua_getstackdepth(lua_State* L) {
     lua_pop(L, 1);
   }
   return 0;
-  return 0;
 }
 
 void Test_lua_getstackdepth(CuTest* tc) {
@@ -105,7 +104,6 @@ void Test_lua_getstackdepth(CuTest* tc) {
     printf("pcall error: %s\n", lua_tostring(L, -1));
     lua_pop(L, 1);
   }
-  return 0;
 
   CuAssertIntEquals(tc, 0, lua_gettop(L));
   lua_close(L);
