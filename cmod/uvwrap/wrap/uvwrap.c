@@ -50,21 +50,13 @@ static int uvwrap_translate_sys_error(lua_State* L) {
   return 1;
 }
 
-static void setup_args(lua_State* L) {
-  lua_getglobal(L, "arg");
-  if (lua_istable(L, -1)) {
-    lua_getfield(L, -1, "argv");
-    lua_getfield(L, -2, "argc");
-    if (lua_isinteger(L, -1) && lua_islightuserdata(L, -2)) {
-      int argc = lua_tointeger(L, -1);
-      char** argv = (char**)lua_touserdata(L, -2);
-      argv = uv_setup_args(argc, argv);
-      lua_pushlightuserdata(L, (void*)argv);
-      lua_setfield(L, -4, "argv");
-    }
-    lua_pop(L, 2);
-  }
-  lua_pop(L, 1);
+static int uvwrap_setup_args(lua_State* L) {
+  int argc = luaL_checkinteger(L, 1);
+  luaL_checktype(L, 2, LUA_TLIGHTUSERDATA);
+  char** argv = (char**)lua_touserdata(L, 2);
+  argv = uv_setup_args(argc, argv);
+  lua_pushlightuserdata(L, argv);
+  return 1;
 }
 
 static const luaL_Reg uvwrap_funcs[] = {
@@ -73,6 +65,7 @@ static const luaL_Reg uvwrap_funcs[] = {
     {"err_name", uvwrap_err_name},
     {"strerror", uvwrap_strerror},
     {"translate_sys_error", uvwrap_translate_sys_error},
+    {"setup_args", uvwrap_setup_args},
     /* placeholders */
     {"err_code", NULL},
     {"version", NULL},
@@ -117,8 +110,6 @@ LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
 
   lua_pushstring(L, uv_version_string());
   lua_setfield(L, -2, "version_string");
-
-  setup_args(L);
 
   CALL_MODULE_INIT(handle);
   CALL_MODULE_INIT(stream);
