@@ -457,9 +457,6 @@ static int handle_script(lua_State* L, char** argv) {
     int n = pushargs(L); /* push arguments to script */
     status = docall(L, n, LUA_MULTRET);
   }
-  if (status == LUA_OK) {
-    call_registry_funcs(L, LUA_ATEXIT, "Call atexit failed: %s\n");
-  }
   return report(L, status);
 }
 
@@ -615,6 +612,7 @@ static int pmain(lua_State* L) {
     else
       dofile(L, NULL); /* executes stdin as a file */
   }
+  call_registry_funcs(L, LUA_ATEXIT, "Call atexit failed: %s\n");
   lua_pushboolean(L, 1); /* signal no errors */
   return 1;
 }
