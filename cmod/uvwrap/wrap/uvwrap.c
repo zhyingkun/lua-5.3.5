@@ -50,15 +50,6 @@ static int uvwrap_translate_sys_error(lua_State* L) {
   return 1;
 }
 
-static int uvwrap_atexit(lua_State* L) {
-  uv_loop_t* loop = uv_default_loop();
-  if (loop) {
-    uv_run(loop, UV_RUN_DEFAULT);
-    uv_loop_close(loop);
-  }
-  return 0;
-}
-
 static void setup_args(lua_State* L) {
   lua_getglobal(L, "arg");
   if (lua_istable(L, -1)) {
@@ -128,8 +119,6 @@ LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
   lua_setfield(L, -2, "version_string");
 
   setup_args(L);
-  lua_pushcfunction(L, uvwrap_atexit);
-  luaL_atexit(L);
 
   CALL_MODULE_INIT(handle);
   CALL_MODULE_INIT(stream);

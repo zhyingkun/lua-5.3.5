@@ -33,6 +33,11 @@ local function make_func_loop(func)
 	end
 end
 
+atexit(function()
+	uvwrap.loop.run(loop)
+	uvwrap.loop.close(loop)
+end)
+
 return setmetatable({
 	loop = setmetatable({
 		default = uvwrap.loop.default,
