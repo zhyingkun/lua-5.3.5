@@ -467,6 +467,20 @@ static int luaB_tostring(lua_State* L) {
   return 1;
 }
 
+static int luaB_atexit(lua_State* L) {
+  luaL_checktype(L, 1, LUA_TFUNCTION);
+  lua_settop(L, 1);
+  luaL_atexit(L);
+  return 0;
+}
+
+static int luaB_atrepl(lua_State* L) {
+  luaL_checktype(L, 1, LUA_TFUNCTION);
+  lua_settop(L, 1);
+  luaL_atrepl(L);
+  return 0;
+}
+
 static const luaL_Reg base_funcs[] = {
     {"assert", luaB_assert},
     {"collectgarbage", luaB_collectgarbage},
@@ -494,6 +508,8 @@ static const luaL_Reg base_funcs[] = {
     {"type", luaB_type},
     {"typedetail", luaB_typedetail},
     {"xpcall", luaB_xpcall},
+    {"atexit", luaB_atexit},
+    {"atrepl", luaB_atrepl},
     /* placeholders */
     {"_G", NULL},
     {"_VERSION", NULL},

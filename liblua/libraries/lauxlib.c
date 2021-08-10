@@ -1492,14 +1492,14 @@ LUALIB_API void luaL_close_z(lua_State* L) {
   lua_close(L);
 }
 
-LUALIB_API void luaL_atexit(lua_State* L) {
+static void insert_registry_funcs(lua_State* L, const char* name) {
   luaL_checktype(L, -1, LUA_TFUNCTION);
   int funcIdx = lua_gettop(L);
-  if (lua_getfield(L, LUA_REGISTRYINDEX, LUA_ATEXIT) != LUA_TTABLE) {
+  if (lua_getfield(L, LUA_REGISTRYINDEX, name) != LUA_TTABLE) {
     lua_pop(L, 1);
     lua_newtable(L);
     lua_pushvalue(L, -1);
-    lua_setfield(L, LUA_REGISTRYINDEX, LUA_ATEXIT);
+    lua_setfield(L, LUA_REGISTRYINDEX, name);
   }
   int tblIdx = funcIdx + 1;
   lua_pushnil(L);
@@ -1512,8 +1512,16 @@ LUALIB_API void luaL_atexit(lua_State* L) {
   }
   int key = lua_rawlen(L, tblIdx) + 1;
   lua_pushvalue(L, funcIdx); // func, tbl, func
-  lua_seti(L, tblIdx, key);
+  lua_rawseti(L, tblIdx, key);
   lua_pop(L, 2);
+}
+
+LUALIB_API void luaL_atexit(lua_State* L) {
+  insert_registry_funcs(L, LUA_ATEXIT);
+}
+
+LUALIB_API void(luaL_atrepl)(lua_State* L) {
+  insert_registry_funcs(L, LUA_ATREPL);
 }
 
 /*

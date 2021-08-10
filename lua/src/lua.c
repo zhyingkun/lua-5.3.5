@@ -387,9 +387,27 @@ static void l_print(lua_State* L) {
     luaL_checkstack(L, LUA_MINSTACK, "too many results to print");
     lua_getglobal(L, "print");
     lua_insert(L, 1);
-    if (lua_pcall(L, n, 0, 0) != LUA_OK)
+    if (lua_pcall(L, n, 0, 0) != LUA_OK) {
       l_message(progname, lua_pushfstring(L, "error calling 'print' (%s)", lua_tostring(L, -1)));
+      lua_settop(L, 0);
+    }
   }
+}
+
+static void call_registry_funcs(lua_State* L, const char* name, const char* msg) {
+  if (lua_getfield(L, LUA_REGISTRYINDEX, name) == LUA_TTABLE) {
+    int idx = lua_gettop(L);
+    lua_pushcfunction(L, msghandler);
+    lua_pushnil(L);
+    while (lua_next(L, idx)) {
+      if (lua_pcall(L, 0, 0, idx + 1) != LUA_OK) {
+        lua_writestringerror(msg, lua_tostring(L, -1));
+        lua_pop(L, 1);
+      }
+    }
+    lua_pop(L, 1);
+  }
+  lua_pop(L, 1);
 }
 
 /*
@@ -407,6 +425,7 @@ static void doREPL(lua_State* L) {
       l_print(L);
     else
       report(L, status);
+    call_registry_funcs(L, LUA_ATREPL, "Call atrepl failed: %s\n");
   }
   lua_settop(L, 0); /* clear stack */
   lua_writeline();
@@ -428,10 +447,6 @@ static int pushargs(lua_State* L) {
   return n;
 }
 
-int exception_msgh(lua_State* L) {
-  luaL_traceback(L, L, lua_tostring(L, -1), 1);
-  return 1;
-}
 static int handle_script(lua_State* L, char** argv) {
   int status;
   const char* fname = argv[0];
@@ -443,19 +458,7 @@ static int handle_script(lua_State* L, char** argv) {
     status = docall(L, n, LUA_MULTRET);
   }
   if (status == LUA_OK) {
-    if (lua_getfield(L, LUA_REGISTRYINDEX, LUA_ATEXIT) == LUA_TTABLE) {
-      int aeidx = lua_gettop(L);
-      lua_pushcfunction(L, exception_msgh);
-      lua_pushnil(L);
-      while (lua_next(L, aeidx)) {
-        if (lua_pcall(L, 0, 0, aeidx + 1) != LUA_OK) {
-          printf("Call atexit failed: %s", lua_tostring(L, -1));
-          lua_pop(L, 1);
-        }
-      }
-      lua_pop(L, 1);
-    }
-    lua_pop(L, 1);
+    call_registry_funcs(L, LUA_ATEXIT, "Call atexit failed: %s\n");
   }
   return report(L, status);
 }

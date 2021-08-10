@@ -107,6 +107,9 @@ LUALIB_API void(luaL_close_z)(lua_State* L);
 #define LUA_ATEXIT "_atexit_"
 LUALIB_API void(luaL_atexit)(lua_State* L);
 
+#define LUA_ATREPL "_atrepl_"
+LUALIB_API void(luaL_atrepl)(lua_State* L);
+
 /*
 ** ===============================================================
 ** some useful macros
