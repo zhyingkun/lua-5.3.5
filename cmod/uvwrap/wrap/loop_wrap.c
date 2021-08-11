@@ -6,12 +6,43 @@
 
 uv_loop_t* default_loop = NULL;
 
+static void on_loop_init(lua_State* L, uv_loop_t* loop) {
+  lua_createtable(L, 0, 32);
+  lua_createtable(L, 0, 1);
+  lua_pushliteral(L, "v");
+  lua_setfield(L, -2, "__mode");
+  lua_setmetatable(L, -2);
+  lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)loop);
+}
+
+static void on_loop_close(lua_State* L, uv_loop_t* loop) {
+  lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)loop);
+  int idx = lua_gettop(L);
+  lua_pushnil(L);
+  while (lua_next(L, idx)) {
+    uv_handle_t* handle = lua_touserdata(L, -2);
+    if (handle) {
+      uv_close(handle, NULL);
+    }
+    lua_pop(L, 1);
+  }
+  uv_run(loop, UV_RUN_NOWAIT);
+  lua_pushnil(L);
+  while (lua_next(L, idx)) {
+    uv_handle_t* handle = lua_touserdata(L, -2);
+    CLEAR_HANDLE_CALLBACK(L, handle, IDX_HANDLE_CALLBACK);
+    lua_pop(L, 1);
+  }
+  lua_pop(L, 1);
+}
+
 static int LOOP_FUNCTION(default)(lua_State* L) {
   if (default_loop == NULL) {
     default_loop = uv_default_loop();
-  }
-  if (default_loop == NULL) {
-    return 0;
+    if (default_loop == NULL) {
+      return 0;
+    }
+    on_loop_init(L, default_loop);
   }
   lua_pushlightuserdata(L, (void*)default_loop);
   return 1;
@@ -28,12 +59,14 @@ static int LOOP_FUNCTION(new)(lua_State* L) {
     (loop);
     return 0;
   }
+  on_loop_init(L, loop);
   lua_pushlightuserdata(L, (void*)loop);
   return 1;
 }
 
 static int LOOP_FUNCTION(close)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
+  on_loop_close(L, loop);
   int result = uv_loop_close(loop);
   if (result != UV_EBUSY) {
     if (loop == default_loop) {
@@ -101,7 +134,7 @@ static int LOOP_FUNCTION(walk)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
   luaL_checktype(L, 2, LUA_TFUNCTION);
   lua_settop(L, 2);
-  lua_getfield(L, LUA_REGISTRYINDEX, UVWRAP_HANDLE_TRACE);
+  lua_rawgetp(L, LUA_REGISTRYINDEX, loop);
   uv_walk(loop, LOOP_CALLBACK(walk), (void*)L);
   return 1;
 }

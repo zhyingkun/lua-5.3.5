@@ -4,7 +4,8 @@
 #define HANDLE_CALLBACK(name) UVWRAP_CALLBACK(handle, name)
 
 void HANDLE_FUNCTION(ctor)(lua_State* L, uv_handle_t* handle) {
-  lua_getfield(L, LUA_REGISTRYINDEX, UVWRAP_HANDLE_TRACE);
+  uv_loop_t* loop = uv_handle_get_loop(handle);
+  lua_rawgetp(L, LUA_REGISTRYINDEX, loop);
   lua_pushvalue(L, -2);
   lua_rawsetp(L, -2, (void*)handle);
   lua_pop(L, 1);
@@ -149,13 +150,6 @@ static const luaL_Reg HANDLE_FUNCTION(metafuncs)[] = {
 };
 
 static void HANDLE_FUNCTION(init_metatable)(lua_State* L) {
-  lua_createtable(L, 0, 32);
-  lua_createtable(L, 0, 1);
-  lua_pushliteral(L, "v");
-  lua_setfield(L, -2, "__mode");
-  lua_setmetatable(L, -2);
-  lua_setfield(L, LUA_REGISTRYINDEX, UVWRAP_HANDLE_TRACE);
-
   luaL_newmetatable(L, UVWRAP_HANDLE_TYPE);
   luaL_setfuncs(L, HANDLE_FUNCTION(metafuncs), 0);
 

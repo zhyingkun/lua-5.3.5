@@ -102,7 +102,6 @@
 
 #define DECLARE_HANDLE_API(module) DECLARE_INIT_API(module)
 
-#define UVWRAP_HANDLE_TRACE "{uv_handle_t*}"
 #define UVWRAP_HANDLE_TYPE "uv_handle_t*"
 DECLARE_HANDLE_API(handle)
 #define UVWRAP_STREAM_TYPE "uv_stream_t*"
