@@ -147,6 +147,7 @@ static const luaL_Enum UVWRAP_ENUM(sig_num)[] = {
 #endif
     // {"SIGRTMIN", SIGRTMIN},
     // {"SIGRTMAX", SIGRTMAX},
+    {NULL, 0},
 };
 
 DEFINE_INIT_API_BEGIN(signal)
