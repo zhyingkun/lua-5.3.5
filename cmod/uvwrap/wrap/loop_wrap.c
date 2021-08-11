@@ -34,6 +34,8 @@ static void on_loop_close(lua_State* L, uv_loop_t* loop) {
     lua_pop(L, 1);
   }
   lua_pop(L, 1);
+  lua_pushnil(L);
+  lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)loop);
 }
 
 static int LOOP_FUNCTION(default)(lua_State* L) {
