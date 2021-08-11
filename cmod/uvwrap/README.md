@@ -28,3 +28,32 @@
 2. poll、async、dlopen
 3. 线程同步相关的操作：互斥锁、读写锁、信号量、条件变量、安全区、thread
 4. uv_cancel、直接操作 uv_req_t 的 API
+
+## Win 下获取 Release 版奔溃日志
+
+```c
+#include "dbghelp.h"
+#pragma comment(lib, "dbghelp.lib")
+
+LONG WINAPI TopLevelExceptionFilter(struct _EXCEPTION_POINTERS * pExceptionInfo) {
+  HANDLE hFile = CreateFile(("project.dmp"), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+  MINIDUMP_EXCEPTION_INFORMATION stExceptionParam;
+  stExceptionParam.ThreadId = GetCurrentThreadId();
+  stExceptionParam.ExceptionPointers = pExceptionInfo;
+  stExceptionParam.ClientPointers = FALSE;
+  MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, MiniDumpWithFullMemory, &stExceptionParam, NULL, NULL);
+  CloseHandle(hFile);
+
+  return EXCEPTION_EXECUTE_HANDLER;
+  //EXCEPTION_EXECUTE_HANDLER equ 1 means the exception has been deal with, so just exit the process
+  //EXCEPTION_CONTINUE_SEARCH equ 0 means os must search for another handler, maybe show an error window
+  //EXCEPTION_CONTINUE_EXECUTION equ -1 means the exception has been fixed, just run continue
+}
+
+int main(int argc, char** argv) {
+  SetUnhandledExceptionFilter(TopLevelExceptionFilter);
+  return 0;
+}
+```
+
+将上述代码加入 main 函数中，即可在奔溃是生成`project.dmp`文件，用 VS 打开该文件可尝试还原奔溃堆栈
