@@ -1,5 +1,4 @@
-#!/usr/local/zyk/lua/bin/lua
--- #!/usr/bin/env lua
+#!/usr/bin/env lua
 
 local libuv = require("libuv")
 local loop = libuv.loop
@@ -13,6 +12,7 @@ local stdio_flag = process.stdio_flag
 local process_flag = process.process_flag
 local timer = libuv.timer
 local fs = libuv.fs
+local open_flag = fs.open_flag
 local fs_event = libuv.fs_event
 local event_type = fs_event.event_type
 local event_flag = fs_event.event_flag
@@ -35,6 +35,40 @@ local EOF = err_code.EOF
 libuv.set_msgh(function(msg)
 	print("In custom msg handler:", msg)
 end)
+
+--[[
+local AllocCount = 0
+local AllocMem = {}
+local function PrintMemory()
+	local cnt = 0
+	for ptr, sz in pairs(AllocMem) do
+		print(ptr, sz)
+		cnt = cnt + sz
+	end
+	print("Current memory:", cnt)
+end
+libuv.set_realloc_cb(function(old, new, sz) -- make sure set realloc callback first
+	-- print(old, new, sz, debug.traceback())
+	if old == NULL then -- malloc
+		AllocCount = AllocCount + 1
+		assert(AllocMem[new] == nil, "Error: alloc a used memory address")
+		AllocMem[new] = sz
+	elseif new == NULL or sz == 0 then -- free
+		AllocCount = AllocCount - 1
+		assert(AllocMem[old] ~= nil, "Error: free a not used memory address")
+		AllocMem[old] = nil
+	else -- realloc
+		assert(AllocMem[old] ~= nil, "Error: realloc a not used memory address")
+		AllocMem[old] = nil
+		AllocMem[new] = sz
+	end
+end)
+--]]
+--[[
+if arg and arg.argc and arg.argv then
+	process.setup_args(arg.argc, arg.argv)
+end
+--]]
 
 function tick()
 	local counter = timer.new()
@@ -148,6 +182,7 @@ function hello()
 end
 
 function idle_basic()
+	local idler = idle.new()
 	local counter = 0
 	local function wait_for_a_while()
 		if counter == 0 then
@@ -159,11 +194,10 @@ function idle_basic()
 			print("idler stop")
 		end
 	end
-	local idler = idle.new()
 	counter = 0
 	idler:start(wait_for_a_while)
 	print("Idling...")
-	loop.run(loop.run_mode.DEFAULT)
+	loop.run(nil, loop.run_mode.DEFAULT)
 	loop.walk(function(handle, ptr)
 		print("======================================")
 		print("handle:", handle, "ptr:", ptr)
@@ -379,7 +413,48 @@ function onchange(command, ...)
 end
 
 function pipe_echo_server()
+	local PIPENAME = os.sysname == "Windows" and "\\\\?\\pipe\\echo.sock" or "/tmp/echo.sock"
+	local sig = signal.new()
+	sig:start(function(signum)
+		fs.unlink(PIPENAME)
+		sig:stop()
+		os.exit(0)
+	end, sig_num.SIGINT)
 
+	local server = pipe.new()
+	local r = server:bind()
+	if r ~= OK then
+		io.stderr:write(string.format("Bind error %s\n", err_name(r)))
+		return
+	end
+	local r = server:listen(128, function(status)
+		if status < 0 then
+			return
+		end
+		local client = pipe.new()
+		if server:accept(client) == OK then
+			client:read_start(function(nread, str)
+				if nread < 0 then
+					if nread ~= EOF then
+						io.stderr:write(string.format("Read error %s\n", err_name(r)))
+					end
+					client:close()
+					return
+				end
+				client:write(str, function(status)
+					if status < 0 then
+						io.stderr:write(string.format("Write error %s\n", err_name(r)))
+					end
+				end)
+			end)
+		else
+			client:close()
+		end
+	end)
+	if r ~= OK then
+		io.stderr:write(string.format("Listen error %s\n", err_name(r)))
+		return
+	end
 end
 
 function proc_streams_test()
@@ -439,71 +514,90 @@ function signal_action()
 end
 
 function spawn()
+	local exe_path = "mkdir"
+	local child_handle
+	local status, str = pcall(function()
+		child_handle = process.new({
+			file = exe_path,
+			args = {
+				exe_path,
+				"test-dir",
+			},
+			exit_cb = function(exit_status, term_signal)
+				io.stderr:write(string.format("Process exited with status %d, signal %d\n", exit_status, term_signal))
+				child_handle:close()
+				child_handle = nil
+			end,
+		})
+	end)
+	if not status then
+		print("Spawn new process error:", status, str)
+	else
+		print("Launched process with ID", child_handle:get_pid())
+	end
 end
 
 function tcp_echo_server()
+
 end
 
 function tty()
+
 end
 
 function tty_gravity()
+
 end
 
 function udp_dhcp()
+
 end
 
-function uvcat()
-	print("Start ...")
-	local libuv = require("libuv")
-	local fs = libuv.fs
-	local filename = "./word.txt"
-	local filerename = "./reword.txt"
-	
+function uvcat(filename)
+	if not filename then return end
 	-- async
-	fs.open(filename, fs.open_flag.RDONLY, 0, function(fd)
-		print("In callback of fs.open:", fd)
+	fs.open(filename, open_flag.RDONLY, 0, function(fd)
+		if fd < 0 then
+			io.stderr:write(string.format("error opening file: %s\n", strerror(fd)))
+			return
+		end
 		local function read_cb(result, str)
-			print("In callback of fs.read:", result)
-			if str ~= nil then
-				print("Read from file:", str)
-				fs.read(fd, -1, read_cb)
+			if result < 0 then
+				io.stderr:write(string.format("Read error: %s\n", strerror(fd)))
+			elseif result == 0 then -- EOF
+				-- synchronous
+				fs.close(fd)
 			else
-				fs.close(fd, function()
-					print("In callback of fs.close")
+				fs.write(1, str, -1, function(result)
+					if result < 0 then
+						io.stderr:write(string.format("Write error: %s\n", strerror(fd)))
+					else
+						fs.read(fd, -1, read_cb)
+					end
 				end)
 			end
 		end
 		fs.read(fd, -1, read_cb)
 	end)
-	
-	local ret = libuv.rundefault()
-	print("ret from libuv.run:", ret)
-	
-	-- sync
-	local fd = fs.open(filename, fs.open_flag.RDONLY, 0)
-	print("after sync fs.open:", fd)
-	local result, str = fs.read(fd, -1)
-	print("after sync fs.read:", result, str)
-	local ret = fs.close(fd)
-	print("after sync fs.close:", ret)
-	
-	local ret = fs.rename(filename, filerename)
-	print("after sync fs.rename:", ret)
-	
-	local ret = libuv.rundefault()
-	print("ret from libuv.run:", ret)
-	
-	print("End.")	
 end
 
 function uvstop()
+
 end
 
 function uvtee()
+
 end
 
 function uvwget()
+
 end
 
 _G[arg[1] or "hello"](table.unpack(arg, 2))
+
+--[[
+loop.run()
+local result = loop.close()
+print("loop.close result:", result)
+--]]
+-- PrintMemory()
