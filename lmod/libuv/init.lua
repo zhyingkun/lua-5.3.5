@@ -1,5 +1,4 @@
 local uvwrap = require("libuvwrap")
-local loop = uvwrap.loop.default()
 
 local function make_mt_index(module)
 	return function(self, name)
@@ -9,15 +8,24 @@ local function make_mt_index(module)
 	end
 end
 
+local loop
+local function set_loop(loop_)
+	loop = loop_
+end
+local function make_func_loop(func)
+	return function(...)
+		if not loop then loop = uvwrap.loop.default() end
+		return func(loop, ...)
+	end
+end
+
 local function make_mt_loop_index(module)
 	return function(self, name)
 		local value = uvwrap[module][name]
 		if not value then return end
 		local t = type(value)
 		if t == "function" then
-			local function func(...)
-				return value(loop, ...)
-			end
+			local func = make_func_loop(value)
 			self[name] = func
 			return func
 		else
@@ -27,21 +35,31 @@ local function make_mt_loop_index(module)
 	end
 end
 
-local function make_func_loop(func)
-	return function(...)
-		return func(loop, ...)
-	end
-end
-
+local run = uvwrap.loop.run
+local close = uvwrap.loop.close
+local set_realloc_cb = uvwrap.set_realloc_cb
 atexit(function()
-	uvwrap.loop.run(loop)
-	uvwrap.loop.close(loop)
+	if not loop then return end
+	run(loop)
+	close(loop)
+	set_realloc_cb()
 end)
 
 return setmetatable({
 	loop = setmetatable({
 		default = uvwrap.loop.default,
 		new = uvwrap.loop.new,
+		run = function(loop_, mode)
+			if not loop_ then loop_ = loop end
+			run(loop_, mode)
+		end,
+		close = function(loop_)
+			if not loop_ then loop_ = loop end
+			close(loop_)
+			if loop_ == loop then
+				loop = nil
+			end
+		end,
 		queue_work = uvwrap.loop.queue_work,
 	}, {
 		__index = make_mt_loop_index("loop"),
