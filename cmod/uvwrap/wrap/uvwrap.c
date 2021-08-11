@@ -50,22 +50,12 @@ static int uvwrap_translate_sys_error(lua_State* L) {
   return 1;
 }
 
-static int uvwrap_setup_args(lua_State* L) {
-  int argc = luaL_checkinteger(L, 1);
-  luaL_checktype(L, 2, LUA_TLIGHTUSERDATA);
-  char** argv = (char**)lua_touserdata(L, 2);
-  argv = uv_setup_args(argc, argv);
-  lua_pushlightuserdata(L, argv);
-  return 1;
-}
-
 static const luaL_Reg uvwrap_funcs[] = {
     {"set_msgh", uvwrap_set_msgh},
     {"set_realloc_cb", uvwrap_set_realloc_cb},
     {"err_name", uvwrap_err_name},
     {"strerror", uvwrap_strerror},
     {"translate_sys_error", uvwrap_translate_sys_error},
-    {"setup_args", uvwrap_setup_args},
     /* placeholders */
     {"err_code", NULL},
     {"version", NULL},

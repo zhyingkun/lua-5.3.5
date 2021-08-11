@@ -223,6 +223,15 @@ static int PROCESS_FUNCTION(kill)(lua_State* L) {
   return 0;
 }
 
+static int PROCESS_FUNCTION(setup_args)(lua_State* L) {
+  int argc = luaL_checkinteger(L, 1);
+  luaL_checktype(L, 2, LUA_TLIGHTUSERDATA);
+  char** argv = (char**)lua_touserdata(L, 2);
+  argv = uv_setup_args(argc, argv);
+  lua_pushlightuserdata(L, argv);
+  return 1;
+}
+
 static int PROCESS_FUNCTION(get_process_title)(lua_State* L) {
   char buffer[TITLE_BUF_SIZE];
   size_t size = TITLE_BUF_SIZE;
@@ -280,6 +289,7 @@ static const luaL_Reg PROCESS_FUNCTION(funcs)[] = {
     EMPLACE_PROCESS_FUNCTION(new),
     EMPLACE_PROCESS_FUNCTION(disable_stdio_inheritance),
     EMPLACE_PROCESS_FUNCTION(kill),
+    EMPLACE_PROCESS_FUNCTION(setup_args),
     EMPLACE_PROCESS_FUNCTION(get_process_title),
     EMPLACE_PROCESS_FUNCTION(set_process_title),
     EMPLACE_PROCESS_FUNCTION(getpid),
