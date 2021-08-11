@@ -51,14 +51,12 @@ return setmetatable({
 		new = uvwrap.loop.new,
 		run = function(loop_, mode)
 			if not loop_ then loop_ = loop end
-			run(loop_, mode)
+			return run(loop_, mode)
 		end,
 		close = function(loop_)
 			if not loop_ then loop_ = loop end
-			close(loop_)
-			if loop_ == loop then
-				loop = nil
-			end
+			if loop_ == loop then loop = nil end
+			return close(loop_)
 		end,
 		queue_work = uvwrap.loop.queue_work,
 	}, {
