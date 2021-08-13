@@ -123,13 +123,6 @@ static int HANDLE_FUNCTION(get_type)(lua_State* L) {
   return 1;
 }
 
-static int HANDLE_FUNCTION(type_name)(lua_State* L) {
-  uv_handle_t* handle = luaL_checkhandle(L, 1);
-  int t = luaL_optinteger(L, 2, uv_handle_get_type(handle));
-  lua_pushstring(L, uv_handle_type_name(t));
-  return 1;
-}
-
 #define EMPLACE_HANDLE_FUNCTION(name) \
   { #name, HANDLE_FUNCTION(name) }
 
@@ -145,7 +138,6 @@ static const luaL_Reg HANDLE_FUNCTION(metafuncs)[] = {
     EMPLACE_HANDLE_FUNCTION(fileno),
     EMPLACE_HANDLE_FUNCTION(get_loop),
     EMPLACE_HANDLE_FUNCTION(get_type),
-    EMPLACE_HANDLE_FUNCTION(type_name),
     {NULL, NULL},
 };
 
