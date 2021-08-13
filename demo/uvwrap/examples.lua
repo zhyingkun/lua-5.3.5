@@ -21,8 +21,15 @@ local sig_num = signal.sig_num
 local sig_name = signal.sig_name
 local sys = libuv.sys
 local pipe = libuv.pipe
+local tty = libuv.tty
+local tty_mode = tty.tty_mode
+local handle_type = libuv.handle_type
+local handle_name = libuv.handle_name
+local udp = libuv.udp
+local udp_flag = udp.udp_flag
 
 local idle = libuv.idle
+local prepare = libuv.prepare
 
 local handle_type = libuv.handle_type
 
@@ -69,6 +76,10 @@ if arg and arg.argc and arg.argv then
 	process.setup_args(arg.argc, arg.argv)
 end
 --]]
+
+local function printf_err(...)
+	io.stderr:write(string.format(...))
+end
 
 function tick()
 	local counter = timer.new()
@@ -275,7 +286,7 @@ function multi_echo_server()
 					},
 					stdio = child_stdio,
 					exit_cb = function(exit_status, term_signal)
-						io.stderr:write(string.format("Process exited with status %d, signal %d\n", exit_status, term_signal))
+						printf_err("Process exited with status %d, signal %d\n", exit_status, term_signal)
 						child_handle:close()
 						child_handle = nil
 					end,
@@ -320,28 +331,28 @@ function multi_echo_worker()
 	pipe:read_start(function(nread, str)
 		if nread < 0 then
 			if nread ~= EOF then
-				io.stderr:write("Read error " .. err_name(nread) .. "\n")
+				printf_err("Read error %s\n", err_name(nread))
 			end
 			pipe:close()
 			return
 		end
 		if pipe:pending_count() == 0 then
-			io.stderr:write("No pending count\n")
+			printf_err("No pending count\n")
 		end
 		assert(pipe:pending_type() == handle_type.TCP)
 		local client = tcp.new()
 		if pipe:accept(client) == OK then
-			io.stderr:write(string.format("Worker %d: Accepted fd %d\n", process.getpid(), client:fileno()))
+			printf_err("Worker %d: Accepted fd %d\n", process.getpid(), client:fileno())
 			client:read_start(function(nread, str)
 				if nread < 0 then
 					if nread ~= EOF then
-						io.stderr:write(string.format("Read error %s\n", err_name(status)))
+						printf_err("Read error %s\n", err_name(status))
 					end
 					client:close()
 				end
 				client:write(str, function(status)
 					if status ~= OK then
-						io.stderr:write(string.format("Write error %s\n", err_name(status)))
+						printf_err("Write error %s\n", err_name(status))
 					end
 				end)
 			end)
@@ -428,7 +439,7 @@ function pipe_echo_server()
 					if nread == EOF then
 						print("Read EOF")
 					else
-						io.stderr:write(string.format("Read error %s\n", err_name(r)))
+						printf_err("Read error %s\n", err_name(r))
 					end
 					client:close()
 					return
@@ -436,7 +447,7 @@ function pipe_echo_server()
 				print("Pipe read:", nread, str)
 				client:write(str, function(status)
 					if status < 0 then
-						io.stderr:write(string.format("Write error %s\n", err_name(r)))
+						printf_err("Write error %s\n", err_name(r))
 					end
 				end)
 			end)
@@ -453,20 +464,20 @@ function pipe_echo_client()
 	-- client:bind(CLIENTNAME) -- client should not bind
 	client:connect(PIPENAME, function(status)
 		if status ~= OK then
-			io.stderr:write(string.format("Connect error %s\n", err_name(r)))
+			printf_err("Connect error %s\n", err_name(r))
 			return
 		end
 		local str = "Hello World John!"
 		client:write(str, function(status)
 			if status < 0 then
-				io.stderr:write(string.format("Write error %s\n", err_name(r)))
+				printf_err("Write error %s\n", err_name(r))
 			else
 				client:read_start(function(nread, str)
 					if nread < 0 then
 						if nread == EOF then
 							pirnt("Receive EOF")
 						else
-							io.stderr:write(string.format("Read error %s\n", err_name(r)))
+							printf_err("Read error %s\n", err_name(r))
 						end
 					else
 						print("Read from Server:", nread, str)
@@ -500,7 +511,7 @@ function proc_streams()
 			},
 			stdio = child_stdio,
 			exit_cb = function(exit_status, term_signal)
-				io.stderr:write(string.format("Process exited with status %d, signal %d\n", exit_status, term_signal))
+				printf_err("Process exited with status %d, signal %d\n", exit_status, term_signal)
 				child_handle:close()
 				child_handle = nil
 			end,
@@ -545,7 +556,7 @@ function spawn()
 				"test-dir",
 			},
 			exit_cb = function(exit_status, term_signal)
-				io.stderr:write(string.format("Process exited with status %d, signal %d\n", exit_status, term_signal))
+				printf_err("Process exited with status %d, signal %d\n", exit_status, term_signal)
 				child_handle:close()
 				child_handle = nil
 			end,
@@ -559,19 +570,201 @@ function spawn()
 end
 
 function tcp_echo_server()
-
+	local server = tcp.new()
+	local addr = network.sockaddr()
+	addr:ip4_addr("0.0.0.0", 7000)
+	server:bind(addr)
+	server:listen(128, function(status)
+		if status < OK then
+			printf_err("New connection error %s\n", strerror(status))
+			return
+		end
+		local client = tcp.new()
+		if server:accept(client) == OK then
+			client:read_start(function(nread, str)
+				if nread < 0 then
+					if nread ~= EOF then
+						printf_err("Read error %s\n", err_name(status))
+					else
+						print("Receive EOF")
+					end
+					client:close()
+				end
+				if nread > 0 then
+					client:write(str, function(status)
+						if status ~= OK then
+							printf_err("Write error %s\n", strerror(status))
+						end
+					end)
+					print(str)
+				end
+			end)
+		else
+			client:close()
+		end
+	end)
 end
 
-function tty()
+function tcp_echo_client()
+	local addr = network.sockaddr()
+	addr:ip4_addr("0.0.0.0", 7000)
+	local socket = tcp.new()
+	socket:connect(addr, function(status)
+		if status < 0 then
+			printf_err("connect failed error %s\n", err_name(status))
+			return
+		end
+		socket:write("GoodGoodStudyDayDayUp", function(status)
+			if status ~= OK then
+				printf_err("write failed error %s\n", err_name(status))
+			end
+			socket:read_start(function(nread, str)
+				if nread < 0 then
+					if nread ~= EOF then
+						print("Read error", err_name(status))
+					end
+					socket:close()
+					return
+				end
+				print(str)
+				socket:close()
+			end)
+		end)
+	end)
+end
 
+function tty_use()
+	local STDOUT_FILENO = 1
+	local tty_handle = tty.new(STDOUT_FILENO)
+	tty_handle:set_mode(tty_mode.NORMAL)
+	if libuv.guess_handle(STDOUT_FILENO) == handle_type.TTY then
+		tty_handle:write("\033[41;37m", function(status) end)
+	end
+	tty_handle:write("Hello TTY\n", function(status) end)
+	tty.reset_mode()
 end
 
 function tty_gravity()
-
+	local STDOUT_FILENO = 1
+	local tty_handle = tty.new(STDOUT_FILENO)
+	tty_handle:set_mode(tty_mode.NORMAL)
+	local width, height = tty_handle:get_winsize()
+	printf_err("Width %d, height %d\n", width, height)
+	tty_handle:write("Hello TTY\n", function(status) end)
+	local pos = 0
+	local message = "  Hello TTY  "
+	local t = timer.new()
+	t:start(function()
+		local fmt = "\033[2J\033[H\033[%dB\033[%dC\033[42;37m%s"
+		local str = string.format(fmt, pos, math.floor((width - #message) / 2), message)
+		tty_handle:write(str, function(status) end)
+		pos = pos + 1
+		if pos > height then
+			tty.reset_mode()
+			t:stop()
+			t:close()
+		end
+	end, 200, 200)
 end
 
 function udp_dhcp()
+	local recv_socket = udp.new()
+	local recv_addr = network.sockaddr()
+	recv_addr:ip4_addr("0.0.0.0", 68)
+	recv_socket:bind(recv_addr, udp_flag.REUSEADDR)
+	recv_socket:recv_start(function(nread, str, addr, flags)
+		if nread < 0 then
+			printf_err("UDP recv Error %d %s: %s", nread, err_name(nread), strerror(nread))
+		elseif nread == OK then
+			if addr then
+				print("We recv a empty packet")
+			else
+				print("There is nothing to read")
+			end
+		else
+			print("Recv from ", addr)
+			print("Offered IP", str:byte(4 * 4 + 1, 4 * 4 + 4))
+		end
+		recv_socket:recv_stop()
+	end)
+	local function make_discover_msg()
+		local randnum = math.random(1, 2^15)
+		local rand1 = randnum % 256
+		local rand2 = math.floor(randnum / 256) % 256
+		local rand3 = math.floor(randnum / 256 / 256) % 256
+		local rand4 = math.floor(randnum / 256 / 256 / 256) % 256
 
+		local buffer = setmetatable({
+			-- BOOTREQUEST
+			[0] = 0x1,
+			-- HTYPE ethernet
+			[1] = 0x1,
+			-- HLEN
+			[2] = 0x6,
+			-- HOPS
+			[3] = 0x0,
+			-- XID 4 bytes
+			[4] = rand1,
+			[5] = rand2,
+			[6] = rand3,
+			[7] = rand4,
+			-- SECS
+			[8] = 0x0,
+			-- FLAGS
+			[10] = 0x80,
+			-- CIADDR 12-15 is all zeros
+			-- YIADDR 16-19 is all zeros
+			-- SIADDR 20-23 is all zeros
+			-- GIADDR 24-27 is all zeros
+			-- CHADDR 28-43 is the MAC address, use your own
+			[28] = 0xe4,
+			[29] = 0xce,
+			[30] = 0x8f,
+			[31] = 0x13,
+			[32] = 0xf6,
+			[33] = 0xd4,
+			-- SNAME 64 bytes zero
+			-- FILE 128 bytes zero
+			-- OPTIONS
+			-- - magic cookie
+			[236] = 99,
+			[237] = 130,
+			[238] = 83,
+			[239] = 99,
+			-- DHCP Message type
+			[240] = 53,
+			[241] = 1,
+			[242] = 1, -- DHCPDISCOVER
+			-- DHCP Parameter request list
+			[243] = 55,
+			[244] = 4,
+			[245] = 1,
+			[246] = 3,
+			[247] = 15,
+			[248] = 6,
+		}, {
+			__index = function(self, idx)
+				return 0
+			end,
+		})
+		return string.char(function(idx)
+			if idx > 256 then return nil end
+			return buffer[idx - 1]
+		end)
+	end
+	local send_socket = udp.new()
+	local broadcast_addr = network.sockaddr()
+	broadcast_addr:ip4_addr("0.0.0.0", 0)
+	send_socket:bind(broadcast_addr)
+	send_socket:set_broadcast(true)
+	local discover_msg = make_discover_msg()
+	local send_addr = network.sockaddr()
+	send_addr:ip4_addr("255.255.255.255", 67)
+	send_socket:send(discover_msg, send_addr, function(status)
+		if status ~= OK then
+			printf_err("Send error %s\n", strerror(status))
+		end
+	end)
 end
 
 function uvcat(filename)
@@ -579,19 +772,19 @@ function uvcat(filename)
 	-- async
 	fs.open(filename, open_flag.RDONLY, 0, function(fd)
 		if fd < 0 then
-			io.stderr:write(string.format("error opening file: %s\n", strerror(fd)))
+			printf_err("error opening file: %s\n", strerror(fd))
 			return
 		end
 		local function read_cb(result, str)
 			if result < 0 then
-				io.stderr:write(string.format("Read error: %s\n", strerror(fd)))
+				printf_err("Read error: %s\n", strerror(fd))
 			elseif result == 0 then -- EOF
 				-- synchronous
 				fs.close(fd)
 			else
 				fs.write(1, str, -1, function(result)
 					if result < 0 then
-						io.stderr:write(string.format("Write error: %s\n", strerror(fd)))
+						printf_err("Write error: %s\n", strerror(fd))
 					else
 						fs.read(fd, -1, read_cb)
 					end
@@ -603,15 +796,53 @@ function uvcat(filename)
 end
 
 function uvstop()
-
+	local idler = idle.new()
+	local counter = 0
+	idler:start(function()
+		print("Idle callback")
+		counter = counter + 1
+		if counter >= 5 then
+			loop.stop()
+			print("uv_stop() called")
+		end
+	end)
+	local prep = prepare.new()
+	prep:start(function()
+		print("Prep callback")
+	end)
 end
 
-function uvtee()
-
-end
-
-function uvwget()
-
+function uvtee(filename)
+	if not filename then return end
+	local stdin_pipe = pipe.new()
+	stdin_pipe:open(0)
+	local stdout_pipe = pipe.new()
+	stdout_pipe:open(1)
+	local fd = fs.open(filename, open_flag.CREAT | open_flag.RDWR, 0o644)
+	local file_pipe = pipe.new()
+	file_pipe:open(fd)
+	stdin_pipe:read_start(function(nread, str)
+		if nread < 0 then
+			if nread == EOF then
+				stdin_pipe:close()
+				stdout_pipe:close()
+				file_pipe:close()
+			else
+				printf_err("Pipe read error:", strerror(nread))
+			end
+		elseif nread > 0 then
+			stdout_pipe:write(str, function(status)
+				if status ~= OK then
+					printf_err("Pipe write error:", strerror(status))
+				end
+			end)
+			file_pipe:write(str, function(status)
+				if status ~= OK then
+					printf_err("Pipe write error:", strerror(status))
+				end
+			end)
+		end
+	end)
 end
 
 _G[arg[1] or "hello"](table.unpack(arg, 2))
