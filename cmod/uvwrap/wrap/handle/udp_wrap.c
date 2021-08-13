@@ -20,12 +20,8 @@ int UDP_FUNCTION(new)(lua_State* L) {
 static int UDP_FUNCTION(bind)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   struct sockaddr* addr = luaL_checksockaddr(L, 2);
-  int ipv6only = lua_toboolean(L, 3);
+  unsigned int flags = (unsigned int)luaL_optinteger(L, 3, 0);
 
-  unsigned int flags = 0;
-  if (ipv6only) {
-    flags |= UV_UDP_IPV6ONLY;
-  }
   int err = uv_udp_bind(handle, addr, flags);
   CHECK_ERROR(L, err);
   return 0;
