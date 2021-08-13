@@ -111,6 +111,27 @@ return setmetatable({
 	}, {
 		__index = make_mt_index("pipe"),
 	}),
+	tty = setmetatable({
+		new = make_func_loop(uvwrap.tty.new),
+		reset_mode = uvwrap.tty.reset_mode,
+	}, {
+		__index = make_mt_index("tty"),
+	}),
+	prepare = setmetatable({
+		new = make_func_loop(uvwrap.prepare.new),
+	}, {
+		__index = make_mt_index("prepare"),
+	}),
+	check = setmetatable({
+		new = make_func_loop(uvwrap.check.new),
+	}, {
+		__index = make_mt_index("check"),
+	}),
+	idle = setmetatable({
+		new = make_func_loop(uvwrap.idle.new),
+	}, {
+		__index = make_mt_index("idle"),
+	}),
 }, {
 	__index = function(self, name)
 		local value = uvwrap[name]
