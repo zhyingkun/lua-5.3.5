@@ -73,7 +73,15 @@ static const luaL_Reg TTY_FUNCTION(funcs)[] = {
     {NULL, NULL},
 };
 
+static const luaL_Enum UVWRAP_ENUM(tty_mode)[] = {
+    {"NORMAL", UV_TTY_MODE_NORMAL},
+    {"RAW", UV_TTY_MODE_RAW},
+    {"IO", UV_TTY_MODE_IO},
+    {NULL, 0},
+};
+
 DEFINE_INIT_API_BEGIN(tty)
 PUSH_LIB_TABLE(tty);
+REGISTE_ENUM(tty_mode);
 INVOKE_INIT_METATABLE(tty);
 DEFINE_INIT_API_END(tty)
