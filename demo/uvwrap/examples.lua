@@ -33,7 +33,7 @@ local OK = err_code.OK
 local EOF = err_code.EOF
 
 libuv.set_msgh(function(msg)
-	print("In custom msg handler:", msg)
+	print("In custom msg handler:", msg, debug.traceback())
 end)
 
 --[[
@@ -412,35 +412,28 @@ function onchange(command, ...)
 	end
 end
 
+local PIPENAME = os.sysname == "Windows" and "\\\\?\\pipe\\echo.sock" or "/tmp/echo.sock"
 function pipe_echo_server()
-	local PIPENAME = os.sysname == "Windows" and "\\\\?\\pipe\\echo.sock" or "/tmp/echo.sock"
-	local sig = signal.new()
-	sig:start(function(signum)
-		fs.unlink(PIPENAME)
-		sig:stop()
-		os.exit(0)
-	end, sig_num.SIGINT)
-
 	local server = pipe.new()
-	local r = server:bind()
-	if r ~= OK then
-		io.stderr:write(string.format("Bind error %s\n", err_name(r)))
-		return
-	end
-	local r = server:listen(128, function(status)
+	server:bind(PIPENAME)
+	server:listen(128, function(status)
 		if status < 0 then
+			print("Listen error:", err_name(status), strerror(status))
 			return
 		end
 		local client = pipe.new()
 		if server:accept(client) == OK then
 			client:read_start(function(nread, str)
 				if nread < 0 then
-					if nread ~= EOF then
+					if nread == EOF then
+						print("Read EOF")
+					else
 						io.stderr:write(string.format("Read error %s\n", err_name(r)))
 					end
 					client:close()
 					return
 				end
+				print("Pipe read:", nread, str)
 				client:write(str, function(status)
 					if status < 0 then
 						io.stderr:write(string.format("Write error %s\n", err_name(r)))
@@ -448,13 +441,41 @@ function pipe_echo_server()
 				end)
 			end)
 		else
+			print("Accept failed")
 			client:close()
 		end
 	end)
-	if r ~= OK then
-		io.stderr:write(string.format("Listen error %s\n", err_name(r)))
-		return
-	end
+end
+
+function pipe_echo_client()
+	-- local CLIENTNAME = os.sysname == "Windows" and "\\\\?\\pipe\\client.sock" or "/tmp/client.sock"
+	local client = pipe.new()
+	-- client:bind(CLIENTNAME) -- client should not bind
+	client:connect(PIPENAME, function(status)
+		if status ~= OK then
+			io.stderr:write(string.format("Connect error %s\n", err_name(r)))
+			return
+		end
+		local str = "Hello World John!"
+		client:write(str, function(status)
+			if status < 0 then
+				io.stderr:write(string.format("Write error %s\n", err_name(r)))
+			else
+				client:read_start(function(nread, str)
+					if nread < 0 then
+						if nread == EOF then
+							pirnt("Receive EOF")
+						else
+							io.stderr:write(string.format("Read error %s\n", err_name(r)))
+						end
+					else
+						print("Read from Server:", nread, str)
+					end
+					client:close()
+				end)
+			end
+		end)
+	end)
 end
 
 function proc_streams_test()
