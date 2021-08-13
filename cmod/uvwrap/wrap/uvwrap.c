@@ -50,12 +50,20 @@ static int uvwrap_translate_sys_error(lua_State* L) {
   return 1;
 }
 
+static int uvwrap_guess_handle(lua_State* L) {
+  uv_file file = luaL_checkinteger(L, 1);
+  uv_handle_type t = uv_guess_handle(file);
+  lua_pushinteger(L, t);
+  return 1;
+}
+
 static const luaL_Reg uvwrap_funcs[] = {
     {"set_msgh", uvwrap_set_msgh},
     {"set_realloc_cb", uvwrap_set_realloc_cb},
     {"err_name", uvwrap_err_name},
     {"strerror", uvwrap_strerror},
     {"translate_sys_error", uvwrap_translate_sys_error},
+    {"guess_handle", uvwrap_guess_handle},
     /* placeholders */
     {"err_code", NULL},
     {"version", NULL},
@@ -94,6 +102,7 @@ LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
 
   REGISTE_ENUM(err_code);
   REGISTE_ENUM(handle_type);
+  REGISTE_ENUM_R(handle_type, handle_name);
 
   lua_pushinteger(L, uv_version());
   lua_setfield(L, -2, "version");

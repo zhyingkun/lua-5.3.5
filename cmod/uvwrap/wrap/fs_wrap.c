@@ -963,13 +963,6 @@ static int FS_FUNCTION(lchown)(lua_State* L) {
   return 0;
 }
 
-static int FS_FUNCTION(guess_handle)(lua_State* L) {
-  uv_file file = luaL_checkinteger(L, 1);
-  uv_handle_type t = uv_guess_handle(file);
-  lua_pushinteger(L, t);
-  return 1;
-}
-
 #define EMPLACE_FS_FUNCTION(name) \
   { #name, FS_FUNCTION(name) }
 
@@ -1008,7 +1001,6 @@ static const luaL_Reg FS_FUNCTION(funcs)[] = {
     EMPLACE_FS_FUNCTION(chown),
     EMPLACE_FS_FUNCTION(fchown),
     EMPLACE_FS_FUNCTION(lchown),
-    EMPLACE_FS_FUNCTION(guess_handle),
     {NULL, NULL},
 };
 
