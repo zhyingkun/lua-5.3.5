@@ -638,7 +638,7 @@ function tty_use()
 	local tty_handle = tty.new(STDOUT_FILENO)
 	tty_handle:set_mode(tty_mode.NORMAL)
 	if libuv.guess_handle(STDOUT_FILENO) == handle_type.TTY then
-		tty_handle:write("\033[41;37m", function(status) end)
+		tty_handle:write("\027[41;37m", function(status) end) -- "\033[41;37m" in c
 	end
 	tty_handle:write("Hello TTY\n", function(status) end)
 	tty.reset_mode()
@@ -655,7 +655,8 @@ function tty_gravity()
 	local message = "  Hello TTY  "
 	local t = timer.new()
 	t:start(function()
-		local fmt = "\033[2J\033[H\033[%dB\033[%dC\033[42;37m%s"
+		-- "\033[2J\033[H\033[%dB\033[%dC\033[42;37m%s" in c
+		local fmt = "\027[2J\027[H\027[%dB\027[%dC\027[42;37m%s"
 		local str = string.format(fmt, pos, math.floor((width - #message) / 2), message)
 		tty_handle:write(str, function(status) end)
 		pos = pos + 1
