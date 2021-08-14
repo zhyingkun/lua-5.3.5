@@ -105,23 +105,25 @@ function cgi()
 		child_stdio:add(stdio_flag.IGNORE, 0) -- stdin
 		child_stdio:add(stdio_flag.INHERIT_STREAM, client) -- stdout
 		child_stdio:add(stdio_flag.IGNORE, 0) -- stderr
-		local status, str = pcall(function()
-			local child_handle
-			child_handle = process.new({
-				file = exe_path,
-				args = {
-					exe_path,
-					"tick",
-				},
-				stdio = child_stdio,
-				exit_cb = function(exit_status, term_signal)
-					print("cgi child exit:", exit_status, term_signal)
-					client:close()
-					child_handle = nil
-				end,
-			})
-		end)
-		print("Spawn new process:", status, str)
+		local child_handle, status
+		child_handle, status = process.new({
+			file = exe_path,
+			args = {
+				exe_path,
+				"tick",
+			},
+			stdio = child_stdio,
+			exit_cb = function(exit_status, term_signal)
+				print("cgi child exit:", exit_status, term_signal)
+				client:close()
+				child_handle = nil
+			end,
+		})
+		if child_handle then
+			print("Spawn new process:", child_handle)
+		else
+			printf_err("Spawn new process error %s: %s", err_name(status), strerror(status))
+		end
 	end
 	local server = tcp.new()
 	local addr = network.sockaddr()
@@ -145,34 +147,32 @@ function cgi_client()
 	local addr = network.sockaddr()
 	addr:ip4_addr("0.0.0.0", 7000)
 	local socket = tcp.new()
-	local status, str = pcall(function()
-		socket:connect(addr, function(status)
-			if status < 0 then
-				print("connect error:", status, strerror(status))
+	local status = socket:connect(addr, function(status)
+		if status < 0 then
+			print("connect error:", status, strerror(status))
+			return
+		end
+		print("connect status:", status, i, socket:fileno())
+		socket:read_start(function(nread, str)
+			if nread < 0 then
+				if nread == EOF then
+					print("Receive EOF")
+				end
+				socket:close()
 				return
 			end
-			print("connect status:", status, i, socket:fileno())
-			socket:read_start(function(nread, str)
-				if nread < 0 then
-					if nread == EOF then
-						print("Receive EOF")
-					end
-					socket:close()
-					return
-				end
-				print("Receive:", nread, str)
-			end)
+			print("Receive:", nread, str)
 		end)
 	end)
-	if not status then
-		print("connect error:", str)
+	if status ~= OK then
+		printf_err("TCP connect error %s: %s\n", err_name(status), strerror(status))
 	end
 end
 
 function detach()
 	local status, str = pcall(function()
 		local exe_path = "sleep"
-		local child_handle = process.new({
+		local child_handle, status = process.new({
 			file = exe_path,
 			args = {
 				exe_path,
@@ -180,8 +180,12 @@ function detach()
 			},
 			flags = process_flag.DETACHED,
 		})
-		print("Launched sleep with PID", child_handle:get_pid())
-		child_handle:unref()
+		if child_handle then
+			print("Launched sleep with PID", child_handle:get_pid())
+			child_handle:unref()
+		else
+			printf_err("Spawn new process error %s: %s", err_name(status), strerror(status))
+		end
 	end)
 	print("Spawn new process:", status, str)
 end
@@ -201,7 +205,7 @@ function dns()
 		local addr = addrinfo.addr
 		print(addr)
 		local socket = tcp.new()
-		socket:connect(addr, function(status)
+		local status = socket:connect(addr, function(status)
 			if status < 0 then
 				print("connect failed error", err_name(status))
 				return
@@ -216,6 +220,9 @@ function dns()
 				print(str)
 			end)
 		end)
+		if status ~= OK then
+			printf_err("TCP connect error %s: %s\n", err_name(status), strerror(status))
+		end
 	end)
 end
 
@@ -244,7 +251,8 @@ function idle_basic()
 		print("======================================")
 		print("handle:", handle, "ptr:", ptr)
 		if handle then
-			print("handle->type:", handle:get_type(), handle:type_name(), "handle fileno:", handle:fileno())
+			local t = handle:get_type()
+			print("handle->type:", t, handle_name[t], "handle fileno:", handle:fileno())
 			print("handle->loop:", handle:get_loop())
 		else
 			print("handle has no lua object")
@@ -307,31 +315,30 @@ function multi_echo_server()
 			child_stdio:add(stdio_flag.CREATE_PIPE | stdio_flag.READABLE_PIPE, pipe) -- stdin
 			child_stdio:add(stdio_flag.IGNORE, 0) -- stdout
 			child_stdio:add(stdio_flag.INHERIT_FD, 2) -- stderr
-			local child_handle
-			local status, str = pcall(function()
-				child_handle = process.new({
-					file = exe_path,
-					args = {
-						exe_path,
-						"multi_echo_worker",
-					},
-					stdio = child_stdio,
-					exit_cb = function(exit_status, term_signal)
-						printf_err("Process exited with status %d, signal %d\n", exit_status, term_signal)
-						child_handle:close()
-						child_handle = nil
-					end,
-				})
-			end)
-			if not status then
-				print("Spawn new process error:", status, str)
-				return
-			end
-			print("Started worker", child_handle:get_pid())
-			table.insert(workers, {
-				pipe = pipe,
-				child_handle = child_handle,
+			local child_handle, status
+			child_handle, status = process.new({
+				file = exe_path,
+				args = {
+					exe_path,
+					"multi_echo_worker",
+				},
+				stdio = child_stdio,
+				exit_cb = function(exit_status, term_signal)
+					printf_err("Process exited with status %d, signal %d\n", exit_status, term_signal)
+					child_handle:close()
+					child_handle = nil
+				end,
 			})
+			if child_handle then
+				print("Spawn new process:", child_handle)
+				print("Started worker", child_handle:get_pid())
+				table.insert(workers, {
+					pipe = pipe,
+					child_handle = child_handle,
+				})
+			else
+				printf_err("Spawn new process error %s: %s", err_name(status), strerror(status))
+			end
 		end
 
 	end
@@ -399,33 +406,31 @@ function multi_echo_hammer()
 	local PHRASE = "hello world"
 	for i = 1, 1000, 1 do -- 3686
 		local socket = tcp.new()
-		local status, str = pcall(function()
-			socket:connect(addr, function(status)
-				if status < 0 then
-					print("connect error:", status, strerror(status))
+		local status = socket:connect(addr, function(status)
+			if status < 0 then
+				print("connect error:", status, strerror(status))
+				return
+			end
+			print("connect status:", status, i, socket:fileno())
+			socket:read_start(function(nread, str)
+				if nread < 0 then
+					if nread == EOF then
+						print("Receive EOF")
+					end
+					socket:close()
 					return
 				end
-				print("connect status:", status, i, socket:fileno())
-				socket:read_start(function(nread, str)
-					if nread < 0 then
-						if nread == EOF then
-							print("Receive EOF")
-						end
-						socket:close()
-						return
-					end
-					if str ~= PHRASE then
-						socket:close()
-						print("Error occur:", str, PHRASE)
-						return
-					end
-					socket:write(PHRASE, function(status) end)
-				end)
+				if str ~= PHRASE then
+					socket:close()
+					print("Error occur:", str, PHRASE)
+					return
+				end
 				socket:write(PHRASE, function(status) end)
 			end)
+			socket:write(PHRASE, function(status) end)
 		end)
-		if not status then
-			print("connect error:", str)
+		if status ~= OK then
+			printf_err("TCP connect error %s: %s\n", err_name(status), strerror(status))
 		end
 	end
 end
@@ -527,27 +532,33 @@ end
 
 function proc_streams()
 	local exe_path = arg[0]
+	if exe_path:sub(1, 1) ~= "." then
+		exe_path = "." / exe_path
+	end
 	local child_stdio = process.stdio_container(3)
 	child_stdio:add(stdio_flag.IGNORE, 0) -- stdin
 	child_stdio:add(stdio_flag.IGNORE, 0) -- stdout
 	-- child_stdio:add(stdio_flag.INHERIT_FD, 1) -- stdout
 	child_stdio:add(stdio_flag.INHERIT_FD, 2) -- stderr
-	local status, str = pcall(function()
-		local child_handle
-		child_handle = process.new({
-			file = exe_path,
-			args = {
-				exe_path,
-				"proc_streams_test",
-			},
-			stdio = child_stdio,
-			exit_cb = function(exit_status, term_signal)
-				printf_err("Process exited with status %d, signal %d\n", exit_status, term_signal)
-				child_handle:close()
-				child_handle = nil
-			end,
-		})
-	end)
+	local child_handle, status
+	child_handle, status = process.new({
+		file = exe_path,
+		args = {
+			exe_path,
+			"proc_streams_test",
+		},
+		stdio = child_stdio,
+		exit_cb = function(exit_status, term_signal)
+			printf_err("Process exited with status %d, signal %d\n", exit_status, term_signal)
+			child_handle:close()
+			child_handle = nil
+		end,
+	})
+	if child_handle then
+		print("Spawn new process:", child_handle)
+	else
+		printf_err("Spawn new process error %s: %s", err_name(status), strerror(status))
+	end
 end
 
 function ref_timer()
@@ -578,25 +589,23 @@ end
 
 function spawn()
 	local exe_path = "mkdir"
-	local child_handle
-	local status, str = pcall(function()
-		child_handle = process.new({
-			file = exe_path,
-			args = {
-				exe_path,
-				"test-dir",
-			},
-			exit_cb = function(exit_status, term_signal)
-				printf_err("Process exited with status %d, signal %d\n", exit_status, term_signal)
-				child_handle:close()
-				child_handle = nil
-			end,
-		})
-	end)
-	if not status then
-		print("Spawn new process error:", status, str)
-	else
+	local child_handle, status
+	child_handle, status = process.new({
+		file = exe_path,
+		args = {
+			exe_path,
+			"test-dir",
+		},
+		exit_cb = function(exit_status, term_signal)
+			printf_err("Process exited with status %d, signal %d\n", exit_status, term_signal)
+			child_handle:close()
+			child_handle = nil
+		end,
+	})
+	if child_handle then
 		print("Launched process with ID", child_handle:get_pid())
+	else
+		printf_err("Spawn new process error %s: %s", err_name(status), strerror(status))
 	end
 end
 
@@ -640,7 +649,7 @@ function tcp_echo_client()
 	local addr = network.sockaddr()
 	addr:ip4_addr("0.0.0.0", 7000)
 	local socket = tcp.new()
-	socket:connect(addr, function(status)
+	local status = socket:connect(addr, function(status)
 		if status < 0 then
 			printf_err("connect failed error %s\n", err_name(status))
 			return
@@ -662,6 +671,9 @@ function tcp_echo_client()
 			end)
 		end)
 	end)
+	if status ~= OK then
+		printf_err("TCP connect error %s: %s\n", err_name(status), strerror(status))
+	end
 end
 
 function tty_use()
