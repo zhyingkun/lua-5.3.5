@@ -98,6 +98,9 @@ end
 function cgi()
 	local function invoke_cgi_script(client)
 		local exe_path = arg[0]
+		if exe_path:sub(1, 1) ~= "." then
+			exe_path = "." / exe_path
+		end
 		local child_stdio = process.stdio_container(3)
 		child_stdio:add(stdio_flag.IGNORE, 0) -- stdin
 		child_stdio:add(stdio_flag.INHERIT_STREAM, client) -- stdout
@@ -136,6 +139,34 @@ function cgi()
 			client:close()
 		end
 	end)
+end
+
+function cgi_client()
+	local addr = network.sockaddr()
+	addr:ip4_addr("0.0.0.0", 7000)
+	local socket = tcp.new()
+	local status, str = pcall(function()
+		socket:connect(addr, function(status)
+			if status < 0 then
+				print("connect error:", status, strerror(status))
+				return
+			end
+			print("connect status:", status, i, socket:fileno())
+			socket:read_start(function(nread, str)
+				if nread < 0 then
+					if nread == EOF then
+						print("Receive EOF")
+					end
+					socket:close()
+					return
+				end
+				print("Receive:", nread, str)
+			end)
+		end)
+	end)
+	if not status then
+		print("connect error:", str)
+	end
 end
 
 function detach()
