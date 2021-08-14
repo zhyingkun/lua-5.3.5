@@ -21,7 +21,7 @@ static void on_loop_close(lua_State* L, uv_loop_t* loop) {
   lua_pushnil(L);
   while (lua_next(L, idx)) {
     uv_handle_t* handle = lua_touserdata(L, -2);
-    if (handle) {
+    if (handle && !uv_is_closing(handle)) {
       uv_close(handle, NULL);
     }
     lua_pop(L, 1);
