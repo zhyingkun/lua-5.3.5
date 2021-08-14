@@ -366,7 +366,7 @@ function multi_echo_hammer()
 	local addr = network.sockaddr()
 	addr:ip4_addr("0.0.0.0", 7000)
 	local PHRASE = "hello world"
-	for i = 1, 3700, 1 do -- 3686
+	for i = 1, 1000, 1 do -- 3686
 		local socket = tcp.new()
 		local status, str = pcall(function()
 			socket:connect(addr, function(status)
