@@ -10,11 +10,11 @@ static int PIPE_FUNCTION(new)(lua_State* L) {
 
   uv_pipe_t* handle = (uv_pipe_t*)lua_newuserdata(L, sizeof(uv_pipe_t));
   luaL_setmetatable(L, UVWRAP_PIPE_TYPE);
+  STREAM_FUNCTION(ctor)
+  (L, (uv_stream_t*)handle);
 
   int err = uv_pipe_init(loop, handle, ipc);
   CHECK_ERROR(L, err);
-  STREAM_FUNCTION(ctor)
-  (L, (uv_stream_t*)handle);
   return 1;
 }
 

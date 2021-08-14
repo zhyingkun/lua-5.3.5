@@ -10,10 +10,11 @@ int UDP_FUNCTION(new)(lua_State* L) {
 
   uv_udp_t* handle = (uv_udp_t*)lua_newuserdata(L, sizeof(uv_udp_t));
   luaL_setmetatable(L, UVWRAP_UDP_TYPE);
-  int err = uv_udp_init_ex(loop, handle, flags); // return 0 when success
-  CHECK_ERROR(L, err);
   HANDLE_FUNCTION(ctor)
   (L, (uv_handle_t*)handle);
+
+  int err = uv_udp_init_ex(loop, handle, flags); // return 0 when success
+  CHECK_ERROR(L, err);
   return 1;
 }
 
@@ -31,8 +32,8 @@ static int UDP_FUNCTION(connect)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   struct sockaddr* addr = luaL_checksockaddr(L, 2);
   int err = uv_udp_connect(handle, addr);
-  CHECK_ERROR(L, err);
-  return 0;
+  lua_pushinteger(L, err);
+  return 1;
 }
 
 static int UDP_FUNCTION(getsockname)(lua_State* L) {

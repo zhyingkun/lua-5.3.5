@@ -10,11 +10,11 @@ static int TCP_FUNCTION(new)(lua_State* L) {
 
   uv_tcp_t* handle = (uv_tcp_t*)lua_newuserdata(L, sizeof(uv_tcp_t));
   luaL_setmetatable(L, UVWRAP_TCP_TYPE);
+  STREAM_FUNCTION(ctor)
+  (L, (uv_stream_t*)handle);
 
   int err = uv_tcp_init_ex(loop, handle, flags); // return 0 when success
   CHECK_ERROR(L, err);
-  STREAM_FUNCTION(ctor)
-  (L, (uv_stream_t*)handle);
   return 1;
 }
 
@@ -44,9 +44,11 @@ static int TCP_FUNCTION(connect)(lua_State* L) {
   uv_connect_t* req = (uv_connect_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_connect_t));
 
   int err = uv_tcp_connect(req, handle, addr, TCP_CALLBACK(connect));
-  CHECK_ERROR(L, err);
-  SET_REQ_CALLBACK(L, 3, req);
-  return 0;
+  if (err == UVWRAP_OK) {
+    SET_REQ_CALLBACK(L, 3, req);
+  }
+  lua_pushinteger(L, err);
+  return 1;
 }
 
 static int TCP_FUNCTION(nodelay)(lua_State* L) {

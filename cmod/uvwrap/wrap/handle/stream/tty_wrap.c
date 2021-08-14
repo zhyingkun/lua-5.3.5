@@ -9,11 +9,11 @@ int TTY_FUNCTION(new)(lua_State* L) {
 
   uv_tty_t* handle = (uv_tty_t*)lua_newuserdata(L, sizeof(uv_tty_t));
   luaL_setmetatable(L, UVWRAP_TTY_TYPE);
+  STREAM_FUNCTION(ctor)
+  (L, (uv_stream_t*)handle);
 
   int err = uv_tty_init(loop, handle, fd, 0);
   CHECK_ERROR(L, err);
-  STREAM_FUNCTION(ctor)
-  (L, (uv_stream_t*)handle);
   return 1;
 }
 
