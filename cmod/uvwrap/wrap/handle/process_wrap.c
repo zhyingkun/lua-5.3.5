@@ -160,9 +160,6 @@ int PROCESS_FUNCTION(new)(lua_State* L) {
   lua_settop(L, 2);
 
   uv_process_t* handle = (uv_process_t*)lua_newuserdata(L, sizeof(uv_process_t));
-  luaL_setmetatable(L, UVWRAP_PROCESS_TYPE);
-  HANDLE_FUNCTION(ctor)
-  (L, (uv_handle_t*)handle);
 
   uv_process_options_t options[1] = {0};
   lua_pushvalue(L, 2);
@@ -170,7 +167,11 @@ int PROCESS_FUNCTION(new)(lua_State* L) {
   lua_pushvalue(L, 3);
 
   int err = uv_spawn(loop, handle, options);
-  if (err != UVWRAP_OK) {
+  if (err == UVWRAP_OK) {
+    luaL_setmetatable(L, UVWRAP_PROCESS_TYPE);
+    HANDLE_FUNCTION(ctor)
+    (L, (uv_handle_t*)handle);
+  } else {
     lua_pushnil(L);
   }
   lua_pushinteger(L, err);

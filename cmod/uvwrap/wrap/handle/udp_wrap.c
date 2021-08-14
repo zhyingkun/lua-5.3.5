@@ -9,12 +9,13 @@ int UDP_FUNCTION(new)(lua_State* L) {
   lua_Integer flags = luaL_optinteger(L, 2, AF_UNSPEC);
 
   uv_udp_t* handle = (uv_udp_t*)lua_newuserdata(L, sizeof(uv_udp_t));
-  luaL_setmetatable(L, UVWRAP_UDP_TYPE);
-  HANDLE_FUNCTION(ctor)
-  (L, (uv_handle_t*)handle);
 
   int err = uv_udp_init_ex(loop, handle, flags); // return 0 when success
   CHECK_ERROR(L, err);
+
+  luaL_setmetatable(L, UVWRAP_UDP_TYPE);
+  HANDLE_FUNCTION(ctor)
+  (L, (uv_handle_t*)handle);
   return 1;
 }
 

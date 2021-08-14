@@ -13,12 +13,13 @@
     uv_loop_t* loop = luaL_checkuvloop(L, 1); \
 \
     uv_##name##_t* handle = (uv_##name##_t*)lua_newuserdata(L, sizeof(uv_##name##_t)); \
-    luaL_setmetatable(L, UVWRAP_##NAME##_TYPE); \
-    HANDLE_FUNCTION(ctor) \
-    (L, (uv_handle_t*)handle); \
 \
     int err = uv_##name##_init(loop, handle); \
     CHECK_ERROR(L, err); \
+\
+    luaL_setmetatable(L, UVWRAP_##NAME##_TYPE); \
+    HANDLE_FUNCTION(ctor) \
+    (L, (uv_handle_t*)handle); \
     return 1; \
   } \
 \

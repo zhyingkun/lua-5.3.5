@@ -9,12 +9,13 @@ static int TCP_FUNCTION(new)(lua_State* L) {
   unsigned int flags = luaL_optinteger(L, 2, AF_UNSPEC);
 
   uv_tcp_t* handle = (uv_tcp_t*)lua_newuserdata(L, sizeof(uv_tcp_t));
-  luaL_setmetatable(L, UVWRAP_TCP_TYPE);
-  STREAM_FUNCTION(ctor)
-  (L, (uv_stream_t*)handle);
 
   int err = uv_tcp_init_ex(loop, handle, flags); // return 0 when success
   CHECK_ERROR(L, err);
+
+  luaL_setmetatable(L, UVWRAP_TCP_TYPE);
+  STREAM_FUNCTION(ctor)
+  (L, (uv_stream_t*)handle);
   return 1;
 }
 

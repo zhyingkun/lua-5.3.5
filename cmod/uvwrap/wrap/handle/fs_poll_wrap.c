@@ -8,12 +8,13 @@ int FS_POLL_FUNCTION(new)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
 
   uv_fs_poll_t* handle = (uv_fs_poll_t*)lua_newuserdata(L, sizeof(uv_fs_poll_t));
-  luaL_setmetatable(L, UVWRAP_FS_POLL_TYPE);
-  HANDLE_FUNCTION(ctor)
-  (L, (uv_handle_t*)handle);
 
   int err = uv_fs_poll_init(loop, handle);
   CHECK_ERROR(L, err);
+
+  luaL_setmetatable(L, UVWRAP_FS_POLL_TYPE);
+  HANDLE_FUNCTION(ctor)
+  (L, (uv_handle_t*)handle);
   return 1;
 }
 

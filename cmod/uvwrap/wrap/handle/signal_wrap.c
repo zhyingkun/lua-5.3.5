@@ -8,12 +8,13 @@ int SIGNAL_FUNCTION(new)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
 
   uv_signal_t* handle = (uv_signal_t*)lua_newuserdata(L, sizeof(uv_signal_t));
-  luaL_setmetatable(L, UVWRAP_SIGNAL_TYPE);
-  HANDLE_FUNCTION(ctor)
-  (L, (uv_handle_t*)handle);
 
   int err = uv_signal_init(loop, handle);
   CHECK_ERROR(L, err);
+
+  luaL_setmetatable(L, UVWRAP_SIGNAL_TYPE);
+  HANDLE_FUNCTION(ctor)
+  (L, (uv_handle_t*)handle);
   return 1;
 }
 

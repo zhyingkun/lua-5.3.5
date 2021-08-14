@@ -8,10 +8,11 @@ int TIMER_FUNCTION(new)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
 
   uv_timer_t* handle = (uv_timer_t*)lua_newuserdata(L, sizeof(uv_timer_t));
-  luaL_setmetatable(L, UVWRAP_TIMER_TYPE);
 
   int err = uv_timer_init(loop, handle);
   CHECK_ERROR(L, err);
+
+  luaL_setmetatable(L, UVWRAP_TIMER_TYPE);
   HANDLE_FUNCTION(ctor)
   (L, (uv_handle_t*)handle);
   return 1;
