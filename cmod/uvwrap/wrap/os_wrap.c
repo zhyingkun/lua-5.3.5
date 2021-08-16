@@ -53,10 +53,10 @@ static int OS_FUNCTION(getenv)(lua_State* L) {
     return 0;
   }
   if (err == UV_ENOBUFS) {
-    char* buf = MEMORY_FUNCTION(malloc)(size);
+    char* buf = MEMORY_FUNCTION(malloc_buf)(size);
     uv_os_getenv(name, buf, &size);
     lua_pushstring(L, buf);
-    MEMORY_FUNCTION(free)
+    MEMORY_FUNCTION(free_buf)
     (buf);
   } else {
     CHECK_ERROR(L, err);

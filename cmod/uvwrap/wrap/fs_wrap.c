@@ -4,11 +4,11 @@
 #define FS_FUNCTION(name) UVWRAP_FUNCTION(fs, name)
 #define FS_CALLBACK(name) UVWRAP_CALLBACK(fs, name)
 
-#define ALLOCA_REQ() (uv_fs_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_fs_t))
+#define ALLOCA_REQ() (uv_fs_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_fs_t))
 #define FREE_REQ(req) \
   do { \
     uv_fs_req_cleanup(req); \
-    MEMORY_FUNCTION(free) \
+    MEMORY_FUNCTION(free_req) \
     (req); \
   } while (0)
 

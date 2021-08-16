@@ -260,7 +260,7 @@ static void NETWORK_CALLBACK(getaddrinfo)(uv_getaddrinfo_t* req, int status, str
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   lua_pushinteger(L, status);
   PUSH_GETADDRINFO_RESULT(L, res);
-  MEMORY_FUNCTION(free)
+  MEMORY_FUNCTION(free_req)
   (req);
   CALL_LUA_FUNCTION(L, 2, 0);
 }
@@ -282,7 +282,7 @@ static int NETWORK_FUNCTION(getaddrinfo)(lua_State* L) {
   }
   int async = CHECK_IS_ASYNC(L, 5);
 
-  uv_getaddrinfo_t* req = (uv_getaddrinfo_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_getaddrinfo_t));
+  uv_getaddrinfo_t* req = (uv_getaddrinfo_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_getaddrinfo_t));
   int err = uv_getaddrinfo(loop, req, async ? NETWORK_CALLBACK(getaddrinfo) : NULL, node, service, hints);
   if (async) {
     CHECK_ERROR(L, err);
@@ -292,7 +292,7 @@ static int NETWORK_FUNCTION(getaddrinfo)(lua_State* L) {
   struct addrinfo* res = req->addrinfo;
   PUSH_GETADDRINFO_RESULT(L, res);
   lua_pushinteger(L, err);
-  MEMORY_FUNCTION(free)
+  MEMORY_FUNCTION(free_req)
   (req);
   return 2;
 }
@@ -303,7 +303,7 @@ static void NETWORK_CALLBACK(getnameinfo)(uv_getnameinfo_t* req, int status, con
   lua_pushinteger(L, status);
   lua_pushstring(L, hostname); // hostname and service store in req
   lua_pushstring(L, service);
-  MEMORY_FUNCTION(free)
+  MEMORY_FUNCTION(free_req)
   (req);
   CALL_LUA_FUNCTION(L, 3, 0);
 }
@@ -313,7 +313,7 @@ static int NETWORK_FUNCTION(getnameinfo)(lua_State* L) {
   int flags = luaL_checkinteger(L, 3);
   int async = CHECK_IS_ASYNC(L, 4);
 
-  uv_getnameinfo_t* req = (uv_getnameinfo_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_getnameinfo_t));
+  uv_getnameinfo_t* req = (uv_getnameinfo_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_getnameinfo_t));
   int err = uv_getnameinfo(loop, req, async ? NETWORK_CALLBACK(getnameinfo) : NULL, addr, flags);
   if (async) {
     CHECK_ERROR(L, err);
@@ -328,7 +328,7 @@ static int NETWORK_FUNCTION(getnameinfo)(lua_State* L) {
     lua_pushnil(L);
   }
   lua_pushinteger(L, err);
-  MEMORY_FUNCTION(free)
+  MEMORY_FUNCTION(free_req)
   (req);
   return 3;
 }

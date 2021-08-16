@@ -40,7 +40,7 @@ static void PIPE_CALLBACK(connect)(uv_connect_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   UNHOLD_REQ_PARAM(L, req, 1);
-  MEMORY_FUNCTION(free)
+  MEMORY_FUNCTION(free_req)
   (req);
   lua_pushinteger(L, status);
   CALL_LUA_FUNCTION(L, 1, 0);
@@ -50,7 +50,7 @@ static int PIPE_FUNCTION(connect)(lua_State* L) {
   const char* name = luaL_checkstring(L, 2);
   luaL_checktype(L, 3, LUA_TFUNCTION);
 
-  uv_connect_t* req = (uv_connect_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_connect_t));
+  uv_connect_t* req = (uv_connect_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_connect_t));
   uv_pipe_connect(req, handle, name, PIPE_CALLBACK(connect));
   SET_REQ_CALLBACK(L, 3, req);
   HOLD_REQ_PARAM(L, req, 1, 2);

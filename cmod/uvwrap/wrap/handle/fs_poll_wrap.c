@@ -52,7 +52,7 @@ static int FS_POLL_FUNCTION(getpath)(lua_State* L) {
   char* path = buffer;
   int ret = uv_fs_poll_getpath(handle, path, &size);
   if (ret == UV_ENOBUFS) {
-    path = MEMORY_FUNCTION(malloc)(size);
+    path = MEMORY_FUNCTION(malloc_buf)(size);
     ret = uv_fs_poll_getpath(handle, path, &size);
   }
   if (ret == UVWRAP_OK) {
@@ -61,7 +61,7 @@ static int FS_POLL_FUNCTION(getpath)(lua_State* L) {
     lua_pushnil(L);
   }
   if (path != buffer) {
-    MEMORY_FUNCTION(free)
+    MEMORY_FUNCTION(free_buf)
     (path);
   }
   if (ret == UVWRAP_OK) {

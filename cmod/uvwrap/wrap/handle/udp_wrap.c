@@ -111,7 +111,7 @@ static void UDP_CALLBACK(send)(uv_udp_send_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   UNHOLD_LUA_OBJECT(L, req, 1);
-  MEMORY_FUNCTION(free)
+  MEMORY_FUNCTION(free_req)
   (req);
   lua_pushinteger(L, status);
   CALL_LUA_FUNCTION(L, 1, 0);
@@ -123,7 +123,7 @@ static int UDP_FUNCTION(send)(lua_State* L) {
   struct sockaddr* addr = luaL_checksockaddr(L, 3);
   luaL_checktype(L, 4, LUA_TFUNCTION);
 
-  uv_udp_send_t* req = (uv_udp_send_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_udp_send_t));
+  uv_udp_send_t* req = (uv_udp_send_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_udp_send_t));
   BUFS_INIT(data, len);
   int err = uv_udp_send(req, handle, BUFS, NBUFS, addr, UDP_CALLBACK(send)); // bufs and addr are passed by value
   CHECK_ERROR(L, err);

@@ -48,13 +48,29 @@ void* MEMORY_FUNCTION(calloc)(size_t count, size_t size) {
 
 void MEMORY_FUNCTION(buf_alloc)(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
   (void)handle;
-  buf->base = (char*)MEMORY_FUNCTION(malloc)(suggested_size);
+  buf->base = (char*)MEMORY_FUNCTION(malloc_buf)(suggested_size);
   buf->len = (size_t)suggested_size;
 }
 
 void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf) {
-  MEMORY_FUNCTION(free)
+  MEMORY_FUNCTION(free_buf)
   (buf->base);
+}
+
+void* MEMORY_FUNCTION(malloc_req)(size_t size) {
+  return MEMORY_FUNCTION(malloc)(size);
+}
+void MEMORY_FUNCTION(free_req)(void* ptr) {
+  MEMORY_FUNCTION(free)
+  (ptr);
+}
+
+void* MEMORY_FUNCTION(malloc_buf)(size_t size) {
+  return MEMORY_FUNCTION(malloc)(size);
+}
+void MEMORY_FUNCTION(free_buf)(void* ptr) {
+  MEMORY_FUNCTION(free)
+  (ptr);
 }
 
 /* }====================================================== */

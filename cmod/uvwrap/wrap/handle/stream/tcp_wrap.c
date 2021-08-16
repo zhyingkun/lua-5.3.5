@@ -32,7 +32,7 @@ static int TCP_FUNCTION(bind)(lua_State* L) {
 static void TCP_CALLBACK(connect)(uv_connect_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
-  MEMORY_FUNCTION(free)
+  MEMORY_FUNCTION(free_req)
   (req);
   lua_pushinteger(L, status);
   CALL_LUA_FUNCTION(L, 1, 0);
@@ -42,7 +42,7 @@ static int TCP_FUNCTION(connect)(lua_State* L) {
   struct sockaddr* addr = luaL_checksockaddr(L, 2);
   luaL_checktype(L, 3, LUA_TFUNCTION);
 
-  uv_connect_t* req = (uv_connect_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_connect_t));
+  uv_connect_t* req = (uv_connect_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_connect_t));
 
   int err = uv_tcp_connect(req, handle, addr, TCP_CALLBACK(connect));
   if (err == UVWRAP_OK) {

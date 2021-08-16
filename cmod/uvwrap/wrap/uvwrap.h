@@ -206,6 +206,12 @@ void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf);
 typedef void (*MEMORY_FUNCTION(memcb))(void* ud, void* old_ptr, void* new_ptr, size_t new_size);
 void MEMORY_FUNCTION(set_memcb)(MEMORY_FUNCTION(memcb) fn, void* ud);
 
+void* MEMORY_FUNCTION(malloc_req)(size_t size);
+void MEMORY_FUNCTION(free_req)(void* ptr);
+
+void* MEMORY_FUNCTION(malloc_buf)(size_t size);
+void MEMORY_FUNCTION(free_buf)(void* ptr);
+
 /* }====================================================== */
 
 /*

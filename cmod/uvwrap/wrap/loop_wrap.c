@@ -164,7 +164,7 @@ static int LOOP_FUNCTION(block_signal)(lua_State* L) {
 static void LOOP_CALLBACK(queue_work)(uv_work_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
-  MEMORY_FUNCTION(free)
+  MEMORY_FUNCTION(free_req)
   (req);
   lua_pushinteger(L, status);
   CALL_LUA_FUNCTION(L, 1, 0);
@@ -175,7 +175,7 @@ static int LOOP_FUNCTION(queue_work)(lua_State* L) {
   luaL_checktype(L, 3, LUA_TFUNCTION);
 
   uv_work_cb work_cb = (uv_work_cb)lua_touserdata(L, 2);
-  uv_work_t* req = (uv_work_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_work_t));
+  uv_work_t* req = (uv_work_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_work_t));
 
   int err = uv_queue_work(loop, req, work_cb, LOOP_CALLBACK(queue_work));
 

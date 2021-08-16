@@ -12,7 +12,7 @@ static void STREAM_CALLBACK(shutdown)(uv_shutdown_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   lua_pushinteger(L, status);
-  MEMORY_FUNCTION(free)
+  MEMORY_FUNCTION(free_req)
   (req);
   CALL_LUA_FUNCTION(L, 1, 0);
 }
@@ -21,7 +21,7 @@ static int STREAM_FUNCTION(shutdown)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
   luaL_checktype(L, 2, LUA_TFUNCTION);
 
-  uv_shutdown_t* req = (uv_shutdown_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_shutdown_t));
+  uv_shutdown_t* req = (uv_shutdown_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_shutdown_t));
   int err = uv_shutdown(req, handle, STREAM_CALLBACK(shutdown));
   CHECK_ERROR(L, err);
   SET_REQ_CALLBACK(L, 2, req);
@@ -87,7 +87,7 @@ static void STREAM_CALLBACK(write)(uv_write_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   UNHOLD_REQ_PARAM(L, req, 1);
-  MEMORY_FUNCTION(free)
+  MEMORY_FUNCTION(free_req)
   (req);
   lua_pushinteger(L, status);
   CALL_LUA_FUNCTION(L, 1, 0);
@@ -98,7 +98,7 @@ static int STREAM_FUNCTION(write)(lua_State* L) {
   const char* data = luaL_checklstring(L, 2, &len);
   luaL_checktype(L, 3, LUA_TFUNCTION);
 
-  uv_write_t* req = (uv_write_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_write_t));
+  uv_write_t* req = (uv_write_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_write_t));
   BUFS_INIT(data, len);
   int err = uv_write(req, handle, BUFS, NBUFS, STREAM_CALLBACK(write));
   CHECK_ERROR(L, err);
@@ -111,7 +111,7 @@ static void STREAM_CALLBACK(write2)(uv_write_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   UNHOLD_REQ_PARAM(L, req, 1);
-  MEMORY_FUNCTION(free)
+  MEMORY_FUNCTION(free_req)
   (req);
   lua_pushinteger(L, status);
   CALL_LUA_FUNCTION(L, 1, 0);
@@ -123,7 +123,7 @@ static int STREAM_FUNCTION(write2)(lua_State* L) {
   uv_stream_t* send_handle = luaL_checkstream(L, 3);
   luaL_checktype(L, 4, LUA_TFUNCTION);
 
-  uv_write_t* req = (uv_write_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_write_t));
+  uv_write_t* req = (uv_write_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_write_t));
   BUFS_INIT(data, len);
   int err = uv_write2(req, handle, BUFS, NBUFS, send_handle, STREAM_CALLBACK(write2));
   CHECK_ERROR(L, err);
