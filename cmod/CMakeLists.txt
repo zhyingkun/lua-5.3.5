@@ -16,6 +16,7 @@ add_subdirectory(gb2312)
 add_subdirectory(protobuf)
 add_subdirectory(uvwrap)
 add_subdirectory(json)
+add_subdirectory(glfwrap)
 
 if(NOT WIN32)
 	add_subdirectory(lproc)
