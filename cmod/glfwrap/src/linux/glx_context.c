@@ -24,6 +24,8 @@
 //    distribution.
 //
 //========================================================================
+// It is fine to use C99 in this file because it will not be built with VS
+//========================================================================
 
 #include "internal.h"
 
@@ -84,6 +86,9 @@ static GLFWbool chooseGLXFBConfig(const _GLFWfbconfig* desired,
         continue;
     }
 
+    if (getGLXFBConfigAttrib(n, GLX_DOUBLEBUFFER) != desired->doublebuffer)
+      continue;
+
     if (desired->transparent) {
       XVisualInfo* vi = glXGetVisualFromFBConfig(_glfw.x11.display, n);
       if (vi) {
@@ -109,8 +114,6 @@ static GLFWbool chooseGLXFBConfig(const _GLFWfbconfig* desired,
 
     if (getGLXFBConfigAttrib(n, GLX_STEREO))
       u->stereo = GLFW_TRUE;
-    if (getGLXFBConfigAttrib(n, GLX_DOUBLEBUFFER))
-      u->doublebuffer = GLFW_TRUE;
 
     if (_glfw.glx.ARB_multisample)
       u->samples = getGLXFBConfigAttrib(n, GLX_SAMPLES);
@@ -203,8 +206,6 @@ static GLFWglproc getProcAddressGLX(const char* procname) {
     return _glfw_dlsym(_glfw.glx.handle, procname);
 }
 
-// Destroy the OpenGL context
-//
 static void destroyContextGLX(_GLFWwindow* window) {
   if (window->context.glx.window) {
     glXDestroyWindow(_glfw.x11.display, window->context.glx.window);

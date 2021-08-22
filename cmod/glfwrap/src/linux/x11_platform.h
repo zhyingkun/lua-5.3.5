@@ -176,6 +176,7 @@ typedef VkBool32(APIENTRY* PFN_vkGetPhysicalDeviceXcbPresentationSupportKHR)(VkP
 typedef struct _GLFWwindowX11 {
   Colormap colormap;
   Window handle;
+  Window parent;
   XIC ic;
 
   GLFWbool overrideRedirect;
@@ -194,8 +195,9 @@ typedef struct _GLFWwindowX11 {
   // The last position the cursor was warped to by GLFW
   int warpCursorPosX, warpCursorPosY;
 
-  // The time of the last KeyPress event
-  Time lastKeyTime;
+  // The time of the last KeyPress event per keycode, for discarding
+  // duplicate key events generated for some keys by ibus
+  Time keyPressTimes[256];
 
 } _GLFWwindowX11;
 
@@ -223,7 +225,7 @@ typedef struct _GLFWlibraryX11 {
   // Clipboard string (while the selection is owned)
   char* clipboardString;
   // Key name string
-  char keyName[5];
+  char keynames[GLFW_KEY_LAST + 1][5];
   // X11 keycode to GLFW key LUT
   short int keycodes[256];
   // GLFW key to X11 keycode LUT
@@ -234,6 +236,8 @@ typedef struct _GLFWlibraryX11 {
   _GLFWwindow* disabledCursorWindow;
 
   // Window manager atoms
+  Atom NET_SUPPORTED;
+  Atom NET_SUPPORTING_WM_CHECK;
   Atom WM_PROTOCOLS;
   Atom WM_STATE;
   Atom WM_DELETE_WINDOW;
@@ -323,6 +327,7 @@ typedef struct _GLFWlibraryX11 {
     int errorBase;
     int major;
     int minor;
+    unsigned int group;
   } xkb;
 
   struct {

@@ -127,6 +127,7 @@ typedef enum VkStructureType {
   VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR = 1000006000,
   VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR = 1000009000,
   VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK = 1000123000,
+  VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT = 1000217000,
   VK_STRUCTURE_TYPE_MAX_ENUM = 0x7FFFFFFF
 } VkStructureType;
 
@@ -362,6 +363,7 @@ struct _GLFWwindow {
   GLFWbool focusOnShow;
   GLFWbool shouldClose;
   void* userPointer;
+  GLFWbool doublebuffer;
   GLFWvidmode videoMode;
   _GLFWmonitor* monitor;
   _GLFWcursor* cursor;
@@ -409,7 +411,7 @@ struct _GLFWwindow {
 // Monitor structure
 //
 struct _GLFWmonitor {
-  char* name;
+  char name[128];
   void* userPointer;
 
   // Physical dimensions in millimeters.
@@ -466,7 +468,7 @@ struct _GLFWjoystick {
   int buttonCount;
   unsigned char* hats;
   int hatCount;
-  char* name;
+  char name[128];
   void* userPointer;
   char guid[33];
   _GLFWmapping* mapping;
@@ -536,6 +538,7 @@ struct _GLFWlibrary {
     GLFWbool KHR_win32_surface;
 #elif defined(_GLFW_COCOA)
     GLFWbool MVK_macos_surface;
+    GLFWbool EXT_metal_surface;
 #elif defined(_GLFW_X11)
     GLFWbool KHR_xlib_surface;
     GLFWbool KHR_xcb_surface;

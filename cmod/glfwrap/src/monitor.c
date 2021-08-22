@@ -24,6 +24,8 @@
 //    distribution.
 //
 //========================================================================
+// Please use C89 style variable declarations in this file because VS 2010
+//========================================================================
 
 #include "internal.h"
 
@@ -51,6 +53,10 @@ static int compareVideoModes(const void* fp, const void* sp) {
   // Then sort on screen area
   if (farea != sarea)
     return farea - sarea;
+
+  // Then sort on width
+  if (fm->width != sm->width)
+    return fm->width - sm->width;
 
   // Lastly sort on refresh rate
   return fm->refreshRate - sm->refreshRate;
@@ -147,8 +153,7 @@ _GLFWmonitor* _glfwAllocMonitor(const char* name, int widthMM, int heightMM) {
   monitor->widthMM = widthMM;
   monitor->heightMM = heightMM;
 
-  if (name)
-    monitor->name = _glfw_strdup(name);
+  strncpy(monitor->name, name, sizeof(monitor->name) - 1);
 
   return monitor;
 }
@@ -165,7 +170,6 @@ void _glfwFreeMonitor(_GLFWmonitor* monitor) {
   _glfwFreeGammaArrays(&monitor->currentRamp);
 
   free(monitor->modes);
-  free(monitor->name);
   free(monitor);
 }
 
