@@ -2,35 +2,33 @@
 
 #define glfwrap_c
 
-#define LUA_LIB // for export function
+#include <glfwrap.h>
 
-#include <lprefix.h> // must include first
+/*
+** {======================================================
+** Utilities
+** =======================================================
+*/
 
-#include <lua.h>
-#include <lauxlib.h>
+void luaL_setenums(lua_State* L, const luaL_Enum* l) {
+  for (; l->name != NULL; l++) { /* fill the table with given enums */
+    lua_pushinteger(L, l->value);
+    lua_setfield(L, -2, l->name);
+  }
+}
 
-#include <GLFW/glfw3.h>
+/* }====================================================== */
 
-#include <stdlib.h>
-#include <string.h>
+/*
+** {======================================================
+** GLFW calling lua
+** =======================================================
+*/
 
-#define luaL_checkGLFWwindow(L, idx) (GLFWwindow*)(luaL_checktype(L, idx, LUA_TLIGHTUSERDATA), lua_touserdata(L, idx))
+lua_State* StaticL = NULL;
 
-#define PREPARE_CALL_LUA(L) \
-  lua_pushcfunction(L, _msg_handler);
-
-#define CALL_LUA_FUNCTION(L, nargs, nresult) /* must be pcall */ \
-  int msgh = lua_gettop(L) - (nargs + 1); \
-  if (lua_pcall(L, nargs, nresult, msgh) != LUA_OK) { \
-    if (!lua_isnil(L, -1)) { \
-      printf("Error: %s\n", lua_tostring(L, -1)); \
-    } \
-    lua_pop(L, 1); \
-  } \
-  lua_pop(L, 1)
-
-static int _msg_handler(lua_State* L) {
-  if (lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)_msg_handler) == LUA_TFUNCTION) {
+int GLFWRAP_CALLBACK(msgh)(lua_State* L) {
+  if (lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)GLFWRAP_CALLBACK(msgh)) == LUA_TFUNCTION) {
     lua_insert(L, -2);
     lua_pcall(L, 1, 1, 0); // if error with longjmp, just left the result msg in the stack
   } else {
@@ -39,135 +37,153 @@ static int _msg_handler(lua_State* L) {
   }
   return 1;
 }
-
-static int _set_msgh(lua_State* L) {
+static int GLFWRAP_FUNCTION(set_msgh)(lua_State* L) {
   lua_settop(L, 1);
-  lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)_msg_handler);
+  lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)GLFWRAP_CALLBACK(msgh));
   return 0;
 }
 
-static lua_State* StaticL = NULL;
-static void _ErrorCallback(int code, const char* desc) {
-  lua_State* L = StaticL;
-  int t = lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)_ErrorCallback);
-  if (t == LUA_TFUNCTION) {
-    int idx = lua_gettop(L);
-    PREPARE_CALL_LUA(L);
-    lua_pushvalue(L, idx);
-    lua_pushinteger(L, code);
-    lua_pushstring(L, desc);
-    CALL_LUA_FUNCTION(L, 2, 0);
-  } else {
-    lua_pop(L, 1);
-  }
-}
-static int glfwrap_SetErrorCallback(lua_State* L) {
-  lua_settop(L, 1);
-  lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)_ErrorCallback);
-  glfwSetErrorCallback(_ErrorCallback);
-  return 0;
-}
+/* }====================================================== */
 
-static int glfwrap_Init(lua_State* L) {
-  lua_pushinteger(L, glfwInit());
-  return 1;
-}
+/*
+** {======================================================
+** Initialization, version and error
+** =======================================================
+*/
 
-static int glfwrap_WindowHint(lua_State* L) {
-  return 0;
-}
-
-static int glfwrap_CreateWindow(lua_State* L) {
-  int width = luaL_checkinteger(L, 1);
-  int height = luaL_checkinteger(L, 2);
-  const char* title = luaL_checkstring(L, 3);
-  GLFWwindow* window = glfwCreateWindow(width, height, title, NULL, NULL);
-  lua_pushlightuserdata(L, (void*)window);
-  return 1;
-}
-
-static int glfwrap_MakeContextCurrent(lua_State* L) {
-  GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
-  glfwMakeContextCurrent(window);
-  return 0;
-}
-
-static int glfwrap_SetFramebufferSizeCallback(lua_State* L) {
-  return 0;
-}
-
-static int glfwrap_SwapInterval(lua_State* L) {
-  int interval = luaL_checkinteger(L, 1);
-  glfwSwapInterval(interval);
-  return 0;
-}
-
-static int glfwrap_WindowShouldClose(lua_State* L) {
-  GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
-  int ret = glfwWindowShouldClose(window);
+static int GLFWRAP_FUNCTION(Init)(lua_State* L) {
+  int ret = glfwInit();
   lua_pushboolean(L, ret);
   return 1;
 }
 
-static int glfwrap_SetWindowShouldClose(lua_State* L) {
-  GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
-  int value = lua_toboolean(L, 2);
-  glfwSetWindowShouldClose(window, value);
-  return 0;
-}
-
-static int glfwrap_SwapBuffers(lua_State* L) {
-  GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
-  glfwSwapBuffers(window);
-  return 0;
-}
-
-static int glfwrap_PollEvents(lua_State* L) {
-  glfwPollEvents();
-  return 0;
-}
-
-static int glfwrap_Terminate(lua_State* L) {
+static int GLFWRAP_FUNCTION(Terminate)(lua_State* L) {
   glfwTerminate();
   return 0;
 }
 
-static int glfwrap_GetKey(lua_State* L) {
-  GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
-  int key = luaL_checkinteger(L, 2);
-  int ret = glfwGetKey(window, key);
-  lua_pushinteger(L, ret);
+static int GLFWRAP_FUNCTION(InitHint)(lua_State* L) {
+  int hint = luaL_checkinteger(L, 1);
+  int value = luaL_checkinteger(L, 2);
+  glfwInitHint(hint, value);
+  return 0;
+}
+
+static int GLFWRAP_FUNCTION(GetVersion)(lua_State* L) {
+  int major = 0;
+  int minor = 0;
+  int rev = 0;
+  glfwGetVersion(&major, &minor, &rev);
+  lua_pushinteger(L, major);
+  lua_pushinteger(L, minor);
+  lua_pushinteger(L, rev);
+  return 3;
+}
+
+static int GLFWRAP_FUNCTION(GetVersionString)(lua_State* L) {
+  const char* version = glfwGetVersionString();
+  lua_pushstring(L, version);
   return 1;
 }
 
-static const luaL_Reg glfwrap_funcs[] = {
-    {"set_msgh", _set_msgh},
-    {"SetErrorCallback", glfwrap_SetErrorCallback},
-    {"Init", glfwrap_Init},
-    {"WindowHint", glfwrap_WindowHint},
-    {"CreateWindow", glfwrap_CreateWindow},
-    {"MakeContextCurrent", glfwrap_MakeContextCurrent},
-    {"SetFramebufferSizeCallback", glfwrap_SetFramebufferSizeCallback},
-    {"SwapInterval", glfwrap_SwapInterval},
-    {"WindowShouldClose", glfwrap_WindowShouldClose},
-    {"SetWindowShouldClose", glfwrap_SetWindowShouldClose},
-    {"SwapBuffers", glfwrap_SwapBuffers},
-    {"PollEvents", glfwrap_PollEvents},
-    {"Terminate", glfwrap_Terminate},
-    {"GetKey", glfwrap_GetKey},
+static int GLFWRAP_FUNCTION(GetError)(lua_State* L) {
+  const char* description = NULL;
+  int code = glfwGetError(&description);
+  lua_pushinteger(L, code);
+  lua_pushstring(L, description);
+  return 2;
+}
+
+static void GLFWRAP_CALLBACK(SetErrorCallback)(int code, const char* desc) {
+  lua_State* L = StaticL;
+  GLFWRAP_CALLBACK_BEGIN(SetErrorCallback)
+  lua_pushinteger(L, code);
+  lua_pushstring(L, desc);
+  CALL_LUA_FUNCTION(L, 2, 0);
+  GLFWRAP_CALLBACK_END()
+}
+static int GLFWRAP_FUNCTION(SetErrorCallback)(lua_State* L) {
+  StaticL = L;
+  SET_GLFWRAP_CALLBACK(SetErrorCallback, error, 1);
+  glfwSetErrorCallback(callback);
+  return 0;
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Vulkan support
+** =======================================================
+*/
+
+static int GLFWRAP_FUNCTION(VulkanSupported)(lua_State* L) {
+  int ret = glfwVulkanSupported();
+  lua_pushboolean(L, ret);
+  return 1;
+}
+
+static int GLFWRAP_FUNCTION(GetRequiredInstanceExtensions)(lua_State* L) {
+  uint32_t count = 0;
+  const char** extensions = glfwGetRequiredInstanceExtensions(&count);
+  lua_createtable(L, count, 0);
+  for (uint32_t i = 0; i < count; i++) {
+    lua_pushstring(L, extensions[i]);
+    lua_rawseti(L, -2, i + 1);
+  }
+  return 1;
+}
+
+/* }====================================================== */
+
+static const luaL_Reg GLFWRAP_FUNCTION(funcs)[] = {
+    EMPLACE_GLFWRAP_FUNCTION(set_msgh),
+    /* Initialization, version and error */
+    EMPLACE_GLFWRAP_FUNCTION(Init),
+    EMPLACE_GLFWRAP_FUNCTION(Terminate),
+    EMPLACE_GLFWRAP_FUNCTION(InitHint),
+    EMPLACE_GLFWRAP_FUNCTION(GetVersion),
+    EMPLACE_GLFWRAP_FUNCTION(GetVersionString),
+    EMPLACE_GLFWRAP_FUNCTION(GetError),
+    EMPLACE_GLFWRAP_FUNCTION(SetErrorCallback),
+    /* Vulkan support */
+    EMPLACE_GLFWRAP_FUNCTION(VulkanSupported),
+    EMPLACE_GLFWRAP_FUNCTION(GetRequiredInstanceExtensions),
     /* placeholders */
-    {"RELEASE", NULL},
-    {"PRESS", NULL},
     {NULL, NULL},
 };
 
+static const luaL_Enum GLFWRAP_ENUM(err_code)[] = {
+    {"NO_ERROR", GLFW_NO_ERROR},
+    {"NOT_INITIALIZED", GLFW_NOT_INITIALIZED},
+    {"NO_CURRENT_CONTEXT", GLFW_NO_CURRENT_CONTEXT},
+    {"INVALID_ENUM", GLFW_INVALID_ENUM},
+    {"INVALID_VALUE", GLFW_INVALID_VALUE},
+    {"OUT_OF_MEMORY", GLFW_OUT_OF_MEMORY},
+    {"API_UNAVAILABLE", GLFW_API_UNAVAILABLE},
+    {"VERSION_UNAVAILABLE", GLFW_VERSION_UNAVAILABLE},
+    {"PLATFORM_ERROR", GLFW_PLATFORM_ERROR},
+    {"FORMAT_UNAVAILABLE", GLFW_FORMAT_UNAVAILABLE},
+    {"NO_WINDOW_CONTEXT", GLFW_NO_WINDOW_CONTEXT},
+    {NULL, 0},
+};
+static const luaL_Enum GLFWRAP_ENUM(init_hint)[] = {
+    {"JOYSTICK_HAT_BUTTONS", GLFW_JOYSTICK_HAT_BUTTONS},
+    {"COCOA_CHDIR_RESOURCES", GLFW_COCOA_CHDIR_RESOURCES},
+    {"COCOA_MENUBAR", GLFW_COCOA_MENUBAR},
+    {NULL, 0},
+};
+
 LUAMOD_API int luaopen_libglfwrap(lua_State* L) {
-  StaticL = L;
   luaL_newlib(L, glfwrap_funcs);
 
-  lua_pushinteger(L, GLFW_RELEASE);
-  lua_setfield(L, -2, "RELEASE");
-  lua_pushinteger(L, GLFW_PRESS);
-  lua_setfield(L, -2, "PRESS");
+  REGISTE_FUNCTIONS(context);
+  REGISTE_FUNCTIONS(input);
+  REGISTE_FUNCTIONS(monitor);
+  REGISTE_FUNCTIONS(window);
+
+  REGISTE_ENUM(err_code);
+  REGISTE_ENUM(init_hint);
+
   return 1;
 }
