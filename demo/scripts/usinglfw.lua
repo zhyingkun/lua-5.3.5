@@ -1,12 +1,21 @@
 print("Start...")
 local glfw = require("libglfwrap")
+local input_state = glfw.input_state
+
+glfw.set_msgh(function(msg)
+	print("GLFW pcall error: ", msg, debug.traceback())
+end)
 
 glfw.SetErrorCallback(function(code, desc)
 	print("GLFW ErrorCallback:", code, desc)
 end)
-glfw.Init()
+if not glfw.Init() then
+	print("GLFW Init Error")
+	glfw.Terminate()
+	return
+end
 local window = glfw.CreateWindow(800, 600, "glfw-win-lua")
-if window == NULL then
+if not window then
 	print("GLFW CreateWindow Error")
 	glfw.Terminate()
 	return
@@ -15,12 +24,15 @@ glfw.MakeContextCurrent(window)
 glfw.SwapInterval(1)
 
 while not glfw.WindowShouldClose(window) do
-	if glfw.GetKey(window, 256) == glfw.PRESS then
+	if glfw.GetKey(window, 256) == input_state.PRESS then
 		glfw.SetWindowShouldClose(window, true)
 	end
 	glfw.SwapBuffers(window)
 	glfw.PollEvents()
 end
+
+print(tostring(glfw.GetMonitors(), 16))
+print(tostring(glfw.GetVideoModes(glfw.GetPrimaryMonitor()), 16))
 
 glfw.Terminate()
 print("End.")
