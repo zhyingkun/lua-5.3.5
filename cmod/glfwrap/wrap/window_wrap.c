@@ -88,7 +88,7 @@ static int GLFWRAP_FUNCTION(CreateWindow)(lua_State* L) {
   GLFWmonitor* monitor = (GLFWmonitor*)luaL_optlightuserdata(L, 4, NULL);
   GLFWwindow* shared = (GLFWwindow*)luaL_optlightuserdata(L, 5, NULL);
 
-  GLFWwindow* window = glfwCreateWindow(width, height, title, NULL, NULL);
+  GLFWwindow* window = glfwCreateWindow(width, height, title, monitor, shared);
   PUSH_LIGHTUSERDATA(L, (void*)window);
   return 1;
 }
