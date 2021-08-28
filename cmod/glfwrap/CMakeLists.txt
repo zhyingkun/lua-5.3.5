@@ -14,11 +14,11 @@ endif()
 
 # LUA_BUILD_AS_DLL are for all windows components, include liblua, cmod library, and user exe which use liblua
 if(APPLE)
-	set(CMAKE_CXX_FLAGS         "-std=c11 -Wall -Wextra")
+	set(CMAKE_CXX_FLAGS         "-std=c11 -Wall -Wextra -Wstrict-prototypes -Wno-unused-parameter")
 	set(CMAKE_CXX_FLAGS_DEBUG   "-g")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	set(CMAKE_CXX_FLAGS         "-std=c11 -Wall -Wextra")
+	set(CMAKE_CXX_FLAGS         "-std=c11 -Wall -Wextra -Wstrict-prototypes -Wno-unused-parameter")
 	set(CMAKE_CXX_FLAGS_DEBUG   "-g")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 elseif(WIN32)
