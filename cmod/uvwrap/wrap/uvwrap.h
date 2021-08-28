@@ -140,6 +140,7 @@ DECLARE_INIT_API(loop)
 DECLARE_INIT_API(network)
 DECLARE_INIT_API(os)
 DECLARE_INIT_API(sys)
+DECLARE_INIT_API(thread)
 
 #define HANDLE_FUNCTION(name) UVWRAP_FUNCTION(handle, name)
 void HANDLE_FUNCTION(ctor)(lua_State* L, uv_handle_t* handle);

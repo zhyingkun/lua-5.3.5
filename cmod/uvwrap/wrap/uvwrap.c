@@ -131,6 +131,7 @@ LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
   CALL_MODULE_INIT(network);
   CALL_MODULE_INIT(os);
   CALL_MODULE_INIT(sys);
+  CALL_MODULE_INIT(thread);
 
   return 1;
 }
