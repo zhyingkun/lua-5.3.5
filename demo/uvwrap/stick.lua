@@ -15,6 +15,8 @@ libuv.set_msgh(function(msg)
 	print("In custom msg handler:", msg, debug.traceback())
 end)
 
+libuv.defer_run_loop()
+
 local function TcpServer()
 	local tcpSocket = tcp.new()
 	local sockAddr = network.sockaddr()

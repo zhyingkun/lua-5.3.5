@@ -43,6 +43,8 @@ libuv.set_msgh(function(msg)
 	print("In custom msg handler:", msg, debug.traceback())
 end)
 
+libuv.defer_run_loop()
+
 --[[
 local AllocCount = 0
 local AllocMem = {}

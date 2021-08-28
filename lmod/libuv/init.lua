@@ -38,14 +38,18 @@ end
 local run = uvwrap.loop.run
 local close = uvwrap.loop.close
 local set_realloc_cb = uvwrap.set_realloc_cb
-atexit(function()
-	if not loop then return end
-	run(loop)
-	close(loop)
-	set_realloc_cb()
-end)
 
 return setmetatable({
+	set_loop = set_loop,
+	defer_run_loop = function()
+		atexit(function()
+			if not loop then return end
+			run(loop)
+			close(loop)
+			loop = nil
+			set_realloc_cb()
+		end)		
+	end,
 	loop = setmetatable({
 		default = uvwrap.loop.default,
 		new = uvwrap.loop.new,
