@@ -174,6 +174,20 @@ static const luaL_Enum GLFWRAP_ENUM(init_hint)[] = {
     {NULL, 0},
 };
 
+#define REGISTE_LIGHTUSERDATA(name, lightuserdata) \
+  lua_pushlightuserdata(L, (void*)(lightuserdata)); \
+  lua_setfield(L, -2, #name)
+#define REGISTE_FUNC_GLFW(name) REGISTE_LIGHTUSERDATA(name, glfw##name)
+
+void registe_function_pointer(lua_State* L) {
+  lua_createtable(L, 0, 2);
+
+  REGISTE_FUNC_GLFW(MakeContextCurrent);
+  REGISTE_FUNC_GLFW(SwapBuffers);
+
+  lua_setfield(L, -2, "func_ptr");
+}
+
 LUAMOD_API int luaopen_libglfwrap(lua_State* L) {
   luaL_newlib(L, glfwrap_funcs);
 
@@ -184,6 +198,8 @@ LUAMOD_API int luaopen_libglfwrap(lua_State* L) {
 
   REGISTE_ENUM(err_code);
   REGISTE_ENUM(init_hint);
+
+  registe_function_pointer(L);
 
   return 1;
 }
