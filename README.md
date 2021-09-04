@@ -9,8 +9,9 @@
 1. 本工程是 Lua 及其 C 扩展的构建工程，用于运行调试
 2. 所有 Lua 源码来自 lua 官方网站[https://www.lua.org/]
 3. 增加了源码注释，扩展了一些功能，支持 Debug/Release 编译模式
-4. 整个工程 PC 端编译构建采用 cmake 来管理，支持跨平台（可以在树莓派上正常 cmake+make）
-5. 移动端 iOS 直接给出 Xcode 工程，Android 则提供 Android.md 用于 ndk-build（仅限 luawithlib 库）
+4. 封装了一些 C 扩展模块，所有模块都以源码形式存在于工程中，仅依赖系统库，不依赖第三方库
+5. 整个工程 PC 端编译构建采用 cmake 来管理，支持跨平台（可以在树莓派上正常 cmake+make）
+6. 移动端 iOS 直接给出 Xcode 工程，Android 则提供 Android.md 用于 ndk-build（仅限 luawithlib 库）
 
 ---
 
@@ -92,23 +93,24 @@ ndk-build -B # rebuild project
     - boolarray: 《Lua 程序设计》中的布尔数组，加了数组的交集和并集操作
     - dir: 《Lua 程序设计》中的遍历文件夹，加了 Win 版实现
     - gb2312: 类似 utf8 标准库实现的 gb2312 模块
+    - glfwrap: 封装了 glfw 库，用于支持系统窗口操作
     - hello: helloworld
     - json: 封装了 JSON 模块，底层使用 cJSON，支持 Table 与 JSON 字符串互转
     - lproc: 《Lua 程序设计》中的多线程模块，使用 pthread
     - luasocket: 封装了 socket 接口，代码来自[LuaSocket](https://github.com/diegonehab/luasocket)
-    - man: 标准库函数简易文档，方便命令行操作时使用
     - protobuf: C 语言实现的 protobuf，代码来自[pbc](https://github.com/cloudwu/pbc)
     - uvwrap: 封装了 libuv 库，用于支持事件驱动的异步 IO
 2. demo: 用于测试的 Demo
     - c-call-lua: C 作为宿主，调用 Lua 来完成操作
     - c-lang: C 语言特性示例
+    - glfwrap: glfw 特性示例 Lua 版
     - lpg: 《Lua Programming Gems》中的一部分案例代码
     - pbdemo: 使用 ProtocolBuffer 的示例，包含协议示例
     - pil: 《Lua 程序设计》中的一部分示例代码
     - runner: Lua 环境的独立运行工具
     - scripts: 用于测试的 Lua 脚本
     - stdlib: 用 Lua 语言实现的部分 Lua 标准库函数
-    - uvwrap: Lua 代码层对 libuv 的封装，方便使用
+    - uvwrap: libuv 示例 Lua 版
 3. etc: 工程杂项
     - fromlua: 来自 Lua 官方的相关文件，包括 Lua 文档，留着方便查看
     - logos: Lua 官方图标
@@ -121,9 +123,11 @@ ndk-build -B # rebuild project
     - test: 扩展 Lua 功能的测试代码
 5. lmod: Lua 语言实现的工具模块
     - common: 通用功能
-    - json: JSON 模块的 Lua 层封装
-    - libuv: libuv 模块的 Lua 封装
+    - man: 简易文档，方便交互模式下查看函数原型
     - protobuf: protobuf 模块的 Lua 封装
+    - glfw.lua: glfw 库的 Lua 层封装
+    - json.lua: JSON 模块的 Lua 层封装
+    - libuv.lua: libuv 模块的 Lua 封装
 6. lua: Lua 官方命令行工具，带编译器和虚拟机，依赖 Lua 库
 7. luac: Lua 官方命令行编译器
 8. luawithlib: 包含 lua 和 luaC 模块的运行时动态库（iOS 下是静态库）
