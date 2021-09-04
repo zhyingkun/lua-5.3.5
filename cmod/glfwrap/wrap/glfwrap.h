@@ -55,6 +55,9 @@ void luaL_setenums(lua_State* L, const luaL_Enum* l);
 #define luaL_checkGLFWmonitor(L, idx) (GLFWmonitor*)luaL_checklightuserdata(L, idx)
 #define luaL_checkGLFWcursor(L, idx) (GLFWcursor*)luaL_checklightuserdata(L, idx)
 
+#define GLFW_IMAGE_TYPE "GLFWimage*"
+#define luaL_checkGLFWimage(L, idx) (GLFWimage*)luaL_checkudata(L, idx, GLFW_IMAGE_TYPE)
+
 #define PUSH_LIGHTUSERDATA(L, ud) \
   if ((ud) == NULL) { \
     lua_pushnil(L); \

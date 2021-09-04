@@ -82,7 +82,7 @@ static int GLFWRAP_FUNCTION(SetCursorPos)(lua_State* L) {
 }
 
 static int GLFWRAP_FUNCTION(CreateCursor)(lua_State* L) {
-  const GLFWimage* image = (const GLFWimage*)luaL_checklightuserdata(L, 1);
+  const GLFWimage* image = luaL_checkGLFWimage(L, 1);
   int xhot = luaL_checkinteger(L, 2);
   int yhot = luaL_checkinteger(L, 3);
   GLFWcursor* cursor = glfwCreateCursor(image, xhot, yhot);
