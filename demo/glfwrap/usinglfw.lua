@@ -14,6 +14,22 @@ if not glfw.Init() then
 	glfw.Terminate()
 	return
 end
+windows = {}
+local last = nil
+for i = 1, 5, 1 do
+	local window = glfw.CreateWindow(800, 600, "glfw-win-lua" .. tostring(i), nil, last)
+	if not window then
+		print("GLFW CreateWindow Error")
+		glfw.Terminate()
+		return
+	end
+	glfw.SetWindowCloseCallback(window, function(window)
+		print("Close Window:", window)
+		glfw.DestroyWindow(window)
+	end)
+	last = window
+	table.insert(windows, window)
+end
 local window = glfw.CreateWindow(800, 600, "glfw-win-lua")
 if not window then
 	print("GLFW CreateWindow Error")

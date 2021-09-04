@@ -21,8 +21,6 @@ if not window then
 	glfw.Terminate()
 	return
 end
-glfw.MakeContextCurrent(window)
-glfw.SwapInterval(1)
 
 local MODIFIER
 if os.sysname == "MacOSX" then
@@ -50,7 +48,6 @@ glfw.SetKeyCallback(window, function(window, key, scancode, action, mods)
 end)
 
 while not glfw.WindowShouldClose(window) do
-	glfw.SwapBuffers(window)
 	glfw.PollEvents()
 end
 
