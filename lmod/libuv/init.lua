@@ -48,7 +48,7 @@ return setmetatable({
 			close(loop)
 			loop = nil
 			set_realloc_cb()
-		end)		
+		end)
 	end,
 	loop = setmetatable({
 		default = uvwrap.loop.default,
