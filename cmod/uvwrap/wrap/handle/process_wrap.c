@@ -229,8 +229,7 @@ static int PROCESS_FUNCTION(kill)(lua_State* L) {
 
 static int PROCESS_FUNCTION(setup_args)(lua_State* L) {
   int argc = luaL_checkinteger(L, 1);
-  luaL_checktype(L, 2, LUA_TLIGHTUSERDATA);
-  char** argv = (char**)lua_touserdata(L, 2);
+  char** argv = (char**)luaL_checklightuserdata(L, 2);
   argv = uv_setup_args(argc, argv);
   lua_pushlightuserdata(L, argv);
   return 1;

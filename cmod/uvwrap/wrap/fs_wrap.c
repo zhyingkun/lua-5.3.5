@@ -277,8 +277,7 @@ static void FS_CALLBACK(closedir)(uv_fs_t* req) {
 }
 static int FS_FUNCTION(closedir)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
-  luaL_checktype(L, 2, LUA_TLIGHTUSERDATA);
-  uv_dir_t* dir = (uv_dir_t*)lua_touserdata(L, 2);
+  uv_dir_t* dir = (uv_dir_t*)luaL_checklightuserdata(L, 2);
   int async = CHECK_IS_ASYNC(L, 3);
 
   uv_fs_t* req = ALLOCA_REQ();
@@ -313,8 +312,7 @@ static void FS_CALLBACK(readdir)(uv_fs_t* req) {
 }
 static int FS_FUNCTION(readdir)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
-  luaL_checktype(L, 2, LUA_TLIGHTUSERDATA);
-  uv_dir_t* dir = (uv_dir_t*)lua_touserdata(L, 2);
+  uv_dir_t* dir = (uv_dir_t*)luaL_checklightuserdata(L, 2);
   int async = CHECK_IS_ASYNC(L, 3);
 
   uv_fs_t* req = ALLOCA_REQ();

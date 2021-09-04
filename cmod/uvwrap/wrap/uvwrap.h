@@ -330,29 +330,11 @@ void MEMORY_FUNCTION(free_buf)(void* ptr);
 
 /*
 ** {======================================================
-** Inject enums to lua
-** =======================================================
-*/
-
-typedef struct {
-  const char* name;
-  lua_Integer value;
-} luaL_Enum;
-
-void luaL_setenums(lua_State* L, const luaL_Enum* l);
-void luaL_setenums_r(lua_State* L, const luaL_Enum* l);
-#define luaL_newenum(L, l) (luaL_checkversion(L), luaL_newlibtable(L, l), luaL_setenums(L, l))
-#define luaL_newenum_r(L, l) (luaL_checkversion(L), luaL_newlibtable(L, l), luaL_setenums_r(L, l))
-
-/* }====================================================== */
-
-/*
-** {======================================================
 ** Lua style function
 ** =======================================================
 */
 
-#define luaL_checkuvloop(L, idx) (luaL_checktype(L, idx, LUA_TLIGHTUSERDATA), (uv_loop_t*)lua_touserdata(L, idx))
+#define luaL_checkuvloop(L, idx) (uv_loop_t*)luaL_checklightuserdata(L, idx)
 
 #define luaL_checkhandle(L, idx) (uv_handle_t*)luaL_checkudata_recursive(L, idx, UVWRAP_HANDLE_TYPE)
 #define luaL_checkstream(L, idx) (uv_stream_t*)luaL_checkudata_recursive(L, idx, UVWRAP_STREAM_TYPE)

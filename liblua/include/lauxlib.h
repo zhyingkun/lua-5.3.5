@@ -26,6 +26,11 @@ typedef struct luaL_Reg {
   lua_CFunction func;
 } luaL_Reg;
 
+typedef struct luaL_Enum {
+  const char* name;
+  lua_Integer value;
+} luaL_Enum;
+
 #define LUAL_NUMSIZES (sizeof(lua_Integer) * 16 + sizeof(lua_Number))
 
 LUALIB_API void(luaL_checkversion_)(lua_State* L, lua_Number ver, size_t sz);
@@ -87,6 +92,10 @@ LUALIB_API const char*(luaL_gsub)(lua_State* L, const char* s, const char* p, co
 
 LUALIB_API void(luaL_setfuncs)(lua_State* L, const luaL_Reg* l, int nup);
 
+LUALIB_API void(luaL_setenums)(lua_State* L, const luaL_Enum* l);
+
+LUALIB_API void(luaL_setenums_r)(lua_State* L, const luaL_Enum* l);
+
 LUALIB_API int(luaL_getsubtable)(lua_State* L, int idx, const char* fname);
 
 LUALIB_API void(luaL_traceback)(lua_State* L, lua_State* L1, const char* msg, int level);
@@ -118,9 +127,11 @@ LUALIB_API void(luaL_atrepl)(lua_State* L);
 
 // [-0, +1]
 #define luaL_newlibtable(L, l) lua_createtable(L, 0, sizeof(l) / sizeof((l)[0]) - 1)
-
 // [-0, +1]
 #define luaL_newlib(L, l) (luaL_checkversion(L), luaL_newlibtable(L, l), luaL_setfuncs(L, l, 0))
+
+#define luaL_newenum(L, l) (luaL_checkversion(L), luaL_newlibtable(L, l), luaL_setenums(L, l))
+#define luaL_newenum_r(L, l) (luaL_checkversion(L), luaL_newlibtable(L, l), luaL_setenums_r(L, l))
 
 #define luaL_argcheck(L, cond, arg, extramsg) ((void)((cond) || luaL_argerror(L, (arg), (extramsg))))
 #define luaL_checkstring(L, n) (luaL_checklstring(L, (n), NULL))
@@ -137,6 +148,9 @@ LUALIB_API void(luaL_atrepl)(lua_State* L);
 #define luaL_opt(L, f, n, d) (lua_isnoneornil(L, (n)) ? (d) : f(L, (n)))
 
 #define luaL_loadbuffer(L, s, sz, n) luaL_loadbufferx(L, s, sz, n, NULL)
+
+#define luaL_checklightuserdata(L, idx) (luaL_checktype(L, idx, LUA_TLIGHTUSERDATA), lua_touserdata(L, idx))
+#define luaL_optlightuserdata(L, idx, dft) luaL_opt(L, luaL_checklightuserdata, idx, dft)
 
 /*
 ** {======================================================

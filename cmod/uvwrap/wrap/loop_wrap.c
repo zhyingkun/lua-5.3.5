@@ -148,8 +148,7 @@ static int LOOP_FUNCTION(get_data)(lua_State* L) {
 
 static int LOOP_FUNCTION(set_data)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
-  luaL_checktype(L, 2, LUA_TLIGHTUSERDATA);
-  uv_loop_set_data(loop, (void*)lua_touserdata(L, 2));
+  uv_loop_set_data(loop, (void*)luaL_checklightuserdata(L, 2));
   return 0;
 }
 
@@ -171,10 +170,9 @@ static void LOOP_CALLBACK(queue_work)(uv_work_t* req, int status) {
 }
 static int LOOP_FUNCTION(queue_work)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
-  luaL_checktype(L, 2, LUA_TLIGHTUSERDATA);
+  uv_work_cb work_cb = (uv_work_cb)luaL_checklightuserdata(L, 2);
   luaL_checktype(L, 3, LUA_TFUNCTION);
 
-  uv_work_cb work_cb = (uv_work_cb)lua_touserdata(L, 2);
   uv_work_t* req = (uv_work_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_work_t));
 
   int err = uv_queue_work(loop, req, work_cb, LOOP_CALLBACK(queue_work));

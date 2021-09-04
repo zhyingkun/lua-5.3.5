@@ -100,28 +100,6 @@ int ERROR_FUNCTION(msgh)(lua_State* L) {
 
 /*
 ** {======================================================
-** Inject enums to lua
-** =======================================================
-*/
-
-void luaL_setenums(lua_State* L, const luaL_Enum* l) {
-  for (; l->name != NULL; l++) { /* fill the table with given enums */
-    lua_pushinteger(L, l->value);
-    lua_setfield(L, -2, l->name);
-  }
-}
-
-void luaL_setenums_r(lua_State* L, const luaL_Enum* l) {
-  for (; l->name != NULL; l++) { /* fill the table with given enums */
-    lua_pushstring(L, l->name);
-    lua_rawseti(L, -2, l->value);
-  }
-}
-
-/* }====================================================== */
-
-/*
-** {======================================================
 ** Push struct to lua
 ** =======================================================
 */

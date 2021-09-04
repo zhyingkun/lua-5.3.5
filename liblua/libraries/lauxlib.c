@@ -1294,6 +1294,20 @@ LUALIB_API void luaL_setfuncs(lua_State* L, const luaL_Reg* l, int nup) { // [-n
   lua_pop(L, nup); /* remove upvalues */
 }
 
+LUALIB_API void luaL_setenums(lua_State* L, const luaL_Enum* l) {
+  for (; l->name != NULL; l++) { /* fill the table with given enums */
+    lua_pushinteger(L, l->value);
+    lua_setfield(L, -2, l->name);
+  }
+}
+
+LUALIB_API void luaL_setenums_r(lua_State* L, const luaL_Enum* l) {
+  for (; l->name != NULL; l++) { /* fill the table with given enums */
+    lua_pushstring(L, l->name);
+    lua_rawseti(L, -2, l->value);
+  }
+}
+
 /*
 ** ensure that stack[idx][fname] has a table and push that table
 ** into the stack

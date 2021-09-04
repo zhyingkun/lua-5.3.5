@@ -37,20 +37,10 @@ DECLARE_REGISTE_FUNC(input)
 DECLARE_REGISTE_FUNC(monitor)
 DECLARE_REGISTE_FUNC(window)
 
-typedef struct {
-  const char* name;
-  lua_Integer value;
-} luaL_Enum;
-
-void luaL_setenums(lua_State* L, const luaL_Enum* l);
-
-#define luaL_newenum(L, l) (luaL_checkversion(L), luaL_newlibtable(L, l), luaL_setenums(L, l))
 #define REGISTE_ENUM(name) \
   luaL_newenum(L, GLFWRAP_ENUM(name)); \
   lua_setfield(L, -2, #name)
 
-#define luaL_checklightuserdata(L, idx) (luaL_checktype(L, idx, LUA_TLIGHTUSERDATA), lua_touserdata(L, idx))
-#define luaL_optlightuserdata(L, idx, dft) (lua_isnoneornil(L, (idx)) ? (dft) : luaL_checklightuserdata(L, (idx)))
 #define luaL_checkGLFWwindow(L, idx) (GLFWwindow*)luaL_checklightuserdata(L, idx)
 #define luaL_checkGLFWmonitor(L, idx) (GLFWmonitor*)luaL_checklightuserdata(L, idx)
 #define luaL_checkGLFWcursor(L, idx) (GLFWcursor*)luaL_checklightuserdata(L, idx)

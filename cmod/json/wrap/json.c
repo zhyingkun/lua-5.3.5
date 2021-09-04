@@ -80,8 +80,7 @@ static int json_create_object(lua_State* L) {
 }
 
 static inline cJSON* check_cJSON_ptr(lua_State* L, int idx) {
-  luaL_checktype(L, idx, LUA_TLIGHTUSERDATA);
-  return (cJSON*)lua_touserdata(L, idx);
+  return (cJSON*)luaL_checklightuserdata(L, idx);
 }
 
 // delete(cJsonPtr) => void
