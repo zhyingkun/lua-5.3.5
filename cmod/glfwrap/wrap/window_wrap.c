@@ -10,12 +10,8 @@
 ** =======================================================
 */
 
-#define GLFW_IMAGE_TYPE "GLFWimage*"
-
-#define luaL_checkimage(L, idx) (GLFWimage*)luaL_checkudata(L, idx, GLFW_IMAGE_TYPE)
-
 static int image_get_value(lua_State* L) {
-  GLFWimage* image = luaL_checkimage(L, 1);
+  GLFWimage* image = luaL_checkGLFWimage(L, 1);
   lua_pushinteger(L, image->width);
   lua_pushinteger(L, image->height);
   lua_getuservalue(L, 1);
@@ -47,7 +43,8 @@ static int GLFWRAP_FUNCTION(CreateGLFWimage)(lua_State* L) {
   }
   GLFWimage* image = lua_newuserdata(L, sizeof(GLFWimage));
   luaL_setmetatable(L, GLFW_IMAGE_TYPE);
-  lua_setuservalue(L, 3);
+  lua_pushvalue(L, 3);
+  lua_setuservalue(L, -2);
   image->width = width;
   image->height = height;
   image->pixels = pixels;
@@ -126,7 +123,7 @@ static int GLFWRAP_FUNCTION(SetWindowIcon)(lua_State* L) {
   const GLFWimage* images = NULL;
   if (!lua_isnoneornil(L, 2)) {
     count = 1;
-    images = luaL_checkimage(L, 2);
+    images = luaL_checkGLFWimage(L, 2);
   }
   glfwSetWindowIcon(window, count, images);
   return 0;
