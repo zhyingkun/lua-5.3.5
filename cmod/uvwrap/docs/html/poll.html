@@ -1,0 +1,251 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>uv_poll_t — Poll handle &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="uv_signal_t — Signal handle" href="signal.html" />
+    <link rel="prev" title="uv_async_t — Async handle" href="async.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="signal.html" title="uv_signal_t — Signal handle"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="async.html" title="uv_async_t — Async handle"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_poll_t</span></code> — Poll handle</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="uv-poll-t-poll-handle">
+<span id="poll"></span><h1><a class="reference internal" href="#c.uv_poll_t" title="uv_poll_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_poll_t</span></code></a> — Poll handle<a class="headerlink" href="#uv-poll-t-poll-handle" title="Permalink to this headline">¶</a></h1>
+<p>Poll handles are used to watch file descriptors for readability,
+writability and disconnection similar to the purpose of <a class="reference external" href="http://linux.die.net/man/2/poll">poll(2)</a>.</p>
+<p>The purpose of poll handles is to enable integrating external libraries that
+rely on the event loop to signal it about the socket status changes, like
+c-ares or libssh2. Using uv_poll_t for any other purpose is not recommended;
+<a class="reference internal" href="tcp.html#c.uv_tcp_t" title="uv_tcp_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_tcp_t</span></code></a>, <a class="reference internal" href="udp.html#c.uv_udp_t" title="uv_udp_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_udp_t</span></code></a>, etc. provide an implementation that is faster and
+more scalable than what can be achieved with <a class="reference internal" href="#c.uv_poll_t" title="uv_poll_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_poll_t</span></code></a>, especially on
+Windows.</p>
+<p>It is possible that poll handles occasionally signal that a file descriptor is
+readable or writable even when it isn’t. The user should therefore always
+be prepared to handle EAGAIN or equivalent when it attempts to read from or
+write to the fd.</p>
+<p>It is not okay to have multiple active poll handles for the same socket, this
+can cause libuv to busyloop or otherwise malfunction.</p>
+<p>The user should not close a file descriptor while it is being polled by an
+active poll handle. This can cause the handle to report an error,
+but it might also start polling another socket. However the fd can be safely
+closed immediately after a call to <a class="reference internal" href="#c.uv_poll_stop" title="uv_poll_stop"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_poll_stop()</span></code></a> or <a class="reference internal" href="handle.html#c.uv_close" title="uv_close"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_close()</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>On windows only sockets can be polled with poll handles. On Unix any file
+descriptor that would be accepted by <a class="reference external" href="http://linux.die.net/man/2/poll">poll(2)</a> can be used.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>On AIX, watching for disconnection is not supported.</p>
+</div>
+<div class="section" id="data-types">
+<h2>Data types<a class="headerlink" href="#data-types" title="Permalink to this headline">¶</a></h2>
+<dl class="c type">
+<dt id="c.uv_poll_t">
+<em class="property">type </em><code class="sig-name descname">uv_poll_t</code><a class="headerlink" href="#c.uv_poll_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Poll handle type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_poll_cb">
+<em class="property">typedef </em>void (*<code class="sig-name descname">uv_poll_cb</code>)<span class="sig-paren">(</span><a class="reference internal" href="#c.uv_poll_t" title="uv_poll_t">uv_poll_t</a> *handle, int status, int events<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_poll_cb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Type definition for callback passed to <a class="reference internal" href="#c.uv_poll_start" title="uv_poll_start"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_poll_start()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_poll_event">
+<em class="property">type </em><code class="sig-name descname">uv_poll_event</code><a class="headerlink" href="#c.uv_poll_event" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Poll event types</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">enum</span> <span class="n">uv_poll_event</span> <span class="p">{</span>
+    <span class="n">UV_READABLE</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">UV_WRITABLE</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="n">UV_DISCONNECT</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="n">UV_PRIORITIZED</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<div class="section" id="public-members">
+<h3>Public members<a class="headerlink" href="#public-members" title="Permalink to this headline">¶</a></h3>
+<p>N/A</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The <a class="reference internal" href="handle.html#c.uv_handle_t" title="uv_handle_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_handle_t</span></code></a> members also apply.</p>
+</div>
+</div>
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<dl class="c function">
+<dt id="c.uv_poll_init">
+int <code class="sig-name descname">uv_poll_init</code><span class="sig-paren">(</span><a class="reference internal" href="loop.html#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em>, <a class="reference internal" href="#c.uv_poll_t" title="uv_poll_t">uv_poll_t</a> *<em>handle</em>, int <em>fd</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_poll_init" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize the handle using a file descriptor.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.2.2: </span>the file descriptor is set to non-blocking mode.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_poll_init_socket">
+int <code class="sig-name descname">uv_poll_init_socket</code><span class="sig-paren">(</span><a class="reference internal" href="loop.html#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em>, <a class="reference internal" href="#c.uv_poll_t" title="uv_poll_t">uv_poll_t</a> *<em>handle</em>, <a class="reference internal" href="misc.html#c.uv_os_sock_t" title="uv_os_sock_t">uv_os_sock_t</a> <em>socket</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_poll_init_socket" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize the handle using a socket descriptor. On Unix this is identical
+to <a class="reference internal" href="#c.uv_poll_init" title="uv_poll_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_poll_init()</span></code></a>. On windows it takes a SOCKET handle.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.2.2: </span>the socket is set to non-blocking mode.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_poll_start">
+int <code class="sig-name descname">uv_poll_start</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_poll_t" title="uv_poll_t">uv_poll_t</a> *<em>handle</em>, int <em>events</em>, <a class="reference internal" href="#c.uv_poll_cb" title="uv_poll_cb">uv_poll_cb</a> <em>cb</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_poll_start" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Starts polling the file descriptor. <cite>events</cite> is a bitmask made up of
+UV_READABLE, UV_WRITABLE, UV_PRIORITIZED and UV_DISCONNECT. As soon as an
+event is detected the callback will be called with <cite>status</cite> set to 0, and the
+detected events set on the <cite>events</cite> field.</p>
+<p>The UV_PRIORITIZED event is used to watch for sysfs interrupts or TCP out-of-band
+messages.</p>
+<p>The UV_DISCONNECT event is optional in the sense that it may not be
+reported and the user is free to ignore it, but it can help optimize the shutdown
+path because an extra read or write call might be avoided.</p>
+<p>If an error happens while polling, <cite>status</cite> will be &lt; 0 and corresponds
+with one of the UV_E* error codes (see <a class="reference internal" href="errors.html#errors"><span class="std std-ref">Error handling</span></a>). The user should
+not close the socket while the handle is active. If the user does that
+anyway, the callback <em>may</em> be called reporting an error status, but this
+is <strong>not</strong> guaranteed.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Calling <a class="reference internal" href="#c.uv_poll_start" title="uv_poll_start"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_poll_start()</span></code></a> on a handle that is already active is fine. Doing so
+will update the events mask that is being watched for.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Though UV_DISCONNECT can be set, it is unsupported on AIX and as such will not be set
+on the <cite>events</cite> field in the callback.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.9.0: </span>Added the UV_DISCONNECT event.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.14.0: </span>Added the UV_PRIORITIZED event.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_poll_stop">
+int <code class="sig-name descname">uv_poll_stop</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_poll_t" title="uv_poll_t">uv_poll_t</a> *<em>poll</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_poll_stop" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Stop polling the file descriptor, the callback will no longer be called.</p>
+</dd></dl>
+
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The <a class="reference internal" href="handle.html#c.uv_handle_t" title="uv_handle_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_handle_t</span></code></a> API functions also apply.</p>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_poll_t</span></code> — Poll handle</a><ul>
+<li><a class="reference internal" href="#data-types">Data types</a><ul>
+<li><a class="reference internal" href="#public-members">Public members</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="async.html"
+                        title="previous chapter"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_async_t</span></code> — Async handle</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="signal.html"
+                        title="next chapter"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_signal_t</span></code> — Signal handle</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/poll.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="signal.html" title="uv_signal_t — Signal handle"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="async.html" title="uv_async_t — Async handle"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" >API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_poll_t</span></code> — Poll handle</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

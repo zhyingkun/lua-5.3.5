@@ -1,0 +1,260 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>uv_pipe_t — Pipe handle &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="uv_tty_t — TTY handle" href="tty.html" />
+    <link rel="prev" title="uv_tcp_t — TCP handle" href="tcp.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="tty.html" title="uv_tty_t — TTY handle"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="tcp.html" title="uv_tcp_t — TCP handle"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_pipe_t</span></code> — Pipe handle</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="uv-pipe-t-pipe-handle">
+<span id="pipe"></span><h1><a class="reference internal" href="#c.uv_pipe_t" title="uv_pipe_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_pipe_t</span></code></a> — Pipe handle<a class="headerlink" href="#uv-pipe-t-pipe-handle" title="Permalink to this headline">¶</a></h1>
+<p>Pipe handles provide an abstraction over local domain sockets on Unix and named
+pipes on Windows.</p>
+<p><a class="reference internal" href="#c.uv_pipe_t" title="uv_pipe_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_pipe_t</span></code></a> is a ‘subclass’ of <a class="reference internal" href="stream.html#c.uv_stream_t" title="uv_stream_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_stream_t</span></code></a>.</p>
+<div class="section" id="data-types">
+<h2>Data types<a class="headerlink" href="#data-types" title="Permalink to this headline">¶</a></h2>
+<dl class="c type">
+<dt id="c.uv_pipe_t">
+<em class="property">type </em><code class="sig-name descname">uv_pipe_t</code><a class="headerlink" href="#c.uv_pipe_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Pipe handle type.</p>
+</dd></dl>
+
+<div class="section" id="public-members">
+<h3>Public members<a class="headerlink" href="#public-members" title="Permalink to this headline">¶</a></h3>
+<dl class="c member">
+<dt id="c.uv_pipe_t.ipc">
+int <code class="sig-prename descclassname"><a class="reference internal" href="#c.uv_pipe_t" title="uv_pipe_t">uv_pipe_t</a><code class="sig-prename descclassname">.</code></code><code class="sig-name descname">ipc</code><a class="headerlink" href="#c.uv_pipe_t.ipc" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Whether this pipe is suitable for handle passing between processes.</p>
+</dd></dl>
+
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The <a class="reference internal" href="stream.html#c.uv_stream_t" title="uv_stream_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_stream_t</span></code></a> members also apply.</p>
+</div>
+</div>
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<dl class="c function">
+<dt id="c.uv_pipe_init">
+int <code class="sig-name descname">uv_pipe_init</code><span class="sig-paren">(</span><a class="reference internal" href="loop.html#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em>, <a class="reference internal" href="#c.uv_pipe_t" title="uv_pipe_t">uv_pipe_t</a> *<em>handle</em>, int <em>ipc</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_pipe_init" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize a pipe handle. The <cite>ipc</cite> argument is a boolean to indicate if
+this pipe will be used for handle passing between processes.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_pipe_open">
+int <code class="sig-name descname">uv_pipe_open</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_pipe_t" title="uv_pipe_t">uv_pipe_t</a> *<em>handle</em>, <a class="reference internal" href="misc.html#c.uv_file" title="uv_file">uv_file</a> <em>file</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_pipe_open" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Open an existing file descriptor or HANDLE as a pipe.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.2.1: </span>the file descriptor is set to non-blocking mode.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The passed file descriptor or HANDLE is not checked for its type, but
+it’s required that it represents a valid pipe.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_pipe_bind">
+int <code class="sig-name descname">uv_pipe_bind</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_pipe_t" title="uv_pipe_t">uv_pipe_t</a> *<em>handle</em>, <em class="property">const</em> char *<em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_pipe_bind" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Bind the pipe to a file path (Unix) or a name (Windows).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Paths on Unix get truncated to <code class="docutils literal notranslate"><span class="pre">sizeof(sockaddr_un.sun_path)</span></code> bytes, typically between
+92 and 108 bytes.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_pipe_connect">
+void <code class="sig-name descname">uv_pipe_connect</code><span class="sig-paren">(</span><a class="reference internal" href="stream.html#c.uv_connect_t" title="uv_connect_t">uv_connect_t</a> *<em>req</em>, <a class="reference internal" href="#c.uv_pipe_t" title="uv_pipe_t">uv_pipe_t</a> *<em>handle</em>, <em class="property">const</em> char *<em>name</em>, <a class="reference internal" href="stream.html#c.uv_connect_cb" title="uv_connect_cb">uv_connect_cb</a> <em>cb</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_pipe_connect" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Connect to the Unix domain socket or the named pipe.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Paths on Unix get truncated to <code class="docutils literal notranslate"><span class="pre">sizeof(sockaddr_un.sun_path)</span></code> bytes, typically between
+92 and 108 bytes.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_pipe_getsockname">
+int <code class="sig-name descname">uv_pipe_getsockname</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_pipe_t" title="uv_pipe_t">uv_pipe_t</a> *<em>handle</em>, char *<em>buffer</em>, size_t *<em>size</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_pipe_getsockname" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the name of the Unix domain socket or the named pipe.</p>
+<p>A preallocated buffer must be provided. The size parameter holds the length
+of the buffer and it’s set to the number of bytes written to the buffer on
+output. If the buffer is not big enough <code class="docutils literal notranslate"><span class="pre">UV_ENOBUFS</span></code> will be returned and
+len will contain the required size.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.3.0: </span>the returned length no longer includes the terminating null byte,
+and the buffer is not null terminated.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_pipe_getpeername">
+int <code class="sig-name descname">uv_pipe_getpeername</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_pipe_t" title="uv_pipe_t">uv_pipe_t</a> *<em>handle</em>, char *<em>buffer</em>, size_t *<em>size</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_pipe_getpeername" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the name of the Unix domain socket or the named pipe to which the handle
+is connected.</p>
+<p>A preallocated buffer must be provided. The size parameter holds the length
+of the buffer and it’s set to the number of bytes written to the buffer on
+output. If the buffer is not big enough <code class="docutils literal notranslate"><span class="pre">UV_ENOBUFS</span></code> will be returned and
+len will contain the required size.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.3.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_pipe_pending_instances">
+void <code class="sig-name descname">uv_pipe_pending_instances</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_pipe_t" title="uv_pipe_t">uv_pipe_t</a> *<em>handle</em>, int <em>count</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_pipe_pending_instances" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the number of pending pipe instance handles when the pipe server is
+waiting for connections.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This setting applies to Windows only.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_pipe_pending_count">
+int <code class="sig-name descname">uv_pipe_pending_count</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_pipe_t" title="uv_pipe_t">uv_pipe_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_pipe_pending_count" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_pipe_pending_type">
+<a class="reference internal" href="handle.html#c.uv_handle_type" title="uv_handle_type">uv_handle_type</a> <code class="sig-name descname">uv_pipe_pending_type</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_pipe_t" title="uv_pipe_t">uv_pipe_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_pipe_pending_type" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Used to receive handles over IPC pipes.</p>
+<p>First - call <a class="reference internal" href="#c.uv_pipe_pending_count" title="uv_pipe_pending_count"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_pipe_pending_count()</span></code></a>, if it’s &gt; 0 then initialize
+a handle of the given <cite>type</cite>, returned by <a class="reference internal" href="#c.uv_pipe_pending_type" title="uv_pipe_pending_type"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_pipe_pending_type()</span></code></a>
+and call <code class="docutils literal notranslate"><span class="pre">uv_accept(pipe,</span> <span class="pre">handle)</span></code>.</p>
+</dd></dl>
+
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The <a class="reference internal" href="stream.html#c.uv_stream_t" title="uv_stream_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_stream_t</span></code></a> API functions also apply.</p>
+</div>
+<dl class="c function">
+<dt id="c.uv_pipe_chmod">
+int <code class="sig-name descname">uv_pipe_chmod</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_pipe_t" title="uv_pipe_t">uv_pipe_t</a> *<em>handle</em>, int <em>flags</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_pipe_chmod" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Alters pipe permissions, allowing it to be accessed from processes run by
+different users. Makes the pipe writable or readable by all users. Mode can
+be <code class="docutils literal notranslate"><span class="pre">UV_WRITABLE</span></code>, <code class="docutils literal notranslate"><span class="pre">UV_READABLE</span></code> or <code class="docutils literal notranslate"><span class="pre">UV_WRITABLE</span> <span class="pre">|</span> <span class="pre">UV_READABLE</span></code>. This
+function is blocking.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.16.0.</span></p>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_pipe_t</span></code> — Pipe handle</a><ul>
+<li><a class="reference internal" href="#data-types">Data types</a><ul>
+<li><a class="reference internal" href="#public-members">Public members</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="tcp.html"
+                        title="previous chapter"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_tcp_t</span></code> — TCP handle</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="tty.html"
+                        title="next chapter"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_tty_t</span></code> — TTY handle</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pipe.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="tty.html" title="uv_tty_t — TTY handle"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="tcp.html" title="uv_tcp_t — TCP handle"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" >API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_pipe_t</span></code> — Pipe handle</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,475 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Threading and synchronization utilities &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Miscellaneous utilities" href="misc.html" />
+    <link rel="prev" title="Shared library handling" href="dll.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="misc.html" title="Miscellaneous utilities"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dll.html" title="Shared library handling"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Threading and synchronization utilities</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="threading-and-synchronization-utilities">
+<span id="threading"></span><h1>Threading and synchronization utilities<a class="headerlink" href="#threading-and-synchronization-utilities" title="Permalink to this headline">¶</a></h1>
+<p>libuv provides cross-platform implementations for multiple threading and
+synchronization primitives. The API largely follows the pthreads API.</p>
+<div class="section" id="data-types">
+<h2>Data types<a class="headerlink" href="#data-types" title="Permalink to this headline">¶</a></h2>
+<dl class="c type">
+<dt id="c.uv_thread_t">
+<em class="property">type </em><code class="sig-name descname">uv_thread_t</code><a class="headerlink" href="#c.uv_thread_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Thread data type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_thread_cb">
+<em class="property">typedef </em>void (*<code class="sig-name descname">uv_thread_cb</code>)<span class="sig-paren">(</span>void *arg<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_thread_cb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Callback that is invoked to initialize thread execution. <cite>arg</cite> is the same
+value that was passed to <a class="reference internal" href="#c.uv_thread_create" title="uv_thread_create"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_thread_create()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_key_t">
+<em class="property">type </em><code class="sig-name descname">uv_key_t</code><a class="headerlink" href="#c.uv_key_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Thread-local key data type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_once_t">
+<em class="property">type </em><code class="sig-name descname">uv_once_t</code><a class="headerlink" href="#c.uv_once_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Once-only initializer data type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_mutex_t">
+<em class="property">type </em><code class="sig-name descname">uv_mutex_t</code><a class="headerlink" href="#c.uv_mutex_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Mutex data type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_rwlock_t">
+<em class="property">type </em><code class="sig-name descname">uv_rwlock_t</code><a class="headerlink" href="#c.uv_rwlock_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Read-write lock data type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_sem_t">
+<em class="property">type </em><code class="sig-name descname">uv_sem_t</code><a class="headerlink" href="#c.uv_sem_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Semaphore data type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_cond_t">
+<em class="property">type </em><code class="sig-name descname">uv_cond_t</code><a class="headerlink" href="#c.uv_cond_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Condition data type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_barrier_t">
+<em class="property">type </em><code class="sig-name descname">uv_barrier_t</code><a class="headerlink" href="#c.uv_barrier_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Barrier data type.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="threads">
+<h3>Threads<a class="headerlink" href="#threads" title="Permalink to this headline">¶</a></h3>
+<dl class="c type">
+<dt id="c.uv_thread_options_t">
+<em class="property">type </em><code class="sig-name descname">uv_thread_options_t</code><a class="headerlink" href="#c.uv_thread_options_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Options for spawning a new thread (passed to <a class="reference internal" href="#c.uv_thread_create_ex" title="uv_thread_create_ex"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_thread_create_ex()</span></code></a>).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_thread_options_s</span> <span class="p">{</span>
+  <span class="n">enum</span> <span class="p">{</span>
+    <span class="n">UV_THREAD_NO_FLAGS</span> <span class="o">=</span> <span class="mh">0x00</span><span class="p">,</span>
+    <span class="n">UV_THREAD_HAS_STACK_SIZE</span> <span class="o">=</span> <span class="mh">0x01</span>
+  <span class="p">}</span> <span class="n">flags</span><span class="p">;</span>
+  <span class="n">size_t</span> <span class="n">stack_size</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">uv_thread_options_t</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>More fields may be added to this struct at any time, so its exact
+layout and size should not be relied upon.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.26.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_thread_create">
+int <code class="sig-name descname">uv_thread_create</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_thread_t" title="uv_thread_t">uv_thread_t</a> *<em>tid</em>, <a class="reference internal" href="#c.uv_thread_cb" title="uv_thread_cb">uv_thread_cb</a> <em>entry</em>, void *<em>arg</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_thread_create" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.4.1: </span>returns a UV_E* error code on failure</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_thread_create_ex">
+int <code class="sig-name descname">uv_thread_create_ex</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_thread_t" title="uv_thread_t">uv_thread_t</a> *<em>tid</em>, <em class="property">const</em> <a class="reference internal" href="#c.uv_thread_options_t" title="uv_thread_options_t">uv_thread_options_t</a> *<em>params</em>, <a class="reference internal" href="#c.uv_thread_cb" title="uv_thread_cb">uv_thread_cb</a> <em>entry</em>, void *<em>arg</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_thread_create_ex" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Like <a class="reference internal" href="#c.uv_thread_create" title="uv_thread_create"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_thread_create()</span></code></a>, but additionally specifies options for creating a new thread.</p>
+<p>If <cite>UV_THREAD_HAS_STACK_SIZE</cite> is set, <cite>stack_size</cite> specifies a stack size for the new thread.
+<cite>0</cite> indicates that the default value should be used, i.e. behaves as if the flag was not set.
+Other values will be rounded up to the nearest page boundary.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.26.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_thread_self">
+<a class="reference internal" href="#c.uv_thread_t" title="uv_thread_t">uv_thread_t</a> <code class="sig-name descname">uv_thread_self</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_thread_self" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_thread_join">
+int <code class="sig-name descname">uv_thread_join</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_thread_t" title="uv_thread_t">uv_thread_t</a> *<em>tid</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_thread_join" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_thread_equal">
+int <code class="sig-name descname">uv_thread_equal</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_thread_t" title="uv_thread_t">uv_thread_t</a> *<em>t1</em>, <em class="property">const</em> <a class="reference internal" href="#c.uv_thread_t" title="uv_thread_t">uv_thread_t</a> *<em>t2</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_thread_equal" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="thread-local-storage">
+<h3>Thread-local storage<a class="headerlink" href="#thread-local-storage" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The total thread-local storage size may be limited. That is, it may not be possible to
+create many TLS keys.</p>
+</div>
+<dl class="c function">
+<dt id="c.uv_key_create">
+int <code class="sig-name descname">uv_key_create</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_key_t" title="uv_key_t">uv_key_t</a> *<em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_key_create" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_key_delete">
+void <code class="sig-name descname">uv_key_delete</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_key_t" title="uv_key_t">uv_key_t</a> *<em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_key_delete" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_key_get">
+void *<code class="sig-name descname">uv_key_get</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_key_t" title="uv_key_t">uv_key_t</a> *<em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_key_get" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_key_set">
+void <code class="sig-name descname">uv_key_set</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_key_t" title="uv_key_t">uv_key_t</a> *<em>key</em>, void *<em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_key_set" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="once-only-initialization">
+<h3>Once-only initialization<a class="headerlink" href="#once-only-initialization" title="Permalink to this headline">¶</a></h3>
+<p>Runs a function once and only once. Concurrent calls to <a class="reference internal" href="#c.uv_once" title="uv_once"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_once()</span></code></a> with the
+same guard will block all callers except one (it’s unspecified which one).
+The guard should be initialized statically with the UV_ONCE_INIT macro.</p>
+<dl class="c function">
+<dt id="c.uv_once">
+void <code class="sig-name descname">uv_once</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_once_t" title="uv_once_t">uv_once_t</a> *<em>guard</em>, void (*<em>callback</em>)<span class="sig-paren">(</span>void<span class="sig-paren">)</span><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_once" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="mutex-locks">
+<h3>Mutex locks<a class="headerlink" href="#mutex-locks" title="Permalink to this headline">¶</a></h3>
+<p>Functions return 0 on success or an error code &lt; 0 (unless the
+return type is void, of course).</p>
+<dl class="c function">
+<dt id="c.uv_mutex_init">
+int <code class="sig-name descname">uv_mutex_init</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_mutex_t" title="uv_mutex_t">uv_mutex_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_mutex_init" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_mutex_init_recursive">
+int <code class="sig-name descname">uv_mutex_init_recursive</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_mutex_t" title="uv_mutex_t">uv_mutex_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_mutex_init_recursive" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_mutex_destroy">
+void <code class="sig-name descname">uv_mutex_destroy</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_mutex_t" title="uv_mutex_t">uv_mutex_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_mutex_destroy" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_mutex_lock">
+void <code class="sig-name descname">uv_mutex_lock</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_mutex_t" title="uv_mutex_t">uv_mutex_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_mutex_lock" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_mutex_trylock">
+int <code class="sig-name descname">uv_mutex_trylock</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_mutex_t" title="uv_mutex_t">uv_mutex_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_mutex_trylock" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_mutex_unlock">
+void <code class="sig-name descname">uv_mutex_unlock</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_mutex_t" title="uv_mutex_t">uv_mutex_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_mutex_unlock" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="read-write-locks">
+<h3>Read-write locks<a class="headerlink" href="#read-write-locks" title="Permalink to this headline">¶</a></h3>
+<p>Functions return 0 on success or an error code &lt; 0 (unless the
+return type is void, of course).</p>
+<dl class="c function">
+<dt id="c.uv_rwlock_init">
+int <code class="sig-name descname">uv_rwlock_init</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_rwlock_t" title="uv_rwlock_t">uv_rwlock_t</a> *<em>rwlock</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_rwlock_init" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_rwlock_destroy">
+void <code class="sig-name descname">uv_rwlock_destroy</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_rwlock_t" title="uv_rwlock_t">uv_rwlock_t</a> *<em>rwlock</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_rwlock_destroy" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_rwlock_rdlock">
+void <code class="sig-name descname">uv_rwlock_rdlock</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_rwlock_t" title="uv_rwlock_t">uv_rwlock_t</a> *<em>rwlock</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_rwlock_rdlock" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_rwlock_tryrdlock">
+int <code class="sig-name descname">uv_rwlock_tryrdlock</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_rwlock_t" title="uv_rwlock_t">uv_rwlock_t</a> *<em>rwlock</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_rwlock_tryrdlock" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_rwlock_rdunlock">
+void <code class="sig-name descname">uv_rwlock_rdunlock</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_rwlock_t" title="uv_rwlock_t">uv_rwlock_t</a> *<em>rwlock</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_rwlock_rdunlock" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_rwlock_wrlock">
+void <code class="sig-name descname">uv_rwlock_wrlock</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_rwlock_t" title="uv_rwlock_t">uv_rwlock_t</a> *<em>rwlock</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_rwlock_wrlock" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_rwlock_trywrlock">
+int <code class="sig-name descname">uv_rwlock_trywrlock</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_rwlock_t" title="uv_rwlock_t">uv_rwlock_t</a> *<em>rwlock</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_rwlock_trywrlock" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_rwlock_wrunlock">
+void <code class="sig-name descname">uv_rwlock_wrunlock</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_rwlock_t" title="uv_rwlock_t">uv_rwlock_t</a> *<em>rwlock</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_rwlock_wrunlock" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="semaphores">
+<h3>Semaphores<a class="headerlink" href="#semaphores" title="Permalink to this headline">¶</a></h3>
+<p>Functions return 0 on success or an error code &lt; 0 (unless the
+return type is void, of course).</p>
+<dl class="c function">
+<dt id="c.uv_sem_init">
+int <code class="sig-name descname">uv_sem_init</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_sem_t" title="uv_sem_t">uv_sem_t</a> *<em>sem</em>, unsigned int <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_sem_init" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_sem_destroy">
+void <code class="sig-name descname">uv_sem_destroy</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_sem_t" title="uv_sem_t">uv_sem_t</a> *<em>sem</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_sem_destroy" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_sem_post">
+void <code class="sig-name descname">uv_sem_post</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_sem_t" title="uv_sem_t">uv_sem_t</a> *<em>sem</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_sem_post" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_sem_wait">
+void <code class="sig-name descname">uv_sem_wait</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_sem_t" title="uv_sem_t">uv_sem_t</a> *<em>sem</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_sem_wait" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_sem_trywait">
+int <code class="sig-name descname">uv_sem_trywait</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_sem_t" title="uv_sem_t">uv_sem_t</a> *<em>sem</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_sem_trywait" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="conditions">
+<h3>Conditions<a class="headerlink" href="#conditions" title="Permalink to this headline">¶</a></h3>
+<p>Functions return 0 on success or an error code &lt; 0 (unless the
+return type is void, of course).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ol class="arabic simple">
+<li><p>Callers should be prepared to deal with spurious wakeups on <a class="reference internal" href="#c.uv_cond_wait" title="uv_cond_wait"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_cond_wait()</span></code></a>
+and <a class="reference internal" href="#c.uv_cond_timedwait" title="uv_cond_timedwait"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_cond_timedwait()</span></code></a>.</p></li>
+<li><p>The timeout parameter for <a class="reference internal" href="#c.uv_cond_timedwait" title="uv_cond_timedwait"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_cond_timedwait()</span></code></a> is relative to the time
+at which function is called.</p></li>
+<li><p>On z/OS, the timeout parameter for <a class="reference internal" href="#c.uv_cond_timedwait" title="uv_cond_timedwait"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_cond_timedwait()</span></code></a> is converted to an
+absolute system time at which the wait expires. If the current system clock time
+passes the absolute time calculated before the condition is signaled, an ETIMEDOUT
+error results. After the wait begins, the wait time is not affected by changes
+to the system clock.</p></li>
+</ol>
+</div>
+<dl class="c function">
+<dt id="c.uv_cond_init">
+int <code class="sig-name descname">uv_cond_init</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_cond_t" title="uv_cond_t">uv_cond_t</a> *<em>cond</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_cond_init" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_cond_destroy">
+void <code class="sig-name descname">uv_cond_destroy</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_cond_t" title="uv_cond_t">uv_cond_t</a> *<em>cond</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_cond_destroy" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_cond_signal">
+void <code class="sig-name descname">uv_cond_signal</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_cond_t" title="uv_cond_t">uv_cond_t</a> *<em>cond</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_cond_signal" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_cond_broadcast">
+void <code class="sig-name descname">uv_cond_broadcast</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_cond_t" title="uv_cond_t">uv_cond_t</a> *<em>cond</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_cond_broadcast" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_cond_wait">
+void <code class="sig-name descname">uv_cond_wait</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_cond_t" title="uv_cond_t">uv_cond_t</a> *<em>cond</em>, <a class="reference internal" href="#c.uv_mutex_t" title="uv_mutex_t">uv_mutex_t</a> *<em>mutex</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_cond_wait" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_cond_timedwait">
+int <code class="sig-name descname">uv_cond_timedwait</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_cond_t" title="uv_cond_t">uv_cond_t</a> *<em>cond</em>, <a class="reference internal" href="#c.uv_mutex_t" title="uv_mutex_t">uv_mutex_t</a> *<em>mutex</em>, uint64_t <em>timeout</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_cond_timedwait" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="barriers">
+<h3>Barriers<a class="headerlink" href="#barriers" title="Permalink to this headline">¶</a></h3>
+<p>Functions return 0 on success or an error code &lt; 0 (unless the
+return type is void, of course).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#c.uv_barrier_wait" title="uv_barrier_wait"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_barrier_wait()</span></code></a> returns a value &gt; 0 to an arbitrarily chosen “serializer” thread
+to facilitate cleanup, i.e.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">uv_barrier_wait</span><span class="p">(</span><span class="o">&amp;</span><span class="n">barrier</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">uv_barrier_destroy</span><span class="p">(</span><span class="o">&amp;</span><span class="n">barrier</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<dl class="c function">
+<dt id="c.uv_barrier_init">
+int <code class="sig-name descname">uv_barrier_init</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_barrier_t" title="uv_barrier_t">uv_barrier_t</a> *<em>barrier</em>, unsigned int <em>count</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_barrier_init" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_barrier_destroy">
+void <code class="sig-name descname">uv_barrier_destroy</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_barrier_t" title="uv_barrier_t">uv_barrier_t</a> *<em>barrier</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_barrier_destroy" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_barrier_wait">
+int <code class="sig-name descname">uv_barrier_wait</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_barrier_t" title="uv_barrier_t">uv_barrier_t</a> *<em>barrier</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_barrier_wait" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Threading and synchronization utilities</a><ul>
+<li><a class="reference internal" href="#data-types">Data types</a></li>
+<li><a class="reference internal" href="#api">API</a><ul>
+<li><a class="reference internal" href="#threads">Threads</a></li>
+<li><a class="reference internal" href="#thread-local-storage">Thread-local storage</a></li>
+<li><a class="reference internal" href="#once-only-initialization">Once-only initialization</a></li>
+<li><a class="reference internal" href="#mutex-locks">Mutex locks</a></li>
+<li><a class="reference internal" href="#read-write-locks">Read-write locks</a></li>
+<li><a class="reference internal" href="#semaphores">Semaphores</a></li>
+<li><a class="reference internal" href="#conditions">Conditions</a></li>
+<li><a class="reference internal" href="#barriers">Barriers</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dll.html"
+                        title="previous chapter">Shared library handling</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="misc.html"
+                        title="next chapter">Miscellaneous utilities</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/threading.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="misc.html" title="Miscellaneous utilities"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dll.html" title="Shared library handling"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" >API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Threading and synchronization utilities</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

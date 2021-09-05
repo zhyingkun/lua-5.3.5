@@ -1,0 +1,602 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>uv_udp_t — UDP handle &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="uv_fs_event_t — FS Event handle" href="fs_event.html" />
+    <link rel="prev" title="uv_tty_t — TTY handle" href="tty.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="fs_event.html" title="uv_fs_event_t — FS Event handle"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="tty.html" title="uv_tty_t — TTY handle"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_udp_t</span></code> — UDP handle</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="uv-udp-t-udp-handle">
+<span id="udp"></span><h1><a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_udp_t</span></code></a> — UDP handle<a class="headerlink" href="#uv-udp-t-udp-handle" title="Permalink to this headline">¶</a></h1>
+<p>UDP handles encapsulate UDP communication for both clients and servers.</p>
+<div class="section" id="data-types">
+<h2>Data types<a class="headerlink" href="#data-types" title="Permalink to this headline">¶</a></h2>
+<dl class="c type">
+<dt id="c.uv_udp_t">
+<em class="property">type </em><code class="sig-name descname">uv_udp_t</code><a class="headerlink" href="#c.uv_udp_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>UDP handle type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_udp_send_t">
+<em class="property">type </em><code class="sig-name descname">uv_udp_send_t</code><a class="headerlink" href="#c.uv_udp_send_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>UDP send request type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_udp_flags">
+<em class="property">type </em><code class="sig-name descname">uv_udp_flags</code><a class="headerlink" href="#c.uv_udp_flags" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Flags used in <a class="reference internal" href="#c.uv_udp_bind" title="uv_udp_bind"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_bind()</span></code></a> and <a class="reference internal" href="#c.uv_udp_recv_cb" title="uv_udp_recv_cb"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_udp_recv_cb</span></code></a>..</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">enum</span> <span class="n">uv_udp_flags</span> <span class="p">{</span>
+    <span class="o">/*</span> <span class="n">Disables</span> <span class="n">dual</span> <span class="n">stack</span> <span class="n">mode</span><span class="o">.</span> <span class="o">*/</span>
+    <span class="n">UV_UDP_IPV6ONLY</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="o">/*</span>
+    <span class="o">*</span> <span class="n">Indicates</span> <span class="n">message</span> <span class="n">was</span> <span class="n">truncated</span> <span class="n">because</span> <span class="n">read</span> <span class="n">buffer</span> <span class="n">was</span> <span class="n">too</span> <span class="n">small</span><span class="o">.</span> <span class="n">The</span>
+    <span class="o">*</span> <span class="n">remainder</span> <span class="n">was</span> <span class="n">discarded</span> <span class="n">by</span> <span class="n">the</span> <span class="n">OS</span><span class="o">.</span> <span class="n">Used</span> <span class="ow">in</span> <span class="n">uv_udp_recv_cb</span><span class="o">.</span>
+    <span class="o">*/</span>
+    <span class="n">UV_UDP_PARTIAL</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="o">/*</span>
+    <span class="o">*</span> <span class="n">Indicates</span> <span class="k">if</span> <span class="n">SO_REUSEADDR</span> <span class="n">will</span> <span class="n">be</span> <span class="nb">set</span> <span class="n">when</span> <span class="n">binding</span> <span class="n">the</span> <span class="n">handle</span> <span class="ow">in</span>
+    <span class="o">*</span> <span class="n">uv_udp_bind</span><span class="o">.</span>
+    <span class="o">*</span> <span class="n">This</span> <span class="n">sets</span> <span class="n">the</span> <span class="n">SO_REUSEPORT</span> <span class="n">socket</span> <span class="n">flag</span> <span class="n">on</span> <span class="n">the</span> <span class="n">BSDs</span> <span class="ow">and</span> <span class="n">OS</span> <span class="n">X</span><span class="o">.</span> <span class="n">On</span> <span class="n">other</span>
+    <span class="o">*</span> <span class="n">Unix</span> <span class="n">platforms</span><span class="p">,</span> <span class="n">it</span> <span class="n">sets</span> <span class="n">the</span> <span class="n">SO_REUSEADDR</span> <span class="n">flag</span><span class="o">.</span> <span class="n">What</span> <span class="n">that</span> <span class="n">means</span> <span class="ow">is</span> <span class="n">that</span>
+    <span class="o">*</span> <span class="n">multiple</span> <span class="n">threads</span> <span class="ow">or</span> <span class="n">processes</span> <span class="n">can</span> <span class="n">bind</span> <span class="n">to</span> <span class="n">the</span> <span class="n">same</span> <span class="n">address</span> <span class="n">without</span> <span class="n">error</span>
+    <span class="o">*</span> <span class="p">(</span><span class="n">provided</span> <span class="n">they</span> <span class="nb">all</span> <span class="nb">set</span> <span class="n">the</span> <span class="n">flag</span><span class="p">)</span> <span class="n">but</span> <span class="n">only</span> <span class="n">the</span> <span class="n">last</span> <span class="n">one</span> <span class="n">to</span> <span class="n">bind</span> <span class="n">will</span> <span class="n">receive</span>
+    <span class="o">*</span> <span class="nb">any</span> <span class="n">traffic</span><span class="p">,</span> <span class="ow">in</span> <span class="n">effect</span> <span class="s2">&quot;stealing&quot;</span> <span class="n">the</span> <span class="n">port</span> <span class="kn">from</span> <span class="nn">the</span> <span class="n">previous</span> <span class="n">listener</span><span class="o">.</span>
+    <span class="o">*/</span>
+    <span class="n">UV_UDP_REUSEADDR</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_udp_send_cb">
+<em class="property">typedef </em>void (*<code class="sig-name descname">uv_udp_send_cb</code>)<span class="sig-paren">(</span><a class="reference internal" href="#c.uv_udp_send_t" title="uv_udp_send_t">uv_udp_send_t</a> *req, int status<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_send_cb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Type definition for callback passed to <a class="reference internal" href="#c.uv_udp_send" title="uv_udp_send"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_send()</span></code></a>, which is
+called after the data was sent.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_udp_recv_cb">
+<em class="property">typedef </em>void (*<code class="sig-name descname">uv_udp_recv_cb</code>)<span class="sig-paren">(</span><a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *handle, ssize_t nread, <em class="property">const</em> <a class="reference internal" href="misc.html#c.uv_buf_t" title="uv_buf_t">uv_buf_t</a> *buf, <em class="property">const</em> <em class="property">struct</em> sockaddr *addr, unsigned flags<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_recv_cb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Type definition for callback passed to <a class="reference internal" href="#c.uv_udp_recv_start" title="uv_udp_recv_start"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_recv_start()</span></code></a>, which
+is called when the endpoint receives data.</p>
+<ul class="simple">
+<li><p><cite>handle</cite>: UDP handle</p></li>
+<li><p><cite>nread</cite>:  Number of bytes that have been received.
+0 if there is no more data to read. You may discard or repurpose
+the read buffer. Note that 0 may also mean that an empty datagram
+was received (in this case <cite>addr</cite> is not NULL). &lt; 0 if a transmission
+error was detected.</p></li>
+<li><p><cite>buf</cite>: <a class="reference internal" href="misc.html#c.uv_buf_t" title="uv_buf_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_buf_t</span></code></a> with the received data.</p></li>
+<li><p><cite>addr</cite>: <code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">sockaddr*</span></code> containing the address of the sender.
+Can be NULL. Valid for the duration of the callback only.</p></li>
+<li><p><cite>flags</cite>: One or more or’ed UV_UDP_* constants. Right now only
+<code class="docutils literal notranslate"><span class="pre">UV_UDP_PARTIAL</span></code> is used.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The receive callback will be called with <cite>nread</cite> == 0 and <cite>addr</cite> == NULL when there is
+nothing to read, and with <cite>nread</cite> == 0 and <cite>addr</cite> != NULL when an empty UDP packet is
+received.</p>
+</div>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_membership">
+<em class="property">type </em><code class="sig-name descname">uv_membership</code><a class="headerlink" href="#c.uv_membership" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Membership type for a multicast address.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">enum</span> <span class="p">{</span>
+    <span class="n">UV_LEAVE_GROUP</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">UV_JOIN_GROUP</span>
+<span class="p">}</span> <span class="n">uv_membership</span><span class="p">;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<div class="section" id="public-members">
+<h3>Public members<a class="headerlink" href="#public-members" title="Permalink to this headline">¶</a></h3>
+<dl class="c member">
+<dt id="c.uv_udp_t.send_queue_size">
+size_t <code class="sig-prename descclassname"><a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a><code class="sig-prename descclassname">.</code></code><code class="sig-name descname">send_queue_size</code><a class="headerlink" href="#c.uv_udp_t.send_queue_size" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Number of bytes queued for sending. This field strictly shows how much
+information is currently queued.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt id="c.uv_udp_t.send_queue_count">
+size_t <code class="sig-prename descclassname"><a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a><code class="sig-prename descclassname">.</code></code><code class="sig-name descname">send_queue_count</code><a class="headerlink" href="#c.uv_udp_t.send_queue_count" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Number of send requests currently in the queue awaiting to be processed.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt id="c.uv_udp_send_t.handle">
+<a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<code class="sig-prename descclassname"><a class="reference internal" href="#c.uv_udp_send_t" title="uv_udp_send_t">uv_udp_send_t</a><code class="sig-prename descclassname">.</code></code><code class="sig-name descname">handle</code><a class="headerlink" href="#c.uv_udp_send_t.handle" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>UDP handle where this send request is taking place.</p>
+</dd></dl>
+
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The <a class="reference internal" href="handle.html#c.uv_handle_t" title="uv_handle_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_handle_t</span></code></a> members also apply.</p>
+</div>
+</div>
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<dl class="c function">
+<dt id="c.uv_udp_init">
+int <code class="sig-name descname">uv_udp_init</code><span class="sig-paren">(</span><a class="reference internal" href="loop.html#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em>, <a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_init" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize a new UDP handle. The actual socket is created lazily.
+Returns 0 on success.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_init_ex">
+int <code class="sig-name descname">uv_udp_init_ex</code><span class="sig-paren">(</span><a class="reference internal" href="loop.html#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em>, <a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em>, unsigned int <em>flags</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_init_ex" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize the handle with the specified flags. At the moment the lower 8 bits
+of the <cite>flags</cite> parameter are used as the socket domain. A socket will be created
+for the given domain. If the specified domain is <code class="docutils literal notranslate"><span class="pre">AF_UNSPEC</span></code> no socket is created,
+just like <a class="reference internal" href="#c.uv_udp_init" title="uv_udp_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_init()</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.7.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_open">
+int <code class="sig-name descname">uv_udp_open</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em>, <a class="reference internal" href="misc.html#c.uv_os_sock_t" title="uv_os_sock_t">uv_os_sock_t</a> <em>sock</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_open" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Opens an existing file descriptor or Windows SOCKET as a UDP handle.</p>
+<p>Unix only:
+The only requirement of the <cite>sock</cite> argument is that it follows the datagram
+contract (works in unconnected mode, supports sendmsg()/recvmsg(), etc).
+In other words, other datagram-type sockets like raw sockets or netlink
+sockets can also be passed to this function.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.2.1: </span>the file descriptor is set to non-blocking mode.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The passed file descriptor or SOCKET is not checked for its type, but
+it’s required that it represents a valid datagram socket.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_bind">
+int <code class="sig-name descname">uv_udp_bind</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em>, <em class="property">const</em> <em class="property">struct</em> sockaddr *<em>addr</em>, unsigned int <em>flags</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_bind" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Bind the UDP handle to an IP address and port.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – UDP handle. Should have been initialized with
+<a class="reference internal" href="#c.uv_udp_init" title="uv_udp_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_init()</span></code></a>.</p></li>
+<li><p><strong>addr</strong> – <cite>struct sockaddr_in</cite> or <cite>struct sockaddr_in6</cite>
+with the address and port to bind to.</p></li>
+<li><p><strong>flags</strong> – Indicate how the socket will be bound,
+<code class="docutils literal notranslate"><span class="pre">UV_UDP_IPV6ONLY</span></code> and <code class="docutils literal notranslate"><span class="pre">UV_UDP_REUSEADDR</span></code> are supported.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success, or an error code &lt; 0 on failure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_connect">
+int <code class="sig-name descname">uv_udp_connect</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em>, <em class="property">const</em> <em class="property">struct</em> sockaddr *<em>addr</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_connect" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Associate the UDP handle to a remote address and port, so every
+message sent by this handle is automatically sent to that destination.
+Calling this function with a <cite>NULL</cite> <cite>addr</cite> disconnects the handle.
+Trying to call <cite>uv_udp_connect()</cite> on an already connected handle will result
+in an <cite>UV_EISCONN</cite> error. Trying to disconnect a handle that is not
+connected will return an <cite>UV_ENOTCONN</cite> error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – UDP handle. Should have been initialized with
+<a class="reference internal" href="#c.uv_udp_init" title="uv_udp_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_init()</span></code></a>.</p></li>
+<li><p><strong>addr</strong> – <cite>struct sockaddr_in</cite> or <cite>struct sockaddr_in6</cite>
+with the address and port to associate to.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success, or an error code &lt; 0 on failure.</p>
+</dd>
+</dl>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.27.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_getpeername">
+int <code class="sig-name descname">uv_udp_getpeername</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em>, <em class="property">struct</em> sockaddr *<em>name</em>, int *<em>namelen</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_getpeername" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the remote IP and port of the UDP handle on connected UDP handles.
+On unconnected handles, it returns <cite>UV_ENOTCONN</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – UDP handle. Should have been initialized with
+<a class="reference internal" href="#c.uv_udp_init" title="uv_udp_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_init()</span></code></a> and bound.</p></li>
+<li><p><strong>name</strong> – Pointer to the structure to be filled with the address data.
+In order to support IPv4 and IPv6 <cite>struct sockaddr_storage</cite> should be
+used.</p></li>
+<li><p><strong>namelen</strong> – On input it indicates the data of the <cite>name</cite> field. On
+output it indicates how much of it was filled.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success, or an error code &lt; 0 on failure</p>
+</dd>
+</dl>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.27.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_getsockname">
+int <code class="sig-name descname">uv_udp_getsockname</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em>, <em class="property">struct</em> sockaddr *<em>name</em>, int *<em>namelen</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_getsockname" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the local IP and port of the UDP handle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – UDP handle. Should have been initialized with
+<a class="reference internal" href="#c.uv_udp_init" title="uv_udp_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_init()</span></code></a> and bound.</p></li>
+<li><p><strong>name</strong> – Pointer to the structure to be filled with the address data.
+In order to support IPv4 and IPv6 <cite>struct sockaddr_storage</cite> should be
+used.</p></li>
+<li><p><strong>namelen</strong> – On input it indicates the data of the <cite>name</cite> field. On
+output it indicates how much of it was filled.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success, or an error code &lt; 0 on failure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_set_membership">
+int <code class="sig-name descname">uv_udp_set_membership</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em>, <em class="property">const</em> char *<em>multicast_addr</em>, <em class="property">const</em> char *<em>interface_addr</em>, <a class="reference internal" href="#c.uv_membership" title="uv_membership">uv_membership</a> <em>membership</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_set_membership" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set membership for a multicast address</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – UDP handle. Should have been initialized with
+<a class="reference internal" href="#c.uv_udp_init" title="uv_udp_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_init()</span></code></a>.</p></li>
+<li><p><strong>multicast_addr</strong> – Multicast address to set membership for.</p></li>
+<li><p><strong>interface_addr</strong> – Interface address.</p></li>
+<li><p><strong>membership</strong> – Should be <code class="docutils literal notranslate"><span class="pre">UV_JOIN_GROUP</span></code> or <code class="docutils literal notranslate"><span class="pre">UV_LEAVE_GROUP</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success, or an error code &lt; 0 on failure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_set_multicast_loop">
+int <code class="sig-name descname">uv_udp_set_multicast_loop</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em>, int <em>on</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_set_multicast_loop" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set IP multicast loop flag. Makes multicast packets loop back to
+local sockets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – UDP handle. Should have been initialized with
+<a class="reference internal" href="#c.uv_udp_init" title="uv_udp_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_init()</span></code></a>.</p></li>
+<li><p><strong>on</strong> – 1 for on, 0 for off.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success, or an error code &lt; 0 on failure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_set_multicast_ttl">
+int <code class="sig-name descname">uv_udp_set_multicast_ttl</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em>, int <em>ttl</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_set_multicast_ttl" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the multicast ttl.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – UDP handle. Should have been initialized with
+<a class="reference internal" href="#c.uv_udp_init" title="uv_udp_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_init()</span></code></a>.</p></li>
+<li><p><strong>ttl</strong> – 1 through 255.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success, or an error code &lt; 0 on failure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_set_multicast_interface">
+int <code class="sig-name descname">uv_udp_set_multicast_interface</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em>, <em class="property">const</em> char *<em>interface_addr</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_set_multicast_interface" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the multicast interface to send or receive data on.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – UDP handle. Should have been initialized with
+<a class="reference internal" href="#c.uv_udp_init" title="uv_udp_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_init()</span></code></a>.</p></li>
+<li><p><strong>interface_addr</strong> – interface address.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success, or an error code &lt; 0 on failure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_set_broadcast">
+int <code class="sig-name descname">uv_udp_set_broadcast</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em>, int <em>on</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_set_broadcast" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set broadcast on or off.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – UDP handle. Should have been initialized with
+<a class="reference internal" href="#c.uv_udp_init" title="uv_udp_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_init()</span></code></a>.</p></li>
+<li><p><strong>on</strong> – 1 for on, 0 for off.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success, or an error code &lt; 0 on failure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_set_ttl">
+int <code class="sig-name descname">uv_udp_set_ttl</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em>, int <em>ttl</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_set_ttl" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Set the time to live.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – UDP handle. Should have been initialized with
+<a class="reference internal" href="#c.uv_udp_init" title="uv_udp_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_init()</span></code></a>.</p></li>
+<li><p><strong>ttl</strong> – 1 through 255.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success, or an error code &lt; 0 on failure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_send">
+int <code class="sig-name descname">uv_udp_send</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_udp_send_t" title="uv_udp_send_t">uv_udp_send_t</a> *<em>req</em>, <a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em>, <em class="property">const</em> <a class="reference internal" href="misc.html#c.uv_buf_t" title="uv_buf_t">uv_buf_t</a> <em>bufs</em>[], unsigned int <em>nbufs</em>, <em class="property">const</em> <em class="property">struct</em> sockaddr *<em>addr</em>, <a class="reference internal" href="#c.uv_udp_send_cb" title="uv_udp_send_cb">uv_udp_send_cb</a> <em>send_cb</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_send" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Send data over the UDP socket. If the socket has not previously been bound
+with <a class="reference internal" href="#c.uv_udp_bind" title="uv_udp_bind"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_bind()</span></code></a> it will be bound to 0.0.0.0
+(the “all interfaces” IPv4 address) and a random port number.</p>
+<p>On Windows if the <cite>addr</cite> is initialized to point to an unspecified address
+(<code class="docutils literal notranslate"><span class="pre">0.0.0.0</span></code> or <code class="docutils literal notranslate"><span class="pre">::</span></code>) it will be changed to point to <code class="docutils literal notranslate"><span class="pre">localhost</span></code>.
+This is done to match the behavior of Linux systems.</p>
+<p>For connected UDP handles, <cite>addr</cite> must be set to <cite>NULL</cite>, otherwise it will
+return <cite>UV_EISCONN</cite> error.</p>
+<p>For connectionless UDP handles, <cite>addr</cite> cannot be <cite>NULL</cite>, otherwise it will
+return <cite>UV_EDESTADDRREQ</cite> error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>req</strong> – UDP request handle. Need not be initialized.</p></li>
+<li><p><strong>handle</strong> – UDP handle. Should have been initialized with
+<a class="reference internal" href="#c.uv_udp_init" title="uv_udp_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_init()</span></code></a>.</p></li>
+<li><p><strong>bufs</strong> – List of buffers to send.</p></li>
+<li><p><strong>nbufs</strong> – Number of buffers in <cite>bufs</cite>.</p></li>
+<li><p><strong>addr</strong> – <cite>struct sockaddr_in</cite> or <cite>struct sockaddr_in6</cite> with the
+address and port of the remote peer.</p></li>
+<li><p><strong>send_cb</strong> – Callback to invoke when the data has been sent out.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success, or an error code &lt; 0 on failure.</p>
+</dd>
+</dl>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.19.0: </span>added <code class="docutils literal notranslate"><span class="pre">0.0.0.0</span></code> and <code class="docutils literal notranslate"><span class="pre">::</span></code> to <code class="docutils literal notranslate"><span class="pre">localhost</span></code>
+mapping</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.27.0: </span>added support for connected sockets</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_try_send">
+int <code class="sig-name descname">uv_udp_try_send</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em>, <em class="property">const</em> <a class="reference internal" href="misc.html#c.uv_buf_t" title="uv_buf_t">uv_buf_t</a> <em>bufs</em>[], unsigned int <em>nbufs</em>, <em class="property">const</em> <em class="property">struct</em> sockaddr *<em>addr</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_try_send" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Same as <a class="reference internal" href="#c.uv_udp_send" title="uv_udp_send"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_send()</span></code></a>, but won’t queue a send request if it can’t
+be completed immediately.</p>
+<p>For connected UDP handles, <cite>addr</cite> must be set to <cite>NULL</cite>, otherwise it will
+return <cite>UV_EISCONN</cite> error.</p>
+<p>For connectionless UDP handles, <cite>addr</cite> cannot be <cite>NULL</cite>, otherwise it will
+return <cite>UV_EDESTADDRREQ</cite> error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>&gt;= 0: number of bytes sent (it matches the given buffer size).
+&lt; 0: negative error code (<code class="docutils literal notranslate"><span class="pre">UV_EAGAIN</span></code> is returned when the message
+can’t be sent immediately).</p>
+</dd>
+</dl>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.27.0: </span>added support for connected sockets</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_recv_start">
+int <code class="sig-name descname">uv_udp_recv_start</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em>, <a class="reference internal" href="handle.html#c.uv_alloc_cb" title="uv_alloc_cb">uv_alloc_cb</a> <em>alloc_cb</em>, <a class="reference internal" href="#c.uv_udp_recv_cb" title="uv_udp_recv_cb">uv_udp_recv_cb</a> <em>recv_cb</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_recv_start" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Prepare for receiving data. If the socket has not previously been bound
+with <a class="reference internal" href="#c.uv_udp_bind" title="uv_udp_bind"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_bind()</span></code></a> it is bound to 0.0.0.0 (the “all interfaces”
+IPv4 address) and a random port number.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – UDP handle. Should have been initialized with
+<a class="reference internal" href="#c.uv_udp_init" title="uv_udp_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_init()</span></code></a>.</p></li>
+<li><p><strong>alloc_cb</strong> – Callback to invoke when temporary storage is needed.</p></li>
+<li><p><strong>recv_cb</strong> – Callback to invoke with received data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success, or an error code &lt; 0 on failure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_recv_stop">
+int <code class="sig-name descname">uv_udp_recv_stop</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_recv_stop" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Stop listening for incoming datagrams.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – UDP handle. Should have been initialized with
+<a class="reference internal" href="#c.uv_udp_init" title="uv_udp_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_udp_init()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>0 on success, or an error code &lt; 0 on failure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_get_send_queue_size">
+size_t <code class="sig-name descname">uv_udp_get_send_queue_size</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_get_send_queue_size" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns <cite>handle-&gt;send_queue_size</cite>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.19.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_udp_get_send_queue_count">
+size_t <code class="sig-name descname">uv_udp_get_send_queue_count</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_udp_t" title="uv_udp_t">uv_udp_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_udp_get_send_queue_count" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns <cite>handle-&gt;send_queue_count</cite>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.19.0.</span></p>
+</div>
+</dd></dl>
+
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The <a class="reference internal" href="handle.html#c.uv_handle_t" title="uv_handle_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_handle_t</span></code></a> API functions also apply.</p>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_udp_t</span></code> — UDP handle</a><ul>
+<li><a class="reference internal" href="#data-types">Data types</a><ul>
+<li><a class="reference internal" href="#public-members">Public members</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="tty.html"
+                        title="previous chapter"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_tty_t</span></code> — TTY handle</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="fs_event.html"
+                        title="next chapter"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_fs_event_t</span></code> — FS Event handle</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/udp.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="fs_event.html" title="uv_fs_event_t — FS Event handle"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="tty.html" title="uv_tty_t — TTY handle"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" >API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_udp_t</span></code> — UDP handle</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,261 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>uv_fs_event_t — FS Event handle &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="uv_fs_poll_t — FS Poll handle" href="fs_poll.html" />
+    <link rel="prev" title="uv_udp_t — UDP handle" href="udp.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="fs_poll.html" title="uv_fs_poll_t — FS Poll handle"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="udp.html" title="uv_udp_t — UDP handle"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_fs_event_t</span></code> — FS Event handle</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="uv-fs-event-t-fs-event-handle">
+<span id="fs-event"></span><h1><a class="reference internal" href="#c.uv_fs_event_t" title="uv_fs_event_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_fs_event_t</span></code></a> — FS Event handle<a class="headerlink" href="#uv-fs-event-t-fs-event-handle" title="Permalink to this headline">¶</a></h1>
+<p>FS Event handles allow the user to monitor a given path for changes, for example,
+if the file was renamed or there was a generic change in it. This handle uses
+the best backend for the job on each platform.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For AIX, the non default IBM bos.ahafs package has to be installed.
+The AIX Event Infrastructure file system (ahafs) has some limitations:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>ahafs tracks monitoring per process and is not thread safe. A separate process
+must be spawned for each monitor for the same event.</p></li>
+<li><p>Events for file modification (writing to a file) are not received if only the
+containing folder is watched.</p></li>
+</ul>
+</div></blockquote>
+<p>See <a class="reference external" href="http://www.ibm.com/developerworks/aix/library/au-aix_event_infrastructure/">documentation</a> for more details.</p>
+<p>The z/OS file system events monitoring infrastructure does not notify of file
+creation/deletion within a directory that is being monitored.
+See the <a class="reference external" href="https://www.ibm.com/support/knowledgecenter/en/SSLTBW_2.2.0/com.ibm.zos.v2r1.bpxb100/ioc.htm">IBM Knowledge centre</a> for more details.</p>
+</div>
+<div class="section" id="data-types">
+<h2>Data types<a class="headerlink" href="#data-types" title="Permalink to this headline">¶</a></h2>
+<dl class="c type">
+<dt id="c.uv_fs_event_t">
+<em class="property">type </em><code class="sig-name descname">uv_fs_event_t</code><a class="headerlink" href="#c.uv_fs_event_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>FS Event handle type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_fs_event_cb">
+<em class="property">typedef </em>void (*<code class="sig-name descname">uv_fs_event_cb</code>)<span class="sig-paren">(</span><a class="reference internal" href="#c.uv_fs_event_t" title="uv_fs_event_t">uv_fs_event_t</a> *handle, <em class="property">const</em> char *filename, int events, int status<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_fs_event_cb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Callback passed to <a class="reference internal" href="#c.uv_fs_event_start" title="uv_fs_event_start"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_fs_event_start()</span></code></a> which will be called repeatedly
+after the handle is started. If the handle was started with a directory the
+<cite>filename</cite> parameter will be a relative path to a file contained in the directory.
+The <cite>events</cite> parameter is an ORed mask of <a class="reference internal" href="#c.uv_fs_event" title="uv_fs_event"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_fs_event</span></code></a> elements.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_fs_event">
+<em class="property">type </em><code class="sig-name descname">uv_fs_event</code><a class="headerlink" href="#c.uv_fs_event" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Event types that <a class="reference internal" href="#c.uv_fs_event_t" title="uv_fs_event_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_fs_event_t</span></code></a> handles monitor.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">enum</span> <span class="n">uv_fs_event</span> <span class="p">{</span>
+    <span class="n">UV_RENAME</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">UV_CHANGE</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_fs_event_flags">
+<em class="property">type </em><code class="sig-name descname">uv_fs_event_flags</code><a class="headerlink" href="#c.uv_fs_event_flags" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Flags that can be passed to <a class="reference internal" href="#c.uv_fs_event_start" title="uv_fs_event_start"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_fs_event_start()</span></code></a> to control its
+behavior.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">enum</span> <span class="n">uv_fs_event_flags</span> <span class="p">{</span>
+    <span class="o">/*</span>
+    <span class="o">*</span> <span class="n">By</span> <span class="n">default</span><span class="p">,</span> <span class="k">if</span> <span class="n">the</span> <span class="n">fs</span> <span class="n">event</span> <span class="n">watcher</span> <span class="ow">is</span> <span class="n">given</span> <span class="n">a</span> <span class="n">directory</span> <span class="n">name</span><span class="p">,</span> <span class="n">we</span> <span class="n">will</span>
+    <span class="o">*</span> <span class="n">watch</span> <span class="k">for</span> <span class="nb">all</span> <span class="n">events</span> <span class="ow">in</span> <span class="n">that</span> <span class="n">directory</span><span class="o">.</span> <span class="n">This</span> <span class="n">flags</span> <span class="n">overrides</span> <span class="n">this</span> <span class="n">behavior</span>
+    <span class="o">*</span> <span class="ow">and</span> <span class="n">makes</span> <span class="n">fs_event</span> <span class="n">report</span> <span class="n">only</span> <span class="n">changes</span> <span class="n">to</span> <span class="n">the</span> <span class="n">directory</span> <span class="n">entry</span> <span class="n">itself</span><span class="o">.</span> <span class="n">This</span>
+    <span class="o">*</span> <span class="n">flag</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">affect</span> <span class="n">individual</span> <span class="n">files</span> <span class="n">watched</span><span class="o">.</span>
+    <span class="o">*</span> <span class="n">This</span> <span class="n">flag</span> <span class="ow">is</span> <span class="n">currently</span> <span class="ow">not</span> <span class="n">implemented</span> <span class="n">yet</span> <span class="n">on</span> <span class="nb">any</span> <span class="n">backend</span><span class="o">.</span>
+    <span class="o">*/</span>
+    <span class="n">UV_FS_EVENT_WATCH_ENTRY</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="o">/*</span>
+    <span class="o">*</span> <span class="n">By</span> <span class="n">default</span> <span class="n">uv_fs_event</span> <span class="n">will</span> <span class="k">try</span> <span class="n">to</span> <span class="n">use</span> <span class="n">a</span> <span class="n">kernel</span> <span class="n">interface</span> <span class="n">such</span> <span class="k">as</span> <span class="n">inotify</span>
+    <span class="o">*</span> <span class="ow">or</span> <span class="n">kqueue</span> <span class="n">to</span> <span class="n">detect</span> <span class="n">events</span><span class="o">.</span> <span class="n">This</span> <span class="n">may</span> <span class="ow">not</span> <span class="n">work</span> <span class="n">on</span> <span class="n">remote</span> <span class="n">file</span> <span class="n">systems</span> <span class="n">such</span>
+    <span class="o">*</span> <span class="k">as</span> <span class="n">NFS</span> <span class="n">mounts</span><span class="o">.</span> <span class="n">This</span> <span class="n">flag</span> <span class="n">makes</span> <span class="n">fs_event</span> <span class="n">fall</span> <span class="n">back</span> <span class="n">to</span> <span class="n">calling</span> <span class="n">stat</span><span class="p">()</span> <span class="n">on</span> <span class="n">a</span>
+    <span class="o">*</span> <span class="n">regular</span> <span class="n">interval</span><span class="o">.</span>
+    <span class="o">*</span> <span class="n">This</span> <span class="n">flag</span> <span class="ow">is</span> <span class="n">currently</span> <span class="ow">not</span> <span class="n">implemented</span> <span class="n">yet</span> <span class="n">on</span> <span class="nb">any</span> <span class="n">backend</span><span class="o">.</span>
+    <span class="o">*/</span>
+    <span class="n">UV_FS_EVENT_STAT</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="o">/*</span>
+    <span class="o">*</span> <span class="n">By</span> <span class="n">default</span><span class="p">,</span> <span class="n">event</span> <span class="n">watcher</span><span class="p">,</span> <span class="n">when</span> <span class="n">watching</span> <span class="n">directory</span><span class="p">,</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">registering</span>
+    <span class="o">*</span> <span class="p">(</span><span class="ow">is</span> <span class="n">ignoring</span><span class="p">)</span> <span class="n">changes</span> <span class="ow">in</span> <span class="n">its</span> <span class="n">subdirectories</span><span class="o">.</span>
+    <span class="o">*</span> <span class="n">This</span> <span class="n">flag</span> <span class="n">will</span> <span class="n">override</span> <span class="n">this</span> <span class="n">behaviour</span> <span class="n">on</span> <span class="n">platforms</span> <span class="n">that</span> <span class="n">support</span> <span class="n">it</span><span class="o">.</span>
+    <span class="o">*/</span>
+    <span class="n">UV_FS_EVENT_RECURSIVE</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<div class="section" id="public-members">
+<h3>Public members<a class="headerlink" href="#public-members" title="Permalink to this headline">¶</a></h3>
+<p>N/A</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The <a class="reference internal" href="handle.html#c.uv_handle_t" title="uv_handle_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_handle_t</span></code></a> members also apply.</p>
+</div>
+</div>
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<dl class="c function">
+<dt id="c.uv_fs_event_init">
+int <code class="sig-name descname">uv_fs_event_init</code><span class="sig-paren">(</span><a class="reference internal" href="loop.html#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em>, <a class="reference internal" href="#c.uv_fs_event_t" title="uv_fs_event_t">uv_fs_event_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_fs_event_init" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize the handle.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_fs_event_start">
+int <code class="sig-name descname">uv_fs_event_start</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_fs_event_t" title="uv_fs_event_t">uv_fs_event_t</a> *<em>handle</em>, <a class="reference internal" href="#c.uv_fs_event_cb" title="uv_fs_event_cb">uv_fs_event_cb</a> <em>cb</em>, <em class="property">const</em> char *<em>path</em>, unsigned int <em>flags</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_fs_event_start" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Start the handle with the given callback, which will watch the specified
+<cite>path</cite> for changes. <cite>flags</cite> can be an ORed mask of <a class="reference internal" href="#c.uv_fs_event_flags" title="uv_fs_event_flags"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_fs_event_flags</span></code></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Currently the only supported flag is <code class="docutils literal notranslate"><span class="pre">UV_FS_EVENT_RECURSIVE</span></code> and
+only on OSX and Windows.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_fs_event_stop">
+int <code class="sig-name descname">uv_fs_event_stop</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_fs_event_t" title="uv_fs_event_t">uv_fs_event_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_fs_event_stop" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Stop the handle, the callback will no longer be called.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_fs_event_getpath">
+int <code class="sig-name descname">uv_fs_event_getpath</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_fs_event_t" title="uv_fs_event_t">uv_fs_event_t</a> *<em>handle</em>, char *<em>buffer</em>, size_t *<em>size</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_fs_event_getpath" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the path being monitored by the handle. The buffer must be preallocated
+by the user. Returns 0 on success or an error code &lt; 0 in case of failure.
+On success, <cite>buffer</cite> will contain the path and <cite>size</cite> its length. If the buffer
+is not big enough <cite>UV_ENOBUFS</cite> will be returned and <cite>size</cite> will be set to
+the required size, including the null terminator.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.3.0: </span>the returned length no longer includes the terminating null byte,
+and the buffer is not null terminated.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.9.0: </span>the returned length includes the terminating null
+byte on <cite>UV_ENOBUFS</cite>, and the buffer is null terminated
+on success.</p>
+</div>
+</dd></dl>
+
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The <a class="reference internal" href="handle.html#c.uv_handle_t" title="uv_handle_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_handle_t</span></code></a> API functions also apply.</p>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_fs_event_t</span></code> — FS Event handle</a><ul>
+<li><a class="reference internal" href="#data-types">Data types</a><ul>
+<li><a class="reference internal" href="#public-members">Public members</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="udp.html"
+                        title="previous chapter"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_udp_t</span></code> — UDP handle</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="fs_poll.html"
+                        title="next chapter"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_fs_poll_t</span></code> — FS Poll handle</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/fs_event.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="fs_poll.html" title="uv_fs_poll_t — FS Poll handle"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="udp.html" title="uv_udp_t — UDP handle"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" >API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_fs_event_t</span></code> — FS Event handle</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

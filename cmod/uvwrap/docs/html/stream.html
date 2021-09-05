@@ -1,0 +1,402 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>uv_stream_t — Stream handle &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="uv_tcp_t — TCP handle" href="tcp.html" />
+    <link rel="prev" title="uv_process_t — Process handle" href="process.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="tcp.html" title="uv_tcp_t — TCP handle"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="process.html" title="uv_process_t — Process handle"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_stream_t</span></code> — Stream handle</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="uv-stream-t-stream-handle">
+<span id="stream"></span><h1><a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_stream_t</span></code></a> — Stream handle<a class="headerlink" href="#uv-stream-t-stream-handle" title="Permalink to this headline">¶</a></h1>
+<p>Stream handles provide an abstraction of a duplex communication channel.
+<a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_stream_t</span></code></a> is an abstract type, libuv provides 3 stream implementations
+in the form of <a class="reference internal" href="tcp.html#c.uv_tcp_t" title="uv_tcp_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_tcp_t</span></code></a>, <a class="reference internal" href="pipe.html#c.uv_pipe_t" title="uv_pipe_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_pipe_t</span></code></a> and <a class="reference internal" href="tty.html#c.uv_tty_t" title="uv_tty_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_tty_t</span></code></a>.</p>
+<div class="section" id="data-types">
+<h2>Data types<a class="headerlink" href="#data-types" title="Permalink to this headline">¶</a></h2>
+<dl class="c type">
+<dt id="c.uv_stream_t">
+<em class="property">type </em><code class="sig-name descname">uv_stream_t</code><a class="headerlink" href="#c.uv_stream_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Stream handle type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_connect_t">
+<em class="property">type </em><code class="sig-name descname">uv_connect_t</code><a class="headerlink" href="#c.uv_connect_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Connect request type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_shutdown_t">
+<em class="property">type </em><code class="sig-name descname">uv_shutdown_t</code><a class="headerlink" href="#c.uv_shutdown_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Shutdown request type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_write_t">
+<em class="property">type </em><code class="sig-name descname">uv_write_t</code><a class="headerlink" href="#c.uv_write_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Write request type. Careful attention must be paid when reusing objects of
+this type. When a stream is in non-blocking mode, write requests sent
+with <code class="docutils literal notranslate"><span class="pre">uv_write</span></code> will be queued. Reusing objects at this point is undefined
+behaviour. It is safe to reuse the <code class="docutils literal notranslate"><span class="pre">uv_write_t</span></code> object only after the
+callback passed to <code class="docutils literal notranslate"><span class="pre">uv_write</span></code> is fired.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_read_cb">
+<em class="property">typedef </em>void (*<code class="sig-name descname">uv_read_cb</code>)<span class="sig-paren">(</span><a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *stream, ssize_t nread, <em class="property">const</em> <a class="reference internal" href="misc.html#c.uv_buf_t" title="uv_buf_t">uv_buf_t</a> *buf<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_read_cb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Callback called when data was read on a stream.</p>
+<p><cite>nread</cite> is &gt; 0 if there is data available or &lt; 0 on error. When we’ve
+reached EOF, <cite>nread</cite> will be set to <code class="docutils literal notranslate"><span class="pre">UV_EOF</span></code>. When <cite>nread</cite> &lt; 0,
+the <cite>buf</cite> parameter might not point to a valid buffer; in that case
+<cite>buf.len</cite> and <cite>buf.base</cite> are both set to 0.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><cite>nread</cite> might be 0, which does <em>not</em> indicate an error or EOF. This
+is equivalent to <code class="docutils literal notranslate"><span class="pre">EAGAIN</span></code> or <code class="docutils literal notranslate"><span class="pre">EWOULDBLOCK</span></code> under <code class="docutils literal notranslate"><span class="pre">read(2)</span></code>.</p>
+</div>
+<p>The callee is responsible for stopping/closing the stream when an error happens
+by calling <a class="reference internal" href="#c.uv_read_stop" title="uv_read_stop"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_read_stop()</span></code></a> or <a class="reference internal" href="handle.html#c.uv_close" title="uv_close"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_close()</span></code></a>. Trying to read
+from the stream again is undefined.</p>
+<p>The callee is responsible for freeing the buffer, libuv does not reuse it.
+The buffer may be a null buffer (where buf-&gt;base=NULL and buf-&gt;len=0) on
+error.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_write_cb">
+<em class="property">typedef </em>void (*<code class="sig-name descname">uv_write_cb</code>)<span class="sig-paren">(</span><a class="reference internal" href="#c.uv_write_t" title="uv_write_t">uv_write_t</a> *req, int status<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_write_cb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Callback called after data was written on a stream. <cite>status</cite> will be 0 in
+case of success, &lt; 0 otherwise.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_connect_cb">
+<em class="property">typedef </em>void (*<code class="sig-name descname">uv_connect_cb</code>)<span class="sig-paren">(</span><a class="reference internal" href="#c.uv_connect_t" title="uv_connect_t">uv_connect_t</a> *req, int status<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_connect_cb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Callback called after a connection started by <code class="xref c c-func docutils literal notranslate"><span class="pre">uv_connect()</span></code> is done.
+<cite>status</cite> will be 0 in case of success, &lt; 0 otherwise.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_shutdown_cb">
+<em class="property">typedef </em>void (*<code class="sig-name descname">uv_shutdown_cb</code>)<span class="sig-paren">(</span><a class="reference internal" href="#c.uv_shutdown_t" title="uv_shutdown_t">uv_shutdown_t</a> *req, int status<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_shutdown_cb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Callback called after a shutdown request has been completed. <cite>status</cite> will
+be 0 in case of success, &lt; 0 otherwise.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_connection_cb">
+<em class="property">typedef </em>void (*<code class="sig-name descname">uv_connection_cb</code>)<span class="sig-paren">(</span><a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *server, int status<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_connection_cb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Callback called when a stream server has received an incoming connection.
+The user can accept the connection by calling <a class="reference internal" href="#c.uv_accept" title="uv_accept"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_accept()</span></code></a>.
+<cite>status</cite> will be 0 in case of success, &lt; 0 otherwise.</p>
+</dd></dl>
+
+<div class="section" id="public-members">
+<h3>Public members<a class="headerlink" href="#public-members" title="Permalink to this headline">¶</a></h3>
+<dl class="c member">
+<dt id="c.uv_stream_t.write_queue_size">
+size_t <code class="sig-prename descclassname"><a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a><code class="sig-prename descclassname">.</code></code><code class="sig-name descname">write_queue_size</code><a class="headerlink" href="#c.uv_stream_t.write_queue_size" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Contains the amount of queued bytes waiting to be sent. Readonly.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt id="c.uv_connect_t.handle">
+<a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *<code class="sig-prename descclassname"><a class="reference internal" href="#c.uv_connect_t" title="uv_connect_t">uv_connect_t</a><code class="sig-prename descclassname">.</code></code><code class="sig-name descname">handle</code><a class="headerlink" href="#c.uv_connect_t.handle" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Pointer to the stream where this connection request is running.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt id="c.uv_shutdown_t.handle">
+<a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *<code class="sig-prename descclassname"><a class="reference internal" href="#c.uv_shutdown_t" title="uv_shutdown_t">uv_shutdown_t</a><code class="sig-prename descclassname">.</code></code><code class="sig-name descname">handle</code><a class="headerlink" href="#c.uv_shutdown_t.handle" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Pointer to the stream where this shutdown request is running.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt id="c.uv_write_t.handle">
+<a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *<code class="sig-prename descclassname"><a class="reference internal" href="#c.uv_write_t" title="uv_write_t">uv_write_t</a><code class="sig-prename descclassname">.</code></code><code class="sig-name descname">handle</code><a class="headerlink" href="#c.uv_write_t.handle" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Pointer to the stream where this write request is running.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt id="c.uv_write_t.send_handle">
+<a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *<code class="sig-prename descclassname"><a class="reference internal" href="#c.uv_write_t" title="uv_write_t">uv_write_t</a><code class="sig-prename descclassname">.</code></code><code class="sig-name descname">send_handle</code><a class="headerlink" href="#c.uv_write_t.send_handle" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Pointer to the stream being sent using this write request.</p>
+</dd></dl>
+
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The <a class="reference internal" href="handle.html#c.uv_handle_t" title="uv_handle_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_handle_t</span></code></a> members also apply.</p>
+</div>
+</div>
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<dl class="c function">
+<dt id="c.uv_shutdown">
+int <code class="sig-name descname">uv_shutdown</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_shutdown_t" title="uv_shutdown_t">uv_shutdown_t</a> *<em>req</em>, <a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *<em>handle</em>, <a class="reference internal" href="#c.uv_shutdown_cb" title="uv_shutdown_cb">uv_shutdown_cb</a> <em>cb</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_shutdown" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Shutdown the outgoing (write) side of a duplex stream. It waits for pending
+write requests to complete. The <cite>handle</cite> should refer to a initialized stream.
+<cite>req</cite> should be an uninitialized shutdown request struct. The <cite>cb</cite> is called
+after shutdown is complete.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_listen">
+int <code class="sig-name descname">uv_listen</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *<em>stream</em>, int <em>backlog</em>, <a class="reference internal" href="#c.uv_connection_cb" title="uv_connection_cb">uv_connection_cb</a> <em>cb</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_listen" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Start listening for incoming connections. <cite>backlog</cite> indicates the number of
+connections the kernel might queue, same as <a class="reference external" href="http://linux.die.net/man/2/listen">listen(2)</a>. When a new
+incoming connection is received the <a class="reference internal" href="#c.uv_connection_cb" title="uv_connection_cb"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_connection_cb</span></code></a> callback is
+called.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_accept">
+int <code class="sig-name descname">uv_accept</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *<em>server</em>, <a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *<em>client</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_accept" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This call is used in conjunction with <a class="reference internal" href="#c.uv_listen" title="uv_listen"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_listen()</span></code></a> to accept incoming
+connections. Call this function after receiving a <a class="reference internal" href="#c.uv_connection_cb" title="uv_connection_cb"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_connection_cb</span></code></a>
+to accept the connection. Before calling this function the client handle must
+be initialized. &lt; 0 return value indicates an error.</p>
+<p>When the <a class="reference internal" href="#c.uv_connection_cb" title="uv_connection_cb"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_connection_cb</span></code></a> callback is called it is guaranteed that
+this function will complete successfully the first time. If you attempt to use
+it more than once, it may fail. It is suggested to only call this function once
+per <a class="reference internal" href="#c.uv_connection_cb" title="uv_connection_cb"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_connection_cb</span></code></a> call.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><cite>server</cite> and <cite>client</cite> must be handles running on the same loop.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_read_start">
+int <code class="sig-name descname">uv_read_start</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *<em>stream</em>, <a class="reference internal" href="handle.html#c.uv_alloc_cb" title="uv_alloc_cb">uv_alloc_cb</a> <em>alloc_cb</em>, <a class="reference internal" href="#c.uv_read_cb" title="uv_read_cb">uv_read_cb</a> <em>read_cb</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_read_start" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Read data from an incoming stream. The <a class="reference internal" href="#c.uv_read_cb" title="uv_read_cb"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_read_cb</span></code></a> callback will
+be made several times until there is no more data to read or
+<a class="reference internal" href="#c.uv_read_stop" title="uv_read_stop"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_read_stop()</span></code></a> is called.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_read_stop">
+int <code class="sig-name descname">uv_read_stop</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a>*<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_read_stop" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Stop reading data from the stream. The <a class="reference internal" href="#c.uv_read_cb" title="uv_read_cb"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_read_cb</span></code></a> callback will
+no longer be called.</p>
+<p>This function is idempotent and may be safely called on a stopped stream.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_write">
+int <code class="sig-name descname">uv_write</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_write_t" title="uv_write_t">uv_write_t</a> *<em>req</em>, <a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *<em>handle</em>, <em class="property">const</em> <a class="reference internal" href="misc.html#c.uv_buf_t" title="uv_buf_t">uv_buf_t</a> <em>bufs</em>[], unsigned int <em>nbufs</em>, <a class="reference internal" href="#c.uv_write_cb" title="uv_write_cb">uv_write_cb</a> <em>cb</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_write" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Write data to stream. Buffers are written in order. Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">cb</span><span class="p">(</span><span class="n">uv_write_t</span><span class="o">*</span> <span class="n">req</span><span class="p">,</span> <span class="nb">int</span> <span class="n">status</span><span class="p">)</span> <span class="p">{</span>
+    <span class="o">/*</span> <span class="n">Logic</span> <span class="n">which</span> <span class="n">handles</span> <span class="n">the</span> <span class="n">write</span> <span class="n">result</span> <span class="o">*/</span>
+<span class="p">}</span>
+
+<span class="n">uv_buf_t</span> <span class="n">a</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">{</span> <span class="o">.</span><span class="n">base</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="o">.</span><span class="n">len</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="o">.</span><span class="n">base</span> <span class="o">=</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="o">.</span><span class="n">len</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="n">uv_buf_t</span> <span class="n">b</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">{</span> <span class="o">.</span><span class="n">base</span> <span class="o">=</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="o">.</span><span class="n">len</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="o">.</span><span class="n">base</span> <span class="o">=</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span> <span class="o">.</span><span class="n">len</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="n">uv_write_t</span> <span class="n">req1</span><span class="p">;</span>
+<span class="n">uv_write_t</span> <span class="n">req2</span><span class="p">;</span>
+
+<span class="o">/*</span> <span class="n">writes</span> <span class="s2">&quot;1234&quot;</span> <span class="o">*/</span>
+<span class="n">uv_write</span><span class="p">(</span><span class="o">&amp;</span><span class="n">req1</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">cb</span><span class="p">);</span>
+<span class="n">uv_write</span><span class="p">(</span><span class="o">&amp;</span><span class="n">req2</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">cb</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The memory pointed to by the buffers must remain valid until the callback gets called.
+This also holds for <a class="reference internal" href="#c.uv_write2" title="uv_write2"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_write2()</span></code></a>.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_write2">
+int <code class="sig-name descname">uv_write2</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_write_t" title="uv_write_t">uv_write_t</a> *<em>req</em>, <a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *<em>handle</em>, <em class="property">const</em> <a class="reference internal" href="misc.html#c.uv_buf_t" title="uv_buf_t">uv_buf_t</a> <em>bufs</em>[], unsigned int <em>nbufs</em>, <a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *<em>send_handle</em>, <a class="reference internal" href="#c.uv_write_cb" title="uv_write_cb">uv_write_cb</a> <em>cb</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_write2" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Extended write function for sending handles over a pipe. The pipe must be
+initialized with <cite>ipc</cite> == 1.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><cite>send_handle</cite> must be a TCP socket or pipe, which is a server or a connection (listening
+or connected state). Bound sockets or pipes will be assumed to be servers.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_try_write">
+int <code class="sig-name descname">uv_try_write</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *<em>handle</em>, <em class="property">const</em> <a class="reference internal" href="misc.html#c.uv_buf_t" title="uv_buf_t">uv_buf_t</a> <em>bufs</em>[], unsigned int <em>nbufs</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_try_write" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Same as <a class="reference internal" href="#c.uv_write" title="uv_write"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_write()</span></code></a>, but won’t queue a write request if it can’t be
+completed immediately.</p>
+<p>Will return either:</p>
+<ul class="simple">
+<li><p>&gt; 0: number of bytes written (can be less than the supplied buffer size).</p></li>
+<li><p>&lt; 0: negative error code (<code class="docutils literal notranslate"><span class="pre">UV_EAGAIN</span></code> is returned if no data can be sent
+immediately).</p></li>
+</ul>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_is_readable">
+int <code class="sig-name descname">uv_is_readable</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_is_readable" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns 1 if the stream is readable, 0 otherwise.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_is_writable">
+int <code class="sig-name descname">uv_is_writable</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_is_writable" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns 1 if the stream is writable, 0 otherwise.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_stream_set_blocking">
+int <code class="sig-name descname">uv_stream_set_blocking</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *<em>handle</em>, int <em>blocking</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_stream_set_blocking" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Enable or disable blocking mode for a stream.</p>
+<p>When blocking mode is enabled all writes complete synchronously. The
+interface remains unchanged otherwise, e.g. completion or failure of the
+operation will still be reported through a callback which is made
+asynchronously.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Relying too much on this API is not recommended. It is likely to change
+significantly in the future.</p>
+<p>Currently only works on Windows for <a class="reference internal" href="pipe.html#c.uv_pipe_t" title="uv_pipe_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_pipe_t</span></code></a> handles.
+On UNIX platforms, all <a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_stream_t</span></code></a> handles are supported.</p>
+<p>Also libuv currently makes no ordering guarantee when the blocking mode
+is changed after write requests have already been submitted. Therefore it is
+recommended to set the blocking mode immediately after opening or creating
+the stream.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.4.0: </span>UNIX implementation added.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_stream_get_write_queue_size">
+size_t <code class="sig-name descname">uv_stream_get_write_queue_size</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_stream_t" title="uv_stream_t">uv_stream_t</a> *<em>stream</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_stream_get_write_queue_size" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns <cite>stream-&gt;write_queue_size</cite>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.19.0.</span></p>
+</div>
+</dd></dl>
+
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The <a class="reference internal" href="handle.html#c.uv_handle_t" title="uv_handle_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_handle_t</span></code></a> API functions also apply.</p>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_stream_t</span></code> — Stream handle</a><ul>
+<li><a class="reference internal" href="#data-types">Data types</a><ul>
+<li><a class="reference internal" href="#public-members">Public members</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="process.html"
+                        title="previous chapter"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_process_t</span></code> — Process handle</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="tcp.html"
+                        title="next chapter"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_tcp_t</span></code> — TCP handle</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/stream.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="tcp.html" title="uv_tcp_t — TCP handle"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="process.html" title="uv_process_t — Process handle"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" >API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_stream_t</span></code> — Stream handle</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

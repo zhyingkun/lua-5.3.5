@@ -1,0 +1,249 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>uv_tcp_t — TCP handle &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="uv_pipe_t — Pipe handle" href="pipe.html" />
+    <link rel="prev" title="uv_stream_t — Stream handle" href="stream.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="pipe.html" title="uv_pipe_t — Pipe handle"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="stream.html" title="uv_stream_t — Stream handle"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_tcp_t</span></code> — TCP handle</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="uv-tcp-t-tcp-handle">
+<span id="tcp"></span><h1><a class="reference internal" href="#c.uv_tcp_t" title="uv_tcp_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_tcp_t</span></code></a> — TCP handle<a class="headerlink" href="#uv-tcp-t-tcp-handle" title="Permalink to this headline">¶</a></h1>
+<p>TCP handles are used to represent both TCP streams and servers.</p>
+<p><a class="reference internal" href="#c.uv_tcp_t" title="uv_tcp_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_tcp_t</span></code></a> is a ‘subclass’ of <a class="reference internal" href="stream.html#c.uv_stream_t" title="uv_stream_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_stream_t</span></code></a>.</p>
+<div class="section" id="data-types">
+<h2>Data types<a class="headerlink" href="#data-types" title="Permalink to this headline">¶</a></h2>
+<dl class="c type">
+<dt id="c.uv_tcp_t">
+<em class="property">type </em><code class="sig-name descname">uv_tcp_t</code><a class="headerlink" href="#c.uv_tcp_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>TCP handle type.</p>
+</dd></dl>
+
+<div class="section" id="public-members">
+<h3>Public members<a class="headerlink" href="#public-members" title="Permalink to this headline">¶</a></h3>
+<p>N/A</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The <a class="reference internal" href="stream.html#c.uv_stream_t" title="uv_stream_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_stream_t</span></code></a> members also apply.</p>
+</div>
+</div>
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<dl class="c function">
+<dt id="c.uv_tcp_init">
+int <code class="sig-name descname">uv_tcp_init</code><span class="sig-paren">(</span><a class="reference internal" href="loop.html#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em>, <a class="reference internal" href="#c.uv_tcp_t" title="uv_tcp_t">uv_tcp_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_tcp_init" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize the handle. No socket is created as of yet.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_tcp_init_ex">
+int <code class="sig-name descname">uv_tcp_init_ex</code><span class="sig-paren">(</span><a class="reference internal" href="loop.html#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em>, <a class="reference internal" href="#c.uv_tcp_t" title="uv_tcp_t">uv_tcp_t</a> *<em>handle</em>, unsigned int <em>flags</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_tcp_init_ex" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initialize the handle with the specified flags. At the moment only the lower 8 bits
+of the <cite>flags</cite> parameter are used as the socket domain. A socket will be created
+for the given domain. If the specified domain is <code class="docutils literal notranslate"><span class="pre">AF_UNSPEC</span></code> no socket is created,
+just like <a class="reference internal" href="#c.uv_tcp_init" title="uv_tcp_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_tcp_init()</span></code></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.7.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_tcp_open">
+int <code class="sig-name descname">uv_tcp_open</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_tcp_t" title="uv_tcp_t">uv_tcp_t</a> *<em>handle</em>, <a class="reference internal" href="misc.html#c.uv_os_sock_t" title="uv_os_sock_t">uv_os_sock_t</a> <em>sock</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_tcp_open" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Open an existing file descriptor or SOCKET as a TCP handle.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.2.1: </span>the file descriptor is set to non-blocking mode.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The passed file descriptor or SOCKET is not checked for its type, but
+it’s required that it represents a valid stream socket.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_tcp_nodelay">
+int <code class="sig-name descname">uv_tcp_nodelay</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_tcp_t" title="uv_tcp_t">uv_tcp_t</a> *<em>handle</em>, int <em>enable</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_tcp_nodelay" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Enable <cite>TCP_NODELAY</cite>, which disables Nagle’s algorithm.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_tcp_keepalive">
+int <code class="sig-name descname">uv_tcp_keepalive</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_tcp_t" title="uv_tcp_t">uv_tcp_t</a> *<em>handle</em>, int <em>enable</em>, unsigned int <em>delay</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_tcp_keepalive" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Enable / disable TCP keep-alive. <cite>delay</cite> is the initial delay in seconds,
+ignored when <cite>enable</cite> is zero.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_tcp_simultaneous_accepts">
+int <code class="sig-name descname">uv_tcp_simultaneous_accepts</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_tcp_t" title="uv_tcp_t">uv_tcp_t</a> *<em>handle</em>, int <em>enable</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_tcp_simultaneous_accepts" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Enable / disable simultaneous asynchronous accept requests that are
+queued by the operating system when listening for new TCP connections.</p>
+<p>This setting is used to tune a TCP server for the desired performance.
+Having simultaneous accepts can significantly improve the rate of accepting
+connections (which is why it is enabled by default) but may lead to uneven
+load distribution in multi-process setups.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_tcp_bind">
+int <code class="sig-name descname">uv_tcp_bind</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_tcp_t" title="uv_tcp_t">uv_tcp_t</a> *<em>handle</em>, <em class="property">const</em> <em class="property">struct</em> sockaddr *<em>addr</em>, unsigned int <em>flags</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_tcp_bind" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Bind the handle to an address and port. <cite>addr</cite> should point to an
+initialized <code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">sockaddr_in</span></code> or <code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">sockaddr_in6</span></code>.</p>
+<p>When the port is already taken, you can expect to see an <code class="docutils literal notranslate"><span class="pre">UV_EADDRINUSE</span></code>
+error from either <a class="reference internal" href="#c.uv_tcp_bind" title="uv_tcp_bind"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_tcp_bind()</span></code></a>, <a class="reference internal" href="stream.html#c.uv_listen" title="uv_listen"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_listen()</span></code></a> or
+<a class="reference internal" href="#c.uv_tcp_connect" title="uv_tcp_connect"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_tcp_connect()</span></code></a>. That is, a successful call to this function does
+not guarantee that the call to <a class="reference internal" href="stream.html#c.uv_listen" title="uv_listen"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_listen()</span></code></a> or <a class="reference internal" href="#c.uv_tcp_connect" title="uv_tcp_connect"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_tcp_connect()</span></code></a>
+will succeed as well.</p>
+<p><cite>flags</cite> can contain <code class="docutils literal notranslate"><span class="pre">UV_TCP_IPV6ONLY</span></code>, in which case dual-stack support
+is disabled and only IPv6 is used.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_tcp_getsockname">
+int <code class="sig-name descname">uv_tcp_getsockname</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_tcp_t" title="uv_tcp_t">uv_tcp_t</a> *<em>handle</em>, <em class="property">struct</em> sockaddr *<em>name</em>, int *<em>namelen</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_tcp_getsockname" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the current address to which the handle is bound. <cite>name</cite> must point to
+a valid and big enough chunk of memory, <code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">sockaddr_storage</span></code> is
+recommended for IPv4 and IPv6 support.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_tcp_getpeername">
+int <code class="sig-name descname">uv_tcp_getpeername</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_tcp_t" title="uv_tcp_t">uv_tcp_t</a> *<em>handle</em>, <em class="property">struct</em> sockaddr *<em>name</em>, int *<em>namelen</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_tcp_getpeername" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the address of the peer connected to the handle. <cite>name</cite> must point to
+a valid and big enough chunk of memory, <code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">sockaddr_storage</span></code> is
+recommended for IPv4 and IPv6 support.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_tcp_connect">
+int <code class="sig-name descname">uv_tcp_connect</code><span class="sig-paren">(</span><a class="reference internal" href="stream.html#c.uv_connect_t" title="uv_connect_t">uv_connect_t</a> *<em>req</em>, <a class="reference internal" href="#c.uv_tcp_t" title="uv_tcp_t">uv_tcp_t</a> *<em>handle</em>, <em class="property">const</em> <em class="property">struct</em> sockaddr *<em>addr</em>, <a class="reference internal" href="stream.html#c.uv_connect_cb" title="uv_connect_cb">uv_connect_cb</a> <em>cb</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_tcp_connect" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Establish an IPv4 or IPv6 TCP connection. Provide an initialized TCP handle
+and an uninitialized <a class="reference internal" href="stream.html#c.uv_connect_t" title="uv_connect_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_connect_t</span></code></a>. <cite>addr</cite> should point to an
+initialized <code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">sockaddr_in</span></code> or <code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">sockaddr_in6</span></code>.</p>
+<p>On Windows if the <cite>addr</cite> is initialized to point to an unspecified address
+(<code class="docutils literal notranslate"><span class="pre">0.0.0.0</span></code> or <code class="docutils literal notranslate"><span class="pre">::</span></code>) it will be changed to point to <code class="docutils literal notranslate"><span class="pre">localhost</span></code>.
+This is done to match the behavior of Linux systems.</p>
+<p>The callback is made when the connection has been established or when a
+connection error happened.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.19.0: </span>added <code class="docutils literal notranslate"><span class="pre">0.0.0.0</span></code> and <code class="docutils literal notranslate"><span class="pre">::</span></code> to <code class="docutils literal notranslate"><span class="pre">localhost</span></code>
+mapping</p>
+</div>
+</dd></dl>
+
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The <a class="reference internal" href="stream.html#c.uv_stream_t" title="uv_stream_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_stream_t</span></code></a> API functions also apply.</p>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_tcp_t</span></code> — TCP handle</a><ul>
+<li><a class="reference internal" href="#data-types">Data types</a><ul>
+<li><a class="reference internal" href="#public-members">Public members</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="stream.html"
+                        title="previous chapter"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_stream_t</span></code> — Stream handle</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pipe.html"
+                        title="next chapter"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_pipe_t</span></code> — Pipe handle</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/tcp.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="pipe.html" title="uv_pipe_t — Pipe handle"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="stream.html" title="uv_stream_t — Stream handle"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" >API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_tcp_t</span></code> — TCP handle</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

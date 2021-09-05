@@ -1,0 +1,638 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Error handling &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Version-checking macros and functions" href="version.html" />
+    <link rel="prev" title="API documentation" href="api.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="version.html" title="Version-checking macros and functions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="API documentation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Error handling</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="error-handling">
+<span id="errors"></span><h1>Error handling<a class="headerlink" href="#error-handling" title="Permalink to this headline">¶</a></h1>
+<p>In libuv errors are negative numbered constants. As a rule of thumb, whenever
+there is a status parameter, or an API functions returns an integer, a negative
+number will imply an error.</p>
+<p>When a function which takes a callback returns an error, the callback will never
+be called.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Implementation detail: on Unix error codes are the negated <cite>errno</cite> (or <cite>-errno</cite>), while on
+Windows they are defined by libuv to arbitrary negative numbers.</p>
+</div>
+<div class="section" id="error-constants">
+<h2>Error constants<a class="headerlink" href="#error-constants" title="Permalink to this headline">¶</a></h2>
+<dl class="c macro">
+<dt id="c.UV_E2BIG">
+<code class="sig-name descname">UV_E2BIG</code><a class="headerlink" href="#c.UV_E2BIG" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>argument list too long</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EACCES">
+<code class="sig-name descname">UV_EACCES</code><a class="headerlink" href="#c.UV_EACCES" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>permission denied</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EADDRINUSE">
+<code class="sig-name descname">UV_EADDRINUSE</code><a class="headerlink" href="#c.UV_EADDRINUSE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>address already in use</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EADDRNOTAVAIL">
+<code class="sig-name descname">UV_EADDRNOTAVAIL</code><a class="headerlink" href="#c.UV_EADDRNOTAVAIL" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>address not available</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EAFNOSUPPORT">
+<code class="sig-name descname">UV_EAFNOSUPPORT</code><a class="headerlink" href="#c.UV_EAFNOSUPPORT" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>address family not supported</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EAGAIN">
+<code class="sig-name descname">UV_EAGAIN</code><a class="headerlink" href="#c.UV_EAGAIN" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>resource temporarily unavailable</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EAI_ADDRFAMILY">
+<code class="sig-name descname">UV_EAI_ADDRFAMILY</code><a class="headerlink" href="#c.UV_EAI_ADDRFAMILY" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>address family not supported</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EAI_AGAIN">
+<code class="sig-name descname">UV_EAI_AGAIN</code><a class="headerlink" href="#c.UV_EAI_AGAIN" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>temporary failure</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EAI_BADFLAGS">
+<code class="sig-name descname">UV_EAI_BADFLAGS</code><a class="headerlink" href="#c.UV_EAI_BADFLAGS" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>bad ai_flags value</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EAI_BADHINTS">
+<code class="sig-name descname">UV_EAI_BADHINTS</code><a class="headerlink" href="#c.UV_EAI_BADHINTS" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>invalid value for hints</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EAI_CANCELED">
+<code class="sig-name descname">UV_EAI_CANCELED</code><a class="headerlink" href="#c.UV_EAI_CANCELED" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>request canceled</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EAI_FAIL">
+<code class="sig-name descname">UV_EAI_FAIL</code><a class="headerlink" href="#c.UV_EAI_FAIL" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>permanent failure</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EAI_FAMILY">
+<code class="sig-name descname">UV_EAI_FAMILY</code><a class="headerlink" href="#c.UV_EAI_FAMILY" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>ai_family not supported</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EAI_MEMORY">
+<code class="sig-name descname">UV_EAI_MEMORY</code><a class="headerlink" href="#c.UV_EAI_MEMORY" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>out of memory</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EAI_NODATA">
+<code class="sig-name descname">UV_EAI_NODATA</code><a class="headerlink" href="#c.UV_EAI_NODATA" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>no address</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EAI_NONAME">
+<code class="sig-name descname">UV_EAI_NONAME</code><a class="headerlink" href="#c.UV_EAI_NONAME" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>unknown node or service</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EAI_OVERFLOW">
+<code class="sig-name descname">UV_EAI_OVERFLOW</code><a class="headerlink" href="#c.UV_EAI_OVERFLOW" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>argument buffer overflow</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EAI_PROTOCOL">
+<code class="sig-name descname">UV_EAI_PROTOCOL</code><a class="headerlink" href="#c.UV_EAI_PROTOCOL" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>resolved protocol is unknown</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EAI_SERVICE">
+<code class="sig-name descname">UV_EAI_SERVICE</code><a class="headerlink" href="#c.UV_EAI_SERVICE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>service not available for socket type</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EAI_SOCKTYPE">
+<code class="sig-name descname">UV_EAI_SOCKTYPE</code><a class="headerlink" href="#c.UV_EAI_SOCKTYPE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>socket type not supported</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EALREADY">
+<code class="sig-name descname">UV_EALREADY</code><a class="headerlink" href="#c.UV_EALREADY" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>connection already in progress</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EBADF">
+<code class="sig-name descname">UV_EBADF</code><a class="headerlink" href="#c.UV_EBADF" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>bad file descriptor</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EBUSY">
+<code class="sig-name descname">UV_EBUSY</code><a class="headerlink" href="#c.UV_EBUSY" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>resource busy or locked</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ECANCELED">
+<code class="sig-name descname">UV_ECANCELED</code><a class="headerlink" href="#c.UV_ECANCELED" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operation canceled</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ECHARSET">
+<code class="sig-name descname">UV_ECHARSET</code><a class="headerlink" href="#c.UV_ECHARSET" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>invalid Unicode character</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ECONNABORTED">
+<code class="sig-name descname">UV_ECONNABORTED</code><a class="headerlink" href="#c.UV_ECONNABORTED" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>software caused connection abort</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ECONNREFUSED">
+<code class="sig-name descname">UV_ECONNREFUSED</code><a class="headerlink" href="#c.UV_ECONNREFUSED" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>connection refused</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ECONNRESET">
+<code class="sig-name descname">UV_ECONNRESET</code><a class="headerlink" href="#c.UV_ECONNRESET" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>connection reset by peer</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EDESTADDRREQ">
+<code class="sig-name descname">UV_EDESTADDRREQ</code><a class="headerlink" href="#c.UV_EDESTADDRREQ" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>destination address required</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EEXIST">
+<code class="sig-name descname">UV_EEXIST</code><a class="headerlink" href="#c.UV_EEXIST" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>file already exists</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EFAULT">
+<code class="sig-name descname">UV_EFAULT</code><a class="headerlink" href="#c.UV_EFAULT" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>bad address in system call argument</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EFBIG">
+<code class="sig-name descname">UV_EFBIG</code><a class="headerlink" href="#c.UV_EFBIG" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>file too large</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EHOSTUNREACH">
+<code class="sig-name descname">UV_EHOSTUNREACH</code><a class="headerlink" href="#c.UV_EHOSTUNREACH" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>host is unreachable</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EINTR">
+<code class="sig-name descname">UV_EINTR</code><a class="headerlink" href="#c.UV_EINTR" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>interrupted system call</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EINVAL">
+<code class="sig-name descname">UV_EINVAL</code><a class="headerlink" href="#c.UV_EINVAL" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>invalid argument</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EIO">
+<code class="sig-name descname">UV_EIO</code><a class="headerlink" href="#c.UV_EIO" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>i/o error</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EISCONN">
+<code class="sig-name descname">UV_EISCONN</code><a class="headerlink" href="#c.UV_EISCONN" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>socket is already connected</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EISDIR">
+<code class="sig-name descname">UV_EISDIR</code><a class="headerlink" href="#c.UV_EISDIR" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>illegal operation on a directory</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ELOOP">
+<code class="sig-name descname">UV_ELOOP</code><a class="headerlink" href="#c.UV_ELOOP" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>too many symbolic links encountered</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EMFILE">
+<code class="sig-name descname">UV_EMFILE</code><a class="headerlink" href="#c.UV_EMFILE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>too many open files</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EMSGSIZE">
+<code class="sig-name descname">UV_EMSGSIZE</code><a class="headerlink" href="#c.UV_EMSGSIZE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>message too long</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENAMETOOLONG">
+<code class="sig-name descname">UV_ENAMETOOLONG</code><a class="headerlink" href="#c.UV_ENAMETOOLONG" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>name too long</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENETDOWN">
+<code class="sig-name descname">UV_ENETDOWN</code><a class="headerlink" href="#c.UV_ENETDOWN" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>network is down</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENETUNREACH">
+<code class="sig-name descname">UV_ENETUNREACH</code><a class="headerlink" href="#c.UV_ENETUNREACH" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>network is unreachable</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENFILE">
+<code class="sig-name descname">UV_ENFILE</code><a class="headerlink" href="#c.UV_ENFILE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>file table overflow</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENOBUFS">
+<code class="sig-name descname">UV_ENOBUFS</code><a class="headerlink" href="#c.UV_ENOBUFS" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>no buffer space available</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENODEV">
+<code class="sig-name descname">UV_ENODEV</code><a class="headerlink" href="#c.UV_ENODEV" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>no such device</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENOENT">
+<code class="sig-name descname">UV_ENOENT</code><a class="headerlink" href="#c.UV_ENOENT" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>no such file or directory</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENOMEM">
+<code class="sig-name descname">UV_ENOMEM</code><a class="headerlink" href="#c.UV_ENOMEM" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>not enough memory</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENONET">
+<code class="sig-name descname">UV_ENONET</code><a class="headerlink" href="#c.UV_ENONET" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>machine is not on the network</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENOPROTOOPT">
+<code class="sig-name descname">UV_ENOPROTOOPT</code><a class="headerlink" href="#c.UV_ENOPROTOOPT" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>protocol not available</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENOSPC">
+<code class="sig-name descname">UV_ENOSPC</code><a class="headerlink" href="#c.UV_ENOSPC" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>no space left on device</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENOSYS">
+<code class="sig-name descname">UV_ENOSYS</code><a class="headerlink" href="#c.UV_ENOSYS" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>function not implemented</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENOTCONN">
+<code class="sig-name descname">UV_ENOTCONN</code><a class="headerlink" href="#c.UV_ENOTCONN" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>socket is not connected</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENOTDIR">
+<code class="sig-name descname">UV_ENOTDIR</code><a class="headerlink" href="#c.UV_ENOTDIR" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>not a directory</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENOTEMPTY">
+<code class="sig-name descname">UV_ENOTEMPTY</code><a class="headerlink" href="#c.UV_ENOTEMPTY" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>directory not empty</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENOTSOCK">
+<code class="sig-name descname">UV_ENOTSOCK</code><a class="headerlink" href="#c.UV_ENOTSOCK" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>socket operation on non-socket</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENOTSUP">
+<code class="sig-name descname">UV_ENOTSUP</code><a class="headerlink" href="#c.UV_ENOTSUP" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operation not supported on socket</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EPERM">
+<code class="sig-name descname">UV_EPERM</code><a class="headerlink" href="#c.UV_EPERM" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>operation not permitted</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EPIPE">
+<code class="sig-name descname">UV_EPIPE</code><a class="headerlink" href="#c.UV_EPIPE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>broken pipe</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EPROTO">
+<code class="sig-name descname">UV_EPROTO</code><a class="headerlink" href="#c.UV_EPROTO" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>protocol error</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EPROTONOSUPPORT">
+<code class="sig-name descname">UV_EPROTONOSUPPORT</code><a class="headerlink" href="#c.UV_EPROTONOSUPPORT" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>protocol not supported</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EPROTOTYPE">
+<code class="sig-name descname">UV_EPROTOTYPE</code><a class="headerlink" href="#c.UV_EPROTOTYPE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>protocol wrong type for socket</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ERANGE">
+<code class="sig-name descname">UV_ERANGE</code><a class="headerlink" href="#c.UV_ERANGE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>result too large</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EROFS">
+<code class="sig-name descname">UV_EROFS</code><a class="headerlink" href="#c.UV_EROFS" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>read-only file system</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ESHUTDOWN">
+<code class="sig-name descname">UV_ESHUTDOWN</code><a class="headerlink" href="#c.UV_ESHUTDOWN" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>cannot send after transport endpoint shutdown</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ESPIPE">
+<code class="sig-name descname">UV_ESPIPE</code><a class="headerlink" href="#c.UV_ESPIPE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>invalid seek</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ESRCH">
+<code class="sig-name descname">UV_ESRCH</code><a class="headerlink" href="#c.UV_ESRCH" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>no such process</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ETIMEDOUT">
+<code class="sig-name descname">UV_ETIMEDOUT</code><a class="headerlink" href="#c.UV_ETIMEDOUT" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>connection timed out</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ETXTBSY">
+<code class="sig-name descname">UV_ETXTBSY</code><a class="headerlink" href="#c.UV_ETXTBSY" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>text file is busy</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EXDEV">
+<code class="sig-name descname">UV_EXDEV</code><a class="headerlink" href="#c.UV_EXDEV" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>cross-device link not permitted</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_UNKNOWN">
+<code class="sig-name descname">UV_UNKNOWN</code><a class="headerlink" href="#c.UV_UNKNOWN" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>unknown error</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EOF">
+<code class="sig-name descname">UV_EOF</code><a class="headerlink" href="#c.UV_EOF" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>end of file</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_ENXIO">
+<code class="sig-name descname">UV_ENXIO</code><a class="headerlink" href="#c.UV_ENXIO" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>no such device or address</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt id="c.UV_EMLINK">
+<code class="sig-name descname">UV_EMLINK</code><a class="headerlink" href="#c.UV_EMLINK" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>too many links</p>
+</dd></dl>
+
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<dl class="c function">
+<dt>
+<code class="sig-name descname">UV_ERRNO_MAP(iter_macro)</code></dt>
+<dd><p>Macro that expands to a series of invocations of <cite>iter_macro</cite> for
+each of the error constants above. <cite>iter_macro</cite> is invoked with two
+arguments: the name of the error constant without the <cite>UV_</cite> prefix,
+and the error message string literal.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_strerror">
+<em class="property">const</em> char *<code class="sig-name descname">uv_strerror</code><span class="sig-paren">(</span>int <em>err</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_strerror" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the error message for the given error code.  Leaks a few bytes
+of memory when you call it with an unknown error code.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_strerror_r">
+char *<code class="sig-name descname">uv_strerror_r</code><span class="sig-paren">(</span>int <em>err</em>, char *<em>buf</em>, size_t <em>buflen</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_strerror_r" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the error message for the given error code. The zero-terminated
+message is stored in the user-supplied buffer <cite>buf</cite> of at most <cite>buflen</cite> bytes.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.22.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_err_name">
+<em class="property">const</em> char *<code class="sig-name descname">uv_err_name</code><span class="sig-paren">(</span>int <em>err</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_err_name" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the error name for the given error code.  Leaks a few bytes
+of memory when you call it with an unknown error code.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_err_name_r">
+char *<code class="sig-name descname">uv_err_name_r</code><span class="sig-paren">(</span>int <em>err</em>, char *<em>buf</em>, size_t <em>buflen</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_err_name_r" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the error name for the given error code. The zero-terminated
+name is stored in the user-supplied buffer <cite>buf</cite> of at most <cite>buflen</cite> bytes.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.22.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_translate_sys_error">
+int <code class="sig-name descname">uv_translate_sys_error</code><span class="sig-paren">(</span>int <em>sys_errno</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_translate_sys_error" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the libuv error code equivalent to the given platform dependent error
+code: POSIX error codes on Unix (the ones stored in <cite>errno</cite>), and Win32 error
+codes on Windows (those returned by <cite>GetLastError()</cite> or <cite>WSAGetLastError()</cite>).</p>
+<p>If <cite>sys_errno</cite> is already a libuv error, it is simply returned.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.10.0: </span>function declared public.</p>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Error handling</a><ul>
+<li><a class="reference internal" href="#error-constants">Error constants</a></li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="api.html"
+                        title="previous chapter">API documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="version.html"
+                        title="next chapter">Version-checking macros and functions</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/errors.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="version.html" title="Version-checking macros and functions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="API documentation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" >API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Error handling</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

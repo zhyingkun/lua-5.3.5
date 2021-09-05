@@ -1,0 +1,749 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Threads &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Processes" href="processes.html" />
+    <link rel="prev" title="Networking" href="networking.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="processes.html" title="Processes"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="networking.html" title="Networking"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../guide.html" accesskey="U">User guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Threads</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="threads">
+<h1>Threads<a class="headerlink" href="#threads" title="Permalink to this headline">¶</a></h1>
+<p>Wait a minute? Why are we on threads? Aren’t event loops supposed to be <strong>the
+way</strong> to do <em>web-scale programming</em>? Well… no. Threads are still the medium in
+which processors do their jobs. Threads are therefore mighty useful sometimes, even
+though you might have to wade through various synchronization primitives.</p>
+<p>Threads are used internally to fake the asynchronous nature of all of the system
+calls. libuv also uses threads to allow you, the application, to perform a task
+asynchronously that is actually blocking, by spawning a thread and collecting
+the result when it is done.</p>
+<p>Today there are two predominant thread libraries: the Windows threads
+implementation and POSIX’s <a class="reference external" href="http://man7.org/linux/man-pages/man7/pthreads.7.html">pthreads</a>. libuv’s thread API is analogous to
+the pthreads API and often has similar semantics.</p>
+<p>A notable aspect of libuv’s thread facilities is that it is a self contained
+section within libuv. Whereas other features intimately depend on the event
+loop and callback principles, threads are complete agnostic, they block as
+required, signal errors directly via return values, and, as shown in the
+<a class="reference internal" href="#thread-create-example"><span class="std std-ref">first example</span></a>, don’t even require a running
+event loop.</p>
+<p>libuv’s thread API is also very limited since the semantics and syntax of
+threads are different on all platforms, with different levels of completeness.</p>
+<p>This chapter makes the following assumption: <strong>There is only one event loop,
+running in one thread (the main thread)</strong>. No other thread interacts
+with the event loop (except using <code class="docutils literal notranslate"><span class="pre">uv_async_send</span></code>).</p>
+<div class="section" id="core-thread-operations">
+<h2>Core thread operations<a class="headerlink" href="#core-thread-operations" title="Permalink to this headline">¶</a></h2>
+<p>There isn’t much here, you just start a thread using <code class="docutils literal notranslate"><span class="pre">uv_thread_create()</span></code> and
+wait for it to close using <code class="docutils literal notranslate"><span class="pre">uv_thread_join()</span></code>.</p>
+<p class="rubric" id="thread-create-example">thread-create/main.c</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nb">int</span> <span class="n">tracklen</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+<span class="hll">    <span class="n">uv_thread_t</span> <span class="n">hare_id</span><span class="p">;</span>
+</span><span class="hll">    <span class="n">uv_thread_t</span> <span class="n">tortoise_id</span><span class="p">;</span>
+</span><span class="hll">    <span class="n">uv_thread_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">hare_id</span><span class="p">,</span> <span class="n">hare</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">tracklen</span><span class="p">);</span>
+</span><span class="hll">    <span class="n">uv_thread_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tortoise_id</span><span class="p">,</span> <span class="n">tortoise</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">tracklen</span><span class="p">);</span>
+</span><span class="hll">
+</span>    <span class="n">uv_thread_join</span><span class="p">(</span><span class="o">&amp;</span><span class="n">hare_id</span><span class="p">);</span>
+    <span class="n">uv_thread_join</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tortoise_id</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><code class="docutils literal notranslate"><span class="pre">uv_thread_t</span></code> is just an alias for <code class="docutils literal notranslate"><span class="pre">pthread_t</span></code> on Unix, but this is an
+implementation detail, avoid depending on it to always be true.</p>
+</div>
+<p>The second parameter is the function which will serve as the entry point for
+the thread, the last parameter is a <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code> argument which can be used to pass
+custom parameters to the thread. The function <code class="docutils literal notranslate"><span class="pre">hare</span></code> will now run in a separate
+thread, scheduled pre-emptively by the operating system:</p>
+<p class="rubric">thread-create/main.c</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">hare</span><span class="p">(</span><span class="n">void</span> <span class="o">*</span><span class="n">arg</span><span class="p">)</span> <span class="p">{</span>
+<span class="hll">    <span class="nb">int</span> <span class="n">tracklen</span> <span class="o">=</span> <span class="o">*</span><span class="p">((</span><span class="nb">int</span> <span class="o">*</span><span class="p">)</span> <span class="n">arg</span><span class="p">);</span>
+</span>    <span class="k">while</span> <span class="p">(</span><span class="n">tracklen</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">tracklen</span><span class="o">--</span><span class="p">;</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s2">&quot;Hare ran another step</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s2">&quot;Hare done running!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>Unlike <code class="docutils literal notranslate"><span class="pre">pthread_join()</span></code> which allows the target thread to pass back a value to
+the calling thread using a second parameter, <code class="docutils literal notranslate"><span class="pre">uv_thread_join()</span></code> does not. To
+send values use <a class="reference internal" href="#inter-thread-communication"><span class="std std-ref">Inter-thread communication</span></a>.</p>
+</div>
+<div class="section" id="synchronization-primitives">
+<h2>Synchronization Primitives<a class="headerlink" href="#synchronization-primitives" title="Permalink to this headline">¶</a></h2>
+<p>This section is purposely spartan. This book is not about threads, so I only
+catalogue any surprises in the libuv APIs here. For the rest you can look at
+the pthreads <a class="reference external" href="pthreads">man pages</a>.</p>
+<div class="section" id="mutexes">
+<h3>Mutexes<a class="headerlink" href="#mutexes" title="Permalink to this headline">¶</a></h3>
+<p>The mutex functions are a <strong>direct</strong> map to the pthread equivalents.</p>
+<p class="rubric">libuv mutex functions</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>                                <span class="n">char</span><span class="o">*</span> <span class="n">buffer</span><span class="p">,</span>
+                                <span class="n">size_t</span><span class="o">*</span> <span class="n">size</span><span class="p">);</span>
+<span class="n">UV_EXTERN</span> <span class="nb">int</span> <span class="n">uv_if_indextoiid</span><span class="p">(</span><span class="n">unsigned</span> <span class="nb">int</span> <span class="n">ifindex</span><span class="p">,</span>
+                               <span class="n">char</span><span class="o">*</span> <span class="n">buffer</span><span class="p">,</span>
+                               <span class="n">size_t</span><span class="o">*</span> <span class="n">size</span><span class="p">);</span>
+
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">uv_mutex_init()</span></code>, <code class="docutils literal notranslate"><span class="pre">uv_mutex_init_recursive()</span></code> and <code class="docutils literal notranslate"><span class="pre">uv_mutex_trylock()</span></code>
+functions will return 0 on success, and an error code otherwise.</p>
+<p>If <cite>libuv</cite> has been compiled with debugging enabled, <code class="docutils literal notranslate"><span class="pre">uv_mutex_destroy()</span></code>,
+<code class="docutils literal notranslate"><span class="pre">uv_mutex_lock()</span></code> and <code class="docutils literal notranslate"><span class="pre">uv_mutex_unlock()</span></code> will <code class="docutils literal notranslate"><span class="pre">abort()</span></code> on error.
+Similarly <code class="docutils literal notranslate"><span class="pre">uv_mutex_trylock()</span></code> will abort if the error is anything <em>other
+than</em> <code class="docutils literal notranslate"><span class="pre">EAGAIN</span></code> or <code class="docutils literal notranslate"><span class="pre">EBUSY</span></code>.</p>
+<p>Recursive mutexes are supported, but you should not rely on them. Also, they
+should not be used with <code class="docutils literal notranslate"><span class="pre">uv_cond_t</span></code> variables.</p>
+<p>The default BSD mutex implementation will raise an error if a thread which has
+locked a mutex attempts to lock it again. For example, a construct like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv_mutex_init</span><span class="p">(</span><span class="n">a_mutex</span><span class="p">);</span>
+<span class="n">uv_mutex_lock</span><span class="p">(</span><span class="n">a_mutex</span><span class="p">);</span>
+<span class="n">uv_thread_create</span><span class="p">(</span><span class="n">thread_id</span><span class="p">,</span> <span class="n">entry</span><span class="p">,</span> <span class="p">(</span><span class="n">void</span> <span class="o">*</span><span class="p">)</span><span class="n">a_mutex</span><span class="p">);</span>
+<span class="n">uv_mutex_lock</span><span class="p">(</span><span class="n">a_mutex</span><span class="p">);</span>
+<span class="o">//</span> <span class="n">more</span> <span class="n">things</span> <span class="n">here</span>
+</pre></div>
+</div>
+<p>can be used to wait until another thread initializes some stuff and then
+unlocks <code class="docutils literal notranslate"><span class="pre">a_mutex</span></code> but will lead to your program crashing if in debug mode, or
+return an error in the second call to <code class="docutils literal notranslate"><span class="pre">uv_mutex_lock()</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Mutexes on Windows are always recursive.</p>
+</div>
+</div>
+<div class="section" id="locks">
+<h3>Locks<a class="headerlink" href="#locks" title="Permalink to this headline">¶</a></h3>
+<p>Read-write locks are a more granular access mechanism. Two readers can access
+shared memory at the same time. A writer may not acquire the lock when it is
+held by a reader. A reader or writer may not acquire a lock when a writer is
+holding it. Read-write locks are frequently used in databases. Here is a toy
+example.</p>
+<p class="rubric">locks/main.c - simple rwlocks</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1">#include &lt;stdio.h&gt;</span>
+<span class="c1">#include &lt;uv.h&gt;</span>
+
+<span class="n">uv_barrier_t</span> <span class="n">blocker</span><span class="p">;</span>
+<span class="n">uv_rwlock_t</span> <span class="n">numlock</span><span class="p">;</span>
+<span class="nb">int</span> <span class="n">shared_num</span><span class="p">;</span>
+
+<span class="n">void</span> <span class="n">reader</span><span class="p">(</span><span class="n">void</span> <span class="o">*</span><span class="n">n</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="nb">int</span> <span class="n">num</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="nb">int</span> <span class="o">*</span><span class="p">)</span><span class="n">n</span><span class="p">;</span>
+    <span class="nb">int</span> <span class="n">i</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+<span class="hll">        <span class="n">uv_rwlock_rdlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">numlock</span><span class="p">);</span>
+</span>        <span class="n">printf</span><span class="p">(</span><span class="s2">&quot;Reader </span><span class="si">%d</span><span class="s2">: acquired lock</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">num</span><span class="p">);</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s2">&quot;Reader </span><span class="si">%d</span><span class="s2">: shared num = </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">shared_num</span><span class="p">);</span>
+<span class="hll">        <span class="n">uv_rwlock_rdunlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">numlock</span><span class="p">);</span>
+</span>        <span class="n">printf</span><span class="p">(</span><span class="s2">&quot;Reader </span><span class="si">%d</span><span class="s2">: released lock</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">num</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="n">uv_barrier_wait</span><span class="p">(</span><span class="o">&amp;</span><span class="n">blocker</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">void</span> <span class="n">writer</span><span class="p">(</span><span class="n">void</span> <span class="o">*</span><span class="n">n</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="nb">int</span> <span class="n">num</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="nb">int</span> <span class="o">*</span><span class="p">)</span><span class="n">n</span><span class="p">;</span>
+    <span class="nb">int</span> <span class="n">i</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+<span class="hll">        <span class="n">uv_rwlock_wrlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">numlock</span><span class="p">);</span>
+</span>        <span class="n">printf</span><span class="p">(</span><span class="s2">&quot;Writer </span><span class="si">%d</span><span class="s2">: acquired lock</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">num</span><span class="p">);</span>
+        <span class="n">shared_num</span><span class="o">++</span><span class="p">;</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s2">&quot;Writer </span><span class="si">%d</span><span class="s2">: incremented shared num = </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">shared_num</span><span class="p">);</span>
+<span class="hll">        <span class="n">uv_rwlock_wrunlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">numlock</span><span class="p">);</span>
+</span>        <span class="n">printf</span><span class="p">(</span><span class="s2">&quot;Writer </span><span class="si">%d</span><span class="s2">: released lock</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">num</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="n">uv_barrier_wait</span><span class="p">(</span><span class="o">&amp;</span><span class="n">blocker</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="nb">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="n">uv_barrier_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">blocker</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
+
+    <span class="n">shared_num</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="hll">    <span class="n">uv_rwlock_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">numlock</span><span class="p">);</span>
+</span>
+    <span class="n">uv_thread_t</span> <span class="n">threads</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+
+    <span class="nb">int</span> <span class="n">thread_nums</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">};</span>
+    <span class="n">uv_thread_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">threads</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">reader</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">thread_nums</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+    <span class="n">uv_thread_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">threads</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reader</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">thread_nums</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+
+    <span class="n">uv_thread_create</span><span class="p">(</span><span class="o">&amp;</span><span class="n">threads</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">writer</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">thread_nums</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+
+    <span class="n">uv_barrier_wait</span><span class="p">(</span><span class="o">&amp;</span><span class="n">blocker</span><span class="p">);</span>
+    <span class="n">uv_barrier_destroy</span><span class="p">(</span><span class="o">&amp;</span><span class="n">blocker</span><span class="p">);</span>
+
+<span class="hll">    <span class="n">uv_rwlock_destroy</span><span class="p">(</span><span class="o">&amp;</span><span class="n">numlock</span><span class="p">);</span>
+</span>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>Run this and observe how the readers will sometimes overlap. In case of
+multiple writers, schedulers will usually give them higher priority, so if you
+add two writers, you’ll see that both writers tend to finish first before the
+readers get a chance again.</p>
+<p>We also use barriers in the above example so that the main thread can wait for
+all readers and writers to indicate they have ended.</p>
+</div>
+<div class="section" id="others">
+<h3>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h3>
+<p>libuv also supports <a class="reference external" href="http://en.wikipedia.org/wiki/Semaphore_(programming)">semaphores</a>, <a class="reference external" href="http://en.wikipedia.org/wiki/Condition_variable#Waiting_and_signaling">condition variables</a> and <a class="reference external" href="http://en.wikipedia.org/wiki/Barrier_(computer_science)">barriers</a> with APIs
+very similar to their pthread counterparts.</p>
+<p>In addition, libuv provides a convenience function <code class="docutils literal notranslate"><span class="pre">uv_once()</span></code>. Multiple
+threads can attempt to call <code class="docutils literal notranslate"><span class="pre">uv_once()</span></code> with a given guard and a function
+pointer, <strong>only the first one will win, the function will be called once and
+only once</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/*</span> <span class="n">Initialize</span> <span class="n">guard</span> <span class="o">*/</span>
+<span class="n">static</span> <span class="n">uv_once_t</span> <span class="n">once_only</span> <span class="o">=</span> <span class="n">UV_ONCE_INIT</span><span class="p">;</span>
+
+<span class="nb">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="n">void</span> <span class="n">increment</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">i</span><span class="o">++</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">void</span> <span class="n">thread1</span><span class="p">()</span> <span class="p">{</span>
+    <span class="o">/*</span> <span class="o">...</span> <span class="n">work</span> <span class="o">*/</span>
+    <span class="n">uv_once</span><span class="p">(</span><span class="n">once_only</span><span class="p">,</span> <span class="n">increment</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">void</span> <span class="n">thread2</span><span class="p">()</span> <span class="p">{</span>
+    <span class="o">/*</span> <span class="o">...</span> <span class="n">work</span> <span class="o">*/</span>
+    <span class="n">uv_once</span><span class="p">(</span><span class="n">once_only</span><span class="p">,</span> <span class="n">increment</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="nb">int</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="o">/*</span> <span class="o">...</span> <span class="n">spawn</span> <span class="n">threads</span> <span class="o">*/</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>After all threads are done, <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">==</span> <span class="pre">1</span></code>.</p>
+<p id="libuv-work-queue">libuv v0.11.11 onwards also added a <code class="docutils literal notranslate"><span class="pre">uv_key_t</span></code> struct and <a class="reference external" href="http://docs.libuv.org/en/v1.x/threading.html#thread-local-storage">api</a> for
+thread-local storage.</p>
+</div>
+</div>
+<div class="section" id="id1">
+<h2>libuv work queue<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">uv_queue_work()</span></code> is a convenience function that allows an application to run
+a task in a separate thread, and have a callback that is triggered when the
+task is done. A seemingly simple function, what makes <code class="docutils literal notranslate"><span class="pre">uv_queue_work()</span></code>
+tempting is that it allows potentially any third-party libraries to be used
+with the event-loop paradigm. When you use event loops, it is <em>imperative to
+make sure that no function which runs periodically in the loop thread blocks
+when performing I/O or is a serious CPU hog</em>, because this means that the loop
+slows down and events are not being handled at full capacity.</p>
+<p>However, a lot of existing code out there features blocking functions (for example
+a routine which performs I/O under the hood) to be used with threads if you
+want responsiveness (the classic ‘one thread per client’ server model), and
+getting them to play with an event loop library generally involves rolling your
+own system of running the task in a separate thread.  libuv just provides
+a convenient abstraction for this.</p>
+<p>Here is a simple example inspired by <a class="reference external" href="http://teddziuba.github.io/2011/10/node-js-is-cancer.html">node.js is cancer</a>. We are going to
+calculate fibonacci numbers, sleeping a bit along the way, but run it in
+a separate thread so that the blocking and CPU bound task does not prevent the
+event loop from performing other activities.</p>
+<p class="rubric">queue-work/main.c - lazy fibonacci</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">fib</span><span class="p">(</span><span class="n">uv_work_t</span> <span class="o">*</span><span class="n">req</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nb">int</span> <span class="n">n</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="nb">int</span> <span class="o">*</span><span class="p">)</span> <span class="n">req</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">random</span><span class="p">()</span> <span class="o">%</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="k">else</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
+    <span class="n">long</span> <span class="n">fib</span> <span class="o">=</span> <span class="n">fib_</span><span class="p">(</span><span class="n">n</span><span class="p">);</span>
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">th fibonacci is </span><span class="si">%lu</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">fib</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">void</span> <span class="n">after_fib</span><span class="p">(</span><span class="n">uv_work_t</span> <span class="o">*</span><span class="n">req</span><span class="p">,</span> <span class="nb">int</span> <span class="n">status</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s2">&quot;Done calculating </span><span class="si">%d</span><span class="s2">th fibonacci</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="nb">int</span> <span class="o">*</span><span class="p">)</span> <span class="n">req</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>The actual task function is simple, nothing to show that it is going to be
+run in a separate thread. The <code class="docutils literal notranslate"><span class="pre">uv_work_t</span></code> structure is the clue. You can pass
+arbitrary data through it using the <code class="docutils literal notranslate"><span class="pre">void*</span> <span class="pre">data</span></code> field and use it to
+communicate to and from the thread. But be sure you are using proper locks if
+you are changing things while both threads may be running.</p>
+<p>The trigger is <code class="docutils literal notranslate"><span class="pre">uv_queue_work</span></code>:</p>
+<p class="rubric">queue-work/main.c</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">loop</span> <span class="o">=</span> <span class="n">uv_default_loop</span><span class="p">();</span>
+
+    <span class="nb">int</span> <span class="n">data</span><span class="p">[</span><span class="n">FIB_UNTIL</span><span class="p">];</span>
+    <span class="n">uv_work_t</span> <span class="n">req</span><span class="p">[</span><span class="n">FIB_UNTIL</span><span class="p">];</span>
+    <span class="nb">int</span> <span class="n">i</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">FIB_UNTIL</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+        <span class="n">req</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">void</span> <span class="o">*</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="hll">        <span class="n">uv_queue_work</span><span class="p">(</span><span class="n">loop</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">req</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">fib</span><span class="p">,</span> <span class="n">after_fib</span><span class="p">);</span>
+</span>    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">uv_run</span><span class="p">(</span><span class="n">loop</span><span class="p">,</span> <span class="n">UV_RUN_DEFAULT</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>The thread function will be launched in a separate thread, passed the
+<code class="docutils literal notranslate"><span class="pre">uv_work_t</span></code> structure and once the function returns, the <em>after</em> function
+will be called on the thread the event loop is running in. It will be passed
+the same structure.</p>
+<p>For writing wrappers to blocking libraries, a common <a class="reference internal" href="utilities.html#baton"><span class="std std-ref">pattern</span></a>
+is to use a baton to exchange data.</p>
+<p>Since libuv version <cite>0.9.4</cite> an additional function, <code class="docutils literal notranslate"><span class="pre">uv_cancel()</span></code>, is
+available. This allows you to cancel tasks on the libuv work queue. Only tasks
+that <em>are yet to be started</em> can be cancelled. If a task has <em>already started
+executing, or it has finished executing</em>, <code class="docutils literal notranslate"><span class="pre">uv_cancel()</span></code> <strong>will fail</strong>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">uv_cancel()</span></code> is useful to cleanup pending tasks if the user requests
+termination. For example, a music player may queue up multiple directories to
+be scanned for audio files. If the user terminates the program, it should quit
+quickly and not wait until all pending requests are run.</p>
+<p>Let’s modify the fibonacci example to demonstrate <code class="docutils literal notranslate"><span class="pre">uv_cancel()</span></code>. We first set
+up a signal handler for termination.</p>
+<p class="rubric">queue-cancel/main.c</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">loop</span> <span class="o">=</span> <span class="n">uv_default_loop</span><span class="p">();</span>
+
+    <span class="nb">int</span> <span class="n">data</span><span class="p">[</span><span class="n">FIB_UNTIL</span><span class="p">];</span>
+    <span class="nb">int</span> <span class="n">i</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">FIB_UNTIL</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+        <span class="n">fib_reqs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">void</span> <span class="o">*</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+        <span class="n">uv_queue_work</span><span class="p">(</span><span class="n">loop</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">fib_reqs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">fib</span><span class="p">,</span> <span class="n">after_fib</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="n">uv_signal_t</span> <span class="n">sig</span><span class="p">;</span>
+    <span class="n">uv_signal_init</span><span class="p">(</span><span class="n">loop</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">sig</span><span class="p">);</span>
+    <span class="n">uv_signal_start</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sig</span><span class="p">,</span> <span class="n">signal_handler</span><span class="p">,</span> <span class="n">SIGINT</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="n">uv_run</span><span class="p">(</span><span class="n">loop</span><span class="p">,</span> <span class="n">UV_RUN_DEFAULT</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>When the user triggers the signal by pressing <code class="docutils literal notranslate"><span class="pre">Ctrl+C</span></code> we send
+<code class="docutils literal notranslate"><span class="pre">uv_cancel()</span></code> to all the workers. <code class="docutils literal notranslate"><span class="pre">uv_cancel()</span></code> will return <code class="docutils literal notranslate"><span class="pre">0</span></code> for those that are already executing or finished.</p>
+<p class="rubric">queue-cancel/main.c</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">signal_handler</span><span class="p">(</span><span class="n">uv_signal_t</span> <span class="o">*</span><span class="n">req</span><span class="p">,</span> <span class="nb">int</span> <span class="n">signum</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s2">&quot;Signal received!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">);</span>
+    <span class="nb">int</span> <span class="n">i</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">FIB_UNTIL</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+<span class="hll">        <span class="n">uv_cancel</span><span class="p">((</span><span class="n">uv_req_t</span><span class="o">*</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">fib_reqs</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+</span>    <span class="p">}</span>
+    <span class="n">uv_signal_stop</span><span class="p">(</span><span class="n">req</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>For tasks that do get cancelled successfully, the <em>after</em> function is called
+with <code class="docutils literal notranslate"><span class="pre">status</span></code> set to <code class="docutils literal notranslate"><span class="pre">UV_ECANCELED</span></code>.</p>
+<p class="rubric">queue-cancel/main.c</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">after_fib</span><span class="p">(</span><span class="n">uv_work_t</span> <span class="o">*</span><span class="n">req</span><span class="p">,</span> <span class="nb">int</span> <span class="n">status</span><span class="p">)</span> <span class="p">{</span>
+<span class="hll">    <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="n">UV_ECANCELED</span><span class="p">)</span>
+</span>        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s2">&quot;Calculation of </span><span class="si">%d</span><span class="s2"> cancelled.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="nb">int</span> <span class="o">*</span><span class="p">)</span> <span class="n">req</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p><code class="docutils literal notranslate"><span class="pre">uv_cancel()</span></code> can also be used with <code class="docutils literal notranslate"><span class="pre">uv_fs_t</span></code> and <code class="docutils literal notranslate"><span class="pre">uv_getaddrinfo_t</span></code>
+requests. For the filesystem family of functions, <code class="docutils literal notranslate"><span class="pre">uv_fs_t.errorno</span></code> will be
+set to <code class="docutils literal notranslate"><span class="pre">UV_ECANCELED</span></code>.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>A well designed program would have a way to terminate long running workers
+that have already started executing. Such a worker could periodically check
+for a variable that only the main process sets to signal termination.</p>
+</div>
+</div>
+<div class="section" id="inter-thread-communication">
+<span id="id2"></span><h2>Inter-thread communication<a class="headerlink" href="#inter-thread-communication" title="Permalink to this headline">¶</a></h2>
+<p>Sometimes you want various threads to actually send each other messages <em>while</em>
+they are running. For example you might be running some long duration task in
+a separate thread (perhaps using <code class="docutils literal notranslate"><span class="pre">uv_queue_work</span></code>) but want to notify progress
+to the main thread. This is a simple example of having a download manager
+informing the user of the status of running downloads.</p>
+<p class="rubric">progress/main.c</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="n">uv_loop_t</span> <span class="o">*</span><span class="n">loop</span><span class="p">;</span>
+<span class="hll"><span class="n">uv_async_t</span> <span class="k">async</span><span class="p">;</span>
+</span><span class="p">}</span>
+
+<span class="nb">int</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">loop</span> <span class="o">=</span> <span class="n">uv_default_loop</span><span class="p">();</span>
+
+    <span class="n">uv_work_t</span> <span class="n">req</span><span class="p">;</span>
+    <span class="nb">int</span> <span class="n">size</span> <span class="o">=</span> <span class="mi">10240</span><span class="p">;</span>
+    <span class="n">req</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">void</span><span class="o">*</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">size</span><span class="p">;</span>
+<span class="hll">
+</span>    <span class="n">uv_async_init</span><span class="p">(</span><span class="n">loop</span><span class="p">,</span> <span class="o">&amp;</span><span class="k">async</span><span class="p">,</span> <span class="n">print_progress</span><span class="p">);</span>
+    <span class="n">uv_queue_work</span><span class="p">(</span><span class="n">loop</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">req</span><span class="p">,</span> <span class="n">fake_download</span><span class="p">,</span> <span class="n">after</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="n">uv_run</span><span class="p">(</span><span class="n">loop</span><span class="p">,</span> <span class="n">UV_RUN_DEFAULT</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>The async thread communication works <em>on loops</em> so although any thread can be
+the message sender, only threads with libuv loops can be receivers (or rather
+the loop is the receiver). libuv will invoke the callback (<code class="docutils literal notranslate"><span class="pre">print_progress</span></code>)
+with the async watcher whenever it receives a message.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>It is important to realize that since the message send is <em>async</em>, the callback
+may be invoked immediately after <code class="docutils literal notranslate"><span class="pre">uv_async_send</span></code> is called in another
+thread, or it may be invoked after some time. libuv may also combine
+multiple calls to <code class="docutils literal notranslate"><span class="pre">uv_async_send</span></code> and invoke your callback only once. The
+only guarantee that libuv makes is – The callback function is called <em>at
+least once</em> after the call to <code class="docutils literal notranslate"><span class="pre">uv_async_send</span></code>. If you have no pending
+calls to <code class="docutils literal notranslate"><span class="pre">uv_async_send</span></code>, the callback won’t be called. If you make two
+or more calls, and libuv hasn’t had a chance to run the callback yet, it
+<em>may</em> invoke your callback <em>only once</em> for the multiple invocations of
+<code class="docutils literal notranslate"><span class="pre">uv_async_send</span></code>. Your callback will never be called twice for just one
+event.</p>
+</div>
+<p class="rubric">progress/main.c</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="n">double</span> <span class="n">percentage</span><span class="p">;</span>
+
+<span class="n">void</span> <span class="n">fake_download</span><span class="p">(</span><span class="n">uv_work_t</span> <span class="o">*</span><span class="n">req</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nb">int</span> <span class="n">size</span> <span class="o">=</span> <span class="o">*</span><span class="p">((</span><span class="nb">int</span><span class="o">*</span><span class="p">)</span> <span class="n">req</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">);</span>
+    <span class="nb">int</span> <span class="n">downloaded</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">downloaded</span> <span class="o">&lt;</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
+<span class="hll">        <span class="n">percentage</span> <span class="o">=</span> <span class="n">downloaded</span><span class="o">*</span><span class="mf">100.0</span><span class="o">/</span><span class="n">size</span><span class="p">;</span>
+</span><span class="hll">        <span class="k">async</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="n">void</span><span class="o">*</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">percentage</span><span class="p">;</span>
+</span>        <span class="n">uv_async_send</span><span class="p">(</span><span class="o">&amp;</span><span class="k">async</span><span class="p">);</span>
+
+        <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+        <span class="n">downloaded</span> <span class="o">+=</span> <span class="p">(</span><span class="mi">200</span><span class="o">+</span><span class="n">random</span><span class="p">())</span><span class="o">%</span><span class="mi">1000</span><span class="p">;</span> <span class="o">//</span> <span class="n">can</span> <span class="n">only</span> <span class="n">download</span> <span class="nb">max</span> <span class="mi">1000</span><span class="nb">bytes</span><span class="o">/</span><span class="n">sec</span><span class="p">,</span>
+                                           <span class="o">//</span> <span class="n">but</span> <span class="n">at</span> <span class="n">least</span> <span class="n">a</span> <span class="mi">200</span><span class="p">;</span>
+    <span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>In the download function, we modify the progress indicator and queue the message
+for delivery with <code class="docutils literal notranslate"><span class="pre">uv_async_send</span></code>. Remember: <code class="docutils literal notranslate"><span class="pre">uv_async_send</span></code> is also
+non-blocking and will return immediately.</p>
+<p class="rubric">progress/main.c</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span></span>
+<span class="n">void</span> <span class="n">print_progress</span><span class="p">(</span><span class="n">uv_async_t</span> <span class="o">*</span><span class="n">handle</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">double</span> <span class="n">percentage</span> <span class="o">=</span> <span class="o">*</span><span class="p">((</span><span class="n">double</span><span class="o">*</span><span class="p">)</span> <span class="n">handle</span><span class="o">-&gt;</span><span class="n">data</span><span class="p">);</span>
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s2">&quot;Downloaded </span><span class="si">%.2f%%</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">percentage</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+<p>The callback is a standard libuv pattern, extracting the data from the watcher.</p>
+<p>Finally it is important to remember to clean up the watcher.</p>
+<p class="rubric">progress/main.c</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span></span>
+<span class="n">void</span> <span class="n">after</span><span class="p">(</span><span class="n">uv_work_t</span> <span class="o">*</span><span class="n">req</span><span class="p">,</span> <span class="nb">int</span> <span class="n">status</span><span class="p">)</span> <span class="p">{</span>
+<span class="hll">    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s2">&quot;Download complete</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">);</span>
+</span>    <span class="n">uv_close</span><span class="p">((</span><span class="n">uv_handle_t</span><span class="o">*</span><span class="p">)</span> <span class="o">&amp;</span><span class="k">async</span><span class="p">,</span> <span class="n">NULL</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+<p>After this example, which showed the abuse of the <code class="docutils literal notranslate"><span class="pre">data</span></code> field, <a class="reference external" href="https://github.com/bnoordhuis">bnoordhuis</a>
+pointed out that using the <code class="docutils literal notranslate"><span class="pre">data</span></code> field is not thread safe, and
+<code class="docutils literal notranslate"><span class="pre">uv_async_send()</span></code> is actually only meant to wake up the event loop. Use
+a mutex or rwlock to ensure accesses are performed in the right order.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>mutexes and rwlocks <strong>DO NOT</strong> work inside a signal handler, whereas
+<code class="docutils literal notranslate"><span class="pre">uv_async_send</span></code> does.</p>
+</div>
+<p>One use case where <code class="docutils literal notranslate"><span class="pre">uv_async_send</span></code> is required is when interoperating with
+libraries that require thread affinity for their functionality. For example in
+node.js, a v8 engine instance, contexts and its objects are bound to the thread
+that the v8 instance was started in. Interacting with v8 data structures from
+another thread can lead to undefined results. Now consider some node.js module
+which binds a third party library. It may go something like this:</p>
+<ol class="arabic">
+<li><p>In node, the third party library is set up with a JavaScript callback to be
+invoked for more information:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">var</span> <span class="n">lib</span> <span class="o">=</span> <span class="n">require</span><span class="p">(</span><span class="s1">&#39;lib&#39;</span><span class="p">);</span>
+<span class="n">lib</span><span class="o">.</span><span class="n">on_progress</span><span class="p">(</span><span class="n">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">console</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;Progress&quot;</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="n">lib</span><span class="o">.</span><span class="n">do</span><span class="p">();</span>
+
+<span class="o">//</span> <span class="n">do</span> <span class="n">other</span> <span class="n">stuff</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lib.do</span></code> is supposed to be non-blocking but the third party lib is
+blocking, so the binding uses <code class="docutils literal notranslate"><span class="pre">uv_queue_work</span></code>.</p></li>
+<li><p>The actual work being done in a separate thread wants to invoke the progress
+callback, but cannot directly call into v8 to interact with JavaScript. So
+it uses <code class="docutils literal notranslate"><span class="pre">uv_async_send</span></code>.</p></li>
+<li><p>The async callback, invoked in the main loop thread, which is the v8 thread,
+then interacts with v8 to invoke the JavaScript callback.</p></li>
+</ol>
+<hr class="docutils" />
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Threads</a><ul>
+<li><a class="reference internal" href="#core-thread-operations">Core thread operations</a></li>
+<li><a class="reference internal" href="#synchronization-primitives">Synchronization Primitives</a><ul>
+<li><a class="reference internal" href="#mutexes">Mutexes</a></li>
+<li><a class="reference internal" href="#locks">Locks</a></li>
+<li><a class="reference internal" href="#others">Others</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id1">libuv work queue</a></li>
+<li><a class="reference internal" href="#inter-thread-communication">Inter-thread communication</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="networking.html"
+                        title="previous chapter">Networking</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="processes.html"
+                        title="next chapter">Processes</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/guide/threads.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="processes.html" title="Processes"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="networking.html" title="Networking"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../guide.html" >User guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Threads</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

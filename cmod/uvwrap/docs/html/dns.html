@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DNS utility functions &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Shared library handling" href="dll.html" />
+    <link rel="prev" title="Thread pool work scheduling" href="threadpool.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="dll.html" title="Shared library handling"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="threadpool.html" title="Thread pool work scheduling"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">DNS utility functions</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="dns-utility-functions">
+<span id="dns"></span><h1>DNS utility functions<a class="headerlink" href="#dns-utility-functions" title="Permalink to this headline">¶</a></h1>
+<p>libuv provides asynchronous variants of <cite>getaddrinfo</cite> and <cite>getnameinfo</cite>.</p>
+<div class="section" id="data-types">
+<h2>Data types<a class="headerlink" href="#data-types" title="Permalink to this headline">¶</a></h2>
+<dl class="c type">
+<dt id="c.uv_getaddrinfo_t">
+<em class="property">type </em><code class="sig-name descname">uv_getaddrinfo_t</code><a class="headerlink" href="#c.uv_getaddrinfo_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><cite>getaddrinfo</cite> request type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_getaddrinfo_cb">
+<em class="property">typedef </em>void (*<code class="sig-name descname">uv_getaddrinfo_cb</code>)<span class="sig-paren">(</span><a class="reference internal" href="#c.uv_getaddrinfo_t" title="uv_getaddrinfo_t">uv_getaddrinfo_t</a> *req, int status, <em class="property">struct</em> addrinfo *res<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_getaddrinfo_cb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Callback which will be called with the getaddrinfo request result once
+complete. In case it was cancelled, <cite>status</cite> will have a value of
+<code class="docutils literal notranslate"><span class="pre">UV_ECANCELED</span></code>.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_getnameinfo_t">
+<em class="property">type </em><code class="sig-name descname">uv_getnameinfo_t</code><a class="headerlink" href="#c.uv_getnameinfo_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><cite>getnameinfo</cite> request type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_getnameinfo_cb">
+<em class="property">typedef </em>void (*<code class="sig-name descname">uv_getnameinfo_cb</code>)<span class="sig-paren">(</span><a class="reference internal" href="#c.uv_getnameinfo_t" title="uv_getnameinfo_t">uv_getnameinfo_t</a> *req, int status, <em class="property">const</em> char *hostname, <em class="property">const</em> char *service<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_getnameinfo_cb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Callback which will be called with the getnameinfo request result once
+complete. In case it was cancelled, <cite>status</cite> will have a value of
+<code class="docutils literal notranslate"><span class="pre">UV_ECANCELED</span></code>.</p>
+</dd></dl>
+
+<div class="section" id="public-members">
+<h3>Public members<a class="headerlink" href="#public-members" title="Permalink to this headline">¶</a></h3>
+<dl class="c member">
+<dt id="c.uv_getaddrinfo_t.loop">
+<a class="reference internal" href="loop.html#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<code class="sig-prename descclassname"><a class="reference internal" href="#c.uv_getaddrinfo_t" title="uv_getaddrinfo_t">uv_getaddrinfo_t</a><code class="sig-prename descclassname">.</code></code><code class="sig-name descname">loop</code><a class="headerlink" href="#c.uv_getaddrinfo_t.loop" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Loop that started this getaddrinfo request and where completion will be
+reported. Readonly.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt id="c.uv_getaddrinfo_t.addrinfo">
+<em class="property">struct</em> addrinfo *<code class="sig-prename descclassname"><a class="reference internal" href="#c.uv_getaddrinfo_t" title="uv_getaddrinfo_t">uv_getaddrinfo_t</a><code class="sig-prename descclassname">.</code></code><code class="sig-name descname">addrinfo</code><a class="headerlink" href="#c.uv_getaddrinfo_t.addrinfo" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Pointer to a <cite>struct addrinfo</cite> containing the result. Must be freed by the user
+with <a class="reference internal" href="#c.uv_freeaddrinfo" title="uv_freeaddrinfo"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_freeaddrinfo()</span></code></a>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.3.0: </span>the field is declared as public.</p>
+</div>
+</dd></dl>
+
+<dl class="c member">
+<dt id="c.uv_getnameinfo_t.loop">
+<a class="reference internal" href="loop.html#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<code class="sig-prename descclassname"><a class="reference internal" href="#c.uv_getnameinfo_t" title="uv_getnameinfo_t">uv_getnameinfo_t</a><code class="sig-prename descclassname">.</code></code><code class="sig-name descname">loop</code><a class="headerlink" href="#c.uv_getnameinfo_t.loop" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Loop that started this getnameinfo request and where completion will be
+reported. Readonly.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt>
+<code class="sig-name descname">char[NI_MAXHOST] uv_getnameinfo_t.host</code></dt>
+<dd><p>Char array containing the resulting host. It’s null terminated.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.3.0: </span>the field is declared as public.</p>
+</div>
+</dd></dl>
+
+<dl class="c member">
+<dt>
+<code class="sig-name descname">char[NI_MAXSERV] uv_getnameinfo_t.service</code></dt>
+<dd><p>Char array containing the resulting service. It’s null terminated.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.3.0: </span>the field is declared as public.</p>
+</div>
+</dd></dl>
+
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The <a class="reference internal" href="request.html#c.uv_req_t" title="uv_req_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_req_t</span></code></a> members also apply.</p>
+</div>
+</div>
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<dl class="c function">
+<dt id="c.uv_getaddrinfo">
+int <code class="sig-name descname">uv_getaddrinfo</code><span class="sig-paren">(</span><a class="reference internal" href="loop.html#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em>, <a class="reference internal" href="#c.uv_getaddrinfo_t" title="uv_getaddrinfo_t">uv_getaddrinfo_t</a> *<em>req</em>, <a class="reference internal" href="#c.uv_getaddrinfo_cb" title="uv_getaddrinfo_cb">uv_getaddrinfo_cb</a> <em>getaddrinfo_cb</em>, <em class="property">const</em> char *<em>node</em>, <em class="property">const</em> char *<em>service</em>, <em class="property">const</em> <em class="property">struct</em> addrinfo *<em>hints</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_getaddrinfo" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Asynchronous <a class="reference external" href="http://linux.die.net/man/3/getaddrinfo">getaddrinfo(3)</a>.</p>
+<p>Either node or service may be NULL but not both.</p>
+<p><cite>hints</cite> is a pointer to a struct addrinfo with additional address type
+constraints, or NULL. Consult <cite>man -s 3 getaddrinfo</cite> for more details.</p>
+<p>Returns 0 on success or an error code &lt; 0 on failure. If successful, the
+callback will get called sometime in the future with the lookup result,
+which is either:</p>
+<ul class="simple">
+<li><p>status == 0, the res argument points to a valid <cite>struct addrinfo</cite>, or</p></li>
+<li><p>status &lt; 0, the res argument is NULL. See the UV_EAI_* constants.</p></li>
+</ul>
+<p>Call <a class="reference internal" href="#c.uv_freeaddrinfo" title="uv_freeaddrinfo"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_freeaddrinfo()</span></code></a> to free the addrinfo structure.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.3.0: </span>the callback parameter is now allowed to be NULL,
+in which case the request will run <strong>synchronously</strong>.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_freeaddrinfo">
+void <code class="sig-name descname">uv_freeaddrinfo</code><span class="sig-paren">(</span><em class="property">struct</em> addrinfo *<em>ai</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_freeaddrinfo" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Free the struct addrinfo. Passing NULL is allowed and is a no-op.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_getnameinfo">
+int <code class="sig-name descname">uv_getnameinfo</code><span class="sig-paren">(</span><a class="reference internal" href="loop.html#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em>, <a class="reference internal" href="#c.uv_getnameinfo_t" title="uv_getnameinfo_t">uv_getnameinfo_t</a> *<em>req</em>, <a class="reference internal" href="#c.uv_getnameinfo_cb" title="uv_getnameinfo_cb">uv_getnameinfo_cb</a> <em>getnameinfo_cb</em>, <em class="property">const</em> <em class="property">struct</em> sockaddr *<em>addr</em>, int <em>flags</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_getnameinfo" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Asynchronous <a class="reference external" href="http://linux.die.net/man/3/getnameinfo">getnameinfo(3)</a>.</p>
+<p>Returns 0 on success or an error code &lt; 0 on failure. If successful, the
+callback will get called sometime in the future with the lookup result.
+Consult <cite>man -s 3 getnameinfo</cite> for more details.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.3.0: </span>the callback parameter is now allowed to be NULL,
+in which case the request will run <strong>synchronously</strong>.</p>
+</div>
+</dd></dl>
+
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The <a class="reference internal" href="request.html#c.uv_req_t" title="uv_req_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_req_t</span></code></a> API functions also apply.</p>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">DNS utility functions</a><ul>
+<li><a class="reference internal" href="#data-types">Data types</a><ul>
+<li><a class="reference internal" href="#public-members">Public members</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="threadpool.html"
+                        title="previous chapter">Thread pool work scheduling</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dll.html"
+                        title="next chapter">Shared library handling</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dns.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="dll.html" title="Shared library handling"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="threadpool.html" title="Thread pool work scheduling"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" >API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">DNS utility functions</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

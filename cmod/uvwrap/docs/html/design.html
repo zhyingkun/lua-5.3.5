@@ -1,0 +1,227 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Design overview &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API documentation" href="api.html" />
+    <link rel="prev" title="Welcome to the libuv documentation" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="api.html" title="API documentation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to the libuv documentation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Design overview</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="design-overview">
+<span id="design"></span><h1>Design overview<a class="headerlink" href="#design-overview" title="Permalink to this headline">¶</a></h1>
+<p>libuv is cross-platform support library which was originally written for <a class="reference external" href="https://nodejs.org">Node.js</a>. It’s designed
+around the event-driven asynchronous I/O model.</p>
+<p>The library provides much more than a simple abstraction over different I/O polling mechanisms:
+‘handles’ and ‘streams’ provide a high level abstraction for sockets and other entities;
+cross-platform file I/O and threading functionality is also provided, amongst other things.</p>
+<p>Here is a diagram illustrating the different parts that compose libuv and what subsystem they
+relate to:</p>
+<a class="reference internal image-reference" href="_images/architecture.png"><img alt="_images/architecture.png" class="align-center" src="_images/architecture.png" style="width: 765.0px; height: 369.75px;" /></a>
+<div class="section" id="handles-and-requests">
+<h2>Handles and requests<a class="headerlink" href="#handles-and-requests" title="Permalink to this headline">¶</a></h2>
+<p>libuv provides users with 2 abstractions to work with, in combination with the event loop:
+handles and requests.</p>
+<p>Handles represent long-lived objects capable of performing certain operations while active. Some examples:</p>
+<ul class="simple">
+<li><p>A prepare handle gets its callback called once every loop iteration when active.</p></li>
+<li><p>A TCP server handle that gets its connection callback called every time there is a new connection.</p></li>
+</ul>
+<p>Requests represent (typically) short-lived operations. These operations can be performed over a
+handle: write requests are used to write data on a handle; or standalone: getaddrinfo requests
+don’t need a handle they run directly on the loop.</p>
+</div>
+<div class="section" id="the-i-o-loop">
+<h2>The I/O loop<a class="headerlink" href="#the-i-o-loop" title="Permalink to this headline">¶</a></h2>
+<p>The I/O (or event) loop is the central part of libuv. It establishes the content for all I/O
+operations, and it’s meant to be tied to a single thread. One can run multiple event loops
+as long as each runs in a different thread. The libuv event loop (or any other API involving
+the loop or handles, for that matter) <strong>is not thread-safe</strong> except where stated otherwise.</p>
+<p>The event loop follows the rather usual single threaded asynchronous I/O approach: all (network)
+I/O is performed on non-blocking sockets which are polled using the best mechanism available
+on the given platform: epoll on Linux, kqueue on OSX and other BSDs, event ports on SunOS and IOCP
+on Windows. As part of a loop iteration the loop will block waiting for I/O activity on sockets
+which have been added to the poller and callbacks will be fired indicating socket conditions
+(readable, writable hangup) so handles can read, write or perform the desired I/O operation.</p>
+<p>In order to better understand how the event loop operates, the following diagram illustrates all
+stages of a loop iteration:</p>
+<a class="reference internal image-reference" href="_images/loop_iteration.png"><img alt="_images/loop_iteration.png" class="align-center" src="_images/loop_iteration.png" style="width: 391.5px; height: 555.0px;" /></a>
+<ol class="arabic">
+<li><p>The loop concept of ‘now’ is updated. The event loop caches the current time at the start of
+the event loop tick in order to reduce the number of time-related system calls.</p></li>
+<li><p>If the loop is <em>alive</em>  an iteration is started, otherwise the loop will exit immediately. So,
+when is a loop considered to be <em>alive</em>? If a loop has active and ref’d handles, active
+requests or closing handles it’s considered to be <em>alive</em>.</p></li>
+<li><p>Due timers are run. All active timers scheduled for a time before the loop’s concept of <em>now</em>
+get their callbacks called.</p></li>
+<li><p>Pending callbacks are called. All I/O callbacks are called right after polling for I/O, for the
+most part. There are cases, however, in which calling such a callback is deferred for the next
+loop iteration. If the previous iteration deferred any I/O callback it will be run at this point.</p></li>
+<li><p>Idle handle callbacks are called. Despite the unfortunate name, idle handles are run on every
+loop iteration, if they are active.</p></li>
+<li><p>Prepare handle callbacks are called. Prepare handles get their callbacks called right before
+the loop will block for I/O.</p></li>
+<li><p>Poll timeout is calculated. Before blocking for I/O the loop calculates for how long it should
+block. These are the rules when calculating the timeout:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>If the loop was run with the <code class="docutils literal notranslate"><span class="pre">UV_RUN_NOWAIT</span></code> flag, the timeout is 0.</p></li>
+<li><p>If the loop is going to be stopped (<a class="reference internal" href="loop.html#c.uv_stop" title="uv_stop"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_stop()</span></code></a> was called), the timeout is 0.</p></li>
+<li><p>If there are no active handles or requests, the timeout is 0.</p></li>
+<li><p>If there are any idle handles active, the timeout is 0.</p></li>
+<li><p>If there are any handles pending to be closed, the timeout is 0.</p></li>
+<li><p>If none of the above cases matches, the timeout of the closest timer is taken, or
+if there are no active timers, infinity.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>The loop blocks for I/O. At this point the loop will block for I/O for the duration calculated
+in the previous step. All I/O related handles that were monitoring a given file descriptor
+for a read or write operation get their callbacks called at this point.</p></li>
+<li><p>Check handle callbacks are called. Check handles get their callbacks called right after the
+loop has blocked for I/O. Check handles are essentially the counterpart of prepare handles.</p></li>
+<li><p>Close callbacks are called. If a handle was closed by calling <a class="reference internal" href="handle.html#c.uv_close" title="uv_close"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_close()</span></code></a> it will
+get the close callback called.</p></li>
+<li><p>Special case in case the loop was run with <code class="docutils literal notranslate"><span class="pre">UV_RUN_ONCE</span></code>, as it implies forward progress.
+It’s possible that no I/O callbacks were fired after blocking for I/O, but some time has passed
+so there might be timers which are due, those timers get their callbacks called.</p></li>
+<li><p>Iteration ends. If the loop was run with <code class="docutils literal notranslate"><span class="pre">UV_RUN_NOWAIT</span></code> or <code class="docutils literal notranslate"><span class="pre">UV_RUN_ONCE</span></code> modes the
+iteration ends and <a class="reference internal" href="loop.html#c.uv_run" title="uv_run"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_run()</span></code></a> will return. If the loop was run with <code class="docutils literal notranslate"><span class="pre">UV_RUN_DEFAULT</span></code>
+it will continue from the start if it’s still <em>alive</em>, otherwise it will also end.</p></li>
+</ol>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>libuv uses a thread pool to make asynchronous file I/O operations possible, but
+network I/O is <strong>always</strong> performed in a single thread, each loop’s thread.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>While the polling mechanism is different, libuv makes the execution model consistent
+across Unix systems and Windows.</p>
+</div>
+</div>
+<div class="section" id="file-i-o">
+<h2>File I/O<a class="headerlink" href="#file-i-o" title="Permalink to this headline">¶</a></h2>
+<p>Unlike network I/O, there are no platform-specific file I/O primitives libuv could rely on,
+so the current approach is to run blocking file I/O operations in a thread pool.</p>
+<p>For a thorough explanation of the cross-platform file I/O landscape, checkout
+<a class="reference external" href="http://blog.libtorrent.org/2012/10/asynchronous-disk-io/">this post</a>.</p>
+<p>libuv currently uses a global thread pool on which all loops can queue work. 3 types of
+operations are currently run on this pool:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>File system operations</p></li>
+<li><p>DNS functions (getaddrinfo and getnameinfo)</p></li>
+<li><p>User specified code via <a class="reference internal" href="threadpool.html#c.uv_queue_work" title="uv_queue_work"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_queue_work()</span></code></a></p></li>
+</ul>
+</div></blockquote>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>See the <a class="reference internal" href="threadpool.html#threadpool"><span class="std std-ref">Thread pool work scheduling</span></a> section for more details, but keep in mind the thread pool size
+is quite limited.</p>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Design overview</a><ul>
+<li><a class="reference internal" href="#handles-and-requests">Handles and requests</a></li>
+<li><a class="reference internal" href="#the-i-o-loop">The I/O loop</a></li>
+<li><a class="reference internal" href="#file-i-o">File I/O</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to the libuv documentation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api.html"
+                        title="next chapter">API documentation</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/design.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="api.html" title="API documentation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to the libuv documentation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Design overview</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,367 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Basics of libuv &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Filesystem" href="filesystem.html" />
+    <link rel="prev" title="Introduction" href="introduction.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="filesystem.html" title="Filesystem"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="Introduction"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../guide.html" accesskey="U">User guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Basics of libuv</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="basics-of-libuv">
+<h1>Basics of libuv<a class="headerlink" href="#basics-of-libuv" title="Permalink to this headline">¶</a></h1>
+<p>libuv enforces an <strong>asynchronous</strong>, <strong>event-driven</strong> style of programming.  Its
+core job is to provide an event loop and callback based notifications of I/O
+and other activities.  libuv offers core utilities like timers, non-blocking
+networking support, asynchronous file system access, child processes and more.</p>
+<div class="section" id="event-loops">
+<h2>Event loops<a class="headerlink" href="#event-loops" title="Permalink to this headline">¶</a></h2>
+<p>In event-driven programming, an application expresses interest in certain events
+and respond to them when they occur. The responsibility of gathering events
+from the operating system or monitoring other sources of events is handled by
+libuv, and the user can register callbacks to be invoked when an event occurs.
+The event-loop usually keeps running <em>forever</em>. In pseudocode:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="n">there</span> <span class="n">are</span> <span class="n">still</span> <span class="n">events</span> <span class="n">to</span> <span class="n">process</span><span class="p">:</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">get</span> <span class="n">the</span> <span class="nb">next</span> <span class="n">event</span>
+    <span class="k">if</span> <span class="n">there</span> <span class="ow">is</span> <span class="n">a</span> <span class="n">callback</span> <span class="n">associated</span> <span class="k">with</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">call</span> <span class="n">the</span> <span class="n">callback</span>
+</pre></div>
+</div>
+<p>Some examples of events are:</p>
+<ul class="simple">
+<li><p>File is ready for writing</p></li>
+<li><p>A socket has data ready to be read</p></li>
+<li><p>A timer has timed out</p></li>
+</ul>
+<p>This event loop is encapsulated by <code class="docutils literal notranslate"><span class="pre">uv_run()</span></code> – the end-all function when using
+libuv.</p>
+<p>The most common activity of systems programs is to deal with input and output,
+rather than a lot of number-crunching. The problem with using conventional
+input/output functions (<code class="docutils literal notranslate"><span class="pre">read</span></code>, <code class="docutils literal notranslate"><span class="pre">fprintf</span></code>, etc.) is that they are
+<strong>blocking</strong>. The actual write to a hard disk or reading from a network, takes
+a disproportionately long time compared to the speed of the processor. The
+functions don’t return until the task is done, so that your program is doing
+nothing. For programs which require high performance this is a major roadblock
+as other activities and other I/O operations are kept waiting.</p>
+<p>One of the standard solutions is to use threads. Each blocking I/O operation is
+started in a separate thread (or in a thread pool). When the blocking function
+gets invoked in the thread, the processor can schedule another thread to run,
+which actually needs the CPU.</p>
+<p>The approach followed by libuv uses another style, which is the <strong>asynchronous,
+non-blocking</strong> style. Most modern operating systems provide event notification
+subsystems. For example, a normal <code class="docutils literal notranslate"><span class="pre">read</span></code> call on a socket would block until
+the sender actually sent something. Instead, the application can request the
+operating system to watch the socket and put an event notification in the
+queue. The application can inspect the events at its convenience (perhaps doing
+some number crunching before to use the processor to the maximum) and grab the
+data. It is <strong>asynchronous</strong> because the application expressed interest at one
+point, then used the data at another point (in time and space). It is
+<strong>non-blocking</strong> because the application process was free to do other tasks.
+This fits in well with libuv’s event-loop approach, since the operating system
+events can be treated as just another libuv event. The non-blocking ensures
+that other events can continue to be handled as fast as they come in <a class="footnote-reference brackets" href="#id2" id="id1">1</a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>How the I/O is run in the background is not of our concern, but due to the
+way our computer hardware works, with the thread as the basic unit of the
+processor, libuv and OSes will usually run background/worker threads and/or
+polling to perform tasks in a non-blocking manner.</p>
+</div>
+<p>Bert Belder, one of the libuv core developers has a small video explaining the
+architecture of libuv and its background. If you have no prior experience with
+either libuv or libev, it is a quick, useful watch.</p>
+<p>libuv’s event loop is explained in more detail in the <a class="reference external" href="http://docs.libuv.org/en/v1.x/design.html#the-i-o-loop">documentation</a>.</p>
+<iframe width="560" height="315"
+src="https://www.youtube-nocookie.com/embed/nGn60vDSxQ4" frameborder="0"
+allowfullscreen></iframe></div>
+<div class="section" id="hello-world">
+<h2>Hello World<a class="headerlink" href="#hello-world" title="Permalink to this headline">¶</a></h2>
+<p>With the basics out of the way, let’s write our first libuv program. It does
+nothing, except start a loop which will exit immediately.</p>
+<p class="rubric">helloworld/main.c</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1">#include &lt;stdio.h&gt;</span>
+<span class="c1">#include &lt;stdlib.h&gt;</span>
+<span class="c1">#include &lt;uv.h&gt;</span>
+
+<span class="nb">int</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">uv_loop_t</span> <span class="o">*</span><span class="n">loop</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="n">sizeof</span><span class="p">(</span><span class="n">uv_loop_t</span><span class="p">));</span>
+    <span class="n">uv_loop_init</span><span class="p">(</span><span class="n">loop</span><span class="p">);</span>
+
+    <span class="n">printf</span><span class="p">(</span><span class="s2">&quot;Now quitting.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">);</span>
+    <span class="n">uv_run</span><span class="p">(</span><span class="n">loop</span><span class="p">,</span> <span class="n">UV_RUN_DEFAULT</span><span class="p">);</span>
+
+    <span class="n">uv_loop_close</span><span class="p">(</span><span class="n">loop</span><span class="p">);</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">loop</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>This program quits immediately because it has no events to process. A libuv
+event loop has to be told to watch out for events using the various API
+functions.</p>
+<p>Starting with libuv v1.0, users should allocate the memory for the loops before
+initializing it with <code class="docutils literal notranslate"><span class="pre">uv_loop_init(uv_loop_t</span> <span class="pre">*)</span></code>. This allows you to plug in
+custom memory management. Remember to de-initialize the loop using
+<code class="docutils literal notranslate"><span class="pre">uv_loop_close(uv_loop_t</span> <span class="pre">*)</span></code> and then delete the storage. The examples never
+close loops since the program quits after the loop ends and the system will
+reclaim memory. Production grade projects, especially long running systems
+programs, should take care to release correctly.</p>
+<div class="section" id="default-loop">
+<h3>Default loop<a class="headerlink" href="#default-loop" title="Permalink to this headline">¶</a></h3>
+<p>A default loop is provided by libuv and can be accessed using
+<code class="docutils literal notranslate"><span class="pre">uv_default_loop()</span></code>. You should use this loop if you only want a single
+loop.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>node.js uses the default loop as its main loop. If you are writing bindings
+you should be aware of this.</p>
+</div>
+</div>
+</div>
+<div class="section" id="error-handling">
+<span id="libuv-error-handling"></span><h2>Error handling<a class="headerlink" href="#error-handling" title="Permalink to this headline">¶</a></h2>
+<p>Initialization functions or synchronous functions which may fail return a negative number on error. Async functions that may fail will pass a status parameter to their callbacks. The error messages are defined as <code class="docutils literal notranslate"><span class="pre">UV_E*</span></code> <a class="reference external" href="http://docs.libuv.org/en/v1.x/errors.html#error-constants">constants</a>.</p>
+<p>You can use the <code class="docutils literal notranslate"><span class="pre">uv_strerror(int)</span></code> and <code class="docutils literal notranslate"><span class="pre">uv_err_name(int)</span></code> functions
+to get a <code class="docutils literal notranslate"><span class="pre">const</span> <span class="pre">char</span> <span class="pre">*</span></code> describing the error or the error name respectively.</p>
+<p>I/O read callbacks (such as for files and sockets) are passed a parameter <code class="docutils literal notranslate"><span class="pre">nread</span></code>. If <code class="docutils literal notranslate"><span class="pre">nread</span></code> is less than 0, there was an error (UV_EOF is the end of file error, which you may want to handle differently).</p>
+</div>
+<div class="section" id="handles-and-requests">
+<h2>Handles and Requests<a class="headerlink" href="#handles-and-requests" title="Permalink to this headline">¶</a></h2>
+<p>libuv works by the user expressing interest in particular events. This is
+usually done by creating a <strong>handle</strong> to an I/O device, timer or process.
+Handles are opaque structs named as <code class="docutils literal notranslate"><span class="pre">uv_TYPE_t</span></code> where type signifies what the
+handle is used for.</p>
+<p class="rubric">libuv watchers</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  <span class="n">UV_REQ_TYPE_PRIVATE</span>
+  <span class="n">UV_REQ_TYPE_MAX</span>
+<span class="p">}</span> <span class="n">uv_req_type</span><span class="p">;</span>
+
+
+<span class="o">/*</span> <span class="n">Handle</span> <span class="n">types</span><span class="o">.</span> <span class="o">*/</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_loop_s</span> <span class="n">uv_loop_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_handle_s</span> <span class="n">uv_handle_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_dir_s</span> <span class="n">uv_dir_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_stream_s</span> <span class="n">uv_stream_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_tcp_s</span> <span class="n">uv_tcp_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_udp_s</span> <span class="n">uv_udp_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_pipe_s</span> <span class="n">uv_pipe_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_tty_s</span> <span class="n">uv_tty_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_poll_s</span> <span class="n">uv_poll_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_timer_s</span> <span class="n">uv_timer_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_prepare_s</span> <span class="n">uv_prepare_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_check_s</span> <span class="n">uv_check_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_idle_s</span> <span class="n">uv_idle_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_async_s</span> <span class="n">uv_async_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_process_s</span> <span class="n">uv_process_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_fs_event_s</span> <span class="n">uv_fs_event_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_fs_poll_s</span> <span class="n">uv_fs_poll_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_signal_s</span> <span class="n">uv_signal_t</span><span class="p">;</span>
+
+<span class="o">/*</span> <span class="n">Request</span> <span class="n">types</span><span class="o">.</span> <span class="o">*/</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_req_s</span> <span class="n">uv_req_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_getaddrinfo_s</span> <span class="n">uv_getaddrinfo_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_getnameinfo_s</span> <span class="n">uv_getnameinfo_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_shutdown_s</span> <span class="n">uv_shutdown_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_write_s</span> <span class="n">uv_write_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_connect_s</span> <span class="n">uv_connect_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_udp_send_s</span> <span class="n">uv_udp_send_t</span><span class="p">;</span>
+<span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_fs_s</span> <span class="n">uv_fs_t</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Handles represent long-lived objects. Async operations on such handles are
+identified using <strong>requests</strong>. A request is short-lived (usually used across
+only one callback) and usually indicates one I/O operation on a handle.
+Requests are used to preserve context between the initiation and the callback
+of individual actions. For example, an UDP socket is represented by
+a <code class="docutils literal notranslate"><span class="pre">uv_udp_t</span></code>, while individual writes to the socket use a <code class="docutils literal notranslate"><span class="pre">uv_udp_send_t</span></code>
+structure that is passed to the callback after the write is done.</p>
+<p>Handles are setup by a corresponding:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv_TYPE_init</span><span class="p">(</span><span class="n">uv_loop_t</span> <span class="o">*</span><span class="p">,</span> <span class="n">uv_TYPE_t</span> <span class="o">*</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>function.</p>
+<p>Callbacks are functions which are called by libuv whenever an event the watcher
+is interested in has taken place. Application specific logic will usually be
+implemented in the callback. For example, an IO watcher’s callback will receive
+the data read from a file, a timer callback will be triggered on timeout and so
+on.</p>
+<div class="section" id="idling">
+<h3>Idling<a class="headerlink" href="#idling" title="Permalink to this headline">¶</a></h3>
+<p>Here is an example of using an idle handle. The callback is called once on
+every turn of the event loop. A use case for idle handles is discussed in
+<a class="reference internal" href="utilities.html"><span class="doc">Utilities</span></a>. Let us use an idle watcher to look at the watcher life cycle
+and see how <code class="docutils literal notranslate"><span class="pre">uv_run()</span></code> will now block because a watcher is present. The idle
+watcher is stopped when the count is reached and <code class="docutils literal notranslate"><span class="pre">uv_run()</span></code> exits since no
+event watchers are active.</p>
+<p class="rubric">idle-basic/main.c</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#include &lt;stdio.h&gt;</span>
+<span class="c1">#include &lt;uv.h&gt;</span>
+
+<span class="n">int64_t</span> <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="hll"><span class="n">void</span> <span class="n">wait_for_a_while</span><span class="p">(</span><span class="n">uv_idle_t</span><span class="o">*</span> <span class="n">handle</span><span class="p">)</span> <span class="p">{</span>
+</span>    <span class="n">counter</span><span class="o">++</span><span class="p">;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">counter</span> <span class="o">&gt;=</span> <span class="mf">10e6</span><span class="p">)</span>
+<span class="hll">        <span class="n">uv_idle_stop</span><span class="p">(</span><span class="n">handle</span><span class="p">);</span>
+</span><span class="p">}</span>
+
+<span class="nb">int</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+<span class="hll">    <span class="n">uv_idle_t</span> <span class="n">idler</span><span class="p">;</span>
+</span><span class="hll">
+</span><span class="hll">    <span class="n">uv_idle_init</span><span class="p">(</span><span class="n">uv_default_loop</span><span class="p">(),</span> <span class="o">&amp;</span><span class="n">idler</span><span class="p">);</span>
+</span><span class="hll">    <span class="n">uv_idle_start</span><span class="p">(</span><span class="o">&amp;</span><span class="n">idler</span><span class="p">,</span> <span class="n">wait_for_a_while</span><span class="p">);</span>
+</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s2">&quot;Idling...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">);</span>
+    <span class="n">uv_run</span><span class="p">(</span><span class="n">uv_default_loop</span><span class="p">(),</span> <span class="n">UV_RUN_DEFAULT</span><span class="p">);</span>
+
+    <span class="n">uv_loop_close</span><span class="p">(</span><span class="n">uv_default_loop</span><span class="p">());</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="storing-context">
+<h3>Storing context<a class="headerlink" href="#storing-context" title="Permalink to this headline">¶</a></h3>
+<p>In callback based programming style you’ll often want to pass some ‘context’ –
+application specific information – between the call site and the callback. All
+handles and requests have a <code class="docutils literal notranslate"><span class="pre">void*</span> <span class="pre">data</span></code> member which you can set to the
+context and cast back in the callback. This is a common pattern used throughout
+the C library ecosystem. In addition <code class="docutils literal notranslate"><span class="pre">uv_loop_t</span></code> also has a similar data
+member.</p>
+<hr class="docutils" />
+<dl class="footnote brackets">
+<dt class="label" id="id2"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Depending on the capacity of the hardware of course.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Basics of libuv</a><ul>
+<li><a class="reference internal" href="#event-loops">Event loops</a></li>
+<li><a class="reference internal" href="#hello-world">Hello World</a><ul>
+<li><a class="reference internal" href="#default-loop">Default loop</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#error-handling">Error handling</a></li>
+<li><a class="reference internal" href="#handles-and-requests">Handles and Requests</a><ul>
+<li><a class="reference internal" href="#idling">Idling</a></li>
+<li><a class="reference internal" href="#storing-context">Storing context</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="introduction.html"
+                        title="previous chapter">Introduction</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="filesystem.html"
+                        title="next chapter">Filesystem</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/guide/basics.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="filesystem.html" title="Filesystem"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="Introduction"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../guide.html" >User guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Basics of libuv</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

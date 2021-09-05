@@ -1,0 +1,386 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>uv_loop_t — Event loop &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="uv_handle_t — Base handle" href="handle.html" />
+    <link rel="prev" title="Version-checking macros and functions" href="version.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="handle.html" title="uv_handle_t — Base handle"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="version.html" title="Version-checking macros and functions"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_loop_t</span></code> — Event loop</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="uv-loop-t-event-loop">
+<span id="loop"></span><h1><a class="reference internal" href="#c.uv_loop_t" title="uv_loop_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_loop_t</span></code></a> — Event loop<a class="headerlink" href="#uv-loop-t-event-loop" title="Permalink to this headline">¶</a></h1>
+<p>The event loop is the central part of libuv’s functionality. It takes care
+of polling for i/o and scheduling callbacks to be run based on different sources
+of events.</p>
+<div class="section" id="data-types">
+<h2>Data types<a class="headerlink" href="#data-types" title="Permalink to this headline">¶</a></h2>
+<dl class="c type">
+<dt id="c.uv_loop_t">
+<em class="property">type </em><code class="sig-name descname">uv_loop_t</code><a class="headerlink" href="#c.uv_loop_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Loop data type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_run_mode">
+<em class="property">type </em><code class="sig-name descname">uv_run_mode</code><a class="headerlink" href="#c.uv_run_mode" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Mode used to run the loop with <a class="reference internal" href="#c.uv_run" title="uv_run"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_run()</span></code></a>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">enum</span> <span class="p">{</span>
+    <span class="n">UV_RUN_DEFAULT</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">UV_RUN_ONCE</span><span class="p">,</span>
+    <span class="n">UV_RUN_NOWAIT</span>
+<span class="p">}</span> <span class="n">uv_run_mode</span><span class="p">;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_walk_cb">
+<em class="property">typedef </em>void (*<code class="sig-name descname">uv_walk_cb</code>)<span class="sig-paren">(</span><a class="reference internal" href="handle.html#c.uv_handle_t" title="uv_handle_t">uv_handle_t</a> *handle, void *arg<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_walk_cb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Type definition for callback passed to <a class="reference internal" href="#c.uv_walk" title="uv_walk"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_walk()</span></code></a>.</p>
+</dd></dl>
+
+<div class="section" id="public-members">
+<h3>Public members<a class="headerlink" href="#public-members" title="Permalink to this headline">¶</a></h3>
+<dl class="c member">
+<dt id="c.uv_loop_t.data">
+void *<code class="sig-prename descclassname"><a class="reference internal" href="#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a><code class="sig-prename descclassname">.</code></code><code class="sig-name descname">data</code><a class="headerlink" href="#c.uv_loop_t.data" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Space for user-defined arbitrary data. libuv does not use and does not
+touch this field.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<dl class="c function">
+<dt id="c.uv_loop_init">
+int <code class="sig-name descname">uv_loop_init</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_loop_init" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initializes the given <cite>uv_loop_t</cite> structure.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_loop_configure">
+int <code class="sig-name descname">uv_loop_configure</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em>, uv_loop_option <em>option</em>, ...<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_loop_configure" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="versionadded">
+<p><span class="versionmodified added">New in version 1.0.2.</span></p>
+</div>
+<p>Set additional loop options.  You should normally call this before the
+first call to <a class="reference internal" href="#c.uv_run" title="uv_run"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_run()</span></code></a> unless mentioned otherwise.</p>
+<p>Returns 0 on success or a UV_E* error code on failure.  Be prepared to
+handle UV_ENOSYS; it means the loop option is not supported by the platform.</p>
+<p>Supported options:</p>
+<ul>
+<li><p>UV_LOOP_BLOCK_SIGNAL: Block a signal when polling for new events.  The
+second argument to <a class="reference internal" href="#c.uv_loop_configure" title="uv_loop_configure"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_loop_configure()</span></code></a> is the signal number.</p>
+<p>This operation is currently only implemented for SIGPROF signals,
+to suppress unnecessary wakeups when using a sampling profiler.
+Requesting other signals will fail with UV_EINVAL.</p>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_loop_close">
+int <code class="sig-name descname">uv_loop_close</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_loop_close" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Releases all internal loop resources. Call this function only when the loop
+has finished executing and all open handles and requests have been closed,
+or it will return UV_EBUSY. After this function returns, the user can free
+the memory allocated for the loop.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_default_loop">
+<a class="reference internal" href="#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<code class="sig-name descname">uv_default_loop</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_default_loop" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the initialized default loop. It may return NULL in case of
+allocation failure.</p>
+<p>This function is just a convenient way for having a global loop throughout
+an application, the default loop is in no way different than the ones
+initialized with <a class="reference internal" href="#c.uv_loop_init" title="uv_loop_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_loop_init()</span></code></a>. As such, the default loop can (and
+should) be closed with <a class="reference internal" href="#c.uv_loop_close" title="uv_loop_close"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_loop_close()</span></code></a> so the resources associated
+with it are freed.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This function is not thread safe.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_run">
+int <code class="sig-name descname">uv_run</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em>, <a class="reference internal" href="#c.uv_run_mode" title="uv_run_mode">uv_run_mode</a> <em>mode</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_run" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>This function runs the event loop. It will act differently depending on the
+specified mode:</p>
+<ul class="simple">
+<li><p>UV_RUN_DEFAULT: Runs the event loop until there are no more active and
+referenced handles or requests. Returns non-zero if <a class="reference internal" href="#c.uv_stop" title="uv_stop"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_stop()</span></code></a>
+was called and there are still active handles or requests.  Returns
+zero in all other cases.</p></li>
+<li><p>UV_RUN_ONCE: Poll for i/o once. Note that this function blocks if
+there are no pending callbacks. Returns zero when done (no active handles
+or requests left), or non-zero if more callbacks are expected (meaning
+you should run the event loop again sometime in the future).</p></li>
+<li><p>UV_RUN_NOWAIT: Poll for i/o once but don’t block if there are no
+pending callbacks. Returns zero if done (no active handles
+or requests left), or non-zero if more callbacks are expected (meaning
+you should run the event loop again sometime in the future).</p></li>
+</ul>
+<p><a class="reference internal" href="#c.uv_run" title="uv_run"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_run()</span></code></a> is not reentrant. It must not be called from a callback.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_loop_alive">
+int <code class="sig-name descname">uv_loop_alive</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_loop_alive" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns non-zero if there are referenced active handles, active
+requests or closing handles in the loop.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_stop">
+void <code class="sig-name descname">uv_stop</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_stop" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Stop the event loop, causing <a class="reference internal" href="#c.uv_run" title="uv_run"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_run()</span></code></a> to end as soon as
+possible. This will happen not sooner than the next loop iteration.
+If this function was called before blocking for i/o, the loop won’t block
+for i/o on this iteration.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_loop_size">
+size_t <code class="sig-name descname">uv_loop_size</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_loop_size" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the size of the <cite>uv_loop_t</cite> structure. Useful for FFI binding
+writers who don’t want to know the structure layout.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_backend_fd">
+int <code class="sig-name descname">uv_backend_fd</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_backend_fd" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get backend file descriptor. Only kqueue, epoll and event ports are
+supported.</p>
+<p>This can be used in conjunction with <cite>uv_run(loop, UV_RUN_NOWAIT)</cite> to
+poll in one thread and run the event loop’s callbacks in another see
+test/test-embed.c for an example.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Embedding a kqueue fd in another kqueue pollset doesn’t work on all platforms. It’s not
+an error to add the fd but it never generates events.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_backend_timeout">
+int <code class="sig-name descname">uv_backend_timeout</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_backend_timeout" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get the poll timeout. The return value is in milliseconds, or -1 for no
+timeout.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_now">
+uint64_t <code class="sig-name descname">uv_now</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_now" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Return the current timestamp in milliseconds. The timestamp is cached at
+the start of the event loop tick, see <a class="reference internal" href="#c.uv_update_time" title="uv_update_time"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_update_time()</span></code></a> for details
+and rationale.</p>
+<p>The timestamp increases monotonically from some arbitrary point in time.
+Don’t make assumptions about the starting point, you will only get
+disappointed.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Use <a class="reference internal" href="misc.html#c.uv_hrtime" title="uv_hrtime"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_hrtime()</span></code></a> if you need sub-millisecond granularity.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_update_time">
+void <code class="sig-name descname">uv_update_time</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_update_time" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Update the event loop’s concept of “now”. Libuv caches the current time
+at the start of the event loop tick in order to reduce the number of
+time-related system calls.</p>
+<p>You won’t normally need to call this function unless you have callbacks
+that block the event loop for longer periods of time, where “longer” is
+somewhat subjective but probably on the order of a millisecond or more.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_walk">
+void <code class="sig-name descname">uv_walk</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em>, <a class="reference internal" href="#c.uv_walk_cb" title="uv_walk_cb">uv_walk_cb</a> <em>walk_cb</em>, void *<em>arg</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_walk" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Walk the list of handles: <cite>walk_cb</cite> will be executed with the given <cite>arg</cite>.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_loop_fork">
+int <code class="sig-name descname">uv_loop_fork</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_loop_fork" title="Permalink to this definition">¶</a><br /></dt>
+<dd><div class="versionadded">
+<p><span class="versionmodified added">New in version 1.12.0.</span></p>
+</div>
+<p>Reinitialize any kernel state necessary in the child process after
+a <a class="reference external" href="http://linux.die.net/man/2/fork">fork(2)</a> system call.</p>
+<p>Previously started watchers will continue to be started in the
+child process.</p>
+<p>It is necessary to explicitly call this function on every event
+loop created in the parent process that you plan to continue to
+use in the child, including the default loop (even if you don’t
+continue to use it in the parent). This function must be called
+before calling <a class="reference internal" href="#c.uv_run" title="uv_run"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_run()</span></code></a> or any other API function using
+the loop in the child. Failure to do so will result in undefined
+behaviour, possibly including duplicate events delivered to both
+parent and child or aborting the child process.</p>
+<p>When possible, it is preferred to create a new loop in the child
+process instead of reusing a loop created in the parent. New loops
+created in the child process after the fork should not use this
+function.</p>
+<p>This function is not implemented on Windows, where it returns <code class="docutils literal notranslate"><span class="pre">UV_ENOSYS</span></code>.</p>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>This function is experimental. It may contain bugs, and is subject to
+change or removal. API and ABI stability is not guaranteed.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>On Mac OS X, if directory FS event handles were in use in the
+parent process <em>for any event loop</em>, the child process will no
+longer be able to use the most efficient FSEvent
+implementation. Instead, uses of directory FS event handles in
+the child will fall back to the same implementation used for
+files and on other kqueue-based systems.</p>
+</div>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>On AIX and SunOS, FS event handles that were already started in
+the parent process at the time of forking will <em>not</em> deliver
+events in the child process; they must be closed and restarted.
+On all other platforms, they will continue to work normally
+without any further intervention.</p>
+</div>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>Any previous value returned from <a class="reference internal" href="#c.uv_backend_fd" title="uv_backend_fd"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_backend_fd()</span></code></a> is now
+invalid. That function must be called again to determine the
+correct backend file descriptor.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_loop_get_data">
+void *<code class="sig-name descname">uv_loop_get_data</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_loop_get_data" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns <cite>loop-&gt;data</cite>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.19.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_loop_set_data">
+void *<code class="sig-name descname">uv_loop_set_data</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em>, void *<em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_loop_set_data" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Sets <cite>loop-&gt;data</cite> to <cite>data</cite>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.19.0.</span></p>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_loop_t</span></code> — Event loop</a><ul>
+<li><a class="reference internal" href="#data-types">Data types</a><ul>
+<li><a class="reference internal" href="#public-members">Public members</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="version.html"
+                        title="previous chapter">Version-checking macros and functions</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="handle.html"
+                        title="next chapter"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_handle_t</span></code> — Base handle</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/loop.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="handle.html" title="uv_handle_t — Base handle"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="version.html" title="Version-checking macros and functions"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" >API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_loop_t</span></code> — Event loop</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,136 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API documentation &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Error handling" href="errors.html" />
+    <link rel="prev" title="Design overview" href="design.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="errors.html" title="Error handling"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="design.html" title="Design overview"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">API documentation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="api-documentation">
+<span id="api"></span><h1>API documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="errors.html">Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="version.html">Version-checking macros and functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="loop.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_loop_t</span></code> — Event loop</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handle.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_handle_t</span></code> — Base handle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="request.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_req_t</span></code> — Base request</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timer.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_timer_t</span></code> — Timer handle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="prepare.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_prepare_t</span></code> — Prepare handle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="check.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_check_t</span></code> — Check handle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="idle.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_idle_t</span></code> — Idle handle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="async.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_async_t</span></code> — Async handle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="poll.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_poll_t</span></code> — Poll handle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signal.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_signal_t</span></code> — Signal handle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="process.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_process_t</span></code> — Process handle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stream.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_stream_t</span></code> — Stream handle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tcp.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_tcp_t</span></code> — TCP handle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipe.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_pipe_t</span></code> — Pipe handle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tty.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_tty_t</span></code> — TTY handle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="udp.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_udp_t</span></code> — UDP handle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fs_event.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_fs_event_t</span></code> — FS Event handle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fs_poll.html"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_fs_poll_t</span></code> — FS Poll handle</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fs.html">File system operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="threadpool.html">Thread pool work scheduling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html">DNS utility functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dll.html">Shared library handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="threading.html">Threading and synchronization utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellaneous utilities</a></li>
+</ul>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="design.html"
+                        title="previous chapter">Design overview</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="errors.html"
+                        title="next chapter">Error handling</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/api.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="errors.html" title="Error handling"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="design.html" title="Design overview"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">API documentation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,415 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>uv_process_t — Process handle &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="uv_stream_t — Stream handle" href="stream.html" />
+    <link rel="prev" title="uv_signal_t — Signal handle" href="signal.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="stream.html" title="uv_stream_t — Stream handle"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="signal.html" title="uv_signal_t — Signal handle"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_process_t</span></code> — Process handle</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="uv-process-t-process-handle">
+<span id="process"></span><h1><a class="reference internal" href="#c.uv_process_t" title="uv_process_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_process_t</span></code></a> — Process handle<a class="headerlink" href="#uv-process-t-process-handle" title="Permalink to this headline">¶</a></h1>
+<p>Process handles will spawn a new process and allow the user to control it and
+establish communication channels with it using streams.</p>
+<div class="section" id="data-types">
+<h2>Data types<a class="headerlink" href="#data-types" title="Permalink to this headline">¶</a></h2>
+<dl class="c type">
+<dt id="c.uv_process_t">
+<em class="property">type </em><code class="sig-name descname">uv_process_t</code><a class="headerlink" href="#c.uv_process_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Process handle type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_process_options_t">
+<em class="property">type </em><code class="sig-name descname">uv_process_options_t</code><a class="headerlink" href="#c.uv_process_options_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Options for spawning the process (passed to <a class="reference internal" href="#c.uv_spawn" title="uv_spawn"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_spawn()</span></code></a>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_process_options_s</span> <span class="p">{</span>
+    <span class="n">uv_exit_cb</span> <span class="n">exit_cb</span><span class="p">;</span>
+    <span class="n">const</span> <span class="n">char</span><span class="o">*</span> <span class="n">file</span><span class="p">;</span>
+    <span class="n">char</span><span class="o">**</span> <span class="n">args</span><span class="p">;</span>
+    <span class="n">char</span><span class="o">**</span> <span class="n">env</span><span class="p">;</span>
+    <span class="n">const</span> <span class="n">char</span><span class="o">*</span> <span class="n">cwd</span><span class="p">;</span>
+    <span class="n">unsigned</span> <span class="nb">int</span> <span class="n">flags</span><span class="p">;</span>
+    <span class="nb">int</span> <span class="n">stdio_count</span><span class="p">;</span>
+    <span class="n">uv_stdio_container_t</span><span class="o">*</span> <span class="n">stdio</span><span class="p">;</span>
+    <span class="n">uv_uid_t</span> <span class="n">uid</span><span class="p">;</span>
+    <span class="n">uv_gid_t</span> <span class="n">gid</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">uv_process_options_t</span><span class="p">;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_exit_cb">
+<em class="property">typedef </em>void (*<code class="sig-name descname">uv_exit_cb</code>)<span class="sig-paren">(</span><a class="reference internal" href="#c.uv_process_t" title="uv_process_t">uv_process_t</a>*, int64_t exit_status, int term_signal<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_exit_cb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Type definition for callback passed in <a class="reference internal" href="#c.uv_process_options_t" title="uv_process_options_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_process_options_t</span></code></a> which
+will indicate the exit status and the signal that caused the process to
+terminate, if any.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_process_flags">
+<em class="property">type </em><code class="sig-name descname">uv_process_flags</code><a class="headerlink" href="#c.uv_process_flags" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Flags to be set on the flags field of <a class="reference internal" href="#c.uv_process_options_t" title="uv_process_options_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_process_options_t</span></code></a>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">enum</span> <span class="n">uv_process_flags</span> <span class="p">{</span>
+    <span class="o">/*</span>
+    <span class="o">*</span> <span class="n">Set</span> <span class="n">the</span> <span class="n">child</span> <span class="n">process</span><span class="s1">&#39; user id.</span>
+    <span class="o">*/</span>
+    <span class="n">UV_PROCESS_SETUID</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="o">/*</span>
+    <span class="o">*</span> <span class="n">Set</span> <span class="n">the</span> <span class="n">child</span> <span class="n">process</span><span class="s1">&#39; group id.</span>
+    <span class="o">*/</span>
+    <span class="n">UV_PROCESS_SETGID</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="o">/*</span>
+    <span class="o">*</span> <span class="n">Do</span> <span class="ow">not</span> <span class="n">wrap</span> <span class="nb">any</span> <span class="n">arguments</span> <span class="ow">in</span> <span class="n">quotes</span><span class="p">,</span> <span class="ow">or</span> <span class="n">perform</span> <span class="nb">any</span> <span class="n">other</span> <span class="n">escaping</span><span class="p">,</span> <span class="n">when</span>
+    <span class="o">*</span> <span class="n">converting</span> <span class="n">the</span> <span class="n">argument</span> <span class="nb">list</span> <span class="n">into</span> <span class="n">a</span> <span class="n">command</span> <span class="n">line</span> <span class="n">string</span><span class="o">.</span> <span class="n">This</span> <span class="n">option</span> <span class="ow">is</span>
+    <span class="o">*</span> <span class="n">only</span> <span class="n">meaningful</span> <span class="n">on</span> <span class="n">Windows</span> <span class="n">systems</span><span class="o">.</span> <span class="n">On</span> <span class="n">Unix</span> <span class="n">it</span> <span class="ow">is</span> <span class="n">silently</span> <span class="n">ignored</span><span class="o">.</span>
+    <span class="o">*/</span>
+    <span class="n">UV_PROCESS_WINDOWS_VERBATIM_ARGUMENTS</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="o">/*</span>
+    <span class="o">*</span> <span class="n">Spawn</span> <span class="n">the</span> <span class="n">child</span> <span class="n">process</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">detached</span> <span class="n">state</span> <span class="o">-</span> <span class="n">this</span> <span class="n">will</span> <span class="n">make</span> <span class="n">it</span> <span class="n">a</span> <span class="n">process</span>
+    <span class="o">*</span> <span class="n">group</span> <span class="n">leader</span><span class="p">,</span> <span class="ow">and</span> <span class="n">will</span> <span class="n">effectively</span> <span class="n">enable</span> <span class="n">the</span> <span class="n">child</span> <span class="n">to</span> <span class="n">keep</span> <span class="n">running</span> <span class="n">after</span>
+    <span class="o">*</span> <span class="n">the</span> <span class="n">parent</span> <span class="n">exits</span><span class="o">.</span> <span class="n">Note</span> <span class="n">that</span> <span class="n">the</span> <span class="n">child</span> <span class="n">process</span> <span class="n">will</span> <span class="n">still</span> <span class="n">keep</span> <span class="n">the</span>
+    <span class="o">*</span> <span class="n">parent</span><span class="s1">&#39;s event loop alive unless the parent process calls uv_unref() on</span>
+    <span class="o">*</span> <span class="n">the</span> <span class="n">child</span><span class="s1">&#39;s process handle.</span>
+    <span class="o">*/</span>
+    <span class="n">UV_PROCESS_DETACHED</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">3</span><span class="p">),</span>
+    <span class="o">/*</span>
+    <span class="o">*</span> <span class="n">Hide</span> <span class="n">the</span> <span class="n">subprocess</span> <span class="n">window</span> <span class="n">that</span> <span class="n">would</span> <span class="n">normally</span> <span class="n">be</span> <span class="n">created</span><span class="o">.</span> <span class="n">This</span> <span class="n">option</span> <span class="ow">is</span>
+    <span class="o">*</span> <span class="n">only</span> <span class="n">meaningful</span> <span class="n">on</span> <span class="n">Windows</span> <span class="n">systems</span><span class="o">.</span> <span class="n">On</span> <span class="n">Unix</span> <span class="n">it</span> <span class="ow">is</span> <span class="n">silently</span> <span class="n">ignored</span><span class="o">.</span>
+    <span class="o">*/</span>
+    <span class="n">UV_PROCESS_WINDOWS_HIDE</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">),</span>
+    <span class="o">/*</span>
+    <span class="o">*</span> <span class="n">Hide</span> <span class="n">the</span> <span class="n">subprocess</span> <span class="n">console</span> <span class="n">window</span> <span class="n">that</span> <span class="n">would</span> <span class="n">normally</span> <span class="n">be</span> <span class="n">created</span><span class="o">.</span> <span class="n">This</span>
+    <span class="o">*</span> <span class="n">option</span> <span class="ow">is</span> <span class="n">only</span> <span class="n">meaningful</span> <span class="n">on</span> <span class="n">Windows</span> <span class="n">systems</span><span class="o">.</span> <span class="n">On</span> <span class="n">Unix</span> <span class="n">it</span> <span class="ow">is</span> <span class="n">silently</span>
+    <span class="o">*</span> <span class="n">ignored</span><span class="o">.</span>
+    <span class="o">*/</span>
+    <span class="n">UV_PROCESS_WINDOWS_HIDE_CONSOLE</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">5</span><span class="p">),</span>
+    <span class="o">/*</span>
+    <span class="o">*</span> <span class="n">Hide</span> <span class="n">the</span> <span class="n">subprocess</span> <span class="n">GUI</span> <span class="n">window</span> <span class="n">that</span> <span class="n">would</span> <span class="n">normally</span> <span class="n">be</span> <span class="n">created</span><span class="o">.</span> <span class="n">This</span>
+    <span class="o">*</span> <span class="n">option</span> <span class="ow">is</span> <span class="n">only</span> <span class="n">meaningful</span> <span class="n">on</span> <span class="n">Windows</span> <span class="n">systems</span><span class="o">.</span> <span class="n">On</span> <span class="n">Unix</span> <span class="n">it</span> <span class="ow">is</span> <span class="n">silently</span>
+    <span class="o">*</span> <span class="n">ignored</span><span class="o">.</span>
+    <span class="o">*/</span>
+    <span class="n">UV_PROCESS_WINDOWS_HIDE_GUI</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">6</span><span class="p">)</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_stdio_container_t">
+<em class="property">type </em><code class="sig-name descname">uv_stdio_container_t</code><a class="headerlink" href="#c.uv_stdio_container_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Container for each stdio handle or fd passed to a child process.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">struct</span> <span class="n">uv_stdio_container_s</span> <span class="p">{</span>
+    <span class="n">uv_stdio_flags</span> <span class="n">flags</span><span class="p">;</span>
+    <span class="n">union</span> <span class="p">{</span>
+        <span class="n">uv_stream_t</span><span class="o">*</span> <span class="n">stream</span><span class="p">;</span>
+        <span class="nb">int</span> <span class="n">fd</span><span class="p">;</span>
+    <span class="p">}</span> <span class="n">data</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">uv_stdio_container_t</span><span class="p">;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_stdio_flags">
+<em class="property">type </em><code class="sig-name descname">uv_stdio_flags</code><a class="headerlink" href="#c.uv_stdio_flags" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Flags specifying how a stdio should be transmitted to the child process.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">enum</span> <span class="p">{</span>
+    <span class="n">UV_IGNORE</span> <span class="o">=</span> <span class="mh">0x00</span><span class="p">,</span>
+    <span class="n">UV_CREATE_PIPE</span> <span class="o">=</span> <span class="mh">0x01</span><span class="p">,</span>
+    <span class="n">UV_INHERIT_FD</span> <span class="o">=</span> <span class="mh">0x02</span><span class="p">,</span>
+    <span class="n">UV_INHERIT_STREAM</span> <span class="o">=</span> <span class="mh">0x04</span><span class="p">,</span>
+    <span class="o">/*</span>
+    <span class="o">*</span> <span class="n">When</span> <span class="n">UV_CREATE_PIPE</span> <span class="ow">is</span> <span class="n">specified</span><span class="p">,</span> <span class="n">UV_READABLE_PIPE</span> <span class="ow">and</span> <span class="n">UV_WRITABLE_PIPE</span>
+    <span class="o">*</span> <span class="n">determine</span> <span class="n">the</span> <span class="n">direction</span> <span class="n">of</span> <span class="n">flow</span><span class="p">,</span> <span class="kn">from</span> <span class="nn">the</span> <span class="n">child</span> <span class="n">process</span><span class="s1">&#39; perspective. Both</span>
+    <span class="o">*</span> <span class="n">flags</span> <span class="n">may</span> <span class="n">be</span> <span class="n">specified</span> <span class="n">to</span> <span class="n">create</span> <span class="n">a</span> <span class="n">duplex</span> <span class="n">data</span> <span class="n">stream</span><span class="o">.</span>
+    <span class="o">*/</span>
+    <span class="n">UV_READABLE_PIPE</span> <span class="o">=</span> <span class="mh">0x10</span><span class="p">,</span>
+    <span class="n">UV_WRITABLE_PIPE</span> <span class="o">=</span> <span class="mh">0x20</span>
+    <span class="o">/*</span>
+     <span class="o">*</span> <span class="n">Open</span> <span class="n">the</span> <span class="n">child</span> <span class="n">pipe</span> <span class="n">handle</span> <span class="ow">in</span> <span class="n">overlapped</span> <span class="n">mode</span> <span class="n">on</span> <span class="n">Windows</span><span class="o">.</span>
+     <span class="o">*</span> <span class="n">On</span> <span class="n">Unix</span> <span class="n">it</span> <span class="ow">is</span> <span class="n">silently</span> <span class="n">ignored</span><span class="o">.</span>
+     <span class="o">*/</span>
+    <span class="n">UV_OVERLAPPED_PIPE</span> <span class="o">=</span> <span class="mh">0x40</span>
+<span class="p">}</span> <span class="n">uv_stdio_flags</span><span class="p">;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<div class="section" id="public-members">
+<h3>Public members<a class="headerlink" href="#public-members" title="Permalink to this headline">¶</a></h3>
+<dl class="c member">
+<dt>
+<code class="sig-name descname">uv_process_t.pid</code></dt>
+<dd><p>The PID of the spawned process. It’s set after calling <a class="reference internal" href="#c.uv_spawn" title="uv_spawn"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_spawn()</span></code></a>.</p>
+</dd></dl>
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <a class="reference internal" href="handle.html#c.uv_handle_t" title="uv_handle_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_handle_t</span></code></a> members also apply.</p>
+</div>
+<dl class="c member">
+<dt>
+<code class="sig-name descname">uv_process_options_t.exit_cb</code></dt>
+<dd><p>Callback called after the process exits.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt>
+<code class="sig-name descname">uv_process_options_t.file</code></dt>
+<dd><p>Path pointing to the program to be executed.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt>
+<code class="sig-name descname">uv_process_options_t.args</code></dt>
+<dd><p>Command line arguments. args[0] should be the path to the program. On
+Windows this uses <cite>CreateProcess</cite> which concatenates the arguments into a
+string this can cause some strange errors. See the
+<code class="docutils literal notranslate"><span class="pre">UV_PROCESS_WINDOWS_VERBATIM_ARGUMENTS</span></code> flag on <a class="reference internal" href="#c.uv_process_flags" title="uv_process_flags"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_process_flags</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt>
+<code class="sig-name descname">uv_process_options_t.env</code></dt>
+<dd><p>Environment for the new process. If NULL the parents environment is used.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt>
+<code class="sig-name descname">uv_process_options_t.cwd</code></dt>
+<dd><p>Current working directory for the subprocess.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt>
+<code class="sig-name descname">uv_process_options_t.flags</code></dt>
+<dd><p>Various flags that control how <a class="reference internal" href="#c.uv_spawn" title="uv_spawn"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_spawn()</span></code></a> behaves. See
+<a class="reference internal" href="#c.uv_process_flags" title="uv_process_flags"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_process_flags</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt>
+<code class="sig-name descname">uv_process_options_t.stdio_count</code></dt>
+<dd></dd></dl>
+
+<dl class="c member">
+<dt>
+<code class="sig-name descname">uv_process_options_t.stdio</code></dt>
+<dd><p>The <cite>stdio</cite> field points to an array of <a class="reference internal" href="#c.uv_stdio_container_t" title="uv_stdio_container_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_stdio_container_t</span></code></a>
+structs that describe the file descriptors that will be made available to
+the child process. The convention is that stdio[0] points to stdin,
+fd 1 is used for stdout, and fd 2 is stderr.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>On Windows file descriptors greater than 2 are available to the child process only if
+the child processes uses the MSVCRT runtime.</p>
+</div>
+</dd></dl>
+
+<dl class="c member">
+<dt>
+<code class="sig-name descname">uv_process_options_t.uid</code></dt>
+<dd></dd></dl>
+
+<dl class="c member">
+<dt>
+<code class="sig-name descname">uv_process_options_t.gid</code></dt>
+<dd><p>Libuv can change the child process’ user/group id. This happens only when
+the appropriate bits are set in the flags fields.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is not supported on Windows, <a class="reference internal" href="#c.uv_spawn" title="uv_spawn"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_spawn()</span></code></a> will fail and set the error
+to <code class="docutils literal notranslate"><span class="pre">UV_ENOTSUP</span></code>.</p>
+</div>
+</dd></dl>
+
+<dl class="c member">
+<dt>
+<code class="sig-name descname">uv_stdio_container_t.flags</code></dt>
+<dd><p>Flags specifying how the stdio container should be passed to the child. See
+<a class="reference internal" href="#c.uv_stdio_flags" title="uv_stdio_flags"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_stdio_flags</span></code></a>.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt>
+<code class="sig-name descname">uv_stdio_container_t.data</code></dt>
+<dd><p>Union containing either the stream or fd to be passed on to the child
+process.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<dl class="c function">
+<dt id="c.uv_disable_stdio_inheritance">
+void <code class="sig-name descname">uv_disable_stdio_inheritance</code><span class="sig-paren">(</span>void<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_disable_stdio_inheritance" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Disables inheritance for file descriptors / handles that this process
+inherited from its parent. The effect is that child processes spawned by
+this process don’t accidentally inherit these handles.</p>
+<p>It is recommended to call this function as early in your program as possible,
+before the inherited file descriptors can be closed or duplicated.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function works on a best-effort basis: there is no guarantee that libuv can discover
+all file descriptors that were inherited. In general it does a better job on Windows than
+it does on Unix.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_spawn">
+int <code class="sig-name descname">uv_spawn</code><span class="sig-paren">(</span><a class="reference internal" href="loop.html#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em>, <a class="reference internal" href="#c.uv_process_t" title="uv_process_t">uv_process_t</a> *<em>handle</em>, <em class="property">const</em> <a class="reference internal" href="#c.uv_process_options_t" title="uv_process_options_t">uv_process_options_t</a> *<em>options</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_spawn" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initializes the process handle and starts the process. If the process is
+successfully spawned, this function will return 0. Otherwise, the
+negative error code corresponding to the reason it couldn’t spawn is
+returned.</p>
+<p>Possible reasons for failing to spawn would include (but not be limited to)
+the file to execute not existing, not having permissions to use the setuid or
+setgid specified, or not having enough memory to allocate for the new
+process.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.24.0: </span>Added <cite>UV_PROCESS_WINDOWS_HIDE_CONSOLE</cite> and
+<cite>UV_PROCESS_WINDOWS_HIDE_GUI</cite> flags.</p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_process_kill">
+int <code class="sig-name descname">uv_process_kill</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_process_t" title="uv_process_t">uv_process_t</a> *<em>handle</em>, int <em>signum</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_process_kill" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Sends the specified signal to the given process handle. Check the documentation
+on <a class="reference internal" href="signal.html#signal"><span class="std std-ref">uv_signal_t — Signal handle</span></a> for signal support, specially on Windows.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_kill">
+int <code class="sig-name descname">uv_kill</code><span class="sig-paren">(</span>int <em>pid</em>, int <em>signum</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_kill" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Sends the specified signal to the given PID. Check the documentation
+on <a class="reference internal" href="signal.html#signal"><span class="std std-ref">uv_signal_t — Signal handle</span></a> for signal support, specially on Windows.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_process_get_pid">
+<a class="reference internal" href="misc.html#c.uv_pid_t" title="uv_pid_t">uv_pid_t</a> <code class="sig-name descname">uv_process_get_pid</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_process_t" title="uv_process_t">uv_process_t</a> *<em>handle</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_process_get_pid" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns <cite>handle-&gt;pid</cite>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.19.0.</span></p>
+</div>
+</dd></dl>
+
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The <a class="reference internal" href="handle.html#c.uv_handle_t" title="uv_handle_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_handle_t</span></code></a> API functions also apply.</p>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_process_t</span></code> — Process handle</a><ul>
+<li><a class="reference internal" href="#data-types">Data types</a><ul>
+<li><a class="reference internal" href="#public-members">Public members</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="signal.html"
+                        title="previous chapter"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_signal_t</span></code> — Signal handle</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="stream.html"
+                        title="next chapter"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_stream_t</span></code> — Stream handle</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/process.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="stream.html" title="uv_stream_t — Stream handle"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="signal.html" title="uv_signal_t — Signal handle"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" >API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_process_t</span></code> — Process handle</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

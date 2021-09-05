@@ -1,0 +1,246 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>uv_req_t — Base request &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="uv_timer_t — Timer handle" href="timer.html" />
+    <link rel="prev" title="uv_handle_t — Base handle" href="handle.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="timer.html" title="uv_timer_t — Timer handle"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="handle.html" title="uv_handle_t — Base handle"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_req_t</span></code> — Base request</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="uv-req-t-base-request">
+<span id="request"></span><h1><a class="reference internal" href="#c.uv_req_t" title="uv_req_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_req_t</span></code></a> — Base request<a class="headerlink" href="#uv-req-t-base-request" title="Permalink to this headline">¶</a></h1>
+<p><cite>uv_req_t</cite> is the base type for all libuv request types.</p>
+<p>Structures are aligned so that any libuv request can be cast to <cite>uv_req_t</cite>.
+All API functions defined here work with any request type.</p>
+<div class="section" id="data-types">
+<h2>Data types<a class="headerlink" href="#data-types" title="Permalink to this headline">¶</a></h2>
+<dl class="c type">
+<dt id="c.uv_req_t">
+<em class="property">type </em><code class="sig-name descname">uv_req_t</code><a class="headerlink" href="#c.uv_req_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>The base libuv request structure.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_any_req">
+<em class="property">type </em><code class="sig-name descname">uv_any_req</code><a class="headerlink" href="#c.uv_any_req" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Union of all request types.</p>
+</dd></dl>
+
+<div class="section" id="public-members">
+<h3>Public members<a class="headerlink" href="#public-members" title="Permalink to this headline">¶</a></h3>
+<dl class="c member">
+<dt id="c.uv_req_t.data">
+void *<code class="sig-prename descclassname"><a class="reference internal" href="#c.uv_req_t" title="uv_req_t">uv_req_t</a><code class="sig-prename descclassname">.</code></code><code class="sig-name descname">data</code><a class="headerlink" href="#c.uv_req_t.data" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Space for user-defined arbitrary data. libuv does not use this field.</p>
+</dd></dl>
+
+<dl class="c member">
+<dt id="c.uv_req_t.type">
+uv_req_type <code class="sig-prename descclassname"><a class="reference internal" href="#c.uv_req_t" title="uv_req_t">uv_req_t</a><code class="sig-prename descclassname">.</code></code><code class="sig-name descname">type</code><a class="headerlink" href="#c.uv_req_t.type" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Indicated the type of request. Readonly.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">enum</span> <span class="p">{</span>
+    <span class="n">UV_UNKNOWN_REQ</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">UV_REQ</span><span class="p">,</span>
+    <span class="n">UV_CONNECT</span><span class="p">,</span>
+    <span class="n">UV_WRITE</span><span class="p">,</span>
+    <span class="n">UV_SHUTDOWN</span><span class="p">,</span>
+    <span class="n">UV_UDP_SEND</span><span class="p">,</span>
+    <span class="n">UV_FS</span><span class="p">,</span>
+    <span class="n">UV_WORK</span><span class="p">,</span>
+    <span class="n">UV_GETADDRINFO</span><span class="p">,</span>
+    <span class="n">UV_GETNAMEINFO</span><span class="p">,</span>
+    <span class="n">UV_REQ_TYPE_MAX</span><span class="p">,</span>
+<span class="p">}</span> <span class="n">uv_req_type</span><span class="p">;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<dl class="c function">
+<dt>
+<code class="sig-name descname">UV_REQ_TYPE_MAP(iter_macro)</code></dt>
+<dd><p>Macro that expands to a series of invocations of <cite>iter_macro</cite> for
+each of the request types. <cite>iter_macro</cite> is invoked with two
+arguments: the name of the <cite>uv_req_type</cite> element without the <cite>UV_</cite>
+prefix, and the name of the corresponding structure type without the
+<cite>uv_</cite> prefix and <cite>_t</cite> suffix.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_cancel">
+int <code class="sig-name descname">uv_cancel</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_req_t" title="uv_req_t">uv_req_t</a> *<em>req</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_cancel" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Cancel a pending request. Fails if the request is executing or has finished
+executing.</p>
+<p>Returns 0 on success, or an error code &lt; 0 on failure.</p>
+<p>Only cancellation of <a class="reference internal" href="fs.html#c.uv_fs_t" title="uv_fs_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_fs_t</span></code></a>, <a class="reference internal" href="dns.html#c.uv_getaddrinfo_t" title="uv_getaddrinfo_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_getaddrinfo_t</span></code></a>,
+<a class="reference internal" href="dns.html#c.uv_getnameinfo_t" title="uv_getnameinfo_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_getnameinfo_t</span></code></a> and <a class="reference internal" href="threadpool.html#c.uv_work_t" title="uv_work_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_work_t</span></code></a> requests is
+currently supported.</p>
+<p>Cancelled requests have their callbacks invoked some time in the future.
+It’s <strong>not</strong> safe to free the memory associated with the request until the
+callback is called.</p>
+<p>Here is how cancellation is reported to the callback:</p>
+<ul class="simple">
+<li><p>A <a class="reference internal" href="fs.html#c.uv_fs_t" title="uv_fs_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_fs_t</span></code></a> request has its req-&gt;result field set to <cite>UV_ECANCELED</cite>.</p></li>
+<li><p>A <a class="reference internal" href="threadpool.html#c.uv_work_t" title="uv_work_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_work_t</span></code></a>, <a class="reference internal" href="dns.html#c.uv_getaddrinfo_t" title="uv_getaddrinfo_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_getaddrinfo_t</span></code></a> or c:type:<cite>uv_getnameinfo_t</cite>
+request has its callback invoked with status == <cite>UV_ECANCELED</cite>.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_req_size">
+size_t <code class="sig-name descname">uv_req_size</code><span class="sig-paren">(</span>uv_req_type <em>type</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_req_size" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the size of the given request type. Useful for FFI binding writers
+who don’t want to know the structure layout.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_req_get_data">
+void *<code class="sig-name descname">uv_req_get_data</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_req_t" title="uv_req_t">uv_req_t</a> *<em>req</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_req_get_data" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns <cite>req-&gt;data</cite>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.19.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_req_set_data">
+void *<code class="sig-name descname">uv_req_set_data</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_req_t" title="uv_req_t">uv_req_t</a> *<em>req</em>, void *<em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_req_set_data" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Sets <cite>req-&gt;data</cite> to <cite>data</cite>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.19.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_req_get_type">
+uv_req_type <code class="sig-name descname">uv_req_get_type</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_req_t" title="uv_req_t">uv_req_t</a> *<em>req</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_req_get_type" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns <cite>req-&gt;type</cite>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.19.0.</span></p>
+</div>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_req_type_name">
+<em class="property">const</em> char *<code class="sig-name descname">uv_req_type_name</code><span class="sig-paren">(</span>uv_req_type <em>type</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_req_type_name" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the name for the equivalent struct for a given request type,
+e.g. <cite>“connect”</cite> (as in <a class="reference internal" href="stream.html#c.uv_connect_t" title="uv_connect_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_connect_t</span></code></a>) for <cite>UV_CONNECT</cite>.</p>
+<p>If no such request type exists, this returns <cite>NULL</cite>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.19.0.</span></p>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_req_t</span></code> — Base request</a><ul>
+<li><a class="reference internal" href="#data-types">Data types</a><ul>
+<li><a class="reference internal" href="#public-members">Public members</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="handle.html"
+                        title="previous chapter"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_handle_t</span></code> — Base handle</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="timer.html"
+                        title="next chapter"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_timer_t</span></code> — Timer handle</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/request.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="timer.html" title="uv_timer_t — Timer handle"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="handle.html" title="uv_handle_t — Base handle"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" >API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href=""><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_req_t</span></code> — Base request</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

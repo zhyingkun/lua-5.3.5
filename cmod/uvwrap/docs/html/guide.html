@@ -1,0 +1,176 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User guide &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Introduction" href="guide/introduction.html" />
+    <link rel="prev" title="Miscellaneous utilities" href="misc.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="guide/introduction.html" title="Introduction"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="misc.html" title="Miscellaneous utilities"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">User guide</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="user-guide">
+<span id="guide"></span><h1>User guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h1>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The contents of this guide have been recently incorporated into the libuv documentation
+and it hasn’t gone through thorough review yet. If you spot a mistake please file an
+issue, or better yet, open a pull request!</p>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="guide/introduction.html">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guide/introduction.html#who-this-book-is-for">Who this book is for</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/introduction.html#background">Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/introduction.html#code">Code</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guide/basics.html">Basics of libuv</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guide/basics.html#event-loops">Event loops</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/basics.html#hello-world">Hello World</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/basics.html#error-handling">Error handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/basics.html#handles-and-requests">Handles and Requests</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guide/filesystem.html">Filesystem</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guide/filesystem.html#reading-writing-files">Reading/Writing files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/filesystem.html#filesystem-operations">Filesystem operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/filesystem.html#buffers-and-streams">Buffers and Streams</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/filesystem.html#file-change-events">File change events</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guide/networking.html">Networking</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guide/networking.html#tcp">TCP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/networking.html#udp">UDP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/networking.html#querying-dns">Querying DNS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/networking.html#network-interfaces">Network interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guide/threads.html">Threads</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guide/threads.html#core-thread-operations">Core thread operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/threads.html#synchronization-primitives">Synchronization Primitives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/threads.html#id1">libuv work queue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/threads.html#inter-thread-communication">Inter-thread communication</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guide/processes.html">Processes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guide/processes.html#spawning-child-processes">Spawning child processes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/processes.html#changing-process-parameters">Changing process parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/processes.html#detaching-processes">Detaching processes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/processes.html#sending-signals-to-processes">Sending signals to processes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/processes.html#signals">Signals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/processes.html#child-process-i-o">Child Process I/O</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/processes.html#pipes">Pipes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guide/eventloops.html">Advanced event loops</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guide/eventloops.html#stopping-an-event-loop">Stopping an event loop</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guide/utilities.html">Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guide/utilities.html#timers">Timers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/utilities.html#event-loop-reference-count">Event loop reference count</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/utilities.html#idler-pattern">Idler pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/utilities.html#passing-data-to-worker-thread">Passing data to worker thread</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/utilities.html#external-i-o-with-polling">External I/O with polling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/utilities.html#check-prepare-watchers">Check &amp; Prepare watchers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/utilities.html#loading-libraries">Loading libraries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide/utilities.html#tty">TTY</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="guide/about.html">About</a></li>
+</ul>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="misc.html"
+                        title="previous chapter">Miscellaneous utilities</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="guide/introduction.html"
+                        title="next chapter">Introduction</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/guide.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="guide/introduction.html" title="Introduction"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="misc.html" title="Miscellaneous utilities"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">User guide</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

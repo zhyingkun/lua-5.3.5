@@ -1,0 +1,164 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shared library handling &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Threading and synchronization utilities" href="threading.html" />
+    <link rel="prev" title="DNS utility functions" href="dns.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="threading.html" title="Threading and synchronization utilities"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dns.html" title="DNS utility functions"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Shared library handling</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="shared-library-handling">
+<span id="dll"></span><h1>Shared library handling<a class="headerlink" href="#shared-library-handling" title="Permalink to this headline">¶</a></h1>
+<p>libuv provides cross platform utilities for loading shared libraries and
+retrieving symbols from them, using the following API.</p>
+<div class="section" id="data-types">
+<h2>Data types<a class="headerlink" href="#data-types" title="Permalink to this headline">¶</a></h2>
+<dl class="c type">
+<dt id="c.uv_lib_t">
+<em class="property">type </em><code class="sig-name descname">uv_lib_t</code><a class="headerlink" href="#c.uv_lib_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Shared library data type.</p>
+</dd></dl>
+
+<div class="section" id="public-members">
+<h3>Public members<a class="headerlink" href="#public-members" title="Permalink to this headline">¶</a></h3>
+<p>N/A</p>
+</div>
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<dl class="c function">
+<dt id="c.uv_dlopen">
+int <code class="sig-name descname">uv_dlopen</code><span class="sig-paren">(</span><em class="property">const</em> char *<em>filename</em>, <a class="reference internal" href="#c.uv_lib_t" title="uv_lib_t">uv_lib_t</a> *<em>lib</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_dlopen" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Opens a shared library. The filename is in utf-8. Returns 0 on success and
+-1 on error. Call <a class="reference internal" href="#c.uv_dlerror" title="uv_dlerror"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_dlerror()</span></code></a> to get the error message.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_dlclose">
+void <code class="sig-name descname">uv_dlclose</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_lib_t" title="uv_lib_t">uv_lib_t</a> *<em>lib</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_dlclose" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Close the shared library.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_dlsym">
+int <code class="sig-name descname">uv_dlsym</code><span class="sig-paren">(</span><a class="reference internal" href="#c.uv_lib_t" title="uv_lib_t">uv_lib_t</a> *<em>lib</em>, <em class="property">const</em> char *<em>name</em>, void **<em>ptr</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_dlsym" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Retrieves a data pointer from a dynamic library. It is legal for a symbol
+to map to NULL. Returns 0 on success and -1 if the symbol was not found.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt id="c.uv_dlerror">
+<em class="property">const</em> char *<code class="sig-name descname">uv_dlerror</code><span class="sig-paren">(</span><em class="property">const</em> <a class="reference internal" href="#c.uv_lib_t" title="uv_lib_t">uv_lib_t</a> *<em>lib</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_dlerror" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Returns the last uv_dlopen() or uv_dlsym() error message.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Shared library handling</a><ul>
+<li><a class="reference internal" href="#data-types">Data types</a><ul>
+<li><a class="reference internal" href="#public-members">Public members</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="dns.html"
+                        title="previous chapter">DNS utility functions</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="threading.html"
+                        title="next chapter">Threading and synchronization utilities</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dll.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="threading.html" title="Threading and synchronization utilities"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dns.html" title="DNS utility functions"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" >API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Shared library handling</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

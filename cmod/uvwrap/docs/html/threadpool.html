@@ -1,0 +1,193 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thread pool work scheduling &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="DNS utility functions" href="dns.html" />
+    <link rel="prev" title="File system operations" href="fs.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="dns.html" title="DNS utility functions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="fs.html" title="File system operations"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" accesskey="U">API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Thread pool work scheduling</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="thread-pool-work-scheduling">
+<span id="threadpool"></span><h1>Thread pool work scheduling<a class="headerlink" href="#thread-pool-work-scheduling" title="Permalink to this headline">¶</a></h1>
+<p>libuv provides a threadpool which can be used to run user code and get notified
+in the loop thread. This thread pool is internally used to run all file system
+operations, as well as getaddrinfo and getnameinfo requests.</p>
+<p>Its default size is 4, but it can be changed at startup time by setting the
+<code class="docutils literal notranslate"><span class="pre">UV_THREADPOOL_SIZE</span></code> environment variable to any value (the absolute maximum
+is 1024).</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.30.0: </span>the maximum UV_THREADPOOL_SIZE allowed was increased from 128 to 1024.</p>
+</div>
+<p>The threadpool is global and shared across all event loops. When a particular
+function makes use of the threadpool (i.e. when using <a class="reference internal" href="#c.uv_queue_work" title="uv_queue_work"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_queue_work()</span></code></a>)
+libuv preallocates and initializes the maximum number of threads allowed by
+<code class="docutils literal notranslate"><span class="pre">UV_THREADPOOL_SIZE</span></code>. This causes a relatively minor memory overhead
+(~1MB for 128 threads) but increases the performance of threading at runtime.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Note that even though a global thread pool which is shared across all events
+loops is used, the functions are not thread safe.</p>
+</div>
+<div class="section" id="data-types">
+<h2>Data types<a class="headerlink" href="#data-types" title="Permalink to this headline">¶</a></h2>
+<dl class="c type">
+<dt id="c.uv_work_t">
+<em class="property">type </em><code class="sig-name descname">uv_work_t</code><a class="headerlink" href="#c.uv_work_t" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Work request type.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_work_cb">
+<em class="property">typedef </em>void (*<code class="sig-name descname">uv_work_cb</code>)<span class="sig-paren">(</span><a class="reference internal" href="#c.uv_work_t" title="uv_work_t">uv_work_t</a> *req<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_work_cb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Callback passed to <a class="reference internal" href="#c.uv_queue_work" title="uv_queue_work"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_queue_work()</span></code></a> which will be run on the thread
+pool.</p>
+</dd></dl>
+
+<dl class="c type">
+<dt id="c.uv_after_work_cb">
+<em class="property">typedef </em>void (*<code class="sig-name descname">uv_after_work_cb</code>)<span class="sig-paren">(</span><a class="reference internal" href="#c.uv_work_t" title="uv_work_t">uv_work_t</a> *req, int status<span class="sig-paren">)</span><a class="headerlink" href="#c.uv_after_work_cb" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Callback passed to <a class="reference internal" href="#c.uv_queue_work" title="uv_queue_work"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_queue_work()</span></code></a> which will be called on the loop
+thread after the work on the threadpool has been completed. If the work
+was cancelled using <a class="reference internal" href="request.html#c.uv_cancel" title="uv_cancel"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_cancel()</span></code></a> <cite>status</cite> will be <code class="docutils literal notranslate"><span class="pre">UV_ECANCELED</span></code>.</p>
+</dd></dl>
+
+<div class="section" id="public-members">
+<h3>Public members<a class="headerlink" href="#public-members" title="Permalink to this headline">¶</a></h3>
+<dl class="c member">
+<dt id="c.uv_work_t.loop">
+<a class="reference internal" href="loop.html#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<code class="sig-prename descclassname"><a class="reference internal" href="#c.uv_work_t" title="uv_work_t">uv_work_t</a><code class="sig-prename descclassname">.</code></code><code class="sig-name descname">loop</code><a class="headerlink" href="#c.uv_work_t.loop" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Loop that started this request and where completion will be reported.
+Readonly.</p>
+</dd></dl>
+
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The <a class="reference internal" href="request.html#c.uv_req_t" title="uv_req_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_req_t</span></code></a> members also apply.</p>
+</div>
+</div>
+</div>
+<div class="section" id="api">
+<h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<dl class="c function">
+<dt id="c.uv_queue_work">
+int <code class="sig-name descname">uv_queue_work</code><span class="sig-paren">(</span><a class="reference internal" href="loop.html#c.uv_loop_t" title="uv_loop_t">uv_loop_t</a> *<em>loop</em>, <a class="reference internal" href="#c.uv_work_t" title="uv_work_t">uv_work_t</a> *<em>req</em>, <a class="reference internal" href="#c.uv_work_cb" title="uv_work_cb">uv_work_cb</a> <em>work_cb</em>, <a class="reference internal" href="#c.uv_after_work_cb" title="uv_after_work_cb">uv_after_work_cb</a> <em>after_work_cb</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_queue_work" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Initializes a work request which will run the given <cite>work_cb</cite> in a thread
+from the threadpool. Once <cite>work_cb</cite> is completed, <cite>after_work_cb</cite> will be
+called on the loop thread.</p>
+<p>This request can be cancelled with <a class="reference internal" href="request.html#c.uv_cancel" title="uv_cancel"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_cancel()</span></code></a>.</p>
+</dd></dl>
+
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>The <a class="reference internal" href="request.html#c.uv_req_t" title="uv_req_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_req_t</span></code></a> API functions also apply.</p>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Thread pool work scheduling</a><ul>
+<li><a class="reference internal" href="#data-types">Data types</a><ul>
+<li><a class="reference internal" href="#public-members">Public members</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="fs.html"
+                        title="previous chapter">File system operations</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dns.html"
+                        title="next chapter">DNS utility functions</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/threadpool.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="dns.html" title="DNS utility functions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="fs.html" title="File system operations"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="api.html" >API documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Thread pool work scheduling</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>

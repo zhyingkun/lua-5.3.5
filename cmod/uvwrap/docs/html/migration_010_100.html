@@ -1,0 +1,307 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>libuv 0.10 -&gt; 1.0.0 migration guide &#8212; libuv documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Upgrading" href="upgrading.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="upgrading.html" title="Upgrading"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="upgrading.html" accesskey="U">Upgrading</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">libuv 0.10 -&gt; 1.0.0 migration guide</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="libuv-0-10-1-0-0-migration-guide">
+<span id="migration-010-100"></span><h1>libuv 0.10 -&gt; 1.0.0 migration guide<a class="headerlink" href="#libuv-0-10-1-0-0-migration-guide" title="Permalink to this headline">¶</a></h1>
+<p>Some APIs changed quite a bit throughout the 1.0.0 development process. Here
+is a migration guide for the most significant changes that happened after 0.10
+was released.</p>
+<div class="section" id="loop-initialization-and-closing">
+<h2>Loop initialization and closing<a class="headerlink" href="#loop-initialization-and-closing" title="Permalink to this headline">¶</a></h2>
+<p>In libuv 0.10 (and previous versions), loops were created with <cite>uv_loop_new</cite>, which
+allocated memory for a new loop and initialized it; and destroyed with <cite>uv_loop_delete</cite>,
+which destroyed the loop and freed the memory. Starting with 1.0, those are deprecated
+and the user is responsible for allocating the memory and then initializing the loop.</p>
+<p>libuv 0.10</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv_loop_t</span><span class="o">*</span> <span class="n">loop</span> <span class="o">=</span> <span class="n">uv_loop_new</span><span class="p">();</span>
+<span class="o">...</span>
+<span class="n">uv_loop_delete</span><span class="p">(</span><span class="n">loop</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>libuv 1.0</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv_loop_t</span><span class="o">*</span> <span class="n">loop</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="n">sizeof</span> <span class="o">*</span><span class="n">loop</span><span class="p">);</span>
+<span class="n">uv_loop_init</span><span class="p">(</span><span class="n">loop</span><span class="p">);</span>
+<span class="o">...</span>
+<span class="n">uv_loop_close</span><span class="p">(</span><span class="n">loop</span><span class="p">);</span>
+<span class="n">free</span><span class="p">(</span><span class="n">loop</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Error handling was omitted for brevity. Check the documentation for <a class="reference internal" href="loop.html#c.uv_loop_init" title="uv_loop_init"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_loop_init()</span></code></a>
+and <a class="reference internal" href="loop.html#c.uv_loop_close" title="uv_loop_close"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_loop_close()</span></code></a>.</p>
+</div>
+</div>
+<div class="section" id="error-handling">
+<h2>Error handling<a class="headerlink" href="#error-handling" title="Permalink to this headline">¶</a></h2>
+<p>Error handling had a major overhaul in libuv 1.0. In general, functions and status parameters
+would get 0 for success and -1 for failure on libuv 0.10, and the user had to use <cite>uv_last_error</cite>
+to fetch the error code, which was a positive number.</p>
+<p>In 1.0, functions and status parameters contain the actual error code, which is 0 for success, or
+a negative number in case of error.</p>
+<p>libuv 0.10</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">...</span> <span class="n">assume</span> <span class="s1">&#39;server&#39;</span> <span class="ow">is</span> <span class="n">a</span> <span class="n">TCP</span> <span class="n">server</span> <span class="n">which</span> <span class="ow">is</span> <span class="n">already</span> <span class="n">listening</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">uv_listen</span><span class="p">((</span><span class="n">uv_stream_t</span><span class="o">*</span><span class="p">)</span> <span class="n">server</span><span class="p">,</span> <span class="mi">511</span><span class="p">,</span> <span class="n">NULL</span><span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">r</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">uv_err_t</span> <span class="n">err</span> <span class="o">=</span> <span class="n">uv_last_error</span><span class="p">(</span><span class="n">uv_default_loop</span><span class="p">());</span>
+  <span class="o">/*</span> <span class="n">err</span><span class="o">.</span><span class="n">code</span> <span class="n">contains</span> <span class="n">UV_EADDRINUSE</span> <span class="o">*/</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>libuv 1.0</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">...</span> <span class="n">assume</span> <span class="s1">&#39;server&#39;</span> <span class="ow">is</span> <span class="n">a</span> <span class="n">TCP</span> <span class="n">server</span> <span class="n">which</span> <span class="ow">is</span> <span class="n">already</span> <span class="n">listening</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">uv_listen</span><span class="p">((</span><span class="n">uv_stream_t</span><span class="o">*</span><span class="p">)</span> <span class="n">server</span><span class="p">,</span> <span class="mi">511</span><span class="p">,</span> <span class="n">NULL</span><span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">r</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+  <span class="o">/*</span> <span class="n">r</span> <span class="n">contains</span> <span class="n">UV_EADDRINUSE</span> <span class="o">*/</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="threadpool-changes">
+<h2>Threadpool changes<a class="headerlink" href="#threadpool-changes" title="Permalink to this headline">¶</a></h2>
+<p>In libuv 0.10 Unix used a threadpool which defaulted to 4 threads, while Windows used the
+<cite>QueueUserWorkItem</cite> API, which uses a Windows internal threadpool, which defaults to 512
+threads per process.</p>
+<p>In 1.0, we unified both implementations, so Windows now uses the same implementation Unix
+does. The threadpool size can be set by exporting the <code class="docutils literal notranslate"><span class="pre">UV_THREADPOOL_SIZE</span></code> environment
+variable. See <a class="reference internal" href="threadpool.html#threadpool"><span class="std std-ref">Thread pool work scheduling</span></a>.</p>
+</div>
+<div class="section" id="allocation-callback-api-change">
+<h2>Allocation callback API change<a class="headerlink" href="#allocation-callback-api-change" title="Permalink to this headline">¶</a></h2>
+<p>In libuv 0.10 the callback had to return a filled <a class="reference internal" href="misc.html#c.uv_buf_t" title="uv_buf_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_buf_t</span></code></a> by value:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">uv_buf_t</span> <span class="n">alloc_cb</span><span class="p">(</span><span class="n">uv_handle_t</span><span class="o">*</span> <span class="n">handle</span><span class="p">,</span> <span class="n">size_t</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">uv_buf_init</span><span class="p">(</span><span class="n">malloc</span><span class="p">(</span><span class="n">size</span><span class="p">),</span> <span class="n">size</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In libuv 1.0 a pointer to a buffer is passed to the callback, which the user
+needs to fill:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">alloc_cb</span><span class="p">(</span><span class="n">uv_handle_t</span><span class="o">*</span> <span class="n">handle</span><span class="p">,</span> <span class="n">size_t</span> <span class="n">size</span><span class="p">,</span> <span class="n">uv_buf_t</span><span class="o">*</span> <span class="n">buf</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">buf</span><span class="o">-&gt;</span><span class="n">base</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="n">size</span><span class="p">);</span>
+    <span class="n">buf</span><span class="o">-&gt;</span><span class="nb">len</span> <span class="o">=</span> <span class="n">size</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="unification-of-ipv4-ipv6-apis">
+<h2>Unification of IPv4 / IPv6 APIs<a class="headerlink" href="#unification-of-ipv4-ipv6-apis" title="Permalink to this headline">¶</a></h2>
+<p>libuv 1.0 unified the IPv4 and IPv6 APIS. There is no longer a <cite>uv_tcp_bind</cite> and <cite>uv_tcp_bind6</cite>
+duality, there is only <a class="reference internal" href="tcp.html#c.uv_tcp_bind" title="uv_tcp_bind"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_tcp_bind()</span></code></a> now.</p>
+<p>IPv4 functions took <code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">sockaddr_in</span></code> structures by value, and IPv6 functions took
+<code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">sockaddr_in6</span></code>. Now functions take a <code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">sockaddr*</span></code> (note it’s a pointer).
+It can be stack allocated.</p>
+<p>libuv 0.10</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">struct</span> <span class="n">sockaddr_in</span> <span class="n">addr</span> <span class="o">=</span> <span class="n">uv_ip4_addr</span><span class="p">(</span><span class="s2">&quot;0.0.0.0&quot;</span><span class="p">,</span> <span class="mi">1234</span><span class="p">);</span>
+<span class="o">...</span>
+<span class="n">uv_tcp_bind</span><span class="p">(</span><span class="o">&amp;</span><span class="n">server</span><span class="p">,</span> <span class="n">addr</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>libuv 1.0</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">struct</span> <span class="n">sockaddr_in</span> <span class="n">addr</span><span class="p">;</span>
+<span class="n">uv_ip4_addr</span><span class="p">(</span><span class="s2">&quot;0.0.0.0&quot;</span><span class="p">,</span> <span class="mi">1234</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">addr</span><span class="p">)</span>
+<span class="o">...</span>
+<span class="n">uv_tcp_bind</span><span class="p">(</span><span class="o">&amp;</span><span class="n">server</span><span class="p">,</span> <span class="p">(</span><span class="n">const</span> <span class="n">struct</span> <span class="n">sockaddr</span><span class="o">*</span><span class="p">)</span> <span class="o">&amp;</span><span class="n">addr</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The IPv4 and IPv6 struct creating functions (<a class="reference internal" href="misc.html#c.uv_ip4_addr" title="uv_ip4_addr"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_ip4_addr()</span></code></a> and <a class="reference internal" href="misc.html#c.uv_ip6_addr" title="uv_ip6_addr"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_ip6_addr()</span></code></a>)
+have also changed, make sure you check the documentation.</p>
+<dl class="simple">
+<dt>..note::</dt><dd><p>This change applies to all functions that made a distinction between IPv4 and IPv6
+addresses.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="streams-udp-data-receive-callback-api-change">
+<h2>Streams / UDP  data receive callback API change<a class="headerlink" href="#streams-udp-data-receive-callback-api-change" title="Permalink to this headline">¶</a></h2>
+<p>The streams and UDP data receive callbacks now get a pointer to a <a class="reference internal" href="misc.html#c.uv_buf_t" title="uv_buf_t"><code class="xref c c-type docutils literal notranslate"><span class="pre">uv_buf_t</span></code></a> buffer,
+not a structure by value.</p>
+<p>libuv 0.10</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">on_read</span><span class="p">(</span><span class="n">uv_stream_t</span><span class="o">*</span> <span class="n">handle</span><span class="p">,</span>
+             <span class="n">ssize_t</span> <span class="n">nread</span><span class="p">,</span>
+             <span class="n">uv_buf_t</span> <span class="n">buf</span><span class="p">)</span> <span class="p">{</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+
+<span class="n">void</span> <span class="n">recv_cb</span><span class="p">(</span><span class="n">uv_udp_t</span><span class="o">*</span> <span class="n">handle</span><span class="p">,</span>
+             <span class="n">ssize_t</span> <span class="n">nread</span><span class="p">,</span>
+             <span class="n">uv_buf_t</span> <span class="n">buf</span><span class="p">,</span>
+             <span class="n">struct</span> <span class="n">sockaddr</span><span class="o">*</span> <span class="n">addr</span><span class="p">,</span>
+             <span class="n">unsigned</span> <span class="n">flags</span><span class="p">)</span> <span class="p">{</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>libuv 1.0</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">on_read</span><span class="p">(</span><span class="n">uv_stream_t</span><span class="o">*</span> <span class="n">handle</span><span class="p">,</span>
+             <span class="n">ssize_t</span> <span class="n">nread</span><span class="p">,</span>
+             <span class="n">const</span> <span class="n">uv_buf_t</span><span class="o">*</span> <span class="n">buf</span><span class="p">)</span> <span class="p">{</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+
+<span class="n">void</span> <span class="n">recv_cb</span><span class="p">(</span><span class="n">uv_udp_t</span><span class="o">*</span> <span class="n">handle</span><span class="p">,</span>
+             <span class="n">ssize_t</span> <span class="n">nread</span><span class="p">,</span>
+             <span class="n">const</span> <span class="n">uv_buf_t</span><span class="o">*</span> <span class="n">buf</span><span class="p">,</span>
+             <span class="n">const</span> <span class="n">struct</span> <span class="n">sockaddr</span><span class="o">*</span> <span class="n">addr</span><span class="p">,</span>
+             <span class="n">unsigned</span> <span class="n">flags</span><span class="p">)</span> <span class="p">{</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="receiving-handles-over-pipes-api-change">
+<h2>Receiving handles over pipes API change<a class="headerlink" href="#receiving-handles-over-pipes-api-change" title="Permalink to this headline">¶</a></h2>
+<p>In libuv 0.10 (and earlier versions) the <cite>uv_read2_start</cite> function was used to start reading
+data on a pipe, which could also result in the reception of handles over it. The callback
+for such function looked like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">on_read</span><span class="p">(</span><span class="n">uv_pipe_t</span><span class="o">*</span> <span class="n">pipe</span><span class="p">,</span>
+             <span class="n">ssize_t</span> <span class="n">nread</span><span class="p">,</span>
+             <span class="n">uv_buf_t</span> <span class="n">buf</span><span class="p">,</span>
+             <span class="n">uv_handle_type</span> <span class="n">pending</span><span class="p">)</span> <span class="p">{</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In libuv 1.0, <cite>uv_read2_start</cite> was removed, and the user needs to check if there are pending
+handles using <a class="reference internal" href="pipe.html#c.uv_pipe_pending_count" title="uv_pipe_pending_count"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_pipe_pending_count()</span></code></a> and <a class="reference internal" href="pipe.html#c.uv_pipe_pending_type" title="uv_pipe_pending_type"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_pipe_pending_type()</span></code></a> while in
+the read callback:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">on_read</span><span class="p">(</span><span class="n">uv_stream_t</span><span class="o">*</span> <span class="n">handle</span><span class="p">,</span>
+             <span class="n">ssize_t</span> <span class="n">nread</span><span class="p">,</span>
+             <span class="n">const</span> <span class="n">uv_buf_t</span><span class="o">*</span> <span class="n">buf</span><span class="p">)</span> <span class="p">{</span>
+    <span class="o">...</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">uv_pipe_pending_count</span><span class="p">((</span><span class="n">uv_pipe_t</span><span class="o">*</span><span class="p">)</span> <span class="n">handle</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">pending</span> <span class="o">=</span> <span class="n">uv_pipe_pending_type</span><span class="p">((</span><span class="n">uv_pipe_t</span><span class="o">*</span><span class="p">)</span> <span class="n">handle</span><span class="p">);</span>
+        <span class="o">...</span>
+    <span class="p">}</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="extracting-the-file-descriptor-out-of-a-handle">
+<h2>Extracting the file descriptor out of a handle<a class="headerlink" href="#extracting-the-file-descriptor-out-of-a-handle" title="Permalink to this headline">¶</a></h2>
+<p>While it wasn’t supported by the API, users often accessed the libuv internals in
+order to get access to the file descriptor of a TCP handle, for example.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fd</span> <span class="o">=</span> <span class="n">handle</span><span class="o">-&gt;</span><span class="n">io_watcher</span><span class="o">.</span><span class="n">fd</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>This is now properly exposed through the <a class="reference internal" href="handle.html#c.uv_fileno" title="uv_fileno"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_fileno()</span></code></a> function.</p>
+</div>
+<div class="section" id="uv-fs-readdir-rename-and-api-change">
+<h2>uv_fs_readdir rename and API change<a class="headerlink" href="#uv-fs-readdir-rename-and-api-change" title="Permalink to this headline">¶</a></h2>
+<p><cite>uv_fs_readdir</cite> returned a list of strings in the <cite>req-&gt;ptr</cite> field upon completion in
+libuv 0.10. In 1.0, this function got renamed to <a class="reference internal" href="fs.html#c.uv_fs_scandir" title="uv_fs_scandir"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_fs_scandir()</span></code></a>, since it’s
+actually implemented using <code class="docutils literal notranslate"><span class="pre">scandir(3)</span></code>.</p>
+<p>In addition, instead of allocating a full list strings, the user is able to get one
+result at a time by using the <a class="reference internal" href="fs.html#c.uv_fs_scandir_next" title="uv_fs_scandir_next"><code class="xref c c-func docutils literal notranslate"><span class="pre">uv_fs_scandir_next()</span></code></a> function. This function
+does not need to make a roundtrip to the threadpool, because libuv will keep the
+list of <em>dents</em> returned by <code class="docutils literal notranslate"><span class="pre">scandir(3)</span></code> around.</p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">libuv 0.10 -&gt; 1.0.0 migration guide</a><ul>
+<li><a class="reference internal" href="#loop-initialization-and-closing">Loop initialization and closing</a></li>
+<li><a class="reference internal" href="#error-handling">Error handling</a></li>
+<li><a class="reference internal" href="#threadpool-changes">Threadpool changes</a></li>
+<li><a class="reference internal" href="#allocation-callback-api-change">Allocation callback API change</a></li>
+<li><a class="reference internal" href="#unification-of-ipv4-ipv6-apis">Unification of IPv4 / IPv6 APIs</a></li>
+<li><a class="reference internal" href="#streams-udp-data-receive-callback-api-change">Streams / UDP  data receive callback API change</a></li>
+<li><a class="reference internal" href="#receiving-handles-over-pipes-api-change">Receiving handles over pipes API change</a></li>
+<li><a class="reference internal" href="#extracting-the-file-descriptor-out-of-a-handle">Extracting the file descriptor out of a handle</a></li>
+<li><a class="reference internal" href="#uv-fs-readdir-rename-and-api-change">uv_fs_readdir rename and API change</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="upgrading.html"
+                        title="previous chapter">Upgrading</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/migration_010_100.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="upgrading.html" title="Upgrading"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">libuv 1.31.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="upgrading.html" >Upgrading</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">libuv 0.10 -&gt; 1.0.0 migration guide</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2014-present, libuv contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+  </body>
+</html>
