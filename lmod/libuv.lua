@@ -50,6 +50,7 @@ return setmetatable({
 			set_realloc_cb()
 		end)
 	end,
+	repl_start = make_func_loop(uvwrap.repl_start),
 	loop = setmetatable({
 		default = uvwrap.loop.default,
 		new = uvwrap.loop.new,

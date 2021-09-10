@@ -81,9 +81,9 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 if(APPLE)
-	target_link_libraries(${PROJECT_NAME} liblua)
+	target_link_libraries(${PROJECT_NAME} liblua readline)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	target_link_libraries(${PROJECT_NAME} liblua pthread dl rt)
+	target_link_libraries(${PROJECT_NAME} liblua readline pthread dl rt)
 elseif(WIN32)
 	target_link_libraries(${PROJECT_NAME} liblua advapi32 iphlpapi psapi shell32 user32 userenv ws2_32)
 	set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "lib")

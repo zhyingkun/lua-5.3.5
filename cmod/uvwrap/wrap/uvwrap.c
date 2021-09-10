@@ -64,6 +64,8 @@ static const luaL_Reg uvwrap_funcs[] = {
     {"strerror", uvwrap_strerror},
     {"translate_sys_error", uvwrap_translate_sys_error},
     {"guess_handle", uvwrap_guess_handle},
+    {"repl_start", uvwrap_repl_start},
+    {"repl_stop", uvwrap_repl_stop},
     /* placeholders */
     {"err_code", NULL},
     {"version", NULL},
