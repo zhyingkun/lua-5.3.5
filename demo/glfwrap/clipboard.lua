@@ -7,9 +7,7 @@ glfw.set_msgh(function(msg)
 	print("GLFW pcall error: ", msg, debug.traceback())
 end)
 
-glfw.SetErrorCallback(function(code, desc)
-	print("GLFW ErrorCallback:", code, desc)
-end)
+glfw.SetErrorCallback()
 if not glfw.Init() then
 	print("Failed to initialize GLFW")
 	glfw.Terminate()

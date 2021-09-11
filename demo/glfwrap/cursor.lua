@@ -11,9 +11,7 @@ glfw.set_msgh(function(msg)
 	print("GLFW pcall error: ", msg, debug.traceback())
 end)
 
-glfw.SetErrorCallback(function(code, desc)
-	print("GLFW ErrorCallback:", code, desc)
-end)
+glfw.SetErrorCallback()
 
 local function CHECK(value, msg)
 	if not value then
