@@ -10,8 +10,6 @@
 ** =======================================================
 */
 
-lua_State* StaticL = NULL;
-
 int GLFWRAP_CALLBACK(msgh)(lua_State* L) {
   if (lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)GLFWRAP_CALLBACK(msgh)) == LUA_TFUNCTION) {
     lua_insert(L, -2);
@@ -80,17 +78,10 @@ static int GLFWRAP_FUNCTION(GetError)(lua_State* L) {
 }
 
 static void GLFWRAP_CALLBACK(SetErrorCallback)(int code, const char* desc) {
-  lua_State* L = StaticL;
-  GLFWRAP_CALLBACK_BEGIN(SetErrorCallback)
-  lua_pushinteger(L, code);
-  lua_pushstring(L, desc);
-  CALL_LUA_FUNCTION(L, 2, 0);
-  GLFWRAP_CALLBACK_END()
+  fprintf(stderr, "GLFW ERROR: %d, %s\n", code, desc);
 }
 static int GLFWRAP_FUNCTION(SetErrorCallback)(lua_State* L) {
-  StaticL = L;
-  SET_GLFWRAP_CALLBACK(SetErrorCallback, error, 1);
-  glfwSetErrorCallback(callback);
+  glfwSetErrorCallback(GLFWRAP_CALLBACK(SetErrorCallback)); // error callback maybe called from other thread
   return 0;
 }
 
