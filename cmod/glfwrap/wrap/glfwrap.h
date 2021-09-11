@@ -57,10 +57,11 @@ DECLARE_REGISTE_FUNC(window)
 int GLFWRAP_CALLBACK(msgh)(lua_State* L);
 
 #define PREPARE_CALL_LUA(L) \
-  lua_pushcfunction(L, GLFWRAP_CALLBACK(msgh));
+  lua_checkstack(L, LUA_MINSTACK); \
+  lua_pushcfunction(L, GLFWRAP_CALLBACK(msgh))
 #define CALL_LUA_FUNCTION(L, nargs, nresult) /* must be pcall */ \
   int msgh = lua_gettop(L) - (nargs + 1); \
-  if (lua_pcall(L, nargs, nresult, msgh) != LUA_OK) { \
+  if (lua_pcall(L, nargs, 0, msgh) != LUA_OK) { \
     if (!lua_isnil(L, -1)) { \
       printf("Error: %s\n", lua_tostring(L, -1)); \
     } \
