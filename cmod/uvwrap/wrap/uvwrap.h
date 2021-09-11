@@ -243,7 +243,7 @@ void MEMORY_FUNCTION(free_buf)(void* ptr);
 #define PUSH_REQ_CALLBACK_CLEAN(L, req) \
   do { \
     L = (lua_State*)uv_req_get_data((uv_req_t*)req); \
-    luaL_checkstack(L, LUA_MINSTACK, "request callback"); \
+    PREPARE_CALL_LUA(L); \
     PUSH_HOLD_OBJECT(L, req, 0); \
     UNHOLD_LUA_OBJECT(L, req, 0); \
   } while (0)
@@ -261,7 +261,7 @@ void MEMORY_FUNCTION(free_buf)(void* ptr);
 #define PUSH_HANDLE_CALLBACK(L, handle, num) \
   do { \
     GET_HANDLE_DATA(L, handle); \
-    luaL_checkstack(L, LUA_MINSTACK, "handle callback"); \
+    PREPARE_CALL_LUA(L); \
     PUSH_HOLD_OBJECT(L, handle, num); \
   } while (0)
 #define CLEAR_HANDLE_CALLBACK(L, handle, num) \
@@ -295,15 +295,16 @@ void MEMORY_FUNCTION(free_buf)(void* ptr);
 #define PUSH_HANDLE_CLOSE_CALLBACK_CLEAN(L, handle) \
   do { \
     GET_HANDLE_DATA(L, handle); \
-    luaL_checkstack(L, LUA_MINSTACK, "handle close callback"); \
+    PREPARE_CALL_LUA(L); \
     PUSH_HOLD_OBJECT(L, handle, IDX_HANDLE_CLOSE); \
     UNHOLD_LUA_OBJECT(L, handle, IDX_HANDLE_CLOSE); \
   } while (0)
 
+#define PREPARE_CALL_LUA(L) \
+  lua_checkstack(L, LUA_MINSTACK); \
+  lua_pushcfunction(L, ERROR_FUNCTION(msgh))
 #define CALL_LUA_FUNCTION(L, nargs, nresult) /* must be pcall */ \
-  lua_pushcfunction(L, ERROR_FUNCTION(msgh)); \
   int msgh = lua_gettop(L) - (nargs + 1); \
-  lua_insert(L, msgh); \
   if (lua_pcall(L, nargs, 0, msgh) != LUA_OK) { \
     if (!lua_isnil(L, -1)) { \
       printf("Error: %s\n", lua_tostring(L, -1)); \

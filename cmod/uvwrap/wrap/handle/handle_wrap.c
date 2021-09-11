@@ -31,7 +31,7 @@ static void HANDLE_CALLBACK(close)(uv_handle_t* handle) {
   if (lua_isfunction(L, -1)) {
     CALL_LUA_FUNCTION(L, 0, 0);
   } else {
-    lua_pop(L, 1);
+    lua_pop(L, 2); // pop the value and msgh
   }
 }
 static int HANDLE_FUNCTION(close)(lua_State* L) {

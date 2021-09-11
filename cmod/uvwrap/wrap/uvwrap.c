@@ -11,6 +11,7 @@ static int uvwrap_set_msgh(lua_State* L) {
 
 static void alloc_callback(void* ud, void* old_ptr, void* new_ptr, size_t new_size) {
   lua_State* L = (lua_State*)ud;
+  PREPARE_CALL_LUA(L);
   lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)alloc_callback);
   lua_pushlightuserdata(L, old_ptr);
   lua_pushlightuserdata(L, new_ptr);

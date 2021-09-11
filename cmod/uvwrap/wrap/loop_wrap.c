@@ -127,6 +127,7 @@ static int LOOP_FUNCTION(update_time)(lua_State* L) {
 #define IDX_TABLE_TRACE 3
 static void LOOP_CALLBACK(walk)(uv_handle_t* handle, void* arg) {
   lua_State* L = (lua_State*)arg;
+  PREPARE_CALL_LUA(L);
   lua_pushvalue(L, IDX_WALK_CALLBACK);
   lua_rawgetp(L, IDX_TABLE_TRACE, (void*)handle);
   lua_pushlightuserdata(L, (void*)handle);
