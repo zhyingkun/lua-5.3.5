@@ -32,9 +32,7 @@
 #endif /* } */
 
 #if !defined(lua_assert)
-// #define lua_assert(x) ((void)0)
-#include <assert.h>
-#define lua_assert(e) assert(e)
+#define lua_assert(x) ((void)0)
 #endif
 
 /*
@@ -337,7 +335,9 @@ static int lua_doREPL(lua_State* L) {
 static void async_doREPL(uv_async_t* handle) {
   lua_REPL* repl = (lua_REPL*)uv_handle_get_data((uv_handle_t*)handle);
   lua_State* L = repl->L;
+#ifndef NDEBUG
   int top = lua_gettop(L);
+#endif
   lua_checkstack(L, 3);
   lua_pushcfunction(L, msghandler);
   int base = lua_gettop(L);
