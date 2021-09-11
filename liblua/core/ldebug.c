@@ -93,6 +93,7 @@ LUA_API int lua_gethookcount(lua_State* L) {
   return L->basehookcount;
 }
 
+// [-0, +0, -], need 0 slot
 // level == 0 means current L->ci
 // level == 1 means L->ci->previous ...
 LUA_API int lua_getstack(lua_State* L, int level, lua_Debug* ar) {
@@ -323,6 +324,7 @@ static int auxgetinfo(lua_State* L, const char* what, lua_Debug* ar, Closure* f,
   return status;
 }
 
+// [-(0|1), +(0|1|2), e]
 // Should in a call of function: ('what' not start with '>')
 // 'l' ==> get currentline in ar->currentline
 // 't' ==> is it a tailcall, store in ar->istailcall
