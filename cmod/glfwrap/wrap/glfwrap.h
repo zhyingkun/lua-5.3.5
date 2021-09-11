@@ -56,8 +56,6 @@ DECLARE_REGISTE_FUNC(window)
 
 int GLFWRAP_CALLBACK(msgh)(lua_State* L);
 
-extern lua_State* StaticL;
-
 #define PREPARE_CALL_LUA(L) \
   lua_pushcfunction(L, GLFWRAP_CALLBACK(msgh));
 #define CALL_LUA_FUNCTION(L, nargs, nresult) /* must be pcall */ \

@@ -294,6 +294,7 @@ static int GLFWRAP_FUNCTION(JoystickIsGamepad)(lua_State* L) {
   return 1;
 }
 
+static lua_State* StaticL;
 static void GLFWRAP_CALLBACK(SetJoystickCallback)(int jid, int event) {
   lua_State* L = StaticL;
   GLFWRAP_CALLBACK_BEGIN(SetJoystickCallback)
