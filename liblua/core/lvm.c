@@ -97,6 +97,9 @@ again:
   } else if (ttisinteger(obj)) {
     *p = ivalue(obj);
     return 1;
+  } else if (ttislightuserdata(obj)) {
+    *p = (lua_Integer)pvalue(obj);
+    return 1;
   } else if (cvt2num(obj) && luaO_str2num(svalue(obj), &v) == vslen(obj) + 1) {
     obj = &v;
     goto again; /* convert result from 'luaO_str2num' to an integer */

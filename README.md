@@ -185,6 +185,7 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 25. 增加 string 元表的\_\_div 元方法，用于方便路径拼接
 26. 增加 atexit 函数，用于注册一个函数给 lua 命令退出之前调用
 27. 增加 atrepl 函数，用于注册一个函数给 lua 交互式命令执行一句脚本之后调用
+28. 扩展 math.tointeger，支持将 lightuserdata 强转为整数
 
 ---
 
@@ -205,6 +206,8 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 13. 增加 luaL_testudata_recursive 方法，用于递归的测试某个对象是否对应的用户类型
 14. 增加 luaL_checkudata_recursive 方法，递归测试用户类型失败则抛出异常
 15. 增加 luaL_atrepl 方法，用于在 lua 交互式命令执行完一句脚本之后自动执行一系列函数
+16. 增加 luaL_Enum 结构体、luaL_newenum、luaL_newenum_r，用于支持 C 模块快速注入枚举数值
+17. 扩展 lua_tointegerx 函数，支持将 lightuserdata 强转为整数
 
 ---
 
