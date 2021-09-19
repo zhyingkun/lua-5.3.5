@@ -58,6 +58,81 @@ static int uvwrap_guess_handle(lua_State* L) {
   return 1;
 }
 
+typedef void* (*uvwrap_worker_t)(const void* arg);
+typedef struct {
+  uv_work_t req;
+  uvwrap_worker_t worker;
+  const void* arg;
+  void* result;
+} uvwrap_work_t;
+static void callback_worker(uv_work_t* req) {
+  uvwrap_work_t* runner = (uvwrap_work_t*)req;
+  if (runner->worker) {
+    runner->result = runner->worker(runner->arg);
+  } else {
+    runner->result = NULL;
+  }
+}
+static const void* luaL_checkarg(lua_State* L, int idx) {
+  int t = lua_type(L, idx);
+  switch (t) {
+    case LUA_TNIL:
+      return NULL;
+    case LUA_TBOOLEAN:
+      if (lua_toboolean(L, idx)) {
+        return (void*)1;
+      } else {
+        return (void*)0;
+      }
+    case LUA_TNUMBER:
+      if (lua_isinteger(L, idx)) {
+        return (void*)lua_tointeger(L, idx);
+      }
+    case LUA_TLIGHTUSERDATA:
+    case LUA_TUSERDATA:
+      return lua_topointer(L, idx);
+    case LUA_TSTRING:
+      return (const void*)lua_tostring(L, idx);
+    default:
+      break;
+  }
+  luaL_argerror(L, idx, "arg for worker must be nil/boolean/integer/lightuserdata/userdata/string");
+  return NULL;
+}
+static void callback_queue_work(uv_work_t* req, int status) {
+  void* result = ((uvwrap_work_t*)req)->result;
+  lua_State* L;
+  PUSH_REQ_CALLBACK_CLEAN(L, req);
+  UNHOLD_LUA_OBJECT(L, req, 1);
+  MEMORY_FUNCTION(free_req)
+  (req);
+  lua_pushinteger(L, status);
+  lua_pushlightuserdata(L, result);
+  CALL_LUA_FUNCTION(L, 2, 0);
+}
+static int uvwrap_queue_work(lua_State* L) {
+  uv_loop_t* loop = luaL_checkuvloop(L, 1);
+  uvwrap_worker_t work_cb = (uvwrap_worker_t)luaL_checklightuserdata(L, 2);
+  const void* arg = luaL_checkarg(L, 3);
+  luaL_checktype(L, 4, LUA_TFUNCTION);
+
+  uvwrap_work_t* req = (uvwrap_work_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uvwrap_work_t));
+  req->worker = work_cb;
+  req->arg = arg;
+
+  int err = uv_queue_work(loop, (uv_work_t*)req, callback_worker, callback_queue_work);
+
+  CHECK_ERROR(L, err);
+  SET_REQ_CALLBACK(L, 4, req);
+  HOLD_LUA_OBJECT(L, req, 1, 3);
+  return 0;
+}
+
+static void* worker_hello(const void* arg) {
+  printf("Hello work queue! arg is %p\n", arg);
+  return (void*)43;
+}
+
 static const luaL_Reg uvwrap_funcs[] = {
     {"set_msgh", uvwrap_set_msgh},
     {"set_realloc_cb", uvwrap_set_realloc_cb},
@@ -65,12 +140,14 @@ static const luaL_Reg uvwrap_funcs[] = {
     {"strerror", uvwrap_strerror},
     {"translate_sys_error", uvwrap_translate_sys_error},
     {"guess_handle", uvwrap_guess_handle},
+    {"queue_work", uvwrap_queue_work},
     {"repl_start", uvwrap_repl_start},
     {"repl_stop", uvwrap_repl_stop},
     /* placeholders */
     {"err_code", NULL},
     {"version", NULL},
     {"version_string", NULL},
+    {"worker_hello", NULL},
     {NULL, NULL},
 };
 
@@ -112,6 +189,9 @@ LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
 
   lua_pushstring(L, uv_version_string());
   lua_setfield(L, -2, "version_string");
+
+  lua_pushlightuserdata(L, (void*)worker_hello);
+  lua_setfield(L, -2, "worker_hello");
 
   CALL_MODULE_INIT(handle);
   CALL_MODULE_INIT(stream);

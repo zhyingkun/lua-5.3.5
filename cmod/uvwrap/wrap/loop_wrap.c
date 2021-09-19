@@ -161,33 +161,6 @@ static int LOOP_FUNCTION(block_signal)(lua_State* L) {
   return 0;
 }
 
-static void LOOP_CALLBACK(queue_work)(uv_work_t* req, int status) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  MEMORY_FUNCTION(free_req)
-  (req);
-  lua_pushinteger(L, status);
-  CALL_LUA_FUNCTION(L, 1, 0);
-}
-static int LOOP_FUNCTION(queue_work)(lua_State* L) {
-  uv_loop_t* loop = luaL_checkuvloop(L, 1);
-  uv_work_cb work_cb = (uv_work_cb)luaL_checklightuserdata(L, 2);
-  luaL_checktype(L, 3, LUA_TFUNCTION);
-
-  uv_work_t* req = (uv_work_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_work_t));
-
-  int err = uv_queue_work(loop, req, work_cb, LOOP_CALLBACK(queue_work));
-
-  CHECK_ERROR(L, err);
-  SET_REQ_CALLBACK(L, 3, req);
-  return 0;
-}
-
-static void LOOP_FUNCTION(work_hello)(uv_work_t* req) {
-  (void)req;
-  printf("Hello work queue!\n");
-}
-
 #define EMPLACE_LOOP_FUNCTION(name) \
   { #name, LOOP_FUNCTION(name) }
 
@@ -206,10 +179,8 @@ static const luaL_Reg LOOP_FUNCTION(funcs)[] = {
     EMPLACE_LOOP_FUNCTION(get_data),
     EMPLACE_LOOP_FUNCTION(set_data),
     EMPLACE_LOOP_FUNCTION(block_signal),
-    EMPLACE_LOOP_FUNCTION(queue_work),
     /* placeholders */
     {"size", NULL},
-    {"work_hello", NULL},
     {NULL, NULL},
 };
 
@@ -227,9 +198,6 @@ void LOOP_FUNCTION(init)(lua_State* L) {
 
   lua_pushinteger(L, uv_loop_size());
   lua_setfield(L, -2, "loop_size");
-
-  lua_pushlightuserdata(L, (void*)LOOP_FUNCTION(work_hello));
-  lua_setfield(L, -2, "work_hello");
 
   lua_setfield(L, -2, "loop");
 }

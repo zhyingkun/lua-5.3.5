@@ -39,6 +39,11 @@ local run = uvwrap.loop.run
 local close = uvwrap.loop.close
 local set_realloc_cb = uvwrap.set_realloc_cb
 
+local function _run(loop_, mode)
+	if not loop_ then loop_ = loop end
+	return run(loop_, mode)
+end
+
 return setmetatable({
 	set_loop = set_loop,
 	defer_run_loop = function()
@@ -50,20 +55,18 @@ return setmetatable({
 			set_realloc_cb()
 		end)
 	end,
+	run = _run,
+	queue_work = make_func_loop(uvwrap.queue_work),
 	repl_start = make_func_loop(uvwrap.repl_start),
 	loop = setmetatable({
 		default = uvwrap.loop.default,
 		new = uvwrap.loop.new,
-		run = function(loop_, mode)
-			if not loop_ then loop_ = loop end
-			return run(loop_, mode)
-		end,
+		run = _run,
 		close = function(loop_)
 			if not loop_ then loop_ = loop end
 			if loop_ == loop then loop = nil end
 			return close(loop_)
 		end,
-		queue_work = uvwrap.loop.queue_work,
 	}, {
 		__index = make_mt_loop_index("loop"),
 	}),
