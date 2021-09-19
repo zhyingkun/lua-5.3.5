@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(uvwrap
-	VERSION 0.1.0
+	VERSION 1.31.0
 	# DESCRIPTION "Lua uvwrap module"
 	# HOMEPAGE_URL "www.zhyingkun.com"
 	LANGUAGES C CXX
