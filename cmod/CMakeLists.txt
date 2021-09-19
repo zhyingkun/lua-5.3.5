@@ -17,6 +17,8 @@ add_subdirectory(protobuf)
 add_subdirectory(uvwrap)
 add_subdirectory(json)
 add_subdirectory(glfwrap)
+add_subdirectory(portaudio)
+add_subdirectory(madwrap)
 
 if(NOT WIN32)
 	add_subdirectory(lproc)
