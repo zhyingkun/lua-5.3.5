@@ -16,6 +16,7 @@
 1. 每一个异步过程会对应一个 request，该过程需要 hold 住的 lua 对象可以用 request 结构指针作为 key 来保存，异步结束直接清理掉
 2. 对于 handle 触发的异步过程需要 hold 住 lua 对象的话，需要保证多个 hold 住的 lua 对象之间不会互相覆盖，handle 关闭的时候统一清理掉（用 handle 结构指针+固定用途的偏移 来作为 key）
 3. 在 libuv 回调函数中调用 Lua 的函数必须要用 pcall，如果用 call，抛异常会破坏 libuv 的上下文
+4. libuv 异步回调在将数据压入 Lua 栈之前都要先检查槽位是否足够
 
 ## 其他
 
