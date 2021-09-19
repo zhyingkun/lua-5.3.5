@@ -50,35 +50,33 @@
 extern "C" {
 #endif
 
-typedef struct PaAlsaStreamInfo
-{
-    unsigned long size;
-    PaHostApiTypeId hostApiType;
-    unsigned long version;
+typedef struct PaAlsaStreamInfo {
+  unsigned long size;
+  PaHostApiTypeId hostApiType;
+  unsigned long version;
 
-    const char *deviceString;
-}
-PaAlsaStreamInfo;
+  const char* deviceString;
+} PaAlsaStreamInfo;
 
 /** Initialize host API specific structure, call this before setting relevant attributes. */
-void PaAlsa_InitializeStreamInfo( PaAlsaStreamInfo *info );
+void PaAlsa_InitializeStreamInfo(PaAlsaStreamInfo* info);
 
 /** Instruct whether to enable real-time priority when starting the audio thread.
  *
  * If this is turned on by the stream is started, the audio callback thread will be created
  * with the FIFO scheduling policy, which is suitable for realtime operation.
  **/
-void PaAlsa_EnableRealtimeScheduling( PaStream *s, int enable );
+void PaAlsa_EnableRealtimeScheduling(PaStream* s, int enable);
 
 #if 0
 void PaAlsa_EnableWatchdog( PaStream *s, int enable );
 #endif
 
 /** Get the ALSA-lib card index of this stream's input device. */
-PaError PaAlsa_GetStreamInputCard( PaStream *s, int *card );
+PaError PaAlsa_GetStreamInputCard(PaStream* s, int* card);
 
 /** Get the ALSA-lib card index of this stream's output device. */
-PaError PaAlsa_GetStreamOutputCard( PaStream *s, int *card );
+PaError PaAlsa_GetStreamOutputCard(PaStream* s, int* card);
 
 /** Set the number of periods (buffer fragments) to configure devices with.
  *
@@ -86,19 +84,19 @@ PaError PaAlsa_GetStreamOutputCard( PaStream *s, int *card );
  * the author's soundcard.
  * @param numPeriods The number of periods.
  */
-PaError PaAlsa_SetNumPeriods( int numPeriods );
+PaError PaAlsa_SetNumPeriods(int numPeriods);
 
 /** Set the maximum number of times to retry opening busy device (sleeping for a
  * short interval inbetween).
  */
-PaError PaAlsa_SetRetriesBusy( int retries );
+PaError PaAlsa_SetRetriesBusy(int retries);
 
 /** Set the path and name of ALSA library file if PortAudio is configured to load it dynamically (see
  *  PA_ALSA_DYNAMIC). This setting will overwrite the default name set by PA_ALSA_PATHNAME define.
  * @param pathName Full path with filename. Only filename can be used, but dlopen() will lookup default
  *                 searchable directories (/usr/lib;/usr/local/lib) then.
  */
-void PaAlsa_SetLibraryPathName( const char *pathName );
+void PaAlsa_SetLibraryPathName(const char* pathName);
 
 #ifdef __cplusplus
 }

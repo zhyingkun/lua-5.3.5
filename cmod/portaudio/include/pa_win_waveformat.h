@@ -57,71 +57,70 @@ extern "C" {
 typedef unsigned long PaWinWaveFormatChannelMask;
 
 /* Speaker Positions: */
-#define PAWIN_SPEAKER_FRONT_LEFT                ((PaWinWaveFormatChannelMask)0x1)
-#define PAWIN_SPEAKER_FRONT_RIGHT               ((PaWinWaveFormatChannelMask)0x2)
-#define PAWIN_SPEAKER_FRONT_CENTER              ((PaWinWaveFormatChannelMask)0x4)
-#define PAWIN_SPEAKER_LOW_FREQUENCY             ((PaWinWaveFormatChannelMask)0x8)
-#define PAWIN_SPEAKER_BACK_LEFT                 ((PaWinWaveFormatChannelMask)0x10)
-#define PAWIN_SPEAKER_BACK_RIGHT                ((PaWinWaveFormatChannelMask)0x20)
-#define PAWIN_SPEAKER_FRONT_LEFT_OF_CENTER      ((PaWinWaveFormatChannelMask)0x40)
-#define PAWIN_SPEAKER_FRONT_RIGHT_OF_CENTER     ((PaWinWaveFormatChannelMask)0x80)
-#define PAWIN_SPEAKER_BACK_CENTER               ((PaWinWaveFormatChannelMask)0x100)
-#define PAWIN_SPEAKER_SIDE_LEFT                 ((PaWinWaveFormatChannelMask)0x200)
-#define PAWIN_SPEAKER_SIDE_RIGHT                ((PaWinWaveFormatChannelMask)0x400)
-#define PAWIN_SPEAKER_TOP_CENTER                ((PaWinWaveFormatChannelMask)0x800)
-#define PAWIN_SPEAKER_TOP_FRONT_LEFT            ((PaWinWaveFormatChannelMask)0x1000)
-#define PAWIN_SPEAKER_TOP_FRONT_CENTER          ((PaWinWaveFormatChannelMask)0x2000)
-#define PAWIN_SPEAKER_TOP_FRONT_RIGHT           ((PaWinWaveFormatChannelMask)0x4000)
-#define PAWIN_SPEAKER_TOP_BACK_LEFT             ((PaWinWaveFormatChannelMask)0x8000)
-#define PAWIN_SPEAKER_TOP_BACK_CENTER           ((PaWinWaveFormatChannelMask)0x10000)
-#define PAWIN_SPEAKER_TOP_BACK_RIGHT            ((PaWinWaveFormatChannelMask)0x20000)
+#define PAWIN_SPEAKER_FRONT_LEFT ((PaWinWaveFormatChannelMask)0x1)
+#define PAWIN_SPEAKER_FRONT_RIGHT ((PaWinWaveFormatChannelMask)0x2)
+#define PAWIN_SPEAKER_FRONT_CENTER ((PaWinWaveFormatChannelMask)0x4)
+#define PAWIN_SPEAKER_LOW_FREQUENCY ((PaWinWaveFormatChannelMask)0x8)
+#define PAWIN_SPEAKER_BACK_LEFT ((PaWinWaveFormatChannelMask)0x10)
+#define PAWIN_SPEAKER_BACK_RIGHT ((PaWinWaveFormatChannelMask)0x20)
+#define PAWIN_SPEAKER_FRONT_LEFT_OF_CENTER ((PaWinWaveFormatChannelMask)0x40)
+#define PAWIN_SPEAKER_FRONT_RIGHT_OF_CENTER ((PaWinWaveFormatChannelMask)0x80)
+#define PAWIN_SPEAKER_BACK_CENTER ((PaWinWaveFormatChannelMask)0x100)
+#define PAWIN_SPEAKER_SIDE_LEFT ((PaWinWaveFormatChannelMask)0x200)
+#define PAWIN_SPEAKER_SIDE_RIGHT ((PaWinWaveFormatChannelMask)0x400)
+#define PAWIN_SPEAKER_TOP_CENTER ((PaWinWaveFormatChannelMask)0x800)
+#define PAWIN_SPEAKER_TOP_FRONT_LEFT ((PaWinWaveFormatChannelMask)0x1000)
+#define PAWIN_SPEAKER_TOP_FRONT_CENTER ((PaWinWaveFormatChannelMask)0x2000)
+#define PAWIN_SPEAKER_TOP_FRONT_RIGHT ((PaWinWaveFormatChannelMask)0x4000)
+#define PAWIN_SPEAKER_TOP_BACK_LEFT ((PaWinWaveFormatChannelMask)0x8000)
+#define PAWIN_SPEAKER_TOP_BACK_CENTER ((PaWinWaveFormatChannelMask)0x10000)
+#define PAWIN_SPEAKER_TOP_BACK_RIGHT ((PaWinWaveFormatChannelMask)0x20000)
 
 /* Bit mask locations reserved for future use */
-#define PAWIN_SPEAKER_RESERVED                  ((PaWinWaveFormatChannelMask)0x7FFC0000)
+#define PAWIN_SPEAKER_RESERVED ((PaWinWaveFormatChannelMask)0x7FFC0000)
 
 /* Used to specify that any possible permutation of speaker configurations */
-#define PAWIN_SPEAKER_ALL                       ((PaWinWaveFormatChannelMask)0x80000000)
+#define PAWIN_SPEAKER_ALL ((PaWinWaveFormatChannelMask)0x80000000)
 
 /* DirectSound Speaker Config */
-#define PAWIN_SPEAKER_DIRECTOUT                 0
-#define PAWIN_SPEAKER_MONO                      (PAWIN_SPEAKER_FRONT_CENTER)
-#define PAWIN_SPEAKER_STEREO                    (PAWIN_SPEAKER_FRONT_LEFT | PAWIN_SPEAKER_FRONT_RIGHT)
-#define PAWIN_SPEAKER_QUAD                      (PAWIN_SPEAKER_FRONT_LEFT | PAWIN_SPEAKER_FRONT_RIGHT | \
-                                                    PAWIN_SPEAKER_BACK_LEFT  | PAWIN_SPEAKER_BACK_RIGHT)
-#define PAWIN_SPEAKER_SURROUND                  (PAWIN_SPEAKER_FRONT_LEFT | PAWIN_SPEAKER_FRONT_RIGHT | \
-                                                    PAWIN_SPEAKER_FRONT_CENTER | PAWIN_SPEAKER_BACK_CENTER)
-#define PAWIN_SPEAKER_5POINT1                   (PAWIN_SPEAKER_FRONT_LEFT | PAWIN_SPEAKER_FRONT_RIGHT | \
-                                                    PAWIN_SPEAKER_FRONT_CENTER | PAWIN_SPEAKER_LOW_FREQUENCY | \
-                                                    PAWIN_SPEAKER_BACK_LEFT  | PAWIN_SPEAKER_BACK_RIGHT)
-#define PAWIN_SPEAKER_7POINT1                   (PAWIN_SPEAKER_FRONT_LEFT | PAWIN_SPEAKER_FRONT_RIGHT | \
-                                                    PAWIN_SPEAKER_FRONT_CENTER | PAWIN_SPEAKER_LOW_FREQUENCY | \
-                                                    PAWIN_SPEAKER_BACK_LEFT | PAWIN_SPEAKER_BACK_RIGHT | \
-                                                    PAWIN_SPEAKER_FRONT_LEFT_OF_CENTER | PAWIN_SPEAKER_FRONT_RIGHT_OF_CENTER)
-#define PAWIN_SPEAKER_5POINT1_SURROUND          (PAWIN_SPEAKER_FRONT_LEFT | PAWIN_SPEAKER_FRONT_RIGHT | \
-                                                    PAWIN_SPEAKER_FRONT_CENTER | PAWIN_SPEAKER_LOW_FREQUENCY | \
-                                                    PAWIN_SPEAKER_SIDE_LEFT  | PAWIN_SPEAKER_SIDE_RIGHT)
-#define PAWIN_SPEAKER_7POINT1_SURROUND          (PAWIN_SPEAKER_FRONT_LEFT | PAWIN_SPEAKER_FRONT_RIGHT | \
-                                                    PAWIN_SPEAKER_FRONT_CENTER | PAWIN_SPEAKER_LOW_FREQUENCY | \
-                                                    PAWIN_SPEAKER_BACK_LEFT | PAWIN_SPEAKER_BACK_RIGHT | \
-                                                    PAWIN_SPEAKER_SIDE_LEFT | PAWIN_SPEAKER_SIDE_RIGHT)
+#define PAWIN_SPEAKER_DIRECTOUT 0
+#define PAWIN_SPEAKER_MONO (PAWIN_SPEAKER_FRONT_CENTER)
+#define PAWIN_SPEAKER_STEREO (PAWIN_SPEAKER_FRONT_LEFT | PAWIN_SPEAKER_FRONT_RIGHT)
+#define PAWIN_SPEAKER_QUAD (PAWIN_SPEAKER_FRONT_LEFT | PAWIN_SPEAKER_FRONT_RIGHT | \
+                            PAWIN_SPEAKER_BACK_LEFT | PAWIN_SPEAKER_BACK_RIGHT)
+#define PAWIN_SPEAKER_SURROUND (PAWIN_SPEAKER_FRONT_LEFT | PAWIN_SPEAKER_FRONT_RIGHT | \
+                                PAWIN_SPEAKER_FRONT_CENTER | PAWIN_SPEAKER_BACK_CENTER)
+#define PAWIN_SPEAKER_5POINT1 (PAWIN_SPEAKER_FRONT_LEFT | PAWIN_SPEAKER_FRONT_RIGHT | \
+                               PAWIN_SPEAKER_FRONT_CENTER | PAWIN_SPEAKER_LOW_FREQUENCY | \
+                               PAWIN_SPEAKER_BACK_LEFT | PAWIN_SPEAKER_BACK_RIGHT)
+#define PAWIN_SPEAKER_7POINT1 (PAWIN_SPEAKER_FRONT_LEFT | PAWIN_SPEAKER_FRONT_RIGHT | \
+                               PAWIN_SPEAKER_FRONT_CENTER | PAWIN_SPEAKER_LOW_FREQUENCY | \
+                               PAWIN_SPEAKER_BACK_LEFT | PAWIN_SPEAKER_BACK_RIGHT | \
+                               PAWIN_SPEAKER_FRONT_LEFT_OF_CENTER | PAWIN_SPEAKER_FRONT_RIGHT_OF_CENTER)
+#define PAWIN_SPEAKER_5POINT1_SURROUND (PAWIN_SPEAKER_FRONT_LEFT | PAWIN_SPEAKER_FRONT_RIGHT | \
+                                        PAWIN_SPEAKER_FRONT_CENTER | PAWIN_SPEAKER_LOW_FREQUENCY | \
+                                        PAWIN_SPEAKER_SIDE_LEFT | PAWIN_SPEAKER_SIDE_RIGHT)
+#define PAWIN_SPEAKER_7POINT1_SURROUND (PAWIN_SPEAKER_FRONT_LEFT | PAWIN_SPEAKER_FRONT_RIGHT | \
+                                        PAWIN_SPEAKER_FRONT_CENTER | PAWIN_SPEAKER_LOW_FREQUENCY | \
+                                        PAWIN_SPEAKER_BACK_LEFT | PAWIN_SPEAKER_BACK_RIGHT | \
+                                        PAWIN_SPEAKER_SIDE_LEFT | PAWIN_SPEAKER_SIDE_RIGHT)
 /*
  According to the Microsoft documentation:
  The following are obsolete 5.1 and 7.1 settings (they lack side speakers).  Note this means
  that the default 5.1 and 7.1 settings (KSAUDIO_SPEAKER_5POINT1 and KSAUDIO_SPEAKER_7POINT1 are
  similarly obsolete but are unchanged for compatibility reasons).
 */
-#define PAWIN_SPEAKER_5POINT1_BACK              PAWIN_SPEAKER_5POINT1
-#define PAWIN_SPEAKER_7POINT1_WIDE              PAWIN_SPEAKER_7POINT1
+#define PAWIN_SPEAKER_5POINT1_BACK PAWIN_SPEAKER_5POINT1
+#define PAWIN_SPEAKER_7POINT1_WIDE PAWIN_SPEAKER_7POINT1
 
 /* DVD Speaker Positions */
-#define PAWIN_SPEAKER_GROUND_FRONT_LEFT         PAWIN_SPEAKER_FRONT_LEFT
-#define PAWIN_SPEAKER_GROUND_FRONT_CENTER       PAWIN_SPEAKER_FRONT_CENTER
-#define PAWIN_SPEAKER_GROUND_FRONT_RIGHT        PAWIN_SPEAKER_FRONT_RIGHT
-#define PAWIN_SPEAKER_GROUND_REAR_LEFT          PAWIN_SPEAKER_BACK_LEFT
-#define PAWIN_SPEAKER_GROUND_REAR_RIGHT         PAWIN_SPEAKER_BACK_RIGHT
-#define PAWIN_SPEAKER_TOP_MIDDLE                PAWIN_SPEAKER_TOP_CENTER
-#define PAWIN_SPEAKER_SUPER_WOOFER              PAWIN_SPEAKER_LOW_FREQUENCY
-
+#define PAWIN_SPEAKER_GROUND_FRONT_LEFT PAWIN_SPEAKER_FRONT_LEFT
+#define PAWIN_SPEAKER_GROUND_FRONT_CENTER PAWIN_SPEAKER_FRONT_CENTER
+#define PAWIN_SPEAKER_GROUND_FRONT_RIGHT PAWIN_SPEAKER_FRONT_RIGHT
+#define PAWIN_SPEAKER_GROUND_REAR_LEFT PAWIN_SPEAKER_BACK_LEFT
+#define PAWIN_SPEAKER_GROUND_REAR_RIGHT PAWIN_SPEAKER_BACK_RIGHT
+#define PAWIN_SPEAKER_TOP_MIDDLE PAWIN_SPEAKER_TOP_CENTER
+#define PAWIN_SPEAKER_SUPER_WOOFER PAWIN_SPEAKER_LOW_FREQUENCY
 
 /*
     PaWinWaveFormat is defined here to provide compatibility with
@@ -133,12 +132,12 @@ typedef unsigned long PaWinWaveFormatChannelMask;
     a dependency on windows.h and mmsystem.h, and also to to avoid having
     to write separate packing pragmas for each compiler.
 */
-#define PAWIN_SIZEOF_WAVEFORMATEX   18
+#define PAWIN_SIZEOF_WAVEFORMATEX 18
 #define PAWIN_SIZEOF_WAVEFORMATEXTENSIBLE (PAWIN_SIZEOF_WAVEFORMATEX + 22)
 
-typedef struct{
-    unsigned char fields[ PAWIN_SIZEOF_WAVEFORMATEXTENSIBLE ];
-    unsigned long extraLongForAlignment; /* ensure that compiler aligns struct to DWORD */
+typedef struct {
+  unsigned char fields[PAWIN_SIZEOF_WAVEFORMATEXTENSIBLE];
+  unsigned long extraLongForAlignment; /* ensure that compiler aligns struct to DWORD */
 } PaWinWaveFormat;
 
 /*
@@ -153,44 +152,39 @@ typedef struct{
     GUID  SubFormat;
 */
 
-#define PAWIN_INDEXOF_WVALIDBITSPERSAMPLE       (PAWIN_SIZEOF_WAVEFORMATEX+0)
-#define PAWIN_INDEXOF_DWCHANNELMASK             (PAWIN_SIZEOF_WAVEFORMATEX+2)
-#define PAWIN_INDEXOF_SUBFORMAT                 (PAWIN_SIZEOF_WAVEFORMATEX+6)
-
+#define PAWIN_INDEXOF_WVALIDBITSPERSAMPLE (PAWIN_SIZEOF_WAVEFORMATEX + 0)
+#define PAWIN_INDEXOF_DWCHANNELMASK (PAWIN_SIZEOF_WAVEFORMATEX + 2)
+#define PAWIN_INDEXOF_SUBFORMAT (PAWIN_SIZEOF_WAVEFORMATEX + 6)
 
 /*
     Valid values to pass for the waveFormatTag PaWin_InitializeWaveFormatEx and
     PaWin_InitializeWaveFormatExtensible functions below. These must match
     the standard Windows WAVE_FORMAT_* values.
 */
-#define PAWIN_WAVE_FORMAT_PCM                   (1)
-#define PAWIN_WAVE_FORMAT_IEEE_FLOAT            (3)
-#define PAWIN_WAVE_FORMAT_DOLBY_AC3_SPDIF       (0x0092)
-#define PAWIN_WAVE_FORMAT_WMA_SPDIF             (0x0164)
-
+#define PAWIN_WAVE_FORMAT_PCM (1)
+#define PAWIN_WAVE_FORMAT_IEEE_FLOAT (3)
+#define PAWIN_WAVE_FORMAT_DOLBY_AC3_SPDIF (0x0092)
+#define PAWIN_WAVE_FORMAT_WMA_SPDIF (0x0164)
 
 /*
     returns PAWIN_WAVE_FORMAT_PCM or PAWIN_WAVE_FORMAT_IEEE_FLOAT
     depending on the sampleFormat parameter.
 */
-int PaWin_SampleFormatToLinearWaveFormatTag( PaSampleFormat sampleFormat );
+int PaWin_SampleFormatToLinearWaveFormatTag(PaSampleFormat sampleFormat);
 
 /*
     Use the following two functions to initialize the waveformat structure.
 */
 
-void PaWin_InitializeWaveFormatEx( PaWinWaveFormat *waveFormat,
-        int numChannels, PaSampleFormat sampleFormat, int waveFormatTag, double sampleRate );
+void PaWin_InitializeWaveFormatEx(PaWinWaveFormat* waveFormat,
+                                  int numChannels, PaSampleFormat sampleFormat, int waveFormatTag, double sampleRate);
 
-
-void PaWin_InitializeWaveFormatExtensible( PaWinWaveFormat *waveFormat,
-        int numChannels, PaSampleFormat sampleFormat, int waveFormatTag, double sampleRate,
-        PaWinWaveFormatChannelMask channelMask );
-
+void PaWin_InitializeWaveFormatExtensible(PaWinWaveFormat* waveFormat,
+                                          int numChannels, PaSampleFormat sampleFormat, int waveFormatTag, double sampleRate,
+                                          PaWinWaveFormatChannelMask channelMask);
 
 /* Map a channel count to a speaker channel mask */
-PaWinWaveFormatChannelMask PaWin_DefaultChannelMask( int numChannels );
-
+PaWinWaveFormatChannelMask PaWin_DefaultChannelMask(int numChannels);
 
 #ifdef __cplusplus
 }

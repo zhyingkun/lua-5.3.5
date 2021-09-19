@@ -118,8 +118,7 @@ TODO:
     -EMT64/AMD64 uses different asm
     -VC2005 doesn't allow _WIN64 with inline assembly either!
  */
-void PaUtil_InitializeX86PlainConverters( void )
-{
+void PaUtil_InitializeX86PlainConverters(void) {
 }
 
 #else
@@ -134,20 +133,19 @@ static const double ditheredInt24Scaler_ = 0x7FFFFE;
 static const double int16Scaler_ = 0x7FFF;
 static const double ditheredInt16Scaler_ = 0x7FFE;
 
-#define PA_DITHER_BITS_   (15)
+#define PA_DITHER_BITS_ (15)
 /* Multiply by PA_FLOAT_DITHER_SCALE_ to get a float between -2.0 and +1.99999 */
-#define PA_FLOAT_DITHER_SCALE_  (1.0F / ((1<<PA_DITHER_BITS_)-1))
+#define PA_FLOAT_DITHER_SCALE_ (1.0F / ((1 << PA_DITHER_BITS_) - 1))
 static const float const_float_dither_scale_ = PA_FLOAT_DITHER_SCALE_;
-#define PA_DITHER_SHIFT_  ((32 - PA_DITHER_BITS_) + 1)
+#define PA_DITHER_SHIFT_ ((32 - PA_DITHER_BITS_) + 1)
 
 /* -------------------------------------------------------------------------- */
 
 static void Float32_To_Int32(
-    void *destinationBuffer, signed int destinationStride,
-    void *sourceBuffer, signed int sourceStride,
-    unsigned int count, PaUtilTriangularDitherGenerator *ditherGenerator )
-{
-/*
+    void* destinationBuffer, signed int destinationStride,
+    void* sourceBuffer, signed int sourceStride,
+    unsigned int count, PaUtilTriangularDitherGenerator* ditherGenerator) {
+  /*
     float *src = (float*)sourceBuffer;
     signed long *dest =  (signed long*)destinationBuffer;
     (void)ditherGenerator; // unused parameter
@@ -163,22 +161,21 @@ static void Float32_To_Int32(
     }
 */
 
-    short savedFpuControlWord;
+  short savedFpuControlWord;
 
-    (void) ditherGenerator; /* unused parameter */
+  (void)ditherGenerator; /* unused parameter */
 
-
-    __asm{
-        // esi -> source ptr
-        // eax -> source byte stride
-        // edi -> destination ptr
-        // ebx -> destination byte stride
-        // ecx -> source end ptr
-        // edx -> temp
+  __asm {
+    // esi -> source ptr
+    // eax -> source byte stride
+    // edi -> destination ptr
+    // ebx -> destination byte stride
+    // ecx -> source end ptr
+    // edx -> temp
 
         mov     esi, sourceBuffer
 
-        mov     edx, 4                  // sizeof float32 and int32
+        mov     edx, 4 // sizeof float32 and int32
         mov     eax, sourceStride
         imul    eax, edx
 
@@ -195,27 +192,27 @@ static void Float32_To_Int32(
         fstcw   savedFpuControlWord
         fldcw   fpuControlWord_
 
-        fld     int32Scaler_            // stack:  (int)0x7FFFFFFF
+        fld     int32Scaler_ // stack:  (int)0x7FFFFFFF
 
     Float32_To_Int32_loop:
 
         // load unscaled value into st(0)
-        fld     dword ptr [esi]         // stack:  value, (int)0x7FFFFFFF
-        add     esi, eax                // increment source ptr
+        fld     dword ptr [esi] // stack:  value, (int)0x7FFFFFFF
+        add     esi, eax // increment source ptr
         //lea     esi, [esi+eax]
-        fmul    st(0), st(1)            // st(0) *= st(1), stack:  value*0x7FFFFFFF, (int)0x7FFFFFFF
-        /*
+        fmul    st(0), st(1) // st(0) *= st(1), stack:  value*0x7FFFFFFF, (int)0x7FFFFFFF
+    /*
             note: we could store to a temporary qword here which would cause
             wraparound distortion instead of int indefinite 0x10. that would
             be more work, and given that not enabling clipping is only advisable
             when you know that your signal isn't going to clip it isn't worth it.
         */
-        fistp   dword ptr [edi]         // pop st(0) into dest, stack:  (int)0x7FFFFFFF
+        fistp   dword ptr [edi] // pop st(0) into dest, stack:  (int)0x7FFFFFFF
 
-        add     edi, ebx                // increment destination ptr
+        add     edi, ebx // increment destination ptr
         //lea     edi, [edi+ebx]
 
-        cmp     esi, ecx                // has src ptr reached end?
+        cmp     esi, ecx // has src ptr reached end?
         jne     Float32_To_Int32_loop
 
         ffree   st(0)
@@ -224,17 +221,16 @@ static void Float32_To_Int32(
         fwait
         fnclex
         fldcw   savedFpuControlWord
-    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 
 static void Float32_To_Int32_Clip(
-    void *destinationBuffer, signed int destinationStride,
-    void *sourceBuffer, signed int sourceStride,
-    unsigned int count, PaUtilTriangularDitherGenerator *ditherGenerator )
-{
-/*
+    void* destinationBuffer, signed int destinationStride,
+    void* sourceBuffer, signed int sourceStride,
+    unsigned int count, PaUtilTriangularDitherGenerator* ditherGenerator) {
+  /*
     float *src = (float*)sourceBuffer;
     signed long *dest =  (signed long*)destinationBuffer;
     (void) ditherGenerator; // unused parameter
@@ -251,21 +247,21 @@ static void Float32_To_Int32_Clip(
     }
 */
 
-    short savedFpuControlWord;
+  short savedFpuControlWord;
 
-    (void) ditherGenerator; /* unused parameter */
+  (void)ditherGenerator; /* unused parameter */
 
-    __asm{
-        // esi -> source ptr
-        // eax -> source byte stride
-        // edi -> destination ptr
-        // ebx -> destination byte stride
-        // ecx -> source end ptr
-        // edx -> temp
+  __asm {
+    // esi -> source ptr
+    // eax -> source byte stride
+    // edi -> destination ptr
+    // ebx -> destination byte stride
+    // ecx -> source end ptr
+    // edx -> temp
 
         mov     esi, sourceBuffer
 
-        mov     edx, 4                  // sizeof float32 and int32
+        mov     edx, 4 // sizeof float32 and int32
         mov     eax, sourceStride
         imul    eax, edx
 
@@ -282,31 +278,31 @@ static void Float32_To_Int32_Clip(
         fstcw   savedFpuControlWord
         fldcw   fpuControlWord_
 
-        fld     int32Scaler_            // stack:  (int)0x7FFFFFFF
+        fld     int32Scaler_ // stack:  (int)0x7FFFFFFF
 
     Float32_To_Int32_Clip_loop:
 
-        mov     edx, dword ptr [esi]    // load floating point value into integer register
+        mov     edx, dword ptr [esi] // load floating point value into integer register
 
-        and     edx, 0x7FFFFFFF         // mask off sign
-        cmp     edx, 0x3F800000         // greater than 1.0 or less than -1.0
+        and     edx, 0x7FFFFFFF // mask off sign
+        cmp     edx, 0x3F800000 // greater than 1.0 or less than -1.0
 
         jg      Float32_To_Int32_Clip_clamp
 
         // load unscaled value into st(0)
-        fld     dword ptr [esi]         // stack:  value, (int)0x7FFFFFFF
-        add     esi, eax                // increment source ptr
+        fld     dword ptr [esi] // stack:  value, (int)0x7FFFFFFF
+        add     esi, eax // increment source ptr
         //lea     esi, [esi+eax]
-        fmul    st(0), st(1)            // st(0) *= st(1), stack:  value*0x7FFFFFFF, (int)0x7FFFFFFF
-        fistp   dword ptr [edi]         // pop st(0) into dest, stack:  (int)0x7FFFFFFF
+        fmul    st(0), st(1) // st(0) *= st(1), stack:  value*0x7FFFFFFF, (int)0x7FFFFFFF
+        fistp   dword ptr [edi] // pop st(0) into dest, stack:  (int)0x7FFFFFFF
         jmp     Float32_To_Int32_Clip_stored
 
     Float32_To_Int32_Clip_clamp:
-        mov     edx, dword ptr [esi]    // load floating point value into integer register
-        shr     edx, 31                 // move sign bit into bit 0
-        add     esi, eax                // increment source ptr
+        mov     edx, dword ptr [esi] // load floating point value into integer register
+        shr     edx, 31 // move sign bit into bit 0
+        add     esi, eax // increment source ptr
         //lea     esi, [esi+eax]
-        add     edx, 0x7FFFFFFF         // convert to maximum range integers
+        add     edx, 0x7FFFFFFF // convert to maximum range integers
         mov     dword ptr [edi], edx
 
     Float32_To_Int32_Clip_stored:
@@ -314,7 +310,7 @@ static void Float32_To_Int32_Clip(
         //add     edi, ebx              // increment destination ptr
         lea     edi, [edi+ebx]
 
-        cmp     esi, ecx                // has src ptr reached end?
+        cmp     esi, ecx // has src ptr reached end?
         jne     Float32_To_Int32_Clip_loop
 
         ffree   st(0)
@@ -323,17 +319,16 @@ static void Float32_To_Int32_Clip(
         fwait
         fnclex
         fldcw   savedFpuControlWord
-    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 
 static void Float32_To_Int32_DitherClip(
-    void *destinationBuffer, signed int destinationStride,
-    void *sourceBuffer, signed int sourceStride,
-    unsigned int count, PaUtilTriangularDitherGenerator *ditherGenerator )
-{
-    /*
+    void* destinationBuffer, signed int destinationStride,
+    void* sourceBuffer, signed int sourceStride,
+    unsigned int count, PaUtilTriangularDitherGenerator* ditherGenerator) {
+  /*
     float *src = (float*)sourceBuffer;
     signed long *dest =  (signed long*)destinationBuffer;
 
@@ -352,28 +347,28 @@ static void Float32_To_Int32_DitherClip(
     }
     */
 
-    short savedFpuControlWord;
+  short savedFpuControlWord;
 
-    // spill storage:
-    signed long sourceByteStride;
-    signed long highpassedDither;
+  // spill storage:
+  signed long sourceByteStride;
+  signed long highpassedDither;
 
-    // dither state:
-    unsigned long ditherPrevious = ditherGenerator->previous;
-    unsigned long ditherRandSeed1 = ditherGenerator->randSeed1;
-    unsigned long ditherRandSeed2 = ditherGenerator->randSeed2;
+  // dither state:
+  unsigned long ditherPrevious = ditherGenerator->previous;
+  unsigned long ditherRandSeed1 = ditherGenerator->randSeed1;
+  unsigned long ditherRandSeed2 = ditherGenerator->randSeed2;
 
-    __asm{
-        // esi -> source ptr
-        // eax -> source byte stride
-        // edi -> destination ptr
-        // ebx -> destination byte stride
-        // ecx -> source end ptr
-        // edx -> temp
+  __asm {
+    // esi -> source ptr
+    // eax -> source byte stride
+    // edi -> destination ptr
+    // ebx -> destination byte stride
+    // ecx -> source end ptr
+    // edx -> temp
 
         mov     esi, sourceBuffer
 
-        mov     edx, 4                  // sizeof float32 and int32
+        mov     edx, 4 // sizeof float32 and int32
         mov     eax, sourceStride
         imul    eax, edx
 
@@ -390,24 +385,24 @@ static void Float32_To_Int32_DitherClip(
         fstcw   savedFpuControlWord
         fldcw   fpuControlWord_
 
-        fld     ditheredInt32Scaler_    // stack:  int scaler
+        fld     ditheredInt32Scaler_ // stack:  int scaler
 
     Float32_To_Int32_DitherClip_loop:
 
-        mov     edx, dword ptr [esi]    // load floating point value into integer register
+        mov     edx, dword ptr [esi] // load floating point value into integer register
 
-        and     edx, 0x7FFFFFFF         // mask off sign
-        cmp     edx, 0x3F800000         // greater than 1.0 or less than -1.0
+        and     edx, 0x7FFFFFFF // mask off sign
+        cmp     edx, 0x3F800000 // greater than 1.0 or less than -1.0
 
         jg      Float32_To_Int32_DitherClip_clamp
 
         // load unscaled value into st(0)
-        fld     dword ptr [esi]         // stack:  value, int scaler
-        add     esi, eax                // increment source ptr
+        fld     dword ptr [esi] // stack:  value, int scaler
+        add     esi, eax // increment source ptr
         //lea     esi, [esi+eax]
-        fmul    st(0), st(1)            // st(0) *= st(1), stack:  value*(int scaler), int scaler
+        fmul    st(0), st(1) // st(0) *= st(1), stack:  value*(int scaler), int scaler
 
-        /*
+    /*
         // call PaUtil_GenerateFloatTriangularDither with C calling convention
         mov     sourceByteStride, eax   // save eax
         mov     sourceEnd, ecx          // save ecx
@@ -419,17 +414,17 @@ static void Float32_To_Int32_DitherClip(
         */
 
     // generate dither
-        mov     sourceByteStride, eax   // save eax
+        mov     sourceByteStride, eax // save eax
         mov     edx, 196314165
         mov     eax, ditherRandSeed1
-        mul     edx                     // eax:edx = eax * 196314165
-        //add     eax, 907633515
+        mul     edx // eax:edx = eax * 196314165
+            //add     eax, 907633515
         lea     eax, [eax+907633515]
         mov     ditherRandSeed1, eax
         mov     edx, 196314165
         mov     eax, ditherRandSeed2
-        mul     edx                     // eax:edx = eax * 196314165
-        //add     eax, 907633515
+        mul     edx // eax:edx = eax * 196314165
+            //add     eax, 907633515
         lea     eax, [eax+907633515]
         mov     edx, ditherRandSeed1
         shr     edx, PA_DITHER_SHIFT_
@@ -439,24 +434,24 @@ static void Float32_To_Int32_DitherClip(
         lea     eax, [eax+edx]
         mov     edx, ditherPrevious
         neg     edx
-        lea     edx, [eax+edx]          // highpass = current - previous
+        lea     edx, [eax+edx] // highpass = current - previous
         mov     highpassedDither, edx
-        mov     ditherPrevious, eax     // previous = current
-        mov     eax, sourceByteStride   // restore eax
+        mov     ditherPrevious, eax // previous = current
+        mov     eax, sourceByteStride // restore eax
         fild    highpassedDither
         fmul    const_float_dither_scale_
-    // end generate dither, dither signal in st(0)
+                // end generate dither, dither signal in st(0)
 
-        faddp   st(1), st(0)            // stack: dither + value*(int scaler), int scaler
-        fistp   dword ptr [edi]         // pop st(0) into dest, stack:  int scaler
+        faddp   st(1), st(0) // stack: dither + value*(int scaler), int scaler
+        fistp   dword ptr [edi] // pop st(0) into dest, stack:  int scaler
         jmp     Float32_To_Int32_DitherClip_stored
 
     Float32_To_Int32_DitherClip_clamp:
-        mov     edx, dword ptr [esi]    // load floating point value into integer register
-        shr     edx, 31                 // move sign bit into bit 0
-        add     esi, eax                // increment source ptr
+        mov     edx, dword ptr [esi] // load floating point value into integer register
+        shr     edx, 31 // move sign bit into bit 0
+        add     esi, eax // increment source ptr
         //lea     esi, [esi+eax]
-        add     edx, 0x7FFFFFFF         // convert to maximum range integers
+        add     edx, 0x7FFFFFFF // convert to maximum range integers
         mov     dword ptr [edi], edx
 
     Float32_To_Int32_DitherClip_stored:
@@ -464,7 +459,7 @@ static void Float32_To_Int32_DitherClip(
         //add     edi, ebx              // increment destination ptr
         lea     edi, [edi+ebx]
 
-        cmp     esi, ecx                // has src ptr reached end?
+        cmp     esi, ecx // has src ptr reached end?
         jne     Float32_To_Int32_DitherClip_loop
 
         ffree   st(0)
@@ -473,21 +468,20 @@ static void Float32_To_Int32_DitherClip(
         fwait
         fnclex
         fldcw   savedFpuControlWord
-    }
+  }
 
-    ditherGenerator->previous = ditherPrevious;
-    ditherGenerator->randSeed1 = ditherRandSeed1;
-    ditherGenerator->randSeed2 = ditherRandSeed2;
+  ditherGenerator->previous = ditherPrevious;
+  ditherGenerator->randSeed1 = ditherRandSeed1;
+  ditherGenerator->randSeed2 = ditherRandSeed2;
 }
 
 /* -------------------------------------------------------------------------- */
 
 static void Float32_To_Int24(
-    void *destinationBuffer, signed int destinationStride,
-    void *sourceBuffer, signed int sourceStride,
-    unsigned int count, PaUtilTriangularDitherGenerator *ditherGenerator )
-{
-/*
+    void* destinationBuffer, signed int destinationStride,
+    void* sourceBuffer, signed int sourceStride,
+    unsigned int count, PaUtilTriangularDitherGenerator* ditherGenerator) {
+  /*
     float *src = (float*)sourceBuffer;
     unsigned char *dest = (unsigned char*)destinationBuffer;
     signed long temp;
@@ -509,23 +503,23 @@ static void Float32_To_Int24(
     }
 */
 
-    short savedFpuControlWord;
+  short savedFpuControlWord;
 
-    signed long tempInt32;
+  signed long tempInt32;
 
-    (void) ditherGenerator; /* unused parameter */
+  (void)ditherGenerator; /* unused parameter */
 
-    __asm{
-        // esi -> source ptr
-        // eax -> source byte stride
-        // edi -> destination ptr
-        // ebx -> destination byte stride
-        // ecx -> source end ptr
-        // edx -> temp
+  __asm {
+    // esi -> source ptr
+    // eax -> source byte stride
+    // edi -> destination ptr
+    // ebx -> destination byte stride
+    // ecx -> source end ptr
+    // edx -> temp
 
         mov     esi, sourceBuffer
 
-        mov     edx, 4                  // sizeof float32
+        mov     edx, 4 // sizeof float32
         mov     eax, sourceStride
         imul    eax, edx
 
@@ -535,7 +529,7 @@ static void Float32_To_Int24(
 
         mov     edi, destinationBuffer
 
-        mov     edx, 3                  // sizeof int24
+        mov     edx, 3 // sizeof int24
         mov     ebx, destinationStride
         imul    ebx, edx
 
@@ -543,28 +537,28 @@ static void Float32_To_Int24(
         fstcw   savedFpuControlWord
         fldcw   fpuControlWord_
 
-        fld     int24Scaler_            // stack:  (int)0x7FFFFF
+        fld     int24Scaler_ // stack:  (int)0x7FFFFF
 
     Float32_To_Int24_loop:
 
         // load unscaled value into st(0)
-        fld     dword ptr [esi]         // stack:  value, (int)0x7FFFFF
-        add     esi, eax                // increment source ptr
+        fld     dword ptr [esi] // stack:  value, (int)0x7FFFFF
+        add     esi, eax // increment source ptr
         //lea     esi, [esi+eax]
-        fmul    st(0), st(1)            // st(0) *= st(1), stack:  value*0x7FFFFF, (int)0x7FFFFF
-        fistp   tempInt32               // pop st(0) into tempInt32, stack:  (int)0x7FFFFF
+        fmul    st(0), st(1) // st(0) *= st(1), stack:  value*0x7FFFFF, (int)0x7FFFFF
+        fistp   tempInt32 // pop st(0) into tempInt32, stack:  (int)0x7FFFFF
         mov     edx, tempInt32
 
         mov     byte ptr [edi], DL
         shr     edx, 8
-        //mov     byte ptr [edi+1], DL
-        //mov     byte ptr [edi+2], DH
+    //mov     byte ptr [edi+1], DL
+    //mov     byte ptr [edi+2], DH
         mov     word ptr [edi+1], DX
 
         //add     edi, ebx              // increment destination ptr
         lea     edi, [edi+ebx]
 
-        cmp     esi, ecx                // has src ptr reached end?
+        cmp     esi, ecx // has src ptr reached end?
         jne     Float32_To_Int24_loop
 
         ffree   st(0)
@@ -573,17 +567,16 @@ static void Float32_To_Int24(
         fwait
         fnclex
         fldcw   savedFpuControlWord
-    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 
 static void Float32_To_Int24_Clip(
-    void *destinationBuffer, signed int destinationStride,
-    void *sourceBuffer, signed int sourceStride,
-    unsigned int count, PaUtilTriangularDitherGenerator *ditherGenerator )
-{
-/*
+    void* destinationBuffer, signed int destinationStride,
+    void* sourceBuffer, signed int sourceStride,
+    unsigned int count, PaUtilTriangularDitherGenerator* ditherGenerator) {
+  /*
     float *src = (float*)sourceBuffer;
     unsigned char *dest = (unsigned char*)destinationBuffer;
     signed long temp;
@@ -606,23 +599,23 @@ static void Float32_To_Int24_Clip(
     }
 */
 
-    short savedFpuControlWord;
+  short savedFpuControlWord;
 
-    signed long tempInt32;
+  signed long tempInt32;
 
-    (void) ditherGenerator; /* unused parameter */
+  (void)ditherGenerator; /* unused parameter */
 
-    __asm{
-        // esi -> source ptr
-        // eax -> source byte stride
-        // edi -> destination ptr
-        // ebx -> destination byte stride
-        // ecx -> source end ptr
-        // edx -> temp
+  __asm {
+    // esi -> source ptr
+    // eax -> source byte stride
+    // edi -> destination ptr
+    // ebx -> destination byte stride
+    // ecx -> source end ptr
+    // edx -> temp
 
         mov     esi, sourceBuffer
 
-        mov     edx, 4                  // sizeof float32
+        mov     edx, 4 // sizeof float32
         mov     eax, sourceStride
         imul    eax, edx
 
@@ -632,7 +625,7 @@ static void Float32_To_Int24_Clip(
 
         mov     edi, destinationBuffer
 
-        mov     edx, 3                  // sizeof int24
+        mov     edx, 3 // sizeof int24
         mov     ebx, destinationStride
         imul    ebx, edx
 
@@ -640,45 +633,45 @@ static void Float32_To_Int24_Clip(
         fstcw   savedFpuControlWord
         fldcw   fpuControlWord_
 
-        fld     int24Scaler_            // stack:  (int)0x7FFFFF
+        fld     int24Scaler_ // stack:  (int)0x7FFFFF
 
     Float32_To_Int24_Clip_loop:
 
-        mov     edx, dword ptr [esi]    // load floating point value into integer register
+        mov     edx, dword ptr [esi] // load floating point value into integer register
 
-        and     edx, 0x7FFFFFFF         // mask off sign
-        cmp     edx, 0x3F800000         // greater than 1.0 or less than -1.0
+        and     edx, 0x7FFFFFFF // mask off sign
+        cmp     edx, 0x3F800000 // greater than 1.0 or less than -1.0
 
         jg      Float32_To_Int24_Clip_clamp
 
         // load unscaled value into st(0)
-        fld     dword ptr [esi]         // stack:  value, (int)0x7FFFFF
-        add     esi, eax                // increment source ptr
+        fld     dword ptr [esi] // stack:  value, (int)0x7FFFFF
+        add     esi, eax // increment source ptr
         //lea     esi, [esi+eax]
-        fmul    st(0), st(1)            // st(0) *= st(1), stack:  value*0x7FFFFF, (int)0x7FFFFF
-        fistp   tempInt32               // pop st(0) into tempInt32, stack:  (int)0x7FFFFF
+        fmul    st(0), st(1) // st(0) *= st(1), stack:  value*0x7FFFFF, (int)0x7FFFFF
+        fistp   tempInt32 // pop st(0) into tempInt32, stack:  (int)0x7FFFFF
         mov     edx, tempInt32
         jmp     Float32_To_Int24_Clip_store
 
     Float32_To_Int24_Clip_clamp:
-        mov     edx, dword ptr [esi]    // load floating point value into integer register
-        shr     edx, 31                 // move sign bit into bit 0
-        add     esi, eax                // increment source ptr
+        mov     edx, dword ptr [esi] // load floating point value into integer register
+        shr     edx, 31 // move sign bit into bit 0
+        add     esi, eax // increment source ptr
         //lea     esi, [esi+eax]
-        add     edx, 0x7FFFFF           // convert to maximum range integers
+        add     edx, 0x7FFFFF // convert to maximum range integers
 
     Float32_To_Int24_Clip_store:
 
         mov     byte ptr [edi], DL
         shr     edx, 8
-        //mov     byte ptr [edi+1], DL
-        //mov     byte ptr [edi+2], DH
+    //mov     byte ptr [edi+1], DL
+    //mov     byte ptr [edi+2], DH
         mov     word ptr [edi+1], DX
 
         //add     edi, ebx              // increment destination ptr
         lea     edi, [edi+ebx]
 
-        cmp     esi, ecx                // has src ptr reached end?
+        cmp     esi, ecx // has src ptr reached end?
         jne     Float32_To_Int24_Clip_loop
 
         ffree   st(0)
@@ -687,17 +680,16 @@ static void Float32_To_Int24_Clip(
         fwait
         fnclex
         fldcw   savedFpuControlWord
-    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 
 static void Float32_To_Int24_DitherClip(
-    void *destinationBuffer, signed int destinationStride,
-    void *sourceBuffer, signed int sourceStride,
-    unsigned int count, PaUtilTriangularDitherGenerator *ditherGenerator )
-{
-/*
+    void* destinationBuffer, signed int destinationStride,
+    void* sourceBuffer, signed int sourceStride,
+    unsigned int count, PaUtilTriangularDitherGenerator* ditherGenerator) {
+  /*
     float *src = (float*)sourceBuffer;
     unsigned char *dest = (unsigned char*)destinationBuffer;
     signed long temp;
@@ -723,30 +715,30 @@ static void Float32_To_Int24_DitherClip(
     }
 */
 
-    short savedFpuControlWord;
+  short savedFpuControlWord;
 
-    // spill storage:
-    signed long sourceByteStride;
-    signed long highpassedDither;
+  // spill storage:
+  signed long sourceByteStride;
+  signed long highpassedDither;
 
-    // dither state:
-    unsigned long ditherPrevious = ditherGenerator->previous;
-    unsigned long ditherRandSeed1 = ditherGenerator->randSeed1;
-    unsigned long ditherRandSeed2 = ditherGenerator->randSeed2;
+  // dither state:
+  unsigned long ditherPrevious = ditherGenerator->previous;
+  unsigned long ditherRandSeed1 = ditherGenerator->randSeed1;
+  unsigned long ditherRandSeed2 = ditherGenerator->randSeed2;
 
-    signed long tempInt32;
+  signed long tempInt32;
 
-    __asm{
-        // esi -> source ptr
-        // eax -> source byte stride
-        // edi -> destination ptr
-        // ebx -> destination byte stride
-        // ecx -> source end ptr
-        // edx -> temp
+  __asm {
+    // esi -> source ptr
+    // eax -> source byte stride
+    // edi -> destination ptr
+    // ebx -> destination byte stride
+    // ecx -> source end ptr
+    // edx -> temp
 
         mov     esi, sourceBuffer
 
-        mov     edx, 4                  // sizeof float32
+        mov     edx, 4 // sizeof float32
         mov     eax, sourceStride
         imul    eax, edx
 
@@ -756,7 +748,7 @@ static void Float32_To_Int24_DitherClip(
 
         mov     edi, destinationBuffer
 
-        mov     edx, 3                  // sizeof int24
+        mov     edx, 3 // sizeof int24
         mov     ebx, destinationStride
         imul    ebx, edx
 
@@ -764,22 +756,22 @@ static void Float32_To_Int24_DitherClip(
         fstcw   savedFpuControlWord
         fldcw   fpuControlWord_
 
-        fld     ditheredInt24Scaler_    // stack:  int scaler
+        fld     ditheredInt24Scaler_ // stack:  int scaler
 
     Float32_To_Int24_DitherClip_loop:
 
-        mov     edx, dword ptr [esi]    // load floating point value into integer register
+        mov     edx, dword ptr [esi] // load floating point value into integer register
 
-        and     edx, 0x7FFFFFFF         // mask off sign
-        cmp     edx, 0x3F800000         // greater than 1.0 or less than -1.0
+        and     edx, 0x7FFFFFFF // mask off sign
+        cmp     edx, 0x3F800000 // greater than 1.0 or less than -1.0
 
         jg      Float32_To_Int24_DitherClip_clamp
 
         // load unscaled value into st(0)
-        fld     dword ptr [esi]         // stack:  value, int scaler
-        add     esi, eax                // increment source ptr
+        fld     dword ptr [esi] // stack:  value, int scaler
+        add     esi, eax // increment source ptr
         //lea     esi, [esi+eax]
-        fmul    st(0), st(1)            // st(0) *= st(1), stack:  value*(int scaler), int scaler
+        fmul    st(0), st(1) // st(0) *= st(1), stack:  value*(int scaler), int scaler
 
     /*
         // call PaUtil_GenerateFloatTriangularDither with C calling convention
@@ -793,17 +785,17 @@ static void Float32_To_Int24_DitherClip(
     */
 
     // generate dither
-        mov     sourceByteStride, eax   // save eax
+        mov     sourceByteStride, eax // save eax
         mov     edx, 196314165
         mov     eax, ditherRandSeed1
-        mul     edx                     // eax:edx = eax * 196314165
-        //add     eax, 907633515
+        mul     edx // eax:edx = eax * 196314165
+            //add     eax, 907633515
         lea     eax, [eax+907633515]
         mov     ditherRandSeed1, eax
         mov     edx, 196314165
         mov     eax, ditherRandSeed2
-        mul     edx                     // eax:edx = eax * 196314165
-        //add     eax, 907633515
+        mul     edx // eax:edx = eax * 196314165
+            //add     eax, 907633515
         lea     eax, [eax+907633515]
         mov     edx, ditherRandSeed1
         shr     edx, PA_DITHER_SHIFT_
@@ -813,38 +805,38 @@ static void Float32_To_Int24_DitherClip(
         lea     eax, [eax+edx]
         mov     edx, ditherPrevious
         neg     edx
-        lea     edx, [eax+edx]          // highpass = current - previous
+        lea     edx, [eax+edx] // highpass = current - previous
         mov     highpassedDither, edx
-        mov     ditherPrevious, eax     // previous = current
-        mov     eax, sourceByteStride   // restore eax
+        mov     ditherPrevious, eax // previous = current
+        mov     eax, sourceByteStride // restore eax
         fild    highpassedDither
         fmul    const_float_dither_scale_
-    // end generate dither, dither signal in st(0)
+                // end generate dither, dither signal in st(0)
 
-        faddp   st(1), st(0)            // stack: dither * value*(int scaler), int scaler
-        fistp   tempInt32               // pop st(0) into tempInt32, stack:  int scaler
+        faddp   st(1), st(0) // stack: dither * value*(int scaler), int scaler
+        fistp   tempInt32 // pop st(0) into tempInt32, stack:  int scaler
         mov     edx, tempInt32
         jmp     Float32_To_Int24_DitherClip_store
 
     Float32_To_Int24_DitherClip_clamp:
-        mov     edx, dword ptr [esi]    // load floating point value into integer register
-        shr     edx, 31                 // move sign bit into bit 0
-        add     esi, eax                // increment source ptr
+        mov     edx, dword ptr [esi] // load floating point value into integer register
+        shr     edx, 31 // move sign bit into bit 0
+        add     esi, eax // increment source ptr
         //lea     esi, [esi+eax]
-        add     edx, 0x7FFFFF           // convert to maximum range integers
+        add     edx, 0x7FFFFF // convert to maximum range integers
 
     Float32_To_Int24_DitherClip_store:
 
         mov     byte ptr [edi], DL
         shr     edx, 8
-        //mov     byte ptr [edi+1], DL
-        //mov     byte ptr [edi+2], DH
+    //mov     byte ptr [edi+1], DL
+    //mov     byte ptr [edi+2], DH
         mov     word ptr [edi+1], DX
 
         //add     edi, ebx              // increment destination ptr
         lea     edi, [edi+ebx]
 
-        cmp     esi, ecx                // has src ptr reached end?
+        cmp     esi, ecx // has src ptr reached end?
         jne     Float32_To_Int24_DitherClip_loop
 
         ffree   st(0)
@@ -853,21 +845,20 @@ static void Float32_To_Int24_DitherClip(
         fwait
         fnclex
         fldcw   savedFpuControlWord
-    }
+  }
 
-    ditherGenerator->previous = ditherPrevious;
-    ditherGenerator->randSeed1 = ditherRandSeed1;
-    ditherGenerator->randSeed2 = ditherRandSeed2;
+  ditherGenerator->previous = ditherPrevious;
+  ditherGenerator->randSeed1 = ditherRandSeed1;
+  ditherGenerator->randSeed2 = ditherRandSeed2;
 }
 
 /* -------------------------------------------------------------------------- */
 
 static void Float32_To_Int16(
-    void *destinationBuffer, signed int destinationStride,
-    void *sourceBuffer, signed int sourceStride,
-    unsigned int count, PaUtilTriangularDitherGenerator *ditherGenerator )
-{
-/*
+    void* destinationBuffer, signed int destinationStride,
+    void* sourceBuffer, signed int sourceStride,
+    unsigned int count, PaUtilTriangularDitherGenerator* ditherGenerator) {
+  /*
     float *src = (float*)sourceBuffer;
     signed short *dest =  (signed short*)destinationBuffer;
     (void)ditherGenerator; // unused parameter
@@ -883,53 +874,53 @@ static void Float32_To_Int16(
     }
 */
 
-    short savedFpuControlWord;
+  short savedFpuControlWord;
 
-    (void) ditherGenerator; /* unused parameter */
+  (void)ditherGenerator; /* unused parameter */
 
-    __asm{
-        // esi -> source ptr
-        // eax -> source byte stride
-        // edi -> destination ptr
-        // ebx -> destination byte stride
-        // ecx -> source end ptr
-        // edx -> temp
+  __asm {
+    // esi -> source ptr
+    // eax -> source byte stride
+    // edi -> destination ptr
+    // ebx -> destination byte stride
+    // ecx -> source end ptr
+    // edx -> temp
 
         mov     esi, sourceBuffer
 
-        mov     edx, 4                  // sizeof float32
+        mov     edx, 4 // sizeof float32
         mov     eax, sourceStride
-        imul    eax, edx                // source byte stride
+        imul    eax, edx // source byte stride
 
         mov     ecx, count
         imul    ecx, eax
-        add     ecx, esi                // source end ptr = count * source byte stride + source ptr
+        add     ecx, esi // source end ptr = count * source byte stride + source ptr
 
         mov     edi, destinationBuffer
 
-        mov     edx, 2                  // sizeof int16
+        mov     edx, 2 // sizeof int16
         mov     ebx, destinationStride
-        imul    ebx, edx                // destination byte stride
+        imul    ebx, edx // destination byte stride
 
         fwait
         fstcw   savedFpuControlWord
         fldcw   fpuControlWord_
 
-        fld     int16Scaler_            // stack:  (int)0x7FFF
+        fld     int16Scaler_ // stack:  (int)0x7FFF
 
     Float32_To_Int16_loop:
 
         // load unscaled value into st(0)
-        fld     dword ptr [esi]         // stack:  value, (int)0x7FFF
-        add     esi, eax                // increment source ptr
+        fld     dword ptr [esi] // stack:  value, (int)0x7FFF
+        add     esi, eax // increment source ptr
         //lea     esi, [esi+eax]
-        fmul    st(0), st(1)            // st(0) *= st(1), stack:  value*0x7FFF, (int)0x7FFF
-        fistp   word ptr [edi]          // store scaled int into dest, stack:  (int)0x7FFF
+        fmul    st(0), st(1) // st(0) *= st(1), stack:  value*0x7FFF, (int)0x7FFF
+        fistp   word ptr [edi] // store scaled int into dest, stack:  (int)0x7FFF
 
-        add     edi, ebx                // increment destination ptr
+        add     edi, ebx // increment destination ptr
         //lea     edi, [edi+ebx]
 
-        cmp     esi, ecx                // has src ptr reached end?
+        cmp     esi, ecx // has src ptr reached end?
         jne     Float32_To_Int16_loop
 
         ffree   st(0)
@@ -938,17 +929,16 @@ static void Float32_To_Int16(
         fwait
         fnclex
         fldcw   savedFpuControlWord
-    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 
 static void Float32_To_Int16_Clip(
-    void *destinationBuffer, signed int destinationStride,
-    void *sourceBuffer, signed int sourceStride,
-    unsigned int count, PaUtilTriangularDitherGenerator *ditherGenerator )
-{
-/*
+    void* destinationBuffer, signed int destinationStride,
+    void* sourceBuffer, signed int sourceStride,
+    unsigned int count, PaUtilTriangularDitherGenerator* ditherGenerator) {
+  /*
     float *src = (float*)sourceBuffer;
     signed short *dest =  (signed short*)destinationBuffer;
     (void)ditherGenerator; // unused parameter
@@ -964,71 +954,71 @@ static void Float32_To_Int16_Clip(
     }
 */
 
-    short savedFpuControlWord;
+  short savedFpuControlWord;
 
-    (void) ditherGenerator; /* unused parameter */
+  (void)ditherGenerator; /* unused parameter */
 
-    __asm{
-        // esi -> source ptr
-        // eax -> source byte stride
-        // edi -> destination ptr
-        // ebx -> destination byte stride
-        // ecx -> source end ptr
-        // edx -> temp
+  __asm {
+    // esi -> source ptr
+    // eax -> source byte stride
+    // edi -> destination ptr
+    // ebx -> destination byte stride
+    // ecx -> source end ptr
+    // edx -> temp
 
         mov     esi, sourceBuffer
 
-        mov     edx, 4                  // sizeof float32
+        mov     edx, 4 // sizeof float32
         mov     eax, sourceStride
-        imul    eax, edx                // source byte stride
+        imul    eax, edx // source byte stride
 
         mov     ecx, count
         imul    ecx, eax
-        add     ecx, esi                // source end ptr = count * source byte stride + source ptr
+        add     ecx, esi // source end ptr = count * source byte stride + source ptr
 
         mov     edi, destinationBuffer
 
-        mov     edx, 2                  // sizeof int16
+        mov     edx, 2 // sizeof int16
         mov     ebx, destinationStride
-        imul    ebx, edx                // destination byte stride
+        imul    ebx, edx // destination byte stride
 
         fwait
         fstcw   savedFpuControlWord
         fldcw   fpuControlWord_
 
-        fld     int16Scaler_            // stack:  (int)0x7FFF
+        fld     int16Scaler_ // stack:  (int)0x7FFF
 
     Float32_To_Int16_Clip_loop:
 
-        mov     edx, dword ptr [esi]    // load floating point value into integer register
+        mov     edx, dword ptr [esi] // load floating point value into integer register
 
-        and     edx, 0x7FFFFFFF         // mask off sign
-        cmp     edx, 0x3F800000         // greater than 1.0 or less than -1.0
+        and     edx, 0x7FFFFFFF // mask off sign
+        cmp     edx, 0x3F800000 // greater than 1.0 or less than -1.0
 
         jg      Float32_To_Int16_Clip_clamp
 
         // load unscaled value into st(0)
-        fld     dword ptr [esi]         // stack:  value, (int)0x7FFF
-        add     esi, eax                // increment source ptr
+        fld     dword ptr [esi] // stack:  value, (int)0x7FFF
+        add     esi, eax // increment source ptr
         //lea     esi, [esi+eax]
-        fmul    st(0), st(1)            // st(0) *= st(1), stack:  value*0x7FFF, (int)0x7FFF
-        fistp   word ptr [edi]          // store scaled int into dest, stack:  (int)0x7FFF
+        fmul    st(0), st(1) // st(0) *= st(1), stack:  value*0x7FFF, (int)0x7FFF
+        fistp   word ptr [edi] // store scaled int into dest, stack:  (int)0x7FFF
         jmp     Float32_To_Int16_Clip_stored
 
     Float32_To_Int16_Clip_clamp:
-        mov     edx, dword ptr [esi]    // load floating point value into integer register
-        shr     edx, 31                 // move sign bit into bit 0
-        add     esi, eax                // increment source ptr
+        mov     edx, dword ptr [esi] // load floating point value into integer register
+        shr     edx, 31 // move sign bit into bit 0
+        add     esi, eax // increment source ptr
         //lea     esi, [esi+eax]
-        add     dx, 0x7FFF              // convert to maximum range integers
-        mov     word ptr [edi], dx      // store clamped into into dest
+        add     dx, 0x7FFF // convert to maximum range integers
+        mov     word ptr [edi], dx // store clamped into into dest
 
     Float32_To_Int16_Clip_stored:
 
-        add     edi, ebx                // increment destination ptr
+        add     edi, ebx // increment destination ptr
         //lea     edi, [edi+ebx]
 
-        cmp     esi, ecx                // has src ptr reached end?
+        cmp     esi, ecx // has src ptr reached end?
         jne     Float32_To_Int16_Clip_loop
 
         ffree   st(0)
@@ -1037,17 +1027,16 @@ static void Float32_To_Int16_Clip(
         fwait
         fnclex
         fldcw   savedFpuControlWord
-    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 
 static void Float32_To_Int16_DitherClip(
-    void *destinationBuffer, signed int destinationStride,
-    void *sourceBuffer, signed int sourceStride,
-    unsigned int count, PaUtilTriangularDitherGenerator *ditherGenerator )
-{
-/*
+    void* destinationBuffer, signed int destinationStride,
+    void* sourceBuffer, signed int sourceStride,
+    unsigned int count, PaUtilTriangularDitherGenerator* ditherGenerator) {
+  /*
     float *src = (float*)sourceBuffer;
     signed short *dest =  (signed short*)destinationBuffer;
     (void)ditherGenerator; // unused parameter
@@ -1067,63 +1056,63 @@ static void Float32_To_Int16_DitherClip(
     }
 */
 
-    short savedFpuControlWord;
+  short savedFpuControlWord;
 
-    // spill storage:
-    signed long sourceByteStride;
-    signed long highpassedDither;
+  // spill storage:
+  signed long sourceByteStride;
+  signed long highpassedDither;
 
-    // dither state:
-    unsigned long ditherPrevious = ditherGenerator->previous;
-    unsigned long ditherRandSeed1 = ditherGenerator->randSeed1;
-    unsigned long ditherRandSeed2 = ditherGenerator->randSeed2;
+  // dither state:
+  unsigned long ditherPrevious = ditherGenerator->previous;
+  unsigned long ditherRandSeed1 = ditherGenerator->randSeed1;
+  unsigned long ditherRandSeed2 = ditherGenerator->randSeed2;
 
-    __asm{
-        // esi -> source ptr
-        // eax -> source byte stride
-        // edi -> destination ptr
-        // ebx -> destination byte stride
-        // ecx -> source end ptr
-        // edx -> temp
+  __asm {
+    // esi -> source ptr
+    // eax -> source byte stride
+    // edi -> destination ptr
+    // ebx -> destination byte stride
+    // ecx -> source end ptr
+    // edx -> temp
 
         mov     esi, sourceBuffer
 
-        mov     edx, 4                  // sizeof float32
+        mov     edx, 4 // sizeof float32
         mov     eax, sourceStride
-        imul    eax, edx                // source byte stride
+        imul    eax, edx // source byte stride
 
         mov     ecx, count
         imul    ecx, eax
-        add     ecx, esi                // source end ptr = count * source byte stride + source ptr
+        add     ecx, esi // source end ptr = count * source byte stride + source ptr
 
         mov     edi, destinationBuffer
 
-        mov     edx, 2                  // sizeof int16
+        mov     edx, 2 // sizeof int16
         mov     ebx, destinationStride
-        imul    ebx, edx                // destination byte stride
+        imul    ebx, edx // destination byte stride
 
         fwait
         fstcw   savedFpuControlWord
         fldcw   fpuControlWord_
 
-        fld     ditheredInt16Scaler_    // stack:  int scaler
+        fld     ditheredInt16Scaler_ // stack:  int scaler
 
     Float32_To_Int16_DitherClip_loop:
 
-        mov     edx, dword ptr [esi]    // load floating point value into integer register
+        mov     edx, dword ptr [esi] // load floating point value into integer register
 
-        and     edx, 0x7FFFFFFF         // mask off sign
-        cmp     edx, 0x3F800000         // greater than 1.0 or less than -1.0
+        and     edx, 0x7FFFFFFF // mask off sign
+        cmp     edx, 0x3F800000 // greater than 1.0 or less than -1.0
 
         jg      Float32_To_Int16_DitherClip_clamp
 
         // load unscaled value into st(0)
-        fld     dword ptr [esi]         // stack:  value, int scaler
-        add     esi, eax                // increment source ptr
+        fld     dword ptr [esi] // stack:  value, int scaler
+        add     esi, eax // increment source ptr
         //lea     esi, [esi+eax]
-        fmul    st(0), st(1)            // st(0) *= st(1), stack:  value*(int scaler), int scaler
+        fmul    st(0), st(1) // st(0) *= st(1), stack:  value*(int scaler), int scaler
 
-        /*
+    /*
         // call PaUtil_GenerateFloatTriangularDither with C calling convention
         mov     sourceByteStride, eax   // save eax
         mov     sourceEnd, ecx          // save ecx
@@ -1135,52 +1124,52 @@ static void Float32_To_Int16_DitherClip(
         */
 
     // generate dither
-        mov     sourceByteStride, eax   // save eax
+        mov     sourceByteStride, eax // save eax
         mov     edx, 196314165
         mov     eax, ditherRandSeed1
-        mul     edx                     // eax:edx = eax * 196314165
-        //add     eax, 907633515
+        mul     edx // eax:edx = eax * 196314165
+            //add     eax, 907633515
         lea     eax, [eax+907633515]
         mov     ditherRandSeed1, eax
         mov     edx, 196314165
         mov     eax, ditherRandSeed2
-        mul     edx                     // eax:edx = eax * 196314165
-        //add     eax, 907633515
+        mul     edx // eax:edx = eax * 196314165
+            //add     eax, 907633515
         lea     eax, [eax+907633515]
         mov     edx, ditherRandSeed1
         shr     edx, PA_DITHER_SHIFT_
         mov     ditherRandSeed2, eax
         shr     eax, PA_DITHER_SHIFT_
         //add     eax, edx              // eax -> current
-        lea     eax, [eax+edx]          // current = randSeed1>>x + randSeed2>>x
+        lea     eax, [eax+edx] // current = randSeed1>>x + randSeed2>>x
         mov     edx, ditherPrevious
         neg     edx
-        lea     edx, [eax+edx]          // highpass = current - previous
+        lea     edx, [eax+edx] // highpass = current - previous
         mov     highpassedDither, edx
-        mov     ditherPrevious, eax     // previous = current
-        mov     eax, sourceByteStride   // restore eax
+        mov     ditherPrevious, eax // previous = current
+        mov     eax, sourceByteStride // restore eax
         fild    highpassedDither
         fmul    const_float_dither_scale_
-    // end generate dither, dither signal in st(0)
+                // end generate dither, dither signal in st(0)
 
-        faddp   st(1), st(0)            // stack: dither * value*(int scaler), int scaler
-        fistp   word ptr [edi]          // store scaled int into dest, stack:  int scaler
+        faddp   st(1), st(0) // stack: dither * value*(int scaler), int scaler
+        fistp   word ptr [edi] // store scaled int into dest, stack:  int scaler
         jmp     Float32_To_Int16_DitherClip_stored
 
     Float32_To_Int16_DitherClip_clamp:
-        mov     edx, dword ptr [esi]    // load floating point value into integer register
-        shr     edx, 31                 // move sign bit into bit 0
-        add     esi, eax                // increment source ptr
+        mov     edx, dword ptr [esi] // load floating point value into integer register
+        shr     edx, 31 // move sign bit into bit 0
+        add     esi, eax // increment source ptr
         //lea     esi, [esi+eax]
-        add     dx, 0x7FFF              // convert to maximum range integers
-        mov     word ptr [edi], dx      // store clamped into into dest
+        add     dx, 0x7FFF // convert to maximum range integers
+        mov     word ptr [edi], dx // store clamped into into dest
 
     Float32_To_Int16_DitherClip_stored:
 
-        add     edi, ebx                // increment destination ptr
+        add     edi, ebx // increment destination ptr
         //lea     edi, [edi+ebx]
 
-        cmp     esi, ecx                // has src ptr reached end?
+        cmp     esi, ecx // has src ptr reached end?
         jne     Float32_To_Int16_DitherClip_loop
 
         ffree   st(0)
@@ -1189,28 +1178,27 @@ static void Float32_To_Int16_DitherClip(
         fwait
         fnclex
         fldcw   savedFpuControlWord
-    }
+  }
 
-    ditherGenerator->previous = ditherPrevious;
-    ditherGenerator->randSeed1 = ditherRandSeed1;
-    ditherGenerator->randSeed2 = ditherRandSeed2;
+  ditherGenerator->previous = ditherPrevious;
+  ditherGenerator->randSeed1 = ditherRandSeed1;
+  ditherGenerator->randSeed2 = ditherRandSeed2;
 }
 
 /* -------------------------------------------------------------------------- */
 
-void PaUtil_InitializeX86PlainConverters( void )
-{
-    paConverters.Float32_To_Int32 = Float32_To_Int32;
-    paConverters.Float32_To_Int32_Clip = Float32_To_Int32_Clip;
-    paConverters.Float32_To_Int32_DitherClip = Float32_To_Int32_DitherClip;
+void PaUtil_InitializeX86PlainConverters(void) {
+  paConverters.Float32_To_Int32 = Float32_To_Int32;
+  paConverters.Float32_To_Int32_Clip = Float32_To_Int32_Clip;
+  paConverters.Float32_To_Int32_DitherClip = Float32_To_Int32_DitherClip;
 
-    paConverters.Float32_To_Int24 = Float32_To_Int24;
-    paConverters.Float32_To_Int24_Clip = Float32_To_Int24_Clip;
-    paConverters.Float32_To_Int24_DitherClip = Float32_To_Int24_DitherClip;
+  paConverters.Float32_To_Int24 = Float32_To_Int24;
+  paConverters.Float32_To_Int24_Clip = Float32_To_Int24_Clip;
+  paConverters.Float32_To_Int24_DitherClip = Float32_To_Int24_DitherClip;
 
-    paConverters.Float32_To_Int16 = Float32_To_Int16;
-    paConverters.Float32_To_Int16_Clip = Float32_To_Int16_Clip;
-    paConverters.Float32_To_Int16_DitherClip = Float32_To_Int16_DitherClip;
+  paConverters.Float32_To_Int16 = Float32_To_Int16;
+  paConverters.Float32_To_Int16_Clip = Float32_To_Int16_Clip;
+  paConverters.Float32_To_Int16_DitherClip = Float32_To_Int16_DitherClip;
 }
 
 #endif

@@ -51,25 +51,22 @@
 
 #include "pa_hostapi.h"
 
-
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif /* __cplusplus */
 
-PaError PaSkeleton_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex index );
-PaError PaWinMme_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex index );
-PaError PaWinDs_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex index );
-PaError PaAsio_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex index );
-PaError PaWinWdm_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex index );
-PaError PaWasapi_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex index );
+PaError PaSkeleton_Initialize(PaUtilHostApiRepresentation** hostApi, PaHostApiIndex index);
+PaError PaWinMme_Initialize(PaUtilHostApiRepresentation** hostApi, PaHostApiIndex index);
+PaError PaWinDs_Initialize(PaUtilHostApiRepresentation** hostApi, PaHostApiIndex index);
+PaError PaAsio_Initialize(PaUtilHostApiRepresentation** hostApi, PaHostApiIndex index);
+PaError PaWinWdm_Initialize(PaUtilHostApiRepresentation** hostApi, PaHostApiIndex index);
+PaError PaWasapi_Initialize(PaUtilHostApiRepresentation** hostApi, PaHostApiIndex index);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-
-PaUtilHostApiInitializer *paHostApiInitializers[] =
+PaUtilHostApiInitializer* paHostApiInitializers[] =
     {
 
 #if PA_USE_WMME
@@ -96,5 +93,5 @@ PaUtilHostApiInitializer *paHostApiInitializers[] =
         PaSkeleton_Initialize, /* just for testing. last in list so it isn't marked as default. */
 #endif
 
-        0   /* NULL terminated array */
-    };
+        0 /* NULL terminated array */
+};

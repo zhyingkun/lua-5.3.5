@@ -70,58 +70,49 @@
 static int numAllocations_ = 0;
 #endif
 
-
-void *PaUtil_AllocateMemory( long size )
-{
-    void *result = malloc( size );
+void* PaUtil_AllocateMemory(long size) {
+  void* result = malloc(size);
 
 #if PA_TRACK_MEMORY
-    if( result != NULL ) numAllocations_ += 1;
+  if (result != NULL)
+    numAllocations_ += 1;
 #endif
-    return result;
+  return result;
 }
 
-
-void PaUtil_FreeMemory( void *block )
-{
-    if( block != NULL )
-    {
-        free( block );
+void PaUtil_FreeMemory(void* block) {
+  if (block != NULL) {
+    free(block);
 #if PA_TRACK_MEMORY
-        numAllocations_ -= 1;
+    numAllocations_ -= 1;
 #endif
-
-    }
+  }
 }
 
-
-int PaUtil_CountCurrentlyAllocatedBlocks( void )
-{
+int PaUtil_CountCurrentlyAllocatedBlocks(void) {
 #if PA_TRACK_MEMORY
-    return numAllocations_;
+  return numAllocations_;
 #else
-    return 0;
+  return 0;
 #endif
 }
 
-
-void Pa_Sleep( long msec )
-{
+void Pa_Sleep(long msec) {
 #ifdef HAVE_NANOSLEEP
-    struct timespec req = {0}, rem = {0};
-    PaTime time = msec / 1.e3;
-    req.tv_sec = (time_t)time;
-    assert(time - req.tv_sec < 1.0);
-    req.tv_nsec = (long)((time - req.tv_sec) * 1.e9);
-    nanosleep(&req, &rem);
-    /* XXX: Try sleeping the remaining time (contained in rem) if interrupted by a signal? */
+  struct timespec req = {0}, rem = {0};
+  PaTime time = msec / 1.e3;
+  req.tv_sec = (time_t)time;
+  assert(time - req.tv_sec < 1.0);
+  req.tv_nsec = (long)((time - req.tv_sec) * 1.e9);
+  nanosleep(&req, &rem);
+  /* XXX: Try sleeping the remaining time (contained in rem) if interrupted by a signal? */
 #else
-    while( msec > 999 )     /* For OpenBSD and IRIX, argument */
-        {                   /* to usleep must be < 1000000.   */
-        usleep( 999000 );
-        msec -= 999;
-        }
-    usleep( msec * 1000 );
+  while (msec > 999) /* For OpenBSD and IRIX, argument */
+  { /* to usleep must be < 1000000.   */
+    usleep(999000);
+    msec -= 999;
+  }
+  usleep(msec * 1000);
 #endif
 }
 
@@ -143,80 +134,73 @@ void Pa_Sleep( long msec )
 static double machSecondsConversionScaler_ = 0.0;
 #endif
 
-void PaUtil_InitializeClock( void )
-{
+void PaUtil_InitializeClock(void) {
 #ifdef HAVE_MACH_ABSOLUTE_TIME
-    mach_timebase_info_data_t info;
-    kern_return_t err = mach_timebase_info( &info );
-    if( err == 0  )
-        machSecondsConversionScaler_ = 1e-9 * (double) info.numer / (double) info.denom;
+  mach_timebase_info_data_t info;
+  kern_return_t err = mach_timebase_info(&info);
+  if (err == 0)
+    machSecondsConversionScaler_ = 1e-9 * (double)info.numer / (double)info.denom;
 #endif
 }
 
-
-PaTime PaUtil_GetTime( void )
-{
+PaTime PaUtil_GetTime(void) {
 #ifdef HAVE_MACH_ABSOLUTE_TIME
-    return mach_absolute_time() * machSecondsConversionScaler_;
+  return mach_absolute_time() * machSecondsConversionScaler_;
 #elif defined(HAVE_CLOCK_GETTIME)
-    struct timespec tp;
-    clock_gettime(CLOCK_REALTIME, &tp);
-    return (PaTime)(tp.tv_sec + tp.tv_nsec * 1e-9);
+  struct timespec tp;
+  clock_gettime(CLOCK_REALTIME, &tp);
+  return (PaTime)(tp.tv_sec + tp.tv_nsec * 1e-9);
 #else
-    struct timeval tv;
-    gettimeofday( &tv, NULL );
-    return (PaTime) tv.tv_usec * 1e-6 + tv.tv_sec;
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return (PaTime)tv.tv_usec * 1e-6 + tv.tv_sec;
 #endif
 }
 
-PaError PaUtil_InitializeThreading( PaUtilThreading *threading )
-{
-    (void) paUtilErr_;
-    return paNoError;
+PaError PaUtil_InitializeThreading(PaUtilThreading* threading) {
+  (void)paUtilErr_;
+  return paNoError;
 }
 
-void PaUtil_TerminateThreading( PaUtilThreading *threading )
-{
+void PaUtil_TerminateThreading(PaUtilThreading* threading) {
 }
 
-PaError PaUtil_StartThreading( PaUtilThreading *threading, void *(*threadRoutine)(void *), void *data )
-{
-    pthread_create( &threading->callbackThread, NULL, threadRoutine, data );
-    return paNoError;
+PaError PaUtil_StartThreading(PaUtilThreading* threading, void* (*threadRoutine)(void*), void* data) {
+  pthread_create(&threading->callbackThread, NULL, threadRoutine, data);
+  return paNoError;
 }
 
-PaError PaUtil_CancelThreading( PaUtilThreading *threading, int wait, PaError *exitResult )
-{
-    PaError result = paNoError;
-    void *pret;
+PaError PaUtil_CancelThreading(PaUtilThreading* threading, int wait, PaError* exitResult) {
+  PaError result = paNoError;
+  void* pret;
 
-    if( exitResult )
-        *exitResult = paNoError;
+  if (exitResult)
+    *exitResult = paNoError;
 
     /* If pthread_cancel is not supported (Android platform) whole this function can lead to indefinite waiting if
        working thread (callbackThread) has'n received any stop signals from outside, please keep
        this in mind when considering using PaUtil_CancelThreading
     */
 #ifdef PTHREAD_CANCELED
-    /* Only kill the thread if it isn't in the process of stopping (flushing adaptation buffers) */
-    if( !wait )
-        pthread_cancel( threading->callbackThread );   /* XXX: Safe to call this if the thread has exited on its own? */
+  /* Only kill the thread if it isn't in the process of stopping (flushing adaptation buffers) */
+  if (!wait)
+    pthread_cancel(threading->callbackThread); /* XXX: Safe to call this if the thread has exited on its own? */
 #endif
-    pthread_join( threading->callbackThread, &pret );
+  pthread_join(threading->callbackThread, &pret);
 
 #ifdef PTHREAD_CANCELED
-    if( pret && PTHREAD_CANCELED != pret )
+  if (pret && PTHREAD_CANCELED != pret)
 #else
-    /* !wait means the thread may have been canceled */
-    if( pret && wait )
+  /* !wait means the thread may have been canceled */
+  if (pret && wait)
 #endif
-    {
-        if( exitResult )
-            *exitResult = *(PaError *) pret;
-        free( pret );
-    }
+  {
+    if (exitResult)
+      *exitResult = *(PaError*)pret;
+    free(pret);
+  }
 
-    return result;
+  return result;
 }
 
 /* Threading */
@@ -236,49 +220,43 @@ pthread_t paUnixMainThread = 0;
 pthread_t paUnixMainThread = 0;
 #endif
 
-PaError PaUnixThreading_Initialize( void )
-{
-    paUnixMainThread = pthread_self();
-    return paNoError;
+PaError PaUnixThreading_Initialize(void) {
+  paUnixMainThread = pthread_self();
+  return paNoError;
 }
 
-static PaError BoostPriority( PaUnixThread* self )
-{
-    PaError result = paNoError;
-    struct sched_param spm = { 0 };
-    /* Priority should only matter between contending FIFO threads? */
-    spm.sched_priority = 1;
+static PaError BoostPriority(PaUnixThread* self) {
+  PaError result = paNoError;
+  struct sched_param spm = {0};
+  /* Priority should only matter between contending FIFO threads? */
+  spm.sched_priority = 1;
 
-    assert( self );
+  assert(self);
 
-    if( pthread_setschedparam( self->thread, SCHED_FIFO, &spm ) != 0 )
-    {
-        PA_UNLESS( errno == EPERM, paInternalError );  /* Lack permission to raise priority */
-        PA_DEBUG(( "Failed bumping priority\n" ));
-        result = 0;
-    }
-    else
-    {
-        result = 1; /* Success */
-    }
+  if (pthread_setschedparam(self->thread, SCHED_FIFO, &spm) != 0) {
+    PA_UNLESS(errno == EPERM, paInternalError); /* Lack permission to raise priority */
+    PA_DEBUG(("Failed bumping priority\n"));
+    result = 0;
+  } else {
+    result = 1; /* Success */
+  }
 error:
-    return result;
+  return result;
 }
 
-PaError PaUnixThread_New( PaUnixThread* self, void* (*threadFunc)( void* ), void* threadArg, PaTime waitForChild,
-        int rtSched )
-{
-    PaError result = paNoError;
-    pthread_attr_t attr;
-    int started = 0;
+PaError PaUnixThread_New(PaUnixThread* self, void* (*threadFunc)(void*), void* threadArg, PaTime waitForChild,
+                         int rtSched) {
+  PaError result = paNoError;
+  pthread_attr_t attr;
+  int started = 0;
 
-    memset( self, 0, sizeof (PaUnixThread) );
-    PaUnixMutex_Initialize( &self->mtx );
-    PA_ASSERT_CALL( pthread_cond_init( &self->cond, NULL ), 0 );
+  memset(self, 0, sizeof(PaUnixThread));
+  PaUnixMutex_Initialize(&self->mtx);
+  PA_ASSERT_CALL(pthread_cond_init(&self->cond, NULL), 0);
 
-    self->parentWaiting = 0 != waitForChild;
+  self->parentWaiting = 0 != waitForChild;
 
-    /* Spawn thread */
+  /* Spawn thread */
 
 /* Temporarily disabled since we should test during configuration for presence of required mman.h header */
 #if 0
@@ -298,15 +276,14 @@ PaError PaUnixThread_New( PaUnixThread* self, void* (*threadFunc)( void* ), void
 #endif
 #endif
 
-    PA_UNLESS( !pthread_attr_init( &attr ), paInternalError );
-    /* Priority relative to other processes */
-    PA_UNLESS( !pthread_attr_setscope( &attr, PTHREAD_SCOPE_SYSTEM ), paInternalError );
+  PA_UNLESS(!pthread_attr_init(&attr), paInternalError);
+  /* Priority relative to other processes */
+  PA_UNLESS(!pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM), paInternalError);
 
-    PA_UNLESS( !pthread_create( &self->thread, &attr, threadFunc, threadArg ), paInternalError );
-    started = 1;
+  PA_UNLESS(!pthread_create(&self->thread, &attr, threadFunc, threadArg), paInternalError);
+  started = 1;
 
-    if( rtSched )
-    {
+  if (rtSched) {
 #if 0
         if( self->useWatchdog )
         {
@@ -342,72 +319,63 @@ PaError PaUnixThread_New( PaUnixThread* self, void* (*threadFunc)( void* ), void
         }
         else
 #endif
-            PA_ENSURE( BoostPriority( self ) );
+    PA_ENSURE(BoostPriority(self));
 
-        {
-            int policy;
-            struct sched_param spm;
-            pthread_getschedparam(self->thread, &policy, &spm);
-        }
-    }
-
-    if( self->parentWaiting )
     {
-        PaTime till;
-        struct timespec ts;
-        int res = 0;
-        PaTime now;
-
-        PA_ENSURE( PaUnixMutex_Lock( &self->mtx ) );
-
-        /* Wait for stream to be started */
-        now = PaUtil_GetTime();
-        till = now + waitForChild;
-
-        while( self->parentWaiting && !res )
-        {
-            if( waitForChild > 0 )
-            {
-                ts.tv_sec = (time_t) floor( till );
-                ts.tv_nsec = (long) ((till - floor( till )) * 1e9);
-                res = pthread_cond_timedwait( &self->cond, &self->mtx.mtx, &ts );
-            }
-            else
-            {
-                res = pthread_cond_wait( &self->cond, &self->mtx.mtx );
-            }
-        }
-
-        PA_ENSURE( PaUnixMutex_Unlock( &self->mtx ) );
-
-        PA_UNLESS( !res || ETIMEDOUT == res, paInternalError );
-        PA_DEBUG(( "%s: Waited for %g seconds for stream to start\n", __FUNCTION__, PaUtil_GetTime() - now ));
-        if( ETIMEDOUT == res )
-        {
-            PA_ENSURE( paTimedOut );
-        }
+      int policy;
+      struct sched_param spm;
+      pthread_getschedparam(self->thread, &policy, &spm);
     }
+  }
+
+  if (self->parentWaiting) {
+    PaTime till;
+    struct timespec ts;
+    int res = 0;
+    PaTime now;
+
+    PA_ENSURE(PaUnixMutex_Lock(&self->mtx));
+
+    /* Wait for stream to be started */
+    now = PaUtil_GetTime();
+    till = now + waitForChild;
+
+    while (self->parentWaiting && !res) {
+      if (waitForChild > 0) {
+        ts.tv_sec = (time_t)floor(till);
+        ts.tv_nsec = (long)((till - floor(till)) * 1e9);
+        res = pthread_cond_timedwait(&self->cond, &self->mtx.mtx, &ts);
+      } else {
+        res = pthread_cond_wait(&self->cond, &self->mtx.mtx);
+      }
+    }
+
+    PA_ENSURE(PaUnixMutex_Unlock(&self->mtx));
+
+    PA_UNLESS(!res || ETIMEDOUT == res, paInternalError);
+    PA_DEBUG(("%s: Waited for %g seconds for stream to start\n", __FUNCTION__, PaUtil_GetTime() - now));
+    if (ETIMEDOUT == res) {
+      PA_ENSURE(paTimedOut);
+    }
+  }
 
 end:
-    return result;
+  return result;
 error:
-    if( started )
-    {
-        PaUnixThread_Terminate( self, 0, NULL );
-    }
+  if (started) {
+    PaUnixThread_Terminate(self, 0, NULL);
+  }
 
-    goto end;
+  goto end;
 }
 
-PaError PaUnixThread_Terminate( PaUnixThread* self, int wait, PaError* exitResult )
-{
-    PaError result = paNoError;
-    void* pret;
+PaError PaUnixThread_Terminate(PaUnixThread* self, int wait, PaError* exitResult) {
+  PaError result = paNoError;
+  void* pret;
 
-    if( exitResult )
-    {
-        *exitResult = paNoError;
-    }
+  if (exitResult) {
+    *exitResult = paNoError;
+  }
 #if 0
     if( watchdogExitResult )
         *watchdogExitResult = paNoError;
@@ -426,89 +394,81 @@ PaError PaUnixThread_Terminate( PaUnixThread* self, int wait, PaError* exitResul
     }
 #endif
 
-    /* Only kill the thread if it isn't in the process of stopping (flushing adaptation buffers) */
-    /* TODO: Make join time out */
-    self->stopRequested = wait;
-    if( !wait )
-    {
-        PA_DEBUG(( "%s: Canceling thread %d\n", __FUNCTION__, self->thread ));
-        /* XXX: Safe to call this if the thread has exited on its own? */
+  /* Only kill the thread if it isn't in the process of stopping (flushing adaptation buffers) */
+  /* TODO: Make join time out */
+  self->stopRequested = wait;
+  if (!wait) {
+    PA_DEBUG(("%s: Canceling thread %d\n", __FUNCTION__, self->thread));
+    /* XXX: Safe to call this if the thread has exited on its own? */
 #ifdef PTHREAD_CANCELED
-        pthread_cancel( self->thread );
+    pthread_cancel(self->thread);
 #endif
-    }
-    PA_DEBUG(( "%s: Joining thread %d\n", __FUNCTION__, self->thread ));
-    PA_ENSURE_SYSTEM( pthread_join( self->thread, &pret ), 0 );
+  }
+  PA_DEBUG(("%s: Joining thread %d\n", __FUNCTION__, self->thread));
+  PA_ENSURE_SYSTEM(pthread_join(self->thread, &pret), 0);
 
 #ifdef PTHREAD_CANCELED
-    if( pret && PTHREAD_CANCELED != pret )
+  if (pret && PTHREAD_CANCELED != pret)
 #else
-    /* !wait means the thread may have been canceled */
-    if( pret && wait )
+  /* !wait means the thread may have been canceled */
+  if (pret && wait)
 #endif
-    {
-        if( exitResult )
-        {
-            *exitResult = *(PaError*)pret;
-        }
-        free( pret );
+  {
+    if (exitResult) {
+      *exitResult = *(PaError*)pret;
     }
+    free(pret);
+  }
 
 error:
-    PA_ASSERT_CALL( PaUnixMutex_Terminate( &self->mtx ), paNoError );
-    PA_ASSERT_CALL( pthread_cond_destroy( &self->cond ), 0 );
+  PA_ASSERT_CALL(PaUnixMutex_Terminate(&self->mtx), paNoError);
+  PA_ASSERT_CALL(pthread_cond_destroy(&self->cond), 0);
 
-    return result;
+  return result;
 }
 
-PaError PaUnixThread_PrepareNotify( PaUnixThread* self )
-{
-    PaError result = paNoError;
-    PA_UNLESS( self->parentWaiting, paInternalError );
+PaError PaUnixThread_PrepareNotify(PaUnixThread* self) {
+  PaError result = paNoError;
+  PA_UNLESS(self->parentWaiting, paInternalError);
 
-    PA_ENSURE( PaUnixMutex_Lock( &self->mtx ) );
+  PA_ENSURE(PaUnixMutex_Lock(&self->mtx));
+  self->locked = 1;
+
+error:
+  return result;
+}
+
+PaError PaUnixThread_NotifyParent(PaUnixThread* self) {
+  PaError result = paNoError;
+  PA_UNLESS(self->parentWaiting, paInternalError);
+
+  if (!self->locked) {
+    PA_ENSURE(PaUnixMutex_Lock(&self->mtx));
     self->locked = 1;
+  }
+  self->parentWaiting = 0;
+  pthread_cond_signal(&self->cond);
+  PA_ENSURE(PaUnixMutex_Unlock(&self->mtx));
+  self->locked = 0;
 
 error:
-    return result;
+  return result;
 }
 
-PaError PaUnixThread_NotifyParent( PaUnixThread* self )
-{
-    PaError result = paNoError;
-    PA_UNLESS( self->parentWaiting, paInternalError );
-
-    if( !self->locked )
-    {
-        PA_ENSURE( PaUnixMutex_Lock( &self->mtx ) );
-        self->locked = 1;
-    }
-    self->parentWaiting = 0;
-    pthread_cond_signal( &self->cond );
-    PA_ENSURE( PaUnixMutex_Unlock( &self->mtx ) );
-    self->locked = 0;
-
-error:
-    return result;
+int PaUnixThread_StopRequested(PaUnixThread* self) {
+  return self->stopRequested;
 }
 
-int PaUnixThread_StopRequested( PaUnixThread* self )
-{
-    return self->stopRequested;
+PaError PaUnixMutex_Initialize(PaUnixMutex* self) {
+  PaError result = paNoError;
+  PA_ASSERT_CALL(pthread_mutex_init(&self->mtx, NULL), 0);
+  return result;
 }
 
-PaError PaUnixMutex_Initialize( PaUnixMutex* self )
-{
-    PaError result = paNoError;
-    PA_ASSERT_CALL( pthread_mutex_init( &self->mtx, NULL ), 0 );
-    return result;
-}
-
-PaError PaUnixMutex_Terminate( PaUnixMutex* self )
-{
-    PaError result = paNoError;
-    PA_ASSERT_CALL( pthread_mutex_destroy( &self->mtx ), 0 );
-    return result;
+PaError PaUnixMutex_Terminate(PaUnixMutex* self) {
+  PaError result = paNoError;
+  PA_ASSERT_CALL(pthread_mutex_destroy(&self->mtx), 0);
+  return result;
 }
 
 /** Lock mutex.
@@ -516,38 +476,35 @@ PaError PaUnixMutex_Terminate( PaUnixMutex* self )
  * We're disabling thread cancellation while the thread is holding a lock, so mutexes are
  * properly unlocked at termination time.
  */
-PaError PaUnixMutex_Lock( PaUnixMutex* self )
-{
-    PaError result = paNoError;
+PaError PaUnixMutex_Lock(PaUnixMutex* self) {
+  PaError result = paNoError;
 
 #ifdef PTHREAD_CANCEL
-    int oldState;
-    PA_ENSURE_SYSTEM( pthread_setcancelstate( PTHREAD_CANCEL_DISABLE, &oldState ), 0 );
+  int oldState;
+  PA_ENSURE_SYSTEM(pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &oldState), 0);
 #endif
-    PA_ENSURE_SYSTEM( pthread_mutex_lock( &self->mtx ), 0 );
+  PA_ENSURE_SYSTEM(pthread_mutex_lock(&self->mtx), 0);
 
 error:
-    return result;
+  return result;
 }
 
 /** Unlock mutex.
  *
  * Thread cancellation is enabled again after the mutex is properly unlocked.
  */
-PaError PaUnixMutex_Unlock( PaUnixMutex* self )
-{
-    PaError result = paNoError;
+PaError PaUnixMutex_Unlock(PaUnixMutex* self) {
+  PaError result = paNoError;
 
-    PA_ENSURE_SYSTEM( pthread_mutex_unlock( &self->mtx ), 0 );
+  PA_ENSURE_SYSTEM(pthread_mutex_unlock(&self->mtx), 0);
 #ifdef PTHREAD_CANCEL
-    int oldState;
-    PA_ENSURE_SYSTEM( pthread_setcancelstate( PTHREAD_CANCEL_ENABLE, &oldState ), 0 );
+  int oldState;
+  PA_ENSURE_SYSTEM(pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &oldState), 0);
 #endif
 
 error:
-    return result;
+  return result;
 }
-
 
 #if 0
 static void OnWatchdogExit( void *userData )

@@ -48,17 +48,13 @@
     are implemented separately for each platform.
 */
 
-
 #include "portaudio.h"
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif /* __cplusplus */
 
-
 struct PaUtilHostApiRepresentation;
-
 
 /** Retrieve a specific host API representation. This function can be used
  by implementations to retrieve a pointer to their representation in
@@ -74,9 +70,8 @@ struct PaUtilHostApiRepresentation;
  requested host API representation will be stored in *hostApi. If the host API
  specified by type is not found, this function returns paHostApiNotFound.
 */
-PaError PaUtil_GetHostApiRepresentation( struct PaUtilHostApiRepresentation **hostApi,
-        PaHostApiTypeId type );
-
+PaError PaUtil_GetHostApiRepresentation(struct PaUtilHostApiRepresentation** hostApi,
+                                        PaHostApiTypeId type);
 
 /** Convert a PortAudio device index into a host API specific device index.
  @param hostApiDevice Pointer to a device index, on success this will receive the
@@ -88,9 +83,8 @@ PaError PaUtil_GetHostApiRepresentation( struct PaUtilHostApiRepresentation **ho
  hostApiDevice parameter.
 */
 PaError PaUtil_DeviceIndexToHostApiDeviceIndex(
-        PaDeviceIndex *hostApiDevice, PaDeviceIndex device,
-        struct PaUtilHostApiRepresentation *hostApi );
-
+    PaDeviceIndex* hostApiDevice, PaDeviceIndex device,
+    struct PaUtilHostApiRepresentation* hostApi);
 
 /** Set the host error information returned by Pa_GetLastHostErrorInfo. This
  function and the paUnanticipatedHostError error code should be used as a
@@ -108,22 +102,18 @@ PaError PaUtil_DeviceIndexToHostApiDeviceIndex(
  valid after the call to PaUtil_SetLastHostErrorInfo() returns.
 
 */
-void PaUtil_SetLastHostErrorInfo( PaHostApiTypeId hostApiType, long errorCode,
-        const char *errorText );
-
-
+void PaUtil_SetLastHostErrorInfo(PaHostApiTypeId hostApiType, long errorCode,
+                                 const char* errorText);
 
 /* the following functions are implemented in a platform platform specific
  .c file
 */
 
 /** Allocate size bytes, guaranteed to be aligned to a FIXME byte boundary */
-void *PaUtil_AllocateMemory( long size );
-
+void* PaUtil_AllocateMemory(long size);
 
 /** Release block if non-NULL. block may be NULL */
-void PaUtil_FreeMemory( void *block );
-
+void PaUtil_FreeMemory(void* block);
 
 /** Return the number of currently allocated blocks. This function can be
  used for detecting memory leaks.
@@ -131,27 +121,22 @@ void PaUtil_FreeMemory( void *block );
  @note Allocations will only be tracked if PA_TRACK_MEMORY is #defined. If
  it isn't, this function will always return 0.
 */
-int PaUtil_CountCurrentlyAllocatedBlocks( void );
-
+int PaUtil_CountCurrentlyAllocatedBlocks(void);
 
 /** Initialize the clock used by PaUtil_GetTime(). Call this before calling
  PaUtil_GetTime.
 
  @see PaUtil_GetTime
 */
-void PaUtil_InitializeClock( void );
-
+void PaUtil_InitializeClock(void);
 
 /** Return the system time in seconds. Used to implement CPU load functions
 
  @see PaUtil_InitializeClock
 */
-double PaUtil_GetTime( void );
-
+double PaUtil_GetTime(void);
 
 /* void Pa_Sleep( long msec );  must also be implemented in per-platform .c file */
-
-
 
 #ifdef __cplusplus
 }

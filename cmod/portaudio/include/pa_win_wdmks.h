@@ -43,92 +43,86 @@
  @brief WDM Kernel Streaming-specific PortAudio API extension header file.
 */
 
-
 #include "portaudio.h"
 
 #include <windows.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif /* __cplusplus */
 
-    /** Flags to indicate valid fields in PaWinWDMKSInfo.
+/** Flags to indicate valid fields in PaWinWDMKSInfo.
      @see PaWinWDMKSInfo
      @version Available as of 19.5.0.
     */
-    typedef enum PaWinWDMKSFlags
-    {
-        /** Makes WDMKS use the supplied latency figures instead of relying on the frame size reported
+typedef enum PaWinWDMKSFlags {
+  /** Makes WDMKS use the supplied latency figures instead of relying on the frame size reported
          by the WaveCyclic device. Use at own risk!
         */
-        paWinWDMKSOverrideFramesize   = (1 << 0),
+  paWinWDMKSOverrideFramesize = (1 << 0),
 
-        /** Makes WDMKS (output stream) use the given channelMask instead of the default.
+  /** Makes WDMKS (output stream) use the given channelMask instead of the default.
           @version Available as of 19.5.0.
         */
-        paWinWDMKSUseGivenChannelMask = (1 << 1),
+  paWinWDMKSUseGivenChannelMask = (1 << 1),
 
-    } PaWinWDMKSFlags;
+} PaWinWDMKSFlags;
 
-    typedef struct PaWinWDMKSInfo{
-        unsigned long size;             /**< sizeof(PaWinWDMKSInfo) */
-        PaHostApiTypeId hostApiType;    /**< paWDMKS */
-        unsigned long version;          /**< 1 */
+typedef struct PaWinWDMKSInfo {
+  unsigned long size; /**< sizeof(PaWinWDMKSInfo) */
+  PaHostApiTypeId hostApiType; /**< paWDMKS */
+  unsigned long version; /**< 1 */
 
-        /** Flags indicate which fields are valid.
+  /** Flags indicate which fields are valid.
          @see PaWinWDMKSFlags
          @version Available as of 19.5.0.
         */
-        unsigned long flags;
+  unsigned long flags;
 
-        /** The number of packets to use for WaveCyclic devices, range is [2, 8]. Set to zero for default value of 2. */
-        unsigned noOfPackets;
+  /** The number of packets to use for WaveCyclic devices, range is [2, 8]. Set to zero for default value of 2. */
+  unsigned noOfPackets;
 
-        /** If paWinWDMKSUseGivenChannelMask bit is set in flags, use this as channelMask instead of default.
+  /** If paWinWDMKSUseGivenChannelMask bit is set in flags, use this as channelMask instead of default.
          @see PaWinWDMKSFlags
          @version Available as of 19.5.0.
         */
-        unsigned channelMask;
-    } PaWinWDMKSInfo;
+  unsigned channelMask;
+} PaWinWDMKSInfo;
 
-    typedef enum PaWDMKSType
-    {
-        Type_kNotUsed,
-        Type_kWaveCyclic,
-        Type_kWaveRT,
-        Type_kCnt,
-    } PaWDMKSType;
+typedef enum PaWDMKSType {
+  Type_kNotUsed,
+  Type_kWaveCyclic,
+  Type_kWaveRT,
+  Type_kCnt,
+} PaWDMKSType;
 
-    typedef enum PaWDMKSSubType
-    {
-        SubType_kUnknown,
-        SubType_kNotification,
-        SubType_kPolled,
-        SubType_kCnt,
-    } PaWDMKSSubType;
+typedef enum PaWDMKSSubType {
+  SubType_kUnknown,
+  SubType_kNotification,
+  SubType_kPolled,
+  SubType_kCnt,
+} PaWDMKSSubType;
 
-    typedef struct PaWinWDMKSDeviceInfo {
-        wchar_t filterPath[MAX_PATH];     /**< KS filter path in Unicode! */
-        wchar_t topologyPath[MAX_PATH];   /**< Topology filter path in Unicode! */
-        PaWDMKSType streamingType;
-        GUID deviceProductGuid;           /**< The product GUID of the device (if supported) */
-    } PaWinWDMKSDeviceInfo;
+typedef struct PaWinWDMKSDeviceInfo {
+  wchar_t filterPath[MAX_PATH]; /**< KS filter path in Unicode! */
+  wchar_t topologyPath[MAX_PATH]; /**< Topology filter path in Unicode! */
+  PaWDMKSType streamingType;
+  GUID deviceProductGuid; /**< The product GUID of the device (if supported) */
+} PaWinWDMKSDeviceInfo;
 
-    typedef struct PaWDMKSDirectionSpecificStreamInfo
-    {
-        PaDeviceIndex device;
-        unsigned channels;                  /**< No of channels the device is opened with */
-        unsigned framesPerHostBuffer;       /**< No of frames of the device buffer */
-        int endpointPinId;                  /**< Endpoint pin ID (on topology filter if topologyName is not empty) */
-        int muxNodeId;                      /**< Only valid for input */
-        PaWDMKSSubType streamingSubType;       /**< Not known until device is opened for streaming */
-    } PaWDMKSDirectionSpecificStreamInfo;
+typedef struct PaWDMKSDirectionSpecificStreamInfo {
+  PaDeviceIndex device;
+  unsigned channels; /**< No of channels the device is opened with */
+  unsigned framesPerHostBuffer; /**< No of frames of the device buffer */
+  int endpointPinId; /**< Endpoint pin ID (on topology filter if topologyName is not empty) */
+  int muxNodeId; /**< Only valid for input */
+  PaWDMKSSubType streamingSubType; /**< Not known until device is opened for streaming */
+} PaWDMKSDirectionSpecificStreamInfo;
 
-    typedef struct PaWDMKSSpecificStreamInfo {
-        PaWDMKSDirectionSpecificStreamInfo input;
-        PaWDMKSDirectionSpecificStreamInfo output;
-    } PaWDMKSSpecificStreamInfo;
+typedef struct PaWDMKSSpecificStreamInfo {
+  PaWDMKSDirectionSpecificStreamInfo input;
+  PaWDMKSDirectionSpecificStreamInfo output;
+} PaWDMKSSpecificStreamInfo;
 
 #ifdef __cplusplus
 }

@@ -116,7 +116,7 @@
 #ifdef PAWIN_USE_WDMKS_DEVICE_INFO
 #include "pa_win_wdmks_utils.h"
 #ifndef DRV_QUERYDEVICEINTERFACE
-#define DRV_QUERYDEVICEINTERFACE     (DRV_RESERVED + 12)
+#define DRV_QUERYDEVICEINTERFACE (DRV_RESERVED + 12)
 #endif
 #ifndef DRV_QUERYDEVICEINTERFACESIZE
 #define DRV_QUERYDEVICEINTERFACESIZE (DRV_RESERVED + 13)
@@ -125,11 +125,11 @@
 
 /* use CreateThread for CYGWIN, _beginthreadex for all others */
 #if !defined(__CYGWIN__) && !defined(_WIN32_WCE)
-#define CREATE_THREAD (HANDLE)_beginthreadex( 0, 0, ProcessingThreadProc, stream, 0, &stream->processingThreadId )
+#define CREATE_THREAD (HANDLE) _beginthreadex(0, 0, ProcessingThreadProc, stream, 0, &stream->processingThreadId)
 #define PA_THREAD_FUNC static unsigned WINAPI
 #define PA_THREAD_ID unsigned
 #else
-#define CREATE_THREAD CreateThread( 0, 0, ProcessingThreadProc, stream, 0, &stream->processingThreadId )
+#define CREATE_THREAD CreateThread(0, 0, ProcessingThreadProc, stream, 0, &stream->processingThreadId)
 #define PA_THREAD_FUNC static DWORD WINAPI
 #define PA_THREAD_ID DWORD
 #endif
@@ -143,39 +143,39 @@
  provided in newer platform sdks
  */
 #ifndef DWORD_PTR
-    #if defined(_WIN64)
-        #define DWORD_PTR unsigned __int64
-    #else
-        #define DWORD_PTR unsigned long
-    #endif
+#if defined(_WIN64)
+#define DWORD_PTR unsigned __int64
+#else
+#define DWORD_PTR unsigned long
+#endif
 #endif
 
 /************************************************* Constants ********/
 
-#define PA_MME_USE_HIGH_DEFAULT_LATENCY_    (0)  /* For debugging glitches. */
+#define PA_MME_USE_HIGH_DEFAULT_LATENCY_ (0) /* For debugging glitches. */
 
 #if PA_MME_USE_HIGH_DEFAULT_LATENCY_
-    #define PA_MME_WIN_9X_DEFAULT_LATENCY_                              (0.4)
-    #define PA_MME_MIN_HOST_OUTPUT_BUFFER_COUNT_                        (4)
-    #define PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_FULL_DUPLEX_             (4)
-    #define PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_HALF_DUPLEX_             (4)
-    #define PA_MME_HOST_BUFFER_GRANULARITY_FRAMES_WHEN_UNSPECIFIED_     (16)
-    #define PA_MME_MAX_HOST_BUFFER_SECS_                                (0.3)       /* Do not exceed unless user buffer exceeds */
-    #define PA_MME_MAX_HOST_BUFFER_BYTES_                               (32 * 1024) /* Has precedence over PA_MME_MAX_HOST_BUFFER_SECS_, some drivers are known to crash with buffer sizes > 32k */
+#define PA_MME_WIN_9X_DEFAULT_LATENCY_ (0.4)
+#define PA_MME_MIN_HOST_OUTPUT_BUFFER_COUNT_ (4)
+#define PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_FULL_DUPLEX_ (4)
+#define PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_HALF_DUPLEX_ (4)
+#define PA_MME_HOST_BUFFER_GRANULARITY_FRAMES_WHEN_UNSPECIFIED_ (16)
+#define PA_MME_MAX_HOST_BUFFER_SECS_ (0.3) /* Do not exceed unless user buffer exceeds */
+#define PA_MME_MAX_HOST_BUFFER_BYTES_ (32 * 1024) /* Has precedence over PA_MME_MAX_HOST_BUFFER_SECS_, some drivers are known to crash with buffer sizes > 32k */
 #else
-    #define PA_MME_WIN_9X_DEFAULT_LATENCY_                              (0.2)
-    #define PA_MME_MIN_HOST_OUTPUT_BUFFER_COUNT_                        (2)
-    #define PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_FULL_DUPLEX_             (3)         /* always use at least 3 input buffers for full duplex */
-    #define PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_HALF_DUPLEX_             (2)
-    #define PA_MME_HOST_BUFFER_GRANULARITY_FRAMES_WHEN_UNSPECIFIED_     (16)
-    #define PA_MME_MAX_HOST_BUFFER_SECS_                                (0.1)       /* Do not exceed unless user buffer exceeds */
-    #define PA_MME_MAX_HOST_BUFFER_BYTES_                               (32 * 1024) /* Has precedence over PA_MME_MAX_HOST_BUFFER_SECS_, some drivers are known to crash with buffer sizes > 32k */
+#define PA_MME_WIN_9X_DEFAULT_LATENCY_ (0.2)
+#define PA_MME_MIN_HOST_OUTPUT_BUFFER_COUNT_ (2)
+#define PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_FULL_DUPLEX_ (3) /* always use at least 3 input buffers for full duplex */
+#define PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_HALF_DUPLEX_ (2)
+#define PA_MME_HOST_BUFFER_GRANULARITY_FRAMES_WHEN_UNSPECIFIED_ (16)
+#define PA_MME_MAX_HOST_BUFFER_SECS_ (0.1) /* Do not exceed unless user buffer exceeds */
+#define PA_MME_MAX_HOST_BUFFER_BYTES_ (32 * 1024) /* Has precedence over PA_MME_MAX_HOST_BUFFER_SECS_, some drivers are known to crash with buffer sizes > 32k */
 #endif
 
 /* Use higher latency for NT because it is even worse at real-time
    operation than Win9x.
 */
-#define PA_MME_WIN_NT_DEFAULT_LATENCY_                              (0.4)
+#define PA_MME_WIN_NT_DEFAULT_LATENCY_ (0.4)
 
 /* Default low latency for WDM based systems. This is based on a rough
    survey of workable latency settings using patest_wmme_find_best_latency_params.c.
@@ -187,17 +187,16 @@
    get enough Vista results to know if Vista has systemically worse latency.
    For now we choose a safe value across all Windows versions here.
 */
-#define PA_MME_WIN_WDM_DEFAULT_LATENCY_                             (0.090)
-
+#define PA_MME_WIN_WDM_DEFAULT_LATENCY_ (0.090)
 
 /* When client suggestedLatency could result in many host buffers, we aim to have around 8,
    based off Windows documentation that suggests that the kmixer uses 8 buffers. This choice
    is somewhat arbitrary here, since we haven't observed significant stability degradation
    with using either more, or less buffers.
 */
-#define PA_MME_TARGET_HOST_BUFFER_COUNT_    8
+#define PA_MME_TARGET_HOST_BUFFER_COUNT_ 8
 
-#define PA_MME_MIN_TIMEOUT_MSEC_        (1000)
+#define PA_MME_MIN_TIMEOUT_MSEC_ (1000)
 
 static const char constInputMapperSuffix_[] = " - Input";
 static const char constOutputMapperSuffix_[] = " - Output";
@@ -205,9 +204,8 @@ static const char constOutputMapperSuffix_[] = " - Output";
 /********************************************************************/
 
 /* Copy null-terminated WCHAR string to explicit char string using UTF8 encoding */
-static char *CopyWCharStringToUtf8CString(char *destination, size_t destLengthBytes, const WCHAR *source)
-{
-    /* The cbMultiByte parameter ["destLengthBytes" below] is:
+static char* CopyWCharStringToUtf8CString(char* destination, size_t destLengthBytes, const WCHAR* source) {
+  /* The cbMultiByte parameter ["destLengthBytes" below] is:
     """
     Size, in bytes, of the buffer indicated by lpMultiByteStr ["destination" below].
     If this parameter is set to 0, the function returns the required buffer
@@ -216,211 +214,184 @@ static char *CopyWCharStringToUtf8CString(char *destination, size_t destLengthBy
     Source: WideCharToMultiByte at MSDN:
     http://msdn.microsoft.com/en-us/library/windows/desktop/dd374130(v=vs.85).aspx
     */
-    int intDestLengthBytes; /* cbMultiByte */
-    /* intDestLengthBytes is an int, destLengthBytes is a size_t. Ensure that we don't overflow
+  int intDestLengthBytes; /* cbMultiByte */
+  /* intDestLengthBytes is an int, destLengthBytes is a size_t. Ensure that we don't overflow
     intDestLengthBytes by only using at most INT_MAX bytes of destination buffer.
     */
-    if (destLengthBytes < INT_MAX)
-    {
-#pragma warning (disable : 4267) /* "conversion from 'size_t' to 'int', possible loss of data" */
-        intDestLengthBytes = (int)destLengthBytes; /* destLengthBytes is guaranteed < INT_MAX here */
-#pragma warning (default : 4267)
-    }
-    else
-    {
-        intDestLengthBytes = INT_MAX;
-    }
+  if (destLengthBytes < INT_MAX) {
+#pragma warning(disable : 4267) /* "conversion from 'size_t' to 'int', possible loss of data" */
+    intDestLengthBytes = (int)destLengthBytes; /* destLengthBytes is guaranteed < INT_MAX here */
+#pragma warning(default : 4267)
+  } else {
+    intDestLengthBytes = INT_MAX;
+  }
 
-    if (WideCharToMultiByte(CP_UTF8, 0, source, -1, destination, /*cbMultiByte=*/intDestLengthBytes, NULL, NULL) == 0)
-        return NULL;
-    return destination;
+  if (WideCharToMultiByte(CP_UTF8, 0, source, -1, destination, /*cbMultiByte=*/intDestLengthBytes, NULL, NULL) == 0)
+    return NULL;
+  return destination;
 }
 
 /* returns required length (in bytes) of destination buffer when
    converting WCHAR string to UTF8 bytes, not including the terminating null. */
-static size_t WCharStringLen(const WCHAR *str)
-{
-    return WideCharToMultiByte(CP_UTF8, 0, str, -1, NULL, 0, NULL, NULL);
+static size_t WCharStringLen(const WCHAR* str) {
+  return WideCharToMultiByte(CP_UTF8, 0, str, -1, NULL, 0, NULL, NULL);
 }
 
 /********************************************************************/
 
-typedef struct PaWinMmeStream PaWinMmeStream;     /* forward declaration */
+typedef struct PaWinMmeStream PaWinMmeStream; /* forward declaration */
 
 /* prototypes for functions declared in this file */
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif /* __cplusplus */
 
-PaError PaWinMme_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex index );
+PaError PaWinMme_Initialize(PaUtilHostApiRepresentation** hostApi, PaHostApiIndex index);
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
-static void Terminate( struct PaUtilHostApiRepresentation *hostApi );
-static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
-                           PaStream** stream,
-                           const PaStreamParameters *inputParameters,
-                           const PaStreamParameters *outputParameters,
-                           double sampleRate,
-                           unsigned long framesPerBuffer,
-                           PaStreamFlags streamFlags,
-                           PaStreamCallback *streamCallback,
-                           void *userData );
-static PaError IsFormatSupported( struct PaUtilHostApiRepresentation *hostApi,
-                                  const PaStreamParameters *inputParameters,
-                                  const PaStreamParameters *outputParameters,
-                                  double sampleRate );
-static PaError CloseStream( PaStream* stream );
-static PaError StartStream( PaStream *stream );
-static PaError StopStream( PaStream *stream );
-static PaError AbortStream( PaStream *stream );
-static PaError IsStreamStopped( PaStream *s );
-static PaError IsStreamActive( PaStream *stream );
-static PaTime GetStreamTime( PaStream *stream );
-static double GetStreamCpuLoad( PaStream* stream );
-static PaError ReadStream( PaStream* stream, void *buffer, unsigned long frames );
-static PaError WriteStream( PaStream* stream, const void *buffer, unsigned long frames );
-static signed long GetStreamReadAvailable( PaStream* stream );
-static signed long GetStreamWriteAvailable( PaStream* stream );
-
+static void Terminate(struct PaUtilHostApiRepresentation* hostApi);
+static PaError OpenStream(struct PaUtilHostApiRepresentation* hostApi,
+                          PaStream** stream,
+                          const PaStreamParameters* inputParameters,
+                          const PaStreamParameters* outputParameters,
+                          double sampleRate,
+                          unsigned long framesPerBuffer,
+                          PaStreamFlags streamFlags,
+                          PaStreamCallback* streamCallback,
+                          void* userData);
+static PaError IsFormatSupported(struct PaUtilHostApiRepresentation* hostApi,
+                                 const PaStreamParameters* inputParameters,
+                                 const PaStreamParameters* outputParameters,
+                                 double sampleRate);
+static PaError CloseStream(PaStream* stream);
+static PaError StartStream(PaStream* stream);
+static PaError StopStream(PaStream* stream);
+static PaError AbortStream(PaStream* stream);
+static PaError IsStreamStopped(PaStream* s);
+static PaError IsStreamActive(PaStream* stream);
+static PaTime GetStreamTime(PaStream* stream);
+static double GetStreamCpuLoad(PaStream* stream);
+static PaError ReadStream(PaStream* stream, void* buffer, unsigned long frames);
+static PaError WriteStream(PaStream* stream, const void* buffer, unsigned long frames);
+static signed long GetStreamReadAvailable(PaStream* stream);
+static signed long GetStreamWriteAvailable(PaStream* stream);
 
 /* macros for setting last host error information */
 
-#define PA_MME_SET_LAST_WAVEIN_ERROR( mmresult )                              \
-    {                                                                         \
-        wchar_t mmeErrorTextWide[ MAXERRORLENGTH ];                           \
-        char mmeErrorText[ MAXERRORLENGTH ];                                  \
-        waveInGetErrorTextW( mmresult, mmeErrorTextWide, MAXERRORLENGTH );    \
-        WideCharToMultiByte( CP_UTF8, 0, mmeErrorTextWide, -1,                \
-            mmeErrorText, MAXERRORLENGTH, NULL, NULL );                       \
-        PaUtil_SetLastHostErrorInfo( paMME, mmresult, mmeErrorText );         \
-    }
+#define PA_MME_SET_LAST_WAVEIN_ERROR(mmresult) \
+  { \
+    wchar_t mmeErrorTextWide[MAXERRORLENGTH]; \
+    char mmeErrorText[MAXERRORLENGTH]; \
+    waveInGetErrorTextW(mmresult, mmeErrorTextWide, MAXERRORLENGTH); \
+    WideCharToMultiByte(CP_UTF8, 0, mmeErrorTextWide, -1, mmeErrorText, MAXERRORLENGTH, NULL, NULL); \
+    PaUtil_SetLastHostErrorInfo(paMME, mmresult, mmeErrorText); \
+  }
 
-#define PA_MME_SET_LAST_WAVEOUT_ERROR( mmresult )                             \
-    {                                                                         \
-        wchar_t mmeErrorTextWide[ MAXERRORLENGTH ];                           \
-        char mmeErrorText[ MAXERRORLENGTH ];                                  \
-        waveOutGetErrorTextW( mmresult, mmeErrorTextWide, MAXERRORLENGTH );   \
-        WideCharToMultiByte( CP_UTF8, 0, mmeErrorTextWide, -1,                \
-            mmeErrorText, MAXERRORLENGTH, NULL, NULL );                       \
-        PaUtil_SetLastHostErrorInfo( paMME, mmresult, mmeErrorText );         \
-    }
+#define PA_MME_SET_LAST_WAVEOUT_ERROR(mmresult) \
+  { \
+    wchar_t mmeErrorTextWide[MAXERRORLENGTH]; \
+    char mmeErrorText[MAXERRORLENGTH]; \
+    waveOutGetErrorTextW(mmresult, mmeErrorTextWide, MAXERRORLENGTH); \
+    WideCharToMultiByte(CP_UTF8, 0, mmeErrorTextWide, -1, mmeErrorText, MAXERRORLENGTH, NULL, NULL); \
+    PaUtil_SetLastHostErrorInfo(paMME, mmresult, mmeErrorText); \
+  }
 
-
-static void PaMme_SetLastSystemError( DWORD errorCode )
-{
-    char *lpMsgBuf;
-    FormatMessage(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-        NULL,
-        errorCode,
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (LPTSTR) &lpMsgBuf,
-        0,
-        NULL
-    );
-    PaUtil_SetLastHostErrorInfo( paMME, errorCode, lpMsgBuf );
-    LocalFree( lpMsgBuf );
+static void PaMme_SetLastSystemError(DWORD errorCode) {
+  char* lpMsgBuf;
+  FormatMessage(
+      FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+      NULL,
+      errorCode,
+      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+      (LPTSTR)&lpMsgBuf,
+      0,
+      NULL);
+  PaUtil_SetLastHostErrorInfo(paMME, errorCode, lpMsgBuf);
+  LocalFree(lpMsgBuf);
 }
 
-#define PA_MME_SET_LAST_SYSTEM_ERROR( errorCode ) \
-    PaMme_SetLastSystemError( errorCode )
-
+#define PA_MME_SET_LAST_SYSTEM_ERROR(errorCode) \
+  PaMme_SetLastSystemError(errorCode)
 
 /* PaError returning wrappers for some commonly used win32 functions
     note that we allow passing a null ptr to have no effect.
 */
 
-static PaError CreateEventWithPaError( HANDLE *handle,
-        LPSECURITY_ATTRIBUTES lpEventAttributes,
-        BOOL bManualReset,
-        BOOL bInitialState,
-        LPCTSTR lpName )
-{
-    PaError result = paNoError;
+static PaError CreateEventWithPaError(HANDLE* handle,
+                                      LPSECURITY_ATTRIBUTES lpEventAttributes,
+                                      BOOL bManualReset,
+                                      BOOL bInitialState,
+                                      LPCTSTR lpName) {
+  PaError result = paNoError;
 
-    *handle = NULL;
+  *handle = NULL;
 
-    *handle = CreateEvent( lpEventAttributes, bManualReset, bInitialState, lpName );
-    if( *handle == NULL )
-    {
-        result = paUnanticipatedHostError;
-        PA_MME_SET_LAST_SYSTEM_ERROR( GetLastError() );
-    }
+  *handle = CreateEvent(lpEventAttributes, bManualReset, bInitialState, lpName);
+  if (*handle == NULL) {
+    result = paUnanticipatedHostError;
+    PA_MME_SET_LAST_SYSTEM_ERROR(GetLastError());
+  }
 
-    return result;
+  return result;
 }
 
+static PaError ResetEventWithPaError(HANDLE handle) {
+  PaError result = paNoError;
 
-static PaError ResetEventWithPaError( HANDLE handle )
-{
-    PaError result = paNoError;
-
-    if( handle )
-    {
-        if( ResetEvent( handle ) == 0 )
-        {
-            result = paUnanticipatedHostError;
-            PA_MME_SET_LAST_SYSTEM_ERROR( GetLastError() );
-        }
+  if (handle) {
+    if (ResetEvent(handle) == 0) {
+      result = paUnanticipatedHostError;
+      PA_MME_SET_LAST_SYSTEM_ERROR(GetLastError());
     }
+  }
 
-    return result;
+  return result;
 }
 
+static PaError CloseHandleWithPaError(HANDLE handle) {
+  PaError result = paNoError;
 
-static PaError CloseHandleWithPaError( HANDLE handle )
-{
-    PaError result = paNoError;
-
-    if( handle )
-    {
-        if( CloseHandle( handle ) == 0 )
-        {
-            result = paUnanticipatedHostError;
-            PA_MME_SET_LAST_SYSTEM_ERROR( GetLastError() );
-        }
+  if (handle) {
+    if (CloseHandle(handle) == 0) {
+      result = paUnanticipatedHostError;
+      PA_MME_SET_LAST_SYSTEM_ERROR(GetLastError());
     }
+  }
 
-    return result;
+  return result;
 }
-
 
 /* PaWinMmeHostApiRepresentation - host api datastructure specific to this implementation */
 
 typedef struct
 {
-    PaUtilHostApiRepresentation inheritedHostApiRep;
-    PaUtilStreamInterface callbackStreamInterface;
-    PaUtilStreamInterface blockingStreamInterface;
+  PaUtilHostApiRepresentation inheritedHostApiRep;
+  PaUtilStreamInterface callbackStreamInterface;
+  PaUtilStreamInterface blockingStreamInterface;
 
-    PaUtilAllocationGroup *allocations;
+  PaUtilAllocationGroup* allocations;
 
-    int inputDeviceCount, outputDeviceCount;
+  int inputDeviceCount, outputDeviceCount;
 
-    /** winMmeDeviceIds is an array of WinMme device ids.
+  /** winMmeDeviceIds is an array of WinMme device ids.
         fields in the range [0, inputDeviceCount) are input device ids,
         and [inputDeviceCount, inputDeviceCount + outputDeviceCount) are output
         device ids.
      */
-    UINT *winMmeDeviceIds;
-}
-PaWinMmeHostApiRepresentation;
-
+  UINT* winMmeDeviceIds;
+} PaWinMmeHostApiRepresentation;
 
 typedef struct
 {
-    PaDeviceInfo inheritedDeviceInfo;
-    DWORD dwFormats; /**<< standard formats bitmask from the WAVEINCAPS and WAVEOUTCAPS structures */
-    char deviceInputChannelCountIsKnown; /**<< if the system returns 0xFFFF then we don't really know the number of supported channels (1=>known, 0=>unknown)*/
-    char deviceOutputChannelCountIsKnown; /**<< if the system returns 0xFFFF then we don't really know the number of supported channels (1=>known, 0=>unknown)*/
-}
-PaWinMmeDeviceInfo;
-
+  PaDeviceInfo inheritedDeviceInfo;
+  DWORD dwFormats; /**<< standard formats bitmask from the WAVEINCAPS and WAVEOUTCAPS structures */
+  char deviceInputChannelCountIsKnown; /**<< if the system returns 0xFFFF then we don't really know the number of supported channels (1=>known, 0=>unknown)*/
+  char deviceOutputChannelCountIsKnown; /**<< if the system returns 0xFFFF then we don't really know the number of supported channels (1=>known, 0=>unknown)*/
+} PaWinMmeDeviceInfo;
 
 /*************************************************************************
  * Returns recommended device ID.
@@ -432,311 +403,264 @@ PaWinMmeDeviceInfo;
  * The user should first determine the available device ID by using
  * the supplied application "pa_devs".
  */
-#define PA_ENV_BUF_SIZE_  (32)
-#define PA_REC_IN_DEV_ENV_NAME_  ("PA_RECOMMENDED_INPUT_DEVICE")
-#define PA_REC_OUT_DEV_ENV_NAME_  ("PA_RECOMMENDED_OUTPUT_DEVICE")
-static PaDeviceIndex GetEnvDefaultDeviceID( char *envName )
-{
-    PaDeviceIndex recommendedIndex = paNoDevice;
-    DWORD   hresult;
-    char    envbuf[PA_ENV_BUF_SIZE_];
+#define PA_ENV_BUF_SIZE_ (32)
+#define PA_REC_IN_DEV_ENV_NAME_ ("PA_RECOMMENDED_INPUT_DEVICE")
+#define PA_REC_OUT_DEV_ENV_NAME_ ("PA_RECOMMENDED_OUTPUT_DEVICE")
+static PaDeviceIndex GetEnvDefaultDeviceID(char* envName) {
+  PaDeviceIndex recommendedIndex = paNoDevice;
+  DWORD hresult;
+  char envbuf[PA_ENV_BUF_SIZE_];
 
 #ifndef WIN32_PLATFORM_PSPC /* no GetEnvironmentVariable on PocketPC */
 
-    /* Let user determine default device by setting environment variable. */
-    hresult = GetEnvironmentVariableA( envName, envbuf, PA_ENV_BUF_SIZE_ );
-    if( (hresult > 0) && (hresult < PA_ENV_BUF_SIZE_) )
-    {
-        recommendedIndex = atoi( envbuf );
-    }
+  /* Let user determine default device by setting environment variable. */
+  hresult = GetEnvironmentVariableA(envName, envbuf, PA_ENV_BUF_SIZE_);
+  if ((hresult > 0) && (hresult < PA_ENV_BUF_SIZE_)) {
+    recommendedIndex = atoi(envbuf);
+  }
 #endif
 
-    return recommendedIndex;
+  return recommendedIndex;
 }
 
+static void InitializeDefaultDeviceIdsFromEnv(PaWinMmeHostApiRepresentation* hostApi) {
+  PaDeviceIndex device;
 
-static void InitializeDefaultDeviceIdsFromEnv( PaWinMmeHostApiRepresentation *hostApi )
-{
-    PaDeviceIndex device;
+  /* input */
+  device = GetEnvDefaultDeviceID(PA_REC_IN_DEV_ENV_NAME_);
+  if (device != paNoDevice &&
+      (device >= 0 && device < hostApi->inheritedHostApiRep.info.deviceCount) &&
+      hostApi->inheritedHostApiRep.deviceInfos[device]->maxInputChannels > 0) {
+    hostApi->inheritedHostApiRep.info.defaultInputDevice = device;
+  }
 
-    /* input */
-    device = GetEnvDefaultDeviceID( PA_REC_IN_DEV_ENV_NAME_ );
-    if( device != paNoDevice &&
-            ( device >= 0 && device < hostApi->inheritedHostApiRep.info.deviceCount ) &&
-            hostApi->inheritedHostApiRep.deviceInfos[ device ]->maxInputChannels > 0 )
-    {
-        hostApi->inheritedHostApiRep.info.defaultInputDevice = device;
-    }
-
-    /* output */
-    device = GetEnvDefaultDeviceID( PA_REC_OUT_DEV_ENV_NAME_ );
-    if( device != paNoDevice &&
-            ( device >= 0 && device < hostApi->inheritedHostApiRep.info.deviceCount ) &&
-            hostApi->inheritedHostApiRep.deviceInfos[ device ]->maxOutputChannels > 0 )
-    {
-        hostApi->inheritedHostApiRep.info.defaultOutputDevice = device;
-    }
+  /* output */
+  device = GetEnvDefaultDeviceID(PA_REC_OUT_DEV_ENV_NAME_);
+  if (device != paNoDevice &&
+      (device >= 0 && device < hostApi->inheritedHostApiRep.info.deviceCount) &&
+      hostApi->inheritedHostApiRep.deviceInfos[device]->maxOutputChannels > 0) {
+    hostApi->inheritedHostApiRep.info.defaultOutputDevice = device;
+  }
 }
-
 
 /** Convert external PA ID to a windows multimedia device ID
 */
-static UINT LocalDeviceIndexToWinMmeDeviceId( PaWinMmeHostApiRepresentation *hostApi, PaDeviceIndex device )
-{
-    assert( device >= 0 && device < hostApi->inputDeviceCount + hostApi->outputDeviceCount );
+static UINT LocalDeviceIndexToWinMmeDeviceId(PaWinMmeHostApiRepresentation* hostApi, PaDeviceIndex device) {
+  assert(device >= 0 && device < hostApi->inputDeviceCount + hostApi->outputDeviceCount);
 
-    return hostApi->winMmeDeviceIds[ device ];
+  return hostApi->winMmeDeviceIds[device];
 }
 
+static int SampleFormatAndWinWmmeSpecificFlagsToLinearWaveFormatTag(PaSampleFormat sampleFormat, unsigned long winMmeSpecificFlags) {
+  int waveFormatTag = 0;
 
-static int SampleFormatAndWinWmmeSpecificFlagsToLinearWaveFormatTag( PaSampleFormat sampleFormat, unsigned long winMmeSpecificFlags )
-{
-    int waveFormatTag = 0;
+  if (winMmeSpecificFlags & paWinMmeWaveFormatDolbyAc3Spdif)
+    waveFormatTag = PAWIN_WAVE_FORMAT_DOLBY_AC3_SPDIF;
+  else if (winMmeSpecificFlags & paWinMmeWaveFormatWmaSpdif)
+    waveFormatTag = PAWIN_WAVE_FORMAT_WMA_SPDIF;
+  else
+    waveFormatTag = PaWin_SampleFormatToLinearWaveFormatTag(sampleFormat);
 
-    if( winMmeSpecificFlags & paWinMmeWaveFormatDolbyAc3Spdif )
-        waveFormatTag = PAWIN_WAVE_FORMAT_DOLBY_AC3_SPDIF;
-    else if( winMmeSpecificFlags & paWinMmeWaveFormatWmaSpdif )
-        waveFormatTag = PAWIN_WAVE_FORMAT_WMA_SPDIF;
-    else
-        waveFormatTag = PaWin_SampleFormatToLinearWaveFormatTag( sampleFormat );
-
-    return waveFormatTag;
+  return waveFormatTag;
 }
 
+static PaError QueryInputWaveFormatEx(int deviceId, WAVEFORMATEX* waveFormatEx) {
+  MMRESULT mmresult;
 
-static PaError QueryInputWaveFormatEx( int deviceId, WAVEFORMATEX *waveFormatEx )
-{
-    MMRESULT mmresult;
+  switch (mmresult = waveInOpen(NULL, deviceId, waveFormatEx, 0, 0, WAVE_FORMAT_QUERY)) {
+    case MMSYSERR_NOERROR:
+      return paNoError;
+    case MMSYSERR_ALLOCATED: /* Specified resource is already allocated. */
+      return paDeviceUnavailable;
+    case MMSYSERR_NODRIVER: /* No device driver is present. */
+      return paDeviceUnavailable;
+    case MMSYSERR_NOMEM: /* Unable to allocate or lock memory. */
+      return paInsufficientMemory;
+    case WAVERR_BADFORMAT: /* Attempted to open with an unsupported waveform-audio format. */
+      return paSampleFormatNotSupported;
 
-    switch( mmresult = waveInOpen( NULL, deviceId, waveFormatEx, 0, 0, WAVE_FORMAT_QUERY ) )
-    {
-        case MMSYSERR_NOERROR:
-            return paNoError;
-        case MMSYSERR_ALLOCATED:    /* Specified resource is already allocated. */
-            return paDeviceUnavailable;
-        case MMSYSERR_NODRIVER:     /* No device driver is present. */
-            return paDeviceUnavailable;
-        case MMSYSERR_NOMEM:        /* Unable to allocate or lock memory. */
-            return paInsufficientMemory;
-        case WAVERR_BADFORMAT:      /* Attempted to open with an unsupported waveform-audio format. */
-            return paSampleFormatNotSupported;
-
-        case MMSYSERR_BADDEVICEID:  /* Specified device identifier is out of range. */
-            /* falls through */
-        default:
-            PA_MME_SET_LAST_WAVEIN_ERROR( mmresult );
-            return paUnanticipatedHostError;
-    }
+    case MMSYSERR_BADDEVICEID: /* Specified device identifier is out of range. */
+      /* falls through */
+    default:
+      PA_MME_SET_LAST_WAVEIN_ERROR(mmresult);
+      return paUnanticipatedHostError;
+  }
 }
 
+static PaError QueryOutputWaveFormatEx(int deviceId, WAVEFORMATEX* waveFormatEx) {
+  MMRESULT mmresult;
 
-static PaError QueryOutputWaveFormatEx( int deviceId, WAVEFORMATEX *waveFormatEx )
-{
-    MMRESULT mmresult;
+  switch (mmresult = waveOutOpen(NULL, deviceId, waveFormatEx, 0, 0, WAVE_FORMAT_QUERY)) {
+    case MMSYSERR_NOERROR:
+      return paNoError;
+    case MMSYSERR_ALLOCATED: /* Specified resource is already allocated. */
+      return paDeviceUnavailable;
+    case MMSYSERR_NODRIVER: /* No device driver is present. */
+      return paDeviceUnavailable;
+    case MMSYSERR_NOMEM: /* Unable to allocate or lock memory. */
+      return paInsufficientMemory;
+    case WAVERR_BADFORMAT: /* Attempted to open with an unsupported waveform-audio format. */
+      return paSampleFormatNotSupported;
 
-    switch( mmresult = waveOutOpen( NULL, deviceId, waveFormatEx, 0, 0, WAVE_FORMAT_QUERY ) )
-    {
-        case MMSYSERR_NOERROR:
-            return paNoError;
-        case MMSYSERR_ALLOCATED:    /* Specified resource is already allocated. */
-            return paDeviceUnavailable;
-        case MMSYSERR_NODRIVER:     /* No device driver is present. */
-            return paDeviceUnavailable;
-        case MMSYSERR_NOMEM:        /* Unable to allocate or lock memory. */
-            return paInsufficientMemory;
-        case WAVERR_BADFORMAT:      /* Attempted to open with an unsupported waveform-audio format. */
-            return paSampleFormatNotSupported;
-
-        case MMSYSERR_BADDEVICEID:  /* Specified device identifier is out of range. */
-            /* falls through */
-        default:
-            PA_MME_SET_LAST_WAVEOUT_ERROR( mmresult );
-            return paUnanticipatedHostError;
-    }
+    case MMSYSERR_BADDEVICEID: /* Specified device identifier is out of range. */
+      /* falls through */
+    default:
+      PA_MME_SET_LAST_WAVEOUT_ERROR(mmresult);
+      return paUnanticipatedHostError;
+  }
 }
 
+static PaError QueryFormatSupported(PaDeviceInfo* deviceInfo,
+                                    PaError (*waveFormatExQueryFunction)(int, WAVEFORMATEX*),
+                                    int winMmeDeviceId, int channels, double sampleRate, unsigned long winMmeSpecificFlags) {
+  PaWinMmeDeviceInfo* winMmeDeviceInfo = (PaWinMmeDeviceInfo*)deviceInfo;
+  PaWinWaveFormat waveFormat;
+  PaSampleFormat sampleFormat;
+  int waveFormatTag;
 
-static PaError QueryFormatSupported( PaDeviceInfo *deviceInfo,
-        PaError (*waveFormatExQueryFunction)(int, WAVEFORMATEX*),
-        int winMmeDeviceId, int channels, double sampleRate, unsigned long winMmeSpecificFlags )
-{
-    PaWinMmeDeviceInfo *winMmeDeviceInfo = (PaWinMmeDeviceInfo*)deviceInfo;
-    PaWinWaveFormat waveFormat;
-    PaSampleFormat sampleFormat;
-    int waveFormatTag;
+  /* @todo at the moment we only query with 16 bit sample format and directout speaker config*/
 
-    /* @todo at the moment we only query with 16 bit sample format and directout speaker config*/
+  sampleFormat = paInt16;
+  waveFormatTag = SampleFormatAndWinWmmeSpecificFlagsToLinearWaveFormatTag(sampleFormat, winMmeSpecificFlags);
 
-    sampleFormat = paInt16;
-    waveFormatTag = SampleFormatAndWinWmmeSpecificFlagsToLinearWaveFormatTag( sampleFormat, winMmeSpecificFlags );
+  if (waveFormatTag == PaWin_SampleFormatToLinearWaveFormatTag(paInt16)) {
 
-    if( waveFormatTag == PaWin_SampleFormatToLinearWaveFormatTag( paInt16 ) ){
+    /* attempt bypass querying the device for linear formats */
 
-        /* attempt bypass querying the device for linear formats */
+    if (sampleRate == 11025.0 && ((channels == 1 && (winMmeDeviceInfo->dwFormats & WAVE_FORMAT_1M16)) || (channels == 2 && (winMmeDeviceInfo->dwFormats & WAVE_FORMAT_1S16)))) {
 
-        if( sampleRate == 11025.0
-            && ( (channels == 1 && (winMmeDeviceInfo->dwFormats & WAVE_FORMAT_1M16))
-                || (channels == 2 && (winMmeDeviceInfo->dwFormats & WAVE_FORMAT_1S16)) ) ){
-
-            return paNoError;
-        }
-
-        if( sampleRate == 22050.0
-            && ( (channels == 1 && (winMmeDeviceInfo->dwFormats & WAVE_FORMAT_2M16))
-                || (channels == 2 && (winMmeDeviceInfo->dwFormats & WAVE_FORMAT_2S16)) ) ){
-
-            return paNoError;
-        }
-
-        if( sampleRate == 44100.0
-            && ( (channels == 1 && (winMmeDeviceInfo->dwFormats & WAVE_FORMAT_4M16))
-                || (channels == 2 && (winMmeDeviceInfo->dwFormats & WAVE_FORMAT_4S16)) ) ){
-
-            return paNoError;
-        }
+      return paNoError;
     }
 
+    if (sampleRate == 22050.0 && ((channels == 1 && (winMmeDeviceInfo->dwFormats & WAVE_FORMAT_2M16)) || (channels == 2 && (winMmeDeviceInfo->dwFormats & WAVE_FORMAT_2S16)))) {
 
-    /* first, attempt to query the device using WAVEFORMATEXTENSIBLE,
+      return paNoError;
+    }
+
+    if (sampleRate == 44100.0 && ((channels == 1 && (winMmeDeviceInfo->dwFormats & WAVE_FORMAT_4M16)) || (channels == 2 && (winMmeDeviceInfo->dwFormats & WAVE_FORMAT_4S16)))) {
+
+      return paNoError;
+    }
+  }
+
+  /* first, attempt to query the device using WAVEFORMATEXTENSIBLE,
        if this fails we fall back to WAVEFORMATEX */
 
-    PaWin_InitializeWaveFormatExtensible( &waveFormat, channels, sampleFormat, waveFormatTag,
-            sampleRate, PAWIN_SPEAKER_DIRECTOUT );
+  PaWin_InitializeWaveFormatExtensible(&waveFormat, channels, sampleFormat, waveFormatTag, sampleRate, PAWIN_SPEAKER_DIRECTOUT);
 
-    if( waveFormatExQueryFunction( winMmeDeviceId, (WAVEFORMATEX*)&waveFormat ) == paNoError )
-        return paNoError;
+  if (waveFormatExQueryFunction(winMmeDeviceId, (WAVEFORMATEX*)&waveFormat) == paNoError)
+    return paNoError;
 
-    PaWin_InitializeWaveFormatEx( &waveFormat, channels, sampleFormat, waveFormatTag, sampleRate );
+  PaWin_InitializeWaveFormatEx(&waveFormat, channels, sampleFormat, waveFormatTag, sampleRate);
 
-    return waveFormatExQueryFunction( winMmeDeviceId, (WAVEFORMATEX*)&waveFormat );
+  return waveFormatExQueryFunction(winMmeDeviceId, (WAVEFORMATEX*)&waveFormat);
 }
 
-
-#define PA_DEFAULTSAMPLERATESEARCHORDER_COUNT_  (13) /* must match array length below */
+#define PA_DEFAULTSAMPLERATESEARCHORDER_COUNT_ (13) /* must match array length below */
 static double defaultSampleRateSearchOrder_[] =
-    { 44100.0, 48000.0, 32000.0, 24000.0, 22050.0, 88200.0, 96000.0, 192000.0,
-        16000.0, 12000.0, 11025.0, 9600.0, 8000.0 };
+    {44100.0, 48000.0, 32000.0, 24000.0, 22050.0, 88200.0, 96000.0, 192000.0, 16000.0, 12000.0, 11025.0, 9600.0, 8000.0};
 
-static void DetectDefaultSampleRate( PaWinMmeDeviceInfo *winMmeDeviceInfo, int winMmeDeviceId,
-        PaError (*waveFormatExQueryFunction)(int, WAVEFORMATEX*), int maxChannels )
-{
-    PaDeviceInfo *deviceInfo = &winMmeDeviceInfo->inheritedDeviceInfo;
-    int i;
+static void DetectDefaultSampleRate(PaWinMmeDeviceInfo* winMmeDeviceInfo, int winMmeDeviceId,
+                                    PaError (*waveFormatExQueryFunction)(int, WAVEFORMATEX*), int maxChannels) {
+  PaDeviceInfo* deviceInfo = &winMmeDeviceInfo->inheritedDeviceInfo;
+  int i;
 
-    deviceInfo->defaultSampleRate = 0.;
+  deviceInfo->defaultSampleRate = 0.;
 
-    for( i=0; i < PA_DEFAULTSAMPLERATESEARCHORDER_COUNT_; ++i )
-    {
-        double sampleRate = defaultSampleRateSearchOrder_[ i ];
-        PaError paerror = QueryFormatSupported( deviceInfo, waveFormatExQueryFunction, winMmeDeviceId, maxChannels, sampleRate, 0 );
-        if( paerror == paNoError )
-        {
-            deviceInfo->defaultSampleRate = sampleRate;
-            break;
-        }
+  for (i = 0; i < PA_DEFAULTSAMPLERATESEARCHORDER_COUNT_; ++i) {
+    double sampleRate = defaultSampleRateSearchOrder_[i];
+    PaError paerror = QueryFormatSupported(deviceInfo, waveFormatExQueryFunction, winMmeDeviceId, maxChannels, sampleRate, 0);
+    if (paerror == paNoError) {
+      deviceInfo->defaultSampleRate = sampleRate;
+      break;
     }
+  }
 }
-
 
 #ifdef PAWIN_USE_WDMKS_DEVICE_INFO
-static int QueryWaveInKSFilterMaxChannels( UINT waveInDeviceId, int *maxChannels )
-{
-    void *devicePath;
-    DWORD devicePathSize;
-    int result = 0;
+static int QueryWaveInKSFilterMaxChannels(UINT waveInDeviceId, int* maxChannels) {
+  void* devicePath;
+  DWORD devicePathSize;
+  int result = 0;
 
-    /* pass UINT ID via punned HWAVEIN, as per DRV_QUERYDEVICEINTERFACESIZE documentation */
-    HWAVEIN hDeviceId = (HWAVEIN)((UINT_PTR)waveInDeviceId);
+  /* pass UINT ID via punned HWAVEIN, as per DRV_QUERYDEVICEINTERFACESIZE documentation */
+  HWAVEIN hDeviceId = (HWAVEIN)((UINT_PTR)waveInDeviceId);
 
-    if( waveInMessage(hDeviceId, DRV_QUERYDEVICEINTERFACESIZE,
-            (DWORD_PTR)&devicePathSize, 0 ) != MMSYSERR_NOERROR )
-        return 0;
+  if (waveInMessage(hDeviceId, DRV_QUERYDEVICEINTERFACESIZE, (DWORD_PTR)&devicePathSize, 0) != MMSYSERR_NOERROR)
+    return 0;
 
-    devicePath = PaUtil_AllocateMemory( devicePathSize );
-    if( !devicePath )
-        return 0;
+  devicePath = PaUtil_AllocateMemory(devicePathSize);
+  if (!devicePath)
+    return 0;
 
-    /* apparently DRV_QUERYDEVICEINTERFACE returns a unicode interface path, although this is undocumented */
-    if( waveInMessage(hDeviceId, DRV_QUERYDEVICEINTERFACE,
-            (DWORD_PTR)devicePath, devicePathSize ) == MMSYSERR_NOERROR )
-    {
-        int count = PaWin_WDMKS_QueryFilterMaximumChannelCount( devicePath, /* isInput= */ 1  );
-        if( count > 0 )
-        {
-            *maxChannels = count;
-            result = 1;
-        }
+  /* apparently DRV_QUERYDEVICEINTERFACE returns a unicode interface path, although this is undocumented */
+  if (waveInMessage(hDeviceId, DRV_QUERYDEVICEINTERFACE, (DWORD_PTR)devicePath, devicePathSize) == MMSYSERR_NOERROR) {
+    int count = PaWin_WDMKS_QueryFilterMaximumChannelCount(devicePath, /* isInput= */ 1);
+    if (count > 0) {
+      *maxChannels = count;
+      result = 1;
     }
+  }
 
-    PaUtil_FreeMemory( devicePath );
+  PaUtil_FreeMemory(devicePath);
 
-    return result;
+  return result;
 }
 #endif /* PAWIN_USE_WDMKS_DEVICE_INFO */
 
+static PaError InitializeInputDeviceInfo(PaWinMmeHostApiRepresentation* winMmeHostApi,
+                                         PaWinMmeDeviceInfo* winMmeDeviceInfo, UINT winMmeInputDeviceId, int* success) {
+  PaError result = paNoError;
+  char* deviceName; /* non-const ptr */
+  MMRESULT mmresult;
+  WAVEINCAPSW wic;
+  PaDeviceInfo* deviceInfo = &winMmeDeviceInfo->inheritedDeviceInfo;
+  size_t len;
 
-static PaError InitializeInputDeviceInfo( PaWinMmeHostApiRepresentation *winMmeHostApi,
-        PaWinMmeDeviceInfo *winMmeDeviceInfo, UINT winMmeInputDeviceId, int *success )
-{
-    PaError result = paNoError;
-    char *deviceName; /* non-const ptr */
-    MMRESULT mmresult;
-    WAVEINCAPSW wic;
-    PaDeviceInfo *deviceInfo = &winMmeDeviceInfo->inheritedDeviceInfo;
-    size_t len;
+  *success = 0;
 
-    *success = 0;
-
-    mmresult = waveInGetDevCapsW( winMmeInputDeviceId, &wic, sizeof( WAVEINCAPSW ) );
-    if( mmresult == MMSYSERR_NOMEM )
-    {
-        result = paInsufficientMemory;
-        goto error;
-    }
-    else if( mmresult != MMSYSERR_NOERROR )
-    {
-        /* instead of returning paUnanticipatedHostError we return
+  mmresult = waveInGetDevCapsW(winMmeInputDeviceId, &wic, sizeof(WAVEINCAPSW));
+  if (mmresult == MMSYSERR_NOMEM) {
+    result = paInsufficientMemory;
+    goto error;
+  } else if (mmresult != MMSYSERR_NOERROR) {
+    /* instead of returning paUnanticipatedHostError we return
             paNoError, but leave success set as 0. This allows
             Pa_Initialize to just ignore this device, without failing
             the entire initialisation process.
         */
-        return paNoError;
-    }
+    return paNoError;
+  }
 
-    /* NOTE: the WAVEOUTCAPS.szPname is a null-terminated array of 32 characters,
+  /* NOTE: the WAVEOUTCAPS.szPname is a null-terminated array of 32 characters,
         so we are limited to displaying only the first 31 characters of the device name. */
-    if( winMmeInputDeviceId == WAVE_MAPPER )
-    {
-        len = WCharStringLen( wic.szPname ) + 1 + sizeof(constInputMapperSuffix_);
-        /* Append I/O suffix to WAVE_MAPPER device. */
-        deviceName = (char*)PaUtil_GroupAllocateMemory(
-                    winMmeHostApi->allocations,
-                    (long)len );
-        if( !deviceName )
-        {
-            result = paInsufficientMemory;
-            goto error;
-        }
-        CopyWCharStringToUtf8CString( deviceName, len, wic.szPname );
-        strcat( deviceName, constInputMapperSuffix_ );
+  if (winMmeInputDeviceId == WAVE_MAPPER) {
+    len = WCharStringLen(wic.szPname) + 1 + sizeof(constInputMapperSuffix_);
+    /* Append I/O suffix to WAVE_MAPPER device. */
+    deviceName = (char*)PaUtil_GroupAllocateMemory(
+        winMmeHostApi->allocations,
+        (long)len);
+    if (!deviceName) {
+      result = paInsufficientMemory;
+      goto error;
     }
-    else
-    {
-        len = WCharStringLen( wic.szPname ) + 1;
-        deviceName = (char*)PaUtil_GroupAllocateMemory(
-                    winMmeHostApi->allocations,
-                    (long)len );
-        if( !deviceName )
-        {
-            result = paInsufficientMemory;
-            goto error;
-        }
-        CopyWCharStringToUtf8CString( deviceName, len, wic.szPname  );
+    CopyWCharStringToUtf8CString(deviceName, len, wic.szPname);
+    strcat(deviceName, constInputMapperSuffix_);
+  } else {
+    len = WCharStringLen(wic.szPname) + 1;
+    deviceName = (char*)PaUtil_GroupAllocateMemory(
+        winMmeHostApi->allocations,
+        (long)len);
+    if (!deviceName) {
+      result = paInsufficientMemory;
+      goto error;
     }
-    deviceInfo->name = deviceName;
+    CopyWCharStringToUtf8CString(deviceName, len, wic.szPname);
+  }
+  deviceInfo->name = deviceName;
 
-    if( wic.wChannels == 0xFFFF || wic.wChannels < 1 || wic.wChannels > 255 ){
-        /* For Windows versions using WDM (possibly Windows 98 ME and later)
+  if (wic.wChannels == 0xFFFF || wic.wChannels < 1 || wic.wChannels > 255) {
+    /* For Windows versions using WDM (possibly Windows 98 ME and later)
          * the kernel mixer sits between the application and the driver. As a result,
          * wave*GetDevCaps often kernel mixer channel counts, which are unlimited.
          * When this happens we assume the device is stereo and set a flag
@@ -746,133 +670,116 @@ static PaError InitializeInputDeviceInfo( PaWinMmeHostApiRepresentation *winMmeH
          * see also InitializeOutputDeviceInfo() below.
      */
 
-        PA_DEBUG(("Pa_GetDeviceInfo: Num input channels reported as %d! Changed to 2.\n", wic.wChannels ));
-        deviceInfo->maxInputChannels = 2;
-        winMmeDeviceInfo->deviceInputChannelCountIsKnown = 0;
-    }else{
-        deviceInfo->maxInputChannels = wic.wChannels;
-        winMmeDeviceInfo->deviceInputChannelCountIsKnown = 1;
-    }
+    PA_DEBUG(("Pa_GetDeviceInfo: Num input channels reported as %d! Changed to 2.\n", wic.wChannels));
+    deviceInfo->maxInputChannels = 2;
+    winMmeDeviceInfo->deviceInputChannelCountIsKnown = 0;
+  } else {
+    deviceInfo->maxInputChannels = wic.wChannels;
+    winMmeDeviceInfo->deviceInputChannelCountIsKnown = 1;
+  }
 
 #ifdef PAWIN_USE_WDMKS_DEVICE_INFO
-    winMmeDeviceInfo->deviceInputChannelCountIsKnown =
-            QueryWaveInKSFilterMaxChannels( winMmeInputDeviceId, &deviceInfo->maxInputChannels );
+  winMmeDeviceInfo->deviceInputChannelCountIsKnown =
+      QueryWaveInKSFilterMaxChannels(winMmeInputDeviceId, &deviceInfo->maxInputChannels);
 #endif /* PAWIN_USE_WDMKS_DEVICE_INFO */
 
-    winMmeDeviceInfo->dwFormats = wic.dwFormats;
+  winMmeDeviceInfo->dwFormats = wic.dwFormats;
 
-    DetectDefaultSampleRate( winMmeDeviceInfo, winMmeInputDeviceId,
-            QueryInputWaveFormatEx, deviceInfo->maxInputChannels );
+  DetectDefaultSampleRate(winMmeDeviceInfo, winMmeInputDeviceId, QueryInputWaveFormatEx, deviceInfo->maxInputChannels);
 
-    *success = 1;
+  *success = 1;
 
 error:
-    return result;
+  return result;
 }
 
-
 #ifdef PAWIN_USE_WDMKS_DEVICE_INFO
-static int QueryWaveOutKSFilterMaxChannels( UINT waveOutDeviceId, int *maxChannels )
-{
-    void *devicePath;
-    DWORD devicePathSize;
-    int result = 0;
+static int QueryWaveOutKSFilterMaxChannels(UINT waveOutDeviceId, int* maxChannels) {
+  void* devicePath;
+  DWORD devicePathSize;
+  int result = 0;
 
-    /* pass UINT ID via punned HWAVEOUT, as per DRV_QUERYDEVICEINTERFACESIZE documentation */
-    HWAVEOUT hDeviceId = (HWAVEOUT)((UINT_PTR)waveOutDeviceId);
+  /* pass UINT ID via punned HWAVEOUT, as per DRV_QUERYDEVICEINTERFACESIZE documentation */
+  HWAVEOUT hDeviceId = (HWAVEOUT)((UINT_PTR)waveOutDeviceId);
 
-    if( waveOutMessage(hDeviceId, DRV_QUERYDEVICEINTERFACESIZE,
-            (DWORD_PTR)&devicePathSize, 0 ) != MMSYSERR_NOERROR )
-        return 0;
+  if (waveOutMessage(hDeviceId, DRV_QUERYDEVICEINTERFACESIZE, (DWORD_PTR)&devicePathSize, 0) != MMSYSERR_NOERROR)
+    return 0;
 
-    devicePath = PaUtil_AllocateMemory( devicePathSize );
-    if( !devicePath )
-        return 0;
+  devicePath = PaUtil_AllocateMemory(devicePathSize);
+  if (!devicePath)
+    return 0;
 
-    /* apparently DRV_QUERYDEVICEINTERFACE returns a unicode interface path, although this is undocumented */
-    if( waveOutMessage(hDeviceId, DRV_QUERYDEVICEINTERFACE,
-            (DWORD_PTR)devicePath, devicePathSize ) == MMSYSERR_NOERROR )
-    {
-        int count = PaWin_WDMKS_QueryFilterMaximumChannelCount( devicePath, /* isInput= */ 0  );
-        if( count > 0 )
-        {
-            *maxChannels = count;
-            result = 1;
-        }
+  /* apparently DRV_QUERYDEVICEINTERFACE returns a unicode interface path, although this is undocumented */
+  if (waveOutMessage(hDeviceId, DRV_QUERYDEVICEINTERFACE, (DWORD_PTR)devicePath, devicePathSize) == MMSYSERR_NOERROR) {
+    int count = PaWin_WDMKS_QueryFilterMaximumChannelCount(devicePath, /* isInput= */ 0);
+    if (count > 0) {
+      *maxChannels = count;
+      result = 1;
     }
+  }
 
-    PaUtil_FreeMemory( devicePath );
+  PaUtil_FreeMemory(devicePath);
 
-    return result;
+  return result;
 }
 #endif /* PAWIN_USE_WDMKS_DEVICE_INFO */
 
-
-static PaError InitializeOutputDeviceInfo( PaWinMmeHostApiRepresentation *winMmeHostApi,
-        PaWinMmeDeviceInfo *winMmeDeviceInfo, UINT winMmeOutputDeviceId, int *success )
-{
-    PaError result = paNoError;
-    char *deviceName; /* non-const ptr */
-    MMRESULT mmresult;
-    WAVEOUTCAPSW woc;
-    PaDeviceInfo *deviceInfo = &winMmeDeviceInfo->inheritedDeviceInfo;
-    size_t len;
+static PaError InitializeOutputDeviceInfo(PaWinMmeHostApiRepresentation* winMmeHostApi,
+                                          PaWinMmeDeviceInfo* winMmeDeviceInfo, UINT winMmeOutputDeviceId, int* success) {
+  PaError result = paNoError;
+  char* deviceName; /* non-const ptr */
+  MMRESULT mmresult;
+  WAVEOUTCAPSW woc;
+  PaDeviceInfo* deviceInfo = &winMmeDeviceInfo->inheritedDeviceInfo;
+  size_t len;
 #ifdef PAWIN_USE_WDMKS_DEVICE_INFO
-    int wdmksDeviceOutputChannelCountIsKnown;
+  int wdmksDeviceOutputChannelCountIsKnown;
 #endif
 
-    *success = 0;
+  *success = 0;
 
-    mmresult = waveOutGetDevCapsW( winMmeOutputDeviceId, &woc, sizeof( WAVEOUTCAPSW ) );
-    if( mmresult == MMSYSERR_NOMEM )
-    {
-        result = paInsufficientMemory;
-        goto error;
-    }
-    else if( mmresult != MMSYSERR_NOERROR )
-    {
-        /* instead of returning paUnanticipatedHostError we return
+  mmresult = waveOutGetDevCapsW(winMmeOutputDeviceId, &woc, sizeof(WAVEOUTCAPSW));
+  if (mmresult == MMSYSERR_NOMEM) {
+    result = paInsufficientMemory;
+    goto error;
+  } else if (mmresult != MMSYSERR_NOERROR) {
+    /* instead of returning paUnanticipatedHostError we return
             paNoError, but leave success set as 0. This allows
             Pa_Initialize to just ignore this device, without failing
             the entire initialisation process.
         */
-        return paNoError;
-    }
+    return paNoError;
+  }
 
-    /* NOTE: the WAVEOUTCAPS.szPname is a null-terminated array of 32 characters,
+  /* NOTE: the WAVEOUTCAPS.szPname is a null-terminated array of 32 characters,
         so we are limited to displaying only the first 31 characters of the device name. */
-    if( winMmeOutputDeviceId == WAVE_MAPPER )
-    {
-        /* Append I/O suffix to WAVE_MAPPER device. */
-        len = WCharStringLen( woc.szPname ) + 1 + sizeof(constOutputMapperSuffix_);
-        deviceName = (char*)PaUtil_GroupAllocateMemory(
-                    winMmeHostApi->allocations,
-                    (long)len );
-        if( !deviceName )
-        {
-            result = paInsufficientMemory;
-            goto error;
-        }
-        CopyWCharStringToUtf8CString( deviceName, len, woc.szPname );
-        strcat( deviceName, constOutputMapperSuffix_ );
+  if (winMmeOutputDeviceId == WAVE_MAPPER) {
+    /* Append I/O suffix to WAVE_MAPPER device. */
+    len = WCharStringLen(woc.szPname) + 1 + sizeof(constOutputMapperSuffix_);
+    deviceName = (char*)PaUtil_GroupAllocateMemory(
+        winMmeHostApi->allocations,
+        (long)len);
+    if (!deviceName) {
+      result = paInsufficientMemory;
+      goto error;
     }
-    else
-    {
-        len = WCharStringLen( woc.szPname ) + 1;
-        deviceName = (char*)PaUtil_GroupAllocateMemory(
-                    winMmeHostApi->allocations,
-                    (long)len );
-        if( !deviceName )
-        {
-            result = paInsufficientMemory;
-            goto error;
-        }
-        CopyWCharStringToUtf8CString( deviceName, len, woc.szPname );
+    CopyWCharStringToUtf8CString(deviceName, len, woc.szPname);
+    strcat(deviceName, constOutputMapperSuffix_);
+  } else {
+    len = WCharStringLen(woc.szPname) + 1;
+    deviceName = (char*)PaUtil_GroupAllocateMemory(
+        winMmeHostApi->allocations,
+        (long)len);
+    if (!deviceName) {
+      result = paInsufficientMemory;
+      goto error;
     }
-    deviceInfo->name = deviceName;
+    CopyWCharStringToUtf8CString(deviceName, len, woc.szPname);
+  }
+  deviceInfo->name = deviceName;
 
-    if( woc.wChannels == 0xFFFF || woc.wChannels < 1 || woc.wChannels > 255 ){
-        /* For Windows versions using WDM (possibly Windows 98 ME and later)
+  if (woc.wChannels == 0xFFFF || woc.wChannels < 1 || woc.wChannels > 255) {
+    /* For Windows versions using WDM (possibly Windows 98 ME and later)
          * the kernel mixer sits between the application and the driver. As a result,
          * wave*GetDevCaps often kernel mixer channel counts, which are unlimited.
          * When this happens we assume the device is stereo and set a flag
@@ -882,35 +789,32 @@ static PaError InitializeOutputDeviceInfo( PaWinMmeHostApiRepresentation *winMme
          * see also InitializeInputDeviceInfo() above.
          */
 
-        PA_DEBUG(("Pa_GetDeviceInfo: Num output channels reported as %d! Changed to 2.\n", woc.wChannels ));
-        deviceInfo->maxOutputChannels = 2;
-        winMmeDeviceInfo->deviceOutputChannelCountIsKnown = 0;
-    }else{
-        deviceInfo->maxOutputChannels = woc.wChannels;
-        winMmeDeviceInfo->deviceOutputChannelCountIsKnown = 1;
-    }
+    PA_DEBUG(("Pa_GetDeviceInfo: Num output channels reported as %d! Changed to 2.\n", woc.wChannels));
+    deviceInfo->maxOutputChannels = 2;
+    winMmeDeviceInfo->deviceOutputChannelCountIsKnown = 0;
+  } else {
+    deviceInfo->maxOutputChannels = woc.wChannels;
+    winMmeDeviceInfo->deviceOutputChannelCountIsKnown = 1;
+  }
 
 #ifdef PAWIN_USE_WDMKS_DEVICE_INFO
-    wdmksDeviceOutputChannelCountIsKnown = QueryWaveOutKSFilterMaxChannels(
-            winMmeOutputDeviceId, &deviceInfo->maxOutputChannels );
-    if( wdmksDeviceOutputChannelCountIsKnown && !winMmeDeviceInfo->deviceOutputChannelCountIsKnown )
-        winMmeDeviceInfo->deviceOutputChannelCountIsKnown = 1;
+  wdmksDeviceOutputChannelCountIsKnown = QueryWaveOutKSFilterMaxChannels(
+      winMmeOutputDeviceId, &deviceInfo->maxOutputChannels);
+  if (wdmksDeviceOutputChannelCountIsKnown && !winMmeDeviceInfo->deviceOutputChannelCountIsKnown)
+    winMmeDeviceInfo->deviceOutputChannelCountIsKnown = 1;
 #endif /* PAWIN_USE_WDMKS_DEVICE_INFO */
 
-    winMmeDeviceInfo->dwFormats = woc.dwFormats;
+  winMmeDeviceInfo->dwFormats = woc.dwFormats;
 
-    DetectDefaultSampleRate( winMmeDeviceInfo, winMmeOutputDeviceId,
-            QueryOutputWaveFormatEx, deviceInfo->maxOutputChannels );
+  DetectDefaultSampleRate(winMmeDeviceInfo, winMmeOutputDeviceId, QueryOutputWaveFormatEx, deviceInfo->maxOutputChannels);
 
-    *success = 1;
+  *success = 1;
 
 error:
-    return result;
+  return result;
 }
 
-
-static void GetDefaultLatencies( PaTime *defaultLowLatency, PaTime *defaultHighLatency )
-{
+static void GetDefaultLatencies(PaTime* defaultLowLatency, PaTime* defaultHighLatency) {
 /*
 NOTE: GetVersionEx() is deprecated as of Windows 8.1 and can not be used to reliably detect
 versions of Windows higher than Windows 8 (due to manifest requirements for reporting higher versions).
@@ -919,443 +823,387 @@ is faster, for now we just disable the deprecation warning.
 See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms724451(v=vs.85).aspx
 See: http://www.codeproject.com/Articles/678606/Part-Overcoming-Windows-s-deprecation-of-GetVe
 */
-#pragma warning (disable : 4996) /* use of GetVersionEx */
+#pragma warning(disable : 4996) /* use of GetVersionEx */
 
-    OSVERSIONINFO osvi;
-    osvi.dwOSVersionInfoSize = sizeof( osvi );
-    GetVersionEx( &osvi );
+  OSVERSIONINFO osvi;
+  osvi.dwOSVersionInfoSize = sizeof(osvi);
+  GetVersionEx(&osvi);
 
-    /* Check for NT */
-    if( (osvi.dwMajorVersion == 4) && (osvi.dwPlatformId == 2) )
-    {
-        *defaultLowLatency = PA_MME_WIN_NT_DEFAULT_LATENCY_;
-    }
-    else if(osvi.dwMajorVersion >= 5)
-    {
-        *defaultLowLatency = PA_MME_WIN_WDM_DEFAULT_LATENCY_;
-    }
-    else
-    {
-        *defaultLowLatency = PA_MME_WIN_9X_DEFAULT_LATENCY_;
-    }
+  /* Check for NT */
+  if ((osvi.dwMajorVersion == 4) && (osvi.dwPlatformId == 2)) {
+    *defaultLowLatency = PA_MME_WIN_NT_DEFAULT_LATENCY_;
+  } else if (osvi.dwMajorVersion >= 5) {
+    *defaultLowLatency = PA_MME_WIN_WDM_DEFAULT_LATENCY_;
+  } else {
+    *defaultLowLatency = PA_MME_WIN_9X_DEFAULT_LATENCY_;
+  }
 
-    *defaultHighLatency = *defaultLowLatency * 2;
+  *defaultHighLatency = *defaultLowLatency * 2;
 
-#pragma warning (default : 4996)
+#pragma warning(default : 4996)
 }
 
+PaError PaWinMme_Initialize(PaUtilHostApiRepresentation** hostApi, PaHostApiIndex hostApiIndex) {
+  PaError result = paNoError;
+  int i;
+  PaWinMmeHostApiRepresentation* winMmeHostApi;
+  int inputDeviceCount, outputDeviceCount, maximumPossibleDeviceCount;
+  PaWinMmeDeviceInfo* deviceInfoArray;
+  int deviceInfoInitializationSucceeded;
+  PaTime defaultLowLatency, defaultHighLatency;
+  DWORD waveInPreferredDevice, waveOutPreferredDevice;
+  DWORD preferredDeviceStatusFlags;
 
-PaError PaWinMme_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex hostApiIndex )
-{
-    PaError result = paNoError;
-    int i;
-    PaWinMmeHostApiRepresentation *winMmeHostApi;
-    int inputDeviceCount, outputDeviceCount, maximumPossibleDeviceCount;
-    PaWinMmeDeviceInfo *deviceInfoArray;
-    int deviceInfoInitializationSucceeded;
-    PaTime defaultLowLatency, defaultHighLatency;
-    DWORD waveInPreferredDevice, waveOutPreferredDevice;
-    DWORD preferredDeviceStatusFlags;
+  winMmeHostApi = (PaWinMmeHostApiRepresentation*)PaUtil_AllocateMemory(sizeof(PaWinMmeHostApiRepresentation));
+  if (!winMmeHostApi) {
+    result = paInsufficientMemory;
+    goto error;
+  }
 
-    winMmeHostApi = (PaWinMmeHostApiRepresentation*)PaUtil_AllocateMemory( sizeof(PaWinMmeHostApiRepresentation) );
-    if( !winMmeHostApi )
-    {
-        result = paInsufficientMemory;
-        goto error;
-    }
+  winMmeHostApi->allocations = PaUtil_CreateAllocationGroup();
+  if (!winMmeHostApi->allocations) {
+    result = paInsufficientMemory;
+    goto error;
+  }
 
-    winMmeHostApi->allocations = PaUtil_CreateAllocationGroup();
-    if( !winMmeHostApi->allocations )
-    {
-        result = paInsufficientMemory;
-        goto error;
-    }
+  *hostApi = &winMmeHostApi->inheritedHostApiRep;
+  (*hostApi)->info.structVersion = 1;
+  (*hostApi)->info.type = paMME;
+  (*hostApi)->info.name = "MME";
 
-    *hostApi = &winMmeHostApi->inheritedHostApiRep;
-    (*hostApi)->info.structVersion = 1;
-    (*hostApi)->info.type = paMME;
-    (*hostApi)->info.name = "MME";
-
-
-    /* initialise device counts and default devices under the assumption that
+  /* initialise device counts and default devices under the assumption that
         there are no devices. These values are incremented below if and when
         devices are successfully initialized.
     */
-    (*hostApi)->info.deviceCount = 0;
-    (*hostApi)->info.defaultInputDevice = paNoDevice;
-    (*hostApi)->info.defaultOutputDevice = paNoDevice;
-    winMmeHostApi->inputDeviceCount = 0;
-    winMmeHostApi->outputDeviceCount = 0;
+  (*hostApi)->info.deviceCount = 0;
+  (*hostApi)->info.defaultInputDevice = paNoDevice;
+  (*hostApi)->info.defaultOutputDevice = paNoDevice;
+  winMmeHostApi->inputDeviceCount = 0;
+  winMmeHostApi->outputDeviceCount = 0;
 
 #if !defined(DRVM_MAPPER_PREFERRED_GET)
 /* DRVM_MAPPER_PREFERRED_GET is defined in mmddk.h but we avoid a dependency on the DDK by defining it here */
-#define DRVM_MAPPER_PREFERRED_GET    (0x2000+21)
+#define DRVM_MAPPER_PREFERRED_GET (0x2000 + 21)
 #endif
 
-    /* the following calls assume that if wave*Message fails the preferred device parameter won't be modified */
-    preferredDeviceStatusFlags = 0;
-    waveInPreferredDevice = -1;
-    waveInMessage( (HWAVEIN)((UINT_PTR)WAVE_MAPPER), DRVM_MAPPER_PREFERRED_GET, (DWORD_PTR)&waveInPreferredDevice, (DWORD_PTR)&preferredDeviceStatusFlags );
+  /* the following calls assume that if wave*Message fails the preferred device parameter won't be modified */
+  preferredDeviceStatusFlags = 0;
+  waveInPreferredDevice = -1;
+  waveInMessage((HWAVEIN)((UINT_PTR)WAVE_MAPPER), DRVM_MAPPER_PREFERRED_GET, (DWORD_PTR)&waveInPreferredDevice, (DWORD_PTR)&preferredDeviceStatusFlags);
 
-    preferredDeviceStatusFlags = 0;
-    waveOutPreferredDevice = -1;
-    waveOutMessage( (HWAVEOUT)((UINT_PTR)WAVE_MAPPER), DRVM_MAPPER_PREFERRED_GET, (DWORD_PTR)&waveOutPreferredDevice, (DWORD_PTR)&preferredDeviceStatusFlags );
+  preferredDeviceStatusFlags = 0;
+  waveOutPreferredDevice = -1;
+  waveOutMessage((HWAVEOUT)((UINT_PTR)WAVE_MAPPER), DRVM_MAPPER_PREFERRED_GET, (DWORD_PTR)&waveOutPreferredDevice, (DWORD_PTR)&preferredDeviceStatusFlags);
 
-    maximumPossibleDeviceCount = 0;
+  maximumPossibleDeviceCount = 0;
 
-    inputDeviceCount = waveInGetNumDevs();
-    if( inputDeviceCount > 0 )
-        maximumPossibleDeviceCount += inputDeviceCount + 1;     /* assume there is a WAVE_MAPPER */
+  inputDeviceCount = waveInGetNumDevs();
+  if (inputDeviceCount > 0)
+    maximumPossibleDeviceCount += inputDeviceCount + 1; /* assume there is a WAVE_MAPPER */
 
-    outputDeviceCount = waveOutGetNumDevs();
-    if( outputDeviceCount > 0 )
-        maximumPossibleDeviceCount += outputDeviceCount + 1;    /* assume there is a WAVE_MAPPER */
+  outputDeviceCount = waveOutGetNumDevs();
+  if (outputDeviceCount > 0)
+    maximumPossibleDeviceCount += outputDeviceCount + 1; /* assume there is a WAVE_MAPPER */
 
+  if (maximumPossibleDeviceCount > 0) {
 
-    if( maximumPossibleDeviceCount > 0 ){
-
-        (*hostApi)->deviceInfos = (PaDeviceInfo**)PaUtil_GroupAllocateMemory(
-                winMmeHostApi->allocations, sizeof(PaDeviceInfo*) * maximumPossibleDeviceCount );
-        if( !(*hostApi)->deviceInfos )
-        {
-            result = paInsufficientMemory;
-            goto error;
-        }
-
-        /* allocate all device info structs in a contiguous block */
-        deviceInfoArray = (PaWinMmeDeviceInfo*)PaUtil_GroupAllocateMemory(
-                winMmeHostApi->allocations, sizeof(PaWinMmeDeviceInfo) * maximumPossibleDeviceCount );
-        if( !deviceInfoArray )
-        {
-            result = paInsufficientMemory;
-            goto error;
-        }
-
-        winMmeHostApi->winMmeDeviceIds = (UINT*)PaUtil_GroupAllocateMemory(
-                winMmeHostApi->allocations, sizeof(int) * maximumPossibleDeviceCount );
-        if( !winMmeHostApi->winMmeDeviceIds )
-        {
-            result = paInsufficientMemory;
-            goto error;
-        }
-
-        GetDefaultLatencies( &defaultLowLatency, &defaultHighLatency );
-
-        if( inputDeviceCount > 0 ){
-            /* -1 is the WAVE_MAPPER */
-            for( i = -1; i < inputDeviceCount; ++i ){
-                UINT winMmeDeviceId = (UINT)((i==-1) ? WAVE_MAPPER : i);
-                PaWinMmeDeviceInfo *wmmeDeviceInfo = &deviceInfoArray[ (*hostApi)->info.deviceCount ];
-                PaDeviceInfo *deviceInfo = &wmmeDeviceInfo->inheritedDeviceInfo;
-                deviceInfo->structVersion = 2;
-                deviceInfo->hostApi = hostApiIndex;
-
-                deviceInfo->maxInputChannels = 0;
-                wmmeDeviceInfo->deviceInputChannelCountIsKnown = 1;
-                deviceInfo->maxOutputChannels = 0;
-                wmmeDeviceInfo->deviceOutputChannelCountIsKnown = 1;
-
-                deviceInfo->defaultLowInputLatency = defaultLowLatency;
-                deviceInfo->defaultLowOutputLatency = defaultLowLatency;
-                deviceInfo->defaultHighInputLatency = defaultHighLatency;
-                deviceInfo->defaultHighOutputLatency = defaultHighLatency;
-
-                result = InitializeInputDeviceInfo( winMmeHostApi, wmmeDeviceInfo,
-                        winMmeDeviceId, &deviceInfoInitializationSucceeded );
-                if( result != paNoError )
-                    goto error;
-
-                if( deviceInfoInitializationSucceeded ){
-                    if( (*hostApi)->info.defaultInputDevice == paNoDevice ){
-                        /* if there is currently no default device, use the first one available */
-                        (*hostApi)->info.defaultInputDevice = (*hostApi)->info.deviceCount;
-
-                    }else if( winMmeDeviceId == waveInPreferredDevice ){
-                        /* set the default device to the system preferred device */
-                        (*hostApi)->info.defaultInputDevice = (*hostApi)->info.deviceCount;
-                    }
-
-                    winMmeHostApi->winMmeDeviceIds[ (*hostApi)->info.deviceCount ] = winMmeDeviceId;
-                    (*hostApi)->deviceInfos[ (*hostApi)->info.deviceCount ] = deviceInfo;
-
-                    winMmeHostApi->inputDeviceCount++;
-                    (*hostApi)->info.deviceCount++;
-                }
-            }
-        }
-
-        if( outputDeviceCount > 0 ){
-            /* -1 is the WAVE_MAPPER */
-            for( i = -1; i < outputDeviceCount; ++i ){
-                UINT winMmeDeviceId = (UINT)((i==-1) ? WAVE_MAPPER : i);
-                PaWinMmeDeviceInfo *wmmeDeviceInfo = &deviceInfoArray[ (*hostApi)->info.deviceCount ];
-                PaDeviceInfo *deviceInfo = &wmmeDeviceInfo->inheritedDeviceInfo;
-                deviceInfo->structVersion = 2;
-                deviceInfo->hostApi = hostApiIndex;
-
-                deviceInfo->maxInputChannels = 0;
-                wmmeDeviceInfo->deviceInputChannelCountIsKnown = 1;
-                deviceInfo->maxOutputChannels = 0;
-                wmmeDeviceInfo->deviceOutputChannelCountIsKnown = 1;
-
-                deviceInfo->defaultLowInputLatency = defaultLowLatency;
-                deviceInfo->defaultLowOutputLatency = defaultLowLatency;
-                deviceInfo->defaultHighInputLatency = defaultHighLatency;
-                deviceInfo->defaultHighOutputLatency = defaultHighLatency;
-
-                result = InitializeOutputDeviceInfo( winMmeHostApi, wmmeDeviceInfo,
-                        winMmeDeviceId, &deviceInfoInitializationSucceeded );
-                if( result != paNoError )
-                    goto error;
-
-                if( deviceInfoInitializationSucceeded ){
-                    if( (*hostApi)->info.defaultOutputDevice == paNoDevice ){
-                        /* if there is currently no default device, use the first one available */
-                        (*hostApi)->info.defaultOutputDevice = (*hostApi)->info.deviceCount;
-
-                    }else if( winMmeDeviceId == waveOutPreferredDevice ){
-                        /* set the default device to the system preferred device */
-                        (*hostApi)->info.defaultOutputDevice = (*hostApi)->info.deviceCount;
-                    }
-
-                    winMmeHostApi->winMmeDeviceIds[ (*hostApi)->info.deviceCount ] = winMmeDeviceId;
-                    (*hostApi)->deviceInfos[ (*hostApi)->info.deviceCount ] = deviceInfo;
-
-                    winMmeHostApi->outputDeviceCount++;
-                    (*hostApi)->info.deviceCount++;
-                }
-            }
-        }
+    (*hostApi)->deviceInfos = (PaDeviceInfo**)PaUtil_GroupAllocateMemory(
+        winMmeHostApi->allocations, sizeof(PaDeviceInfo*) * maximumPossibleDeviceCount);
+    if (!(*hostApi)->deviceInfos) {
+      result = paInsufficientMemory;
+      goto error;
     }
 
-    InitializeDefaultDeviceIdsFromEnv( winMmeHostApi );
+    /* allocate all device info structs in a contiguous block */
+    deviceInfoArray = (PaWinMmeDeviceInfo*)PaUtil_GroupAllocateMemory(
+        winMmeHostApi->allocations, sizeof(PaWinMmeDeviceInfo) * maximumPossibleDeviceCount);
+    if (!deviceInfoArray) {
+      result = paInsufficientMemory;
+      goto error;
+    }
 
-    (*hostApi)->Terminate = Terminate;
-    (*hostApi)->OpenStream = OpenStream;
-    (*hostApi)->IsFormatSupported = IsFormatSupported;
+    winMmeHostApi->winMmeDeviceIds = (UINT*)PaUtil_GroupAllocateMemory(
+        winMmeHostApi->allocations, sizeof(int) * maximumPossibleDeviceCount);
+    if (!winMmeHostApi->winMmeDeviceIds) {
+      result = paInsufficientMemory;
+      goto error;
+    }
 
-    PaUtil_InitializeStreamInterface( &winMmeHostApi->callbackStreamInterface, CloseStream, StartStream,
-                                      StopStream, AbortStream, IsStreamStopped, IsStreamActive,
-                                      GetStreamTime, GetStreamCpuLoad,
-                                      PaUtil_DummyRead, PaUtil_DummyWrite,
-                                      PaUtil_DummyGetReadAvailable, PaUtil_DummyGetWriteAvailable );
+    GetDefaultLatencies(&defaultLowLatency, &defaultHighLatency);
 
-    PaUtil_InitializeStreamInterface( &winMmeHostApi->blockingStreamInterface, CloseStream, StartStream,
-                                      StopStream, AbortStream, IsStreamStopped, IsStreamActive,
-                                      GetStreamTime, PaUtil_DummyGetCpuLoad,
-                                      ReadStream, WriteStream, GetStreamReadAvailable, GetStreamWriteAvailable );
+    if (inputDeviceCount > 0) {
+      /* -1 is the WAVE_MAPPER */
+      for (i = -1; i < inputDeviceCount; ++i) {
+        UINT winMmeDeviceId = (UINT)((i == -1) ? WAVE_MAPPER : i);
+        PaWinMmeDeviceInfo* wmmeDeviceInfo = &deviceInfoArray[(*hostApi)->info.deviceCount];
+        PaDeviceInfo* deviceInfo = &wmmeDeviceInfo->inheritedDeviceInfo;
+        deviceInfo->structVersion = 2;
+        deviceInfo->hostApi = hostApiIndex;
 
-    return result;
+        deviceInfo->maxInputChannels = 0;
+        wmmeDeviceInfo->deviceInputChannelCountIsKnown = 1;
+        deviceInfo->maxOutputChannels = 0;
+        wmmeDeviceInfo->deviceOutputChannelCountIsKnown = 1;
+
+        deviceInfo->defaultLowInputLatency = defaultLowLatency;
+        deviceInfo->defaultLowOutputLatency = defaultLowLatency;
+        deviceInfo->defaultHighInputLatency = defaultHighLatency;
+        deviceInfo->defaultHighOutputLatency = defaultHighLatency;
+
+        result = InitializeInputDeviceInfo(winMmeHostApi, wmmeDeviceInfo, winMmeDeviceId, &deviceInfoInitializationSucceeded);
+        if (result != paNoError)
+          goto error;
+
+        if (deviceInfoInitializationSucceeded) {
+          if ((*hostApi)->info.defaultInputDevice == paNoDevice) {
+            /* if there is currently no default device, use the first one available */
+            (*hostApi)->info.defaultInputDevice = (*hostApi)->info.deviceCount;
+
+          } else if (winMmeDeviceId == waveInPreferredDevice) {
+            /* set the default device to the system preferred device */
+            (*hostApi)->info.defaultInputDevice = (*hostApi)->info.deviceCount;
+          }
+
+          winMmeHostApi->winMmeDeviceIds[(*hostApi)->info.deviceCount] = winMmeDeviceId;
+          (*hostApi)->deviceInfos[(*hostApi)->info.deviceCount] = deviceInfo;
+
+          winMmeHostApi->inputDeviceCount++;
+          (*hostApi)->info.deviceCount++;
+        }
+      }
+    }
+
+    if (outputDeviceCount > 0) {
+      /* -1 is the WAVE_MAPPER */
+      for (i = -1; i < outputDeviceCount; ++i) {
+        UINT winMmeDeviceId = (UINT)((i == -1) ? WAVE_MAPPER : i);
+        PaWinMmeDeviceInfo* wmmeDeviceInfo = &deviceInfoArray[(*hostApi)->info.deviceCount];
+        PaDeviceInfo* deviceInfo = &wmmeDeviceInfo->inheritedDeviceInfo;
+        deviceInfo->structVersion = 2;
+        deviceInfo->hostApi = hostApiIndex;
+
+        deviceInfo->maxInputChannels = 0;
+        wmmeDeviceInfo->deviceInputChannelCountIsKnown = 1;
+        deviceInfo->maxOutputChannels = 0;
+        wmmeDeviceInfo->deviceOutputChannelCountIsKnown = 1;
+
+        deviceInfo->defaultLowInputLatency = defaultLowLatency;
+        deviceInfo->defaultLowOutputLatency = defaultLowLatency;
+        deviceInfo->defaultHighInputLatency = defaultHighLatency;
+        deviceInfo->defaultHighOutputLatency = defaultHighLatency;
+
+        result = InitializeOutputDeviceInfo(winMmeHostApi, wmmeDeviceInfo, winMmeDeviceId, &deviceInfoInitializationSucceeded);
+        if (result != paNoError)
+          goto error;
+
+        if (deviceInfoInitializationSucceeded) {
+          if ((*hostApi)->info.defaultOutputDevice == paNoDevice) {
+            /* if there is currently no default device, use the first one available */
+            (*hostApi)->info.defaultOutputDevice = (*hostApi)->info.deviceCount;
+
+          } else if (winMmeDeviceId == waveOutPreferredDevice) {
+            /* set the default device to the system preferred device */
+            (*hostApi)->info.defaultOutputDevice = (*hostApi)->info.deviceCount;
+          }
+
+          winMmeHostApi->winMmeDeviceIds[(*hostApi)->info.deviceCount] = winMmeDeviceId;
+          (*hostApi)->deviceInfos[(*hostApi)->info.deviceCount] = deviceInfo;
+
+          winMmeHostApi->outputDeviceCount++;
+          (*hostApi)->info.deviceCount++;
+        }
+      }
+    }
+  }
+
+  InitializeDefaultDeviceIdsFromEnv(winMmeHostApi);
+
+  (*hostApi)->Terminate = Terminate;
+  (*hostApi)->OpenStream = OpenStream;
+  (*hostApi)->IsFormatSupported = IsFormatSupported;
+
+  PaUtil_InitializeStreamInterface(&winMmeHostApi->callbackStreamInterface, CloseStream, StartStream, StopStream, AbortStream, IsStreamStopped, IsStreamActive, GetStreamTime, GetStreamCpuLoad, PaUtil_DummyRead, PaUtil_DummyWrite, PaUtil_DummyGetReadAvailable, PaUtil_DummyGetWriteAvailable);
+
+  PaUtil_InitializeStreamInterface(&winMmeHostApi->blockingStreamInterface, CloseStream, StartStream, StopStream, AbortStream, IsStreamStopped, IsStreamActive, GetStreamTime, PaUtil_DummyGetCpuLoad, ReadStream, WriteStream, GetStreamReadAvailable, GetStreamWriteAvailable);
+
+  return result;
 
 error:
-    if( winMmeHostApi )
-    {
-        if( winMmeHostApi->allocations )
-        {
-            PaUtil_FreeAllAllocations( winMmeHostApi->allocations );
-            PaUtil_DestroyAllocationGroup( winMmeHostApi->allocations );
-        }
-
-        PaUtil_FreeMemory( winMmeHostApi );
+  if (winMmeHostApi) {
+    if (winMmeHostApi->allocations) {
+      PaUtil_FreeAllAllocations(winMmeHostApi->allocations);
+      PaUtil_DestroyAllocationGroup(winMmeHostApi->allocations);
     }
 
-    return result;
+    PaUtil_FreeMemory(winMmeHostApi);
+  }
+
+  return result;
 }
 
+static void Terminate(struct PaUtilHostApiRepresentation* hostApi) {
+  PaWinMmeHostApiRepresentation* winMmeHostApi = (PaWinMmeHostApiRepresentation*)hostApi;
 
-static void Terminate( struct PaUtilHostApiRepresentation *hostApi )
-{
-    PaWinMmeHostApiRepresentation *winMmeHostApi = (PaWinMmeHostApiRepresentation*)hostApi;
+  if (winMmeHostApi->allocations) {
+    PaUtil_FreeAllAllocations(winMmeHostApi->allocations);
+    PaUtil_DestroyAllocationGroup(winMmeHostApi->allocations);
+  }
 
-    if( winMmeHostApi->allocations )
-    {
-        PaUtil_FreeAllAllocations( winMmeHostApi->allocations );
-        PaUtil_DestroyAllocationGroup( winMmeHostApi->allocations );
-    }
-
-    PaUtil_FreeMemory( winMmeHostApi );
+  PaUtil_FreeMemory(winMmeHostApi);
 }
 
+static PaError IsInputChannelCountSupported(PaWinMmeDeviceInfo* deviceInfo, int channelCount) {
+  PaError result = paNoError;
 
-static PaError IsInputChannelCountSupported( PaWinMmeDeviceInfo* deviceInfo, int channelCount )
-{
-    PaError result = paNoError;
+  if (channelCount > 0 && deviceInfo->deviceInputChannelCountIsKnown && channelCount > deviceInfo->inheritedDeviceInfo.maxInputChannels) {
 
-    if( channelCount > 0
-            && deviceInfo->deviceInputChannelCountIsKnown
-            && channelCount > deviceInfo->inheritedDeviceInfo.maxInputChannels ){
+    result = paInvalidChannelCount;
+  }
 
-        result = paInvalidChannelCount;
-    }
-
-    return result;
+  return result;
 }
 
-static PaError IsOutputChannelCountSupported( PaWinMmeDeviceInfo* deviceInfo, int channelCount )
-{
-    PaError result = paNoError;
+static PaError IsOutputChannelCountSupported(PaWinMmeDeviceInfo* deviceInfo, int channelCount) {
+  PaError result = paNoError;
 
-    if( channelCount > 0
-            && deviceInfo->deviceOutputChannelCountIsKnown
-            && channelCount > deviceInfo->inheritedDeviceInfo.maxOutputChannels ){
+  if (channelCount > 0 && deviceInfo->deviceOutputChannelCountIsKnown && channelCount > deviceInfo->inheritedDeviceInfo.maxOutputChannels) {
 
-        result = paInvalidChannelCount;
-    }
+    result = paInvalidChannelCount;
+  }
 
-    return result;
+  return result;
 }
 
-static PaError IsFormatSupported( struct PaUtilHostApiRepresentation *hostApi,
-                                  const PaStreamParameters *inputParameters,
-                                  const PaStreamParameters *outputParameters,
-                                  double sampleRate )
-{
-    PaWinMmeHostApiRepresentation *winMmeHostApi = (PaWinMmeHostApiRepresentation*)hostApi;
-    PaDeviceInfo *inputDeviceInfo, *outputDeviceInfo;
-    int inputChannelCount, outputChannelCount;
-    int inputMultipleDeviceChannelCount, outputMultipleDeviceChannelCount;
-    PaSampleFormat inputSampleFormat, outputSampleFormat;
-    PaWinMmeStreamInfo *inputStreamInfo, *outputStreamInfo;
-    UINT winMmeInputDeviceId, winMmeOutputDeviceId;
-    unsigned int i;
-    PaError paerror;
+static PaError IsFormatSupported(struct PaUtilHostApiRepresentation* hostApi,
+                                 const PaStreamParameters* inputParameters,
+                                 const PaStreamParameters* outputParameters,
+                                 double sampleRate) {
+  PaWinMmeHostApiRepresentation* winMmeHostApi = (PaWinMmeHostApiRepresentation*)hostApi;
+  PaDeviceInfo *inputDeviceInfo, *outputDeviceInfo;
+  int inputChannelCount, outputChannelCount;
+  int inputMultipleDeviceChannelCount, outputMultipleDeviceChannelCount;
+  PaSampleFormat inputSampleFormat, outputSampleFormat;
+  PaWinMmeStreamInfo *inputStreamInfo, *outputStreamInfo;
+  UINT winMmeInputDeviceId, winMmeOutputDeviceId;
+  unsigned int i;
+  PaError paerror;
 
-    /* The calls to QueryFormatSupported below are intended to detect invalid
+  /* The calls to QueryFormatSupported below are intended to detect invalid
         sample rates. If we assume that the channel count and format are OK,
         then the only thing that could fail is the sample rate. This isn't
         strictly true, but I can't think of a better way to test that the
         sample rate is valid.
     */
 
-    if( inputParameters )
-    {
-        inputChannelCount = inputParameters->channelCount;
-        inputSampleFormat = inputParameters->sampleFormat;
-        inputStreamInfo = inputParameters->hostApiSpecificStreamInfo;
+  if (inputParameters) {
+    inputChannelCount = inputParameters->channelCount;
+    inputSampleFormat = inputParameters->sampleFormat;
+    inputStreamInfo = inputParameters->hostApiSpecificStreamInfo;
 
-        /* all standard sample formats are supported by the buffer adapter,
+    /* all standard sample formats are supported by the buffer adapter,
              this implementation doesn't support any custom sample formats */
-        if( inputSampleFormat & paCustomFormat )
-            return paSampleFormatNotSupported;
+    if (inputSampleFormat & paCustomFormat)
+      return paSampleFormatNotSupported;
 
-        if( inputParameters->device == paUseHostApiSpecificDeviceSpecification
-                && inputStreamInfo && (inputStreamInfo->flags & paWinMmeUseMultipleDevices) )
-        {
-            inputMultipleDeviceChannelCount = 0;
-            for( i=0; i< inputStreamInfo->deviceCount; ++i )
-            {
-                inputMultipleDeviceChannelCount += inputStreamInfo->devices[i].channelCount;
+    if (inputParameters->device == paUseHostApiSpecificDeviceSpecification && inputStreamInfo && (inputStreamInfo->flags & paWinMmeUseMultipleDevices)) {
+      inputMultipleDeviceChannelCount = 0;
+      for (i = 0; i < inputStreamInfo->deviceCount; ++i) {
+        inputMultipleDeviceChannelCount += inputStreamInfo->devices[i].channelCount;
 
-                inputDeviceInfo = hostApi->deviceInfos[ inputStreamInfo->devices[i].device ];
+        inputDeviceInfo = hostApi->deviceInfos[inputStreamInfo->devices[i].device];
 
-                /* check that input device can support inputChannelCount */
-                if( inputStreamInfo->devices[i].channelCount < 1 )
-                    return paInvalidChannelCount;
+        /* check that input device can support inputChannelCount */
+        if (inputStreamInfo->devices[i].channelCount < 1)
+          return paInvalidChannelCount;
 
-                paerror = IsInputChannelCountSupported( (PaWinMmeDeviceInfo*)inputDeviceInfo,
-                        inputStreamInfo->devices[i].channelCount );
-                if( paerror != paNoError )
-                    return paerror;
+        paerror = IsInputChannelCountSupported((PaWinMmeDeviceInfo*)inputDeviceInfo,
+                                               inputStreamInfo->devices[i].channelCount);
+        if (paerror != paNoError)
+          return paerror;
 
-                /* test for valid sample rate, see comment above */
-                winMmeInputDeviceId = LocalDeviceIndexToWinMmeDeviceId( winMmeHostApi, inputStreamInfo->devices[i].device );
-                paerror = QueryFormatSupported( inputDeviceInfo, QueryInputWaveFormatEx,
-                        winMmeInputDeviceId, inputStreamInfo->devices[i].channelCount, sampleRate,
-                        ((inputStreamInfo) ? inputStreamInfo->flags : 0) );
-                if( paerror != paNoError )
-                    return paInvalidSampleRate;
-            }
+        /* test for valid sample rate, see comment above */
+        winMmeInputDeviceId = LocalDeviceIndexToWinMmeDeviceId(winMmeHostApi, inputStreamInfo->devices[i].device);
+        paerror = QueryFormatSupported(inputDeviceInfo, QueryInputWaveFormatEx, winMmeInputDeviceId, inputStreamInfo->devices[i].channelCount, sampleRate, ((inputStreamInfo) ? inputStreamInfo->flags : 0));
+        if (paerror != paNoError)
+          return paInvalidSampleRate;
+      }
 
-            if( inputMultipleDeviceChannelCount != inputChannelCount )
-                return paIncompatibleHostApiSpecificStreamInfo;
-        }
-        else
-        {
-            if( inputStreamInfo && (inputStreamInfo->flags & paWinMmeUseMultipleDevices) )
-                return paIncompatibleHostApiSpecificStreamInfo; /* paUseHostApiSpecificDeviceSpecification was not supplied as the input device */
+      if (inputMultipleDeviceChannelCount != inputChannelCount)
+        return paIncompatibleHostApiSpecificStreamInfo;
+    } else {
+      if (inputStreamInfo && (inputStreamInfo->flags & paWinMmeUseMultipleDevices))
+        return paIncompatibleHostApiSpecificStreamInfo; /* paUseHostApiSpecificDeviceSpecification was not supplied as the input device */
 
-            inputDeviceInfo = hostApi->deviceInfos[ inputParameters->device ];
+      inputDeviceInfo = hostApi->deviceInfos[inputParameters->device];
 
-            /* check that input device can support inputChannelCount */
-            paerror = IsInputChannelCountSupported( (PaWinMmeDeviceInfo*)inputDeviceInfo, inputChannelCount );
-            if( paerror != paNoError )
-                return paerror;
+      /* check that input device can support inputChannelCount */
+      paerror = IsInputChannelCountSupported((PaWinMmeDeviceInfo*)inputDeviceInfo, inputChannelCount);
+      if (paerror != paNoError)
+        return paerror;
 
-            /* test for valid sample rate, see comment above */
-            winMmeInputDeviceId = LocalDeviceIndexToWinMmeDeviceId( winMmeHostApi, inputParameters->device );
-            paerror = QueryFormatSupported( inputDeviceInfo, QueryInputWaveFormatEx,
-                    winMmeInputDeviceId, inputChannelCount, sampleRate,
-                    ((inputStreamInfo) ? inputStreamInfo->flags : 0) );
-            if( paerror != paNoError )
-                return paInvalidSampleRate;
-        }
+      /* test for valid sample rate, see comment above */
+      winMmeInputDeviceId = LocalDeviceIndexToWinMmeDeviceId(winMmeHostApi, inputParameters->device);
+      paerror = QueryFormatSupported(inputDeviceInfo, QueryInputWaveFormatEx, winMmeInputDeviceId, inputChannelCount, sampleRate, ((inputStreamInfo) ? inputStreamInfo->flags : 0));
+      if (paerror != paNoError)
+        return paInvalidSampleRate;
     }
+  }
 
-    if( outputParameters )
-    {
-        outputChannelCount = outputParameters->channelCount;
-        outputSampleFormat = outputParameters->sampleFormat;
-        outputStreamInfo = outputParameters->hostApiSpecificStreamInfo;
+  if (outputParameters) {
+    outputChannelCount = outputParameters->channelCount;
+    outputSampleFormat = outputParameters->sampleFormat;
+    outputStreamInfo = outputParameters->hostApiSpecificStreamInfo;
 
-        /* all standard sample formats are supported by the buffer adapter,
+    /* all standard sample formats are supported by the buffer adapter,
             this implementation doesn't support any custom sample formats */
-        if( outputSampleFormat & paCustomFormat )
-            return paSampleFormatNotSupported;
+    if (outputSampleFormat & paCustomFormat)
+      return paSampleFormatNotSupported;
 
-        if( outputParameters->device == paUseHostApiSpecificDeviceSpecification
-                && outputStreamInfo && (outputStreamInfo->flags & paWinMmeUseMultipleDevices) )
-        {
-            outputMultipleDeviceChannelCount = 0;
-            for( i=0; i< outputStreamInfo->deviceCount; ++i )
-            {
-                outputMultipleDeviceChannelCount += outputStreamInfo->devices[i].channelCount;
+    if (outputParameters->device == paUseHostApiSpecificDeviceSpecification && outputStreamInfo && (outputStreamInfo->flags & paWinMmeUseMultipleDevices)) {
+      outputMultipleDeviceChannelCount = 0;
+      for (i = 0; i < outputStreamInfo->deviceCount; ++i) {
+        outputMultipleDeviceChannelCount += outputStreamInfo->devices[i].channelCount;
 
-                outputDeviceInfo = hostApi->deviceInfos[ outputStreamInfo->devices[i].device ];
+        outputDeviceInfo = hostApi->deviceInfos[outputStreamInfo->devices[i].device];
 
-                /* check that output device can support outputChannelCount */
-                if( outputStreamInfo->devices[i].channelCount < 1 )
-                    return paInvalidChannelCount;
+        /* check that output device can support outputChannelCount */
+        if (outputStreamInfo->devices[i].channelCount < 1)
+          return paInvalidChannelCount;
 
-                paerror = IsOutputChannelCountSupported( (PaWinMmeDeviceInfo*)outputDeviceInfo,
-                        outputStreamInfo->devices[i].channelCount );
-                if( paerror != paNoError )
-                    return paerror;
+        paerror = IsOutputChannelCountSupported((PaWinMmeDeviceInfo*)outputDeviceInfo,
+                                                outputStreamInfo->devices[i].channelCount);
+        if (paerror != paNoError)
+          return paerror;
 
-                /* test for valid sample rate, see comment above */
-                winMmeOutputDeviceId = LocalDeviceIndexToWinMmeDeviceId( winMmeHostApi, outputStreamInfo->devices[i].device );
-                paerror = QueryFormatSupported( outputDeviceInfo, QueryOutputWaveFormatEx,
-                        winMmeOutputDeviceId, outputStreamInfo->devices[i].channelCount, sampleRate,
-                        ((outputStreamInfo) ? outputStreamInfo->flags : 0) );
-                if( paerror != paNoError )
-                    return paInvalidSampleRate;
-            }
+        /* test for valid sample rate, see comment above */
+        winMmeOutputDeviceId = LocalDeviceIndexToWinMmeDeviceId(winMmeHostApi, outputStreamInfo->devices[i].device);
+        paerror = QueryFormatSupported(outputDeviceInfo, QueryOutputWaveFormatEx, winMmeOutputDeviceId, outputStreamInfo->devices[i].channelCount, sampleRate, ((outputStreamInfo) ? outputStreamInfo->flags : 0));
+        if (paerror != paNoError)
+          return paInvalidSampleRate;
+      }
 
-            if( outputMultipleDeviceChannelCount != outputChannelCount )
-                return paIncompatibleHostApiSpecificStreamInfo;
-        }
-        else
-        {
-            if( outputStreamInfo && (outputStreamInfo->flags & paWinMmeUseMultipleDevices) )
-                return paIncompatibleHostApiSpecificStreamInfo; /* paUseHostApiSpecificDeviceSpecification was not supplied as the output device */
+      if (outputMultipleDeviceChannelCount != outputChannelCount)
+        return paIncompatibleHostApiSpecificStreamInfo;
+    } else {
+      if (outputStreamInfo && (outputStreamInfo->flags & paWinMmeUseMultipleDevices))
+        return paIncompatibleHostApiSpecificStreamInfo; /* paUseHostApiSpecificDeviceSpecification was not supplied as the output device */
 
-            outputDeviceInfo = hostApi->deviceInfos[ outputParameters->device ];
+      outputDeviceInfo = hostApi->deviceInfos[outputParameters->device];
 
-            /* check that output device can support outputChannelCount */
-            paerror = IsOutputChannelCountSupported( (PaWinMmeDeviceInfo*)outputDeviceInfo, outputChannelCount );
-            if( paerror != paNoError )
-                return paerror;
+      /* check that output device can support outputChannelCount */
+      paerror = IsOutputChannelCountSupported((PaWinMmeDeviceInfo*)outputDeviceInfo, outputChannelCount);
+      if (paerror != paNoError)
+        return paerror;
 
-            /* test for valid sample rate, see comment above */
-            winMmeOutputDeviceId = LocalDeviceIndexToWinMmeDeviceId( winMmeHostApi, outputParameters->device );
-            paerror = QueryFormatSupported( outputDeviceInfo, QueryOutputWaveFormatEx,
-                    winMmeOutputDeviceId, outputChannelCount, sampleRate,
-                    ((outputStreamInfo) ? outputStreamInfo->flags : 0) );
-            if( paerror != paNoError )
-                return paInvalidSampleRate;
-        }
+      /* test for valid sample rate, see comment above */
+      winMmeOutputDeviceId = LocalDeviceIndexToWinMmeDeviceId(winMmeHostApi, outputParameters->device);
+      paerror = QueryFormatSupported(outputDeviceInfo, QueryOutputWaveFormatEx, winMmeOutputDeviceId, outputChannelCount, sampleRate, ((outputStreamInfo) ? outputStreamInfo->flags : 0));
+      if (paerror != paNoError)
+        return paInvalidSampleRate;
     }
+  }
 
-    /*
+  /*
         - if a full duplex stream is requested, check that the combination
             of input and output parameters is supported
 
@@ -1366,128 +1214,115 @@ static PaError IsFormatSupported( struct PaUtilHostApiRepresentation *hostApi,
         cannot test for full duplex compatibility.
     */
 
-    return paFormatIsSupported;
+  return paFormatIsSupported;
 }
 
-
 static unsigned long ComputeHostBufferCountForFixedBufferSizeFrames(
-        unsigned long suggestedLatencyFrames,
-        unsigned long hostBufferSizeFrames,
-        unsigned long minimumBufferCount )
-{
-    /* Calculate the number of buffers of length hostFramesPerBuffer
+    unsigned long suggestedLatencyFrames,
+    unsigned long hostBufferSizeFrames,
+    unsigned long minimumBufferCount) {
+  /* Calculate the number of buffers of length hostFramesPerBuffer
        that fit in suggestedLatencyFrames, rounding up to the next integer.
 
        The value (hostBufferSizeFrames - 1) below is to ensure the buffer count is rounded up.
     */
-    unsigned long resultBufferCount = ((suggestedLatencyFrames + (hostBufferSizeFrames - 1)) / hostBufferSizeFrames);
+  unsigned long resultBufferCount = ((suggestedLatencyFrames + (hostBufferSizeFrames - 1)) / hostBufferSizeFrames);
 
-    /* We always need one extra buffer for processing while the rest are queued/playing.
+  /* We always need one extra buffer for processing while the rest are queued/playing.
        i.e. latency is framesPerBuffer * (bufferCount - 1)
     */
-    resultBufferCount += 1;
+  resultBufferCount += 1;
 
-    if( resultBufferCount < minimumBufferCount ) /* clamp to minimum buffer count */
-        resultBufferCount = minimumBufferCount;
+  if (resultBufferCount < minimumBufferCount) /* clamp to minimum buffer count */
+    resultBufferCount = minimumBufferCount;
 
-    return resultBufferCount;
+  return resultBufferCount;
 }
-
 
 static unsigned long ComputeHostBufferSizeGivenHardUpperLimit(
-        unsigned long userFramesPerBuffer,
-        unsigned long absoluteMaximumBufferSizeFrames )
-{
-    static unsigned long primes_[] = { 2, 3, 5, 7, 11, 13, 17, 19, 23,
-            29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 0 }; /* zero terminated */
+    unsigned long userFramesPerBuffer,
+    unsigned long absoluteMaximumBufferSizeFrames) {
+  static unsigned long primes_[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 0}; /* zero terminated */
 
-    unsigned long result = userFramesPerBuffer;
-    int i;
+  unsigned long result = userFramesPerBuffer;
+  int i;
 
-    assert( absoluteMaximumBufferSizeFrames > 67 ); /* assume maximum is large and we're only factoring by small primes */
+  assert(absoluteMaximumBufferSizeFrames > 67); /* assume maximum is large and we're only factoring by small primes */
 
-    /* search for the largest integer factor of userFramesPerBuffer less
+  /* search for the largest integer factor of userFramesPerBuffer less
        than or equal to absoluteMaximumBufferSizeFrames */
 
-    /* repeatedly divide by smallest prime factors until a buffer size
+  /* repeatedly divide by smallest prime factors until a buffer size
        smaller than absoluteMaximumBufferSizeFrames is found */
-    while( result > absoluteMaximumBufferSizeFrames ){
+  while (result > absoluteMaximumBufferSizeFrames) {
 
-        /* search for the smallest prime factor of result */
-        for( i=0; primes_[i] != 0; ++i )
-        {
-            unsigned long p = primes_[i];
-            unsigned long divided = result / p;
-            if( divided*p == result )
-            {
-                result = divided;
-                break; /* continue with outer while loop */
-            }
-        }
-        if( primes_[i] == 0 )
-        { /* loop failed to find a prime factor, return an approximate result */
-            unsigned long d = (userFramesPerBuffer + (absoluteMaximumBufferSizeFrames-1))
-                    / absoluteMaximumBufferSizeFrames;
-            return userFramesPerBuffer / d;
-        }
+    /* search for the smallest prime factor of result */
+    for (i = 0; primes_[i] != 0; ++i) {
+      unsigned long p = primes_[i];
+      unsigned long divided = result / p;
+      if (divided * p == result) {
+        result = divided;
+        break; /* continue with outer while loop */
+      }
     }
+    if (primes_[i] == 0) { /* loop failed to find a prime factor, return an approximate result */
+      unsigned long d = (userFramesPerBuffer + (absoluteMaximumBufferSizeFrames - 1)) / absoluteMaximumBufferSizeFrames;
+      return userFramesPerBuffer / d;
+    }
+  }
 
-    return result;
+  return result;
 }
 
-
 static PaError SelectHostBufferSizeFramesAndHostBufferCount(
-        unsigned long suggestedLatencyFrames,
-        unsigned long userFramesPerBuffer,
-        unsigned long minimumBufferCount,
-        unsigned long preferredMaximumBufferSizeFrames, /* try not to exceed this. for example, don't exceed when coalescing buffers */
-        unsigned long absoluteMaximumBufferSizeFrames,  /* never exceed this, a hard limit */
-        unsigned long *hostBufferSizeFrames,
-        unsigned long *hostBufferCount )
-{
-    unsigned long effectiveUserFramesPerBuffer;
-    unsigned long numberOfUserBuffersPerHostBuffer;
+    unsigned long suggestedLatencyFrames,
+    unsigned long userFramesPerBuffer,
+    unsigned long minimumBufferCount,
+    unsigned long preferredMaximumBufferSizeFrames, /* try not to exceed this. for example, don't exceed when coalescing buffers */
+    unsigned long absoluteMaximumBufferSizeFrames, /* never exceed this, a hard limit */
+    unsigned long* hostBufferSizeFrames,
+    unsigned long* hostBufferCount) {
+  unsigned long effectiveUserFramesPerBuffer;
+  unsigned long numberOfUserBuffersPerHostBuffer;
 
+  if (userFramesPerBuffer == paFramesPerBufferUnspecified) {
 
-    if( userFramesPerBuffer == paFramesPerBufferUnspecified ){
+    effectiveUserFramesPerBuffer = PA_MME_HOST_BUFFER_GRANULARITY_FRAMES_WHEN_UNSPECIFIED_;
 
-        effectiveUserFramesPerBuffer = PA_MME_HOST_BUFFER_GRANULARITY_FRAMES_WHEN_UNSPECIFIED_;
+  } else {
 
-    }else{
+    if (userFramesPerBuffer > absoluteMaximumBufferSizeFrames) {
 
-        if( userFramesPerBuffer > absoluteMaximumBufferSizeFrames ){
-
-            /* user has requested a user buffer that's larger than absoluteMaximumBufferSizeFrames.
+      /* user has requested a user buffer that's larger than absoluteMaximumBufferSizeFrames.
                try to choose a buffer size that is equal or smaller than absoluteMaximumBufferSizeFrames
                but is also an integer factor of userFramesPerBuffer, so as to distribute computation evenly.
                the buffer processor will handle the block adaption between host and user buffer sizes.
                see http://www.portaudio.com/trac/ticket/189 for discussion.
             */
 
-            effectiveUserFramesPerBuffer = ComputeHostBufferSizeGivenHardUpperLimit( userFramesPerBuffer, absoluteMaximumBufferSizeFrames );
-            assert( effectiveUserFramesPerBuffer <= absoluteMaximumBufferSizeFrames );
+      effectiveUserFramesPerBuffer = ComputeHostBufferSizeGivenHardUpperLimit(userFramesPerBuffer, absoluteMaximumBufferSizeFrames);
+      assert(effectiveUserFramesPerBuffer <= absoluteMaximumBufferSizeFrames);
 
-            /* try to ensure that duration of host buffering is at least as
+      /* try to ensure that duration of host buffering is at least as
                 large as duration of user buffer. */
-            if( suggestedLatencyFrames < userFramesPerBuffer )
-                suggestedLatencyFrames = userFramesPerBuffer;
+      if (suggestedLatencyFrames < userFramesPerBuffer)
+        suggestedLatencyFrames = userFramesPerBuffer;
 
-        }else{
+    } else {
 
-            effectiveUserFramesPerBuffer = userFramesPerBuffer;
-        }
+      effectiveUserFramesPerBuffer = userFramesPerBuffer;
     }
+  }
 
-    /* compute a host buffer count based on suggestedLatencyFrames and our granularity */
+  /* compute a host buffer count based on suggestedLatencyFrames and our granularity */
 
-    *hostBufferSizeFrames = effectiveUserFramesPerBuffer;
+  *hostBufferSizeFrames = effectiveUserFramesPerBuffer;
 
-    *hostBufferCount = ComputeHostBufferCountForFixedBufferSizeFrames(
-            suggestedLatencyFrames, *hostBufferSizeFrames, minimumBufferCount );
+  *hostBufferCount = ComputeHostBufferCountForFixedBufferSizeFrames(
+      suggestedLatencyFrames, *hostBufferSizeFrames, minimumBufferCount);
 
-    if( *hostBufferSizeFrames >= userFramesPerBuffer )
-    {
-        /*
+  if (*hostBufferSizeFrames >= userFramesPerBuffer) {
+    /*
             If there are too many host buffers we would like to coalesce
             them by packing an integer number of user buffers into each host buffer.
             We try to coalesce such that hostBufferCount will lie between
@@ -1502,64 +1337,58 @@ static PaError SelectHostBufferSizeFramesAndHostBufferCount(
 
             The + (PA_MME_TARGET_HOST_BUFFER_COUNT_-2) term below is intended to round up.
         */
-        numberOfUserBuffersPerHostBuffer = ((*hostBufferCount - 1) + (PA_MME_TARGET_HOST_BUFFER_COUNT_-2)) / (PA_MME_TARGET_HOST_BUFFER_COUNT_ - 1);
+    numberOfUserBuffersPerHostBuffer = ((*hostBufferCount - 1) + (PA_MME_TARGET_HOST_BUFFER_COUNT_ - 2)) / (PA_MME_TARGET_HOST_BUFFER_COUNT_ - 1);
 
-        if( numberOfUserBuffersPerHostBuffer > 1 )
-        {
-            unsigned long maxCoalescedBufferSizeFrames = (absoluteMaximumBufferSizeFrames < preferredMaximumBufferSizeFrames) /* minimum of our limits */
-                            ? absoluteMaximumBufferSizeFrames
-                            : preferredMaximumBufferSizeFrames;
+    if (numberOfUserBuffersPerHostBuffer > 1) {
+      unsigned long maxCoalescedBufferSizeFrames = (absoluteMaximumBufferSizeFrames < preferredMaximumBufferSizeFrames) /* minimum of our limits */
+                                                       ?
+                                                       absoluteMaximumBufferSizeFrames :
+                                                       preferredMaximumBufferSizeFrames;
 
-            unsigned long maxUserBuffersPerHostBuffer = maxCoalescedBufferSizeFrames / effectiveUserFramesPerBuffer; /* don't coalesce more than this */
+      unsigned long maxUserBuffersPerHostBuffer = maxCoalescedBufferSizeFrames / effectiveUserFramesPerBuffer; /* don't coalesce more than this */
 
-            if( numberOfUserBuffersPerHostBuffer > maxUserBuffersPerHostBuffer )
-                numberOfUserBuffersPerHostBuffer = maxUserBuffersPerHostBuffer;
+      if (numberOfUserBuffersPerHostBuffer > maxUserBuffersPerHostBuffer)
+        numberOfUserBuffersPerHostBuffer = maxUserBuffersPerHostBuffer;
 
-            *hostBufferSizeFrames = effectiveUserFramesPerBuffer * numberOfUserBuffersPerHostBuffer;
+      *hostBufferSizeFrames = effectiveUserFramesPerBuffer * numberOfUserBuffersPerHostBuffer;
 
-            /* recompute hostBufferCount to approximate suggestedLatencyFrames now that hostBufferSizeFrames is larger */
-            *hostBufferCount = ComputeHostBufferCountForFixedBufferSizeFrames(
-                    suggestedLatencyFrames, *hostBufferSizeFrames, minimumBufferCount );
-        }
+      /* recompute hostBufferCount to approximate suggestedLatencyFrames now that hostBufferSizeFrames is larger */
+      *hostBufferCount = ComputeHostBufferCountForFixedBufferSizeFrames(
+          suggestedLatencyFrames, *hostBufferSizeFrames, minimumBufferCount);
     }
+  }
 
-    return paNoError;
+  return paNoError;
 }
 
-
 static PaError CalculateMaxHostSampleFrameSizeBytes(
-        int channelCount,
-        PaSampleFormat hostSampleFormat,
-        const PaWinMmeStreamInfo *streamInfo,
-        int *hostSampleFrameSizeBytes )
-{
-    unsigned int i;
-    /* PA WMME streams may aggregate multiple WMME devices. When the stream addresses
+    int channelCount,
+    PaSampleFormat hostSampleFormat,
+    const PaWinMmeStreamInfo* streamInfo,
+    int* hostSampleFrameSizeBytes) {
+  unsigned int i;
+  /* PA WMME streams may aggregate multiple WMME devices. When the stream addresses
        more than one device in a single direction, maxDeviceChannelCount is the maximum
        number of channels used by a single device.
     */
-    int maxDeviceChannelCount = channelCount;
-    int hostSampleSizeBytes = Pa_GetSampleSize( hostSampleFormat );
-    if( hostSampleSizeBytes < 0 )
-    {
-        return hostSampleSizeBytes; /* the value of hostSampleSize here is an error code, not a sample size */
+  int maxDeviceChannelCount = channelCount;
+  int hostSampleSizeBytes = Pa_GetSampleSize(hostSampleFormat);
+  if (hostSampleSizeBytes < 0) {
+    return hostSampleSizeBytes; /* the value of hostSampleSize here is an error code, not a sample size */
+  }
+
+  if (streamInfo && (streamInfo->flags & paWinMmeUseMultipleDevices)) {
+    maxDeviceChannelCount = streamInfo->devices[0].channelCount;
+    for (i = 1; i < streamInfo->deviceCount; ++i) {
+      if (streamInfo->devices[i].channelCount > maxDeviceChannelCount)
+        maxDeviceChannelCount = streamInfo->devices[i].channelCount;
     }
+  }
 
-    if( streamInfo && ( streamInfo->flags & paWinMmeUseMultipleDevices ) )
-    {
-        maxDeviceChannelCount = streamInfo->devices[0].channelCount;
-        for( i=1; i< streamInfo->deviceCount; ++i )
-        {
-            if( streamInfo->devices[i].channelCount > maxDeviceChannelCount )
-                maxDeviceChannelCount = streamInfo->devices[i].channelCount;
-        }
-    }
+  *hostSampleFrameSizeBytes = hostSampleSizeBytes * maxDeviceChannelCount;
 
-    *hostSampleFrameSizeBytes = hostSampleSizeBytes * maxDeviceChannelCount;
-
-    return paNoError;
+  return paNoError;
 }
-
 
 /* CalculateBufferSettings() fills the framesPerHostInputBuffer, hostInputBufferCount,
    framesPerHostOutputBuffer and hostOutputBufferCount parameters based on the values
@@ -1567,1288 +1396,1106 @@ static PaError CalculateMaxHostSampleFrameSizeBytes(
 */
 
 static PaError CalculateBufferSettings(
-        unsigned long *hostFramesPerInputBuffer, unsigned long *hostInputBufferCount,
-        unsigned long *hostFramesPerOutputBuffer, unsigned long *hostOutputBufferCount,
-        int inputChannelCount, PaSampleFormat hostInputSampleFormat,
-        PaTime suggestedInputLatency, const PaWinMmeStreamInfo *inputStreamInfo,
-        int outputChannelCount, PaSampleFormat hostOutputSampleFormat,
-        PaTime suggestedOutputLatency, const PaWinMmeStreamInfo *outputStreamInfo,
-        double sampleRate, unsigned long userFramesPerBuffer )
-{
-    PaError result = paNoError;
+    unsigned long* hostFramesPerInputBuffer, unsigned long* hostInputBufferCount,
+    unsigned long* hostFramesPerOutputBuffer, unsigned long* hostOutputBufferCount,
+    int inputChannelCount, PaSampleFormat hostInputSampleFormat,
+    PaTime suggestedInputLatency, const PaWinMmeStreamInfo* inputStreamInfo,
+    int outputChannelCount, PaSampleFormat hostOutputSampleFormat,
+    PaTime suggestedOutputLatency, const PaWinMmeStreamInfo* outputStreamInfo,
+    double sampleRate, unsigned long userFramesPerBuffer) {
+  PaError result = paNoError;
 
-    if( inputChannelCount > 0 ) /* stream has input */
-    {
-        int hostInputFrameSizeBytes;
-        result = CalculateMaxHostSampleFrameSizeBytes(
-                inputChannelCount, hostInputSampleFormat, inputStreamInfo, &hostInputFrameSizeBytes );
-        if( result != paNoError )
-            goto error;
+  if (inputChannelCount > 0) /* stream has input */
+  {
+    int hostInputFrameSizeBytes;
+    result = CalculateMaxHostSampleFrameSizeBytes(
+        inputChannelCount, hostInputSampleFormat, inputStreamInfo, &hostInputFrameSizeBytes);
+    if (result != paNoError)
+      goto error;
 
-        if( inputStreamInfo
-                && ( inputStreamInfo->flags & paWinMmeUseLowLevelLatencyParameters ) )
-        {
-            /* input - using low level latency parameters if provided */
+    if (inputStreamInfo && (inputStreamInfo->flags & paWinMmeUseLowLevelLatencyParameters)) {
+      /* input - using low level latency parameters if provided */
 
-            if( inputStreamInfo->bufferCount <= 0
-                    || inputStreamInfo->framesPerBuffer <= 0 )
-            {
-                result = paIncompatibleHostApiSpecificStreamInfo;
-                goto error;
-            }
+      if (inputStreamInfo->bufferCount <= 0 || inputStreamInfo->framesPerBuffer <= 0) {
+        result = paIncompatibleHostApiSpecificStreamInfo;
+        goto error;
+      }
 
-            *hostFramesPerInputBuffer = inputStreamInfo->framesPerBuffer;
-            *hostInputBufferCount = inputStreamInfo->bufferCount;
-        }
-        else
-        {
-            /* input - not using low level latency parameters, so compute
+      *hostFramesPerInputBuffer = inputStreamInfo->framesPerBuffer;
+      *hostInputBufferCount = inputStreamInfo->bufferCount;
+    } else {
+      /* input - not using low level latency parameters, so compute
                hostFramesPerInputBuffer and hostInputBufferCount
                based on userFramesPerBuffer and suggestedInputLatency. */
 
-            unsigned long minimumBufferCount = (outputChannelCount > 0)
-                    ? PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_FULL_DUPLEX_
-                    : PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_HALF_DUPLEX_;
+      unsigned long minimumBufferCount = (outputChannelCount > 0) ? PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_FULL_DUPLEX_ : PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_HALF_DUPLEX_;
 
-            result = SelectHostBufferSizeFramesAndHostBufferCount(
-                    (unsigned long)(suggestedInputLatency * sampleRate), /* (truncate) */
-                    userFramesPerBuffer,
-                    minimumBufferCount,
-                    (unsigned long)(PA_MME_MAX_HOST_BUFFER_SECS_ * sampleRate), /* in frames. preferred maximum */
-                    (PA_MME_MAX_HOST_BUFFER_BYTES_ / hostInputFrameSizeBytes),  /* in frames. a hard limit. note truncation due to
+      result = SelectHostBufferSizeFramesAndHostBufferCount(
+          (unsigned long)(suggestedInputLatency * sampleRate), /* (truncate) */
+          userFramesPerBuffer,
+          minimumBufferCount,
+          (unsigned long)(PA_MME_MAX_HOST_BUFFER_SECS_ * sampleRate), /* in frames. preferred maximum */
+          (PA_MME_MAX_HOST_BUFFER_BYTES_ / hostInputFrameSizeBytes), /* in frames. a hard limit. note truncation due to
                                                                                 division is intentional here to limit max bytes */
-                    hostFramesPerInputBuffer,
-                    hostInputBufferCount );
-            if( result != paNoError )
-                goto error;
-        }
+          hostFramesPerInputBuffer,
+          hostInputBufferCount);
+      if (result != paNoError)
+        goto error;
     }
-    else
-    {
-        *hostFramesPerInputBuffer = 0;
-        *hostInputBufferCount = 0;
-    }
+  } else {
+    *hostFramesPerInputBuffer = 0;
+    *hostInputBufferCount = 0;
+  }
 
-    if( outputChannelCount > 0 ) /* stream has output */
-    {
-        if( outputStreamInfo
-                && ( outputStreamInfo->flags & paWinMmeUseLowLevelLatencyParameters ) )
-        {
-            /* output - using low level latency parameters */
+  if (outputChannelCount > 0) /* stream has output */
+  {
+    if (outputStreamInfo && (outputStreamInfo->flags & paWinMmeUseLowLevelLatencyParameters)) {
+      /* output - using low level latency parameters */
 
-            if( outputStreamInfo->bufferCount <= 0
-                    || outputStreamInfo->framesPerBuffer <= 0 )
-            {
-                result = paIncompatibleHostApiSpecificStreamInfo;
-                goto error;
-            }
+      if (outputStreamInfo->bufferCount <= 0 || outputStreamInfo->framesPerBuffer <= 0) {
+        result = paIncompatibleHostApiSpecificStreamInfo;
+        goto error;
+      }
 
-            *hostFramesPerOutputBuffer = outputStreamInfo->framesPerBuffer;
-            *hostOutputBufferCount = outputStreamInfo->bufferCount;
+      *hostFramesPerOutputBuffer = outputStreamInfo->framesPerBuffer;
+      *hostOutputBufferCount = outputStreamInfo->bufferCount;
 
-            if( inputChannelCount > 0 ) /* full duplex */
-            {
-                /* harmonize hostFramesPerInputBuffer and hostFramesPerOutputBuffer */
+      if (inputChannelCount > 0) /* full duplex */
+      {
+        /* harmonize hostFramesPerInputBuffer and hostFramesPerOutputBuffer */
 
-                if( *hostFramesPerInputBuffer != *hostFramesPerOutputBuffer )
-                {
-                    if( inputStreamInfo
-                            && ( inputStreamInfo->flags & paWinMmeUseLowLevelLatencyParameters ) )
-                    {
-                        /* a custom StreamInfo was used for specifying both input
+        if (*hostFramesPerInputBuffer != *hostFramesPerOutputBuffer) {
+          if (inputStreamInfo && (inputStreamInfo->flags & paWinMmeUseLowLevelLatencyParameters)) {
+            /* a custom StreamInfo was used for specifying both input
                             and output buffer sizes. We require that the larger buffer size
                             must be a multiple of the smaller buffer size */
 
-                        if( *hostFramesPerInputBuffer < *hostFramesPerOutputBuffer )
-                        {
-                            if( *hostFramesPerOutputBuffer % *hostFramesPerInputBuffer != 0 )
-                            {
-                                result = paIncompatibleHostApiSpecificStreamInfo;
-                                goto error;
-                            }
-                        }
-                        else
-                        {
-                            assert( *hostFramesPerInputBuffer > *hostFramesPerOutputBuffer );
-                            if( *hostFramesPerInputBuffer % *hostFramesPerOutputBuffer != 0 )
-                            {
-                                result = paIncompatibleHostApiSpecificStreamInfo;
-                                goto error;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        /* a custom StreamInfo was not used for specifying the input buffer size,
+            if (*hostFramesPerInputBuffer < *hostFramesPerOutputBuffer) {
+              if (*hostFramesPerOutputBuffer % *hostFramesPerInputBuffer != 0) {
+                result = paIncompatibleHostApiSpecificStreamInfo;
+                goto error;
+              }
+            } else {
+              assert(*hostFramesPerInputBuffer > *hostFramesPerOutputBuffer);
+              if (*hostFramesPerInputBuffer % *hostFramesPerOutputBuffer != 0) {
+                result = paIncompatibleHostApiSpecificStreamInfo;
+                goto error;
+              }
+            }
+          } else {
+            /* a custom StreamInfo was not used for specifying the input buffer size,
                             so use the output buffer size, and approximately the suggested input latency. */
 
-                        *hostFramesPerInputBuffer = *hostFramesPerOutputBuffer;
+            *hostFramesPerInputBuffer = *hostFramesPerOutputBuffer;
 
-                        *hostInputBufferCount = ComputeHostBufferCountForFixedBufferSizeFrames(
-                                (unsigned long)(suggestedInputLatency * sampleRate),
-                                *hostFramesPerInputBuffer,
-                                PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_FULL_DUPLEX_ );
-                    }
-                }
-            }
+            *hostInputBufferCount = ComputeHostBufferCountForFixedBufferSizeFrames(
+                (unsigned long)(suggestedInputLatency * sampleRate),
+                *hostFramesPerInputBuffer,
+                PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_FULL_DUPLEX_);
+          }
         }
-        else
-        {
-            /* output - no low level latency parameters, so compute hostFramesPerOutputBuffer and hostOutputBufferCount
+      }
+    } else {
+      /* output - no low level latency parameters, so compute hostFramesPerOutputBuffer and hostOutputBufferCount
                 based on userFramesPerBuffer and suggestedOutputLatency. */
 
-            int hostOutputFrameSizeBytes;
-            result = CalculateMaxHostSampleFrameSizeBytes(
-                    outputChannelCount, hostOutputSampleFormat, outputStreamInfo, &hostOutputFrameSizeBytes );
-            if( result != paNoError )
-                goto error;
+      int hostOutputFrameSizeBytes;
+      result = CalculateMaxHostSampleFrameSizeBytes(
+          outputChannelCount, hostOutputSampleFormat, outputStreamInfo, &hostOutputFrameSizeBytes);
+      if (result != paNoError)
+        goto error;
 
-            /* compute the output buffer size and count */
+      /* compute the output buffer size and count */
 
-            result = SelectHostBufferSizeFramesAndHostBufferCount(
-                    (unsigned long)(suggestedOutputLatency * sampleRate), /* (truncate) */
-                    userFramesPerBuffer,
-                    PA_MME_MIN_HOST_OUTPUT_BUFFER_COUNT_,
-                    (unsigned long)(PA_MME_MAX_HOST_BUFFER_SECS_ * sampleRate), /* in frames. preferred maximum */
-                    (PA_MME_MAX_HOST_BUFFER_BYTES_ / hostOutputFrameSizeBytes), /* in frames. a hard limit. note truncation due to
+      result = SelectHostBufferSizeFramesAndHostBufferCount(
+          (unsigned long)(suggestedOutputLatency * sampleRate), /* (truncate) */
+          userFramesPerBuffer,
+          PA_MME_MIN_HOST_OUTPUT_BUFFER_COUNT_,
+          (unsigned long)(PA_MME_MAX_HOST_BUFFER_SECS_ * sampleRate), /* in frames. preferred maximum */
+          (PA_MME_MAX_HOST_BUFFER_BYTES_ / hostOutputFrameSizeBytes), /* in frames. a hard limit. note truncation due to
                                                                                  division is intentional here to limit max bytes */
-                    hostFramesPerOutputBuffer,
-                    hostOutputBufferCount );
-            if( result != paNoError )
-                goto error;
+          hostFramesPerOutputBuffer,
+          hostOutputBufferCount);
+      if (result != paNoError)
+        goto error;
 
-            if( inputChannelCount > 0 ) /* full duplex */
-            {
-                /* harmonize hostFramesPerInputBuffer and hostFramesPerOutputBuffer */
+      if (inputChannelCount > 0) /* full duplex */
+      {
+        /* harmonize hostFramesPerInputBuffer and hostFramesPerOutputBuffer */
 
-                /* ensure that both input and output buffer sizes are the same.
+        /* ensure that both input and output buffer sizes are the same.
                     if they don't match at this stage, choose the smallest one
                     and use that for input and output and recompute the corresponding
                     buffer count accordingly.
                 */
 
-                if( *hostFramesPerOutputBuffer != *hostFramesPerInputBuffer )
-                {
-                    if( hostFramesPerInputBuffer < hostFramesPerOutputBuffer )
-                    {
-                        *hostFramesPerOutputBuffer = *hostFramesPerInputBuffer;
+        if (*hostFramesPerOutputBuffer != *hostFramesPerInputBuffer) {
+          if (hostFramesPerInputBuffer < hostFramesPerOutputBuffer) {
+            *hostFramesPerOutputBuffer = *hostFramesPerInputBuffer;
 
-                        *hostOutputBufferCount = ComputeHostBufferCountForFixedBufferSizeFrames(
-                                (unsigned long)(suggestedOutputLatency * sampleRate),
-                                *hostOutputBufferCount,
-                                PA_MME_MIN_HOST_OUTPUT_BUFFER_COUNT_ );
-                    }
-                    else
-                    {
-                        *hostFramesPerInputBuffer = *hostFramesPerOutputBuffer;
+            *hostOutputBufferCount = ComputeHostBufferCountForFixedBufferSizeFrames(
+                (unsigned long)(suggestedOutputLatency * sampleRate),
+                *hostOutputBufferCount,
+                PA_MME_MIN_HOST_OUTPUT_BUFFER_COUNT_);
+          } else {
+            *hostFramesPerInputBuffer = *hostFramesPerOutputBuffer;
 
-                        *hostInputBufferCount = ComputeHostBufferCountForFixedBufferSizeFrames(
-                                (unsigned long)(suggestedInputLatency * sampleRate),
-                                *hostFramesPerInputBuffer,
-                                PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_FULL_DUPLEX_ );
-                    }
-                }
-            }
+            *hostInputBufferCount = ComputeHostBufferCountForFixedBufferSizeFrames(
+                (unsigned long)(suggestedInputLatency * sampleRate),
+                *hostFramesPerInputBuffer,
+                PA_MME_MIN_HOST_INPUT_BUFFER_COUNT_FULL_DUPLEX_);
+          }
         }
+      }
     }
-    else
-    {
-        *hostFramesPerOutputBuffer = 0;
-        *hostOutputBufferCount = 0;
-    }
+  } else {
+    *hostFramesPerOutputBuffer = 0;
+    *hostOutputBufferCount = 0;
+  }
 
 error:
-    return result;
+  return result;
 }
-
 
 typedef struct
 {
-    HANDLE bufferEvent;
-    void *waveHandles;
-    unsigned int deviceCount;
-    /* unsigned int channelCount; */
-    WAVEHDR **waveHeaders;                  /* waveHeaders[device][buffer] */
-    unsigned int bufferCount;
-    unsigned int currentBufferIndex;
-    unsigned int framesPerBuffer;
-    unsigned int framesUsedInCurrentBuffer;
-}PaWinMmeSingleDirectionHandlesAndBuffers;
+  HANDLE bufferEvent;
+  void* waveHandles;
+  unsigned int deviceCount;
+  /* unsigned int channelCount; */
+  WAVEHDR** waveHeaders; /* waveHeaders[device][buffer] */
+  unsigned int bufferCount;
+  unsigned int currentBufferIndex;
+  unsigned int framesPerBuffer;
+  unsigned int framesUsedInCurrentBuffer;
+} PaWinMmeSingleDirectionHandlesAndBuffers;
 
 /* prototypes for functions operating on PaWinMmeSingleDirectionHandlesAndBuffers */
 
-static void InitializeSingleDirectionHandlesAndBuffers( PaWinMmeSingleDirectionHandlesAndBuffers *handlesAndBuffers );
-static PaError InitializeWaveHandles( PaWinMmeHostApiRepresentation *winMmeHostApi,
-        PaWinMmeSingleDirectionHandlesAndBuffers *handlesAndBuffers,
-        unsigned long winMmeSpecificFlags,
-        unsigned long bytesPerHostSample,
-        double sampleRate, PaWinMmeDeviceAndChannelCount *devices,
-        unsigned int deviceCount, PaWinWaveFormatChannelMask channelMask, int isInput );
-static PaError TerminateWaveHandles( PaWinMmeSingleDirectionHandlesAndBuffers *handlesAndBuffers, int isInput, int currentlyProcessingAnError );
-static PaError InitializeWaveHeaders( PaWinMmeSingleDirectionHandlesAndBuffers *handlesAndBuffers,
-        unsigned long hostBufferCount,
-        PaSampleFormat hostSampleFormat,
-        unsigned long framesPerHostBuffer,
-        PaWinMmeDeviceAndChannelCount *devices,
-        int isInput );
-static void TerminateWaveHeaders( PaWinMmeSingleDirectionHandlesAndBuffers *handlesAndBuffers, int isInput );
+static void InitializeSingleDirectionHandlesAndBuffers(PaWinMmeSingleDirectionHandlesAndBuffers* handlesAndBuffers);
+static PaError InitializeWaveHandles(PaWinMmeHostApiRepresentation* winMmeHostApi,
+                                     PaWinMmeSingleDirectionHandlesAndBuffers* handlesAndBuffers,
+                                     unsigned long winMmeSpecificFlags,
+                                     unsigned long bytesPerHostSample,
+                                     double sampleRate, PaWinMmeDeviceAndChannelCount* devices,
+                                     unsigned int deviceCount, PaWinWaveFormatChannelMask channelMask, int isInput);
+static PaError TerminateWaveHandles(PaWinMmeSingleDirectionHandlesAndBuffers* handlesAndBuffers, int isInput, int currentlyProcessingAnError);
+static PaError InitializeWaveHeaders(PaWinMmeSingleDirectionHandlesAndBuffers* handlesAndBuffers,
+                                     unsigned long hostBufferCount,
+                                     PaSampleFormat hostSampleFormat,
+                                     unsigned long framesPerHostBuffer,
+                                     PaWinMmeDeviceAndChannelCount* devices,
+                                     int isInput);
+static void TerminateWaveHeaders(PaWinMmeSingleDirectionHandlesAndBuffers* handlesAndBuffers, int isInput);
 
-
-static void InitializeSingleDirectionHandlesAndBuffers( PaWinMmeSingleDirectionHandlesAndBuffers *handlesAndBuffers )
-{
-    handlesAndBuffers->bufferEvent = 0;
-    handlesAndBuffers->waveHandles = 0;
-    handlesAndBuffers->deviceCount = 0;
-    handlesAndBuffers->waveHeaders = 0;
-    handlesAndBuffers->bufferCount = 0;
+static void InitializeSingleDirectionHandlesAndBuffers(PaWinMmeSingleDirectionHandlesAndBuffers* handlesAndBuffers) {
+  handlesAndBuffers->bufferEvent = 0;
+  handlesAndBuffers->waveHandles = 0;
+  handlesAndBuffers->deviceCount = 0;
+  handlesAndBuffers->waveHeaders = 0;
+  handlesAndBuffers->bufferCount = 0;
 }
 
-static PaError InitializeWaveHandles( PaWinMmeHostApiRepresentation *winMmeHostApi,
-        PaWinMmeSingleDirectionHandlesAndBuffers *handlesAndBuffers,
-        unsigned long winMmeSpecificFlags,
-        unsigned long bytesPerHostSample,
-        double sampleRate, PaWinMmeDeviceAndChannelCount *devices,
-        unsigned int deviceCount, PaWinWaveFormatChannelMask channelMask, int isInput )
-{
-    PaError result;
-    MMRESULT mmresult;
-    signed int i, j;
-    PaSampleFormat sampleFormat;
-    int waveFormatTag;
+static PaError InitializeWaveHandles(PaWinMmeHostApiRepresentation* winMmeHostApi,
+                                     PaWinMmeSingleDirectionHandlesAndBuffers* handlesAndBuffers,
+                                     unsigned long winMmeSpecificFlags,
+                                     unsigned long bytesPerHostSample,
+                                     double sampleRate, PaWinMmeDeviceAndChannelCount* devices,
+                                     unsigned int deviceCount, PaWinWaveFormatChannelMask channelMask, int isInput) {
+  PaError result;
+  MMRESULT mmresult;
+  signed int i, j;
+  PaSampleFormat sampleFormat;
+  int waveFormatTag;
 
-    /* for error cleanup we expect that InitializeSingleDirectionHandlesAndBuffers()
+  /* for error cleanup we expect that InitializeSingleDirectionHandlesAndBuffers()
         has already been called to zero some fields */
 
-    result = CreateEventWithPaError( &handlesAndBuffers->bufferEvent, NULL, FALSE, FALSE, NULL );
-    if( result != paNoError ) goto error;
+  result = CreateEventWithPaError(&handlesAndBuffers->bufferEvent, NULL, FALSE, FALSE, NULL);
+  if (result != paNoError)
+    goto error;
 
-    if( isInput )
-        handlesAndBuffers->waveHandles = (void*)PaUtil_AllocateMemory( sizeof(HWAVEIN) * deviceCount );
+  if (isInput)
+    handlesAndBuffers->waveHandles = (void*)PaUtil_AllocateMemory(sizeof(HWAVEIN) * deviceCount);
+  else
+    handlesAndBuffers->waveHandles = (void*)PaUtil_AllocateMemory(sizeof(HWAVEOUT) * deviceCount);
+  if (!handlesAndBuffers->waveHandles) {
+    result = paInsufficientMemory;
+    goto error;
+  }
+
+  handlesAndBuffers->deviceCount = deviceCount;
+
+  for (i = 0; i < (signed int)deviceCount; ++i) {
+    if (isInput)
+      ((HWAVEIN*)handlesAndBuffers->waveHandles)[i] = 0;
     else
-        handlesAndBuffers->waveHandles = (void*)PaUtil_AllocateMemory( sizeof(HWAVEOUT) * deviceCount );
-    if( !handlesAndBuffers->waveHandles )
-    {
-        result = paInsufficientMemory;
-        goto error;
-    }
+      ((HWAVEOUT*)handlesAndBuffers->waveHandles)[i] = 0;
+  }
 
-    handlesAndBuffers->deviceCount = deviceCount;
+  /* @todo at the moment we only use 16 bit sample format */
+  sampleFormat = paInt16;
+  waveFormatTag = SampleFormatAndWinWmmeSpecificFlagsToLinearWaveFormatTag(sampleFormat, winMmeSpecificFlags);
 
-    for( i = 0; i < (signed int)deviceCount; ++i )
-    {
-        if( isInput )
-            ((HWAVEIN*)handlesAndBuffers->waveHandles)[i] = 0;
-        else
-            ((HWAVEOUT*)handlesAndBuffers->waveHandles)[i] = 0;
-    }
+  for (i = 0; i < (signed int)deviceCount; ++i) {
+    PaWinWaveFormat waveFormat;
+    UINT winMmeDeviceId = LocalDeviceIndexToWinMmeDeviceId(winMmeHostApi, devices[i].device);
 
-    /* @todo at the moment we only use 16 bit sample format */
-    sampleFormat = paInt16;
-    waveFormatTag = SampleFormatAndWinWmmeSpecificFlagsToLinearWaveFormatTag( sampleFormat, winMmeSpecificFlags );
-
-    for( i = 0; i < (signed int)deviceCount; ++i )
-    {
-        PaWinWaveFormat waveFormat;
-        UINT winMmeDeviceId = LocalDeviceIndexToWinMmeDeviceId( winMmeHostApi, devices[i].device );
-
-        /* @todo: consider providing a flag or #define to not try waveformat extensible
+    /* @todo: consider providing a flag or #define to not try waveformat extensible
            this could just initialize j to 1 the first time round. */
 
-        for( j = 0; j < 2; ++j )
-        {
-            switch(j){
-                case 0:
-                    /* first, attempt to open the device using WAVEFORMATEXTENSIBLE,
+    for (j = 0; j < 2; ++j) {
+      switch (j) {
+        case 0:
+          /* first, attempt to open the device using WAVEFORMATEXTENSIBLE,
                         if this fails we fall back to WAVEFORMATEX */
 
-                    PaWin_InitializeWaveFormatExtensible( &waveFormat, devices[i].channelCount,
-                            sampleFormat, waveFormatTag, sampleRate, channelMask );
-                    break;
+          PaWin_InitializeWaveFormatExtensible(&waveFormat, devices[i].channelCount, sampleFormat, waveFormatTag, sampleRate, channelMask);
+          break;
 
-                case 1:
-                    /* retry with WAVEFORMATEX */
+        case 1:
+          /* retry with WAVEFORMATEX */
 
-                    PaWin_InitializeWaveFormatEx( &waveFormat, devices[i].channelCount,
-                            sampleFormat, waveFormatTag, sampleRate );
-                    break;
-            }
+          PaWin_InitializeWaveFormatEx(&waveFormat, devices[i].channelCount, sampleFormat, waveFormatTag, sampleRate);
+          break;
+      }
 
-            /* REVIEW: consider not firing an event for input when a full duplex
+      /* REVIEW: consider not firing an event for input when a full duplex
                 stream is being used. this would probably depend on the
                 neverDropInput flag. */
 
-            if( isInput )
-            {
-                mmresult = waveInOpen( &((HWAVEIN*)handlesAndBuffers->waveHandles)[i], winMmeDeviceId,
-                                    (WAVEFORMATEX*)&waveFormat,
-                               (DWORD_PTR)handlesAndBuffers->bufferEvent, (DWORD_PTR)0, CALLBACK_EVENT );
-            }
-            else
-            {
-                mmresult = waveOutOpen( &((HWAVEOUT*)handlesAndBuffers->waveHandles)[i], winMmeDeviceId,
-                                    (WAVEFORMATEX*)&waveFormat,
-                                (DWORD_PTR)handlesAndBuffers->bufferEvent, (DWORD_PTR)0, CALLBACK_EVENT );
-            }
+      if (isInput) {
+        mmresult = waveInOpen(&((HWAVEIN*)handlesAndBuffers->waveHandles)[i], winMmeDeviceId, (WAVEFORMATEX*)&waveFormat, (DWORD_PTR)handlesAndBuffers->bufferEvent, (DWORD_PTR)0, CALLBACK_EVENT);
+      } else {
+        mmresult = waveOutOpen(&((HWAVEOUT*)handlesAndBuffers->waveHandles)[i], winMmeDeviceId, (WAVEFORMATEX*)&waveFormat, (DWORD_PTR)handlesAndBuffers->bufferEvent, (DWORD_PTR)0, CALLBACK_EVENT);
+      }
 
-            if( mmresult == MMSYSERR_NOERROR )
-            {
-                break; /* success */
-            }
-            else if( j == 0 )
-            {
-                continue; /* try again with WAVEFORMATEX */
-            }
-            else
-            {
-                switch( mmresult )
-                {
-                    case MMSYSERR_ALLOCATED:    /* Specified resource is already allocated. */
-                        result = paDeviceUnavailable;
-                        break;
-                    case MMSYSERR_NODRIVER:     /* No device driver is present. */
-                        result = paDeviceUnavailable;
-                        break;
-                    case MMSYSERR_NOMEM:        /* Unable to allocate or lock memory. */
-                        result = paInsufficientMemory;
-                        break;
+      if (mmresult == MMSYSERR_NOERROR) {
+        break; /* success */
+      } else if (j == 0) {
+        continue; /* try again with WAVEFORMATEX */
+      } else {
+        switch (mmresult) {
+          case MMSYSERR_ALLOCATED: /* Specified resource is already allocated. */
+            result = paDeviceUnavailable;
+            break;
+          case MMSYSERR_NODRIVER: /* No device driver is present. */
+            result = paDeviceUnavailable;
+            break;
+          case MMSYSERR_NOMEM: /* Unable to allocate or lock memory. */
+            result = paInsufficientMemory;
+            break;
 
-                    case MMSYSERR_BADDEVICEID:  /* Specified device identifier is out of range. */
-                        /* falls through */
+          case MMSYSERR_BADDEVICEID: /* Specified device identifier is out of range. */
+            /* falls through */
 
-                    case WAVERR_BADFORMAT:      /* Attempted to open with an unsupported waveform-audio format. */
-                                                    /* This can also occur if we try to open the device with an unsupported
+          case WAVERR_BADFORMAT: /* Attempted to open with an unsupported waveform-audio format. */
+            /* This can also occur if we try to open the device with an unsupported
                                                      * number of channels. This is attempted when device*ChannelCountIsKnown is
                                                      * set to 0.
                                                      */
-                        /* falls through */
-                    default:
-                        result = paUnanticipatedHostError;
-                        if( isInput )
-                        {
-                            PA_MME_SET_LAST_WAVEIN_ERROR( mmresult );
-                        }
-                        else
-                        {
-                            PA_MME_SET_LAST_WAVEOUT_ERROR( mmresult );
-                        }
-                }
-                goto error;
+            /* falls through */
+          default:
+            result = paUnanticipatedHostError;
+            if (isInput) {
+              PA_MME_SET_LAST_WAVEIN_ERROR(mmresult);
+            } else {
+              PA_MME_SET_LAST_WAVEOUT_ERROR(mmresult);
             }
         }
+        goto error;
+      }
     }
+  }
 
-    return result;
+  return result;
 
 error:
-    TerminateWaveHandles( handlesAndBuffers, isInput, 1 /* currentlyProcessingAnError */ );
+  TerminateWaveHandles(handlesAndBuffers, isInput, 1 /* currentlyProcessingAnError */);
 
-    return result;
+  return result;
 }
 
+static PaError TerminateWaveHandles(PaWinMmeSingleDirectionHandlesAndBuffers* handlesAndBuffers, int isInput, int currentlyProcessingAnError) {
+  PaError result = paNoError;
+  MMRESULT mmresult;
+  signed int i;
 
-static PaError TerminateWaveHandles( PaWinMmeSingleDirectionHandlesAndBuffers *handlesAndBuffers, int isInput, int currentlyProcessingAnError )
-{
-    PaError result = paNoError;
-    MMRESULT mmresult;
-    signed int i;
+  if (handlesAndBuffers->waveHandles) {
+    for (i = handlesAndBuffers->deviceCount - 1; i >= 0; --i) {
+      if (isInput) {
+        if (((HWAVEIN*)handlesAndBuffers->waveHandles)[i])
+          mmresult = waveInClose(((HWAVEIN*)handlesAndBuffers->waveHandles)[i]);
+        else
+          mmresult = MMSYSERR_NOERROR;
+      } else {
+        if (((HWAVEOUT*)handlesAndBuffers->waveHandles)[i])
+          mmresult = waveOutClose(((HWAVEOUT*)handlesAndBuffers->waveHandles)[i]);
+        else
+          mmresult = MMSYSERR_NOERROR;
+      }
 
-    if( handlesAndBuffers->waveHandles )
-    {
-        for( i = handlesAndBuffers->deviceCount-1; i >= 0; --i )
-        {
-            if( isInput )
-            {
-                if( ((HWAVEIN*)handlesAndBuffers->waveHandles)[i] )
-                    mmresult = waveInClose( ((HWAVEIN*)handlesAndBuffers->waveHandles)[i] );
-                else
-                    mmresult = MMSYSERR_NOERROR;
-            }
-            else
-            {
-                if( ((HWAVEOUT*)handlesAndBuffers->waveHandles)[i] )
-                    mmresult = waveOutClose( ((HWAVEOUT*)handlesAndBuffers->waveHandles)[i] );
-                else
-                    mmresult = MMSYSERR_NOERROR;
-            }
-
-            if( mmresult != MMSYSERR_NOERROR &&
-                !currentlyProcessingAnError ) /* don't update the error state if we're already processing an error */
-            {
-                result = paUnanticipatedHostError;
-                if( isInput )
-                {
-                    PA_MME_SET_LAST_WAVEIN_ERROR( mmresult );
-                }
-                else
-                {
-                    PA_MME_SET_LAST_WAVEOUT_ERROR( mmresult );
-                }
-                /* note that we don't break here, we try to continue closing devices */
-            }
+      if (mmresult != MMSYSERR_NOERROR &&
+          !currentlyProcessingAnError) /* don't update the error state if we're already processing an error */
+      {
+        result = paUnanticipatedHostError;
+        if (isInput) {
+          PA_MME_SET_LAST_WAVEIN_ERROR(mmresult);
+        } else {
+          PA_MME_SET_LAST_WAVEOUT_ERROR(mmresult);
         }
-
-        PaUtil_FreeMemory( handlesAndBuffers->waveHandles );
-        handlesAndBuffers->waveHandles = 0;
+        /* note that we don't break here, we try to continue closing devices */
+      }
     }
 
-    if( handlesAndBuffers->bufferEvent )
-    {
-        result = CloseHandleWithPaError( handlesAndBuffers->bufferEvent );
-        handlesAndBuffers->bufferEvent = 0;
-    }
+    PaUtil_FreeMemory(handlesAndBuffers->waveHandles);
+    handlesAndBuffers->waveHandles = 0;
+  }
 
-    return result;
+  if (handlesAndBuffers->bufferEvent) {
+    result = CloseHandleWithPaError(handlesAndBuffers->bufferEvent);
+    handlesAndBuffers->bufferEvent = 0;
+  }
+
+  return result;
 }
 
+static PaError InitializeWaveHeaders(PaWinMmeSingleDirectionHandlesAndBuffers* handlesAndBuffers,
+                                     unsigned long hostBufferCount,
+                                     PaSampleFormat hostSampleFormat,
+                                     unsigned long framesPerHostBuffer,
+                                     PaWinMmeDeviceAndChannelCount* devices,
+                                     int isInput) {
+  PaError result = paNoError;
+  MMRESULT mmresult;
+  WAVEHDR* deviceWaveHeaders;
+  signed int i, j;
 
-static PaError InitializeWaveHeaders( PaWinMmeSingleDirectionHandlesAndBuffers *handlesAndBuffers,
-        unsigned long hostBufferCount,
-        PaSampleFormat hostSampleFormat,
-        unsigned long framesPerHostBuffer,
-        PaWinMmeDeviceAndChannelCount *devices,
-        int isInput )
-{
-    PaError result = paNoError;
-    MMRESULT mmresult;
-    WAVEHDR *deviceWaveHeaders;
-    signed int i, j;
-
-    /* for error cleanup we expect that InitializeSingleDirectionHandlesAndBuffers()
+  /* for error cleanup we expect that InitializeSingleDirectionHandlesAndBuffers()
         has already been called to zero some fields */
 
-
-    /* allocate an array of pointers to arrays of wave headers, one array of
+  /* allocate an array of pointers to arrays of wave headers, one array of
         wave headers per device */
-    handlesAndBuffers->waveHeaders = (WAVEHDR**)PaUtil_AllocateMemory( sizeof(WAVEHDR*) * handlesAndBuffers->deviceCount );
-    if( !handlesAndBuffers->waveHeaders )
-    {
+  handlesAndBuffers->waveHeaders = (WAVEHDR**)PaUtil_AllocateMemory(sizeof(WAVEHDR*) * handlesAndBuffers->deviceCount);
+  if (!handlesAndBuffers->waveHeaders) {
+    result = paInsufficientMemory;
+    goto error;
+  }
+
+  for (i = 0; i < (signed int)handlesAndBuffers->deviceCount; ++i)
+    handlesAndBuffers->waveHeaders[i] = 0;
+
+  handlesAndBuffers->bufferCount = hostBufferCount;
+
+  for (i = 0; i < (signed int)handlesAndBuffers->deviceCount; ++i) {
+    int bufferBytes = Pa_GetSampleSize(hostSampleFormat) *
+                      framesPerHostBuffer * devices[i].channelCount;
+    if (bufferBytes < 0) {
+      result = paInternalError;
+      goto error;
+    }
+
+    /* Allocate an array of wave headers for device i */
+    deviceWaveHeaders = (WAVEHDR*)PaUtil_AllocateMemory(sizeof(WAVEHDR) * hostBufferCount);
+    if (!deviceWaveHeaders) {
+      result = paInsufficientMemory;
+      goto error;
+    }
+
+    for (j = 0; j < (signed int)hostBufferCount; ++j)
+      deviceWaveHeaders[j].lpData = 0;
+
+    handlesAndBuffers->waveHeaders[i] = deviceWaveHeaders;
+
+    /* Allocate a buffer for each wave header */
+    for (j = 0; j < (signed int)hostBufferCount; ++j) {
+      deviceWaveHeaders[j].lpData = (char*)PaUtil_AllocateMemory(bufferBytes);
+      if (!deviceWaveHeaders[j].lpData) {
         result = paInsufficientMemory;
         goto error;
+      }
+      deviceWaveHeaders[j].dwBufferLength = bufferBytes;
+      deviceWaveHeaders[j].dwUser = 0xFFFFFFFF; /* indicates that *PrepareHeader() has not yet been called, for error clean up code */
+
+      if (isInput) {
+        mmresult = waveInPrepareHeader(((HWAVEIN*)handlesAndBuffers->waveHandles)[i], &deviceWaveHeaders[j], sizeof(WAVEHDR));
+        if (mmresult != MMSYSERR_NOERROR) {
+          result = paUnanticipatedHostError;
+          PA_MME_SET_LAST_WAVEIN_ERROR(mmresult);
+          goto error;
+        }
+      } else /* output */
+      {
+        mmresult = waveOutPrepareHeader(((HWAVEOUT*)handlesAndBuffers->waveHandles)[i], &deviceWaveHeaders[j], sizeof(WAVEHDR));
+        if (mmresult != MMSYSERR_NOERROR) {
+          result = paUnanticipatedHostError;
+          PA_MME_SET_LAST_WAVEIN_ERROR(mmresult);
+          goto error;
+        }
+      }
+      deviceWaveHeaders[j].dwUser = devices[i].channelCount;
     }
+  }
 
-    for( i = 0; i < (signed int)handlesAndBuffers->deviceCount; ++i )
-        handlesAndBuffers->waveHeaders[i] = 0;
-
-    handlesAndBuffers->bufferCount = hostBufferCount;
-
-    for( i = 0; i < (signed int)handlesAndBuffers->deviceCount; ++i )
-    {
-        int bufferBytes = Pa_GetSampleSize( hostSampleFormat ) *
-                framesPerHostBuffer * devices[i].channelCount;
-        if( bufferBytes < 0 )
-        {
-            result = paInternalError;
-            goto error;
-        }
-
-        /* Allocate an array of wave headers for device i */
-        deviceWaveHeaders = (WAVEHDR *) PaUtil_AllocateMemory( sizeof(WAVEHDR)*hostBufferCount );
-        if( !deviceWaveHeaders )
-        {
-            result = paInsufficientMemory;
-            goto error;
-        }
-
-        for( j=0; j < (signed int)hostBufferCount; ++j )
-            deviceWaveHeaders[j].lpData = 0;
-
-        handlesAndBuffers->waveHeaders[i] = deviceWaveHeaders;
-
-        /* Allocate a buffer for each wave header */
-        for( j=0; j < (signed int)hostBufferCount; ++j )
-        {
-            deviceWaveHeaders[j].lpData = (char *)PaUtil_AllocateMemory( bufferBytes );
-            if( !deviceWaveHeaders[j].lpData )
-            {
-                result = paInsufficientMemory;
-                goto error;
-            }
-            deviceWaveHeaders[j].dwBufferLength = bufferBytes;
-            deviceWaveHeaders[j].dwUser = 0xFFFFFFFF; /* indicates that *PrepareHeader() has not yet been called, for error clean up code */
-
-            if( isInput )
-            {
-                mmresult = waveInPrepareHeader( ((HWAVEIN*)handlesAndBuffers->waveHandles)[i], &deviceWaveHeaders[j], sizeof(WAVEHDR) );
-                if( mmresult != MMSYSERR_NOERROR )
-                {
-                    result = paUnanticipatedHostError;
-                    PA_MME_SET_LAST_WAVEIN_ERROR( mmresult );
-                    goto error;
-                }
-            }
-            else /* output */
-            {
-                mmresult = waveOutPrepareHeader( ((HWAVEOUT*)handlesAndBuffers->waveHandles)[i], &deviceWaveHeaders[j], sizeof(WAVEHDR) );
-                if( mmresult != MMSYSERR_NOERROR )
-                {
-                    result = paUnanticipatedHostError;
-                    PA_MME_SET_LAST_WAVEIN_ERROR( mmresult );
-                    goto error;
-                }
-            }
-            deviceWaveHeaders[j].dwUser = devices[i].channelCount;
-        }
-    }
-
-    return result;
+  return result;
 
 error:
-    TerminateWaveHeaders( handlesAndBuffers, isInput );
+  TerminateWaveHeaders(handlesAndBuffers, isInput);
 
-    return result;
+  return result;
 }
 
+static void TerminateWaveHeaders(PaWinMmeSingleDirectionHandlesAndBuffers* handlesAndBuffers, int isInput) {
+  signed int i, j;
+  WAVEHDR* deviceWaveHeaders;
 
-static void TerminateWaveHeaders( PaWinMmeSingleDirectionHandlesAndBuffers *handlesAndBuffers, int isInput )
-{
-    signed int i, j;
-    WAVEHDR *deviceWaveHeaders;
-
-    if( handlesAndBuffers->waveHeaders )
-    {
-        for( i = handlesAndBuffers->deviceCount-1; i >= 0 ; --i )
-        {
-            deviceWaveHeaders = handlesAndBuffers->waveHeaders[i];  /* wave headers for device i */
-            if( deviceWaveHeaders )
-            {
-                for( j = handlesAndBuffers->bufferCount-1; j >= 0; --j )
-                {
-                    if( deviceWaveHeaders[j].lpData )
-                    {
-                        if( deviceWaveHeaders[j].dwUser != 0xFFFFFFFF )
-                        {
-                            if( isInput )
-                                waveInUnprepareHeader( ((HWAVEIN*)handlesAndBuffers->waveHandles)[i], &deviceWaveHeaders[j], sizeof(WAVEHDR) );
-                            else
-                                waveOutUnprepareHeader( ((HWAVEOUT*)handlesAndBuffers->waveHandles)[i], &deviceWaveHeaders[j], sizeof(WAVEHDR) );
-                        }
-
-                        PaUtil_FreeMemory( deviceWaveHeaders[j].lpData );
-                    }
-                }
-
-                PaUtil_FreeMemory( deviceWaveHeaders );
+  if (handlesAndBuffers->waveHeaders) {
+    for (i = handlesAndBuffers->deviceCount - 1; i >= 0; --i) {
+      deviceWaveHeaders = handlesAndBuffers->waveHeaders[i]; /* wave headers for device i */
+      if (deviceWaveHeaders) {
+        for (j = handlesAndBuffers->bufferCount - 1; j >= 0; --j) {
+          if (deviceWaveHeaders[j].lpData) {
+            if (deviceWaveHeaders[j].dwUser != 0xFFFFFFFF) {
+              if (isInput)
+                waveInUnprepareHeader(((HWAVEIN*)handlesAndBuffers->waveHandles)[i], &deviceWaveHeaders[j], sizeof(WAVEHDR));
+              else
+                waveOutUnprepareHeader(((HWAVEOUT*)handlesAndBuffers->waveHandles)[i], &deviceWaveHeaders[j], sizeof(WAVEHDR));
             }
+
+            PaUtil_FreeMemory(deviceWaveHeaders[j].lpData);
+          }
         }
 
-        PaUtil_FreeMemory( handlesAndBuffers->waveHeaders );
-        handlesAndBuffers->waveHeaders = 0;
+        PaUtil_FreeMemory(deviceWaveHeaders);
+      }
     }
+
+    PaUtil_FreeMemory(handlesAndBuffers->waveHeaders);
+    handlesAndBuffers->waveHeaders = 0;
+  }
 }
-
-
 
 /* PaWinMmeStream - a stream data structure specifically for this implementation */
 /* note that struct PaWinMmeStream is typedeffed to PaWinMmeStream above. */
-struct PaWinMmeStream
-{
-    PaUtilStreamRepresentation streamRepresentation;
-    PaUtilCpuLoadMeasurer cpuLoadMeasurer;
-    PaUtilBufferProcessor bufferProcessor;
+struct PaWinMmeStream {
+  PaUtilStreamRepresentation streamRepresentation;
+  PaUtilCpuLoadMeasurer cpuLoadMeasurer;
+  PaUtilBufferProcessor bufferProcessor;
 
-    int primeStreamUsingCallback;
+  int primeStreamUsingCallback;
 
-    PaWinMmeSingleDirectionHandlesAndBuffers input;
-    PaWinMmeSingleDirectionHandlesAndBuffers output;
+  PaWinMmeSingleDirectionHandlesAndBuffers input;
+  PaWinMmeSingleDirectionHandlesAndBuffers output;
 
-    /* Processing thread management -------------- */
-    HANDLE abortEvent;
-    HANDLE processingThread;
-    PA_THREAD_ID processingThreadId;
+  /* Processing thread management -------------- */
+  HANDLE abortEvent;
+  HANDLE processingThread;
+  PA_THREAD_ID processingThreadId;
 
-    char throttleProcessingThreadOnOverload;    /* 0 -> don't throttle, non-0 -> throttle */
-    int processingThreadPriority;
-    int highThreadPriority;
-    int throttledThreadPriority;
-    unsigned long throttledSleepMsecs;
+  char throttleProcessingThreadOnOverload; /* 0 -> don't throttle, non-0 -> throttle */
+  int processingThreadPriority;
+  int highThreadPriority;
+  int throttledThreadPriority;
+  unsigned long throttledSleepMsecs;
 
-    int isStopped;
-    volatile int isActive;
-    volatile int stopProcessing;    /* stop thread once existing buffers have been returned */
-    volatile int abortProcessing;   /* stop thread immediately */
+  int isStopped;
+  volatile int isActive;
+  volatile int stopProcessing; /* stop thread once existing buffers have been returned */
+  volatile int abortProcessing; /* stop thread immediately */
 
-    DWORD allBuffersDurationMs;     /* used to calculate timeouts */
+  DWORD allBuffersDurationMs; /* used to calculate timeouts */
 };
 
 /* updates deviceCount if PaWinMmeUseMultipleDevices is used */
 
 static PaError ValidateWinMmeSpecificStreamInfo(
-        const PaStreamParameters *streamParameters,
-        const PaWinMmeStreamInfo *streamInfo,
-        unsigned long *winMmeSpecificFlags,
-        char *throttleProcessingThreadOnOverload,
-        unsigned long *deviceCount )
-{
-    if( streamInfo )
-    {
-        if( streamInfo->size != sizeof( PaWinMmeStreamInfo )
-                || streamInfo->version != 1 )
-        {
-            return paIncompatibleHostApiSpecificStreamInfo;
-        }
-
-        *winMmeSpecificFlags = streamInfo->flags;
-
-        if( streamInfo->flags & paWinMmeDontThrottleOverloadedProcessingThread )
-            *throttleProcessingThreadOnOverload = 0;
-
-        if( streamInfo->flags & paWinMmeUseMultipleDevices )
-        {
-            if( streamParameters->device != paUseHostApiSpecificDeviceSpecification )
-                return paInvalidDevice;
-
-            *deviceCount = streamInfo->deviceCount;
-        }
+    const PaStreamParameters* streamParameters,
+    const PaWinMmeStreamInfo* streamInfo,
+    unsigned long* winMmeSpecificFlags,
+    char* throttleProcessingThreadOnOverload,
+    unsigned long* deviceCount) {
+  if (streamInfo) {
+    if (streamInfo->size != sizeof(PaWinMmeStreamInfo) || streamInfo->version != 1) {
+      return paIncompatibleHostApiSpecificStreamInfo;
     }
 
-    return paNoError;
+    *winMmeSpecificFlags = streamInfo->flags;
+
+    if (streamInfo->flags & paWinMmeDontThrottleOverloadedProcessingThread)
+      *throttleProcessingThreadOnOverload = 0;
+
+    if (streamInfo->flags & paWinMmeUseMultipleDevices) {
+      if (streamParameters->device != paUseHostApiSpecificDeviceSpecification)
+        return paInvalidDevice;
+
+      *deviceCount = streamInfo->deviceCount;
+    }
+  }
+
+  return paNoError;
 }
 
 static PaError RetrieveDevicesFromStreamParameters(
-        struct PaUtilHostApiRepresentation *hostApi,
-        const PaStreamParameters *streamParameters,
-        const PaWinMmeStreamInfo *streamInfo,
-        PaWinMmeDeviceAndChannelCount *devices,
-        unsigned long deviceCount )
-{
-    PaError result = paNoError;
-    unsigned int i;
-    int totalChannelCount;
-    PaDeviceIndex hostApiDevice;
+    struct PaUtilHostApiRepresentation* hostApi,
+    const PaStreamParameters* streamParameters,
+    const PaWinMmeStreamInfo* streamInfo,
+    PaWinMmeDeviceAndChannelCount* devices,
+    unsigned long deviceCount) {
+  PaError result = paNoError;
+  unsigned int i;
+  int totalChannelCount;
+  PaDeviceIndex hostApiDevice;
 
-    if( streamInfo && streamInfo->flags & paWinMmeUseMultipleDevices )
-    {
-        totalChannelCount = 0;
-        for( i=0; i < deviceCount; ++i )
-        {
-            /* validate that the device number is within range */
-            result = PaUtil_DeviceIndexToHostApiDeviceIndex( &hostApiDevice,
-                            streamInfo->devices[i].device, hostApi );
-            if( result != paNoError )
-                return result;
+  if (streamInfo && streamInfo->flags & paWinMmeUseMultipleDevices) {
+    totalChannelCount = 0;
+    for (i = 0; i < deviceCount; ++i) {
+      /* validate that the device number is within range */
+      result = PaUtil_DeviceIndexToHostApiDeviceIndex(&hostApiDevice,
+                                                      streamInfo->devices[i].device,
+                                                      hostApi);
+      if (result != paNoError)
+        return result;
 
-            devices[i].device = hostApiDevice;
-            devices[i].channelCount = streamInfo->devices[i].channelCount;
+      devices[i].device = hostApiDevice;
+      devices[i].channelCount = streamInfo->devices[i].channelCount;
 
-            totalChannelCount += devices[i].channelCount;
-        }
-
-        if( totalChannelCount != streamParameters->channelCount )
-        {
-            /* channelCount must match total channels specified by multiple devices */
-            return paInvalidChannelCount; /* REVIEW use of this error code */
-        }
-    }
-    else
-    {
-        devices[0].device = streamParameters->device;
-        devices[0].channelCount = streamParameters->channelCount;
+      totalChannelCount += devices[i].channelCount;
     }
 
-    return result;
+    if (totalChannelCount != streamParameters->channelCount) {
+      /* channelCount must match total channels specified by multiple devices */
+      return paInvalidChannelCount; /* REVIEW use of this error code */
+    }
+  } else {
+    devices[0].device = streamParameters->device;
+    devices[0].channelCount = streamParameters->channelCount;
+  }
+
+  return result;
 }
 
 static PaError ValidateInputChannelCounts(
-        struct PaUtilHostApiRepresentation *hostApi,
-        PaWinMmeDeviceAndChannelCount *devices,
-        unsigned long deviceCount )
-{
-    unsigned int i;
-    PaWinMmeDeviceInfo *inputDeviceInfo;
-    PaError paerror;
+    struct PaUtilHostApiRepresentation* hostApi,
+    PaWinMmeDeviceAndChannelCount* devices,
+    unsigned long deviceCount) {
+  unsigned int i;
+  PaWinMmeDeviceInfo* inputDeviceInfo;
+  PaError paerror;
 
-    for( i=0; i < deviceCount; ++i )
-    {
-        if( devices[i].channelCount < 1 )
-            return paInvalidChannelCount;
+  for (i = 0; i < deviceCount; ++i) {
+    if (devices[i].channelCount < 1)
+      return paInvalidChannelCount;
 
-        inputDeviceInfo =
-                (PaWinMmeDeviceInfo*)hostApi->deviceInfos[ devices[i].device ];
+    inputDeviceInfo =
+        (PaWinMmeDeviceInfo*)hostApi->deviceInfos[devices[i].device];
 
-        paerror = IsInputChannelCountSupported( inputDeviceInfo, devices[i].channelCount );
-        if( paerror != paNoError )
-            return paerror;
-    }
+    paerror = IsInputChannelCountSupported(inputDeviceInfo, devices[i].channelCount);
+    if (paerror != paNoError)
+      return paerror;
+  }
 
-    return paNoError;
+  return paNoError;
 }
 
 static PaError ValidateOutputChannelCounts(
-        struct PaUtilHostApiRepresentation *hostApi,
-        PaWinMmeDeviceAndChannelCount *devices,
-        unsigned long deviceCount )
-{
-    unsigned int i;
-    PaWinMmeDeviceInfo *outputDeviceInfo;
-    PaError paerror;
+    struct PaUtilHostApiRepresentation* hostApi,
+    PaWinMmeDeviceAndChannelCount* devices,
+    unsigned long deviceCount) {
+  unsigned int i;
+  PaWinMmeDeviceInfo* outputDeviceInfo;
+  PaError paerror;
 
-    for( i=0; i < deviceCount; ++i )
-    {
-        if( devices[i].channelCount < 1 )
-            return paInvalidChannelCount;
+  for (i = 0; i < deviceCount; ++i) {
+    if (devices[i].channelCount < 1)
+      return paInvalidChannelCount;
 
-        outputDeviceInfo =
-                (PaWinMmeDeviceInfo*)hostApi->deviceInfos[ devices[i].device ];
+    outputDeviceInfo =
+        (PaWinMmeDeviceInfo*)hostApi->deviceInfos[devices[i].device];
 
-        paerror = IsOutputChannelCountSupported( outputDeviceInfo, devices[i].channelCount );
-        if( paerror != paNoError )
-            return paerror;
-    }
+    paerror = IsOutputChannelCountSupported(outputDeviceInfo, devices[i].channelCount);
+    if (paerror != paNoError)
+      return paerror;
+  }
 
-    return paNoError;
+  return paNoError;
 }
 
-
 /* the following macros are intended to improve the readability of the following code */
-#define PA_IS_INPUT_STREAM_( stream ) ( stream ->input.waveHandles )
-#define PA_IS_OUTPUT_STREAM_( stream ) ( stream ->output.waveHandles )
-#define PA_IS_FULL_DUPLEX_STREAM_( stream ) ( stream ->input.waveHandles && stream ->output.waveHandles )
-#define PA_IS_HALF_DUPLEX_STREAM_( stream ) ( !(stream ->input.waveHandles && stream ->output.waveHandles) )
+#define PA_IS_INPUT_STREAM_(stream) (stream->input.waveHandles)
+#define PA_IS_OUTPUT_STREAM_(stream) (stream->output.waveHandles)
+#define PA_IS_FULL_DUPLEX_STREAM_(stream) (stream->input.waveHandles && stream->output.waveHandles)
+#define PA_IS_HALF_DUPLEX_STREAM_(stream) (!(stream->input.waveHandles && stream->output.waveHandles))
 
-static PaError OpenStream( struct PaUtilHostApiRepresentation *hostApi,
-                           PaStream** s,
-                           const PaStreamParameters *inputParameters,
-                           const PaStreamParameters *outputParameters,
-                           double sampleRate,
-                           unsigned long framesPerBuffer,
-                           PaStreamFlags streamFlags,
-                           PaStreamCallback *streamCallback,
-                           void *userData )
-{
-    PaError result;
-    PaWinMmeHostApiRepresentation *winMmeHostApi = (PaWinMmeHostApiRepresentation*)hostApi;
-    PaWinMmeStream *stream = 0;
-    int bufferProcessorIsInitialized = 0;
-    int streamRepresentationIsInitialized = 0;
-    PaSampleFormat hostInputSampleFormat, hostOutputSampleFormat;
-    int inputChannelCount, outputChannelCount;
-    PaSampleFormat inputSampleFormat, outputSampleFormat;
-    double suggestedInputLatency, suggestedOutputLatency;
-    PaWinMmeStreamInfo *inputStreamInfo, *outputStreamInfo;
-    PaWinWaveFormatChannelMask inputChannelMask, outputChannelMask;
-    unsigned long framesPerHostInputBuffer;
-    unsigned long hostInputBufferCount;
-    unsigned long framesPerHostOutputBuffer;
-    unsigned long hostOutputBufferCount;
-    unsigned long framesPerBufferProcessorCall;
-    PaWinMmeDeviceAndChannelCount *inputDevices = 0;    /* contains all devices and channel counts as local host api ids, even when PaWinMmeUseMultipleDevices is not used */
-    unsigned long winMmeSpecificInputFlags = 0;
-    unsigned long inputDeviceCount = 0;
-    PaWinMmeDeviceAndChannelCount *outputDevices = 0;
-    unsigned long winMmeSpecificOutputFlags = 0;
-    unsigned long outputDeviceCount = 0;                /* contains all devices and channel counts as local host api ids, even when PaWinMmeUseMultipleDevices is not used */
-    char throttleProcessingThreadOnOverload = 1;
+static PaError OpenStream(struct PaUtilHostApiRepresentation* hostApi,
+                          PaStream** s,
+                          const PaStreamParameters* inputParameters,
+                          const PaStreamParameters* outputParameters,
+                          double sampleRate,
+                          unsigned long framesPerBuffer,
+                          PaStreamFlags streamFlags,
+                          PaStreamCallback* streamCallback,
+                          void* userData) {
+  PaError result;
+  PaWinMmeHostApiRepresentation* winMmeHostApi = (PaWinMmeHostApiRepresentation*)hostApi;
+  PaWinMmeStream* stream = 0;
+  int bufferProcessorIsInitialized = 0;
+  int streamRepresentationIsInitialized = 0;
+  PaSampleFormat hostInputSampleFormat, hostOutputSampleFormat;
+  int inputChannelCount, outputChannelCount;
+  PaSampleFormat inputSampleFormat, outputSampleFormat;
+  double suggestedInputLatency, suggestedOutputLatency;
+  PaWinMmeStreamInfo *inputStreamInfo, *outputStreamInfo;
+  PaWinWaveFormatChannelMask inputChannelMask, outputChannelMask;
+  unsigned long framesPerHostInputBuffer;
+  unsigned long hostInputBufferCount;
+  unsigned long framesPerHostOutputBuffer;
+  unsigned long hostOutputBufferCount;
+  unsigned long framesPerBufferProcessorCall;
+  PaWinMmeDeviceAndChannelCount* inputDevices = 0; /* contains all devices and channel counts as local host api ids, even when PaWinMmeUseMultipleDevices is not used */
+  unsigned long winMmeSpecificInputFlags = 0;
+  unsigned long inputDeviceCount = 0;
+  PaWinMmeDeviceAndChannelCount* outputDevices = 0;
+  unsigned long winMmeSpecificOutputFlags = 0;
+  unsigned long outputDeviceCount = 0; /* contains all devices and channel counts as local host api ids, even when PaWinMmeUseMultipleDevices is not used */
+  char throttleProcessingThreadOnOverload = 1;
 
+  if (inputParameters) {
+    inputChannelCount = inputParameters->channelCount;
+    inputSampleFormat = inputParameters->sampleFormat;
+    suggestedInputLatency = inputParameters->suggestedLatency;
 
-    if( inputParameters )
-    {
-        inputChannelCount = inputParameters->channelCount;
-        inputSampleFormat = inputParameters->sampleFormat;
-        suggestedInputLatency = inputParameters->suggestedLatency;
+    inputDeviceCount = 1;
 
-        inputDeviceCount = 1;
+    /* validate input hostApiSpecificStreamInfo */
+    inputStreamInfo = (PaWinMmeStreamInfo*)inputParameters->hostApiSpecificStreamInfo;
+    result = ValidateWinMmeSpecificStreamInfo(inputParameters, inputStreamInfo, &winMmeSpecificInputFlags, &throttleProcessingThreadOnOverload, &inputDeviceCount);
+    if (result != paNoError)
+      return result;
 
-        /* validate input hostApiSpecificStreamInfo */
-        inputStreamInfo = (PaWinMmeStreamInfo*)inputParameters->hostApiSpecificStreamInfo;
-        result = ValidateWinMmeSpecificStreamInfo( inputParameters, inputStreamInfo,
-                &winMmeSpecificInputFlags,
-                &throttleProcessingThreadOnOverload,
-                &inputDeviceCount );
-        if( result != paNoError ) return result;
+    inputDevices = (PaWinMmeDeviceAndChannelCount*)alloca(sizeof(PaWinMmeDeviceAndChannelCount) * inputDeviceCount);
+    if (!inputDevices)
+      return paInsufficientMemory;
 
-        inputDevices = (PaWinMmeDeviceAndChannelCount*)alloca( sizeof(PaWinMmeDeviceAndChannelCount) * inputDeviceCount );
-        if( !inputDevices ) return paInsufficientMemory;
+    result = RetrieveDevicesFromStreamParameters(hostApi, inputParameters, inputStreamInfo, inputDevices, inputDeviceCount);
+    if (result != paNoError)
+      return result;
 
-        result = RetrieveDevicesFromStreamParameters( hostApi, inputParameters, inputStreamInfo, inputDevices, inputDeviceCount );
-        if( result != paNoError ) return result;
+    result = ValidateInputChannelCounts(hostApi, inputDevices, inputDeviceCount);
+    if (result != paNoError)
+      return result;
 
-        result = ValidateInputChannelCounts( hostApi, inputDevices, inputDeviceCount );
-        if( result != paNoError ) return result;
+    hostInputSampleFormat =
+        PaUtil_SelectClosestAvailableFormat(paInt16 /* native formats */, inputSampleFormat);
 
-        hostInputSampleFormat =
-            PaUtil_SelectClosestAvailableFormat( paInt16 /* native formats */, inputSampleFormat );
-
-        if( inputDeviceCount != 1 ){
-            /* always use direct speakers when using multi-device multichannel mode */
-            inputChannelMask = PAWIN_SPEAKER_DIRECTOUT;
-        }
-        else
-        {
-            if( inputStreamInfo && inputStreamInfo->flags & paWinMmeUseChannelMask )
-                inputChannelMask = inputStreamInfo->channelMask;
-            else
-                inputChannelMask = PaWin_DefaultChannelMask( inputDevices[0].channelCount );
-        }
+    if (inputDeviceCount != 1) {
+      /* always use direct speakers when using multi-device multichannel mode */
+      inputChannelMask = PAWIN_SPEAKER_DIRECTOUT;
+    } else {
+      if (inputStreamInfo && inputStreamInfo->flags & paWinMmeUseChannelMask)
+        inputChannelMask = inputStreamInfo->channelMask;
+      else
+        inputChannelMask = PaWin_DefaultChannelMask(inputDevices[0].channelCount);
     }
-    else
-    {
-        inputChannelCount = 0;
-        inputSampleFormat = 0;
-        suggestedInputLatency = 0.;
-        inputStreamInfo = 0;
-        hostInputSampleFormat = 0;
+  } else {
+    inputChannelCount = 0;
+    inputSampleFormat = 0;
+    suggestedInputLatency = 0.;
+    inputStreamInfo = 0;
+    hostInputSampleFormat = 0;
+  }
+
+  if (outputParameters) {
+    outputChannelCount = outputParameters->channelCount;
+    outputSampleFormat = outputParameters->sampleFormat;
+    suggestedOutputLatency = outputParameters->suggestedLatency;
+
+    outputDeviceCount = 1;
+
+    /* validate output hostApiSpecificStreamInfo */
+    outputStreamInfo = (PaWinMmeStreamInfo*)outputParameters->hostApiSpecificStreamInfo;
+    result = ValidateWinMmeSpecificStreamInfo(outputParameters, outputStreamInfo, &winMmeSpecificOutputFlags, &throttleProcessingThreadOnOverload, &outputDeviceCount);
+    if (result != paNoError)
+      return result;
+
+    outputDevices = (PaWinMmeDeviceAndChannelCount*)alloca(sizeof(PaWinMmeDeviceAndChannelCount) * outputDeviceCount);
+    if (!outputDevices)
+      return paInsufficientMemory;
+
+    result = RetrieveDevicesFromStreamParameters(hostApi, outputParameters, outputStreamInfo, outputDevices, outputDeviceCount);
+    if (result != paNoError)
+      return result;
+
+    result = ValidateOutputChannelCounts(hostApi, outputDevices, outputDeviceCount);
+    if (result != paNoError)
+      return result;
+
+    hostOutputSampleFormat =
+        PaUtil_SelectClosestAvailableFormat(paInt16 /* native formats */, outputSampleFormat);
+
+    if (outputDeviceCount != 1) {
+      /* always use direct speakers when using multi-device multichannel mode */
+      outputChannelMask = PAWIN_SPEAKER_DIRECTOUT;
+    } else {
+      if (outputStreamInfo && outputStreamInfo->flags & paWinMmeUseChannelMask)
+        outputChannelMask = outputStreamInfo->channelMask;
+      else
+        outputChannelMask = PaWin_DefaultChannelMask(outputDevices[0].channelCount);
     }
+  } else {
+    outputChannelCount = 0;
+    outputSampleFormat = 0;
+    outputStreamInfo = 0;
+    hostOutputSampleFormat = 0;
+    suggestedOutputLatency = 0.;
+  }
 
-
-    if( outputParameters )
-    {
-        outputChannelCount = outputParameters->channelCount;
-        outputSampleFormat = outputParameters->sampleFormat;
-        suggestedOutputLatency = outputParameters->suggestedLatency;
-
-        outputDeviceCount = 1;
-
-        /* validate output hostApiSpecificStreamInfo */
-        outputStreamInfo = (PaWinMmeStreamInfo*)outputParameters->hostApiSpecificStreamInfo;
-        result = ValidateWinMmeSpecificStreamInfo( outputParameters, outputStreamInfo,
-                &winMmeSpecificOutputFlags,
-                &throttleProcessingThreadOnOverload,
-                &outputDeviceCount );
-        if( result != paNoError ) return result;
-
-        outputDevices = (PaWinMmeDeviceAndChannelCount*)alloca( sizeof(PaWinMmeDeviceAndChannelCount) * outputDeviceCount );
-        if( !outputDevices ) return paInsufficientMemory;
-
-        result = RetrieveDevicesFromStreamParameters( hostApi, outputParameters, outputStreamInfo, outputDevices, outputDeviceCount );
-        if( result != paNoError ) return result;
-
-        result = ValidateOutputChannelCounts( hostApi, outputDevices, outputDeviceCount );
-        if( result != paNoError ) return result;
-
-        hostOutputSampleFormat =
-            PaUtil_SelectClosestAvailableFormat( paInt16 /* native formats */, outputSampleFormat );
-
-        if( outputDeviceCount != 1 ){
-            /* always use direct speakers when using multi-device multichannel mode */
-            outputChannelMask = PAWIN_SPEAKER_DIRECTOUT;
-        }
-        else
-        {
-            if( outputStreamInfo && outputStreamInfo->flags & paWinMmeUseChannelMask )
-                outputChannelMask = outputStreamInfo->channelMask;
-            else
-                outputChannelMask = PaWin_DefaultChannelMask( outputDevices[0].channelCount );
-        }
-    }
-    else
-    {
-        outputChannelCount = 0;
-        outputSampleFormat = 0;
-        outputStreamInfo = 0;
-        hostOutputSampleFormat = 0;
-        suggestedOutputLatency = 0.;
-    }
-
-
-    /*
+  /*
         IMPLEMENT ME:
             - alter sampleRate to a close allowable rate if possible / necessary
     */
 
+  /* validate platform specific flags */
+  if ((streamFlags & paPlatformSpecificFlags) != 0)
+    return paInvalidFlag; /* unexpected platform specific flag */
 
-    /* validate platform specific flags */
-    if( (streamFlags & paPlatformSpecificFlags) != 0 )
-        return paInvalidFlag; /* unexpected platform specific flag */
+  /* always disable clipping and dithering if we are outputting a raw spdif stream */
+  if ((winMmeSpecificOutputFlags & paWinMmeWaveFormatDolbyAc3Spdif) || (winMmeSpecificOutputFlags & paWinMmeWaveFormatWmaSpdif)) {
 
+    streamFlags = streamFlags | paClipOff | paDitherOff;
+  }
 
-    /* always disable clipping and dithering if we are outputting a raw spdif stream */
-    if( (winMmeSpecificOutputFlags & paWinMmeWaveFormatDolbyAc3Spdif)
-            || (winMmeSpecificOutputFlags & paWinMmeWaveFormatWmaSpdif) ){
+  result = CalculateBufferSettings(&framesPerHostInputBuffer, &hostInputBufferCount, &framesPerHostOutputBuffer, &hostOutputBufferCount, inputChannelCount, hostInputSampleFormat, suggestedInputLatency, inputStreamInfo, outputChannelCount, hostOutputSampleFormat, suggestedOutputLatency, outputStreamInfo, sampleRate, framesPerBuffer);
+  if (result != paNoError)
+    goto error;
 
-        streamFlags = streamFlags | paClipOff | paDitherOff;
+  stream = (PaWinMmeStream*)PaUtil_AllocateMemory(sizeof(PaWinMmeStream));
+  if (!stream) {
+    result = paInsufficientMemory;
+    goto error;
+  }
+
+  InitializeSingleDirectionHandlesAndBuffers(&stream->input);
+  InitializeSingleDirectionHandlesAndBuffers(&stream->output);
+
+  stream->abortEvent = 0;
+  stream->processingThread = 0;
+
+  stream->throttleProcessingThreadOnOverload = throttleProcessingThreadOnOverload;
+
+  PaUtil_InitializeStreamRepresentation(&stream->streamRepresentation,
+                                        ((streamCallback) ? &winMmeHostApi->callbackStreamInterface : &winMmeHostApi->blockingStreamInterface),
+                                        streamCallback,
+                                        userData);
+  streamRepresentationIsInitialized = 1;
+
+  PaUtil_InitializeCpuLoadMeasurer(&stream->cpuLoadMeasurer, sampleRate);
+
+  if (inputParameters && outputParameters) /* full duplex */
+  {
+    if (framesPerHostInputBuffer < framesPerHostOutputBuffer) {
+      assert((framesPerHostOutputBuffer % framesPerHostInputBuffer) == 0); /* CalculateBufferSettings() should guarantee this condition */
+
+      framesPerBufferProcessorCall = framesPerHostInputBuffer;
+    } else {
+      assert((framesPerHostInputBuffer % framesPerHostOutputBuffer) == 0); /* CalculateBufferSettings() should guarantee this condition */
+
+      framesPerBufferProcessorCall = framesPerHostOutputBuffer;
     }
+  } else if (inputParameters) {
+    framesPerBufferProcessorCall = framesPerHostInputBuffer;
+  } else if (outputParameters) {
+    framesPerBufferProcessorCall = framesPerHostOutputBuffer;
+  }
 
+  stream->input.framesPerBuffer = framesPerHostInputBuffer;
+  stream->output.framesPerBuffer = framesPerHostOutputBuffer;
 
-    result = CalculateBufferSettings( &framesPerHostInputBuffer, &hostInputBufferCount,
-                &framesPerHostOutputBuffer, &hostOutputBufferCount,
-                inputChannelCount, hostInputSampleFormat, suggestedInputLatency, inputStreamInfo,
-                outputChannelCount, hostOutputSampleFormat, suggestedOutputLatency, outputStreamInfo,
-                sampleRate, framesPerBuffer );
-    if( result != paNoError ) goto error;
+  result = PaUtil_InitializeBufferProcessor(&stream->bufferProcessor,
+                                            inputChannelCount,
+                                            inputSampleFormat,
+                                            hostInputSampleFormat,
+                                            outputChannelCount,
+                                            outputSampleFormat,
+                                            hostOutputSampleFormat,
+                                            sampleRate,
+                                            streamFlags,
+                                            framesPerBuffer,
+                                            framesPerBufferProcessorCall,
+                                            paUtilFixedHostBufferSize,
+                                            streamCallback,
+                                            userData);
+  if (result != paNoError)
+    goto error;
 
+  bufferProcessorIsInitialized = 1;
 
-    stream = (PaWinMmeStream*)PaUtil_AllocateMemory( sizeof(PaWinMmeStream) );
-    if( !stream )
-    {
-        result = paInsufficientMemory;
-        goto error;
-    }
+  /* stream info input latency is the minimum buffering latency (unlike suggested and default which are *maximums*) */
+  stream->streamRepresentation.streamInfo.inputLatency =
+      (double)(PaUtil_GetBufferProcessorInputLatencyFrames(&stream->bufferProcessor) + framesPerHostInputBuffer) / sampleRate;
+  stream->streamRepresentation.streamInfo.outputLatency =
+      (double)(PaUtil_GetBufferProcessorOutputLatencyFrames(&stream->bufferProcessor) + (framesPerHostOutputBuffer * (hostOutputBufferCount - 1))) / sampleRate;
+  stream->streamRepresentation.streamInfo.sampleRate = sampleRate;
 
-    InitializeSingleDirectionHandlesAndBuffers( &stream->input );
-    InitializeSingleDirectionHandlesAndBuffers( &stream->output );
+  stream->primeStreamUsingCallback = ((streamFlags & paPrimeOutputBuffersUsingStreamCallback) && streamCallback) ? 1 : 0;
 
-    stream->abortEvent = 0;
-    stream->processingThread = 0;
-
-    stream->throttleProcessingThreadOnOverload = throttleProcessingThreadOnOverload;
-
-    PaUtil_InitializeStreamRepresentation( &stream->streamRepresentation,
-                                           ( (streamCallback)
-                                            ? &winMmeHostApi->callbackStreamInterface
-                                            : &winMmeHostApi->blockingStreamInterface ),
-                                           streamCallback, userData );
-    streamRepresentationIsInitialized = 1;
-
-    PaUtil_InitializeCpuLoadMeasurer( &stream->cpuLoadMeasurer, sampleRate );
-
-
-    if( inputParameters && outputParameters ) /* full duplex */
-    {
-        if( framesPerHostInputBuffer < framesPerHostOutputBuffer )
-        {
-            assert( (framesPerHostOutputBuffer % framesPerHostInputBuffer) == 0 ); /* CalculateBufferSettings() should guarantee this condition */
-
-            framesPerBufferProcessorCall = framesPerHostInputBuffer;
-        }
-        else
-        {
-            assert( (framesPerHostInputBuffer % framesPerHostOutputBuffer) == 0 ); /* CalculateBufferSettings() should guarantee this condition */
-
-            framesPerBufferProcessorCall = framesPerHostOutputBuffer;
-        }
-    }
-    else if( inputParameters )
-    {
-        framesPerBufferProcessorCall = framesPerHostInputBuffer;
-    }
-    else if( outputParameters )
-    {
-        framesPerBufferProcessorCall = framesPerHostOutputBuffer;
-    }
-
-    stream->input.framesPerBuffer = framesPerHostInputBuffer;
-    stream->output.framesPerBuffer = framesPerHostOutputBuffer;
-
-    result =  PaUtil_InitializeBufferProcessor( &stream->bufferProcessor,
-                    inputChannelCount, inputSampleFormat, hostInputSampleFormat,
-                    outputChannelCount, outputSampleFormat, hostOutputSampleFormat,
-                    sampleRate, streamFlags, framesPerBuffer,
-                    framesPerBufferProcessorCall, paUtilFixedHostBufferSize,
-                    streamCallback, userData );
-    if( result != paNoError ) goto error;
-
-    bufferProcessorIsInitialized = 1;
-
-    /* stream info input latency is the minimum buffering latency (unlike suggested and default which are *maximums*) */
-    stream->streamRepresentation.streamInfo.inputLatency =
-            (double)(PaUtil_GetBufferProcessorInputLatencyFrames(&stream->bufferProcessor)
-                + framesPerHostInputBuffer) / sampleRate;
-    stream->streamRepresentation.streamInfo.outputLatency =
-            (double)(PaUtil_GetBufferProcessorOutputLatencyFrames(&stream->bufferProcessor)
-                + (framesPerHostOutputBuffer * (hostOutputBufferCount-1))) / sampleRate;
-    stream->streamRepresentation.streamInfo.sampleRate = sampleRate;
-
-    stream->primeStreamUsingCallback = ( (streamFlags&paPrimeOutputBuffersUsingStreamCallback) && streamCallback ) ? 1 : 0;
-
-    /* time to sleep when throttling due to >100% cpu usage.
+  /* time to sleep when throttling due to >100% cpu usage.
         -a quarter of a buffer's duration */
-    stream->throttledSleepMsecs =
-            (unsigned long)(stream->bufferProcessor.framesPerHostBuffer *
-             stream->bufferProcessor.samplePeriod * .25 * 1000);
+  stream->throttledSleepMsecs =
+      (unsigned long)(stream->bufferProcessor.framesPerHostBuffer *
+                      stream->bufferProcessor.samplePeriod * .25 * 1000);
 
-    stream->isStopped = 1;
-    stream->isActive = 0;
+  stream->isStopped = 1;
+  stream->isActive = 0;
 
-
-    /* for maximum compatibility with multi-device multichannel drivers,
+  /* for maximum compatibility with multi-device multichannel drivers,
         we first open all devices, then we prepare all buffers, finally
         we start all devices ( in StartStream() ). teardown in reverse order.
     */
 
-    if( inputParameters )
-    {
-        result = InitializeWaveHandles( winMmeHostApi, &stream->input,
-                winMmeSpecificInputFlags,
-                stream->bufferProcessor.bytesPerHostInputSample, sampleRate,
-                inputDevices, inputDeviceCount, inputChannelMask, 1 /* isInput */ );
-        if( result != paNoError ) goto error;
-    }
+  if (inputParameters) {
+    result = InitializeWaveHandles(winMmeHostApi, &stream->input, winMmeSpecificInputFlags, stream->bufferProcessor.bytesPerHostInputSample, sampleRate, inputDevices, inputDeviceCount, inputChannelMask, 1 /* isInput */);
+    if (result != paNoError)
+      goto error;
+  }
 
-    if( outputParameters )
-    {
-        result = InitializeWaveHandles( winMmeHostApi, &stream->output,
-                winMmeSpecificOutputFlags,
-                stream->bufferProcessor.bytesPerHostOutputSample, sampleRate,
-                outputDevices, outputDeviceCount, outputChannelMask, 0 /* isInput */ );
-        if( result != paNoError ) goto error;
-    }
+  if (outputParameters) {
+    result = InitializeWaveHandles(winMmeHostApi, &stream->output, winMmeSpecificOutputFlags, stream->bufferProcessor.bytesPerHostOutputSample, sampleRate, outputDevices, outputDeviceCount, outputChannelMask, 0 /* isInput */);
+    if (result != paNoError)
+      goto error;
+  }
 
-    if( inputParameters )
-    {
-        result = InitializeWaveHeaders( &stream->input, hostInputBufferCount,
-                hostInputSampleFormat, framesPerHostInputBuffer, inputDevices, 1 /* isInput */ );
-        if( result != paNoError ) goto error;
-    }
+  if (inputParameters) {
+    result = InitializeWaveHeaders(&stream->input, hostInputBufferCount, hostInputSampleFormat, framesPerHostInputBuffer, inputDevices, 1 /* isInput */);
+    if (result != paNoError)
+      goto error;
+  }
 
-    if( outputParameters )
-    {
-        result = InitializeWaveHeaders( &stream->output, hostOutputBufferCount,
-                hostOutputSampleFormat, framesPerHostOutputBuffer, outputDevices, 0 /* not isInput */ );
-        if( result != paNoError ) goto error;
+  if (outputParameters) {
+    result = InitializeWaveHeaders(&stream->output, hostOutputBufferCount, hostOutputSampleFormat, framesPerHostOutputBuffer, outputDevices, 0 /* not isInput */);
+    if (result != paNoError)
+      goto error;
 
-        stream->allBuffersDurationMs = (DWORD) (1000.0 * (framesPerHostOutputBuffer * stream->output.bufferCount) / sampleRate);
-    }
-    else
-    {
-        stream->allBuffersDurationMs = (DWORD) (1000.0 * (framesPerHostInputBuffer * stream->input.bufferCount) / sampleRate);
-    }
+    stream->allBuffersDurationMs = (DWORD)(1000.0 * (framesPerHostOutputBuffer * stream->output.bufferCount) / sampleRate);
+  } else {
+    stream->allBuffersDurationMs = (DWORD)(1000.0 * (framesPerHostInputBuffer * stream->input.bufferCount) / sampleRate);
+  }
 
+  if (streamCallback) {
+    /* abort event is only needed for callback streams */
+    result = CreateEventWithPaError(&stream->abortEvent, NULL, TRUE, FALSE, NULL);
+    if (result != paNoError)
+      goto error;
+  }
 
-    if( streamCallback )
-    {
-        /* abort event is only needed for callback streams */
-        result = CreateEventWithPaError( &stream->abortEvent, NULL, TRUE, FALSE, NULL );
-        if( result != paNoError ) goto error;
-    }
+  *s = (PaStream*)stream;
 
-    *s = (PaStream*)stream;
-
-    return result;
+  return result;
 
 error:
 
-    if( stream )
-    {
-        if( stream->abortEvent )
-            CloseHandle( stream->abortEvent );
+  if (stream) {
+    if (stream->abortEvent)
+      CloseHandle(stream->abortEvent);
 
-        TerminateWaveHeaders( &stream->output, 0 /* not isInput */ );
-        TerminateWaveHeaders( &stream->input, 1 /* isInput */ );
+    TerminateWaveHeaders(&stream->output, 0 /* not isInput */);
+    TerminateWaveHeaders(&stream->input, 1 /* isInput */);
 
-        TerminateWaveHandles( &stream->output, 0 /* not isInput */, 1 /* currentlyProcessingAnError */ );
-        TerminateWaveHandles( &stream->input, 1 /* isInput */, 1 /* currentlyProcessingAnError */ );
+    TerminateWaveHandles(&stream->output, 0 /* not isInput */, 1 /* currentlyProcessingAnError */);
+    TerminateWaveHandles(&stream->input, 1 /* isInput */, 1 /* currentlyProcessingAnError */);
 
-        if( bufferProcessorIsInitialized )
-            PaUtil_TerminateBufferProcessor( &stream->bufferProcessor );
+    if (bufferProcessorIsInitialized)
+      PaUtil_TerminateBufferProcessor(&stream->bufferProcessor);
 
-        if( streamRepresentationIsInitialized )
-            PaUtil_TerminateStreamRepresentation( &stream->streamRepresentation );
+    if (streamRepresentationIsInitialized)
+      PaUtil_TerminateStreamRepresentation(&stream->streamRepresentation);
 
-        PaUtil_FreeMemory( stream );
-    }
+    PaUtil_FreeMemory(stream);
+  }
 
-    return result;
+  return result;
 }
-
 
 /* return non-zero if all current buffers are done */
-static int BuffersAreDone( WAVEHDR **waveHeaders, unsigned int deviceCount, int bufferIndex )
-{
-    unsigned int i;
+static int BuffersAreDone(WAVEHDR** waveHeaders, unsigned int deviceCount, int bufferIndex) {
+  unsigned int i;
 
-    for( i=0; i < deviceCount; ++i )
-    {
-        if( !(waveHeaders[i][ bufferIndex ].dwFlags & WHDR_DONE) )
-        {
-            return 0;
-        }
+  for (i = 0; i < deviceCount; ++i) {
+    if (!(waveHeaders[i][bufferIndex].dwFlags & WHDR_DONE)) {
+      return 0;
     }
+  }
 
-    return 1;
+  return 1;
 }
 
-static int CurrentInputBuffersAreDone( PaWinMmeStream *stream )
-{
-    return BuffersAreDone( stream->input.waveHeaders, stream->input.deviceCount, stream->input.currentBufferIndex );
+static int CurrentInputBuffersAreDone(PaWinMmeStream* stream) {
+  return BuffersAreDone(stream->input.waveHeaders, stream->input.deviceCount, stream->input.currentBufferIndex);
 }
 
-static int CurrentOutputBuffersAreDone( PaWinMmeStream *stream )
-{
-    return BuffersAreDone( stream->output.waveHeaders, stream->output.deviceCount, stream->output.currentBufferIndex );
+static int CurrentOutputBuffersAreDone(PaWinMmeStream* stream) {
+  return BuffersAreDone(stream->output.waveHeaders, stream->output.deviceCount, stream->output.currentBufferIndex);
 }
-
 
 /* return non-zero if any buffers are queued */
-static int NoBuffersAreQueued( PaWinMmeSingleDirectionHandlesAndBuffers *handlesAndBuffers )
-{
-    unsigned int i, j;
+static int NoBuffersAreQueued(PaWinMmeSingleDirectionHandlesAndBuffers* handlesAndBuffers) {
+  unsigned int i, j;
 
-    if( handlesAndBuffers->waveHandles )
-    {
-        for( i=0; i < handlesAndBuffers->bufferCount; ++i )
-        {
-            for( j=0; j < handlesAndBuffers->deviceCount; ++j )
-            {
-                if( !( handlesAndBuffers->waveHeaders[ j ][ i ].dwFlags & WHDR_DONE) )
-                {
-                    return 0;
-                }
-            }
+  if (handlesAndBuffers->waveHandles) {
+    for (i = 0; i < handlesAndBuffers->bufferCount; ++i) {
+      for (j = 0; j < handlesAndBuffers->deviceCount; ++j) {
+        if (!(handlesAndBuffers->waveHeaders[j][i].dwFlags & WHDR_DONE)) {
+          return 0;
         }
+      }
     }
+  }
 
-    return 1;
+  return 1;
 }
 
+#define PA_CIRCULAR_INCREMENT_(current, max) \
+  ((((current) + 1) >= (max)) ? (0) : (current + 1))
 
-#define PA_CIRCULAR_INCREMENT_( current, max )\
-    ( (((current) + 1) >= (max)) ? (0) : (current+1) )
+#define PA_CIRCULAR_DECREMENT_(current, max) \
+  (((current) == 0) ? ((max)-1) : (current - 1))
 
-#define PA_CIRCULAR_DECREMENT_( current, max )\
-    ( ((current) == 0) ? ((max)-1) : (current-1) )
+static signed long GetAvailableFrames(PaWinMmeSingleDirectionHandlesAndBuffers* handlesAndBuffers) {
+  signed long result = 0;
+  unsigned int i;
 
-
-static signed long GetAvailableFrames( PaWinMmeSingleDirectionHandlesAndBuffers *handlesAndBuffers )
-{
-    signed long result = 0;
-    unsigned int i;
-
-    if( BuffersAreDone( handlesAndBuffers->waveHeaders, handlesAndBuffers->deviceCount, handlesAndBuffers->currentBufferIndex ) )
-    {
-        /* we could calculate the following in O(1) if we kept track of the
+  if (BuffersAreDone(handlesAndBuffers->waveHeaders, handlesAndBuffers->deviceCount, handlesAndBuffers->currentBufferIndex)) {
+    /* we could calculate the following in O(1) if we kept track of the
             last done buffer */
-        result = handlesAndBuffers->framesPerBuffer - handlesAndBuffers->framesUsedInCurrentBuffer;
+    result = handlesAndBuffers->framesPerBuffer - handlesAndBuffers->framesUsedInCurrentBuffer;
 
-        i = PA_CIRCULAR_INCREMENT_( handlesAndBuffers->currentBufferIndex, handlesAndBuffers->bufferCount );
-        while( i != handlesAndBuffers->currentBufferIndex )
-        {
-            if( BuffersAreDone( handlesAndBuffers->waveHeaders, handlesAndBuffers->deviceCount, i ) )
-            {
-                result += handlesAndBuffers->framesPerBuffer;
-                i = PA_CIRCULAR_INCREMENT_( i, handlesAndBuffers->bufferCount );
-            }
-            else
-                break;
-        }
+    i = PA_CIRCULAR_INCREMENT_(handlesAndBuffers->currentBufferIndex, handlesAndBuffers->bufferCount);
+    while (i != handlesAndBuffers->currentBufferIndex) {
+      if (BuffersAreDone(handlesAndBuffers->waveHeaders, handlesAndBuffers->deviceCount, i)) {
+        result += handlesAndBuffers->framesPerBuffer;
+        i = PA_CIRCULAR_INCREMENT_(i, handlesAndBuffers->bufferCount);
+      } else
+        break;
     }
+  }
 
-    return result;
+  return result;
 }
 
+static PaError AdvanceToNextInputBuffer(PaWinMmeStream* stream) {
+  PaError result = paNoError;
+  MMRESULT mmresult;
+  unsigned int i;
 
-static PaError AdvanceToNextInputBuffer( PaWinMmeStream *stream )
-{
-    PaError result = paNoError;
-    MMRESULT mmresult;
-    unsigned int i;
-
-    for( i=0; i < stream->input.deviceCount; ++i )
-    {
-        stream->input.waveHeaders[i][ stream->input.currentBufferIndex ].dwFlags &= ~WHDR_DONE;
-        mmresult = waveInAddBuffer( ((HWAVEIN*)stream->input.waveHandles)[i],
-                                    &stream->input.waveHeaders[i][ stream->input.currentBufferIndex ],
-                                    sizeof(WAVEHDR) );
-        if( mmresult != MMSYSERR_NOERROR )
-        {
-            result = paUnanticipatedHostError;
-            PA_MME_SET_LAST_WAVEIN_ERROR( mmresult );
-        }
+  for (i = 0; i < stream->input.deviceCount; ++i) {
+    stream->input.waveHeaders[i][stream->input.currentBufferIndex].dwFlags &= ~WHDR_DONE;
+    mmresult = waveInAddBuffer(((HWAVEIN*)stream->input.waveHandles)[i],
+                               &stream->input.waveHeaders[i][stream->input.currentBufferIndex],
+                               sizeof(WAVEHDR));
+    if (mmresult != MMSYSERR_NOERROR) {
+      result = paUnanticipatedHostError;
+      PA_MME_SET_LAST_WAVEIN_ERROR(mmresult);
     }
+  }
 
-    stream->input.currentBufferIndex =
-            PA_CIRCULAR_INCREMENT_( stream->input.currentBufferIndex, stream->input.bufferCount );
+  stream->input.currentBufferIndex =
+      PA_CIRCULAR_INCREMENT_(stream->input.currentBufferIndex, stream->input.bufferCount);
 
-    stream->input.framesUsedInCurrentBuffer = 0;
+  stream->input.framesUsedInCurrentBuffer = 0;
 
-    return result;
+  return result;
 }
 
+static PaError AdvanceToNextOutputBuffer(PaWinMmeStream* stream) {
+  PaError result = paNoError;
+  MMRESULT mmresult;
+  unsigned int i;
 
-static PaError AdvanceToNextOutputBuffer( PaWinMmeStream *stream )
-{
-    PaError result = paNoError;
-    MMRESULT mmresult;
-    unsigned int i;
-
-    for( i=0; i < stream->output.deviceCount; ++i )
-    {
-        mmresult = waveOutWrite( ((HWAVEOUT*)stream->output.waveHandles)[i],
-                                 &stream->output.waveHeaders[i][ stream->output.currentBufferIndex ],
-                                 sizeof(WAVEHDR) );
-        if( mmresult != MMSYSERR_NOERROR )
-        {
-            result = paUnanticipatedHostError;
-            PA_MME_SET_LAST_WAVEOUT_ERROR( mmresult );
-        }
+  for (i = 0; i < stream->output.deviceCount; ++i) {
+    mmresult = waveOutWrite(((HWAVEOUT*)stream->output.waveHandles)[i],
+                            &stream->output.waveHeaders[i][stream->output.currentBufferIndex],
+                            sizeof(WAVEHDR));
+    if (mmresult != MMSYSERR_NOERROR) {
+      result = paUnanticipatedHostError;
+      PA_MME_SET_LAST_WAVEOUT_ERROR(mmresult);
     }
+  }
 
-    stream->output.currentBufferIndex =
-            PA_CIRCULAR_INCREMENT_( stream->output.currentBufferIndex, stream->output.bufferCount );
+  stream->output.currentBufferIndex =
+      PA_CIRCULAR_INCREMENT_(stream->output.currentBufferIndex, stream->output.bufferCount);
 
-    stream->output.framesUsedInCurrentBuffer = 0;
+  stream->output.framesUsedInCurrentBuffer = 0;
 
-    return result;
+  return result;
 }
-
 
 /* requeue all but the most recent input with the driver. Used for catching
     up after a total input buffer underrun */
-static PaError CatchUpInputBuffers( PaWinMmeStream *stream )
-{
-    PaError result = paNoError;
-    unsigned int i;
+static PaError CatchUpInputBuffers(PaWinMmeStream* stream) {
+  PaError result = paNoError;
+  unsigned int i;
 
-    for( i=0; i < stream->input.bufferCount - 1; ++i )
-    {
-        result = AdvanceToNextInputBuffer( stream );
-        if( result != paNoError )
-            break;
-    }
+  for (i = 0; i < stream->input.bufferCount - 1; ++i) {
+    result = AdvanceToNextInputBuffer(stream);
+    if (result != paNoError)
+      break;
+  }
 
-    return result;
+  return result;
 }
-
 
 /* take the most recent output and duplicate it to all other output buffers
     and requeue them. Used for catching up after a total output buffer underrun.
 */
-static PaError CatchUpOutputBuffers( PaWinMmeStream *stream )
-{
-    PaError result = paNoError;
-    unsigned int i, j;
-    unsigned int previousBufferIndex =
-            PA_CIRCULAR_DECREMENT_( stream->output.currentBufferIndex, stream->output.bufferCount );
+static PaError CatchUpOutputBuffers(PaWinMmeStream* stream) {
+  PaError result = paNoError;
+  unsigned int i, j;
+  unsigned int previousBufferIndex =
+      PA_CIRCULAR_DECREMENT_(stream->output.currentBufferIndex, stream->output.bufferCount);
 
-    for( i=0; i < stream->output.bufferCount - 1; ++i )
-    {
-        for( j=0; j < stream->output.deviceCount; ++j )
-        {
-            if( stream->output.waveHeaders[j][ stream->output.currentBufferIndex ].lpData
-                    != stream->output.waveHeaders[j][ previousBufferIndex ].lpData )
-            {
-                CopyMemory( stream->output.waveHeaders[j][ stream->output.currentBufferIndex ].lpData,
-                            stream->output.waveHeaders[j][ previousBufferIndex ].lpData,
-                            stream->output.waveHeaders[j][ stream->output.currentBufferIndex ].dwBufferLength );
-            }
-        }
-
-        result = AdvanceToNextOutputBuffer( stream );
-        if( result != paNoError )
-            break;
+  for (i = 0; i < stream->output.bufferCount - 1; ++i) {
+    for (j = 0; j < stream->output.deviceCount; ++j) {
+      if (stream->output.waveHeaders[j][stream->output.currentBufferIndex].lpData != stream->output.waveHeaders[j][previousBufferIndex].lpData) {
+        CopyMemory(stream->output.waveHeaders[j][stream->output.currentBufferIndex].lpData,
+                   stream->output.waveHeaders[j][previousBufferIndex].lpData,
+                   stream->output.waveHeaders[j][stream->output.currentBufferIndex].dwBufferLength);
+      }
     }
 
-    return result;
+    result = AdvanceToNextOutputBuffer(stream);
+    if (result != paNoError)
+      break;
+  }
+
+  return result;
 }
 
+PA_THREAD_FUNC ProcessingThreadProc(void* pArg) {
+  PaWinMmeStream* stream = (PaWinMmeStream*)pArg;
+  HANDLE events[3];
+  int eventCount = 0;
+  DWORD result = paNoError;
+  DWORD waitResult;
+  DWORD timeout = (unsigned long)(stream->allBuffersDurationMs * 0.5);
+  int hostBuffersAvailable;
+  signed int hostInputBufferIndex, hostOutputBufferIndex;
+  PaStreamCallbackFlags statusFlags;
+  int callbackResult;
+  int done = 0;
+  unsigned int channel, i;
+  unsigned long framesProcessed;
 
-PA_THREAD_FUNC ProcessingThreadProc( void *pArg )
-{
-    PaWinMmeStream *stream = (PaWinMmeStream *)pArg;
-    HANDLE events[3];
-    int eventCount = 0;
-    DWORD result = paNoError;
-    DWORD waitResult;
-    DWORD timeout = (unsigned long)(stream->allBuffersDurationMs * 0.5);
-    int hostBuffersAvailable;
-    signed int hostInputBufferIndex, hostOutputBufferIndex;
-    PaStreamCallbackFlags statusFlags;
-    int callbackResult;
-    int done = 0;
-    unsigned int channel, i;
-    unsigned long framesProcessed;
+  /* prepare event array for call to WaitForMultipleObjects() */
+  if (stream->input.bufferEvent)
+    events[eventCount++] = stream->input.bufferEvent;
+  if (stream->output.bufferEvent)
+    events[eventCount++] = stream->output.bufferEvent;
+  events[eventCount++] = stream->abortEvent;
 
-    /* prepare event array for call to WaitForMultipleObjects() */
-    if( stream->input.bufferEvent )
-        events[eventCount++] = stream->input.bufferEvent;
-    if( stream->output.bufferEvent )
-        events[eventCount++] = stream->output.bufferEvent;
-    events[eventCount++] = stream->abortEvent;
+  statusFlags = 0; /** @todo support paInputUnderflow, paOutputOverflow and paNeverDropInput */
 
-    statusFlags = 0; /** @todo support paInputUnderflow, paOutputOverflow and paNeverDropInput */
-
-    /* loop until something causes us to stop */
-    do{
-        /* wait for MME to signal that a buffer is available, or for
+  /* loop until something causes us to stop */
+  do {
+    /* wait for MME to signal that a buffer is available, or for
             the PA abort event to be signaled.
 
           When this indicates that one or more buffers are available
@@ -2860,59 +2507,44 @@ PA_THREAD_FUNC ProcessingThreadProc( void *pArg )
           huge problem, it just means that we won't always be able to detect
           underflow/overflow.
         */
-        waitResult = WaitForMultipleObjects( eventCount, events, FALSE /* wait all = FALSE */, timeout );
-        if( waitResult == WAIT_FAILED )
-        {
-            result = paUnanticipatedHostError;
-            /** @todo FIXME/REVIEW: can't return host error info from an asynchronous thread. see http://www.portaudio.com/trac/ticket/143 */
-            done = 1;
-        }
-        else if( waitResult == WAIT_TIMEOUT )
-        {
-            /* if a timeout is encountered, continue */
-        }
+    waitResult = WaitForMultipleObjects(eventCount, events, FALSE /* wait all = FALSE */, timeout);
+    if (waitResult == WAIT_FAILED) {
+      result = paUnanticipatedHostError;
+      /** @todo FIXME/REVIEW: can't return host error info from an asynchronous thread. see http://www.portaudio.com/trac/ticket/143 */
+      done = 1;
+    } else if (waitResult == WAIT_TIMEOUT) {
+      /* if a timeout is encountered, continue */
+    }
 
-        if( stream->abortProcessing )
-        {
-            /* Pa_AbortStream() has been called, stop processing immediately */
-            done = 1;
-        }
-        else if( stream->stopProcessing )
-        {
-            /* Pa_StopStream() has been called or the user callback returned
+    if (stream->abortProcessing) {
+      /* Pa_AbortStream() has been called, stop processing immediately */
+      done = 1;
+    } else if (stream->stopProcessing) {
+      /* Pa_StopStream() has been called or the user callback returned
                 non-zero, processing will continue until all output buffers
                 are marked as done. The stream will stop immediately if it
                 is input-only.
             */
 
-            if( PA_IS_OUTPUT_STREAM_(stream) )
-            {
-                if( NoBuffersAreQueued( &stream->output ) )
-                    done = 1; /* Will cause thread to return. */
-            }
-            else
-            {
-                /* input only stream */
-                done = 1; /* Will cause thread to return. */
-            }
-        }
-        else
-        {
-            hostBuffersAvailable = 1;
+      if (PA_IS_OUTPUT_STREAM_(stream)) {
+        if (NoBuffersAreQueued(&stream->output))
+          done = 1; /* Will cause thread to return. */
+      } else {
+        /* input only stream */
+        done = 1; /* Will cause thread to return. */
+      }
+    } else {
+      hostBuffersAvailable = 1;
 
-            /* process all available host buffers */
-            do
-            {
-                hostInputBufferIndex = -1;
-                hostOutputBufferIndex = -1;
+      /* process all available host buffers */
+      do {
+        hostInputBufferIndex = -1;
+        hostOutputBufferIndex = -1;
 
-                if( PA_IS_INPUT_STREAM_(stream) )
-                {
-                    if( CurrentInputBuffersAreDone( stream ) )
-                    {
-                        if( NoBuffersAreQueued( &stream->input ) )
-                        {
-                            /** @todo
+        if (PA_IS_INPUT_STREAM_(stream)) {
+          if (CurrentInputBuffersAreDone(stream)) {
+            if (NoBuffersAreQueued(&stream->input)) {
+              /** @todo
                                if all of the other buffers are also ready then
                                we discard all but the most recent. This is an
                                input buffer overflow. FIXME: these buffers should
@@ -2923,26 +2555,23 @@ PA_THREAD_FUNC ProcessingThreadProc( void *pArg )
                                to happen while the callback is processing a buffer.
                                that is handled further down.
                             */
-                            result = CatchUpInputBuffers( stream );
-                            if( result != paNoError )
-                                done = 1;
+              result = CatchUpInputBuffers(stream);
+              if (result != paNoError)
+                done = 1;
 
-                            statusFlags |= paInputOverflow;
-                        }
+              statusFlags |= paInputOverflow;
+            }
 
-                        hostInputBufferIndex = stream->input.currentBufferIndex;
-                    }
-                }
+            hostInputBufferIndex = stream->input.currentBufferIndex;
+          }
+        }
 
-                if( PA_IS_OUTPUT_STREAM_(stream) )
-                {
-                    if( CurrentOutputBuffersAreDone( stream ) )
-                    {
-                        /* ok, we have an output buffer */
+        if (PA_IS_OUTPUT_STREAM_(stream)) {
+          if (CurrentOutputBuffersAreDone(stream)) {
+            /* ok, we have an output buffer */
 
-                        if( NoBuffersAreQueued( &stream->output ) )
-                        {
-                            /*
+            if (NoBuffersAreQueued(&stream->output)) {
+              /*
                             if all of the other buffers are also ready, catch up by copying
                             the most recently generated buffer into all but one of the output
                             buffers.
@@ -2955,750 +2584,622 @@ PA_THREAD_FUNC ProcessingThreadProc( void *pArg )
                             case is handled further down.
                             */
 
-                            result = CatchUpOutputBuffers( stream );
-                            if( result != paNoError )
-                                done = 1;
+              result = CatchUpOutputBuffers(stream);
+              if (result != paNoError)
+                done = 1;
 
-                            statusFlags |= paOutputUnderflow;
-                        }
+              statusFlags |= paOutputUnderflow;
+            }
 
-                        hostOutputBufferIndex = stream->output.currentBufferIndex;
-                    }
-                }
+            hostOutputBufferIndex = stream->output.currentBufferIndex;
+          }
+        }
 
+        if ((PA_IS_FULL_DUPLEX_STREAM_(stream) && hostInputBufferIndex != -1 && hostOutputBufferIndex != -1) ||
+            (PA_IS_HALF_DUPLEX_STREAM_(stream) && (hostInputBufferIndex != -1 || hostOutputBufferIndex != -1))) {
+          PaStreamCallbackTimeInfo timeInfo = {0, 0, 0}; /** @todo implement inputBufferAdcTime */
 
-                if( (PA_IS_FULL_DUPLEX_STREAM_(stream) && hostInputBufferIndex != -1 && hostOutputBufferIndex != -1) ||
-                        (PA_IS_HALF_DUPLEX_STREAM_(stream) && ( hostInputBufferIndex != -1 || hostOutputBufferIndex != -1 ) ) )
-                {
-                    PaStreamCallbackTimeInfo timeInfo = {0,0,0}; /** @todo implement inputBufferAdcTime */
-
-
-                    if( PA_IS_OUTPUT_STREAM_(stream) )
-                    {
-                        /* set timeInfo.currentTime and calculate timeInfo.outputBufferDacTime
+          if (PA_IS_OUTPUT_STREAM_(stream)) {
+            /* set timeInfo.currentTime and calculate timeInfo.outputBufferDacTime
                             from the current wave out position */
-                        MMTIME mmtime;
-                        double timeBeforeGetPosition, timeAfterGetPosition;
-                        double time;
-                        long framesInBufferRing;
-                        long writePosition;
-                        long playbackPosition;
-                        HWAVEOUT firstWaveOutDevice = ((HWAVEOUT*)stream->output.waveHandles)[0];
+            MMTIME mmtime;
+            double timeBeforeGetPosition, timeAfterGetPosition;
+            double time;
+            long framesInBufferRing;
+            long writePosition;
+            long playbackPosition;
+            HWAVEOUT firstWaveOutDevice = ((HWAVEOUT*)stream->output.waveHandles)[0];
 
-                        mmtime.wType = TIME_SAMPLES;
-                        timeBeforeGetPosition = PaUtil_GetTime();
-                        waveOutGetPosition( firstWaveOutDevice, &mmtime, sizeof(MMTIME) );
-                        timeAfterGetPosition = PaUtil_GetTime();
+            mmtime.wType = TIME_SAMPLES;
+            timeBeforeGetPosition = PaUtil_GetTime();
+            waveOutGetPosition(firstWaveOutDevice, &mmtime, sizeof(MMTIME));
+            timeAfterGetPosition = PaUtil_GetTime();
 
-                        timeInfo.currentTime = timeAfterGetPosition;
+            timeInfo.currentTime = timeAfterGetPosition;
 
-                        /* approximate time at which wave out position was measured
+            /* approximate time at which wave out position was measured
                             as half way between timeBeforeGetPosition and timeAfterGetPosition */
-                        time = timeBeforeGetPosition + (timeAfterGetPosition - timeBeforeGetPosition) * .5;
+            time = timeBeforeGetPosition + (timeAfterGetPosition - timeBeforeGetPosition) * .5;
 
-                        framesInBufferRing = stream->output.bufferCount * stream->bufferProcessor.framesPerHostBuffer;
-                        playbackPosition = mmtime.u.sample % framesInBufferRing;
+            framesInBufferRing = stream->output.bufferCount * stream->bufferProcessor.framesPerHostBuffer;
+            playbackPosition = mmtime.u.sample % framesInBufferRing;
 
-                        writePosition = stream->output.currentBufferIndex * stream->bufferProcessor.framesPerHostBuffer
-                                + stream->output.framesUsedInCurrentBuffer;
+            writePosition = stream->output.currentBufferIndex * stream->bufferProcessor.framesPerHostBuffer + stream->output.framesUsedInCurrentBuffer;
 
-                        if( playbackPosition >= writePosition ){
-                            timeInfo.outputBufferDacTime =
-                                    time + ((double)( writePosition + (framesInBufferRing - playbackPosition) ) * stream->bufferProcessor.samplePeriod );
-                        }else{
-                            timeInfo.outputBufferDacTime =
-                                    time + ((double)( writePosition - playbackPosition ) * stream->bufferProcessor.samplePeriod );
-                        }
-                    }
+            if (playbackPosition >= writePosition) {
+              timeInfo.outputBufferDacTime =
+                  time + ((double)(writePosition + (framesInBufferRing - playbackPosition)) * stream->bufferProcessor.samplePeriod);
+            } else {
+              timeInfo.outputBufferDacTime =
+                  time + ((double)(writePosition - playbackPosition) * stream->bufferProcessor.samplePeriod);
+            }
+          }
 
+          PaUtil_BeginCpuLoadMeasurement(&stream->cpuLoadMeasurer);
 
-                    PaUtil_BeginCpuLoadMeasurement( &stream->cpuLoadMeasurer );
+          PaUtil_BeginBufferProcessing(&stream->bufferProcessor, &timeInfo, statusFlags);
 
-                    PaUtil_BeginBufferProcessing( &stream->bufferProcessor, &timeInfo, statusFlags  );
+          /* reset status flags once they have been passed to the buffer processor */
+          statusFlags = 0;
 
-                    /* reset status flags once they have been passed to the buffer processor */
-                    statusFlags = 0;
+          if (PA_IS_INPUT_STREAM_(stream)) {
+            PaUtil_SetInputFrameCount(&stream->bufferProcessor, 0 /* default to host buffer size */);
 
-                    if( PA_IS_INPUT_STREAM_(stream) )
-                    {
-                        PaUtil_SetInputFrameCount( &stream->bufferProcessor, 0 /* default to host buffer size */ );
+            channel = 0;
+            for (i = 0; i < stream->input.deviceCount; ++i) {
+              /* we have stored the number of channels in the buffer in dwUser */
+              int channelCount = (int)stream->input.waveHeaders[i][hostInputBufferIndex].dwUser;
 
-                        channel = 0;
-                        for( i=0; i<stream->input.deviceCount; ++i )
-                        {
-                             /* we have stored the number of channels in the buffer in dwUser */
-                            int channelCount = (int)stream->input.waveHeaders[i][ hostInputBufferIndex ].dwUser;
+              PaUtil_SetInterleavedInputChannels(&stream->bufferProcessor, channel, stream->input.waveHeaders[i][hostInputBufferIndex].lpData + stream->input.framesUsedInCurrentBuffer * channelCount * stream->bufferProcessor.bytesPerHostInputSample, channelCount);
 
-                            PaUtil_SetInterleavedInputChannels( &stream->bufferProcessor, channel,
-                                    stream->input.waveHeaders[i][ hostInputBufferIndex ].lpData +
-                                        stream->input.framesUsedInCurrentBuffer * channelCount *
-                                        stream->bufferProcessor.bytesPerHostInputSample,
-                                    channelCount );
+              channel += channelCount;
+            }
+          }
 
+          if (PA_IS_OUTPUT_STREAM_(stream)) {
+            PaUtil_SetOutputFrameCount(&stream->bufferProcessor, 0 /* default to host buffer size */);
 
-                            channel += channelCount;
-                        }
-                    }
+            channel = 0;
+            for (i = 0; i < stream->output.deviceCount; ++i) {
+              /* we have stored the number of channels in the buffer in dwUser */
+              int channelCount = (int)stream->output.waveHeaders[i][hostOutputBufferIndex].dwUser;
 
-                    if( PA_IS_OUTPUT_STREAM_(stream) )
-                    {
-                        PaUtil_SetOutputFrameCount( &stream->bufferProcessor, 0 /* default to host buffer size */ );
+              PaUtil_SetInterleavedOutputChannels(&stream->bufferProcessor, channel, stream->output.waveHeaders[i][hostOutputBufferIndex].lpData + stream->output.framesUsedInCurrentBuffer * channelCount * stream->bufferProcessor.bytesPerHostOutputSample, channelCount);
 
-                        channel = 0;
-                        for( i=0; i<stream->output.deviceCount; ++i )
-                        {
-                            /* we have stored the number of channels in the buffer in dwUser */
-                            int channelCount = (int)stream->output.waveHeaders[i][ hostOutputBufferIndex ].dwUser;
+              channel += channelCount;
+            }
+          }
 
-                            PaUtil_SetInterleavedOutputChannels( &stream->bufferProcessor, channel,
-                                    stream->output.waveHeaders[i][ hostOutputBufferIndex ].lpData +
-                                        stream->output.framesUsedInCurrentBuffer * channelCount *
-                                        stream->bufferProcessor.bytesPerHostOutputSample,
-                                    channelCount );
+          callbackResult = paContinue;
+          framesProcessed = PaUtil_EndBufferProcessing(&stream->bufferProcessor, &callbackResult);
 
-                            channel += channelCount;
-                        }
-                    }
+          stream->input.framesUsedInCurrentBuffer += framesProcessed;
+          stream->output.framesUsedInCurrentBuffer += framesProcessed;
 
-                    callbackResult = paContinue;
-                    framesProcessed = PaUtil_EndBufferProcessing( &stream->bufferProcessor, &callbackResult );
+          PaUtil_EndCpuLoadMeasurement(&stream->cpuLoadMeasurer, framesProcessed);
 
-                    stream->input.framesUsedInCurrentBuffer += framesProcessed;
-                    stream->output.framesUsedInCurrentBuffer += framesProcessed;
-
-                    PaUtil_EndCpuLoadMeasurement( &stream->cpuLoadMeasurer, framesProcessed );
-
-                    if( callbackResult == paContinue )
-                    {
-                        /* nothing special to do */
-                    }
-                    else if( callbackResult == paAbort )
-                    {
-                        stream->abortProcessing = 1;
-                        done = 1;
-                        /** @todo FIXME: should probably reset the output device immediately once the callback returns paAbort
+          if (callbackResult == paContinue) {
+            /* nothing special to do */
+          } else if (callbackResult == paAbort) {
+            stream->abortProcessing = 1;
+            done = 1;
+            /** @todo FIXME: should probably reset the output device immediately once the callback returns paAbort
                             see: http://www.portaudio.com/trac/ticket/141
                         */
-                        result = paNoError;
-                    }
-                    else
-                    {
-                        /* User callback has asked us to stop with paComplete or other non-zero value */
-                        stream->stopProcessing = 1; /* stop once currently queued audio has finished */
-                        result = paNoError;
-                    }
+            result = paNoError;
+          } else {
+            /* User callback has asked us to stop with paComplete or other non-zero value */
+            stream->stopProcessing = 1; /* stop once currently queued audio has finished */
+            result = paNoError;
+          }
 
+          if (PA_IS_INPUT_STREAM_(stream) && stream->stopProcessing == 0 && stream->abortProcessing == 0 && stream->input.framesUsedInCurrentBuffer == stream->input.framesPerBuffer) {
+            if (NoBuffersAreQueued(&stream->input)) {
+              /** @todo need to handle PaNeverDropInput here where necessary */
+              result = CatchUpInputBuffers(stream);
+              if (result != paNoError)
+                done = 1;
 
-                    if( PA_IS_INPUT_STREAM_(stream)
-                            && stream->stopProcessing == 0 && stream->abortProcessing == 0
-                            && stream->input.framesUsedInCurrentBuffer == stream->input.framesPerBuffer )
-                    {
-                        if( NoBuffersAreQueued( &stream->input ) )
-                        {
-                            /** @todo need to handle PaNeverDropInput here where necessary */
-                            result = CatchUpInputBuffers( stream );
-                            if( result != paNoError )
-                                done = 1;
+              statusFlags |= paInputOverflow;
+            }
 
-                            statusFlags |= paInputOverflow;
-                        }
+            result = AdvanceToNextInputBuffer(stream);
+            if (result != paNoError)
+              done = 1;
+          }
 
-                        result = AdvanceToNextInputBuffer( stream );
-                        if( result != paNoError )
-                            done = 1;
-                    }
+          if (PA_IS_OUTPUT_STREAM_(stream) && !stream->abortProcessing) {
+            if (stream->stopProcessing &&
+                stream->output.framesUsedInCurrentBuffer < stream->output.framesPerBuffer) {
+              /* zero remaining samples in output output buffer and flush */
 
+              stream->output.framesUsedInCurrentBuffer += PaUtil_ZeroOutput(&stream->bufferProcessor,
+                                                                            stream->output.framesPerBuffer - stream->output.framesUsedInCurrentBuffer);
 
-                    if( PA_IS_OUTPUT_STREAM_(stream) && !stream->abortProcessing )
-                    {
-                        if( stream->stopProcessing &&
-                                stream->output.framesUsedInCurrentBuffer < stream->output.framesPerBuffer )
-                        {
-                            /* zero remaining samples in output output buffer and flush */
-
-                            stream->output.framesUsedInCurrentBuffer += PaUtil_ZeroOutput( &stream->bufferProcessor,
-                                    stream->output.framesPerBuffer - stream->output.framesUsedInCurrentBuffer );
-
-                            /* we send the entire buffer to the output devices, but we could
+              /* we send the entire buffer to the output devices, but we could
                                 just send a partial buffer, rather than zeroing the unused
                                 samples.
                             */
-                        }
+            }
 
-                        if( stream->output.framesUsedInCurrentBuffer == stream->output.framesPerBuffer )
-                        {
-                            /* check for underflow before enquing the just-generated buffer,
+            if (stream->output.framesUsedInCurrentBuffer == stream->output.framesPerBuffer) {
+              /* check for underflow before enquing the just-generated buffer,
                                 but recover from underflow after enquing it. This ensures
                                 that the most recent audio segment is repeated */
-                            int outputUnderflow = NoBuffersAreQueued( &stream->output );
+              int outputUnderflow = NoBuffersAreQueued(&stream->output);
 
-                            result = AdvanceToNextOutputBuffer( stream );
-                            if( result != paNoError )
-                                done = 1;
+              result = AdvanceToNextOutputBuffer(stream);
+              if (result != paNoError)
+                done = 1;
 
-                            if( outputUnderflow && !done && !stream->stopProcessing )
-                            {
-                                /* Recover from underflow in the case where the
+              if (outputUnderflow && !done && !stream->stopProcessing) {
+                /* Recover from underflow in the case where the
                                     underflow occurred while processing the buffer
                                     we just finished */
 
-                                result = CatchUpOutputBuffers( stream );
-                                if( result != paNoError )
-                                    done = 1;
+                result = CatchUpOutputBuffers(stream);
+                if (result != paNoError)
+                  done = 1;
 
-                                statusFlags |= paOutputUnderflow;
-                            }
-                        }
-                    }
-
-                    if( stream->throttleProcessingThreadOnOverload != 0 )
-                    {
-                        if( stream->stopProcessing || stream->abortProcessing )
-                        {
-                            if( stream->processingThreadPriority != stream->highThreadPriority )
-                            {
-                                SetThreadPriority( stream->processingThread, stream->highThreadPriority );
-                                stream->processingThreadPriority = stream->highThreadPriority;
-                            }
-                        }
-                        else if( PaUtil_GetCpuLoad( &stream->cpuLoadMeasurer ) > 1. )
-                        {
-                            if( stream->processingThreadPriority != stream->throttledThreadPriority )
-                            {
-                                SetThreadPriority( stream->processingThread, stream->throttledThreadPriority );
-                                stream->processingThreadPriority = stream->throttledThreadPriority;
-                            }
-
-                            /* sleep to give other processes a go */
-                            Sleep( stream->throttledSleepMsecs );
-                        }
-                        else
-                        {
-                            if( stream->processingThreadPriority != stream->highThreadPriority )
-                            {
-                                SetThreadPriority( stream->processingThread, stream->highThreadPriority );
-                                stream->processingThreadPriority = stream->highThreadPriority;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    hostBuffersAvailable = 0;
-                }
+                statusFlags |= paOutputUnderflow;
+              }
             }
-            while( hostBuffersAvailable &&
-                    stream->stopProcessing == 0 &&
-                    stream->abortProcessing == 0 &&
-                    !done );
+          }
+
+          if (stream->throttleProcessingThreadOnOverload != 0) {
+            if (stream->stopProcessing || stream->abortProcessing) {
+              if (stream->processingThreadPriority != stream->highThreadPriority) {
+                SetThreadPriority(stream->processingThread, stream->highThreadPriority);
+                stream->processingThreadPriority = stream->highThreadPriority;
+              }
+            } else if (PaUtil_GetCpuLoad(&stream->cpuLoadMeasurer) > 1.) {
+              if (stream->processingThreadPriority != stream->throttledThreadPriority) {
+                SetThreadPriority(stream->processingThread, stream->throttledThreadPriority);
+                stream->processingThreadPriority = stream->throttledThreadPriority;
+              }
+
+              /* sleep to give other processes a go */
+              Sleep(stream->throttledSleepMsecs);
+            } else {
+              if (stream->processingThreadPriority != stream->highThreadPriority) {
+                SetThreadPriority(stream->processingThread, stream->highThreadPriority);
+                stream->processingThreadPriority = stream->highThreadPriority;
+              }
+            }
+          }
+        } else {
+          hostBuffersAvailable = 0;
         }
+      } while (hostBuffersAvailable &&
+               stream->stopProcessing == 0 &&
+               stream->abortProcessing == 0 &&
+               !done);
     }
-    while( !done );
+  } while (!done);
 
-    stream->isActive = 0;
+  stream->isActive = 0;
 
-    if( stream->streamRepresentation.streamFinishedCallback != 0 )
-        stream->streamRepresentation.streamFinishedCallback( stream->streamRepresentation.userData );
+  if (stream->streamRepresentation.streamFinishedCallback != 0)
+    stream->streamRepresentation.streamFinishedCallback(stream->streamRepresentation.userData);
 
-    PaUtil_ResetCpuLoadMeasurer( &stream->cpuLoadMeasurer );
+  PaUtil_ResetCpuLoadMeasurer(&stream->cpuLoadMeasurer);
 
-    return result;
+  return result;
 }
-
 
 /*
     When CloseStream() is called, the multi-api layer ensures that
     the stream has already been stopped or aborted.
 */
-static PaError CloseStream( PaStream* s )
-{
-    PaError result;
-    PaWinMmeStream *stream = (PaWinMmeStream*)s;
+static PaError CloseStream(PaStream* s) {
+  PaError result;
+  PaWinMmeStream* stream = (PaWinMmeStream*)s;
 
-    result = CloseHandleWithPaError( stream->abortEvent );
-    if( result != paNoError ) goto error;
+  result = CloseHandleWithPaError(stream->abortEvent);
+  if (result != paNoError)
+    goto error;
 
-    TerminateWaveHeaders( &stream->output, 0 /* not isInput */ );
-    TerminateWaveHeaders( &stream->input, 1 /* isInput */ );
+  TerminateWaveHeaders(&stream->output, 0 /* not isInput */);
+  TerminateWaveHeaders(&stream->input, 1 /* isInput */);
 
-    TerminateWaveHandles( &stream->output, 0 /* not isInput */, 0 /* not currentlyProcessingAnError */ );
-    TerminateWaveHandles( &stream->input, 1 /* isInput */, 0 /* not currentlyProcessingAnError */ );
+  TerminateWaveHandles(&stream->output, 0 /* not isInput */, 0 /* not currentlyProcessingAnError */);
+  TerminateWaveHandles(&stream->input, 1 /* isInput */, 0 /* not currentlyProcessingAnError */);
 
-    PaUtil_TerminateBufferProcessor( &stream->bufferProcessor );
-    PaUtil_TerminateStreamRepresentation( &stream->streamRepresentation );
-    PaUtil_FreeMemory( stream );
+  PaUtil_TerminateBufferProcessor(&stream->bufferProcessor);
+  PaUtil_TerminateStreamRepresentation(&stream->streamRepresentation);
+  PaUtil_FreeMemory(stream);
 
 error:
-    /** @todo REVIEW: what is the best way to clean up a stream if an error is detected? */
-    return result;
+  /** @todo REVIEW: what is the best way to clean up a stream if an error is detected? */
+  return result;
 }
 
+static PaError StartStream(PaStream* s) {
+  PaError result;
+  PaWinMmeStream* stream = (PaWinMmeStream*)s;
+  MMRESULT mmresult;
+  unsigned int i, j;
+  int callbackResult;
+  unsigned int channel;
+  unsigned long framesProcessed;
+  PaStreamCallbackTimeInfo timeInfo = {0, 0, 0}; /** @todo implement this for stream priming */
 
-static PaError StartStream( PaStream *s )
-{
-    PaError result;
-    PaWinMmeStream *stream = (PaWinMmeStream*)s;
-    MMRESULT mmresult;
-    unsigned int i, j;
-    int callbackResult;
-    unsigned int channel;
-    unsigned long framesProcessed;
-    PaStreamCallbackTimeInfo timeInfo = {0,0,0}; /** @todo implement this for stream priming */
+  PaUtil_ResetBufferProcessor(&stream->bufferProcessor);
 
-    PaUtil_ResetBufferProcessor( &stream->bufferProcessor );
-
-    if( PA_IS_INPUT_STREAM_(stream) )
-    {
-        for( i=0; i<stream->input.bufferCount; ++i )
-        {
-            for( j=0; j<stream->input.deviceCount; ++j )
-            {
-                stream->input.waveHeaders[j][i].dwFlags &= ~WHDR_DONE;
-                mmresult = waveInAddBuffer( ((HWAVEIN*)stream->input.waveHandles)[j], &stream->input.waveHeaders[j][i], sizeof(WAVEHDR) );
-                if( mmresult != MMSYSERR_NOERROR )
-                {
-                    result = paUnanticipatedHostError;
-                    PA_MME_SET_LAST_WAVEIN_ERROR( mmresult );
-                    goto error;
-                }
-            }
+  if (PA_IS_INPUT_STREAM_(stream)) {
+    for (i = 0; i < stream->input.bufferCount; ++i) {
+      for (j = 0; j < stream->input.deviceCount; ++j) {
+        stream->input.waveHeaders[j][i].dwFlags &= ~WHDR_DONE;
+        mmresult = waveInAddBuffer(((HWAVEIN*)stream->input.waveHandles)[j], &stream->input.waveHeaders[j][i], sizeof(WAVEHDR));
+        if (mmresult != MMSYSERR_NOERROR) {
+          result = paUnanticipatedHostError;
+          PA_MME_SET_LAST_WAVEIN_ERROR(mmresult);
+          goto error;
         }
-        stream->input.currentBufferIndex = 0;
-        stream->input.framesUsedInCurrentBuffer = 0;
+      }
+    }
+    stream->input.currentBufferIndex = 0;
+    stream->input.framesUsedInCurrentBuffer = 0;
+  }
+
+  if (PA_IS_OUTPUT_STREAM_(stream)) {
+    for (i = 0; i < stream->output.deviceCount; ++i) {
+      if ((mmresult = waveOutPause(((HWAVEOUT*)stream->output.waveHandles)[i])) != MMSYSERR_NOERROR) {
+        result = paUnanticipatedHostError;
+        PA_MME_SET_LAST_WAVEOUT_ERROR(mmresult);
+        goto error;
+      }
     }
 
-    if( PA_IS_OUTPUT_STREAM_(stream) )
-    {
-        for( i=0; i<stream->output.deviceCount; ++i )
-        {
-            if( (mmresult = waveOutPause( ((HWAVEOUT*)stream->output.waveHandles)[i] )) != MMSYSERR_NOERROR )
-            {
-                result = paUnanticipatedHostError;
-                PA_MME_SET_LAST_WAVEOUT_ERROR( mmresult );
-                goto error;
-            }
-        }
+    for (i = 0; i < stream->output.bufferCount; ++i) {
+      if (stream->primeStreamUsingCallback) {
 
-        for( i=0; i<stream->output.bufferCount; ++i )
-        {
-            if( stream->primeStreamUsingCallback )
-            {
+        stream->output.framesUsedInCurrentBuffer = 0;
+        do {
 
-                stream->output.framesUsedInCurrentBuffer = 0;
-                do{
+          PaUtil_BeginBufferProcessing(&stream->bufferProcessor,
+                                       &timeInfo,
+                                       paPrimingOutput | ((stream->input.bufferCount > 0) ? paInputUnderflow : 0));
 
-                    PaUtil_BeginBufferProcessing( &stream->bufferProcessor,
-                            &timeInfo,
-                            paPrimingOutput | ((stream->input.bufferCount > 0 ) ? paInputUnderflow : 0));
+          if (stream->input.bufferCount > 0)
+            PaUtil_SetNoInput(&stream->bufferProcessor);
 
-                    if( stream->input.bufferCount > 0 )
-                        PaUtil_SetNoInput( &stream->bufferProcessor );
+          PaUtil_SetOutputFrameCount(&stream->bufferProcessor, 0 /* default to host buffer size */);
 
-                    PaUtil_SetOutputFrameCount( &stream->bufferProcessor, 0 /* default to host buffer size */ );
+          channel = 0;
+          for (j = 0; j < stream->output.deviceCount; ++j) {
+            /* we have stored the number of channels in the buffer in dwUser */
+            int channelCount = (int)stream->output.waveHeaders[j][i].dwUser;
 
-                    channel = 0;
-                    for( j=0; j<stream->output.deviceCount; ++j )
-                    {
-                        /* we have stored the number of channels in the buffer in dwUser */
-                        int channelCount = (int)stream->output.waveHeaders[j][i].dwUser;
+            PaUtil_SetInterleavedOutputChannels(&stream->bufferProcessor, channel, stream->output.waveHeaders[j][i].lpData + stream->output.framesUsedInCurrentBuffer * channelCount * stream->bufferProcessor.bytesPerHostOutputSample, channelCount);
 
-                        PaUtil_SetInterleavedOutputChannels( &stream->bufferProcessor, channel,
-                                stream->output.waveHeaders[j][i].lpData +
-                                stream->output.framesUsedInCurrentBuffer * channelCount *
-                                stream->bufferProcessor.bytesPerHostOutputSample,
-                                channelCount );
+            /* we have stored the number of channels in the buffer in dwUser */
+            channel += channelCount;
+          }
 
-                        /* we have stored the number of channels in the buffer in dwUser */
-                        channel += channelCount;
-                    }
+          callbackResult = paContinue;
+          framesProcessed = PaUtil_EndBufferProcessing(&stream->bufferProcessor, &callbackResult);
+          stream->output.framesUsedInCurrentBuffer += framesProcessed;
 
-                    callbackResult = paContinue;
-                    framesProcessed = PaUtil_EndBufferProcessing( &stream->bufferProcessor, &callbackResult );
-                    stream->output.framesUsedInCurrentBuffer += framesProcessed;
-
-                    if( callbackResult != paContinue )
-                    {
-                        /** @todo fix this, what do we do if callback result is non-zero during stream
+          if (callbackResult != paContinue) {
+            /** @todo fix this, what do we do if callback result is non-zero during stream
                             priming?
 
                             for complete: play out primed waveHeaders as usual
                             for abort: clean up immediately.
                        */
-                    }
+          }
 
-                }while( stream->output.framesUsedInCurrentBuffer != stream->output.framesPerBuffer );
+        } while (stream->output.framesUsedInCurrentBuffer != stream->output.framesPerBuffer);
 
-            }
-            else
-            {
-                for( j=0; j<stream->output.deviceCount; ++j )
-                {
-                    ZeroMemory( stream->output.waveHeaders[j][i].lpData, stream->output.waveHeaders[j][i].dwBufferLength );
-                }
-            }
+      } else {
+        for (j = 0; j < stream->output.deviceCount; ++j) {
+          ZeroMemory(stream->output.waveHeaders[j][i].lpData, stream->output.waveHeaders[j][i].dwBufferLength);
+        }
+      }
 
-            /* we queue all channels of a single buffer frame (across all
+      /* we queue all channels of a single buffer frame (across all
                 devices, because some multidevice multichannel drivers work
                 better this way */
-            for( j=0; j<stream->output.deviceCount; ++j )
-            {
-                mmresult = waveOutWrite( ((HWAVEOUT*)stream->output.waveHandles)[j], &stream->output.waveHeaders[j][i], sizeof(WAVEHDR) );
-                if( mmresult != MMSYSERR_NOERROR )
-                {
-                    result = paUnanticipatedHostError;
-                    PA_MME_SET_LAST_WAVEOUT_ERROR( mmresult );
-                    goto error;
-                }
-            }
+      for (j = 0; j < stream->output.deviceCount; ++j) {
+        mmresult = waveOutWrite(((HWAVEOUT*)stream->output.waveHandles)[j], &stream->output.waveHeaders[j][i], sizeof(WAVEHDR));
+        if (mmresult != MMSYSERR_NOERROR) {
+          result = paUnanticipatedHostError;
+          PA_MME_SET_LAST_WAVEOUT_ERROR(mmresult);
+          goto error;
         }
-        stream->output.currentBufferIndex = 0;
-        stream->output.framesUsedInCurrentBuffer = 0;
+      }
+    }
+    stream->output.currentBufferIndex = 0;
+    stream->output.framesUsedInCurrentBuffer = 0;
+  }
+
+  stream->isStopped = 0;
+  stream->isActive = 1;
+  stream->stopProcessing = 0;
+  stream->abortProcessing = 0;
+
+  result = ResetEventWithPaError(stream->input.bufferEvent);
+  if (result != paNoError)
+    goto error;
+
+  result = ResetEventWithPaError(stream->output.bufferEvent);
+  if (result != paNoError)
+    goto error;
+
+  if (stream->streamRepresentation.streamCallback) {
+    /* callback stream */
+
+    result = ResetEventWithPaError(stream->abortEvent);
+    if (result != paNoError)
+      goto error;
+
+    /* Create thread that waits for audio buffers to be ready for processing. */
+    stream->processingThread = CREATE_THREAD;
+    if (!stream->processingThread) {
+      result = paUnanticipatedHostError;
+      PA_MME_SET_LAST_SYSTEM_ERROR(GetLastError());
+      goto error;
     }
 
-
-    stream->isStopped = 0;
-    stream->isActive = 1;
-    stream->stopProcessing = 0;
-    stream->abortProcessing = 0;
-
-    result = ResetEventWithPaError( stream->input.bufferEvent );
-    if( result != paNoError ) goto error;
-
-    result = ResetEventWithPaError( stream->output.bufferEvent );
-    if( result != paNoError ) goto error;
-
-
-    if( stream->streamRepresentation.streamCallback )
-    {
-        /* callback stream */
-
-        result = ResetEventWithPaError( stream->abortEvent );
-        if( result != paNoError ) goto error;
-
-        /* Create thread that waits for audio buffers to be ready for processing. */
-        stream->processingThread = CREATE_THREAD;
-        if( !stream->processingThread )
-        {
-            result = paUnanticipatedHostError;
-            PA_MME_SET_LAST_SYSTEM_ERROR( GetLastError() );
-            goto error;
-        }
-
-        /** @todo could have mme specific stream parameters to allow the user
+    /** @todo could have mme specific stream parameters to allow the user
             to set the callback thread priorities */
-        stream->highThreadPriority = THREAD_PRIORITY_TIME_CRITICAL;
-        stream->throttledThreadPriority = THREAD_PRIORITY_NORMAL;
+    stream->highThreadPriority = THREAD_PRIORITY_TIME_CRITICAL;
+    stream->throttledThreadPriority = THREAD_PRIORITY_NORMAL;
 
-        if( !SetThreadPriority( stream->processingThread, stream->highThreadPriority ) )
-        {
-            result = paUnanticipatedHostError;
-            PA_MME_SET_LAST_SYSTEM_ERROR( GetLastError() );
-            goto error;
-        }
-        stream->processingThreadPriority = stream->highThreadPriority;
+    if (!SetThreadPriority(stream->processingThread, stream->highThreadPriority)) {
+      result = paUnanticipatedHostError;
+      PA_MME_SET_LAST_SYSTEM_ERROR(GetLastError());
+      goto error;
     }
-    else
-    {
-        /* blocking read/write stream */
+    stream->processingThreadPriority = stream->highThreadPriority;
+  } else {
+    /* blocking read/write stream */
+  }
 
+  if (PA_IS_INPUT_STREAM_(stream)) {
+    for (i = 0; i < stream->input.deviceCount; ++i) {
+      mmresult = waveInStart(((HWAVEIN*)stream->input.waveHandles)[i]);
+      PA_DEBUG(("Pa_StartStream: waveInStart returned = 0x%X.\n", mmresult));
+      if (mmresult != MMSYSERR_NOERROR) {
+        result = paUnanticipatedHostError;
+        PA_MME_SET_LAST_WAVEIN_ERROR(mmresult);
+        goto error;
+      }
     }
+  }
 
-    if( PA_IS_INPUT_STREAM_(stream) )
-    {
-        for( i=0; i < stream->input.deviceCount; ++i )
-        {
-            mmresult = waveInStart( ((HWAVEIN*)stream->input.waveHandles)[i] );
-            PA_DEBUG(("Pa_StartStream: waveInStart returned = 0x%X.\n", mmresult));
-            if( mmresult != MMSYSERR_NOERROR )
-            {
-                result = paUnanticipatedHostError;
-                PA_MME_SET_LAST_WAVEIN_ERROR( mmresult );
-                goto error;
-            }
-        }
+  if (PA_IS_OUTPUT_STREAM_(stream)) {
+    for (i = 0; i < stream->output.deviceCount; ++i) {
+      if ((mmresult = waveOutRestart(((HWAVEOUT*)stream->output.waveHandles)[i])) != MMSYSERR_NOERROR) {
+        result = paUnanticipatedHostError;
+        PA_MME_SET_LAST_WAVEOUT_ERROR(mmresult);
+        goto error;
+      }
     }
+  }
 
-    if( PA_IS_OUTPUT_STREAM_(stream) )
-    {
-        for( i=0; i < stream->output.deviceCount; ++i )
-        {
-            if( (mmresult = waveOutRestart( ((HWAVEOUT*)stream->output.waveHandles)[i] )) != MMSYSERR_NOERROR )
-            {
-                result = paUnanticipatedHostError;
-                PA_MME_SET_LAST_WAVEOUT_ERROR( mmresult );
-                goto error;
-            }
-        }
-    }
-
-    return result;
+  return result;
 
 error:
-    /** @todo FIXME: implement recovery as best we can
+  /** @todo FIXME: implement recovery as best we can
     This should involve rolling back to a state as-if this function had never been called
     */
-    return result;
+  return result;
 }
 
+static PaError StopStream(PaStream* s) {
+  PaError result = paNoError;
+  PaWinMmeStream* stream = (PaWinMmeStream*)s;
+  int timeout;
+  DWORD waitResult;
+  MMRESULT mmresult;
+  signed int hostOutputBufferIndex;
+  unsigned int channel, waitCount, i;
 
-static PaError StopStream( PaStream *s )
-{
-    PaError result = paNoError;
-    PaWinMmeStream *stream = (PaWinMmeStream*)s;
-    int timeout;
-    DWORD waitResult;
-    MMRESULT mmresult;
-    signed int hostOutputBufferIndex;
-    unsigned int channel, waitCount, i;
-
-    /** @todo
+  /** @todo
         REVIEW: the error checking in this function needs review. the basic
         idea is to return from this function in a known state - for example
         there is no point avoiding calling waveInReset just because
         the thread times out.
     */
 
-    if( stream->processingThread )
-    {
-        /* callback stream */
+  if (stream->processingThread) {
+    /* callback stream */
 
-        /* Tell processing thread to stop generating more data and to let current data play out. */
-        stream->stopProcessing = 1;
+    /* Tell processing thread to stop generating more data and to let current data play out. */
+    stream->stopProcessing = 1;
 
-        /* Calculate timeOut longer than longest time it could take to return all buffers. */
-        timeout = (int)(stream->allBuffersDurationMs * 1.5);
-        if( timeout < PA_MME_MIN_TIMEOUT_MSEC_ )
-            timeout = PA_MME_MIN_TIMEOUT_MSEC_;
+    /* Calculate timeOut longer than longest time it could take to return all buffers. */
+    timeout = (int)(stream->allBuffersDurationMs * 1.5);
+    if (timeout < PA_MME_MIN_TIMEOUT_MSEC_)
+      timeout = PA_MME_MIN_TIMEOUT_MSEC_;
 
-        PA_DEBUG(("WinMME StopStream: waiting for background thread.\n"));
+    PA_DEBUG(("WinMME StopStream: waiting for background thread.\n"));
 
-        waitResult = WaitForSingleObject( stream->processingThread, timeout );
-        if( waitResult == WAIT_TIMEOUT )
-        {
-            /* try to abort */
-            stream->abortProcessing = 1;
-            SetEvent( stream->abortEvent );
-            waitResult = WaitForSingleObject( stream->processingThread, timeout );
-            if( waitResult == WAIT_TIMEOUT )
-            {
-                PA_DEBUG(("WinMME StopStream: timed out while waiting for background thread to finish.\n"));
-                result = paTimedOut;
-            }
+    waitResult = WaitForSingleObject(stream->processingThread, timeout);
+    if (waitResult == WAIT_TIMEOUT) {
+      /* try to abort */
+      stream->abortProcessing = 1;
+      SetEvent(stream->abortEvent);
+      waitResult = WaitForSingleObject(stream->processingThread, timeout);
+      if (waitResult == WAIT_TIMEOUT) {
+        PA_DEBUG(("WinMME StopStream: timed out while waiting for background thread to finish.\n"));
+        result = paTimedOut;
+      }
+    }
+
+    CloseHandle(stream->processingThread);
+    stream->processingThread = NULL;
+  } else {
+    /* blocking read / write stream */
+
+    if (PA_IS_OUTPUT_STREAM_(stream)) {
+      if (stream->output.framesUsedInCurrentBuffer > 0) {
+        /* there are still unqueued frames in the current buffer, so flush them */
+
+        hostOutputBufferIndex = stream->output.currentBufferIndex;
+
+        PaUtil_SetOutputFrameCount(&stream->bufferProcessor,
+                                   stream->output.framesPerBuffer - stream->output.framesUsedInCurrentBuffer);
+
+        channel = 0;
+        for (i = 0; i < stream->output.deviceCount; ++i) {
+          /* we have stored the number of channels in the buffer in dwUser */
+          int channelCount = (int)stream->output.waveHeaders[i][hostOutputBufferIndex].dwUser;
+
+          PaUtil_SetInterleavedOutputChannels(&stream->bufferProcessor, channel, stream->output.waveHeaders[i][hostOutputBufferIndex].lpData + stream->output.framesUsedInCurrentBuffer * channelCount * stream->bufferProcessor.bytesPerHostOutputSample, channelCount);
+
+          channel += channelCount;
         }
 
-        CloseHandle( stream->processingThread );
-        stream->processingThread = NULL;
-    }
-    else
-    {
-        /* blocking read / write stream */
+        PaUtil_ZeroOutput(&stream->bufferProcessor,
+                          stream->output.framesPerBuffer - stream->output.framesUsedInCurrentBuffer);
 
-        if( PA_IS_OUTPUT_STREAM_(stream) )
-        {
-            if( stream->output.framesUsedInCurrentBuffer > 0 )
-            {
-                /* there are still unqueued frames in the current buffer, so flush them */
-
-                hostOutputBufferIndex = stream->output.currentBufferIndex;
-
-                PaUtil_SetOutputFrameCount( &stream->bufferProcessor,
-                        stream->output.framesPerBuffer - stream->output.framesUsedInCurrentBuffer );
-
-                channel = 0;
-                for( i=0; i<stream->output.deviceCount; ++i )
-                {
-                    /* we have stored the number of channels in the buffer in dwUser */
-                    int channelCount = (int)stream->output.waveHeaders[i][ hostOutputBufferIndex ].dwUser;
-
-                    PaUtil_SetInterleavedOutputChannels( &stream->bufferProcessor, channel,
-                            stream->output.waveHeaders[i][ hostOutputBufferIndex ].lpData +
-                                stream->output.framesUsedInCurrentBuffer * channelCount *
-                                stream->bufferProcessor.bytesPerHostOutputSample,
-                            channelCount );
-
-                    channel += channelCount;
-                }
-
-                PaUtil_ZeroOutput( &stream->bufferProcessor,
-                        stream->output.framesPerBuffer - stream->output.framesUsedInCurrentBuffer );
-
-                /* we send the entire buffer to the output devices, but we could
+        /* we send the entire buffer to the output devices, but we could
                     just send a partial buffer, rather than zeroing the unused
                     samples.
                 */
-                AdvanceToNextOutputBuffer( stream );
-            }
+        AdvanceToNextOutputBuffer(stream);
+      }
 
+      timeout = (stream->allBuffersDurationMs / stream->output.bufferCount) + 1;
+      if (timeout < PA_MME_MIN_TIMEOUT_MSEC_)
+        timeout = PA_MME_MIN_TIMEOUT_MSEC_;
 
-            timeout = (stream->allBuffersDurationMs / stream->output.bufferCount) + 1;
-            if( timeout < PA_MME_MIN_TIMEOUT_MSEC_ )
-                timeout = PA_MME_MIN_TIMEOUT_MSEC_;
-
-            waitCount = 0;
-            while( !NoBuffersAreQueued( &stream->output ) && waitCount <= stream->output.bufferCount )
-            {
-                /* wait for MME to signal that a buffer is available */
-                waitResult = WaitForSingleObject( stream->output.bufferEvent, timeout );
-                if( waitResult == WAIT_FAILED )
-                {
-                    break;
-                }
-                else if( waitResult == WAIT_TIMEOUT )
-                {
-                    /* keep waiting */
-                }
-
-                ++waitCount;
-            }
+      waitCount = 0;
+      while (!NoBuffersAreQueued(&stream->output) && waitCount <= stream->output.bufferCount) {
+        /* wait for MME to signal that a buffer is available */
+        waitResult = WaitForSingleObject(stream->output.bufferEvent, timeout);
+        if (waitResult == WAIT_FAILED) {
+          break;
+        } else if (waitResult == WAIT_TIMEOUT) {
+          /* keep waiting */
         }
+
+        ++waitCount;
+      }
     }
+  }
 
-    if( PA_IS_OUTPUT_STREAM_(stream) )
-    {
-        for( i =0; i < stream->output.deviceCount; ++i )
-        {
-            mmresult = waveOutReset( ((HWAVEOUT*)stream->output.waveHandles)[i] );
-            if( mmresult != MMSYSERR_NOERROR )
-            {
-                result = paUnanticipatedHostError;
-                PA_MME_SET_LAST_WAVEOUT_ERROR( mmresult );
-            }
-        }
+  if (PA_IS_OUTPUT_STREAM_(stream)) {
+    for (i = 0; i < stream->output.deviceCount; ++i) {
+      mmresult = waveOutReset(((HWAVEOUT*)stream->output.waveHandles)[i]);
+      if (mmresult != MMSYSERR_NOERROR) {
+        result = paUnanticipatedHostError;
+        PA_MME_SET_LAST_WAVEOUT_ERROR(mmresult);
+      }
     }
+  }
 
-    if( PA_IS_INPUT_STREAM_(stream) )
-    {
-        for( i=0; i < stream->input.deviceCount; ++i )
-        {
-            mmresult = waveInReset( ((HWAVEIN*)stream->input.waveHandles)[i] );
-            if( mmresult != MMSYSERR_NOERROR )
-            {
-                result = paUnanticipatedHostError;
-                PA_MME_SET_LAST_WAVEIN_ERROR( mmresult );
-            }
-        }
+  if (PA_IS_INPUT_STREAM_(stream)) {
+    for (i = 0; i < stream->input.deviceCount; ++i) {
+      mmresult = waveInReset(((HWAVEIN*)stream->input.waveHandles)[i]);
+      if (mmresult != MMSYSERR_NOERROR) {
+        result = paUnanticipatedHostError;
+        PA_MME_SET_LAST_WAVEIN_ERROR(mmresult);
+      }
     }
+  }
 
-    stream->isStopped = 1;
-    stream->isActive = 0;
+  stream->isStopped = 1;
+  stream->isActive = 0;
 
-    return result;
+  return result;
 }
 
+static PaError AbortStream(PaStream* s) {
+  PaError result = paNoError;
+  PaWinMmeStream* stream = (PaWinMmeStream*)s;
+  int timeout;
+  DWORD waitResult;
+  MMRESULT mmresult;
+  unsigned int i;
 
-static PaError AbortStream( PaStream *s )
-{
-    PaError result = paNoError;
-    PaWinMmeStream *stream = (PaWinMmeStream*)s;
-    int timeout;
-    DWORD waitResult;
-    MMRESULT mmresult;
-    unsigned int i;
-
-    /** @todo
+  /** @todo
         REVIEW: the error checking in this function needs review. the basic
         idea is to return from this function in a known state - for example
         there is no point avoiding calling waveInReset just because
         the thread times out.
     */
 
-    if( stream->processingThread )
-    {
-        /* callback stream */
+  if (stream->processingThread) {
+    /* callback stream */
 
-        /* Tell processing thread to abort immediately */
-        stream->abortProcessing = 1;
-        SetEvent( stream->abortEvent );
+    /* Tell processing thread to abort immediately */
+    stream->abortProcessing = 1;
+    SetEvent(stream->abortEvent);
+  }
+
+  if (PA_IS_OUTPUT_STREAM_(stream)) {
+    for (i = 0; i < stream->output.deviceCount; ++i) {
+      mmresult = waveOutReset(((HWAVEOUT*)stream->output.waveHandles)[i]);
+      if (mmresult != MMSYSERR_NOERROR) {
+        PA_MME_SET_LAST_WAVEOUT_ERROR(mmresult);
+        return paUnanticipatedHostError;
+      }
+    }
+  }
+
+  if (PA_IS_INPUT_STREAM_(stream)) {
+    for (i = 0; i < stream->input.deviceCount; ++i) {
+      mmresult = waveInReset(((HWAVEIN*)stream->input.waveHandles)[i]);
+      if (mmresult != MMSYSERR_NOERROR) {
+        PA_MME_SET_LAST_WAVEIN_ERROR(mmresult);
+        return paUnanticipatedHostError;
+      }
+    }
+  }
+
+  if (stream->processingThread) {
+    /* callback stream */
+
+    PA_DEBUG(("WinMME AbortStream: waiting for background thread.\n"));
+
+    /* Calculate timeOut longer than longest time it could take to return all buffers. */
+    timeout = (int)(stream->allBuffersDurationMs * 1.5);
+    if (timeout < PA_MME_MIN_TIMEOUT_MSEC_)
+      timeout = PA_MME_MIN_TIMEOUT_MSEC_;
+
+    waitResult = WaitForSingleObject(stream->processingThread, timeout);
+    if (waitResult == WAIT_TIMEOUT) {
+      PA_DEBUG(("WinMME AbortStream: timed out while waiting for background thread to finish.\n"));
+      return paTimedOut;
     }
 
+    CloseHandle(stream->processingThread);
+    stream->processingThread = NULL;
+  }
 
-    if( PA_IS_OUTPUT_STREAM_(stream) )
-    {
-        for( i =0; i < stream->output.deviceCount; ++i )
-        {
-            mmresult = waveOutReset( ((HWAVEOUT*)stream->output.waveHandles)[i] );
-            if( mmresult != MMSYSERR_NOERROR )
-            {
-                PA_MME_SET_LAST_WAVEOUT_ERROR( mmresult );
-                return paUnanticipatedHostError;
-            }
-        }
-    }
+  stream->isStopped = 1;
+  stream->isActive = 0;
 
-    if( PA_IS_INPUT_STREAM_(stream) )
-    {
-        for( i=0; i < stream->input.deviceCount; ++i )
-        {
-            mmresult = waveInReset( ((HWAVEIN*)stream->input.waveHandles)[i] );
-            if( mmresult != MMSYSERR_NOERROR )
-            {
-                PA_MME_SET_LAST_WAVEIN_ERROR( mmresult );
-                return paUnanticipatedHostError;
-            }
-        }
-    }
-
-
-    if( stream->processingThread )
-    {
-        /* callback stream */
-
-        PA_DEBUG(("WinMME AbortStream: waiting for background thread.\n"));
-
-        /* Calculate timeOut longer than longest time it could take to return all buffers. */
-        timeout = (int)(stream->allBuffersDurationMs * 1.5);
-        if( timeout < PA_MME_MIN_TIMEOUT_MSEC_ )
-            timeout = PA_MME_MIN_TIMEOUT_MSEC_;
-
-        waitResult = WaitForSingleObject( stream->processingThread, timeout );
-        if( waitResult == WAIT_TIMEOUT )
-        {
-            PA_DEBUG(("WinMME AbortStream: timed out while waiting for background thread to finish.\n"));
-            return paTimedOut;
-        }
-
-        CloseHandle( stream->processingThread );
-        stream->processingThread = NULL;
-    }
-
-    stream->isStopped = 1;
-    stream->isActive = 0;
-
-    return result;
+  return result;
 }
 
+static PaError IsStreamStopped(PaStream* s) {
+  PaWinMmeStream* stream = (PaWinMmeStream*)s;
 
-static PaError IsStreamStopped( PaStream *s )
-{
-    PaWinMmeStream *stream = (PaWinMmeStream*)s;
-
-    return stream->isStopped;
+  return stream->isStopped;
 }
 
+static PaError IsStreamActive(PaStream* s) {
+  PaWinMmeStream* stream = (PaWinMmeStream*)s;
 
-static PaError IsStreamActive( PaStream *s )
-{
-    PaWinMmeStream *stream = (PaWinMmeStream*)s;
-
-    return stream->isActive;
+  return stream->isActive;
 }
 
+static PaTime GetStreamTime(PaStream* s) {
+  (void)s; /* unused parameter */
 
-static PaTime GetStreamTime( PaStream *s )
-{
-    (void) s; /* unused parameter */
-
-    return PaUtil_GetTime();
+  return PaUtil_GetTime();
 }
 
+static double GetStreamCpuLoad(PaStream* s) {
+  PaWinMmeStream* stream = (PaWinMmeStream*)s;
 
-static double GetStreamCpuLoad( PaStream* s )
-{
-    PaWinMmeStream *stream = (PaWinMmeStream*)s;
-
-    return PaUtil_GetCpuLoad( &stream->cpuLoadMeasurer );
+  return PaUtil_GetCpuLoad(&stream->cpuLoadMeasurer);
 }
-
 
 /*
     As separate stream interfaces are used for blocking and callback
@@ -3706,328 +3207,264 @@ static double GetStreamCpuLoad( PaStream* s )
     for blocking streams.
 */
 
-static PaError ReadStream( PaStream* s,
-                           void *buffer,
-                           unsigned long frames )
-{
-    PaError result = paNoError;
-    PaWinMmeStream *stream = (PaWinMmeStream*)s;
-    void *userBuffer;
-    unsigned long framesRead = 0;
-    unsigned long framesProcessed;
-    signed int hostInputBufferIndex;
-    DWORD waitResult;
-    DWORD timeout = (unsigned long)(stream->allBuffersDurationMs * 0.5);
-    unsigned int channel, i;
+static PaError ReadStream(PaStream* s,
+                          void* buffer,
+                          unsigned long frames) {
+  PaError result = paNoError;
+  PaWinMmeStream* stream = (PaWinMmeStream*)s;
+  void* userBuffer;
+  unsigned long framesRead = 0;
+  unsigned long framesProcessed;
+  signed int hostInputBufferIndex;
+  DWORD waitResult;
+  DWORD timeout = (unsigned long)(stream->allBuffersDurationMs * 0.5);
+  unsigned int channel, i;
 
-    if( PA_IS_INPUT_STREAM_(stream) )
-    {
-        /* make a local copy of the user buffer pointer(s). this is necessary
+  if (PA_IS_INPUT_STREAM_(stream)) {
+    /* make a local copy of the user buffer pointer(s). this is necessary
             because PaUtil_CopyInput() advances these pointers every time
             it is called.
         */
-        if( stream->bufferProcessor.userInputIsInterleaved )
-        {
-            userBuffer = buffer;
-        }
-        else
-        {
-            userBuffer = (void*)alloca( sizeof(void*) * stream->bufferProcessor.inputChannelCount );
-            if( !userBuffer )
-                return paInsufficientMemory;
-            for( i = 0; i<stream->bufferProcessor.inputChannelCount; ++i )
-                ((void**)userBuffer)[i] = ((void**)buffer)[i];
-        }
+    if (stream->bufferProcessor.userInputIsInterleaved) {
+      userBuffer = buffer;
+    } else {
+      userBuffer = (void*)alloca(sizeof(void*) * stream->bufferProcessor.inputChannelCount);
+      if (!userBuffer)
+        return paInsufficientMemory;
+      for (i = 0; i < stream->bufferProcessor.inputChannelCount; ++i)
+        ((void**)userBuffer)[i] = ((void**)buffer)[i];
+    }
 
-        do{
-            if( CurrentInputBuffersAreDone( stream ) )
-            {
-                if( NoBuffersAreQueued( &stream->input ) )
-                {
-                    /** @todo REVIEW: consider what to do if the input overflows.
+    do {
+      if (CurrentInputBuffersAreDone(stream)) {
+        if (NoBuffersAreQueued(&stream->input)) {
+          /** @todo REVIEW: consider what to do if the input overflows.
                         do we requeue all of the buffers? should we be running
                         a thread to make sure they are always queued?
                         see: http://www.portaudio.com/trac/ticket/117
                         */
 
-                    result = paInputOverflowed;
-                }
+          result = paInputOverflowed;
+        }
 
-                hostInputBufferIndex = stream->input.currentBufferIndex;
+        hostInputBufferIndex = stream->input.currentBufferIndex;
 
-                PaUtil_SetInputFrameCount( &stream->bufferProcessor,
-                        stream->input.framesPerBuffer - stream->input.framesUsedInCurrentBuffer );
+        PaUtil_SetInputFrameCount(&stream->bufferProcessor,
+                                  stream->input.framesPerBuffer - stream->input.framesUsedInCurrentBuffer);
 
-                channel = 0;
-                for( i=0; i<stream->input.deviceCount; ++i )
-                {
-                    /* we have stored the number of channels in the buffer in dwUser */
-                    int channelCount = (int)stream->input.waveHeaders[i][ hostInputBufferIndex ].dwUser;
+        channel = 0;
+        for (i = 0; i < stream->input.deviceCount; ++i) {
+          /* we have stored the number of channels in the buffer in dwUser */
+          int channelCount = (int)stream->input.waveHeaders[i][hostInputBufferIndex].dwUser;
 
-                    PaUtil_SetInterleavedInputChannels( &stream->bufferProcessor, channel,
-                            stream->input.waveHeaders[i][ hostInputBufferIndex ].lpData +
-                                stream->input.framesUsedInCurrentBuffer * channelCount *
-                                stream->bufferProcessor.bytesPerHostInputSample,
-                            channelCount );
+          PaUtil_SetInterleavedInputChannels(&stream->bufferProcessor, channel, stream->input.waveHeaders[i][hostInputBufferIndex].lpData + stream->input.framesUsedInCurrentBuffer * channelCount * stream->bufferProcessor.bytesPerHostInputSample, channelCount);
 
-                    channel += channelCount;
-                }
+          channel += channelCount;
+        }
 
-                framesProcessed = PaUtil_CopyInput( &stream->bufferProcessor, &userBuffer, frames - framesRead );
+        framesProcessed = PaUtil_CopyInput(&stream->bufferProcessor, &userBuffer, frames - framesRead);
 
-                stream->input.framesUsedInCurrentBuffer += framesProcessed;
-                if( stream->input.framesUsedInCurrentBuffer == stream->input.framesPerBuffer )
-                {
-                    result = AdvanceToNextInputBuffer( stream );
-                    if( result != paNoError )
-                        break;
-                }
+        stream->input.framesUsedInCurrentBuffer += framesProcessed;
+        if (stream->input.framesUsedInCurrentBuffer == stream->input.framesPerBuffer) {
+          result = AdvanceToNextInputBuffer(stream);
+          if (result != paNoError)
+            break;
+        }
 
-                framesRead += framesProcessed;
+        framesRead += framesProcessed;
 
-            }else{
-                /* wait for MME to signal that a buffer is available */
-                waitResult = WaitForSingleObject( stream->input.bufferEvent, timeout );
-                if( waitResult == WAIT_FAILED )
-                {
-                    result = paUnanticipatedHostError;
-                    break;
-                }
-                else if( waitResult == WAIT_TIMEOUT )
-                {
-                    /* if a timeout is encountered, continue,
+      } else {
+        /* wait for MME to signal that a buffer is available */
+        waitResult = WaitForSingleObject(stream->input.bufferEvent, timeout);
+        if (waitResult == WAIT_FAILED) {
+          result = paUnanticipatedHostError;
+          break;
+        } else if (waitResult == WAIT_TIMEOUT) {
+          /* if a timeout is encountered, continue,
                         perhaps we should give up eventually
                     */
-                }
-            }
-        }while( framesRead < frames );
-    }
-    else
-    {
-        result = paCanNotReadFromAnOutputOnlyStream;
-    }
+        }
+      }
+    } while (framesRead < frames);
+  } else {
+    result = paCanNotReadFromAnOutputOnlyStream;
+  }
 
-    return result;
+  return result;
 }
 
+static PaError WriteStream(PaStream* s,
+                           const void* buffer,
+                           unsigned long frames) {
+  PaError result = paNoError;
+  PaWinMmeStream* stream = (PaWinMmeStream*)s;
+  const void* userBuffer;
+  unsigned long framesWritten = 0;
+  unsigned long framesProcessed;
+  signed int hostOutputBufferIndex;
+  DWORD waitResult;
+  DWORD timeout = (unsigned long)(stream->allBuffersDurationMs * 0.5);
+  unsigned int channel, i;
 
-static PaError WriteStream( PaStream* s,
-                            const void *buffer,
-                            unsigned long frames )
-{
-    PaError result = paNoError;
-    PaWinMmeStream *stream = (PaWinMmeStream*)s;
-    const void *userBuffer;
-    unsigned long framesWritten = 0;
-    unsigned long framesProcessed;
-    signed int hostOutputBufferIndex;
-    DWORD waitResult;
-    DWORD timeout = (unsigned long)(stream->allBuffersDurationMs * 0.5);
-    unsigned int channel, i;
-
-
-    if( PA_IS_OUTPUT_STREAM_(stream) )
-    {
-        /* make a local copy of the user buffer pointer(s). this is necessary
+  if (PA_IS_OUTPUT_STREAM_(stream)) {
+    /* make a local copy of the user buffer pointer(s). this is necessary
             because PaUtil_CopyOutput() advances these pointers every time
             it is called.
         */
-        if( stream->bufferProcessor.userOutputIsInterleaved )
-        {
-            userBuffer = buffer;
-        }
-        else
-        {
-            userBuffer = (const void*)alloca( sizeof(void*) * stream->bufferProcessor.outputChannelCount );
-            if( !userBuffer )
-                return paInsufficientMemory;
-            for( i = 0; i<stream->bufferProcessor.outputChannelCount; ++i )
-                ((const void**)userBuffer)[i] = ((const void**)buffer)[i];
-        }
+    if (stream->bufferProcessor.userOutputIsInterleaved) {
+      userBuffer = buffer;
+    } else {
+      userBuffer = (const void*)alloca(sizeof(void*) * stream->bufferProcessor.outputChannelCount);
+      if (!userBuffer)
+        return paInsufficientMemory;
+      for (i = 0; i < stream->bufferProcessor.outputChannelCount; ++i)
+        ((const void**)userBuffer)[i] = ((const void**)buffer)[i];
+    }
 
-        do{
-            if( CurrentOutputBuffersAreDone( stream ) )
-            {
-                if( NoBuffersAreQueued( &stream->output ) )
-                {
-                    /** @todo REVIEW: consider what to do if the output
+    do {
+      if (CurrentOutputBuffersAreDone(stream)) {
+        if (NoBuffersAreQueued(&stream->output)) {
+          /** @todo REVIEW: consider what to do if the output
                     underflows. do we requeue all the existing buffers with
                     zeros? should we run a separate thread to keep the buffers
                     enqueued at all times?
                     see: http://www.portaudio.com/trac/ticket/117
                     */
 
-                    result = paOutputUnderflowed;
-                }
+          result = paOutputUnderflowed;
+        }
 
-                hostOutputBufferIndex = stream->output.currentBufferIndex;
+        hostOutputBufferIndex = stream->output.currentBufferIndex;
 
-                PaUtil_SetOutputFrameCount( &stream->bufferProcessor,
-                        stream->output.framesPerBuffer - stream->output.framesUsedInCurrentBuffer );
+        PaUtil_SetOutputFrameCount(&stream->bufferProcessor,
+                                   stream->output.framesPerBuffer - stream->output.framesUsedInCurrentBuffer);
 
-                channel = 0;
-                for( i=0; i<stream->output.deviceCount; ++i )
-                {
-                    /* we have stored the number of channels in the buffer in dwUser */
-                    int channelCount = (int)stream->output.waveHeaders[i][ hostOutputBufferIndex ].dwUser;
+        channel = 0;
+        for (i = 0; i < stream->output.deviceCount; ++i) {
+          /* we have stored the number of channels in the buffer in dwUser */
+          int channelCount = (int)stream->output.waveHeaders[i][hostOutputBufferIndex].dwUser;
 
-                    PaUtil_SetInterleavedOutputChannels( &stream->bufferProcessor, channel,
-                            stream->output.waveHeaders[i][ hostOutputBufferIndex ].lpData +
-                                stream->output.framesUsedInCurrentBuffer * channelCount *
-                                stream->bufferProcessor.bytesPerHostOutputSample,
-                            channelCount );
+          PaUtil_SetInterleavedOutputChannels(&stream->bufferProcessor, channel, stream->output.waveHeaders[i][hostOutputBufferIndex].lpData + stream->output.framesUsedInCurrentBuffer * channelCount * stream->bufferProcessor.bytesPerHostOutputSample, channelCount);
 
-                    channel += channelCount;
-                }
+          channel += channelCount;
+        }
 
-                framesProcessed = PaUtil_CopyOutput( &stream->bufferProcessor, &userBuffer, frames - framesWritten );
+        framesProcessed = PaUtil_CopyOutput(&stream->bufferProcessor, &userBuffer, frames - framesWritten);
 
-                stream->output.framesUsedInCurrentBuffer += framesProcessed;
-                if( stream->output.framesUsedInCurrentBuffer == stream->output.framesPerBuffer )
-                {
-                    result = AdvanceToNextOutputBuffer( stream );
-                    if( result != paNoError )
-                        break;
-                }
+        stream->output.framesUsedInCurrentBuffer += framesProcessed;
+        if (stream->output.framesUsedInCurrentBuffer == stream->output.framesPerBuffer) {
+          result = AdvanceToNextOutputBuffer(stream);
+          if (result != paNoError)
+            break;
+        }
 
-                framesWritten += framesProcessed;
-            }
-            else
-            {
-                /* wait for MME to signal that a buffer is available */
-                waitResult = WaitForSingleObject( stream->output.bufferEvent, timeout );
-                if( waitResult == WAIT_FAILED )
-                {
-                    result = paUnanticipatedHostError;
-                    break;
-                }
-                else if( waitResult == WAIT_TIMEOUT )
-                {
-                    /* if a timeout is encountered, continue,
+        framesWritten += framesProcessed;
+      } else {
+        /* wait for MME to signal that a buffer is available */
+        waitResult = WaitForSingleObject(stream->output.bufferEvent, timeout);
+        if (waitResult == WAIT_FAILED) {
+          result = paUnanticipatedHostError;
+          break;
+        } else if (waitResult == WAIT_TIMEOUT) {
+          /* if a timeout is encountered, continue,
                         perhaps we should give up eventually
                     */
-                }
-            }
-        }while( framesWritten < frames );
-    }
-    else
-    {
-        result = paCanNotWriteToAnInputOnlyStream;
-    }
+        }
+      }
+    } while (framesWritten < frames);
+  } else {
+    result = paCanNotWriteToAnInputOnlyStream;
+  }
 
-    return result;
+  return result;
 }
 
+static signed long GetStreamReadAvailable(PaStream* s) {
+  PaWinMmeStream* stream = (PaWinMmeStream*)s;
 
-static signed long GetStreamReadAvailable( PaStream* s )
-{
-    PaWinMmeStream *stream = (PaWinMmeStream*)s;
-
-    if( PA_IS_INPUT_STREAM_(stream) )
-        return GetAvailableFrames( &stream->input );
-    else
-        return paCanNotReadFromAnOutputOnlyStream;
+  if (PA_IS_INPUT_STREAM_(stream))
+    return GetAvailableFrames(&stream->input);
+  else
+    return paCanNotReadFromAnOutputOnlyStream;
 }
 
+static signed long GetStreamWriteAvailable(PaStream* s) {
+  PaWinMmeStream* stream = (PaWinMmeStream*)s;
 
-static signed long GetStreamWriteAvailable( PaStream* s )
-{
-    PaWinMmeStream *stream = (PaWinMmeStream*)s;
-
-    if( PA_IS_OUTPUT_STREAM_(stream) )
-        return GetAvailableFrames( &stream->output );
-    else
-        return paCanNotWriteToAnInputOnlyStream;
+  if (PA_IS_OUTPUT_STREAM_(stream))
+    return GetAvailableFrames(&stream->output);
+  else
+    return paCanNotWriteToAnInputOnlyStream;
 }
-
 
 /* NOTE: the following functions are MME-stream specific, and are called directly
     by client code. We need to check for many more error conditions here because
     we don't have the benefit of pa_front.c's parameter checking.
 */
 
-static PaError GetWinMMEStreamPointer( PaWinMmeStream **stream, PaStream *s )
-{
-    PaError result;
-    PaUtilHostApiRepresentation *hostApi;
-    PaWinMmeHostApiRepresentation *winMmeHostApi;
+static PaError GetWinMMEStreamPointer(PaWinMmeStream** stream, PaStream* s) {
+  PaError result;
+  PaUtilHostApiRepresentation* hostApi;
+  PaWinMmeHostApiRepresentation* winMmeHostApi;
 
-    result = PaUtil_ValidateStreamPointer( s );
-    if( result != paNoError )
-        return result;
+  result = PaUtil_ValidateStreamPointer(s);
+  if (result != paNoError)
+    return result;
 
-    result = PaUtil_GetHostApiRepresentation( &hostApi, paMME );
-    if( result != paNoError )
-        return result;
+  result = PaUtil_GetHostApiRepresentation(&hostApi, paMME);
+  if (result != paNoError)
+    return result;
 
-    winMmeHostApi = (PaWinMmeHostApiRepresentation*)hostApi;
+  winMmeHostApi = (PaWinMmeHostApiRepresentation*)hostApi;
 
-    /* note, the following would be easier if there was a generic way of testing
+  /* note, the following would be easier if there was a generic way of testing
         that a stream belongs to a specific host API */
 
-    if( PA_STREAM_REP( s )->streamInterface == &winMmeHostApi->callbackStreamInterface
-            || PA_STREAM_REP( s )->streamInterface == &winMmeHostApi->blockingStreamInterface )
-    {
-        /* s is a WinMME stream */
-        *stream = (PaWinMmeStream *)s;
-        return paNoError;
-    }
-    else
-    {
-        return paIncompatibleStreamHostApi;
-    }
+  if (PA_STREAM_REP(s)->streamInterface == &winMmeHostApi->callbackStreamInterface || PA_STREAM_REP(s)->streamInterface == &winMmeHostApi->blockingStreamInterface) {
+    /* s is a WinMME stream */
+    *stream = (PaWinMmeStream*)s;
+    return paNoError;
+  } else {
+    return paIncompatibleStreamHostApi;
+  }
 }
 
+int PaWinMME_GetStreamInputHandleCount(PaStream* s) {
+  PaWinMmeStream* stream;
+  PaError result = GetWinMMEStreamPointer(&stream, s);
 
-int PaWinMME_GetStreamInputHandleCount( PaStream* s )
-{
-    PaWinMmeStream *stream;
-    PaError result = GetWinMMEStreamPointer( &stream, s );
-
-    if( result == paNoError )
-        return (PA_IS_INPUT_STREAM_(stream)) ? stream->input.deviceCount : 0;
-    else
-        return result;
+  if (result == paNoError)
+    return (PA_IS_INPUT_STREAM_(stream)) ? stream->input.deviceCount : 0;
+  else
+    return result;
 }
 
+HWAVEIN PaWinMME_GetStreamInputHandle(PaStream* s, int handleIndex) {
+  PaWinMmeStream* stream;
+  PaError result = GetWinMMEStreamPointer(&stream, s);
 
-HWAVEIN PaWinMME_GetStreamInputHandle( PaStream* s, int handleIndex )
-{
-    PaWinMmeStream *stream;
-    PaError result = GetWinMMEStreamPointer( &stream, s );
-
-    if( result == paNoError
-            && PA_IS_INPUT_STREAM_(stream)
-            && handleIndex >= 0
-            && (unsigned int)handleIndex < stream->input.deviceCount )
-        return ((HWAVEIN*)stream->input.waveHandles)[handleIndex];
-    else
-        return 0;
+  if (result == paNoError && PA_IS_INPUT_STREAM_(stream) && handleIndex >= 0 && (unsigned int)handleIndex < stream->input.deviceCount)
+    return ((HWAVEIN*)stream->input.waveHandles)[handleIndex];
+  else
+    return 0;
 }
 
+int PaWinMME_GetStreamOutputHandleCount(PaStream* s) {
+  PaWinMmeStream* stream;
+  PaError result = GetWinMMEStreamPointer(&stream, s);
 
-int PaWinMME_GetStreamOutputHandleCount( PaStream* s)
-{
-    PaWinMmeStream *stream;
-    PaError result = GetWinMMEStreamPointer( &stream, s );
-
-    if( result == paNoError )
-        return (PA_IS_OUTPUT_STREAM_(stream)) ? stream->output.deviceCount : 0;
-    else
-        return result;
+  if (result == paNoError)
+    return (PA_IS_OUTPUT_STREAM_(stream)) ? stream->output.deviceCount : 0;
+  else
+    return result;
 }
 
+HWAVEOUT PaWinMME_GetStreamOutputHandle(PaStream* s, int handleIndex) {
+  PaWinMmeStream* stream;
+  PaError result = GetWinMMEStreamPointer(&stream, s);
 
-HWAVEOUT PaWinMME_GetStreamOutputHandle( PaStream* s, int handleIndex )
-{
-    PaWinMmeStream *stream;
-    PaError result = GetWinMMEStreamPointer( &stream, s );
-
-    if( result == paNoError
-            && PA_IS_OUTPUT_STREAM_(stream)
-            && handleIndex >= 0
-            && (unsigned int)handleIndex < stream->output.deviceCount )
-        return ((HWAVEOUT*)stream->output.waveHandles)[handleIndex];
-    else
-        return 0;
+  if (result == paNoError && PA_IS_OUTPUT_STREAM_(stream) && handleIndex >= 0 && (unsigned int)handleIndex < stream->output.deviceCount)
+    return ((HWAVEOUT*)stream->output.waveHandles)[handleIndex];
+  else
+    return 0;
 }

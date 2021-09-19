@@ -46,25 +46,21 @@
  stream. Used to implement the Pa_GetStreamCpuLoad() function.
 */
 
-
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif /* __cplusplus */
 
-
 typedef struct {
-    double samplingPeriod;
-    double measurementStartTime;
-    double averageLoad;
+  double samplingPeriod;
+  double measurementStartTime;
+  double averageLoad;
 } PaUtilCpuLoadMeasurer; /**< @todo need better name than measurer */
 
-void PaUtil_InitializeCpuLoadMeasurer( PaUtilCpuLoadMeasurer* measurer, double sampleRate );
-void PaUtil_BeginCpuLoadMeasurement( PaUtilCpuLoadMeasurer* measurer );
-void PaUtil_EndCpuLoadMeasurement( PaUtilCpuLoadMeasurer* measurer, unsigned long framesProcessed );
-void PaUtil_ResetCpuLoadMeasurer( PaUtilCpuLoadMeasurer* measurer );
-double PaUtil_GetCpuLoad( PaUtilCpuLoadMeasurer* measurer );
-
+void PaUtil_InitializeCpuLoadMeasurer(PaUtilCpuLoadMeasurer* measurer, double sampleRate);
+void PaUtil_BeginCpuLoadMeasurement(PaUtilCpuLoadMeasurer* measurer);
+void PaUtil_EndCpuLoadMeasurement(PaUtilCpuLoadMeasurer* measurer, unsigned long framesProcessed);
+void PaUtil_ResetCpuLoadMeasurer(PaUtilCpuLoadMeasurer* measurer);
+double PaUtil_GetCpuLoad(PaUtilCpuLoadMeasurer* measurer);
 
 #ifdef __cplusplus
 }

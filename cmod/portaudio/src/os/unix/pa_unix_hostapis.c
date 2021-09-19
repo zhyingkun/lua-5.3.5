@@ -42,20 +42,20 @@
 
 #include "pa_hostapi.h"
 
-PaError PaJack_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex index );
-PaError PaAlsa_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex index );
-PaError PaOSS_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex index );
+PaError PaJack_Initialize(PaUtilHostApiRepresentation** hostApi, PaHostApiIndex index);
+PaError PaAlsa_Initialize(PaUtilHostApiRepresentation** hostApi, PaHostApiIndex index);
+PaError PaOSS_Initialize(PaUtilHostApiRepresentation** hostApi, PaHostApiIndex index);
 /* Added for IRIX, Pieter, oct 2, 2003: */
-PaError PaSGI_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex index );
+PaError PaSGI_Initialize(PaUtilHostApiRepresentation** hostApi, PaHostApiIndex index);
 /* Linux AudioScience HPI */
-PaError PaAsiHpi_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex index );
-PaError PaMacCore_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex index );
-PaError PaSkeleton_Initialize( PaUtilHostApiRepresentation **hostApi, PaHostApiIndex index );
+PaError PaAsiHpi_Initialize(PaUtilHostApiRepresentation** hostApi, PaHostApiIndex index);
+PaError PaMacCore_Initialize(PaUtilHostApiRepresentation** hostApi, PaHostApiIndex index);
+PaError PaSkeleton_Initialize(PaUtilHostApiRepresentation** hostApi, PaHostApiIndex index);
 
 /** Note that on Linux, ALSA is placed before OSS so that the former is preferred over the latter.
  */
 
-PaUtilHostApiInitializer *paHostApiInitializers[] =
+PaUtilHostApiInitializer* paHostApiInitializers[] =
     {
 #ifdef __linux__
 
@@ -67,7 +67,7 @@ PaUtilHostApiInitializer *paHostApiInitializers[] =
         PaOSS_Initialize,
 #endif
 
-#else   /* __linux__ */
+#else /* __linux__ */
 
 #if PA_USE_OSS
         PaOSS_Initialize,
@@ -77,12 +77,12 @@ PaUtilHostApiInitializer *paHostApiInitializers[] =
         PaAlsa_Initialize,
 #endif
 
-#endif  /* __linux__ */
+#endif /* __linux__ */
 
 #if PA_USE_JACK
         PaJack_Initialize,
 #endif
-                    /* Added for IRIX, Pieter, oct 2, 2003: */
+/* Added for IRIX, Pieter, oct 2, 2003: */
 #if PA_USE_SGI
         PaSGI_Initialize,
 #endif
@@ -99,5 +99,5 @@ PaUtilHostApiInitializer *paHostApiInitializers[] =
         PaSkeleton_Initialize,
 #endif
 
-        0   /* NULL terminated array */
-    };
+        0 /* NULL terminated array */
+};

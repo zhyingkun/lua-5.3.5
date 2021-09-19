@@ -66,23 +66,21 @@
 */
 
 #ifndef PA_TRACE_REALTIME_EVENTS
-#define PA_TRACE_REALTIME_EVENTS     (0)   /**< Set to 1 to enable logging using the trace functions defined below */
+#define PA_TRACE_REALTIME_EVENTS (0) /**< Set to 1 to enable logging using the trace functions defined below */
 #endif
 
 #ifndef PA_MAX_TRACE_RECORDS
-#define PA_MAX_TRACE_RECORDS      (2048)   /**< Maximum number of records stored in trace buffer */
+#define PA_MAX_TRACE_RECORDS (2048) /**< Maximum number of records stored in trace buffer */
 #endif
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif /* __cplusplus */
-
 
 #if PA_TRACE_REALTIME_EVENTS
 
 void PaUtil_ResetTraceMessages();
-void PaUtil_AddTraceMessage( const char *msg, int data );
+void PaUtil_AddTraceMessage(const char* msg, int data);
 void PaUtil_DumpTraceMessages();
 
 /* Alternative interface */
@@ -98,17 +96,16 @@ void PaUtil_DiscardHighSpeedLog(LogHandle hLog);
 #else
 
 #define PaUtil_ResetTraceMessages() /* noop */
-#define PaUtil_AddTraceMessage(msg,data) /* noop */
+#define PaUtil_AddTraceMessage(msg, data) /* noop */
 #define PaUtil_DumpTraceMessages() /* noop */
 
-#define PaUtil_InitializeHighSpeedLog(phLog, maxSizeInBytes)  (0)
+#define PaUtil_InitializeHighSpeedLog(phLog, maxSizeInBytes) (0)
 #define PaUtil_ResetHighSpeedLogTimeRef(hLog)
-#define PaUtil_AddHighSpeedLogMessage(...)   (0)
+#define PaUtil_AddHighSpeedLogMessage(...) (0)
 #define PaUtil_DumpHighSpeedLog(hLog, fileName)
 #define PaUtil_DiscardHighSpeedLog(hLog)
 
 #endif
-
 
 #ifdef __cplusplus
 }

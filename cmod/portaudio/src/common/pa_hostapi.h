@@ -154,10 +154,8 @@ are defaulted to 1.
 #endif
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif /* __cplusplus */
-
 
 /** **FOR THE USE OF pa_front.c ONLY**
     Do NOT use fields in this structure, they my change at any time.
@@ -166,10 +164,8 @@ extern "C"
 */
 typedef struct PaUtilPrivatePaFrontHostApiInfo {
 
-
-    unsigned long baseDeviceIndex;
-}PaUtilPrivatePaFrontHostApiInfo;
-
+  unsigned long baseDeviceIndex;
+} PaUtilPrivatePaFrontHostApiInfo;
 
 /** The common header for all data structures whose pointers are passed through
  the hostApiSpecificStreamInfo field of the PaStreamParameters structure.
@@ -179,40 +175,37 @@ typedef struct PaUtilPrivatePaFrontHostApiInfo {
  with this structure.
  @see PaStreamParameters
 */
-typedef struct PaUtilHostApiSpecificStreamInfoHeader
-{
-    unsigned long size;             /**< size of whole structure including this header */
-    PaHostApiTypeId hostApiType;    /**< host API for which this data is intended */
-    unsigned long version;          /**< structure version */
+typedef struct PaUtilHostApiSpecificStreamInfoHeader {
+  unsigned long size; /**< size of whole structure including this header */
+  PaHostApiTypeId hostApiType; /**< host API for which this data is intended */
+  unsigned long version; /**< structure version */
 } PaUtilHostApiSpecificStreamInfoHeader;
-
-
 
 /** A structure representing the interface to a host API. Contains both
  concrete data and pointers to functions which implement the interface.
 */
 typedef struct PaUtilHostApiRepresentation {
-    PaUtilPrivatePaFrontHostApiInfo privatePaFrontInfo;
+  PaUtilPrivatePaFrontHostApiInfo privatePaFrontInfo;
 
-    /** The host api implementation should populate the info field. In the
+  /** The host api implementation should populate the info field. In the
         case of info.defaultInputDevice and info.defaultOutputDevice the
         values stored should be 0 based indices within the host api's own
         device index range (0 to deviceCount). These values will be converted
         to global device indices by pa_front after PaUtilHostApiInitializer()
         returns.
     */
-    PaHostApiInfo info;
+  PaHostApiInfo info;
 
-    PaDeviceInfo** deviceInfos;
+  PaDeviceInfo** deviceInfos;
 
-    /**
+  /**
         (*Terminate)() is guaranteed to be called with a valid <hostApi>
         parameter, which was previously returned from the same implementation's
         initializer.
     */
-    void (*Terminate)( struct PaUtilHostApiRepresentation *hostApi );
+  void (*Terminate)(struct PaUtilHostApiRepresentation* hostApi);
 
-    /**
+  /**
         The inputParameters and outputParameters pointers should not be saved
         as they will not remain valid after OpenStream is called.
 
@@ -307,23 +300,21 @@ typedef struct PaUtilHostApiRepresentation {
             - validate any platform specific flags, if flags are supplied they
                 must be valid.
     */
-    PaError (*OpenStream)( struct PaUtilHostApiRepresentation *hostApi,
-                           PaStream** stream,
-                           const PaStreamParameters *inputParameters,
-                           const PaStreamParameters *outputParameters,
-                           double sampleRate,
-                           unsigned long framesPerCallback,
-                           PaStreamFlags streamFlags,
-                           PaStreamCallback *streamCallback,
-                           void *userData );
+  PaError (*OpenStream)(struct PaUtilHostApiRepresentation* hostApi,
+                        PaStream** stream,
+                        const PaStreamParameters* inputParameters,
+                        const PaStreamParameters* outputParameters,
+                        double sampleRate,
+                        unsigned long framesPerCallback,
+                        PaStreamFlags streamFlags,
+                        PaStreamCallback* streamCallback,
+                        void* userData);
 
-
-    PaError (*IsFormatSupported)( struct PaUtilHostApiRepresentation *hostApi,
-                                  const PaStreamParameters *inputParameters,
-                                  const PaStreamParameters *outputParameters,
-                                  double sampleRate );
+  PaError (*IsFormatSupported)(struct PaUtilHostApiRepresentation* hostApi,
+                               const PaStreamParameters* inputParameters,
+                               const PaStreamParameters* outputParameters,
+                               double sampleRate);
 } PaUtilHostApiRepresentation;
-
 
 /** Prototype for the initialization function which must be implemented by every
  host API.
@@ -336,8 +327,7 @@ typedef struct PaUtilHostApiRepresentation {
 
  @see paHostApiInitializers
 */
-typedef PaError PaUtilHostApiInitializer( PaUtilHostApiRepresentation**, PaHostApiIndex );
-
+typedef PaError PaUtilHostApiInitializer(PaUtilHostApiRepresentation**, PaHostApiIndex);
 
 /** paHostApiInitializers is a NULL-terminated array of host API initialization
  functions. These functions are called by pa_front.c to initialize the host APIs
@@ -353,8 +343,7 @@ typedef PaError PaUtilHostApiInitializer( PaUtilHostApiRepresentation**, PaHostA
  There is a platform specific file that defines paHostApiInitializers for that
  platform, pa_win/pa_win_hostapis.c contains the Win32 definitions for example.
 */
-extern PaUtilHostApiInitializer *paHostApiInitializers[];
-
+extern PaUtilHostApiInitializer* paHostApiInitializers[];
 
 #ifdef __cplusplus
 }

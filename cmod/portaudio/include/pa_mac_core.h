@@ -52,7 +52,6 @@
 extern "C" {
 #endif
 
-
 /**
  * A pointer to a paMacCoreStreamInfo may be passed as
  * the hostApiSpecificStreamInfo in the PaStreamParameters struct
@@ -62,18 +61,17 @@ extern "C" {
  */
 typedef struct
 {
-    unsigned long size;           /**size of whole structure including this header */
-    PaHostApiTypeId hostApiType;  /**host API for which this data is intended */
-    unsigned long version;        /**structure version */
-    unsigned long flags;          /** flags to modify behaviour */
-    SInt32 const * channelMap;    /** Channel map for HAL channel mapping , if not needed, use NULL;*/
-    unsigned long channelMapSize; /** Channel map size for HAL channel mapping , if not needed, use 0;*/
+  unsigned long size; /**size of whole structure including this header */
+  PaHostApiTypeId hostApiType; /**host API for which this data is intended */
+  unsigned long version; /**structure version */
+  unsigned long flags; /** flags to modify behaviour */
+  SInt32 const* channelMap; /** Channel map for HAL channel mapping , if not needed, use NULL;*/
+  unsigned long channelMapSize; /** Channel map size for HAL channel mapping , if not needed, use 0;*/
 } PaMacCoreStreamInfo;
 
 /**
  * Functions
  */
-
 
 /** Use this function to initialize a paMacCoreStreamInfo struct
  * using the requested flags. Note that channel mapping is turned
@@ -81,14 +79,14 @@ typedef struct
  * @param data The datastructure to initialize
  * @param flags The flags to initialize the datastructure with.
 */
-void PaMacCore_SetupStreamInfo( PaMacCoreStreamInfo *data, unsigned long flags );
+void PaMacCore_SetupStreamInfo(PaMacCoreStreamInfo* data, unsigned long flags);
 
 /** call this after pa_SetupMacCoreStreamInfo to use channel mapping as described in notes.txt.
  * @param data The stream info structure to assign a channel mapping to
  * @param channelMap The channel map array, as described in notes.txt. This array pointer will be used directly (ie the underlying data will not be copied), so the caller should not free the array until after the stream has been opened.
  * @param channelMapSize The size of the channel map array.
  */
-void PaMacCore_SetupChannelMap( PaMacCoreStreamInfo *data, const SInt32 * const channelMap, unsigned long channelMapSize );
+void PaMacCore_SetupChannelMap(PaMacCoreStreamInfo* data, const SInt32* const channelMap, unsigned long channelMapSize);
 
 /**
  * Retrieve the AudioDeviceID of the input device assigned to an open stream
@@ -97,7 +95,7 @@ void PaMacCore_SetupChannelMap( PaMacCoreStreamInfo *data, const SInt32 * const 
  *
  * @return A valid AudioDeviceID, or NULL if an error occurred.
  */
-AudioDeviceID PaMacCore_GetStreamInputDevice( PaStream* s );
+AudioDeviceID PaMacCore_GetStreamInputDevice(PaStream* s);
 
 /**
  * Retrieve the AudioDeviceID of the output device assigned to an open stream
@@ -106,7 +104,7 @@ AudioDeviceID PaMacCore_GetStreamInputDevice( PaStream* s );
  *
  * @return A valid AudioDeviceID, or NULL if an error occurred.
  */
-AudioDeviceID PaMacCore_GetStreamOutputDevice( PaStream* s );
+AudioDeviceID PaMacCore_GetStreamOutputDevice(PaStream* s);
 
 /**
  * Returns a statically allocated string with the device's name
@@ -122,8 +120,7 @@ AudioDeviceID PaMacCore_GetStreamOutputDevice( PaStream* s );
  *         another call to this function.
  *
  */
-const char *PaMacCore_GetChannelName( int device, int channelIndex, bool input );
-
+const char* PaMacCore_GetChannelName(int device, int channelIndex, bool input);
 
 /** Retrieve the range of legal native buffer sizes for the specified device, in sample frames.
 
@@ -133,9 +130,8 @@ const char *PaMacCore_GetChannelName( int device, int channelIndex, bool input )
 
  @see kAudioDevicePropertyBufferFrameSizeRange in the CoreAudio SDK.
  */
-PaError PaMacCore_GetBufferSizeRange( PaDeviceIndex device,
-                                       long *minBufferSizeFrames, long *maxBufferSizeFrames );
-
+PaError PaMacCore_GetBufferSizeRange(PaDeviceIndex device,
+                                     long* minBufferSizeFrames, long* maxBufferSizeFrames);
 
 /**
  * Flags
@@ -160,11 +156,11 @@ PaError PaMacCore_GetBufferSizeRange( PaDeviceIndex device,
 
 /** These flags set the SR conversion quality, if required. The weird ordering
  * allows Maximum Quality to be the default.*/
-#define paMacCoreConversionQualityMin    (0x0100)
+#define paMacCoreConversionQualityMin (0x0100)
 #define paMacCoreConversionQualityMedium (0x0200)
-#define paMacCoreConversionQualityLow    (0x0300)
-#define paMacCoreConversionQualityHigh   (0x0400)
-#define paMacCoreConversionQualityMax    (0x0000)
+#define paMacCoreConversionQualityLow (0x0300)
+#define paMacCoreConversionQualityHigh (0x0400)
+#define paMacCoreConversionQualityMax (0x0000)
 
 /**
  * Here are some "preset" combinations of flags (above) to get to some
@@ -174,15 +170,14 @@ PaError PaMacCore_GetBufferSizeRange( PaDeviceIndex device,
 
 /**This is the default setting: do as much sample rate conversion as possible
  * and as little mucking with the device as possible. */
-#define paMacCorePlayNice                    (0x00)
+#define paMacCorePlayNice (0x00)
 /**This setting is tuned for pro audio apps. It allows SR conversion on input
   and output, but it tries to set the appropriate SR on the device.*/
-#define paMacCorePro                         (0x01)
+#define paMacCorePro (0x01)
 /**This is a setting to minimize CPU usage and still play nice.*/
-#define paMacCoreMinimizeCPUButPlayNice      (0x0100)
+#define paMacCoreMinimizeCPUButPlayNice (0x0100)
 /**This is a setting to minimize CPU usage, even if that means interrupting the device. */
-#define paMacCoreMinimizeCPU                 (0x0101)
-
+#define paMacCoreMinimizeCPU (0x0101)
 
 #ifdef __cplusplus
 }

@@ -66,19 +66,18 @@
 #include <AudioToolbox/AudioToolbox.h>
 
 #ifndef MIN
-#define MIN(a, b)  (((a)<(b))?(a):(b))
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 
 #ifndef MAX
-#define MAX(a, b)  (((a)<(b))?(b):(a))
+#define MAX(a, b) (((a) < (b)) ? (b) : (a))
 #endif
 
-#define ERR(mac_error) PaMacCore_SetError(mac_error, __LINE__, 1 )
-#define WARNING(mac_error) PaMacCore_SetError(mac_error, __LINE__, 0 )
-
+#define ERR(mac_error) PaMacCore_SetError(mac_error, __LINE__, 1)
+#define WARNING(mac_error) PaMacCore_SetError(mac_error, __LINE__, 0)
 
 /* Help keep track of AUHAL element numbers */
-#define INPUT_ELEMENT  (1)
+#define INPUT_ELEMENT (1)
 #define OUTPUT_ELEMENT (0)
 
 /* Normal level of debugging: fine for most apps that don't mind the occasional warning being printf'ed */
@@ -86,9 +85,14 @@
  */
 #define MAC_CORE_DEBUG
 #ifdef MAC_CORE_DEBUG
-# define DBUG(MSG) do { printf("||PaMacCore (AUHAL)|| "); printf MSG ; fflush(stdout); } while(0)
+#define DBUG(MSG) \
+  do { \
+    printf("||PaMacCore (AUHAL)|| "); \
+    printf MSG; \
+    fflush(stdout); \
+  } while (0)
 #else
-# define DBUG(MSG)
+#define DBUG(MSG)
 #endif
 
 /* Verbose Debugging: useful for development */
@@ -96,9 +100,14 @@
 #define MAC_CORE_VERBOSE_DEBUG
 */
 #ifdef MAC_CORE_VERBOSE_DEBUG
-# define VDBUG(MSG) do { printf("||PaMacCore (v )|| "); printf MSG ; fflush(stdout); } while(0)
+#define VDBUG(MSG) \
+  do { \
+    printf("||PaMacCore (v )|| "); \
+    printf MSG; \
+    fflush(stdout); \
+  } while (0)
 #else
-# define VDBUG(MSG)
+#define VDBUG(MSG)
 #endif
 
 /* Very Verbose Debugging: Traces every call. */
@@ -106,70 +115,75 @@
 #define MAC_CORE_VERY_VERBOSE_DEBUG
  */
 #ifdef MAC_CORE_VERY_VERBOSE_DEBUG
-# define VVDBUG(MSG) do { printf("||PaMacCore (vv)|| "); printf MSG ; fflush(stdout); } while(0)
+#define VVDBUG(MSG) \
+  do { \
+    printf("||PaMacCore (vv)|| "); \
+    printf MSG; \
+    fflush(stdout); \
+  } while (0)
 #else
-# define VVDBUG(MSG)
+#define VVDBUG(MSG)
 #endif
 
 OSStatus PaMacCore_AudioHardwareGetProperty(
     AudioHardwarePropertyID inPropertyID,
-    UInt32*                 ioPropertyDataSize,
-    void*                   outPropertyData );
+    UInt32* ioPropertyDataSize,
+    void* outPropertyData);
 
 OSStatus PaMacCore_AudioHardwareGetPropertySize(
     AudioHardwarePropertyID inPropertyID,
-    UInt32*                 outSize );
+    UInt32* outSize);
 
 OSStatus PaMacCore_AudioDeviceGetProperty(
-    AudioDeviceID         inDevice,
-    UInt32                inChannel,
-    Boolean               isInput,
+    AudioDeviceID inDevice,
+    UInt32 inChannel,
+    Boolean isInput,
     AudioDevicePropertyID inPropertyID,
-    UInt32*               ioPropertyDataSize,
-    void*                 outPropertyData );
+    UInt32* ioPropertyDataSize,
+    void* outPropertyData);
 
 OSStatus PaMacCore_AudioDeviceSetProperty(
-    AudioDeviceID         inDevice,
+    AudioDeviceID inDevice,
     const AudioTimeStamp* inWhen,
-    UInt32                inChannel,
-    Boolean               isInput,
+    UInt32 inChannel,
+    Boolean isInput,
     AudioDevicePropertyID inPropertyID,
-    UInt32                inPropertyDataSize,
-    const void*           inPropertyData );
+    UInt32 inPropertyDataSize,
+    const void* inPropertyData);
 
 OSStatus PaMacCore_AudioDeviceGetPropertySize(
-    AudioDeviceID         inDevice,
-    UInt32                inChannel,
-    Boolean               isInput,
+    AudioDeviceID inDevice,
+    UInt32 inChannel,
+    Boolean isInput,
     AudioDevicePropertyID inPropertyID,
-    UInt32*               outSize );
+    UInt32* outSize);
 
 OSStatus PaMacCore_AudioDeviceAddPropertyListener(
-    AudioDeviceID                   inDevice,
-    UInt32                          inChannel,
-    Boolean                         isInput,
-    AudioDevicePropertyID           inPropertyID,
+    AudioDeviceID inDevice,
+    UInt32 inChannel,
+    Boolean isInput,
+    AudioDevicePropertyID inPropertyID,
     AudioObjectPropertyListenerProc inProc,
-    void*                           inClientData );
+    void* inClientData);
 
 OSStatus PaMacCore_AudioDeviceRemovePropertyListener(
-    AudioDeviceID                   inDevice,
-    UInt32                          inChannel,
-    Boolean                         isInput,
-    AudioDevicePropertyID           inPropertyID,
+    AudioDeviceID inDevice,
+    UInt32 inChannel,
+    Boolean isInput,
+    AudioDevicePropertyID inPropertyID,
     AudioObjectPropertyListenerProc inProc,
-    void*                           inClientData );
+    void* inClientData);
 
 OSStatus PaMacCore_AudioStreamGetProperty(
-    AudioStreamID         inStream,
-    UInt32                inChannel,
+    AudioStreamID inStream,
+    UInt32 inChannel,
     AudioDevicePropertyID inPropertyID,
-    UInt32*               ioPropertyDataSize,
-    void*                 outPropertyData );
+    UInt32* ioPropertyDataSize,
+    void* outPropertyData);
 
-#define UNIX_ERR(err) PaMacCore_SetUnixError( err, __LINE__ )
+#define UNIX_ERR(err) PaMacCore_SetUnixError(err, __LINE__)
 
-PaError PaMacCore_SetUnixError( int err, int line );
+PaError PaMacCore_SetUnixError(int err, int line);
 
 /*
  * Translates MacOS generated errors into PaErrors
@@ -189,17 +203,17 @@ PaError PaMacCore_SetError(OSStatus error, int line, int isError);
  * This function attempts to compute the minimum such size.
  *
  */
-long computeRingBufferSize( const PaStreamParameters *inputParameters,
-                            const PaStreamParameters *outputParameters,
-                            long inputFramesPerBuffer,
-                            long outputFramesPerBuffer,
-                            double sampleRate );
+long computeRingBufferSize(const PaStreamParameters* inputParameters,
+                           const PaStreamParameters* outputParameters,
+                           long inputFramesPerBuffer,
+                           long outputFramesPerBuffer,
+                           double sampleRate);
 
 OSStatus propertyProc(
-        AudioObjectID inObjectID,
-        UInt32 inNumberAddresses,
-        const AudioObjectPropertyAddress* inAddresses,
-        void* inClientData );
+    AudioObjectID inObjectID,
+    UInt32 inNumberAddresses,
+    const AudioObjectPropertyAddress* inAddresses,
+    void* inClientData);
 
 /* sets the value of the given property and waits for the change to
    be acknowledged, and returns the final value, which is not guaranteed
@@ -207,13 +221,13 @@ OSStatus propertyProc(
    function can only be used for data whose input and output are the
    same size and format, and their size and format are known in advance.*/
 PaError AudioDeviceSetPropertyNowAndWaitForChange(
-        AudioDeviceID inDevice,
-        UInt32 inChannel,
-        Boolean isInput,
-        AudioDevicePropertyID inPropertyID,
-        UInt32 inPropertyDataSize,
-        const void *inPropertyData,
-        void *outPropertyData );
+    AudioDeviceID inDevice,
+    UInt32 inChannel,
+    Boolean isInput,
+    AudioDevicePropertyID inPropertyID,
+    UInt32 inPropertyDataSize,
+    const void* inPropertyData,
+    void* outPropertyData);
 
 /*
  * Sets the sample rate the HAL device.
@@ -224,10 +238,10 @@ PaError AudioDeviceSetPropertyNowAndWaitForChange(
  *             higher than the requested rate. If there isn't a higher one,
  *             just use the highest available.
  */
-PaError setBestSampleRateForDevice( const AudioDeviceID device,
-                                    const bool isOutput,
-                                    const bool requireExact,
-                                    const Float64 desiredSrate );
+PaError setBestSampleRateForDevice(const AudioDeviceID device,
+                                   const bool isOutput,
+                                   const bool requireExact,
+                                   const Float64 desiredSrate);
 /*
    Attempts to set the requestedFramesPerBuffer. If it can't set the exact
    value, it settles for something smaller if available. If nothing smaller
@@ -237,11 +251,10 @@ PaError setBestSampleRateForDevice( const AudioDeviceID device,
    The logic is very similar too setBestSampleRate only failure here is
    not usually catastrophic.
 */
-PaError setBestFramesPerBuffer( const AudioDeviceID device,
-                                const bool isOutput,
-                                UInt32 requestedFramesPerBuffer,
-                                UInt32 *actualFramesPerBuffer );
-
+PaError setBestFramesPerBuffer(const AudioDeviceID device,
+                               const bool isOutput,
+                               UInt32 requestedFramesPerBuffer,
+                               UInt32* actualFramesPerBuffer);
 
 /*********************
  *
@@ -250,19 +263,19 @@ PaError setBestFramesPerBuffer( const AudioDeviceID device,
  *********************/
 
 OSStatus xrunCallback(
-        AudioObjectID inObjectID,
-        UInt32 inNumberAddresses,
-        const AudioObjectPropertyAddress* inAddresses,
-        void * inClientData );
+    AudioObjectID inObjectID,
+    UInt32 inNumberAddresses,
+    const AudioObjectPropertyAddress* inAddresses,
+    void* inClientData);
 
 /** returns zero on success or a unix style error code. */
-int initializeXRunListenerList( void );
+int initializeXRunListenerList(void);
 /** returns zero on success or a unix style error code. */
-int destroyXRunListenerList( void );
+int destroyXRunListenerList(void);
 
 /**Returns the list, so that it can be passed to CorAudio.*/
-void *addToXRunListenerList( void *stream );
+void* addToXRunListenerList(void* stream);
 /**Returns the number of Listeners in the list remaining.*/
-int removeFromXRunListenerList( void *stream );
+int removeFromXRunListenerList(void* stream);
 
 #endif /* PA_MAC_CORE_UTILITIES_H__*/

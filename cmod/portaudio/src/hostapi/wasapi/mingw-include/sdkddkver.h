@@ -153,9 +153,9 @@
 #define SUBVERSION_MASK 0x000000FF
 
 /* Macros to Extract Version Fields From NTDDI_VERSION */
-#define OSVER(Version) ((Version) & OSVERSION_MASK)
-#define SPVER(Version) (((Version) & SPVERSION_MASK) >> 8)
-#define SUBVER(Version) (((Version) & SUBVERSION_MASK))
+#define OSVER(Version) ((Version)&OSVERSION_MASK)
+#define SPVER(Version) (((Version)&SPVERSION_MASK) >> 8)
+#define SUBVER(Version) (((Version)&SUBVERSION_MASK))
 
 /* Macros to get the NTDDI for a given WIN32 */
 #define NTDDI_VERSION_FROM_WIN32_WINNT2(Version) Version##0000
@@ -212,7 +212,7 @@
 /* Make Sure NTDDI_VERSION and _WIN32_WINNT Match */
 #if ((OSVER(NTDDI_VERSION) == NTDDI_WIN2K) && (_WIN32_WINNT != _WIN32_WINNT_WIN2K)) || \
     ((OSVER(NTDDI_VERSION) == NTDDI_WINXP) && (_WIN32_WINNT != _WIN32_WINNT_WINXP)) || \
-    ((OSVER(NTDDI_VERSION) == NTDDI_WS03) && (_WIN32_WINNT != _WIN32_WINNT_WS03))   || \
+    ((OSVER(NTDDI_VERSION) == NTDDI_WS03) && (_WIN32_WINNT != _WIN32_WINNT_WS03)) || \
     ((OSVER(NTDDI_VERSION) == NTDDI_WINXP) && (_WIN32_WINNT != _WIN32_WINNT_WINXP))
 #error NTDDI_VERSION and _WIN32_WINNT mismatch!
 #endif

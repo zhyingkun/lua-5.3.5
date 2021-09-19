@@ -47,46 +47,42 @@
 #include "pa_win_waveformat.h"
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif /* __cplusplus */
-
 
 /* The following are flags which can be set in
   PaWinMmeStreamInfo's flags field.
 */
 
-#define paWinMmeUseLowLevelLatencyParameters            (0x01)
-#define paWinMmeUseMultipleDevices                      (0x02)  /* use mme specific multiple device feature */
-#define paWinMmeUseChannelMask                          (0x04)
+#define paWinMmeUseLowLevelLatencyParameters (0x01)
+#define paWinMmeUseMultipleDevices (0x02) /* use mme specific multiple device feature */
+#define paWinMmeUseChannelMask (0x04)
 
 /* By default, the mme implementation drops the processing thread's priority
     to THREAD_PRIORITY_NORMAL and sleeps the thread if the CPU load exceeds 100%
     This flag disables any priority throttling. The processing thread will always
     run at THREAD_PRIORITY_TIME_CRITICAL.
 */
-#define paWinMmeDontThrottleOverloadedProcessingThread  (0x08)
+#define paWinMmeDontThrottleOverloadedProcessingThread (0x08)
 
 /*  Flags for non-PCM spdif passthrough.
 */
-#define paWinMmeWaveFormatDolbyAc3Spdif                 (0x10)
-#define paWinMmeWaveFormatWmaSpdif                      (0x20)
+#define paWinMmeWaveFormatDolbyAc3Spdif (0x10)
+#define paWinMmeWaveFormatWmaSpdif (0x20)
 
+typedef struct PaWinMmeDeviceAndChannelCount {
+  PaDeviceIndex device;
+  int channelCount;
+} PaWinMmeDeviceAndChannelCount;
 
-typedef struct PaWinMmeDeviceAndChannelCount{
-    PaDeviceIndex device;
-    int channelCount;
-}PaWinMmeDeviceAndChannelCount;
+typedef struct PaWinMmeStreamInfo {
+  unsigned long size; /**< sizeof(PaWinMmeStreamInfo) */
+  PaHostApiTypeId hostApiType; /**< paMME */
+  unsigned long version; /**< 1 */
 
+  unsigned long flags;
 
-typedef struct PaWinMmeStreamInfo{
-    unsigned long size;             /**< sizeof(PaWinMmeStreamInfo) */
-    PaHostApiTypeId hostApiType;    /**< paMME */
-    unsigned long version;          /**< 1 */
-
-    unsigned long flags;
-
-    /* low-level latency setting support
+  /* low-level latency setting support
         These settings control the number and size of host buffers in order
         to set latency. They will be used instead of the generic parameters
         to Pa_OpenStream() if flags contains the PaWinMmeUseLowLevelLatencyParameters
@@ -99,10 +95,10 @@ typedef struct PaWinMmeStreamInfo{
         paIncompatibleHostApiSpecificStreamInfo error will be returned from
         Pa_OpenStream().
     */
-    unsigned long framesPerBuffer;
-    unsigned long bufferCount;  /* formerly numBuffers */
+  unsigned long framesPerBuffer;
+  unsigned long bufferCount; /* formerly numBuffers */
 
-    /* multiple devices per direction support
+  /* multiple devices per direction support
         If flags contains the PaWinMmeUseMultipleDevices flag,
         this functionality will be used, otherwise the device parameter to
         Pa_OpenStream() will be used instead.
@@ -113,20 +109,19 @@ typedef struct PaWinMmeStreamInfo{
         must agree with the corresponding channelCount parameter to
         Pa_OpenStream() otherwise a paInvalidChannelCount error will result.
     */
-    PaWinMmeDeviceAndChannelCount *devices;
-    unsigned long deviceCount;
+  PaWinMmeDeviceAndChannelCount* devices;
+  unsigned long deviceCount;
 
-    /*
+  /*
         support for WAVEFORMATEXTENSIBLE channel masks. If flags contains
         paWinMmeUseChannelMask this allows you to specify which speakers
         to address in a multichannel stream. Constants for channelMask
         are specified in pa_win_waveformat.h
 
     */
-    PaWinWaveFormatChannelMask channelMask;
+  PaWinWaveFormatChannelMask channelMask;
 
-}PaWinMmeStreamInfo;
-
+} PaWinMmeStreamInfo;
 
 /** Retrieve the number of wave in handles used by a PortAudio WinMME stream.
  Returns zero if the stream is output only.
@@ -137,8 +132,7 @@ typedef struct PaWinMmeStreamInfo{
 
  @see PaWinMME_GetStreamInputHandle
 */
-int PaWinMME_GetStreamInputHandleCount( PaStream* stream );
-
+int PaWinMME_GetStreamInputHandleCount(PaStream* stream);
 
 /** Retrieve a wave in handle used by a PortAudio WinMME stream.
 
@@ -150,8 +144,7 @@ int PaWinMME_GetStreamInputHandleCount( PaStream* stream );
 
  @see PaWinMME_GetStreamInputHandle
 */
-HWAVEIN PaWinMME_GetStreamInputHandle( PaStream* stream, int handleIndex );
-
+HWAVEIN PaWinMME_GetStreamInputHandle(PaStream* stream, int handleIndex);
 
 /** Retrieve the number of wave out handles used by a PortAudio WinMME stream.
  Returns zero if the stream is input only.
@@ -162,8 +155,7 @@ HWAVEIN PaWinMME_GetStreamInputHandle( PaStream* stream, int handleIndex );
 
  @see PaWinMME_GetStreamOutputHandle
 */
-int PaWinMME_GetStreamOutputHandleCount( PaStream* stream );
-
+int PaWinMME_GetStreamOutputHandleCount(PaStream* stream);
 
 /** Retrieve a wave out handle used by a PortAudio WinMME stream.
 
@@ -175,8 +167,7 @@ int PaWinMME_GetStreamOutputHandleCount( PaStream* stream );
 
  @see PaWinMME_GetStreamOutputHandleCount
 */
-HWAVEOUT PaWinMME_GetStreamOutputHandle( PaStream* stream, int handleIndex );
-
+HWAVEOUT PaWinMME_GetStreamOutputHandle(PaStream* stream, int handleIndex);
 
 #ifdef __cplusplus
 }

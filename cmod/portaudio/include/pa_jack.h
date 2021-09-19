@@ -62,7 +62,7 @@ extern "C" {
  * PA might need it.
  * @sa PaJack_GetClientName
  */
-PaError PaJack_SetClientName( const char* name );
+PaError PaJack_SetClientName(const char* name);
 
 /** Get the JACK client name used by PA JACK.
  *

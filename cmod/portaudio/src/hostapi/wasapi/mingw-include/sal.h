@@ -1,6 +1,6 @@
 #pragma once
 
-#if __GNUC__ >=3
+#if __GNUC__ >= 3
 #pragma GCC system_header
 #endif
 
@@ -52,16 +52,16 @@
 #define __out
 #define __out_ecount(size)
 #define __out_bcount(size)
-#define __out_ecount_part(size,length)
-#define __out_bcount_part(size,length)
+#define __out_ecount_part(size, length)
+#define __out_bcount_part(size, length)
 #define __out_ecount_full(size)
 #define __out_bcount_full(size)
 #define __out_z
 #define __out_z_opt
 #define __out_ecount_z(size)
 #define __out_bcount_z(size)
-#define __out_ecount_part_z(size,length)
-#define __out_bcount_part_z(size,length)
+#define __out_ecount_part_z(size, length)
+#define __out_bcount_part_z(size, length)
 #define __out_ecount_full_z(size)
 #define __out_bcount_full_z(size)
 #define __out_nz
@@ -71,8 +71,8 @@
 #define __inout
 #define __inout_ecount(size)
 #define __inout_bcount(size)
-#define __inout_ecount_part(size,length)
-#define __inout_bcount_part(size,length)
+#define __inout_ecount_part(size, length)
+#define __inout_bcount_part(size, length)
 #define __inout_ecount_full(size)
 #define __inout_bcount_full(size)
 #define __inout_z
@@ -95,14 +95,14 @@
 #define __out_opt
 #define __out_ecount_opt(size)
 #define __out_bcount_opt(size)
-#define __out_ecount_part_opt(size,length)
-#define __out_bcount_part_opt(size,length)
+#define __out_ecount_part_opt(size, length)
+#define __out_bcount_part_opt(size, length)
 #define __out_ecount_full_opt(size)
 #define __out_bcount_full_opt(size)
 #define __out_ecount_z_opt(size)
 #define __out_bcount_z_opt(size)
-#define __out_ecount_part_z_opt(size,length)
-#define __out_bcount_part_z_opt(size,length)
+#define __out_ecount_part_z_opt(size, length)
+#define __out_bcount_part_z_opt(size, length)
 #define __out_ecount_full_z_opt(size)
 #define __out_bcount_full_z_opt(size)
 #define __out_ecount_nz_opt(size)
@@ -110,8 +110,8 @@
 #define __inout_opt
 #define __inout_ecount_opt(size)
 #define __inout_bcount_opt(size)
-#define __inout_ecount_part_opt(size,length)
-#define __inout_bcount_part_opt(size,length)
+#define __inout_ecount_part_opt(size, length)
+#define __inout_bcount_part_opt(size, length)
 #define __inout_ecount_full_opt(size)
 #define __inout_bcount_full_opt(size)
 #define __inout_z_opt
@@ -126,8 +126,8 @@
 #define __deref_out
 #define __deref_out_ecount(size)
 #define __deref_out_bcount(size)
-#define __deref_out_ecount_part(size,length)
-#define __deref_out_bcount_part(size,length)
+#define __deref_out_ecount_part(size, length)
+#define __deref_out_bcount_part(size, length)
 #define __deref_out_ecount_full(size)
 #define __deref_out_bcount_full(size)
 #define __deref_out_z
@@ -140,8 +140,8 @@
 #define __deref_inout_z
 #define __deref_inout_ecount(size)
 #define __deref_inout_bcount(size)
-#define __deref_inout_ecount_part(size,length)
-#define __deref_inout_bcount_part(size,length)
+#define __deref_inout_ecount_part(size, length)
+#define __deref_inout_bcount_part(size, length)
 #define __deref_inout_ecount_full(size)
 #define __deref_inout_bcount_full(size)
 #define __deref_inout_z
@@ -155,8 +155,8 @@
 #define __deref_out_opt
 #define __deref_out_ecount_opt(size)
 #define __deref_out_bcount_opt(size)
-#define __deref_out_ecount_part_opt(size,length)
-#define __deref_out_bcount_part_opt(size,length)
+#define __deref_out_ecount_part_opt(size, length)
+#define __deref_out_bcount_part_opt(size, length)
 #define __deref_out_ecount_full_opt(size)
 #define __deref_out_bcount_full_opt(size)
 #define __deref_out_z_opt
@@ -168,8 +168,8 @@
 #define __deref_inout_opt
 #define __deref_inout_ecount_opt(size)
 #define __deref_inout_bcount_opt(size)
-#define __deref_inout_ecount_part_opt(size,length)
-#define __deref_inout_bcount_part_opt(size,length)
+#define __deref_inout_ecount_part_opt(size, length)
+#define __deref_inout_bcount_part_opt(size, length)
 #define __deref_inout_ecount_full_opt(size)
 #define __deref_inout_bcount_full_opt(size)
 #define __deref_inout_z_opt
@@ -184,15 +184,15 @@
 #define __deref_opt_out_z
 #define __deref_opt_out_ecount(size)
 #define __deref_opt_out_bcount(size)
-#define __deref_opt_out_ecount_part(size,length)
-#define __deref_opt_out_bcount_part(size,length)
+#define __deref_opt_out_ecount_part(size, length)
+#define __deref_opt_out_bcount_part(size, length)
 #define __deref_opt_out_ecount_full(size)
 #define __deref_opt_out_bcount_full(size)
 #define __deref_opt_inout
 #define __deref_opt_inout_ecount(size)
 #define __deref_opt_inout_bcount(size)
-#define __deref_opt_inout_ecount_part(size,length)
-#define __deref_opt_inout_bcount_part(size,length)
+#define __deref_opt_inout_ecount_part(size, length)
+#define __deref_opt_inout_bcount_part(size, length)
 #define __deref_opt_inout_ecount_full(size)
 #define __deref_opt_inout_bcount_full(size)
 #define __deref_opt_inout_z
@@ -206,8 +206,8 @@
 #define __deref_opt_out_opt
 #define __deref_opt_out_ecount_opt(size)
 #define __deref_opt_out_bcount_opt(size)
-#define __deref_opt_out_ecount_part_opt(size,length)
-#define __deref_opt_out_bcount_part_opt(size,length)
+#define __deref_opt_out_ecount_part_opt(size, length)
+#define __deref_opt_out_bcount_part_opt(size, length)
 #define __deref_opt_out_ecount_full_opt(size)
 #define __deref_opt_out_bcount_full_opt(size)
 #define __deref_opt_out_z_opt
@@ -219,8 +219,8 @@
 #define __deref_opt_inout_opt
 #define __deref_opt_inout_ecount_opt(size)
 #define __deref_opt_inout_bcount_opt(size)
-#define __deref_opt_inout_ecount_part_opt(size,length)
-#define __deref_opt_inout_bcount_part_opt(size,length)
+#define __deref_opt_inout_ecount_part_opt(size, length)
+#define __deref_opt_inout_bcount_part_opt(size, length)
 #define __deref_opt_inout_ecount_full_opt(size)
 #define __deref_opt_inout_bcount_full_opt(size)
 #define __deref_opt_inout_z_opt
@@ -244,9 +244,9 @@
 #define __data_entrypoint(category)
 
 #ifndef __fallthrough
-    #define __fallthrough __inner_fallthrough
+#define __fallthrough __inner_fallthrough
 #endif
 
 #ifndef __analysis_assume
-    #define __analysis_assume(expr)
+#define __analysis_assume(expr)
 #endif

@@ -55,8 +55,7 @@ extern "C" {
 
     @param isInput A flag specifying whether to query for input (non-zero) or output (zero) channels.
 */
-int PaWin_WDMKS_QueryFilterMaximumChannelCount( void *wcharDevicePath, int isInput );
-
+int PaWin_WDMKS_QueryFilterMaximumChannelCount(void* wcharDevicePath, int isInput);
 
 #ifdef __cplusplus
 }

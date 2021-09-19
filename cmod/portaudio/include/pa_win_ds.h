@@ -47,23 +47,20 @@
 #include "pa_win_waveformat.h"
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif /* __cplusplus */
 
+#define paWinDirectSoundUseLowLevelLatencyParameters (0x01)
+#define paWinDirectSoundUseChannelMask (0x04)
 
-#define paWinDirectSoundUseLowLevelLatencyParameters            (0x01)
-#define paWinDirectSoundUseChannelMask                          (0x04)
+typedef struct PaWinDirectSoundStreamInfo {
+  unsigned long size; /**< sizeof(PaWinDirectSoundStreamInfo) */
+  PaHostApiTypeId hostApiType; /**< paDirectSound */
+  unsigned long version; /**< 2 */
 
+  unsigned long flags; /**< enable other features of this struct */
 
-typedef struct PaWinDirectSoundStreamInfo{
-    unsigned long size;             /**< sizeof(PaWinDirectSoundStreamInfo) */
-    PaHostApiTypeId hostApiType;    /**< paDirectSound */
-    unsigned long version;          /**< 2 */
-
-    unsigned long flags;            /**< enable other features of this struct */
-
-    /**
+  /**
        low-level latency setting support
        Sets the size of the DirectSound host buffer.
        When flags contains the paWinDirectSoundUseLowLevelLatencyParameters
@@ -73,20 +70,18 @@ typedef struct PaWinDirectSoundStreamInfo{
        If the stream is a full duplex stream the implementation requires that
        the values of framesPerBuffer for input and output match (if both are specified).
     */
-    unsigned long framesPerBuffer;
+  unsigned long framesPerBuffer;
 
-    /**
+  /**
         support for WAVEFORMATEXTENSIBLE channel masks. If flags contains
         paWinDirectSoundUseChannelMask this allows you to specify which speakers
         to address in a multichannel stream. Constants for channelMask
         are specified in pa_win_waveformat.h
 
     */
-    PaWinWaveFormatChannelMask channelMask;
+  PaWinWaveFormatChannelMask channelMask;
 
-}PaWinDirectSoundStreamInfo;
-
-
+} PaWinDirectSoundStreamInfo;
 
 #ifdef __cplusplus
 }

@@ -66,38 +66,43 @@
 #include <dsound.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif /* __cplusplus */
-
 
 typedef struct
 {
-    HINSTANCE hInstance_;
+  HINSTANCE hInstance_;
 
-    HRESULT (WINAPI *DllGetClassObject)(REFCLSID , REFIID , LPVOID *);
+  HRESULT(WINAPI* DllGetClassObject)
+  (REFCLSID, REFIID, LPVOID*);
 
-    HRESULT (WINAPI *DirectSoundCreate)(LPGUID, LPDIRECTSOUND *, LPUNKNOWN);
-    HRESULT (WINAPI *DirectSoundEnumerateW)(LPDSENUMCALLBACKW, LPVOID);
-    HRESULT (WINAPI *DirectSoundEnumerateA)(LPDSENUMCALLBACKA, LPVOID);
+  HRESULT(WINAPI* DirectSoundCreate)
+  (LPGUID, LPDIRECTSOUND*, LPUNKNOWN);
+  HRESULT(WINAPI* DirectSoundEnumerateW)
+  (LPDSENUMCALLBACKW, LPVOID);
+  HRESULT(WINAPI* DirectSoundEnumerateA)
+  (LPDSENUMCALLBACKA, LPVOID);
 
-    HRESULT (WINAPI *DirectSoundCaptureCreate)(LPGUID, LPDIRECTSOUNDCAPTURE *, LPUNKNOWN);
-    HRESULT (WINAPI *DirectSoundCaptureEnumerateW)(LPDSENUMCALLBACKW, LPVOID);
-    HRESULT (WINAPI *DirectSoundCaptureEnumerateA)(LPDSENUMCALLBACKA, LPVOID);
+  HRESULT(WINAPI* DirectSoundCaptureCreate)
+  (LPGUID, LPDIRECTSOUNDCAPTURE*, LPUNKNOWN);
+  HRESULT(WINAPI* DirectSoundCaptureEnumerateW)
+  (LPDSENUMCALLBACKW, LPVOID);
+  HRESULT(WINAPI* DirectSoundCaptureEnumerateA)
+  (LPDSENUMCALLBACKA, LPVOID);
 
 #ifdef PAWIN_USE_DIRECTSOUNDFULLDUPLEXCREATE
-    HRESULT (WINAPI *DirectSoundFullDuplexCreate8)(
-                LPCGUID, LPCGUID, LPCDSCBUFFERDESC, LPCDSBUFFERDESC,
-                HWND, DWORD, LPDIRECTSOUNDFULLDUPLEX *, LPDIRECTSOUNDCAPTUREBUFFER8 *,
-                LPDIRECTSOUNDBUFFER8 *, LPUNKNOWN );
+  HRESULT(WINAPI* DirectSoundFullDuplexCreate8)
+  (
+      LPCGUID, LPCGUID, LPCDSCBUFFERDESC, LPCDSBUFFERDESC,
+      HWND, DWORD, LPDIRECTSOUNDFULLDUPLEX*, LPDIRECTSOUNDCAPTUREBUFFER8*,
+      LPDIRECTSOUNDBUFFER8*, LPUNKNOWN);
 #endif
-}PaWinDsDSoundEntryPoints;
+} PaWinDsDSoundEntryPoints;
 
 extern PaWinDsDSoundEntryPoints paWinDsDSoundEntryPoints;
 
 void PaWinDs_InitializeDSoundEntryPoints(void);
 void PaWinDs_TerminateDSoundEntryPoints(void);
-
 
 #ifdef __cplusplus
 }

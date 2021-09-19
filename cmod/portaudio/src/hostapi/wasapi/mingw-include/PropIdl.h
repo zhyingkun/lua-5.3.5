@@ -10,10 +10,9 @@
 #include "ole2.h"
 #endif
 
-typedef const PROPVARIANT *REFPROPVARIANT;
+typedef const PROPVARIANT* REFPROPVARIANT;
 
 #define PropVariantInit(VAR) memset((VAR), 0, sizeof(PROPVARIANT))
-WINOLEAPI PropVariantClear(PROPVARIANT *pvar);
+WINOLEAPI PropVariantClear(PROPVARIANT* pvar);
 
 #endif /* _INC_PROPIDL_PA */
-
