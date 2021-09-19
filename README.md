@@ -93,13 +93,15 @@ ndk-build -B # rebuild project
     - boolarray: 《Lua 程序设计》中的布尔数组，加了数组的交集和并集操作
     - dir: 《Lua 程序设计》中的遍历文件夹，加了 Win 版实现
     - gb2312: 类似 utf8 标准库实现的 gb2312 模块
-    - glfwrap: 封装了 glfw 库，用于支持系统窗口操作
+    - glfwrap: 封装了 glfw 库，用于支持系统窗口操作，基础代码来自[glfw](https://www.glfw.org)
     - hello: helloworld
     - json: 封装了 JSON 模块，底层使用 cJSON，支持 Table 与 JSON 字符串互转
     - lproc: 《Lua 程序设计》中的多线程模块，使用 pthread
     - luasocket: 封装了 socket 接口，代码来自[LuaSocket](https://github.com/diegonehab/luasocket)
+    - madwrap: MP3 解码库，基础代码来自[libmad](https://sourceforge.net/projects/mad/files/libmad/0.15.1b/)
+    - portaudio: 音频库，基础代码来自[PortAudio](http://www.portaudio.com)
     - protobuf: C 语言实现的 protobuf，代码来自[pbc](https://github.com/cloudwu/pbc)
-    - uvwrap: 封装了 libuv 库，用于支持事件驱动的异步 IO
+    - uvwrap: 封装了 libuv 库，用于支持事件驱动的异步 IO，基础代码来自[libuv](http://libuv.org)
 2. demo: 用于测试的 Demo
     - c-call-lua: C 作为宿主，调用 Lua 来完成操作
     - c-lang: C 语言特性示例
