@@ -19,40 +19,44 @@
  * $Id: global.h,v 1.11 2004/01/23 09:41:32 rob Exp $
  */
 
-# ifndef LIBMAD_GLOBAL_H
-# define LIBMAD_GLOBAL_H
+#ifndef LIBMAD_GLOBAL_H
+#define LIBMAD_GLOBAL_H
 
 /* conditional debugging */
 
-# if defined(DEBUG) && defined(NDEBUG)
-#  error "cannot define both DEBUG and NDEBUG"
-# endif
+#if defined(DEBUG) && defined(NDEBUG)
+#error "cannot define both DEBUG and NDEBUG"
+#endif
 
-# if defined(DEBUG)
-#  include <stdio.h>
-# endif
+#if defined(DEBUG)
+#include <stdio.h>
+#endif
 
 /* conditional features */
 
-# if defined(OPT_SPEED) && defined(OPT_ACCURACY)
-#  error "cannot optimize for both speed and accuracy"
-# endif
+#if defined(OPT_SPEED) && defined(OPT_ACCURACY)
+#error "cannot optimize for both speed and accuracy"
+#endif
 
-# if defined(OPT_SPEED) && !defined(OPT_SSO)
-#  define OPT_SSO
-# endif
+#if defined(OPT_SPEED) && !defined(OPT_SSO)
+#define OPT_SSO
+#endif
 
-# if defined(HAVE_UNISTD_H) && defined(HAVE_WAITPID) &&  \
+#if defined(HAVE_UNISTD_H) && defined(HAVE_WAITPID) && \
     defined(HAVE_FCNTL) && defined(HAVE_PIPE) && defined(HAVE_FORK)
-#  define USE_ASYNC
-# endif
+#define USE_ASYNC
+#endif
 
-# if !defined(HAVE_ASSERT_H)
-#  if defined(NDEBUG)
-#   define assert(x)	/* nothing */
-#  else
-#   define assert(x)	do { if (!(x)) abort(); } while (0)
-#  endif
-# endif
+#if !defined(HAVE_ASSERT_H)
+#if defined(NDEBUG)
+#define assert(x) /* nothing */
+#else
+#define assert(x) \
+  do { \
+    if (!(x)) \
+      abort(); \
+  } while (0)
+#endif
+#endif
 
-# endif
+#endif

@@ -19,20 +19,19 @@
  * $Id: fixed.c,v 1.13 2004/01/23 09:41:32 rob Exp $
  */
 
-# ifdef HAVE_CONFIG_H
-#  include "config.h"
-# endif
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
-# include "global.h"
+#include "global.h"
 
-# include "fixed.h"
+#include "fixed.h"
 
 /*
  * NAME:	fixed->abs()
  * DESCRIPTION:	return absolute value of a fixed-point number
  */
-mad_fixed_t mad_f_abs(mad_fixed_t x)
-{
+mad_fixed_t mad_f_abs(mad_fixed_t x) {
   return x < 0 ? -x : x;
 }
 
@@ -40,8 +39,7 @@ mad_fixed_t mad_f_abs(mad_fixed_t x)
  * NAME:	fixed->div()
  * DESCRIPTION:	perform division using fixed-point math
  */
-mad_fixed_t mad_f_div(mad_fixed_t x, mad_fixed_t y)
-{
+mad_fixed_t mad_f_div(mad_fixed_t x, mad_fixed_t y) {
   mad_fixed_t q, r;
   unsigned int bits;
 
