@@ -44,6 +44,14 @@ local function _run(loop_, mode)
 	return run(loop_, mode)
 end
 
+local repl_start = uvwrap.repl_start
+local function _repl_run()
+	if not loop then loop = uvwrap.loop.default() end
+	repl_start(loop)
+	run(loop)
+	close(loop)
+end
+
 return setmetatable({
 	set_loop = set_loop,
 	defer_run_loop = function()
@@ -57,7 +65,8 @@ return setmetatable({
 	end,
 	run = _run,
 	queue_work = make_func_loop(uvwrap.queue_work),
-	repl_start = make_func_loop(uvwrap.repl_start),
+	repl_start = make_func_loop(repl_start),
+	repl_run = _repl_run,
 	loop = setmetatable({
 		default = uvwrap.loop.default,
 		new = uvwrap.loop.new,
