@@ -165,8 +165,12 @@ local sandbox = (function()
 				local _LOADED = package.loaded
 				local old_real_mod = _LOADED[mod_name]
 				_LOADED[mod_name] = nil
-				_LOADED_REF_DUMMY_LOADER[mod_name] = load_with_sandbox(mod_name)
+				local ok, ret = pcall(load_with_sandbox, mod_name)
 				_LOADED[mod_name] = old_real_mod
+				if not ok then
+					error(ret)
+				end
+				_LOADED_REF_DUMMY_LOADER[mod_name] = ret
 			end
 			return internal_require(mod_name)
 		end
