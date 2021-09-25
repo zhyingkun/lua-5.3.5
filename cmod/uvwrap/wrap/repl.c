@@ -14,17 +14,17 @@
 #else /* }{ */
 
 #define LUA_MAXINPUT 512
-#define RL_INIT() char buffer[LUA_MAXINPUT];
+#define RL_INIT() char buffer[LUA_MAXINPUT]
 
 #define READLINE(p) \
   (fputs(p, stdout), \
    fflush(stdout), /* show prompt */ \
    fgets(buffer, LUA_MAXINPUT, stdin)) /* get line */
-#define lua_saveline(line) \
+#define SAVELINE(line) \
   { \
     (void)line; \
   }
-#define lua_freeline(b) \
+#define FREELINE(b) \
   { \
     (void)b; \
   }
@@ -211,14 +211,17 @@ typedef struct {
   int waiting; // waiting for main thread process the script
 } lua_REPL;
 
+#define MSG_START "Multi thread REPL starting...\n"
+#define MSG_STOP "Multi thread REPL end.\n"
 static void read_line_thread(void* arg) {
   lua_REPL* repl = (lua_REPL*)arg;
   RL_INIT();
+  lua_flushstring(MSG_START, sizeof(MSG_START));
   while (repl->running) { // for Ctrl-D in Unix or Ctrl-Z in Windows
     repl->buffer = READLINE(repl->prmt);
     if (!repl->running) { // for exit repl manually
       FREELINE(repl->buffer);
-      return;
+      break;
     }
     repl->waiting = 1;
     uv_async_send(repl->async);
@@ -226,6 +229,7 @@ static void read_line_thread(void* arg) {
     repl->waiting = 0;
     FREELINE(repl->buffer);
   }
+  lua_flushstring(MSG_STOP, sizeof(MSG_STOP));
 }
 
 // [-0, +0, -]
@@ -363,6 +367,7 @@ int uvwrap_repl_start(lua_State* L) {
   repl->waiting = 0;
   repl->prmt = get_prompt_hold(L, repl->firstline);
   uv_handle_set_data((uv_handle_t*)repl->async, (void*)repl);
+  signal(SIGINT, SIG_DFL); /* reset C-signal handler */
   uv_thread_create(repl->tid, read_line_thread, (void*)repl);
 
   lua_setfield(L, LUA_REGISTRYINDEX, REPL_OBJECT);
