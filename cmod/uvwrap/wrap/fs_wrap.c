@@ -118,13 +118,14 @@ static int FS_FUNCTION(unlink)(lua_State* L) {
 
   uv_fs_t* req = ALLOCA_REQ();
   int ret = uv_fs_unlink(loop, req, path, async ? FS_CALLBACK(unlink) : NULL);
-  CHECK_ERROR(L, ret);
   if (async) {
+    CHECK_ERROR(L, ret);
     SET_REQ_CALLBACK(L, 3, req);
     return 0;
   }
+  lua_pushinteger(L, ret);
   FREE_REQ(req);
-  return 0;
+  return 1;
 }
 
 static void FS_CALLBACK(write)(uv_fs_t* req) {
