@@ -196,22 +196,34 @@ int ERROR_FUNCTION(msgh)(lua_State* L);
 
 #define MEMORY_FUNCTION(name) UVWRAP_FUNCTION(memory, name)
 
+void* MEMORY_FUNCTION(malloc_uv)(size_t size);
+void MEMORY_FUNCTION(free_uv)(void* ptr);
+void* MEMORY_FUNCTION(realloc_uv)(void* ptr, size_t size);
+void* MEMORY_FUNCTION(calloc_uv)(size_t count, size_t size);
+
 void* MEMORY_FUNCTION(malloc)(size_t size);
 void MEMORY_FUNCTION(free)(void* ptr);
-void* MEMORY_FUNCTION(realloc)(void* ptr, size_t size);
-void* MEMORY_FUNCTION(calloc)(size_t count, size_t size);
 
-void MEMORY_FUNCTION(buf_alloc)(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf);
-void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf);
+typedef enum {
+  AT_LIBUV_INTERNAL,
+  AT_REQUEST,
+  AT_UVWRAP,
+  AT_BUFFER,
+} uvwrap_alloc_type;
 
-typedef void (*MEMORY_FUNCTION(memcb))(void* ud, void* old_ptr, void* new_ptr, size_t new_size);
+typedef void (*MEMORY_FUNCTION(memcb))(void* ud, void* old_ptr, void* new_ptr, size_t new_size, uvwrap_alloc_type at);
 void MEMORY_FUNCTION(set_memcb)(MEMORY_FUNCTION(memcb) fn, void* ud);
+
+void MEMORY_FUNCTION(init)(void);
 
 void* MEMORY_FUNCTION(malloc_req)(size_t size);
 void MEMORY_FUNCTION(free_req)(void* ptr);
 
 void* MEMORY_FUNCTION(malloc_buf)(size_t size);
 void MEMORY_FUNCTION(free_buf)(void* ptr);
+
+void MEMORY_FUNCTION(buf_alloc)(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf);
+void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf);
 
 /* }====================================================== */
 

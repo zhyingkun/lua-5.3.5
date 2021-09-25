@@ -15,35 +15,113 @@ void MEMORY_FUNCTION(set_memcb)(MEMORY_FUNCTION(memcb) fn, void* ud) {
   memcb_ud = ud;
 }
 
+#define MEMORY_ALLOC_REPORT(old_ptr, new_ptr, size, at) \
+  if (memcb_fn) \
+  memcb_fn(memcb_ud, old_ptr, new_ptr, size, at)
+
+void* MEMORY_FUNCTION(malloc_uv)(size_t size) {
+  void* new_ptr = malloc(size);
+  MEMORY_ALLOC_REPORT(NULL, new_ptr, size, AT_LIBUV_INTERNAL);
+  return new_ptr;
+}
+void MEMORY_FUNCTION(free_uv)(void* ptr) {
+  MEMORY_ALLOC_REPORT(ptr, NULL, 0, AT_LIBUV_INTERNAL);
+  free((void*)ptr);
+}
+void* MEMORY_FUNCTION(realloc_uv)(void* ptr, size_t size) {
+  void* new_ptr = realloc(ptr, size);
+  MEMORY_ALLOC_REPORT(ptr, new_ptr, size, AT_LIBUV_INTERNAL);
+  return new_ptr;
+}
+void* MEMORY_FUNCTION(calloc_uv)(size_t count, size_t size) {
+  void* new_ptr = calloc(count, size);
+  MEMORY_ALLOC_REPORT(NULL, new_ptr, count * size, AT_LIBUV_INTERNAL);
+  return new_ptr;
+}
+
 void* MEMORY_FUNCTION(malloc)(size_t size) {
   void* new_ptr = malloc(size);
-  if (memcb_fn) {
-    memcb_fn(memcb_ud, NULL, new_ptr, size);
-  }
+  MEMORY_ALLOC_REPORT(NULL, new_ptr, size, AT_UVWRAP);
   return new_ptr;
 }
-
 void MEMORY_FUNCTION(free)(void* ptr) {
+  MEMORY_ALLOC_REPORT(ptr, NULL, 0, AT_UVWRAP);
   free((void*)ptr);
-  if (memcb_fn) {
-    memcb_fn(memcb_ud, ptr, NULL, 0);
-  }
 }
 
-void* MEMORY_FUNCTION(realloc)(void* ptr, size_t size) {
-  void* new_ptr = realloc(ptr, size);
-  if (memcb_fn) {
-    memcb_fn(memcb_ud, ptr, new_ptr, size);
+#define DEFINE_MEMORY_POOL(name, size, count) \
+  typedef union MEMORY_POOL_##name##_ MEMORY_POOL_##name##_; \
+  union MEMORY_POOL_##name##_ { \
+    MEMORY_POOL_##name##_* next; \
+    char buffer[size]; \
+  }; \
+  static MEMORY_POOL_##name##_ POOL_##name##_buffer_[count]; \
+  static MEMORY_POOL_##name##_* POOL_##name##_head_; \
+  static size_t POOL_##name##_size_ = (size); \
+  static size_t POOL_##name##_count_ = (count);
+
+#define MEMORY_POOL_INIT(name) \
+  POOL_##name##_head_ = POOL_##name##_buffer_; \
+  for (size_t i = 0; i < (POOL_##name##_count_) - 1; i++) { \
+    POOL_##name##_buffer_[i].next = &(POOL_##name##_buffer_[i + 1]); \
+  } \
+  POOL_##name##_buffer_[(POOL_##name##_count_) - 1].next = NULL;
+
+#define TRY_MALLOC(name, size, op) \
+  if (POOL_##name##_head_ && (size)op POOL_##name##_size_) { \
+    void* ptr = (void*)POOL_##name##_head_; \
+    POOL_##name##_head_ = POOL_##name##_head_->next; \
+    return ptr; \
   }
-  return new_ptr;
+#define TRY_FREE(name, ptr) \
+  if (ptr >= (void*)(POOL_##name##_buffer_) && ptr < (void*)(POOL_##name##_buffer_ + POOL_##name##_count_)) { \
+    MEMORY_POOL_##name##_* node = (MEMORY_POOL_##name##_*)ptr; \
+    node->next = POOL_##name##_head_; \
+    POOL_##name##_head_ = node; \
+    return; \
+  }
+
+DEFINE_MEMORY_POOL(req, sizeof(union uv_any_req), 64);
+DEFINE_MEMORY_POOL(buf_4k, 4096, 8);
+DEFINE_MEMORY_POOL(buf_64k, 65536, 2);
+
+void MEMORY_FUNCTION(init)() {
+  MEMORY_POOL_INIT(req);
+  MEMORY_POOL_INIT(buf_4k);
+  MEMORY_POOL_INIT(buf_64k);
 }
 
-void* MEMORY_FUNCTION(calloc)(size_t count, size_t size) {
-  void* new_ptr = calloc(count, size);
-  if (memcb_fn) {
-    memcb_fn(memcb_ud, NULL, new_ptr, count * size);
-  }
+static void* MEMORY_FUNCTION(malloc_req_internal)(size_t size) {
+  TRY_MALLOC(req, size, <=);
+  return malloc(size);
+}
+void* MEMORY_FUNCTION(malloc_req)(size_t size) {
+  void* new_ptr = MEMORY_FUNCTION(malloc_req_internal)(size);
+  MEMORY_ALLOC_REPORT(NULL, new_ptr, size, AT_REQUEST);
   return new_ptr;
+}
+void MEMORY_FUNCTION(free_req)(void* ptr) {
+  MEMORY_ALLOC_REPORT(ptr, NULL, 0, AT_REQUEST);
+  TRY_FREE(req, ptr);
+  free(ptr);
+}
+
+static void* MEMORY_FUNCTION(malloc_buf_internal)(size_t size) {
+  TRY_MALLOC(buf_4k, size, <=);
+  TRY_MALLOC(buf_64k, size, ==);
+  return MEMORY_FUNCTION(malloc)(size);
+}
+void* MEMORY_FUNCTION(malloc_buf)(size_t size) {
+  void* new_ptr = MEMORY_FUNCTION(malloc_buf_internal)(size);
+  MEMORY_ALLOC_REPORT(NULL, new_ptr, size, AT_BUFFER);
+  return new_ptr;
+}
+void MEMORY_FUNCTION(free_buf)(void* ptr) {
+  MEMORY_ALLOC_REPORT(ptr, NULL, 0, AT_BUFFER);
+  TRY_FREE(buf_4k, ptr);
+  TRY_FREE(buf_64k, ptr);
+  MEMORY_FUNCTION(free)
+  (ptr);
 }
 
 void MEMORY_FUNCTION(buf_alloc)(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
@@ -55,22 +133,6 @@ void MEMORY_FUNCTION(buf_alloc)(uv_handle_t* handle, size_t suggested_size, uv_b
 void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf) {
   MEMORY_FUNCTION(free_buf)
   (buf->base);
-}
-
-void* MEMORY_FUNCTION(malloc_req)(size_t size) {
-  return MEMORY_FUNCTION(malloc)(size);
-}
-void MEMORY_FUNCTION(free_req)(void* ptr) {
-  MEMORY_FUNCTION(free)
-  (ptr);
-}
-
-void* MEMORY_FUNCTION(malloc_buf)(size_t size) {
-  return MEMORY_FUNCTION(malloc)(size);
-}
-void MEMORY_FUNCTION(free_buf)(void* ptr) {
-  MEMORY_FUNCTION(free)
-  (ptr);
 }
 
 /* }====================================================== */

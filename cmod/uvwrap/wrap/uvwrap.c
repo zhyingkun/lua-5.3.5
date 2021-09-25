@@ -9,14 +9,15 @@ static int uvwrap_set_msgh(lua_State* L) {
   return 0;
 }
 
-static void alloc_callback(void* ud, void* old_ptr, void* new_ptr, size_t new_size) {
+static void alloc_callback(void* ud, void* old_ptr, void* new_ptr, size_t new_size, uvwrap_alloc_type at) {
   lua_State* L = (lua_State*)ud;
   PREPARE_CALL_LUA(L);
   lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)alloc_callback);
   lua_pushlightuserdata(L, old_ptr);
   lua_pushlightuserdata(L, new_ptr);
   lua_pushinteger(L, new_size);
-  CALL_LUA_FUNCTION(L, 3, 0);
+  lua_pushinteger(L, at);
+  CALL_LUA_FUNCTION(L, 4, 0);
 }
 
 static int uvwrap_set_realloc_cb(lua_State* L) {
@@ -169,20 +170,31 @@ static const luaL_Enum UVWRAP_ENUM(handle_type)[] = {
     {NULL, 0},
 };
 // clang-format on
+static const luaL_Enum UVWRAP_ENUM(alloc_type)[] = {
+    {"LIBUV_INTERNAL", AT_LIBUV_INTERNAL},
+    {"REQUEST", AT_REQUEST},
+    {"UVWRAP", AT_UVWRAP},
+    {"BUFFER", AT_BUFFER},
+    {NULL, 0},
+};
 
 LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
   int err = uv_replace_allocator(
-      MEMORY_FUNCTION(malloc),
-      MEMORY_FUNCTION(realloc),
-      MEMORY_FUNCTION(calloc),
-      MEMORY_FUNCTION(free));
+      MEMORY_FUNCTION(malloc_uv),
+      MEMORY_FUNCTION(realloc_uv),
+      MEMORY_FUNCTION(calloc_uv),
+      MEMORY_FUNCTION(free_uv));
   CHECK_ERROR(L, err);
+
+  MEMORY_FUNCTION(init)
+  ();
 
   luaL_newlib(L, uvwrap_funcs);
 
   REGISTE_ENUM(err_code);
   REGISTE_ENUM(handle_type);
   REGISTE_ENUM_R(handle_type, handle_name);
+  REGISTE_ENUM(alloc_type);
 
   lua_pushinteger(L, uv_version());
   lua_setfield(L, -2, "version");
