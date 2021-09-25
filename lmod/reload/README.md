@@ -15,6 +15,7 @@
 2. 提供初始化函数来执行模块初始化流程（热更过程不重复执行初始化，改动初始化函数则热更无法立即生效）
 3. 配置数据的赋值在加载过程中完成，Runtime 数据的赋值在初始化流程中完成，用于 Runtime 的 Upvalue 一开始保持 nil 即可（热更会覆盖配置数据而不覆盖 Runtime 数据）
 4. 规定模块中所有 Table 的 key 都是 string 或 number（降低 reload 过程的复杂度）
+5. 为了保证 sandbox 中的 require 无副作用，不允许模块通过设置 package.loaded 的方式来返回模块
 
 ## 流程设计
 

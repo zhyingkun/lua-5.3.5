@@ -142,14 +142,7 @@ local sandbox = (function()
 				debug.setupvalue(loader, 1, make_sandbox()) -- every loaded module has a unique sandbox
 			end
 			local ret = loader(mod_name, absPath)
-			if ret == nil then
-				local origin = package.loaded[mod_name]
-				if origin == nil then
-					ret = true
-				else
-					ret = origin
-				end
-			end
+			assert(ret, "reload module must return something")
 			local ref_dummy_loader = {
 				module = ret, -- ret is mod_ref_dummy
 			}
@@ -162,15 +155,7 @@ local sandbox = (function()
 		return function(mod_name) -- must return a dummy module for reference from another module
 			assert(type(mod_name) == "string")
 			if not _LOADED_REF_DUMMY_LOADER[mod_name] then
-				local _LOADED = package.loaded
-				local old_real_mod = _LOADED[mod_name]
-				_LOADED[mod_name] = nil
-				local ok, ret = pcall(load_with_sandbox, mod_name)
-				_LOADED[mod_name] = old_real_mod
-				if not ok then
-					error(ret)
-				end
-				_LOADED_REF_DUMMY_LOADER[mod_name] = ret
+				_LOADED_REF_DUMMY_LOADER[mod_name] = load_with_sandbox(mod_name)
 			end
 			return internal_require(mod_name)
 		end
