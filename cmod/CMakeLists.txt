@@ -19,6 +19,7 @@ add_subdirectory(json)
 add_subdirectory(glfwrap)
 add_subdirectory(portaudio)
 add_subdirectory(madwrap)
+add_subdirectory(bcfx)
 
 if(NOT WIN32)
 	add_subdirectory(lproc)
