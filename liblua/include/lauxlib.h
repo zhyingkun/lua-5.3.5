@@ -104,6 +104,18 @@ LUALIB_API void(luaL_ptraceback)(lua_State* L);
 
 LUALIB_API void(luaL_pstack)(lua_State* L, int level);
 
+LUALIB_API void(luaL_pstackdepth)(lua_State* L);
+
+LUALIB_API void(luaL_plocal)(lua_State* L, int level);
+
+LUALIB_API void(luaL_pupvalue)(lua_State* L, int level, int idx);
+
+LUALIB_API void(luaL_pfuncinfo)(lua_State* L, int level, int idx, int recursive);
+
+LUALIB_API void(luaL_pinject)(lua_State* L, const char* source, int level);
+
+LUALIB_API void(luaL_breakpoint)(lua_State* L);
+
 LUALIB_API void(luaL_requiref)(lua_State* L, const char* modname, lua_CFunction openf, int glb);
 
 LUALIB_API const char*(luaL_protoinfo)(lua_State* L, int idx, int recursive, const char* options);

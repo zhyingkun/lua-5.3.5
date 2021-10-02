@@ -166,12 +166,22 @@ LUALIB_API void luaL_ptraceback(lua_State* L) {
   lua_pop(L, 1);
 }
 
+static int aux_checklevel(lua_State* L, int level, int min, int more) {
+  lua_Debug ar[1];
+  int depth = lua_getstackdepth(L, ar);
+  depth += lua_getstack(L, depth, ar);
+  depth += more - 1;
+  if (level < min || level > depth) {
+    fprintf(stderr, "Level out of range: [%d, %d]\n", min, depth);
+    return -1;
+  }
+  return depth;
+}
+
 LUALIB_API void luaL_pstack(lua_State* L, int level) {
   lua_Debug ar;
-  int depth = lua_getstackdepth(L, &ar);
-  depth += lua_getstack(L, depth, &ar);
-  if (level < -1 || level > depth) {
-    fprintf(stderr, "Level out of range: [%d, %d]\n", -1, depth);
+  int depth = aux_checklevel(L, level, -1, 1);
+  if (depth < 0) {
     return;
   }
   int lstart, lend;
@@ -224,6 +234,139 @@ LUALIB_API void luaL_pstack(lua_State* L, int level) {
     }
     lua_pop(L, 1);
   }
+}
+
+LUALIB_API void luaL_pstackdepth(lua_State* L) {
+  lua_Debug ar[1];
+  fprintf(stderr, "Lua stack depth: %d\n", lua_getstackdepth(L, ar));
+}
+
+LUALIB_API void luaL_plocal(lua_State* L, int level) {
+  if (aux_checklevel(L, level, 0, 0) < 0) {
+    return;
+  }
+  lua_Debug ar[1];
+  lua_getstack(L, level, ar);
+  int n = 1;
+  int diff = 1;
+  while (1) {
+    const char* name = lua_getlocal(L, ar, n);
+    if (name) {
+      const char* value = luaL_tolstring(L, -1, NULL);
+      fprintf(stderr, "Local: %d, name: %s, value: %s\n", n, name, value);
+      lua_pop(L, 2);
+    } else if (n > 0) {
+      n = 0;
+      diff = -1;
+    } else {
+      break;
+    }
+    n += diff;
+  }
+}
+
+static int aux_pushfunction(lua_State* L, int level, int idx) {
+  if (aux_checklevel(L, level, 0, 0) < 0) {
+    return 0;
+  }
+  lua_Debug ar[1];
+  lua_getstack(L, level, ar);
+  if (idx == -1) {
+    lua_getinfo(L, "f", ar);
+  } else {
+    if (lua_pushstackvalue(L, level, idx) == 0) {
+      fprintf(stderr, "Could not find stack value in: %d\n", idx);
+      return 0;
+    }
+    if (!lua_isfunction(L, -1)) {
+      fprintf(stderr, "Stack value is not a function\n");
+      return 0;
+    }
+  }
+  return 1;
+}
+
+// idx == -1 means using the function of that level
+LUALIB_API void luaL_pupvalue(lua_State* L, int level, int idx) {
+  if (aux_pushfunction(L, level, idx) == 0) {
+    return; // get function error
+  }
+  int n = 1;
+  const char* name = NULL;
+  while ((name = lua_getupvalue(L, -1, n))) {
+    const char* value = luaL_tolstring(L, -1, NULL);
+    fprintf(stderr, "Upvalue: %d, name: %s, value: %s\n", n, name, value);
+    lua_pop(L, 2);
+    n++;
+  }
+  lua_pop(L, 1);
+}
+
+// idx == -1 means using the function of that level
+LUALIB_API void luaL_pfuncinfo(lua_State* L, int level, int idx, int recursive) {
+  if (aux_pushfunction(L, level, idx) == 0) {
+    return; // get function error
+  }
+  StkId o = index2addr(L, -1);
+  if (ttype(o) != LUA_TLCL) {
+    fprintf(stderr, "Value is a function, but not a lua closure\n");
+  } else {
+    const char* info = luaL_protoinfo(L, -1, recursive, NULL);
+    fprintf(stderr, "%s", info);
+    lua_pop(L, 1);
+  }
+  lua_pop(L, 1);
+}
+
+static int pinject(lua_State* L) {
+  luaL_pstack(L, -1);
+  const char* source = (const char*)luaL_checklightuserdata(L, 1);
+  size_t len = luaL_checkinteger(L, 2);
+  int level = luaL_checkinteger(L, 3);
+  aux_checklevel(L, level, 0, 0);
+  luaL_inject(L, source, len, level);
+  return 0;
+}
+LUALIB_API void luaL_pinject(lua_State* L, const char* source, int level) {
+  if (aux_checklevel(L, level, 0, 0) < 0) {
+    return;
+  }
+  lua_pushcfunction(L, pinject);
+  lua_pushlightuserdata(L, (void*)source);
+  lua_pushinteger(L, strlen(source));
+  lua_pushinteger(L, level + 1);
+  if (lua_pcall(L, 3, 0, 0) != LUA_OK) {
+    if (!lua_isnil(L, -1)) {
+      lua_writestringerror("Error: %s\n", luaL_tolstring(L, -1, NULL));
+    }
+    lua_pop(L, 1);
+  }
+}
+
+static int lastline = 0;
+static void hook_virtual(lua_State* L, lua_Debug* ar) {
+  (void)L;
+  switch (ar->event) {
+    case LUA_HOOKCALL:
+      break;
+    case LUA_HOOKRET:
+      break;
+    case LUA_HOOKTAILCALL:
+      break;
+    case LUA_HOOKLINE:
+      if (lastline != ar->currentline) {
+        lastline = ar->currentline;
+      }
+      break;
+    case LUA_HOOKCOUNT:
+      break;
+    default:
+      break;
+  }
+}
+LUALIB_API void luaL_breakpoint(lua_State* L) {
+  int mask = LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE;
+  lua_sethook(L, hook_virtual, mask, 0);
 }
 
 /* }====================================================== */
@@ -2122,7 +2265,6 @@ static void proto_printprotos(const Proto* f, StringBuffer* b, int recursive, co
   }
 }
 
-// [-0, +0], need 1 slot, LUA_ERRRUN
 LUALIB_API const char* luaL_protoinfo(lua_State* L, int idx, int recursive, const char* options) {
   StkId o = index2addr(L, idx);
   if (ttype(o) != LUA_TLCL) {
@@ -2166,8 +2308,8 @@ LUALIB_API int luaL_inject(lua_State* L, const char* source, size_t len, int lev
     len = strlen(source);
   }
   lua_Debug ar;
-  int targetlevel = level + 1;
-  if (!lua_getstack(L, targetlevel, &ar)) { // level + 1 for outer scope
+  int targetlevel = level; // maybe level + 1 for outer scope?
+  if (!lua_getstack(L, targetlevel, &ar)) {
     luaL_error(L, "Get stack with level %d failed!", level);
   }
   lua_createtable(L, 8, 0); // upvalue name => index
