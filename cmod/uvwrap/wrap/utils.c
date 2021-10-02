@@ -82,11 +82,13 @@ void MEMORY_FUNCTION(free)(void* ptr) {
   }
 
 DEFINE_MEMORY_POOL(req, sizeof(union uv_any_req), 64);
-DEFINE_MEMORY_POOL(buf_4k, 4096, 8);
+DEFINE_MEMORY_POOL(buf_1k, 1024, 8);
+DEFINE_MEMORY_POOL(buf_4k, 4096, 4);
 DEFINE_MEMORY_POOL(buf_64k, 65536, 2);
 
 void MEMORY_FUNCTION(init)() {
   MEMORY_POOL_INIT(req);
+  MEMORY_POOL_INIT(buf_1k);
   MEMORY_POOL_INIT(buf_4k);
   MEMORY_POOL_INIT(buf_64k);
 }
@@ -107,6 +109,7 @@ void MEMORY_FUNCTION(free_req)(void* ptr) {
 }
 
 static void* MEMORY_FUNCTION(malloc_buf_internal)(size_t size) {
+  TRY_MALLOC(buf_1k, size, <=);
   TRY_MALLOC(buf_4k, size, <=);
   TRY_MALLOC(buf_64k, size, ==);
   return MEMORY_FUNCTION(malloc)(size);
@@ -118,10 +121,10 @@ void* MEMORY_FUNCTION(malloc_buf)(size_t size) {
 }
 void MEMORY_FUNCTION(free_buf)(void* ptr) {
   MEMORY_ALLOC_REPORT(ptr, NULL, 0, AT_BUFFER);
+  TRY_FREE(buf_1k, ptr);
   TRY_FREE(buf_4k, ptr);
   TRY_FREE(buf_64k, ptr);
-  MEMORY_FUNCTION(free)
-  (ptr);
+  (void)MEMORY_FUNCTION(free)(ptr);
 }
 
 void MEMORY_FUNCTION(buf_alloc)(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
@@ -131,8 +134,7 @@ void MEMORY_FUNCTION(buf_alloc)(uv_handle_t* handle, size_t suggested_size, uv_b
 }
 
 void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf) {
-  MEMORY_FUNCTION(free_buf)
-  (buf->base);
+  (void)MEMORY_FUNCTION(free_buf)(buf->base);
 }
 
 /* }====================================================== */

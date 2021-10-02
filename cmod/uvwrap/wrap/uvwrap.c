@@ -23,12 +23,10 @@ static void alloc_callback(void* ud, void* old_ptr, void* new_ptr, size_t new_si
 static int uvwrap_set_realloc_cb(lua_State* L) {
   lua_settop(L, 1);
   if (lua_isfunction(L, 1)) {
-    MEMORY_FUNCTION(set_memcb)
-    (alloc_callback, (void*)L);
+    (void)MEMORY_FUNCTION(set_memcb)(alloc_callback, (void*)L);
     lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)alloc_callback);
   } else {
-    MEMORY_FUNCTION(set_memcb)
-    (NULL, NULL);
+    (void)MEMORY_FUNCTION(set_memcb)(NULL, NULL);
   }
   return 0;
 }
@@ -105,8 +103,7 @@ static void callback_queue_work(uv_work_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   UNHOLD_LUA_OBJECT(L, req, 1);
-  MEMORY_FUNCTION(free_req)
-  (req);
+  (void)MEMORY_FUNCTION(free_req)(req);
   lua_pushinteger(L, status);
   lua_pushlightuserdata(L, result);
   CALL_LUA_FUNCTION(L, 2, 0);
@@ -186,8 +183,7 @@ LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
       MEMORY_FUNCTION(free_uv));
   CHECK_ERROR(L, err);
 
-  MEMORY_FUNCTION(init)
-  ();
+  (void)MEMORY_FUNCTION(init)();
 
   luaL_newlib(L, uvwrap_funcs);
 

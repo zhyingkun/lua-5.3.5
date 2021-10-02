@@ -13,8 +13,7 @@ int TIMER_FUNCTION(new)(lua_State* L) {
   CHECK_ERROR(L, err);
 
   luaL_setmetatable(L, UVWRAP_TIMER_TYPE);
-  HANDLE_FUNCTION(ctor)
-  (L, (uv_handle_t*)handle);
+  (void)HANDLE_FUNCTION(ctor)(L, (uv_handle_t*)handle);
   return 1;
 }
 

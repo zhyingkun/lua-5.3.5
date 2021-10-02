@@ -14,8 +14,7 @@ static int PIPE_FUNCTION(new)(lua_State* L) {
   CHECK_ERROR(L, err);
 
   luaL_setmetatable(L, UVWRAP_PIPE_TYPE);
-  STREAM_FUNCTION(ctor)
-  (L, (uv_stream_t*)handle);
+  (void)STREAM_FUNCTION(ctor)(L, (uv_stream_t*)handle);
   return 1;
 }
 
@@ -40,8 +39,7 @@ static void PIPE_CALLBACK(connect)(uv_connect_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   UNHOLD_REQ_PARAM(L, req, 1);
-  MEMORY_FUNCTION(free_req)
-  (req);
+  (void)MEMORY_FUNCTION(free_req)(req);
   lua_pushinteger(L, status);
   CALL_LUA_FUNCTION(L, 1, 0);
 }

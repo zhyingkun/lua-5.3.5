@@ -56,8 +56,7 @@ static int OS_FUNCTION(getenv)(lua_State* L) {
     char* buf = MEMORY_FUNCTION(malloc_buf)(size);
     uv_os_getenv(name, buf, &size);
     lua_pushstring(L, buf);
-    MEMORY_FUNCTION(free_buf)
-    (buf);
+    (void)MEMORY_FUNCTION(free_buf)(buf);
   } else {
     CHECK_ERROR(L, err);
     lua_pushstring(L, buffer);

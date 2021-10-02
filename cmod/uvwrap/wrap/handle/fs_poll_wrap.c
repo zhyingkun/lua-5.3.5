@@ -13,8 +13,7 @@ int FS_POLL_FUNCTION(new)(lua_State* L) {
   CHECK_ERROR(L, err);
 
   luaL_setmetatable(L, UVWRAP_FS_POLL_TYPE);
-  HANDLE_FUNCTION(ctor)
-  (L, (uv_handle_t*)handle);
+  (void)HANDLE_FUNCTION(ctor)(L, (uv_handle_t*)handle);
   return 1;
 }
 
@@ -61,8 +60,7 @@ static int FS_POLL_FUNCTION(getpath)(lua_State* L) {
     lua_pushnil(L);
   }
   if (path != buffer) {
-    MEMORY_FUNCTION(free_buf)
-    (path);
+    (void)MEMORY_FUNCTION(free_buf)(path);
   }
   if (ret == UVWRAP_OK) {
     return 1;

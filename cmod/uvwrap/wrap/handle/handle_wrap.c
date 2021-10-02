@@ -152,6 +152,5 @@ static void HANDLE_FUNCTION(init_metatable)(lua_State* L) {
 }
 
 void HANDLE_FUNCTION(init)(lua_State* L) {
-  HANDLE_FUNCTION(init_metatable)
-  (L);
+  (void)HANDLE_FUNCTION(init_metatable)(L);
 }

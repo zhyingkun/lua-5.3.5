@@ -7,8 +7,7 @@ static void* wrap_thread_create(void* entry, void* arg) {
   uv_thread_t* tid = (uv_thread_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_thread_t));
   int err = uv_thread_create(tid, (uv_thread_cb)entry, arg);
   if (err != 0) {
-    MEMORY_FUNCTION(free)
-    ((void*)tid);
+    (void)MEMORY_FUNCTION(free)((void*)tid);
     return NULL;
   }
   return (void*)tid;
@@ -19,24 +18,21 @@ static void* wrap_thread_self() {
   return (void*)tid;
 }
 static void wrap_thread_invalid(void* tid) {
-  MEMORY_FUNCTION(free)
-  ((void*)tid);
+  (void)MEMORY_FUNCTION(free)((void*)tid);
 }
 
 static void* wrap_sem_init(int value) {
   uv_sem_t* sem = (uv_sem_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_sem_t));
   int err = uv_sem_init(sem, (unsigned int)value);
   if (err != 0) {
-    MEMORY_FUNCTION(free)
-    ((void*)sem);
+    (void)MEMORY_FUNCTION(free)((void*)sem);
     return NULL;
   }
   return (void*)sem;
 }
 static void wrap_sem_destroy(void* sem) {
   uv_sem_destroy((uv_sem_t*)sem);
-  MEMORY_FUNCTION(free)
-  ((void*)sem);
+  (void)MEMORY_FUNCTION(free)((void*)sem);
 }
 
 #define REGISTE_LIGHTUSERDATA(name, lightuserdata) \

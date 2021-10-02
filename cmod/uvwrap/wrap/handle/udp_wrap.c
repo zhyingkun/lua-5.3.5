@@ -14,8 +14,7 @@ int UDP_FUNCTION(new)(lua_State* L) {
   CHECK_ERROR(L, err);
 
   luaL_setmetatable(L, UVWRAP_UDP_TYPE);
-  HANDLE_FUNCTION(ctor)
-  (L, (uv_handle_t*)handle);
+  (void)HANDLE_FUNCTION(ctor)(L, (uv_handle_t*)handle);
   return 1;
 }
 
@@ -111,8 +110,7 @@ static void UDP_CALLBACK(send)(uv_udp_send_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   UNHOLD_LUA_OBJECT(L, req, 1);
-  MEMORY_FUNCTION(free_req)
-  (req);
+  (void)MEMORY_FUNCTION(free_req)(req);
   lua_pushinteger(L, status);
   CALL_LUA_FUNCTION(L, 1, 0);
 }
@@ -157,8 +155,7 @@ static void UDP_CALLBACK(recv_start)(uv_udp_t* handle, ssize_t nread, const uv_b
   } else {
     lua_pushnil(L);
   }
-  MEMORY_FUNCTION(buf_free)
-  (buf);
+  (void)MEMORY_FUNCTION(buf_free)(buf);
   if (addr != NULL) {
     lua_pushsockaddr(L, addr, addr->sa_family == AF_INET ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6));
   } else {

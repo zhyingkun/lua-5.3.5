@@ -18,8 +18,7 @@
     CHECK_ERROR(L, err); \
 \
     luaL_setmetatable(L, UVWRAP_##NAME##_TYPE); \
-    HANDLE_FUNCTION(ctor) \
-    (L, (uv_handle_t*)handle); \
+    (void)HANDLE_FUNCTION(ctor)(L, (uv_handle_t*)handle); \
     return 1; \
   } \
 \
@@ -79,8 +78,7 @@
 #define REGISTE_MISC_HANDLE(name) \
   PUSH_LIB_TABLE(name); \
   lua_setfield(L, -2, #name); \
-  UVWRAP_FUNCTION(name, init_metatable) \
-  (L)
+  (void)UVWRAP_FUNCTION(name, init_metatable)(L)
 
 /* }====================================================== */
 

@@ -13,8 +13,7 @@ int TTY_FUNCTION(new)(lua_State* L) {
   CHECK_ERROR(L, err);
 
   luaL_setmetatable(L, UVWRAP_TTY_TYPE);
-  STREAM_FUNCTION(ctor)
-  (L, (uv_stream_t*)handle);
+  (void)STREAM_FUNCTION(ctor)(L, (uv_stream_t*)handle);
   return 1;
 }
 

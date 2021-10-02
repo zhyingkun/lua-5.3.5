@@ -169,8 +169,7 @@ int PROCESS_FUNCTION(new)(lua_State* L) {
   int err = uv_spawn(loop, handle, options);
   if (err == UVWRAP_OK) {
     luaL_setmetatable(L, UVWRAP_PROCESS_TYPE);
-    HANDLE_FUNCTION(ctor)
-    (L, (uv_handle_t*)handle);
+    (void)HANDLE_FUNCTION(ctor)(L, (uv_handle_t*)handle);
   } else {
     lua_pushnil(L);
   }

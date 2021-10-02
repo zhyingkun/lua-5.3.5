@@ -46,8 +46,7 @@
   lua_pushcfunction(L, UVWRAP_FUNCTION(module, new))
 
 #define INVOKE_INIT_METATABLE(module) \
-  UVWRAP_FUNCTION(module, init_metatable) \
-  (L)
+  (void)UVWRAP_FUNCTION(module, init_metatable)(L)
 
 #define REGISTE_META_NEW_FUNC(module) \
   lua_createtable(L, 0, 1); \
@@ -94,8 +93,7 @@
 */
 
 #define CALL_MODULE_INIT(module) \
-  UVWRAP_FUNCTION(module, init) \
-  (L)
+  (void)UVWRAP_FUNCTION(module, init)(L)
 
 #define DECLARE_INIT_API(module) \
   void UVWRAP_FUNCTION(module, init)(lua_State * L);
@@ -370,32 +368,23 @@ void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf);
 #define luaL_checkstdiocont(L, idx) (uvwrap_stdio_container_t*)luaL_checkudata(L, idx, UVWRAP_STDIOCONT_TYPE)
 
 #define lua_pushuv_stat_t(L, stat) \
-  UTILS_PUSH_FUNCTION(uv_stat_t) \
-  (L, stat)
+  (void)UTILS_PUSH_FUNCTION(uv_stat_t)(L, stat)
 #define lua_pushsockaddr(L, addr, len) \
-  UTILS_PUSH_FUNCTION(sockaddr) \
-  (L, addr, len)
+  (void)UTILS_PUSH_FUNCTION(sockaddr)(L, addr, len)
 #define lua_pushphysaddr(L, addr) \
-  UTILS_PUSH_FUNCTION(physaddr) \
-  (L, addr);
+  (void)UTILS_PUSH_FUNCTION(physaddr)(L, addr);
 #define lua_pushuv_interface_address_t(L, addr) \
-  UTILS_PUSH_FUNCTION(uv_interface_address_t) \
-  (L, addr)
+  (void)UTILS_PUSH_FUNCTION(uv_interface_address_t)(L, addr)
 #define lua_pushaddrinfo(L, info) \
-  UTILS_PUSH_FUNCTION(addrinfo) \
-  (L, info)
+  (void)UTILS_PUSH_FUNCTION(addrinfo)(L, info)
 #define lua_pushuv_passwd_t(L, pwd) \
-  UTILS_PUSH_FUNCTION(uv_passwd_t) \
-  (L, pwd)
+  (void)UTILS_PUSH_FUNCTION(uv_passwd_t)(L, pwd)
 #define lua_pushuv_rusage_t(L, rusage) \
-  UTILS_PUSH_FUNCTION(uv_rusage_t) \
-  (L, rusage)
+  (void)UTILS_PUSH_FUNCTION(uv_rusage_t)(L, rusage)
 #define lua_pushuv_cpu_info_t(L, cpu_info) \
-  UTILS_PUSH_FUNCTION(uv_cpu_info_t) \
-  (L, cpu_info)
+  (void)UTILS_PUSH_FUNCTION(uv_cpu_info_t)(L, cpu_info)
 #define lua_pushuv_statfs_t(L, statfs) \
-  UTILS_PUSH_FUNCTION(uv_statfs_t) \
-  (L, statfs)
+  (void)UTILS_PUSH_FUNCTION(uv_statfs_t)(L, statfs)
 
 /* }====================================================== */
 

@@ -260,8 +260,7 @@ static void NETWORK_CALLBACK(getaddrinfo)(uv_getaddrinfo_t* req, int status, str
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   lua_pushinteger(L, status);
   PUSH_GETADDRINFO_RESULT(L, res);
-  MEMORY_FUNCTION(free_req)
-  (req);
+  (void)MEMORY_FUNCTION(free_req)(req);
   CALL_LUA_FUNCTION(L, 2, 0);
 }
 static int NETWORK_FUNCTION(getaddrinfo)(lua_State* L) {
@@ -292,8 +291,7 @@ static int NETWORK_FUNCTION(getaddrinfo)(lua_State* L) {
   struct addrinfo* res = req->addrinfo;
   PUSH_GETADDRINFO_RESULT(L, res);
   lua_pushinteger(L, err);
-  MEMORY_FUNCTION(free_req)
-  (req);
+  (void)MEMORY_FUNCTION(free_req)(req);
   return 2;
 }
 
@@ -303,8 +301,7 @@ static void NETWORK_CALLBACK(getnameinfo)(uv_getnameinfo_t* req, int status, con
   lua_pushinteger(L, status);
   lua_pushstring(L, hostname); // hostname and service store in req
   lua_pushstring(L, service);
-  MEMORY_FUNCTION(free_req)
-  (req);
+  (void)MEMORY_FUNCTION(free_req)(req);
   CALL_LUA_FUNCTION(L, 3, 0);
 }
 static int NETWORK_FUNCTION(getnameinfo)(lua_State* L) {
@@ -328,8 +325,7 @@ static int NETWORK_FUNCTION(getnameinfo)(lua_State* L) {
     lua_pushnil(L);
   }
   lua_pushinteger(L, err);
-  MEMORY_FUNCTION(free_req)
-  (req);
+  (void)MEMORY_FUNCTION(free_req)(req);
   return 3;
 }
 
@@ -413,8 +409,6 @@ void NETWORK_FUNCTION(init)(lua_State* L) {
 
   lua_setfield(L, -2, "network");
 
-  SOCKADDR_FUNCTION(init_metatable)
-  (L);
-  PHYSADDR_FUNCTION(init_metatable)
-  (L);
+  (void)SOCKADDR_FUNCTION(init_metatable)(L);
+  (void)PHYSADDR_FUNCTION(init_metatable)(L);
 }

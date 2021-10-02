@@ -57,8 +57,7 @@ static int LOOP_FUNCTION(new)(lua_State* L) {
   }
   int err = uv_loop_init(loop);
   if (err != UVWRAP_OK) {
-    MEMORY_FUNCTION(free)
-    (loop);
+    (void)MEMORY_FUNCTION(free)(loop);
     return 0;
   }
   on_loop_init(L, loop);
@@ -74,8 +73,7 @@ static int LOOP_FUNCTION(close)(lua_State* L) {
     if (loop == default_loop) {
       default_loop = NULL;
     } else {
-      MEMORY_FUNCTION(free)
-      (loop);
+      (void)MEMORY_FUNCTION(free)(loop);
     }
   }
   lua_pushinteger(L, result);

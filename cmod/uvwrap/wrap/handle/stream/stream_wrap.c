@@ -4,16 +4,14 @@
 #define STREAM_CALLBACK(name) UVWRAP_CALLBACK(stream, name)
 
 void STREAM_FUNCTION(ctor)(lua_State* L, uv_stream_t* handle) {
-  HANDLE_FUNCTION(ctor)
-  (L, (uv_handle_t*)handle);
+  (void)HANDLE_FUNCTION(ctor)(L, (uv_handle_t*)handle);
 }
 
 static void STREAM_CALLBACK(shutdown)(uv_shutdown_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   lua_pushinteger(L, status);
-  MEMORY_FUNCTION(free_req)
-  (req);
+  (void)MEMORY_FUNCTION(free_req)(req);
   CALL_LUA_FUNCTION(L, 1, 0);
 }
 // Shutdown the outgoing (write) side of a duplex stream
@@ -62,8 +60,7 @@ static void STREAM_CALLBACK(read_start)(uv_stream_t* handle, ssize_t nread, cons
   } else {
     lua_pushnil(L);
   }
-  MEMORY_FUNCTION(buf_free)
-  (buf);
+  (void)MEMORY_FUNCTION(buf_free)(buf);
   CALL_LUA_FUNCTION(L, 2, 0);
 }
 static int STREAM_FUNCTION(read_start)(lua_State* L) {
@@ -87,8 +84,7 @@ static void STREAM_CALLBACK(write)(uv_write_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   UNHOLD_REQ_PARAM(L, req, 1);
-  MEMORY_FUNCTION(free_req)
-  (req);
+  (void)MEMORY_FUNCTION(free_req)(req);
   lua_pushinteger(L, status);
   CALL_LUA_FUNCTION(L, 1, 0);
 }
@@ -111,8 +107,7 @@ static void STREAM_CALLBACK(write2)(uv_write_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   UNHOLD_REQ_PARAM(L, req, 1);
-  MEMORY_FUNCTION(free_req)
-  (req);
+  (void)MEMORY_FUNCTION(free_req)(req);
   lua_pushinteger(L, status);
   CALL_LUA_FUNCTION(L, 1, 0);
 }
@@ -204,6 +199,5 @@ static void STREAM_FUNCTION(init_metatable)(lua_State* L) {
 }
 
 void STREAM_FUNCTION(init)(lua_State* L) {
-  STREAM_FUNCTION(init_metatable)
-  (L);
+  (void)STREAM_FUNCTION(init_metatable)(L);
 }
