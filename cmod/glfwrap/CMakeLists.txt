@@ -14,17 +14,17 @@ endif()
 
 # LUA_BUILD_AS_DLL are for all windows components, include liblua, cmod library, and user exe which use liblua
 if(APPLE)
-	set(CMAKE_CXX_FLAGS         "-std=c11 -Wall -Wextra -Wstrict-prototypes -Wno-unused-parameter")
-	set(CMAKE_CXX_FLAGS_DEBUG   "-g")
-	set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
+	set(CMAKE_C_FLAGS         "-std=c11 -Wall -Wextra -Wstrict-prototypes -Wno-unused-parameter")
+	set(CMAKE_C_FLAGS_DEBUG   "-g")
+	set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	set(CMAKE_CXX_FLAGS         "-std=c11 -Wall -Wextra -Wstrict-prototypes -Wno-unused-parameter")
-	set(CMAKE_CXX_FLAGS_DEBUG   "-g")
-	set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
+	set(CMAKE_C_FLAGS         "-std=c11 -Wall -Wextra -Wstrict-prototypes -Wno-unused-parameter")
+	set(CMAKE_C_FLAGS_DEBUG   "-g")
+	set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 elseif(WIN32)
-	set(CMAKE_CXX_FLAGS         "-Wall -DLUA_BUILD_AS_DLL")
-	# set(CMAKE_CXX_FLAGS_DEBUG   "-g")
-	set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
+	set(CMAKE_C_FLAGS         "-Wall -DLUA_BUILD_AS_DLL")
+	set(CMAKE_C_FLAGS_DEBUG   "/ZI")
+	set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 endif()
 
 set(
@@ -41,21 +41,18 @@ set(
 )
 
 if(APPLE)
-	set(_GLFW_COCOA 1)
 	list(APPEND MODULE_DIRS
 		config/macosx
 		src/macosx
 		src/posix
 	)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	set(_GLFW_X11 1)
 	list(APPEND MODULE_DIRS
 		config/linux
 		src/linux
 		src/posix
 	)
 elseif(WIN32)
-	set(_GLFW_WIN32 1)
 	list(APPEND MODULE_DIRS
 		config/windows
 		src/windows
@@ -140,7 +137,6 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 elseif(WIN32)
 endif()
 
-set(_GLFW_BUILD_DLL 1)
 add_library(${PROJECT_NAME} MODULE ${MODULE_SRC} ${MODULE_HEADERS})
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	FOLDER "cmod"
