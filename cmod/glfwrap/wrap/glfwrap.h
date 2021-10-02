@@ -29,8 +29,7 @@
 #define DEFINE_REGISTE_FUNC_END() \
   }
 #define REGISTE_FUNCTIONS(module) \
-  GLFWRAP_FUNCTION(registe_##module##_funcs) \
-  (L)
+  (void)GLFWRAP_FUNCTION(registe_##module##_funcs)(L)
 
 DECLARE_REGISTE_FUNC(context)
 DECLARE_REGISTE_FUNC(input)
