@@ -93,7 +93,7 @@ static int GLFWRAP_FUNCTION(GetPrimaryMonitor)(lua_State* L) {
 }
 
 static int GLFWRAP_FUNCTION(GetMonitorPos)(lua_State* L) {
-  GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+  GLFWmonitor* monitor = luaL_checkGLFWmonitor(L, 1);
   int xpos = 0;
   int ypos = 0;
   glfwGetMonitorPos(monitor, &xpos, &ypos);
@@ -103,7 +103,7 @@ static int GLFWRAP_FUNCTION(GetMonitorPos)(lua_State* L) {
 }
 
 static int GLFWRAP_FUNCTION(GetMonitorWorkarea)(lua_State* L) {
-  GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+  GLFWmonitor* monitor = luaL_checkGLFWmonitor(L, 1);
   int xpos = 0;
   int ypos = 0;
   int width = 0;
@@ -117,7 +117,7 @@ static int GLFWRAP_FUNCTION(GetMonitorWorkarea)(lua_State* L) {
 }
 
 static int GLFWRAP_FUNCTION(GetMonitorPhysicalSize)(lua_State* L) {
-  GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+  GLFWmonitor* monitor = luaL_checkGLFWmonitor(L, 1);
   int widthMM = 0;
   int heightMM = 0;
   glfwGetMonitorPhysicalSize(monitor, &widthMM, &heightMM);
@@ -127,7 +127,7 @@ static int GLFWRAP_FUNCTION(GetMonitorPhysicalSize)(lua_State* L) {
 }
 
 static int GLFWRAP_FUNCTION(GetMonitorContentScale)(lua_State* L) {
-  GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+  GLFWmonitor* monitor = luaL_checkGLFWmonitor(L, 1);
   float xscale = 0;
   float yscale = 0;
   glfwGetMonitorContentScale(monitor, &xscale, &yscale);
@@ -137,7 +137,7 @@ static int GLFWRAP_FUNCTION(GetMonitorContentScale)(lua_State* L) {
 }
 
 static int GLFWRAP_FUNCTION(GetMonitorName)(lua_State* L) {
-  GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+  GLFWmonitor* monitor = luaL_checkGLFWmonitor(L, 1);
   const char* name = glfwGetMonitorName(monitor);
   lua_pushstring(L, name);
   return 1;
@@ -148,7 +148,7 @@ static void GLFWRAP_CALLBACK(SetMonitorCallback)(GLFWmonitor* monitor, int event
   lua_State* L = StaticL;
   GLFWRAP_CALLBACK_BEGIN(SetMonitorCallback)
   PUSH_LIGHTUSERDATA(L, monitor);
-  lua_pushstring(L, event);
+  lua_pushinteger(L, event);
   CALL_LUA_FUNCTION(L, 2, 0);
   GLFWRAP_CALLBACK_END()
 }
