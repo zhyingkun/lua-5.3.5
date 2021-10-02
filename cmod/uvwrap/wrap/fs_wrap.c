@@ -8,17 +8,31 @@
 #define FREE_REQ(req) \
   do { \
     uv_fs_req_cleanup(req); \
-    MEMORY_FUNCTION(free_req) \
-    (req); \
+    (void)MEMORY_FUNCTION(free_req)(req); \
   } while (0)
 
+#define RETURN_RESULT(push_cnt) \
+  FREE_REQ(req); \
+  if (async) { \
+    return ERROR_FUNCTION(check)(L, err); \
+  } \
+  lua_pushinteger(L, err); \
+  return (push_cnt) + 1
+#define CALLBACK_ONLY_ERR(req) \
+  lua_State* L; \
+  PUSH_REQ_CALLBACK_CLEAN(L, req); \
+  lua_pushinteger(L, uv_fs_get_result(req)); \
+  FREE_REQ(req); \
+  CALL_LUA_FUNCTION(L, 1, 0)
+#define RETURN_ONLY_ERR(req, cb_idx) \
+  if (async && err == UVWRAP_OK) { \
+    SET_REQ_CALLBACK(L, cb_idx, req); \
+    return 0; \
+  } \
+  RETURN_RESULT(0)
+
 static void FS_CALLBACK(close)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(close)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -27,22 +41,11 @@ static int FS_FUNCTION(close)(lua_State* L) {
 
   uv_fs_t* req = ALLOCA_REQ();
   int err = uv_fs_close(loop, req, fd, async ? FS_CALLBACK(close) : NULL);
-  CHECK_ERROR(L, err);
-  if (async) {
-    SET_REQ_CALLBACK(L, 3, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  RETURN_ONLY_ERR(req, 3);
 }
 
 static void FS_CALLBACK(open)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(open)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -52,19 +55,13 @@ static int FS_FUNCTION(open)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 5);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_open(loop, req, filepath, flags, mode, async ? FS_CALLBACK(open) : NULL);
-  if (async) {
-    SET_REQ_CALLBACK(L, 5, req);
-    return 0;
-  }
-  lua_pushinteger(L, ret);
-  FREE_REQ(req);
-  return 1;
+  int err = uv_fs_open(loop, req, filepath, flags, mode, async ? FS_CALLBACK(open) : NULL);
+  RETURN_ONLY_ERR(req, 5);
 }
 
-#define PUSH_READ_STRING(L, req, idx) \
+#define PUSH_READ_STRING(L, req, buf) \
   if (uv_fs_get_result(req) > 0) { \
-    lua_pushlstring(L, (char*)lua_touserdata(L, idx), uv_fs_get_result(req)); \
+    lua_pushlstring(L, (char*)buf, uv_fs_get_result(req)); \
   } else { \
     lua_pushnil(L); \
   }
@@ -74,8 +71,10 @@ static void FS_CALLBACK(read)(uv_fs_t* req) {
   lua_pushinteger(L, uv_fs_get_result(req)); // result == 0 means EOF
 
   PUSH_REQ_PARAM(L, req, 1);
-  int bidx = lua_gettop(L);
-  PUSH_READ_STRING(L, req, bidx);
+  UNHOLD_REQ_PARAM(L, req, 1);
+  char* buffer = (char*)lua_touserdata(L, -1);
+  PUSH_READ_STRING(L, req, buffer);
+  (void)MEMORY_FUNCTION(free_buf)(buffer);
   lua_remove(L, -2);
 
   FREE_REQ(req);
@@ -88,28 +87,24 @@ static int FS_FUNCTION(read)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 4);
 
   uv_fs_t* req = ALLOCA_REQ();
-  char* buffer = (char*)lua_newuserdata(L, FS_BUF_SIZE);
-  int bidx = lua_gettop(L);
+  char* buffer = (char*)MEMORY_FUNCTION(malloc_buf)(FS_BUF_SIZE);
   BUFS_INIT(buffer, FS_BUF_SIZE);
-  int ret = uv_fs_read(loop, req, fd, BUFS, NBUFS, offset, async ? FS_CALLBACK(read) : NULL);
-  if (async) {
+  int err = uv_fs_read(loop, req, fd, BUFS, NBUFS, offset, async ? FS_CALLBACK(read) : NULL);
+  if (async && err == UVWRAP_OK) {
     SET_REQ_CALLBACK(L, 4, req);
-    HOLD_REQ_PARAM(L, req, 1, bidx);
+    lua_pushlightuserdata(L, (void*)buffer);
+    HOLD_REQ_PARAM(L, req, 1, -1);
     return 0;
   }
-  lua_pushinteger(L, ret);
-  PUSH_READ_STRING(L, req, bidx);
-  FREE_REQ(req);
-  return 2;
+  if (!async) {
+    PUSH_READ_STRING(L, req, buffer);
+  }
+  (void)MEMORY_FUNCTION(free_buf)(buffer);
+  RETURN_RESULT(1);
 }
 
 static void FS_CALLBACK(unlink)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(unlink)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -117,21 +112,15 @@ static int FS_FUNCTION(unlink)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 3);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_unlink(loop, req, path, async ? FS_CALLBACK(unlink) : NULL);
-  if (async) {
-    CHECK_ERROR(L, ret);
-    SET_REQ_CALLBACK(L, 3, req);
-    return 0;
-  }
-  lua_pushinteger(L, ret);
-  FREE_REQ(req);
-  return 1;
+  int err = uv_fs_unlink(loop, req, path, async ? FS_CALLBACK(unlink) : NULL);
+  RETURN_ONLY_ERR(req, 3);
 }
 
 static void FS_CALLBACK(write)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   UNHOLD_REQ_PARAM(L, req, 1);
+
   lua_pushinteger(L, uv_fs_get_result(req));
   FREE_REQ(req);
   CALL_LUA_FUNCTION(L, 1, 0);
@@ -146,24 +135,17 @@ static int FS_FUNCTION(write)(lua_State* L) {
 
   uv_fs_t* req = ALLOCA_REQ();
   BUFS_INIT(str, len);
-  int ret = uv_fs_write(loop, req, fd, BUFS, NBUFS, offset, async ? FS_CALLBACK(write) : NULL);
-  if (async) {
+  int err = uv_fs_write(loop, req, fd, BUFS, NBUFS, offset, async ? FS_CALLBACK(write) : NULL);
+  if (async && err == UVWRAP_OK) {
     SET_REQ_CALLBACK(L, 5, req);
     HOLD_REQ_PARAM(L, req, 1, 3);
     return 0;
   }
-  lua_pushinteger(L, ret);
-  FREE_REQ(req);
-  return 1;
+  RETURN_RESULT(0);
 }
 
 static void FS_CALLBACK(mkdir)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(mkdir)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -172,26 +154,22 @@ static int FS_FUNCTION(mkdir)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 4);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_mkdir(loop, req, path, mode, async ? FS_CALLBACK(mkdir) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 4, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  int err = uv_fs_mkdir(loop, req, path, mode, async ? FS_CALLBACK(mkdir) : NULL);
+  RETURN_ONLY_ERR(req, 4);
 }
 
+#define PUSH_TEMP_PATH(L, err, req) \
+  if (err == UVWRAP_OK) { \
+    lua_pushstring(L, uv_fs_get_path(req)); \
+  } else { \
+    lua_pushnil(L); \
+  }
 static void FS_CALLBACK(mkdtemp)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  if (result == UVWRAP_OK) {
-    lua_pushstring(L, uv_fs_get_path(req));
-  } else {
-    lua_pushnil(L);
-  }
+  int err = uv_fs_get_result(req);
+  lua_pushinteger(L, err);
+  PUSH_TEMP_PATH(L, err, req);
   FREE_REQ(req);
   CALL_LUA_FUNCTION(L, 2, 0);
 }
@@ -201,24 +179,19 @@ static int FS_FUNCTION(mkdtemp)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 4);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_mkdtemp(loop, req, tpl, async ? FS_CALLBACK(mkdtemp) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
+  int err = uv_fs_mkdtemp(loop, req, tpl, async ? FS_CALLBACK(mkdtemp) : NULL);
+  if (async && err == UVWRAP_OK) {
     SET_REQ_CALLBACK(L, 4, req);
     return 0;
   }
-  lua_pushstring(L, uv_fs_get_path(req));
-  FREE_REQ(req);
-  return 1;
+  if (!async) {
+    PUSH_TEMP_PATH(L, err, req);
+  }
+  RETURN_RESULT(1);
 }
 
 static void FS_CALLBACK(rmdir)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(rmdir)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -226,27 +199,23 @@ static int FS_FUNCTION(rmdir)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 3);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_rmdir(loop, req, path, async ? FS_CALLBACK(rmdir) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 3, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  int err = uv_fs_rmdir(loop, req, path, async ? FS_CALLBACK(rmdir) : NULL);
+  RETURN_ONLY_ERR(req, 3);
 }
 
+#define PUSH_DIR_POINTER(L, err, req) \
+  if (err == UVWRAP_OK) { \
+    uv_dir_t* dir = (uv_dir_t*)uv_fs_get_ptr(req); \
+    lua_pushlightuserdata(L, (void*)dir); \
+  } else { \
+    lua_pushnil(L); \
+  }
 static void FS_CALLBACK(opendir)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  if (result == UVWRAP_OK) {
-    uv_dir_t* dir = (uv_dir_t*)uv_fs_get_ptr(req);
-    lua_pushlightuserdata(L, (void*)dir);
-  } else {
-    lua_pushnil(L);
-  }
+  int err = uv_fs_get_result(req);
+  lua_pushinteger(L, err);
+  PUSH_DIR_POINTER(L, err, req);
   FREE_REQ(req);
   CALL_LUA_FUNCTION(L, 2, 0);
 }
@@ -256,25 +225,19 @@ static int FS_FUNCTION(opendir)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 3);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_opendir(loop, req, path, async ? FS_CALLBACK(opendir) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
+  int err = uv_fs_opendir(loop, req, path, async ? FS_CALLBACK(opendir) : NULL);
+  if (async && err == UVWRAP_OK) {
     SET_REQ_CALLBACK(L, 3, req);
     return 0;
   }
-  uv_dir_t* dir = (uv_dir_t*)uv_fs_get_ptr(req);
-  lua_pushlightuserdata(L, (void*)dir);
-  FREE_REQ(req);
-  return 1;
+  if (!async) {
+    PUSH_DIR_POINTER(L, err, req);
+  }
+  RETURN_RESULT(1);
 }
 
 static void FS_CALLBACK(closedir)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(closedir)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -282,32 +245,31 @@ static int FS_FUNCTION(closedir)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 3);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_closedir(loop, req, dir, async ? FS_CALLBACK(closedir) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 3, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  int err = uv_fs_closedir(loop, req, dir, async ? FS_CALLBACK(closedir) : NULL);
+  RETURN_ONLY_ERR(req, 3);
 }
 
+#define PUSH_DIR_NAME_TYPE(L, err, dirent) \
+  if (err == UVWRAP_OK) { \
+    lua_pushstring(L, dirent->name); \
+    lua_pushinteger(L, dirent->type); \
+  } else { \
+    lua_pushnil(L); \
+    lua_pushnil(L); \
+  }
 static void FS_CALLBACK(readdir)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
+  int err = uv_fs_get_result(req);
+  lua_pushinteger(L, err);
+
   PUSH_REQ_PARAM(L, req, 1);
   UNHOLD_REQ_PARAM(L, req, 1);
-  if (result == UVWRAP_OK) {
-    uv_dirent_t* dirents = (uv_dirent_t*)lua_touserdata(L, -1);
-    lua_pushstring(L, dirents->name);
-    lua_pushinteger(L, dirents->type);
-  } else {
-    lua_pushnil(L);
-    lua_pushnil(L);
-  }
+  uv_dirent_t* dirents = (uv_dirent_t*)lua_touserdata(L, -1);
+  PUSH_DIR_NAME_TYPE(L, err, dirents);
+  (void)MEMORY_FUNCTION(free_buf)(dirents);
   lua_remove(L, -3);
+
   FREE_REQ(req);
   CALL_LUA_FUNCTION(L, 3, 0);
 }
@@ -317,21 +279,22 @@ static int FS_FUNCTION(readdir)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 3);
 
   uv_fs_t* req = ALLOCA_REQ();
-  uv_dirent_t* dirents = (uv_dirent_t*)lua_newuserdata(L, sizeof(uv_dirent_t));
+
+  uv_dirent_t* dirents = (uv_dirent_t*)MEMORY_FUNCTION(malloc_buf)(sizeof(uv_dirent_t));
   dir->dirents = dirents;
   dir->nentries = 1;
-  int idx = lua_gettop(L);
-  int ret = uv_fs_readdir(loop, req, dir, async ? FS_CALLBACK(readdir) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
+  int err = uv_fs_readdir(loop, req, dir, async ? FS_CALLBACK(readdir) : NULL);
+  if (async && err == UVWRAP_OK) {
     SET_REQ_CALLBACK(L, 3, req);
-    HOLD_REQ_PARAM(L, req, 1, idx);
+    lua_pushlightuserdata(L, (void*)dirents);
+    HOLD_REQ_PARAM(L, req, 1, -1);
     return 0;
   }
-  lua_pushstring(L, dirents->name);
-  lua_pushinteger(L, dirents->type);
-  FREE_REQ(req);
-  return 2;
+  if (!async) {
+    PUSH_DIR_NAME_TYPE(L, err, dirents);
+  }
+  (void)MEMORY_FUNCTION(free_buf)(dirents);
+  RETURN_RESULT(2);
 }
 
 static void push_ents_in_table(lua_State* L, uv_fs_t* req) {
@@ -363,27 +326,29 @@ static int FS_FUNCTION(scandir)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 4);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_scandir(loop, req, path, flags, async ? FS_CALLBACK(scandir) : NULL); // path will be duplicate in libuv api
-  CHECK_ERROR(L, ret);
-  if (async) {
+  int err = uv_fs_scandir(loop, req, path, flags, async ? FS_CALLBACK(scandir) : NULL); // path will be duplicate in libuv api
+  if (async && err == UVWRAP_OK) {
     SET_REQ_CALLBACK(L, 4, req);
     return 0;
   }
-  push_ents_in_table(L, req);
-  FREE_REQ(req);
-  return 1;
+  if (!async) {
+    push_ents_in_table(L, req);
+  }
+  RETURN_RESULT(1);
 }
 
+#define PUSH_STAT_STRUCT(L, err, req) \
+  if (err == UVWRAP_OK) { \
+    lua_pushuv_stat_t(L, uv_fs_get_statbuf(req)); \
+  } else { \
+    lua_pushnil(L); \
+  }
 static void FS_CALLBACK(stat)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  if (result == UVWRAP_OK) {
-    lua_pushuv_stat_t(L, uv_fs_get_statbuf(req));
-  } else {
-    lua_pushnil(L);
-  }
+  int err = uv_fs_get_result(req);
+  lua_pushinteger(L, err);
+  PUSH_STAT_STRUCT(L, err, req);
   FREE_REQ(req);
   CALL_LUA_FUNCTION(L, 2, 0);
 }
@@ -393,27 +358,23 @@ static int FS_FUNCTION(stat)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 3);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_stat(loop, req, path, async ? FS_CALLBACK(stat) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
+  int err = uv_fs_stat(loop, req, path, async ? FS_CALLBACK(stat) : NULL);
+  if (async && err == UVWRAP_OK) {
     SET_REQ_CALLBACK(L, 3, req);
     return 0;
   }
-  lua_pushuv_stat_t(L, uv_fs_get_statbuf(req));
-  FREE_REQ(req);
-  return 1;
+  if (!async) {
+    PUSH_STAT_STRUCT(L, err, req);
+  }
+  RETURN_RESULT(1);
 }
 
 static void FS_CALLBACK(fstat)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  if (result == UVWRAP_OK) {
-    lua_pushuv_stat_t(L, uv_fs_get_statbuf(req));
-  } else {
-    lua_pushnil(L);
-  }
+  int err = uv_fs_get_result(req);
+  lua_pushinteger(L, err);
+  PUSH_STAT_STRUCT(L, err, req);
   FREE_REQ(req);
   CALL_LUA_FUNCTION(L, 2, 0);
 }
@@ -423,27 +384,23 @@ static int FS_FUNCTION(fstat)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 3);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_fstat(loop, req, file, async ? FS_CALLBACK(fstat) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
+  int err = uv_fs_fstat(loop, req, file, async ? FS_CALLBACK(fstat) : NULL);
+  if (async && err == UVWRAP_OK) {
     SET_REQ_CALLBACK(L, 3, req);
     return 0;
   }
-  lua_pushuv_stat_t(L, uv_fs_get_statbuf(req));
-  FREE_REQ(req);
-  return 1;
+  if (!async) {
+    PUSH_STAT_STRUCT(L, err, req);
+  }
+  RETURN_RESULT(1);
 }
 
 static void FS_CALLBACK(lstat)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  if (result == UVWRAP_OK) {
-    lua_pushuv_stat_t(L, uv_fs_get_statbuf(req));
-  } else {
-    lua_pushnil(L);
-  }
+  int err = uv_fs_get_result(req);
+  lua_pushinteger(L, err);
+  PUSH_STAT_STRUCT(L, err, req);
   FREE_REQ(req);
   CALL_LUA_FUNCTION(L, 2, 0);
 }
@@ -453,27 +410,29 @@ static int FS_FUNCTION(lstat)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 3);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_lstat(loop, req, path, async ? FS_CALLBACK(lstat) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
+  int err = uv_fs_lstat(loop, req, path, async ? FS_CALLBACK(lstat) : NULL);
+  if (async && err == UVWRAP_OK) {
     SET_REQ_CALLBACK(L, 3, req);
     return 0;
   }
-  lua_pushuv_stat_t(L, uv_fs_get_statbuf(req));
-  FREE_REQ(req);
-  return 1;
+  if (!async) {
+    PUSH_STAT_STRUCT(L, err, req);
+  }
+  RETURN_RESULT(1);
 }
 
+#define PUSH_STATFS_STRUCT(L, err, req) \
+  if (err == UVWRAP_OK) { \
+    lua_pushuv_statfs_t(L, (uv_statfs_t*)uv_fs_get_ptr(req)); \
+  } else { \
+    lua_pushnil(L); \
+  }
 static void FS_CALLBACK(statfs)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  if (result == UVWRAP_OK) {
-    lua_pushuv_statfs_t(L, (uv_statfs_t*)uv_fs_get_ptr(req));
-  } else {
-    lua_pushnil(L);
-  }
+  int err = uv_fs_get_result(req);
+  lua_pushinteger(L, err);
+  PUSH_STATFS_STRUCT(L, err, req);
   FREE_REQ(req);
   CALL_LUA_FUNCTION(L, 2, 0);
 }
@@ -483,24 +442,19 @@ static int FS_FUNCTION(statfs)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 3);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_statfs(loop, req, path, async ? FS_CALLBACK(statfs) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
+  int err = uv_fs_statfs(loop, req, path, async ? FS_CALLBACK(statfs) : NULL);
+  if (async && err == UVWRAP_OK) {
     SET_REQ_CALLBACK(L, 3, req);
     return 0;
   }
-  lua_pushuv_statfs_t(L, (uv_statfs_t*)uv_fs_get_ptr(req));
-  FREE_REQ(req);
-  return 1;
+  if (!async) {
+    PUSH_STATFS_STRUCT(L, err, req);
+  }
+  RETURN_RESULT(1);
 }
 
 static void FS_CALLBACK(rename)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(rename)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -509,23 +463,12 @@ static int FS_FUNCTION(rename)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 4);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_rename(loop, req, path, new_path, async ? FS_CALLBACK(rename) : NULL); // path will be duplicate in libuv api
-  CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 4, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  int err = uv_fs_rename(loop, req, path, new_path, async ? FS_CALLBACK(rename) : NULL); // path will be duplicate in libuv api
+  RETURN_ONLY_ERR(req, 4);
 }
 
 static void FS_CALLBACK(fsync)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(fsync)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -533,23 +476,12 @@ static int FS_FUNCTION(fsync)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 3);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_fsync(loop, req, file, async ? FS_CALLBACK(fsync) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 3, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  int err = uv_fs_fsync(loop, req, file, async ? FS_CALLBACK(fsync) : NULL);
+  RETURN_ONLY_ERR(req, 3);
 }
 
 static void FS_CALLBACK(fdatasync)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(fdatasync)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -557,23 +489,12 @@ static int FS_FUNCTION(fdatasync)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 3);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_fdatasync(loop, req, file, async ? FS_CALLBACK(fdatasync) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 3, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  int err = uv_fs_fdatasync(loop, req, file, async ? FS_CALLBACK(fdatasync) : NULL);
+  RETURN_ONLY_ERR(req, 3);
 }
 
 static void FS_CALLBACK(ftruncate)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(ftruncate)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -582,23 +503,12 @@ static int FS_FUNCTION(ftruncate)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 4);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_ftruncate(loop, req, file, offset, async ? FS_CALLBACK(ftruncate) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 4, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  int err = uv_fs_ftruncate(loop, req, file, offset, async ? FS_CALLBACK(ftruncate) : NULL);
+  RETURN_ONLY_ERR(req, 4);
 }
 
 static void FS_CALLBACK(copyfile)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(copyfile)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -608,23 +518,12 @@ static int FS_FUNCTION(copyfile)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 5);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_copyfile(loop, req, path, new_path, flags, async ? FS_CALLBACK(copyfile) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 5, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  int err = uv_fs_copyfile(loop, req, path, new_path, flags, async ? FS_CALLBACK(copyfile) : NULL);
+  RETURN_ONLY_ERR(req, 5);
 }
 
 static void FS_CALLBACK(sendfile)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(sendfile)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -635,23 +534,12 @@ static int FS_FUNCTION(sendfile)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 6);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_sendfile(loop, req, out_fd, in_fd, in_offset, length, async ? FS_CALLBACK(sendfile) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 6, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  int err = uv_fs_sendfile(loop, req, out_fd, in_fd, in_offset, length, async ? FS_CALLBACK(sendfile) : NULL);
+  RETURN_ONLY_ERR(req, 6);
 }
 
 static void FS_CALLBACK(access)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(access)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -660,24 +548,12 @@ static int FS_FUNCTION(access)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 4);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_access(loop, req, path, mode, async ? FS_CALLBACK(access) : NULL);
-  // CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 4, req);
-    return 0;
-  }
-  lua_pushinteger(L, ret);
-  FREE_REQ(req);
-  return 1;
+  int err = uv_fs_access(loop, req, path, mode, async ? FS_CALLBACK(access) : NULL);
+  RETURN_ONLY_ERR(req, 4);
 }
 
 static void FS_CALLBACK(chmod)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(chmod)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -686,23 +562,12 @@ static int FS_FUNCTION(chmod)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 4);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_chmod(loop, req, path, mode, async ? FS_CALLBACK(chmod) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 4, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  int err = uv_fs_chmod(loop, req, path, mode, async ? FS_CALLBACK(chmod) : NULL);
+  RETURN_ONLY_ERR(req, 4);
 }
 
 static void FS_CALLBACK(fchmod)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(fchmod)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -711,23 +576,12 @@ static int FS_FUNCTION(fchmod)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 4);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_fchmod(loop, req, file, mode, async ? FS_CALLBACK(fchmod) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 4, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  int err = uv_fs_fchmod(loop, req, file, mode, async ? FS_CALLBACK(fchmod) : NULL);
+  RETURN_ONLY_ERR(req, 4);
 }
 
 static void FS_CALLBACK(utime)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(utime)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -737,23 +591,12 @@ static int FS_FUNCTION(utime)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 5);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_utime(loop, req, path, atime, mtime, async ? FS_CALLBACK(utime) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 5, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  int err = uv_fs_utime(loop, req, path, atime, mtime, async ? FS_CALLBACK(utime) : NULL);
+  RETURN_ONLY_ERR(req, 5);
 }
 
 static void FS_CALLBACK(futime)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(futime)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -763,23 +606,12 @@ static int FS_FUNCTION(futime)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 5);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_futime(loop, req, file, atime, mtime, async ? FS_CALLBACK(futime) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 5, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  int err = uv_fs_futime(loop, req, file, atime, mtime, async ? FS_CALLBACK(futime) : NULL);
+  RETURN_ONLY_ERR(req, 5);
 }
 
 static void FS_CALLBACK(link)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(link)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -788,23 +620,12 @@ static int FS_FUNCTION(link)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 4);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_link(loop, req, path, new_path, async ? FS_CALLBACK(link) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 4, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  int err = uv_fs_link(loop, req, path, new_path, async ? FS_CALLBACK(link) : NULL);
+  RETURN_ONLY_ERR(req, 4);
 }
 
 static void FS_CALLBACK(symlink)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(symlink)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -814,26 +635,22 @@ static int FS_FUNCTION(symlink)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 5);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_symlink(loop, req, path, new_path, flags, async ? FS_CALLBACK(symlink) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 5, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  int err = uv_fs_symlink(loop, req, path, new_path, flags, async ? FS_CALLBACK(symlink) : NULL);
+  RETURN_ONLY_ERR(req, 5);
 }
 
+#define PUSH_PTR_STRING(L, err, req) \
+  if (err == UVWRAP_OK) { \
+    lua_pushstring(L, (const char*)uv_fs_get_ptr(req)); \
+  } else { \
+    lua_pushnil(L); \
+  }
 static void FS_CALLBACK(readlink)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  if (result == UVWRAP_OK) {
-    lua_pushstring(L, (const char*)uv_fs_get_ptr(req));
-  } else {
-    lua_pushnil(L);
-  }
+  int err = uv_fs_get_result(req);
+  lua_pushinteger(L, err);
+  PUSH_PTR_STRING(L, err, req);
   FREE_REQ(req);
   CALL_LUA_FUNCTION(L, 2, 0);
 }
@@ -843,27 +660,23 @@ static int FS_FUNCTION(readlink)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 3);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_readlink(loop, req, path, async ? FS_CALLBACK(readlink) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
+  int err = uv_fs_readlink(loop, req, path, async ? FS_CALLBACK(readlink) : NULL);
+  if (async && err == UVWRAP_OK) {
     SET_REQ_CALLBACK(L, 3, req);
     return 0;
   }
-  lua_pushstring(L, (const char*)uv_fs_get_ptr(req));
-  FREE_REQ(req);
-  return 0;
+  if (!async) {
+    PUSH_PTR_STRING(L, err, req);
+  }
+  RETURN_RESULT(1);
 }
 
 static void FS_CALLBACK(realpath)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  if (result == UVWRAP_OK) {
-    lua_pushstring(L, (const char*)uv_fs_get_ptr(req));
-  } else {
-    lua_pushnil(L);
-  }
+  int err = uv_fs_get_result(req);
+  lua_pushinteger(L, err);
+  PUSH_PTR_STRING(L, err, req);
   FREE_REQ(req);
   CALL_LUA_FUNCTION(L, 2, 0);
 }
@@ -873,24 +686,19 @@ static int FS_FUNCTION(realpath)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 3);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_realpath(loop, req, path, async ? FS_CALLBACK(realpath) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
+  int err = uv_fs_realpath(loop, req, path, async ? FS_CALLBACK(realpath) : NULL);
+  if (async && err == UVWRAP_OK) {
     SET_REQ_CALLBACK(L, 3, req);
     return 0;
   }
-  lua_pushstring(L, (const char*)uv_fs_get_ptr(req));
-  FREE_REQ(req);
-  return 0;
+  if (!async) {
+    PUSH_PTR_STRING(L, err, req);
+  }
+  RETURN_RESULT(1);
 }
 
 static void FS_CALLBACK(chown)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(chown)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -900,23 +708,12 @@ static int FS_FUNCTION(chown)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 5);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_chown(loop, req, path, uid, gid, async ? FS_CALLBACK(chown) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 4, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  int err = uv_fs_chown(loop, req, path, uid, gid, async ? FS_CALLBACK(chown) : NULL);
+  RETURN_ONLY_ERR(req, 5);
 }
 
 static void FS_CALLBACK(fchown)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(fchown)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -926,23 +723,12 @@ static int FS_FUNCTION(fchown)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 5);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_fchown(loop, req, file, uid, gid, async ? FS_CALLBACK(fchown) : NULL);
-  CHECK_ERROR(L, ret);
-  if (async) {
-    SET_REQ_CALLBACK(L, 5, req);
-    return 0;
-  }
-  FREE_REQ(req);
-  return 0;
+  int err = uv_fs_fchown(loop, req, file, uid, gid, async ? FS_CALLBACK(fchown) : NULL);
+  RETURN_ONLY_ERR(req, 5);
 }
 
 static void FS_CALLBACK(lchown)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALLBACK_ONLY_ERR(req);
 }
 static int FS_FUNCTION(lchown)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -952,15 +738,171 @@ static int FS_FUNCTION(lchown)(lua_State* L) {
   int async = CHECK_IS_ASYNC(L, 5);
 
   uv_fs_t* req = ALLOCA_REQ();
-  int ret = uv_fs_lchown(loop, req, path, uid, gid, async ? FS_CALLBACK(lchown) : NULL);
-  CHECK_ERROR(L, ret);
+  int err = uv_fs_lchown(loop, req, path, uid, gid, async ? FS_CALLBACK(lchown) : NULL);
+  RETURN_ONLY_ERR(req, 5);
+}
+
+/*
+** {======================================================
+** For convenient
+** =======================================================
+*/
+
+#define aux_open_read(loop, filepath) aux_open(loop, filepath, UV_FS_O_RDONLY, 0)
+#define aux_open_write(loop, filepath) aux_open(loop, filepath, UV_FS_O_WRONLY | UV_FS_O_CREAT, 0644)
+
+static int aux_open(uv_loop_t* loop, const char* filepath, int flags, int mode) {
+  uv_fs_t req[1];
+  int fd = uv_fs_open(loop, req, filepath, flags, mode, NULL);
+  uv_fs_req_cleanup(req);
+  return fd;
+}
+static int aux_close(uv_loop_t* loop, int fd) {
+  uv_fs_t req[1];
+  int err = uv_fs_close(loop, req, fd, NULL);
+  uv_fs_req_cleanup(req);
+  return err;
+}
+static int aux_filesize(uv_loop_t* loop, int fd, size_t* size) {
+  uv_fs_t req[1];
+  int err = uv_fs_fstat(loop, req, fd, NULL);
+  if (err == UVWRAP_OK && size) {
+    *size = uv_fs_get_statbuf(req)->st_size;
+  }
+  uv_fs_req_cleanup(req);
+  return err;
+}
+
+static void FS_CALLBACK(readfile)(uv_fs_t* req) {
+  lua_State* L;
+  PUSH_REQ_CALLBACK_CLEAN(L, req);
+
+  PUSH_REQ_PARAM(L, req, 2);
+  UNHOLD_REQ_PARAM(L, req, 2);
+  uv_loop_t* loop = (uv_loop_t*)lua_touserdata(L, -1);
+  PUSH_REQ_PARAM(L, req, 3);
+  UNHOLD_REQ_PARAM(L, req, 3);
+  int fd = lua_tointeger(L, -1);
+  lua_pop(L, 2);
+
+  int result = aux_close(loop, fd);
+  if (result == UVWRAP_OK) {
+    result = uv_fs_get_result(req);
+  }
+  lua_pushinteger(L, result);
+
+  PUSH_REQ_PARAM(L, req, 1);
+  UNHOLD_REQ_PARAM(L, req, 1);
+  char* buffer = lua_touserdata(L, -1);
+  PUSH_READ_STRING(L, req, buffer);
+  (void)MEMORY_FUNCTION(free_buf)(buffer);
+  lua_remove(L, -2);
+
+  FREE_REQ(req);
+  CALL_LUA_FUNCTION(L, 2, 0);
+}
+static int FS_FUNCTION(readfile)(lua_State* L) {
+  uv_loop_t* loop = luaL_checkuvloop(L, 1);
+  const char* filepath = luaL_checkstring(L, 2);
+  int async = CHECK_IS_ASYNC(L, 3);
+
+  int fd = aux_open_read(loop, filepath);
+  if (fd < 0) {
+    return ERROR_FUNCTION(check)(L, fd); // fd is the err code
+  }
+  size_t size = 0;
+  int err = aux_filesize(loop, fd, &size);
+  CHECK_ERROR(L, err);
+
+  uv_fs_t* req = ALLOCA_REQ();
+  char* buffer = MEMORY_FUNCTION(malloc_buf)(size);
+  BUFS_INIT(buffer, size);
+  int ret = uv_fs_read(loop, req, fd, BUFS, NBUFS, 0, async ? FS_CALLBACK(readfile) : NULL);
+  if (async && ret == UVWRAP_OK) {
+    SET_REQ_CALLBACK(L, 3, req);
+    lua_pushlightuserdata(L, (void*)buffer);
+    HOLD_REQ_PARAM(L, req, 1, lua_gettop(L));
+    lua_pushlightuserdata(L, (void*)loop);
+    HOLD_REQ_PARAM(L, req, 2, lua_gettop(L));
+    lua_pushinteger(L, fd);
+    HOLD_REQ_PARAM(L, req, 3, lua_gettop(L));
+    return 0;
+  }
+  if (!async) {
+    PUSH_READ_STRING(L, req, buffer);
+  }
+  (void)MEMORY_FUNCTION(free_buf)(buffer);
+  FREE_REQ(req);
+  int ret2 = aux_close(loop, fd);
+  if (ret2 < 0) {
+    ret = ret2;
+  }
   if (async) {
-    SET_REQ_CALLBACK(L, 5, req);
+    return ERROR_FUNCTION(check)(L, ret);
+  }
+  lua_pushinteger(L, ret);
+  return 2;
+}
+
+static void FS_CALLBACK(writefile)(uv_fs_t* req) {
+  lua_State* L;
+  PUSH_REQ_CALLBACK_CLEAN(L, req);
+  UNHOLD_REQ_PARAM(L, req, 1);
+
+  PUSH_REQ_PARAM(L, req, 2);
+  UNHOLD_REQ_PARAM(L, req, 2);
+  uv_loop_t* loop = (uv_loop_t*)lua_touserdata(L, -1);
+  PUSH_REQ_PARAM(L, req, 3);
+  UNHOLD_REQ_PARAM(L, req, 3);
+  int fd = lua_tointeger(L, -1);
+  lua_pop(L, 2);
+
+  int result = aux_close(loop, fd);
+  if (result == UVWRAP_OK) {
+    result = uv_fs_get_result(req);
+  }
+  lua_pushinteger(L, result);
+
+  FREE_REQ(req);
+  CALL_LUA_FUNCTION(L, 1, 0);
+}
+static int FS_FUNCTION(writefile)(lua_State* L) {
+  uv_loop_t* loop = luaL_checkuvloop(L, 1);
+  const char* filepath = luaL_checkstring(L, 2);
+  size_t len = 0;
+  const char* str = luaL_checklstring(L, 3, &len);
+  int async = CHECK_IS_ASYNC(L, 4);
+
+  int fd = aux_open_write(loop, filepath);
+  if (fd < 0) {
+    return ERROR_FUNCTION(check)(L, fd); // fd is the err code
+  }
+
+  uv_fs_t* req = ALLOCA_REQ();
+  BUFS_INIT(str, len);
+  int ret = uv_fs_write(loop, req, fd, BUFS, NBUFS, 0, async ? FS_CALLBACK(writefile) : NULL);
+  if (async && ret == UVWRAP_OK) {
+    SET_REQ_CALLBACK(L, 4, req);
+    HOLD_REQ_PARAM(L, req, 1, 3);
+    lua_pushlightuserdata(L, (void*)loop);
+    HOLD_REQ_PARAM(L, req, 2, lua_gettop(L));
+    lua_pushinteger(L, fd);
+    HOLD_REQ_PARAM(L, req, 3, lua_gettop(L));
     return 0;
   }
   FREE_REQ(req);
-  return 0;
+  int ret2 = aux_close(loop, fd);
+  if (ret2 < 0) {
+    ret = ret2;
+  }
+  if (async) {
+    return ERROR_FUNCTION(check)(L, ret);
+  }
+  lua_pushinteger(L, ret);
+  return 1;
 }
+
+/* }====================================================== */
 
 #define EMPLACE_FS_FUNCTION(name) \
   { #name, FS_FUNCTION(name) }
@@ -1000,6 +942,9 @@ static const luaL_Reg FS_FUNCTION(funcs)[] = {
     EMPLACE_FS_FUNCTION(chown),
     EMPLACE_FS_FUNCTION(fchown),
     EMPLACE_FS_FUNCTION(lchown),
+    /* For convenient */
+    EMPLACE_FS_FUNCTION(readfile),
+    EMPLACE_FS_FUNCTION(writefile),
     {NULL, NULL},
 };
 
