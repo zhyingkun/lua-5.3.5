@@ -1,8 +1,39 @@
 #include <bcfx.h>
 
 #include <common.h>
-#include <renderer.h>
-#include <bcfx_math.h>
+#include <context.h>
+
+/*
+** {======================================================
+** Vertex Layout
+** =======================================================
+*/
+
+BCFX_API void bcfx_VL_init(bcfx_VertexLayout* layout) {
+  memset((void*)layout, 0, sizeof(bcfx_VertexLayout));
+}
+
+BCFX_API void bcfx_VL_add(bcfx_VertexLayout* layout, bcfx_EVertexAttrib attrib, uint8_t num, bcfx_EAttribType type, bool normalized) {
+  bcfx_Attrib* att = &layout->attributes[attrib];
+  att->num = num;
+  att->type = type;
+  att->normal = normalized;
+  layout->offset[attrib] = layout->stride;
+  static uint8_t sizeof_AttribType[] = {
+      sizeof(GLubyte), // GL_UNSIGNED_BYTE
+      sizeof(GLuint), // GL_UNSIGNED_INT_10_10_10_2
+      sizeof(GLshort), // GL_SHORT
+      sizeof(GLhalf), // GL_HALF_FLOAT
+      sizeof(GLfloat), // GL_FLOAT
+  };
+  layout->stride += sizeof_AttribType[type] * num;
+}
+
+BCFX_API void bcfx_VL_skip(bcfx_VertexLayout* layout, uint8_t num_byte) {
+  layout->stride += num_byte;
+}
+
+/* }====================================================== */
 
 /*
 ** {======================================================
@@ -29,20 +60,20 @@ BCFX_API void bcfx_setThreadFuncs(
   _ThreadEqual = equal;
 }
 
-void* thread_Create(bcfx_ThreadEntry entry, void* arg) {
-  return _ThreadCreate(entry, arg);
+Thread thread_create(bcfx_ThreadEntry entry, void* arg) {
+  return (Thread)_ThreadCreate(entry, arg);
 }
-void* thread_Self(void) {
-  return _ThreadSelf();
+ThreadId thread_self(void) {
+  return (ThreadId)_ThreadSelf();
 }
-void thread_Invalid(void* tid) {
-  _ThreadInvalid(tid);
+void thread_invalid(ThreadId tid) {
+  _ThreadInvalid((void*)tid);
 }
-int thread_Join(void* tid) {
-  return _ThreadJoin(tid);
+int thread_join(ThreadId tid) {
+  return _ThreadJoin((void*)tid);
 }
-int thread_Equal(const void* tid1, const void* tid2) {
-  return _ThreadEqual(tid1, tid2);
+int thread_equal(ThreadId tid1, ThreadId tid2) {
+  return _ThreadEqual((const void*)tid1, (const void*)tid2);
 }
 
 /* }====================================================== */
@@ -72,20 +103,20 @@ BCFX_API void bcfx_setSemFuncs(
   _SemTryWait = tryWait;
 }
 
-void* sem_Init(int value) {
-  return _SemInit(value);
+Semaphore sem_init(int value) {
+  return (Semaphore)_SemInit(value);
 }
-void sem_Destroy(void* sem) {
-  _SemDestroy(sem);
+void sem_destroy(Semaphore sem) {
+  _SemDestroy((void*)sem);
 }
-void sem_Post(void* sem) {
-  _SemPost(sem);
+void sem_post(Semaphore sem) {
+  _SemPost((void*)sem);
 }
-void sem_Wait(void* sem) {
-  _SemWait(sem);
+void sem_wait(Semaphore sem) {
+  _SemWait((void*)sem);
 }
-int sem_TryWait(void* sem) {
-  return _SemTryWait(sem);
+int sem_tryWait(Semaphore sem) {
+  return _SemTryWait((void*)sem);
 }
 
 /* }====================================================== */
@@ -112,17 +143,108 @@ BCFX_API void bcfx_setWinCtxFuncs(
   _GetProcAddress = getProcAddress;
 }
 
-void winctx_MakeContextCurrent(void* window) {
+void winctx_makeContextCurrent(void* window) {
   _MakeContextCurrent(window);
 }
-void winctx_SwapBuffers(void* window) {
+void winctx_swapBuffers(void* window) {
   _SwapBuffers(window);
 }
-void winctx_SwapInterval(int interval) {
+void winctx_swapInterval(int interval) {
   _SwapInterval(interval);
 }
-bcfx_GLProc winctx_GetProcAddress(const char* procname) {
+bcfx_GLProc winctx_getProcAddress(const char* procname) {
   return _GetProcAddress(procname);
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Basic API
+** =======================================================
+*/
+
+static Context s_ctx[1];
+
+BCFX_API void bcfx_init(Window mainWin) {
+  ctx_init(s_ctx, mainWin);
+}
+
+BCFX_API void bcfx_apiFrame(void) {
+  ctx_apiFrame(s_ctx);
+}
+
+BCFX_API void bcfx_shutdowm(void) {
+  ctx_shutdowm(s_ctx);
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Create Render Resource
+** =======================================================
+*/
+
+BCFX_API Handle bcfx_createVertexLayout(bcfx_VertexLayout* layout) {
+  return ctx_createVertexLayout(s_ctx, layout);
+}
+
+BCFX_API Handle bcfx_createVertexBuffer(bcfx_MemBuffer* mem, Handle handle) {
+  return ctx_createVertexBuffer(s_ctx, mem, handle);
+}
+
+BCFX_API Handle bcfx_createIndexBuffer(bcfx_MemBuffer* mem) {
+  return ctx_createIndexBuffer(s_ctx, mem);
+}
+
+BCFX_API Handle bcfx_createShader(bcfx_MemBuffer* mem, ShaderType type) {
+  return ctx_createShader(s_ctx, mem, type);
+}
+
+BCFX_API Handle bcfx_createProgram(Handle vs, Handle fs, bool destroy) {
+  return ctx_createProgram(s_ctx, vs, fs, destroy);
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** View
+** =======================================================
+*/
+
+BCFX_API void bcfx_setViewClear(ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil) {
+  CHECK_VIEWID(id);
+  ctx_setViewClear(s_ctx, id, flags, rgba, depth, stencil);
+}
+
+BCFX_API void bcfx_setViewWindow(ViewId id, Window win) {
+  ctx_setViewWindow(s_ctx, id, win);
+}
+
+BCFX_API void bcfx_setViewRect(ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+  ctx_setViewRect(s_ctx, id, x, y, width, height);
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Submit drawcall
+** =======================================================
+*/
+
+BCFX_API void bcfx_setVertexBuffer(uint8_t stream, Handle handle) {
+  ctx_setVertexBuffer(s_ctx, stream, handle);
+}
+
+BCFX_API void bcfx_setIndexBuffer(Handle handle) {
+  ctx_setIndexBuffer(s_ctx, handle);
+}
+
+BCFX_API void bcfx_submit(ViewId id, Handle handle) {
+  ctx_submit(s_ctx, id, handle);
 }
 
 /* }====================================================== */

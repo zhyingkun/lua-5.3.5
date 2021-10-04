@@ -1,0 +1,31 @@
+#define _encoder_c_
+#include <encoder.h>
+#include <handle.h>
+
+/*
+** {======================================================
+** Encoder
+** =======================================================
+*/
+
+void encoder_begin(Encoder* encoder, Frame* frame) {
+  frame_reset(frame);
+  encoder->frame = frame;
+}
+
+void encoder_setVertexBuffer(Encoder* encoder, uint8_t stream, Handle vertexBuffer) {
+  encoder->draw.streams[stream].vertexBuffer = vertexBuffer;
+}
+
+void encoder_setIndexBuffer(Encoder* encoder, Handle indexBuffer) {
+  encoder->draw.indexBuffer = indexBuffer;
+}
+
+void encoder_submit(Encoder* encoder, ViewId id, Handle program) {
+  Frame* frame = encoder->frame;
+  uint16_t index = frame_newRenderItemIndex(frame);
+  frame_setRenderItem(frame, index, (RenderItem*)&encoder->draw);
+  frame_setSortKey(frame, index, sortkey_encode(id, handle_index(program)));
+}
+
+/* }====================================================== */
