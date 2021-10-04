@@ -20,6 +20,9 @@
 
 #define EMPLACE_GLFWRAP_FUNCTION(name) \
   { #name, GLFWRAP_FUNCTION(name) }
+#define EMPLACE_GLFWRAP_ENUM_VALUE(name) \
+  { #name, GLFW_##name }
+
 #define DECLARE_REGISTE_FUNC(module) \
   void GLFWRAP_FUNCTION(registe_##module##_funcs)(lua_State * L);
 #define DEFINE_REGISTE_FUNC_BEGIN(module) \

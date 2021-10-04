@@ -36,8 +36,12 @@ static int GLFWRAP_FUNCTION(set_msgh)(lua_State* L) {
 
 static int GLFWRAP_FUNCTION(Init)(lua_State* L) {
   int ret = glfwInit();
-  lua_pushboolean(L, ret);
-  return 1;
+  if (ret != GLFW_TRUE) {
+    const char* description = NULL;
+    int code = glfwGetError(&description);
+    return luaL_error(L, "GLFW Init Error: %d, %s\n", code, description);
+  }
+  return 0;
 }
 
 static int GLFWRAP_FUNCTION(Terminate)(lua_State* L) {
