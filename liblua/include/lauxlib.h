@@ -164,6 +164,9 @@ LUALIB_API void(luaL_atrepl)(lua_State* L);
 #define luaL_checklightuserdata(L, idx) (luaL_checktype(L, idx, LUA_TLIGHTUSERDATA), lua_touserdata(L, idx))
 #define luaL_optlightuserdata(L, idx, dft) luaL_opt(L, luaL_checklightuserdata, idx, dft)
 
+#define luaL_checkboolean(L, idx) (luaL_checktype(L, idx, LUA_TBOOLEAN), lua_toboolean(L, idx))
+#define luaL_optboolean(L, idx, dft) luaL_opt(L, luaL_checkboolean, idx, dft)
+
 /*
 ** {======================================================
 ** Generic Buffer manipulation
