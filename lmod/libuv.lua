@@ -19,9 +19,10 @@ local function make_func_loop(func)
 	end
 end
 
-local function make_mt_loop_index(module)
+local function make_mt_loop_index(m_name)
+	local module = uvwrap[m_name]
 	return function(self, name)
-		local value = uvwrap[module][name]
+		local value = module[name]
 		if not value then return end
 		local t = type(value)
 		if t == "function" then
@@ -40,8 +41,19 @@ local close = uvwrap.loop.close
 local set_realloc_cb = uvwrap.set_realloc_cb
 
 local function _run(loop_, mode)
-	if not loop_ then loop_ = loop end
+	if not loop_ then
+		if not loop then loop = uvwrap.loop.default() end
+		loop_ = loop
+	end
 	return run(loop_, mode)
+end
+local function _run_nowait(loop_)
+	return _run(loop_, uvwrap.loop.run_mode.NOWAIT)
+end
+local function _close(loop_)
+	if not loop_ then loop_ = loop end
+	if not loop_ then return end
+	close(loop_)
 end
 
 local repl_start = uvwrap.repl_start
@@ -64,6 +76,8 @@ return setmetatable({
 		end)
 	end,
 	run = _run,
+	run_nowait = _run_nowait,
+	close = _close,
 	queue_work = make_func_loop(uvwrap.queue_work),
 	repl_start = make_func_loop(repl_start),
 	repl_run = _repl_run,
