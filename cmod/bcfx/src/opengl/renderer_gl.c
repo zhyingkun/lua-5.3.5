@@ -32,7 +32,7 @@ static const char* err_EnumName(GLenum _enum) {
     call; \
     GLenum err = glGetError(); \
     if (err != 0) { \
-      bcfx_logError(#call "; GL error 0x%x: %s", err, err_EnumName(err)); \
+      bcfx_logError(#call "; GL error 0x%x: %s\n", err, err_EnumName(err)); \
     } \
   }
 #else
@@ -43,11 +43,169 @@ typedef struct {
   GLuint id;
   GLenum type;
 } ShaderGL;
+
+/*
+** {======================================================
+** Program in OpenGL
+** =======================================================
+*/
+
+static const char* glslTypeName(GLuint type) {
+#define GLSL_TYPE(ty) \
+  case ty: \
+    return #ty
+  switch (type) {
+    GLSL_TYPE(GL_BOOL);
+    GLSL_TYPE(GL_INT);
+    GLSL_TYPE(GL_INT_VEC2);
+    GLSL_TYPE(GL_INT_VEC3);
+    GLSL_TYPE(GL_INT_VEC4);
+    GLSL_TYPE(GL_UNSIGNED_INT);
+    GLSL_TYPE(GL_UNSIGNED_INT_VEC2);
+    GLSL_TYPE(GL_UNSIGNED_INT_VEC3);
+    GLSL_TYPE(GL_UNSIGNED_INT_VEC4);
+    GLSL_TYPE(GL_FLOAT);
+    GLSL_TYPE(GL_FLOAT_VEC2);
+    GLSL_TYPE(GL_FLOAT_VEC3);
+    GLSL_TYPE(GL_FLOAT_VEC4);
+    GLSL_TYPE(GL_FLOAT_MAT2);
+    GLSL_TYPE(GL_FLOAT_MAT3);
+    GLSL_TYPE(GL_FLOAT_MAT4);
+
+    GLSL_TYPE(GL_SAMPLER_2D);
+    GLSL_TYPE(GL_SAMPLER_2D_ARRAY);
+    GLSL_TYPE(GL_SAMPLER_2D_MULTISAMPLE);
+
+    GLSL_TYPE(GL_INT_SAMPLER_2D);
+    GLSL_TYPE(GL_INT_SAMPLER_2D_ARRAY);
+    GLSL_TYPE(GL_INT_SAMPLER_2D_MULTISAMPLE);
+
+    GLSL_TYPE(GL_UNSIGNED_INT_SAMPLER_2D);
+    GLSL_TYPE(GL_UNSIGNED_INT_SAMPLER_2D_ARRAY);
+    GLSL_TYPE(GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE);
+
+    GLSL_TYPE(GL_SAMPLER_2D_SHADOW);
+    GLSL_TYPE(GL_SAMPLER_2D_ARRAY_SHADOW);
+
+    GLSL_TYPE(GL_SAMPLER_3D);
+    GLSL_TYPE(GL_INT_SAMPLER_3D);
+    GLSL_TYPE(GL_UNSIGNED_INT_SAMPLER_3D);
+
+    GLSL_TYPE(GL_SAMPLER_CUBE);
+    GLSL_TYPE(GL_INT_SAMPLER_CUBE);
+    GLSL_TYPE(GL_UNSIGNED_INT_SAMPLER_CUBE);
+
+    GLSL_TYPE(GL_IMAGE_1D);
+    GLSL_TYPE(GL_INT_IMAGE_1D);
+    GLSL_TYPE(GL_UNSIGNED_INT_IMAGE_1D);
+
+    GLSL_TYPE(GL_IMAGE_2D);
+    GLSL_TYPE(GL_IMAGE_2D_ARRAY);
+    GLSL_TYPE(GL_INT_IMAGE_2D);
+    GLSL_TYPE(GL_UNSIGNED_INT_IMAGE_2D);
+
+    GLSL_TYPE(GL_IMAGE_3D);
+    GLSL_TYPE(GL_INT_IMAGE_3D);
+    GLSL_TYPE(GL_UNSIGNED_INT_IMAGE_3D);
+
+    GLSL_TYPE(GL_IMAGE_CUBE);
+    GLSL_TYPE(GL_INT_IMAGE_CUBE);
+    GLSL_TYPE(GL_UNSIGNED_INT_IMAGE_CUBE);
+  }
+#undef GLSL_TYPE
+  return "<Unknown GLSL type?>";
+}
+
 typedef struct {
   GLuint id;
+  uint8_t usedCount;
+  uint8_t used[VA_Count]; // Dense.
+  GLint attributes[VA_Count]; // Sparse.
 } ProgramGL;
+
+static const char* attribNames[] = {
+    "a_position",
+    "a_normal",
+    "a_tangent",
+    "a_bitangent",
+    "a_color0",
+    "a_color1",
+    "a_color2",
+    "a_color3",
+    "a_indices",
+    "a_weight",
+    "a_texcoord0",
+    "a_texcoord1",
+    "a_texcoord2",
+    "a_texcoord3",
+    "a_texcoord4",
+    "a_texcoord5",
+    "a_texcoord6",
+    "a_texcoord7",
+};
+
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+static void prog_init(ProgramGL* prog) {
+  GLint activeAttribs = 0;
+  GLint activeUniforms = 0;
+  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_ATTRIBUTES, &activeAttribs));
+  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_UNIFORMS, &activeUniforms));
+
+  GLint max0, max1;
+  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &max0));
+  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &max1));
+  uint32_t maxLength = MAX(max0, max1);
+  char* name = (char*)alloca(maxLength + 1);
+
+  for (GLint i = 0; i < activeAttribs; i++) {
+    GLint size;
+    GLenum type = 0;
+    GL_CHECK(glGetActiveAttrib(prog->id, i, maxLength + 1, NULL, &size, &type, name));
+    bcfx_logError("Attribute %s %s is at location %d\n", glslTypeName(type), name, glGetAttribLocation(prog->id, name));
+  }
+  for (GLint i = 0; i < activeUniforms; i++) {
+    GLenum gltype;
+    GLint num;
+    GL_CHECK(glGetActiveUniform(prog->id, i, maxLength + 1, NULL, &num, &gltype, name));
+    GLint loc = glGetUniformLocation(prog->id, name);
+    bcfx_logError("Uniform %s %s is at location %d, size %d\n", glslTypeName(gltype), name, loc, num);
+  }
+  uint8_t cnt = 0;
+  for (uint8_t i = 0; i < VA_Count; i++) {
+    GLint loc = glGetAttribLocation(prog->id, attribNames[i]);
+    if (-1 != loc) {
+      prog->attributes[i] = loc;
+      prog->used[cnt++] = i;
+    }
+  }
+  prog->usedCount = cnt;
+}
+static void prog_bindAttributes(ProgramGL* prog, bcfx_VertexLayout* layout) {
+  for (uint8_t i = 0; i < prog->usedCount; i++) {
+    bcfx_EVertexAttrib attr = (bcfx_EVertexAttrib)prog->used[i];
+    bcfx_Attrib* attrib = &layout->attributes[attr];
+    if (attrib->num > 0) {
+      GLint loc = prog->attributes[attr];
+      uint8_t offset = layout->offset[(uint8_t)VA_Position];
+      static const GLenum attrib_glType[] = {
+          GL_UNSIGNED_BYTE, // Uint8
+          GL_UNSIGNED_INT_10_10_10_2, // Uint10
+          GL_SHORT, // Int16
+          GL_HALF_FLOAT, // Half
+          GL_FLOAT, // Float
+      };
+      GL_CHECK(glEnableVertexAttribArray(loc));
+      GL_CHECK(glVertexAttribPointer(loc, attrib->num, attrib_glType[attrib->type], attrib->normal, layout->stride, (void*)offset));
+    }
+  }
+}
+
+/* }====================================================== */
+
 typedef struct {
   GLuint id;
+  GLsizei count;
 } IndexBufferGL;
 typedef struct {
   GLuint id;
@@ -65,12 +223,28 @@ typedef struct {
   ProgramGL programs[512];
 
   Window mainWin;
+  Window curWin;
   GLuint vao;
+
+    Window allWins[8];
+    uint8_t winCount;
 } RendererContextGL;
+
+static void gl_addWinForSwap(RendererContextGL* glCtx, Window win) {
+    for (uint8_t i= 0; i < glCtx->winCount; i++) {
+        if (glCtx->allWins[i] == win) {
+            return;
+        }
+    }
+    glCtx->allWins[glCtx->winCount] = win;
+    glCtx->winCount++;
+}
 
 static void gl_init(RendererContext* ctx) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  winctx_makeContextCurrent(glCtx->mainWin);
+    glCtx->winCount = 0;
+  glCtx->curWin = glCtx->mainWin;
+  winctx_makeContextCurrent(glCtx->curWin);
   if (!gladLoadGLLoader((GLADloadproc)winctx_getProcAddress)) {
     printf("Failed to initialize GLAD");
     exit(-1);
@@ -92,14 +266,17 @@ static void gl_shutdown(RendererContext* ctx) {
 
 static void gl_flip(RendererContext* ctx) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  winctx_swapBuffers(glCtx->mainWin);
+    for (uint8_t i = 0; i < glCtx->winCount; i++) {
+        winctx_swapBuffers(glCtx->allWins[i]);
+    }
 }
 
 static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem, uint16_t flags) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  IndexBufferGL* vb = &glCtx->indexBuffers[handle_index(handle)];
-  GL_CHECK(glGenBuffers(1, &vb->id));
-  GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vb->id));
+  IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
+  ib->count = mem->sz / sizeof(GLuint);
+  GL_CHECK(glGenBuffers(1, &ib->id));
+  GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
   GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mem->sz, mem->ptr, GL_STATIC_DRAW));
   GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 }
@@ -161,7 +338,10 @@ static void gl_createProgram(RendererContext* ctx, Handle handle, Handle vsh, Ha
     GL_CHECK(glGetProgramInfoLog(prog->id, 1024, NULL, infoLog));
     printf("Link error: %s\n", infoLog);
     fflush(NULL);
+    return;
   }
+
+  prog_init(prog);
 }
 
 static void gl_submit(RendererContext* ctx, Frame* frame) {
@@ -179,6 +359,19 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
     if (id != viewId) { // view changed
       viewId = id;
       View* view = &frame->views[viewId];
+
+      Window target = view->win;
+      if (target == NULL) {
+        target = glCtx->mainWin;
+      }
+      if (target != glCtx->curWin) {
+        glCtx->curWin = target;
+        winctx_makeContextCurrent(target);
+          gl_addWinForSwap(glCtx, target);
+
+          GL_CHECK(glBindVertexArray(glCtx->vao));
+      }
+
       Rect* rect = &view->rect;
       GL_CHECK(glViewport(rect->x, rect->y, rect->width, rect->height));
       Clear* clear = &view->clear;
@@ -209,27 +402,22 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
       }
     }
 
-    VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(draw->streams[0].vertexBuffer)];
-    IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
     ProgramGL* prog = &glCtx->programs[handle_index(program)];
-    bcfx_VertexLayout* layout = &glCtx->vertexLayouts[handle_index(vb->layout)];
-
     GL_CHECK(glUseProgram(prog->id));
-    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
-    GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
-    bcfx_Attrib* attrib = &layout->attributes[(uint8_t)VA_Position];
-    uint8_t offset = layout->offset[(uint8_t)VA_Position];
-    static const GLenum attrib_glType[] = {
-        GL_UNSIGNED_BYTE, // Uint8
-        GL_UNSIGNED_INT_10_10_10_2, // Uint10
-        GL_SHORT, // Int16
-        GL_HALF_FLOAT, // Half
-        GL_FLOAT, // Float
-    };
-    GL_CHECK(glVertexAttribPointer(0, attrib->num, attrib_glType[attrib->type], attrib->normal, layout->stride, (void*)offset));
-    GL_CHECK(glEnableVertexAttribArray(0));
 
-    GL_CHECK(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0));
+    IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
+    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
+
+    for (uint8_t i = 0; i < BCFX_CONFIG_MAX_VERTEX_STREAMS; i++) {
+      if (draw->streamMask & (1 << i)) {
+        VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(draw->streams[i].vertexBuffer)];
+        bcfx_VertexLayout* layout = &glCtx->vertexLayouts[handle_index(vb->layout)];
+        GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
+        prog_bindAttributes(prog, layout);
+      }
+    }
+
+    GL_CHECK(glDrawElements(GL_TRIANGLES, ib->count, GL_UNSIGNED_INT, 0));
   }
 }
 
