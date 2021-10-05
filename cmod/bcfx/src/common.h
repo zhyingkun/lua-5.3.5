@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include <assert.h>
 
+#define BCFX_LIB
+
 #include <bcfx.h>
 
 #endif /* _COMMON_H_ */

@@ -1,4 +1,4 @@
-#include <bcfx.h>
+#define _bcfx_c_
 
 #include <common.h>
 #include <context.h>
