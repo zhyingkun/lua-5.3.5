@@ -38,7 +38,7 @@ typedef struct {
 } RenderDraw;
 
 typedef struct {
-
+  uint8_t uniformIdx;
 } RenderCompute;
 
 typedef union {
