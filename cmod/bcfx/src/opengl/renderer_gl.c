@@ -214,6 +214,12 @@ typedef struct {
 } VertexBufferGL;
 
 typedef struct {
+  Window win;
+  GLuint vaoId;
+  bool touch;
+} WindowSwapper;
+
+typedef struct {
   RendererContext api;
 
   IndexBufferGL indexBuffers[4096];
@@ -224,51 +230,81 @@ typedef struct {
 
   Window mainWin;
   Window curWin;
-  GLuint vao;
 
-    Window allWins[8];
-    uint8_t winCount;
+  uint8_t swapCount;
+  WindowSwapper swapWins[32];
 } RendererContextGL;
 
-static void gl_addWinForSwap(RendererContextGL* glCtx, Window win) {
-    for (uint8_t i= 0; i < glCtx->winCount; i++) {
-        if (glCtx->allWins[i] == win) {
-            return;
-        }
+static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win) {
+  glCtx->curWin = win;
+  winctx_makeContextCurrent(win);
+  for (uint8_t i = 0; i < glCtx->swapCount; i++) {
+    if (glCtx->swapWins[i].win == win) {
+      glCtx->swapWins[i].touch = true;
+      GL_CHECK(glBindVertexArray(glCtx->swapWins[i].vaoId));
+      return;
     }
-    glCtx->allWins[glCtx->winCount] = win;
-    glCtx->winCount++;
+  }
+  WindowSwapper* swapper = &glCtx->swapWins[glCtx->swapCount];
+  glCtx->swapCount++;
+  swapper->win = win;
+  // For OpenGL core profile mode, we must using a VertexArrayObject
+  // MacOSX supports forward-compatible core profile contexts for OpenGL 3.2 and above
+  GL_CHECK(glGenVertexArrays(1, &swapper->vaoId));
+
+  swapper->touch = true;
+  GL_CHECK(glBindVertexArray(swapper->vaoId));
 }
 
 static void gl_init(RendererContext* ctx) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-    glCtx->winCount = 0;
-  glCtx->curWin = glCtx->mainWin;
-  winctx_makeContextCurrent(glCtx->curWin);
+  glCtx->swapCount = 0;
+  winctx_makeContextCurrent(glCtx->mainWin);
   if (!gladLoadGLLoader((GLADloadproc)winctx_getProcAddress)) {
     printf("Failed to initialize GLAD");
     exit(-1);
   }
   winctx_swapInterval(1);
+  winctx_makeContextCurrent(NULL);
+  gl_MakeWinCurrent(glCtx, glCtx->mainWin);
+}
 
-  // For OpenGL core profile mode, we must using a VertexArrayObject
-  // MacOSX supports forward-compatible core profile contexts for OpenGL 3.2 and above
-  GL_CHECK(glGenVertexArrays(1, &glCtx->vao));
-  GL_CHECK(glBindVertexArray(glCtx->vao));
+static void gl_beginFrame(RendererContext* ctx) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  for (uint8_t i = 0; i < glCtx->swapCount; i++) {
+    glCtx->swapWins[i].touch = false;
+  }
+}
+
+static void gl_endFrame(RendererContext* ctx) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  for (uint8_t i = 0; i < glCtx->swapCount; i++) {
+    while (!glCtx->swapWins[i].touch) {
+      GL_CHECK(glDeleteVertexArrays(1, &glCtx->swapWins[i].vaoId));
+      if (i + 1 < glCtx->swapCount) {
+        glCtx->swapWins[i] = glCtx->swapWins[glCtx->swapCount - 1];
+        glCtx->swapCount--;
+      } else {
+        break;
+      }
+    }
+  }
 }
 
 static void gl_shutdown(RendererContext* ctx) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
 
   GL_CHECK(glBindVertexArray(0));
-  GL_CHECK(glDeleteVertexArrays(1, &glCtx->vao));
+  for (uint8_t i = 0; i < glCtx->swapCount; i++) {
+    GL_CHECK(glDeleteVertexArrays(1, &glCtx->swapWins[i].vaoId));
+  }
 }
 
 static void gl_flip(RendererContext* ctx) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-    for (uint8_t i = 0; i < glCtx->winCount; i++) {
-        winctx_swapBuffers(glCtx->allWins[i]);
-    }
+  for (uint8_t i = 0; i < glCtx->swapCount; i++) {
+    winctx_swapBuffers(glCtx->swapWins[i].win);
+  }
 }
 
 static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem, uint16_t flags) {
@@ -365,11 +401,7 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
         target = glCtx->mainWin;
       }
       if (target != glCtx->curWin) {
-        glCtx->curWin = target;
-        winctx_makeContextCurrent(target);
-          gl_addWinForSwap(glCtx, target);
-
-          GL_CHECK(glBindVertexArray(glCtx->vao));
+        gl_MakeWinCurrent(glCtx, target);
       }
 
       Rect* rect = &view->rect;
@@ -429,15 +461,16 @@ RendererContext* CreateRenderer(void* mainWin) {
   renderer->init = gl_init;
   renderer->shutdown = gl_shutdown;
 
-  renderer->flip = gl_flip;
-
   renderer->createIndexBuffer = gl_createIndexBuffer;
   renderer->createVertexLayout = gl_createVertexLayout;
   renderer->createVertexBuffer = gl_createVertexBuffer;
   renderer->createShader = gl_createShader;
   renderer->createProgram = gl_createProgram;
 
+  renderer->beginFrame = gl_beginFrame;
   renderer->submit = gl_submit;
+  renderer->endFrame = gl_endFrame;
+  renderer->flip = gl_flip;
 
   return renderer;
 }
