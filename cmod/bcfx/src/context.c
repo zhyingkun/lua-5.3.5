@@ -54,6 +54,9 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
       case CT_RendererInit:
         CALL_RENDERER(init);
         break;
+      case CT_RendererShutdown:
+        CALL_RENDERER(shutdown);
+        break;
       case CT_CreateVertexLayout:
         CALL_RENDERER(createVertexLayout, cmd->handle, param->cvl.layout);
         break;
@@ -103,9 +106,11 @@ static void ctx_renderFrame(Context* ctx) {
   RendererContext* renderCtx = ctx->renderCtx;
   ctx_apiSemWait(ctx);
 
+  CALL_RENDERER(beginFrame);
   ctx_rendererExecCommands(ctx, ctx->renderFrame->cmdPre);
   CALL_RENDERER(submit, ctx->renderFrame);
   ctx_rendererExecCommands(ctx, ctx->renderFrame->cmdPost);
+  CALL_RENDERER(endFrame);
 
   ctx_renderSemPost(ctx);
 
