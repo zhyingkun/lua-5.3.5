@@ -56,53 +56,97 @@ bcfx.setWinCtxFuncs(
 
 bcfx.init(window)
 
-local viewID = 0
-bcfx.setViewWindow(viewID, window)
-local color = bcfx.PackColor(12, 130, 189, 255)
-bcfx.setViewClear(viewID, clear_flag.COLOR, color, 0.0, 0)
-bcfx.setViewRect(viewID, 0, 0, glfw.GetFramebufferSize(window))
--- bcfx.setViewRect(viewID, 0, 0, glfw.GetWindowSize(window))
-
-glfw.SetFramebufferSizeCallback(window, function(window, width, height)
-	bcfx.setViewRect(viewID, 0, 0, width, height)
-end)
-
 local layout = bcfx.vertexlayout.new()
 layout:add(vertex_attrib.Position, 3, attrib_type.Float, false)
 local layoutHandle = bcfx.createVertexLayout(layout)
-
 local vertexTbl = {
 	-0.5, -0.5, 0.0,
-	0.0, 0.5, 0.0,
 	0.5, -0.5, 0.0,
+	0.5, 0.5, 0.0,
+	-0.5, 0.5, 0.0,
 }
 local ptr, sz = bcfx.MakeFloatArray(vertexTbl, #vertexTbl)
 local vertexHandle = bcfx.createVertexBuffer(ptr, sz, layoutHandle)
 
+local layoutColor = bcfx.vertexlayout.new()
+layoutColor:add(vertex_attrib.Color0, 3, attrib_type.Float, false)
+local layoutHandle = bcfx.createVertexLayout(layoutColor)
+local colorTbl = {
+	1.0, 0.0, 0.0,
+	0.0, 1.0, 0.0,
+	0.0, 0.0, 1.0,
+	0.5, 0.5, 0.5,
+}
+local ptr, sz = bcfx.MakeFloatArray(colorTbl, #colorTbl)
+local colorHandle = bcfx.createVertexBuffer(ptr, sz, layoutHandle)
+
 local indexTbl = {
-	0, 2, 1,
+	0, 1, 2,
+	0, 2, 3,
 }
 local ptr, sz = bcfx.MakeUintArray(indexTbl, #indexTbl)
 local idxHandle = bcfx.createIndexBuffer(ptr, sz)
 
 local vsStr = [[
 #version 410 core
-layout (location = 0) in vec3 aPos;
+in vec3 a_position;
+in vec3 a_color0;
+
+out vec3 v_color0;
+
 void main() {
-    gl_Position = vec4(aPos, 1.0);
+    gl_Position = vec4(a_position, 1.0);
+	v_color0 = a_color0;
 }
 ]]
 local fsStr = [[
 #version 410 core
+in vec3 v_color0;
+
 out vec4 FragColor;
 
 void main() {
-	FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+	FragColor = vec4(v_color0, 1.0);
 }
 ]]
 local vertexShaderHandle = bcfx.createShader(vsStr, shader_type.Vertex)
 local fragmentShaderHandle = bcfx.createShader(fsStr, shader_type.Fragment)
 local shaderProgramHandle = bcfx.createProgram(vertexShaderHandle, fragmentShaderHandle)
+
+local viewID = 0
+-- bcfx.setViewWindow(viewID, window)
+local color = bcfx.PackColor(51, 76, 76, 255)
+bcfx.setViewClear(viewID, clear_flag.COLOR, color, 0.0, 0)
+bcfx.setViewRect(viewID, 0, 0, glfw.GetFramebufferSize(window))
+-- bcfx.setViewRect(viewID, 0, 0, glfw.GetWindowSize(window))
+
+local viewID1 = 1
+bcfx.setViewWindow(viewID1, window)
+local color = bcfx.PackColor(255, 255, 76, 255)
+bcfx.setViewClear(viewID1, clear_flag.COLOR, color, 0.0, 0)
+bcfx.setViewRect(viewID1, 0, 0, 600, 600)
+
+glfw.SetFramebufferSizeCallback(window, function(window, width, height)
+	bcfx.setViewRect(viewID, 0, 0, width, height)
+end)
+
+
+local window2 = glfw.CreateWindow(800, 600, "Another", nil, window)
+if not window2 then
+	print("GLFW CreateWindow Error:", glfw.GetError())
+	glfw.Terminate()
+	return
+end
+
+local viewID2 = 2
+bcfx.setViewWindow(viewID2, window2)
+local color = bcfx.PackColor(128, 0, 0, 255)
+bcfx.setViewClear(viewID2, clear_flag.COLOR, color, 0.0, 0)
+bcfx.setViewRect(viewID2, 0, 0, glfw.GetFramebufferSize(window2)) -- 
+
+glfw.SetFramebufferSizeCallback(window2, function(window, width, height)
+	bcfx.setViewRect(viewID2, 0, 0, width, height)
+end)
 
 local FrameRate = 0.0
 local function GetFrameRate()
@@ -152,9 +196,22 @@ while not glfw.WindowShouldClose(window) do
 	lastTime = time
 
 	bcfx.setVertexBuffer(0, vertexHandle)
+	bcfx.setVertexBuffer(1, colorHandle)
 	bcfx.setIndexBuffer(idxHandle)
 
 	bcfx.submit(viewID, shaderProgramHandle)
+
+	-- bcfx.setVertexBuffer(0, vertexHandle)
+	-- bcfx.setVertexBuffer(1, colorHandle)
+	-- bcfx.setIndexBuffer(idxHandle)
+
+	bcfx.submit(viewID1, shaderProgramHandle)
+
+	-- bcfx.setVertexBuffer(0, vertexHandle)
+	-- bcfx.setVertexBuffer(1, colorHandle)
+	-- bcfx.setIndexBuffer(idxHandle)
+
+	bcfx.submit(viewID2, shaderProgramHandle)
 
 	bcfx.apiFrame()
 end
