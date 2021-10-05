@@ -8,6 +8,13 @@
 #include <stdint.h>
 #include <assert.h>
 
+#ifdef _WIN32
+#include <malloc.h>
+#define alloca _alloca
+#else
+#include <alloca.h>
+#endif
+
 #define BCFX_LIB
 
 #include <bcfx.h>
