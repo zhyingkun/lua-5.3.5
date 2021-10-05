@@ -33,6 +33,7 @@ typedef struct {
 
 typedef struct {
   Stream streams[BCFX_CONFIG_MAX_VERTEX_STREAMS];
+  uint8_t streamMask;
   Handle indexBuffer;
 } RenderDraw;
 

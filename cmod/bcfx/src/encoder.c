@@ -11,10 +11,12 @@
 void encoder_begin(Encoder* encoder, Frame* frame) {
   frame_reset(frame);
   encoder->frame = frame;
+  encoder->draw.streamMask = 0;
 }
 
 void encoder_setVertexBuffer(Encoder* encoder, uint8_t stream, Handle vertexBuffer) {
   encoder->draw.streams[stream].vertexBuffer = vertexBuffer;
+  encoder->draw.streamMask |= 1 << stream;
 }
 
 void encoder_setIndexBuffer(Encoder* encoder, Handle indexBuffer) {
