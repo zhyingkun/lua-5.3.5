@@ -10,19 +10,22 @@
 #define VIEW_ID_BITS 8
 #define PROGRAM_BITS 9
 
+#define VIEW_ID_OFFSET (SORTKEY_BITS - VIEW_ID_BITS)
+#define PROGRAM_OFFSET (VIEW_ID_OFFSET - PROGRAM_BITS)
+
 #define VIEW_ID_MASK ((1 << VIEW_ID_BITS) - 1)
 #define PROGRAM_MASK ((1 << PROGRAM_BITS) - 1)
 
 uint64_t sortkey_encode(ViewId id, uint16_t pr) {
   uint64_t key = 0;
-  key |= (((uint64_t)id) & VIEW_ID_MASK) << (SORTKEY_BITS - VIEW_ID_BITS);
-  key |= (((uint64_t)pr) & PROGRAM_MASK) << (SORTKEY_BITS - PROGRAM_BITS);
+  key |= (((uint64_t)id) & VIEW_ID_MASK) << VIEW_ID_OFFSET;
+  key |= (((uint64_t)pr) & PROGRAM_MASK) << PROGRAM_OFFSET;
   return key;
 }
 
 void sortkey_decode(uint64_t key, ViewId* id, uint16_t* pr) {
-  *id = (key >> (SORTKEY_BITS - VIEW_ID_BITS)) & VIEW_ID_MASK;
-  *pr = (key >> (SORTKEY_BITS - PROGRAM_BITS)) & PROGRAM_MASK;
+  *id = (key >> VIEW_ID_OFFSET) & VIEW_ID_MASK;
+  *pr = (key >> PROGRAM_OFFSET) & PROGRAM_MASK;
 }
 
 /* }====================================================== */
