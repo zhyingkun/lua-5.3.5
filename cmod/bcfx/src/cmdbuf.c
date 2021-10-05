@@ -8,7 +8,7 @@
 ** =======================================================
 */
 
-static void cmdbuf_resize(CommandBuffer* cmdbuf, ssize_t sz) {
+static void cmdbuf_resize(CommandBuffer* cmdbuf, size_t sz) {
   if (cmdbuf->size < sz) {
     while (cmdbuf->size < sz) {
       cmdbuf->size *= 2;
