@@ -60,10 +60,9 @@ local layout = bcfx.vertexlayout.new()
 layout:add(vertex_attrib.Position, 3, attrib_type.Float, false)
 local layoutHandle = bcfx.createVertexLayout(layout)
 local vertexTbl = {
-	-0.5, -0.5, 0.0,
-	0.5, -0.5, 0.0,
-	0.5, 0.5, 0.0,
-	-0.5, 0.5, 0.0,
+	-0.6, -0.6, 0.0,
+	0.6, -0.6, 0.0,
+	0.0, 0.6, 0.0,
 }
 local ptr, sz = bcfx.MakeFloatArray(vertexTbl, #vertexTbl)
 local vertexHandle = bcfx.createVertexBuffer(ptr, sz, layoutHandle)
@@ -75,14 +74,12 @@ local colorTbl = {
 	1.0, 0.0, 0.0,
 	0.0, 1.0, 0.0,
 	0.0, 0.0, 1.0,
-	0.5, 0.5, 0.5,
 }
 local ptr, sz = bcfx.MakeFloatArray(colorTbl, #colorTbl)
 local colorHandle = bcfx.createVertexBuffer(ptr, sz, layoutHandle)
 
 local indexTbl = {
 	0, 1, 2,
-	0, 2, 3,
 }
 local ptr, sz = bcfx.MakeUintArray(indexTbl, #indexTbl)
 local idxHandle = bcfx.createIndexBuffer(ptr, sz)
