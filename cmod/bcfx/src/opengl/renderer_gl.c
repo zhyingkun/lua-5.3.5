@@ -264,21 +264,20 @@ static void gl_init(RendererContext* ctx) {
     printf("Failed to initialize GLAD");
     exit(-1);
   }
-  winctx_swapInterval(1);
   winctx_makeContextCurrent(NULL);
   gl_MakeWinCurrent(glCtx, glCtx->mainWin);
 }
 
 static void gl_beginFrame(RendererContext* ctx) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  for (uint8_t i = 0; i < glCtx->swapCount; i++) {
+  for (uint8_t i = 1; i < glCtx->swapCount; i++) { // start at 1, leave main win unchanged
     glCtx->swapWins[i].touch = false;
   }
 }
 
 static void gl_endFrame(RendererContext* ctx) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  for (uint8_t i = 0; i < glCtx->swapCount; i++) {
+  for (uint8_t i = 1; i < glCtx->swapCount; i++) { // start at 1, leave main win unchanged
     while (!glCtx->swapWins[i].touch) {
       GL_CHECK(glDeleteVertexArrays(1, &glCtx->swapWins[i].vaoId));
       if (i + 1 < glCtx->swapCount) {
@@ -302,7 +301,10 @@ static void gl_shutdown(RendererContext* ctx) {
 
 static void gl_flip(RendererContext* ctx) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  for (uint8_t i = 0; i < glCtx->swapCount; i++) {
+  winctx_swapInterval(1);
+  winctx_swapBuffers(glCtx->mainWin);
+  winctx_swapInterval(0);
+  for (uint8_t i = 1; i < glCtx->swapCount; i++) {
     winctx_swapBuffers(glCtx->swapWins[i].win);
   }
 }
