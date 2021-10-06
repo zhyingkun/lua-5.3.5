@@ -1,4 +1,5 @@
 #include <renderer.h>
+#include <bcfx_math.h>
 
 #define bcfx_logError(...) (fprintf(stderr, ##__VA_ARGS__), fflush(stderr))
 
@@ -144,8 +145,6 @@ static const char* attribNames[] = {
     "a_texcoord7",
 };
 
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-
 static void prog_init(ProgramGL* prog) {
   GLint activeAttribs = 0;
   GLint activeUniforms = 0;
@@ -196,7 +195,7 @@ static void prog_bindAttributes(ProgramGL* prog, bcfx_VertexLayout* layout) {
           GL_FLOAT, // Float
       };
       GL_CHECK(glEnableVertexAttribArray(loc));
-      GL_CHECK(glVertexAttribPointer(loc, attrib->num, attrib_glType[attrib->type], attrib->normal, layout->stride, (void*)offset));
+      GL_CHECK(glVertexAttribPointer(loc, attrib->num, attrib_glType[attrib->type], attrib->normal, layout->stride, (void*)(long)offset));
     }
   }
 }
