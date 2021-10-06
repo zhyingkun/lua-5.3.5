@@ -180,6 +180,8 @@ end)()
 -- 	print("FrameRate:", GetFrameRate())
 -- end, 1000, 1000)
 
+libuv.repl_start()
+
 local lastTime = 0.0
 while not glfw.WindowShouldClose(window) do
 	if glfw.GetKey(window, 256) == input_state.PRESS then
