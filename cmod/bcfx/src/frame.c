@@ -7,8 +7,8 @@
 */
 
 #define SORTKEY_BITS 64
-#define VIEW_ID_BITS 8
-#define PROGRAM_BITS 9
+#define VIEW_ID_BITS BCFX_CONFIG_VIEW_ID_BITS
+#define PROGRAM_BITS BCFX_CONFIG_PROGRAM_BITS
 
 #define VIEW_ID_OFFSET (SORTKEY_BITS - VIEW_ID_BITS)
 #define PROGRAM_OFFSET (VIEW_ID_OFFSET - PROGRAM_BITS)
@@ -51,6 +51,7 @@ void frame_reset(Frame* frame) {
 }
 
 uint16_t frame_newRenderItemIndex(Frame* frame) {
+  assert(frame->numRenderItems < BCFX_CONFIG_MAX_DRAW_CALLS);
   uint16_t index = frame->numRenderItems;
   frame->numRenderItems++;
   return index;

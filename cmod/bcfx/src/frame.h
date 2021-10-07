@@ -22,11 +22,6 @@ void sortkey_decode(uint64_t key, ViewId* id, uint16_t* pr);
 ** =======================================================
 */
 
-#define BCFX_CONFIG_MAX_VIEWS 256
-#define BCFX_CONFIG_MAX_DRAW_CALLS 65536 - 1
-#define BCFX_CONFIG_MAX_VERTEX_STREAMS 4
-#define CHECK_VIEWID(id) assert(id < BCFX_CONFIG_MAX_VIEWS)
-
 typedef struct {
   Handle vertexBuffer;
 } Stream;
@@ -50,8 +45,8 @@ typedef struct {
   View views[BCFX_CONFIG_MAX_VIEWS];
 
   uint32_t numRenderItems;
-  RenderItem renderItems[BCFX_CONFIG_MAX_DRAW_CALLS + 1];
-  uint64_t sortKeys[BCFX_CONFIG_MAX_DRAW_CALLS + 1];
+  RenderItem renderItems[BCFX_CONFIG_MAX_DRAW_CALLS];
+  uint64_t sortKeys[BCFX_CONFIG_MAX_DRAW_CALLS];
 
   CommandBuffer cmdPre[1];
   CommandBuffer cmdPost[1];

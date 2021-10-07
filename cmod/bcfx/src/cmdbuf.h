@@ -70,6 +70,7 @@ typedef struct {
 } CommandBuffer;
 
 #define DEFAULT_COMMANDBUFFER_SIZE 512
+
 void cmdbuf_init(CommandBuffer* cmdbuf);
 void cmdbuf_reset(CommandBuffer* cmdbuf);
 Command* cmdbuf_next(CommandBuffer* cmdbuf);

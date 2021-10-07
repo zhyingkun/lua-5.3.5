@@ -9,27 +9,30 @@
 ** =======================================================
 */
 
-#define kInvalidHandle UINT16_MAX
+#define kInvalidHandle 0
 
 #define HANDLE_TYPE_MAP(XX) \
-  XX(IndexBuffer, 4096) \
-  XX(VertexLayout, 64) \
-  XX(VertexBuffer, 4096) \
-  XX(Shader, 512) \
-  XX(Program, 512) \
-  XX(Texture, 4096) \
-  XX(FrameBuffer, 128) \
-  XX(Uniform, 512) \
-  XX(OcclusionQuery, 256) \
-  XX(DynamicIndexBuffer, 4096) \
-  XX(DynamicVertexBuffer, 4096)
+  XX(VertexLayout, BCFX_CONFIG_MAX_VERTEX_LAYOUT) \
+  XX(VertexBuffer, BCFX_CONFIG_MAX_VERTEX_BUFFER) \
+  XX(IndexBuffer, BCFX_CONFIG_MAX_INDEX_BUFFER) \
+  XX(Shader, BCFX_CONFIG_MAX_SHADER) \
+  XX(Program, BCFX_CONFIG_MAX_PROGRAM) \
+  XX(Uniform, BCFX_CONFIG_MAX_UNIFORM) \
+  XX(Texture, BCFX_CONFIG_MAX_TEXTURE) \
+  XX(FrameBuffer, BCFX_CONFIG_MAX_FRAME_BUFFER) \
+  XX(OcclusionQuery, BCFX_CONFIG_MAX_OCCLUSION_QUERY) \
+  XX(DynamicIndexBuffer, BCFX_CONFIG_MAX_DYNAMIC_INDEX_BUFFER) \
+  XX(DynamicVertexBuffer, BCFX_CONFIG_MAX_DYNAMIC_VERTEX_BUFFER)
 
+// clang-format off
 typedef enum {
+  HT_None,
 #define XX(name, config_max) HT_##name,
   HANDLE_TYPE_MAP(XX)
 #undef XX
-      HT_MAX,
+  HT_MAX,
 } HandleType;
+// clang-format on
 
 typedef struct
 {
