@@ -237,6 +237,7 @@ typedef struct {
 static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win) {
   glCtx->curWin = win;
   winctx_makeContextCurrent(win);
+  winctx_swapInterval(win == glCtx->mainWin ? 1 : 0);
   for (uint8_t i = 0; i < glCtx->swapCount; i++) {
     if (glCtx->swapWins[i].win == win) {
       glCtx->swapWins[i].touch = true;
@@ -300,9 +301,7 @@ static void gl_shutdown(RendererContext* ctx) {
 
 static void gl_flip(RendererContext* ctx) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  winctx_swapInterval(1);
   winctx_swapBuffers(glCtx->mainWin);
-  winctx_swapInterval(0);
   for (uint8_t i = 1; i < glCtx->swapCount; i++) {
     winctx_swapBuffers(glCtx->swapWins[i].win);
   }
