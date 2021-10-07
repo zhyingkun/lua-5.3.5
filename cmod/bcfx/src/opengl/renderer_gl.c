@@ -1,8 +1,7 @@
 #include <renderer.h>
 #include <bcfx_math.h>
 
-#define bcfx_logError(...) (fprintf(stderr, ##__VA_ARGS__), fflush(stderr))
-
+#ifndef NDEBUG
 static const char* err_EnumName(GLenum _enum) {
 #define GLENUM(e) \
   case e: \
@@ -26,14 +25,14 @@ static const char* err_EnumName(GLenum _enum) {
 #undef GLENUM
   return "<Unknown enum?>";
 }
-
-#ifndef NDEBUG
 #define GL_CHECK(call) \
   { \
     call; \
     GLenum err = glGetError(); \
     if (err != 0) { \
-      bcfx_logError(#call "; GL error 0x%x: %s\n", err, err_EnumName(err)); \
+      printf_err("================================================================\n"); \
+      printf_err(#call "; GL error 0x%x: %s\n", err, err_EnumName(err)); \
+      printf_err("File: %s, Line: %d\n", __FILE__, __LINE__); \
     } \
   }
 #else
@@ -161,14 +160,14 @@ static void prog_init(ProgramGL* prog) {
     GLint size;
     GLenum type = 0;
     GL_CHECK(glGetActiveAttrib(prog->id, i, maxLength + 1, NULL, &size, &type, name));
-    bcfx_logError("Attribute %s %s is at location %d\n", glslTypeName(type), name, glGetAttribLocation(prog->id, name));
+    printf_err("Attribute %s %s is at location %d\n", glslTypeName(type), name, glGetAttribLocation(prog->id, name));
   }
   for (GLint i = 0; i < activeUniforms; i++) {
     GLenum gltype;
     GLint num;
     GL_CHECK(glGetActiveUniform(prog->id, i, maxLength + 1, NULL, &num, &gltype, name));
     GLint loc = glGetUniformLocation(prog->id, name);
-    bcfx_logError("Uniform %s %s is at location %d, size %d\n", glslTypeName(gltype), name, loc, num);
+    printf_err("Uniform %s %s is at location %d, size %d\n", glslTypeName(gltype), name, loc, num);
   }
   uint8_t cnt = 0;
   for (uint8_t i = 0; i < VA_Count; i++) {
@@ -221,17 +220,17 @@ typedef struct {
 typedef struct {
   RendererContext api;
 
-  IndexBufferGL indexBuffers[4096];
-  bcfx_VertexLayout vertexLayouts[4096];
-  VertexBufferGL vertexBuffers[4096];
-  ShaderGL shaders[512];
-  ProgramGL programs[512];
+  IndexBufferGL indexBuffers[BCFX_CONFIG_MAX_INDEX_BUFFER];
+  bcfx_VertexLayout vertexLayouts[BCFX_CONFIG_MAX_VERTEX_LAYOUT];
+  VertexBufferGL vertexBuffers[BCFX_CONFIG_MAX_VERTEX_BUFFER];
+  ShaderGL shaders[BCFX_CONFIG_MAX_SHADER];
+  ProgramGL programs[BCFX_CONFIG_MAX_PROGRAM];
 
   Window mainWin;
   Window curWin;
 
   uint8_t swapCount;
-  WindowSwapper swapWins[32];
+  WindowSwapper swapWins[BCFX_CONFIG_MAX_WINDOW];
 } RendererContextGL;
 
 static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win) {
@@ -251,6 +250,7 @@ static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win) {
       return;
     }
   }
+  assert(glCtx->swapCount < BCFX_CONFIG_MAX_WINDOW);
   WindowSwapper* swapper = &glCtx->swapWins[glCtx->swapCount];
   glCtx->swapCount++;
   swapper->win = win;
@@ -347,8 +347,9 @@ static void gl_createShader(RendererContext* ctx, Handle handle, const bcfx_MemB
   ShaderGL* shader = &glCtx->shaders[handle_index(handle)];
   if (type == ST_Vertex) {
     shader->type = GL_VERTEX_SHADER;
-  } else {
+  } else if (type == ST_Fragment) {
     shader->type = GL_FRAGMENT_SHADER;
+  } else {
   }
   shader->id = glCreateShader(shader->type);
   GL_CHECK(glShaderSource(shader->id, 1, (const GLchar* const*)&mem->ptr, NULL));
@@ -359,8 +360,7 @@ static void gl_createShader(RendererContext* ctx, Handle handle, const bcfx_MemB
   GL_CHECK(glGetShaderiv(shader->id, GL_COMPILE_STATUS, &success));
   if (!success) {
     GL_CHECK(glGetShaderInfoLog(shader->id, 1024, NULL, infoLog));
-    printf("Compile error: %s\n", infoLog);
-    fflush(NULL);
+    printf_err("Shader compile error: %s\n", infoLog);
   }
 }
 
@@ -376,67 +376,67 @@ static void gl_createProgram(RendererContext* ctx, Handle handle, Handle vsh, Ha
 
   int success;
   char infoLog[1024];
-
   GL_CHECK(glGetProgramiv(prog->id, GL_LINK_STATUS, &success));
   if (!success) {
     GL_CHECK(glGetProgramInfoLog(prog->id, 1024, NULL, infoLog));
-    printf("Link error: %s\n", infoLog);
-    fflush(NULL);
+    printf_err("Shader program link error: %s\n", infoLog);
     return;
   }
-
   prog_init(prog);
 }
 
+static void gl_MakeViewCurrent(RendererContextGL* glCtx, ViewId viewId, Frame* frame) {
+  View* view = &frame->views[viewId];
+
+  gl_MakeWinCurrent(glCtx, view->win);
+
+  Rect* rect = &view->rect;
+  GL_CHECK(glViewport(rect->x, rect->y, rect->width, rect->height));
+  Clear* clear = &view->clear;
+  GLuint flags = 0;
+  if (clear->flags & BCFX_CLEAR_COLOR) {
+    flags |= GL_COLOR_BUFFER_BIT;
+    float rr = clear->index[0] * 1.0f / 255.0f;
+    float gg = clear->index[1] * 1.0f / 255.0f;
+    float bb = clear->index[2] * 1.0f / 255.0f;
+    float aa = clear->index[3] * 1.0f / 255.0f;
+    GL_CHECK(glClearColor(rr, gg, bb, aa));
+    GL_CHECK(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
+  }
+  if (clear->flags & BCFX_CLEAR_DEPTH) {
+    flags |= GL_DEPTH_BUFFER_BIT;
+    GL_CHECK(glClearDepth(clear->depth));
+    GL_CHECK(glDepthMask(GL_TRUE));
+  }
+  if (clear->flags & BCFX_CLEAR_STENCIL) {
+    flags |= GL_STENCIL_BUFFER_BIT;
+    GL_CHECK(glClearStencil(clear->stencil));
+  }
+  if (0 != flags) {
+    GL_CHECK(glEnable(GL_SCISSOR_TEST));
+    GL_CHECK(glScissor(rect->x, rect->y, rect->width, rect->height));
+    GL_CHECK(glClear(flags));
+    GL_CHECK(glDisable(GL_SCISSOR_TEST));
+  }
+}
 static void gl_submit(RendererContext* ctx, Frame* frame) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
 
   GL_CHECK(glFrontFace(GL_CW));
 
-  ViewId viewId = UINT16_MAX;
+  ViewId curViewId = UINT16_MAX;
   for (uint32_t i = 0; i < frame->numRenderItems; i++) {
     RenderDraw* draw = &frame->renderItems[i].draw;
     ViewId id = 0;
     uint16_t program = 0;
     sortkey_decode(frame->sortKeys[i], &id, &program);
 
-    if (id != viewId) { // view changed
-      viewId = id;
-      View* view = &frame->views[viewId];
-
-      gl_MakeWinCurrent(glCtx, view->win);
-
-      Rect* rect = &view->rect;
-      GL_CHECK(glViewport(rect->x, rect->y, rect->width, rect->height));
-      Clear* clear = &view->clear;
-      GLuint flags = 0;
-      if (clear->flags & BCFX_CLEAR_COLOR) {
-        flags |= GL_COLOR_BUFFER_BIT;
-        float rr = clear->index[0] * 1.0f / 255.0f;
-        float gg = clear->index[1] * 1.0f / 255.0f;
-        float bb = clear->index[2] * 1.0f / 255.0f;
-        float aa = clear->index[3] * 1.0f / 255.0f;
-        GL_CHECK(glClearColor(rr, gg, bb, aa));
-        GL_CHECK(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
-      }
-      if (clear->flags & BCFX_CLEAR_DEPTH) {
-        flags |= GL_DEPTH_BUFFER_BIT;
-        GL_CHECK(glClearDepth(clear->depth));
-        GL_CHECK(glDepthMask(GL_TRUE));
-      }
-      if (clear->flags & BCFX_CLEAR_STENCIL) {
-        flags |= GL_STENCIL_BUFFER_BIT;
-        GL_CHECK(glClearStencil(clear->stencil));
-      }
-      if (0 != flags) {
-        GL_CHECK(glEnable(GL_SCISSOR_TEST));
-        GL_CHECK(glScissor(rect->x, rect->y, rect->width, rect->height));
-        GL_CHECK(glClear(flags));
-        GL_CHECK(glDisable(GL_SCISSOR_TEST));
-      }
+    if (curViewId != id) { // view changed
+      curViewId = id;
+      gl_MakeViewCurrent(glCtx, id, frame);
     }
 
-    ProgramGL* prog = &glCtx->programs[handle_index(program)];
+    ProgramGL* prog = &glCtx->programs[program];
     GL_CHECK(glUseProgram(prog->id));
 
     IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
@@ -450,6 +450,7 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
         prog_bindAttributes(prog, layout);
       }
     }
+    GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
     GL_CHECK(glDrawElements(GL_TRIANGLES, ib->count, GL_UNSIGNED_INT, 0));
   }

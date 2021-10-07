@@ -12,9 +12,12 @@
 
 #define PACK_HANDLE(handle, type) ((((handle)&HANDLE_MASK) << HANDLE_OFFSET) | (((type)&TYPE_MASK) << TYPE_OFFSET))
 #define UNPACK_HANDLE(packed_handle) ((((uint16_t)packed_handle) >> HANDLE_OFFSET) & HANDLE_MASK)
-#define UNPACK_TYPE(packed_handle) ((((uint16_t)packed_handle) >> TYPE_OFFSET) & TYPE_MASK)
+#define UNPACK_TYPE(packed_handle) ((HandleType)((((uint16_t)packed_handle) >> TYPE_OFFSET) & TYPE_MASK))
 
 void handle_init(HandleAlloc* allocator, uint16_t max, HandleType type) {
+  assert(max <= (1 << HANDLE_BIT) &&
+         type > HT_None &&
+         type < HT_MAX);
   allocator->num = 0;
   allocator->max = max;
   allocator->type = (uint8_t)type;
@@ -61,12 +64,13 @@ uint16_t handle_index(Handle packed_handle) {
 }
 
 HandleType handle_type(Handle packed_handle) {
-  return (HandleType)UNPACK_TYPE(packed_handle);
+  return UNPACK_TYPE(packed_handle);
 }
 
 const char* handle_typename(HandleType type) {
   // clang-format off
   static const char* handle_name[] = {
+      "None",
 #define XX(name, config_max) #name,
       HANDLE_TYPE_MAP(XX)
 #undef XX

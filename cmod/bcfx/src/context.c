@@ -7,6 +7,8 @@
 #define HANDLE_TYPE(packed_handle) handle_type(packed_handle)
 #define HANDLE_TYPENAME(packed_handle) handle_typename(handle_type(packed_handle))
 
+#define CHECK_HANDLE(packed_handle) assert(HANDLE_ISVALID(packed_handle))
+
 #define CALL_RENDERER(func, ...) renderCtx->func(renderCtx, ##__VA_ARGS__)
 
 /*
@@ -125,6 +127,7 @@ static void _renderThreadStart(void* arg) {
 }
 
 void ctx_init(Context* ctx, Window mainWin) {
+  assert(mainWin != NULL);
   ctx->running = true;
   ctx->frameCount = 0;
 
@@ -141,7 +144,7 @@ void ctx_init(Context* ctx, Window mainWin) {
 
   ctx->renderCtx = CreateRenderer();
 
-  CommandParam* param = ctx_addCommand(ctx, CT_RendererInit, 0);
+  CommandParam* param = ctx_addCommand(ctx, CT_RendererInit, kInvalidHandle);
   param->ci.mainWin = mainWin;
 
   ctx->apiSem = sem_init(0);
@@ -173,6 +176,7 @@ Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout) {
 }
 
 Handle ctx_createVertexBuffer(Context* ctx, bcfx_MemBuffer* mem, Handle layoutHandle) {
+  CHECK_HANDLE(layoutHandle);
   ADD_CMD_ALLOC_HANDLE(ctx, VertexBuffer)
   param->cvb.mem = *mem;
   param->cvb.layoutHandle = layoutHandle;
@@ -193,6 +197,8 @@ Handle ctx_createShader(Context* ctx, bcfx_MemBuffer* mem, ShaderType type) {
 }
 
 Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs, bool destroy) {
+  CHECK_HANDLE(vs);
+  CHECK_HANDLE(fs);
   ADD_CMD_ALLOC_HANDLE(ctx, Program)
   param->cp.vsHandle = vs;
   param->cp.fsHandle = fs;
@@ -209,14 +215,17 @@ Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs, bool destroy) {
 */
 
 void ctx_setViewClear(Context* ctx, ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil) {
+  CHECK_VIEWID(id);
   view_setClear(&ctx->views[id], flags, rgba, depth, stencil);
 }
 
 void ctx_setViewWindow(Context* ctx, ViewId id, Window win) {
+  CHECK_VIEWID(id);
   view_setWindow(&ctx->views[id], win);
 }
 
 void ctx_setViewRect(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+  CHECK_VIEWID(id);
   view_setRect(&ctx->views[id], x, y, width, height);
 }
 
@@ -229,14 +238,19 @@ void ctx_setViewRect(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t w
 */
 
 void ctx_setVertexBuffer(Context* ctx, uint8_t stream, Handle handle) {
+  CHECK_STREAMID(stream);
+  CHECK_HANDLE(handle);
   encoder_setVertexBuffer(ctx->encoder, stream, handle);
 }
 
 void ctx_setIndexBuffer(Context* ctx, Handle handle) {
+  CHECK_HANDLE(handle);
   encoder_setIndexBuffer(ctx->encoder, handle);
 }
 
 void ctx_submit(Context* ctx, ViewId id, Handle handle) {
+  CHECK_VIEWID(id);
+  CHECK_HANDLE(handle);
   encoder_submit(ctx->encoder, id, handle);
 }
 
