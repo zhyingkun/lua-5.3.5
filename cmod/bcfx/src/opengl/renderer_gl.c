@@ -235,6 +235,12 @@ typedef struct {
 } RendererContextGL;
 
 static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win) {
+  if (win == NULL) {
+    win = glCtx->mainWin;
+  }
+  if (glCtx->curWin == win) {
+    return;
+  }
   glCtx->curWin = win;
   winctx_makeContextCurrent(win);
   winctx_swapInterval(win == glCtx->mainWin ? 1 : 0);
@@ -256,8 +262,10 @@ static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win) {
   GL_CHECK(glBindVertexArray(swapper->vaoId));
 }
 
-static void gl_init(RendererContext* ctx) {
+static void gl_init(RendererContext* ctx, Window mainWin) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  glCtx->mainWin = mainWin;
+  glCtx->curWin = NULL;
   glCtx->swapCount = 0;
   winctx_makeContextCurrent(glCtx->mainWin);
   if (!gladLoadGLLoader((GLADloadproc)winctx_getProcAddress)) {
@@ -396,13 +404,7 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
       viewId = id;
       View* view = &frame->views[viewId];
 
-      Window target = view->win;
-      if (target == NULL) {
-        target = glCtx->mainWin;
-      }
-      if (target != glCtx->curWin) {
-        gl_MakeWinCurrent(glCtx, target);
-      }
+      gl_MakeWinCurrent(glCtx, view->win);
 
       Rect* rect = &view->rect;
       GL_CHECK(glViewport(rect->x, rect->y, rect->width, rect->height));
@@ -451,11 +453,11 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
 
     GL_CHECK(glDrawElements(GL_TRIANGLES, ib->count, GL_UNSIGNED_INT, 0));
   }
+  gl_MakeWinCurrent(glCtx, NULL);
 }
 
-RendererContext* CreateRenderer(void* mainWin) {
+RendererContext* CreateRenderer(void) {
   RendererContextGL* glCtx = (RendererContextGL*)mem_malloc(sizeof(RendererContextGL));
-  glCtx->mainWin = mainWin;
   RendererContext* renderer = &glCtx->api;
 
   renderer->init = gl_init;

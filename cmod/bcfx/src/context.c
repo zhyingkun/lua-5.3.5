@@ -52,7 +52,7 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
     CommandParam* param = &cmd->param;
     switch (cmd->type) {
       case CT_RendererInit:
-        CALL_RENDERER(init);
+        CALL_RENDERER(init, cmd->param.ci.mainWin);
         break;
       case CT_RendererShutdown:
         CALL_RENDERER(shutdown);
@@ -124,10 +124,9 @@ static void _renderThreadStart(void* arg) {
   }
 }
 
-void ctx_init(Context* ctx, Window window) {
+void ctx_init(Context* ctx, Window mainWin) {
   ctx->running = true;
   ctx->frameCount = 0;
-  ctx->mainWin = window;
 
 #define XX(name, config_max) handle_init(&ctx->allocators[(uint8_t)HT_##name], config_max, HT_##name);
   HANDLE_TYPE_MAP(XX)
@@ -140,9 +139,10 @@ void ctx_init(Context* ctx, Window window) {
 
   encoder_begin(ctx->encoder, ctx->submitFrame);
 
-  ctx->renderCtx = CreateRenderer(window);
+  ctx->renderCtx = CreateRenderer();
 
-  ctx_addCommand(ctx, CT_RendererInit, 0);
+  CommandParam* param = ctx_addCommand(ctx, CT_RendererInit, 0);
+  param->ci.mainWin = mainWin;
 
   ctx->apiSem = sem_init(0);
   ctx->renderSem = sem_init(1);

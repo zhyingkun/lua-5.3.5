@@ -15,7 +15,7 @@
 
 typedef struct RendererContext RendererContext;
 
-typedef void (*RendererInit)(RendererContext* ctx);
+typedef void (*RendererInit)(RendererContext* ctx, Window mainWin);
 typedef void (*RendererShutdown)(RendererContext* ctx);
 
 typedef void (*RendererCreateIndexBuffer)(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem, uint16_t flags);
@@ -58,7 +58,7 @@ struct RendererContext {
   RendererDestroyProgram destroyProgram;
 };
 
-RendererContext* CreateRenderer(void* mainWin);
+RendererContext* CreateRenderer(void);
 
 /* }====================================================== */
 

@@ -26,6 +26,9 @@ typedef enum {
 } CommandType;
 
 typedef struct {
+  Window mainWin;
+} CmdInit;
+typedef struct {
   bcfx_VertexLayout* layout;
 } CmdVertexLayout;
 typedef struct {
@@ -46,6 +49,7 @@ typedef struct {
 } CmdProgram;
 
 typedef union {
+  CmdInit ci;
   CmdVertexLayout cvl;
   CmdVertexBuffer cvb;
   CmdIndexBuffer cib;

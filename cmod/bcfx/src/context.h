@@ -15,7 +15,6 @@
 
 typedef struct {
   bool running;
-  Window mainWin;
 
   Semaphore renderSem;
   Semaphore apiSem;
@@ -37,7 +36,7 @@ typedef struct {
 } Context;
 
 void ctx_apiFrame(Context* ctx);
-void ctx_init(Context* ctx, Window window);
+void ctx_init(Context* ctx, Window mainWin);
 void ctx_shutdowm(Context* ctx);
 
 Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout);
