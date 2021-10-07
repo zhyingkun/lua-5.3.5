@@ -39,6 +39,7 @@ set(
 	src/opengl
 	src/opengl/glad
 	wrap
+	wrap/math
 )
 set(
 	NOT_INCLUDE_DIR
