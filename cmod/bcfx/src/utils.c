@@ -143,3 +143,21 @@ bcfx_GLProc winctx_getProcAddress(const char* procname) {
 }
 
 /* }====================================================== */
+
+/*
+** {======================================================
+** Misc feature
+** =======================================================
+*/
+
+static bcfx_GetTime _GetTime = NULL;
+
+BCFX_API void bcfx_setMiscFuncs(bcfx_GetTime getTime) {
+  _GetTime = getTime;
+}
+
+double misc_getTime(void) {
+  return _GetTime != NULL ? _GetTime() : 0.0;
+}
+
+/* }====================================================== */
