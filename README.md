@@ -7,11 +7,11 @@
 ## 基本介绍
 
 1. 本工程是 Lua 及其 C 扩展的构建工程，用于运行调试
-2. 所有 Lua 源码来自 lua 官方网站[https://www.lua.org/]
+2. 所有 Lua 源码来自[lua 官方网站](https://www.lua.org/)
 3. 增加了源码注释，扩展了一些功能，支持 Debug/Release 编译模式
 4. 封装了一些 C 扩展模块，所有模块都以源码形式存在于工程中，仅依赖系统库，不依赖第三方库
 5. 整个工程 PC 端编译构建采用 cmake 来管理，支持跨平台（可以在树莓派上正常 cmake+make）
-6. 移动端 iOS 直接给出 Xcode 工程，Android 则提供 Android.md 用于 ndk-build（仅限 luawithlib 库）
+6. 移动端 iOS 直接给出 Xcode 工程，Android 则提供 Android.mk 用于 ndk-build（仅限 luawithlib 库）
 
 ---
 
@@ -90,6 +90,7 @@ ndk-build -B # rebuild project
 ## 文件夹说明
 
 1. cmod: Lua 的 C 语言扩展模块
+    - bcfx: 异步渲染库，纯 C 实现，相关设计参考了[bgfx](https://github.com/bkaradzic/bgfx)
     - boolarray: 《Lua 程序设计》中的布尔数组，加了数组的交集和并集操作
     - dir: 《Lua 程序设计》中的遍历文件夹，加了 Win 版实现
     - gb2312: 类似 utf8 标准库实现的 gb2312 模块
@@ -188,28 +189,30 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 26. 增加 atexit 函数，用于注册一个函数给 lua 命令退出之前调用
 27. 增加 atrepl 函数，用于注册一个函数给 lua 交互式命令执行一句脚本之后调用
 28. 扩展 math.tointeger，支持将 lightuserdata 强转为整数
+29. 新增 \_G.print_err 函数，用于输出到标准错误流
 
 ---
 
 ## 扩展 C API
 
-1. 增加 luaL_tolstringex 方法，用于支持快速查看 table 中的字段
-2. 增加 lua_getstackdepth 方法，用于获取当前函数调用嵌套深度（并非链表长度，链表长度记录于 L->nci）
-3. 导出 lua_ident 符号，以便在 Windows 下使用该字符串
-4. 针对函数 lua_gc 的第二个参数(what)添加新的选项 LUA_GCONESTEP，用于仅走最最原始的一步 gc 操作
-5. 增加 luaL_protoinfo 方法，用于获取函数原型信息
-6. 增加 luaL_escape 方法，用于转义字符串，支持任意二进制数据的转义
-7. 增加 luaL_isvar 方法，用于判断目标字符串是否为合法的 Lua 变量名
-8. 增加 luaL_atexit 方法，用于在 lua 命令执行完脚本之后自动执行一系列函数
-9. 增加 lua_pushstackvalue 方法，用于支持访问当前 Lua 栈中的任意槽位
-10. 增加 luaL_ptraceback 方法，用于调试时打印 Lua 调用栈
-11. 增加 luaL_pstack 方法，用于调试时打印 Lua 栈槽内容
-12. 增加 luaL_inject 方法，用于在运行时某个上下文中插入一段代码
-13. 增加 luaL_testudata_recursive 方法，用于递归的测试某个对象是否对应的用户类型
-14. 增加 luaL_checkudata_recursive 方法，递归测试用户类型失败则抛出异常
-15. 增加 luaL_atrepl 方法，用于在 lua 交互式命令执行完一句脚本之后自动执行一系列函数
-16. 增加 luaL_Enum 结构体、luaL_newenum、luaL_newenum_r，用于支持 C 模块快速注入枚举数值
-17. 扩展 lua_tointegerx 函数，支持将 lightuserdata 强转为整数
+1. 增加 `luaL_tolstringex` 方法，用于支持快速查看 table 中的字段
+2. 增加 `lua_getstackdepth` 方法，用于获取当前函数调用嵌套深度（并非链表长度，链表长度记录于 L->nci）
+3. 导出 `lua_ident` 符号，以便在 Windows 下使用该字符串
+4. 针对函数 `lua_gc` 的第二个参数(what)添加新的选项`LUA_GCONESTEP`，用于仅走最最原始的一步 gc 操作
+5. 增加 `luaL_protoinfo` 方法，用于获取函数原型信息
+6. 增加 `luaL_escape` 方法，用于转义字符串，支持任意二进制数据的转义
+7. 增加 `luaL_isvar` 方法，用于判断目标字符串是否为合法的 Lua 变量名
+8. 增加 `luaL_atexit` 方法，用于在 lua 命令执行完脚本之后自动执行一系列函数
+9. 增加 `lua_pushstackvalue` 方法，用于支持访问当前 Lua 栈中的任意槽位
+10. 增加 `luaL_ptraceback` 方法，用于调试时打印 Lua 调用栈
+11. 增加 `luaL_pstack` 方法，用于调试时打印 Lua 栈槽内容
+12. 增加 `luaL_inject` 方法，用于在运行时某个上下文中插入一段代码
+13. 增加 `luaL_testudata_recursive` 方法，用于递归的测试某个对象是否对应的用户类型
+14. 增加 `luaL_checkudata_recursive` 方法，递归测试用户类型失败则抛出异常
+15. 增加 `luaL_atrepl` 方法，用于在 lua 交互式命令执行完一句脚本之后自动执行一系列函数
+16. 增加 `luaL_Enum` 结构体、`luaL_newenum`、`luaL_newenum_r`，用于支持 C 模块快速注入枚举数值
+17. 扩展 `lua_tointegerx` 函数，支持将 lightuserdata 强转为整数
+18. 增加 `luaL_checklightuserdata`、`luaL_optlightuserdata`、`luaL_checkboolean`、`luaL_optboolean`，方便对函数参数进行检查
 
 ---
 
