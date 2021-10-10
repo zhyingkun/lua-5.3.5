@@ -22,10 +22,9 @@
 
 #include <windows.h>
 #include <io.h>
-typedef int Bool_;
-#define bool Bool_
-#define true 1
-#define false 0
+
+#include <stdbool.h>
+
 typedef struct {
   struct _finddata_t dir;
   intptr_t fh;
