@@ -41,6 +41,28 @@ static int luaB_print(lua_State* L) {
   return 0;
 }
 
+static int luaB_print_err(lua_State* L) {
+  int n = lua_gettop(L); /* number of arguments */
+  int i;
+  lua_getglobal(L, "tostring");
+  for (i = 1; i <= n; i++) {
+    const char* s;
+    size_t l;
+    lua_pushvalue(L, -1); /* function to be called */
+    lua_pushvalue(L, i); /* value to print */
+    lua_call(L, 1, 1);
+    s = lua_tolstring(L, -1, &l); /* get result */
+    if (s == NULL)
+      return luaL_error(L, "'tostring' must return a string to 'print'");
+    if (i > 1)
+      lua_writestring_err("\t", 1);
+    lua_writestring_err(s, l);
+    lua_pop(L, 1); /* pop result */
+  }
+  lua_writeline_err();
+  return 0;
+}
+
 #define SPACECHARS " \f\n\r\t\v"
 
 static const char* b_str2int(const char* s, int base, lua_Integer* pn) {
@@ -510,6 +532,7 @@ static const luaL_Reg base_funcs[] = {
     {"xpcall", luaB_xpcall},
     {"atexit", luaB_atexit},
     {"atrepl", luaB_atrepl},
+    {"print_err", luaB_print_err},
     /* placeholders */
     {"_G", NULL},
     {"_VERSION", NULL},
