@@ -1,7 +1,8 @@
 #ifndef _BCFX_MATH_H_
 #define _BCFX_MATH_H_
 
-#include <common.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <math.h>
 
 /*
