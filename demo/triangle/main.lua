@@ -6,7 +6,7 @@ local glfw = require("glfw")
 local window_hint = glfw.window_hint
 local hint_value = glfw.hint_value
 local input_state = glfw.input_state
-local winctx = glfw.func_ptr
+local func_ptr = glfw.func_ptr
 
 local bcfx = require("bcfx")
 local clear_flag = bcfx.clear_flag
@@ -48,10 +48,13 @@ bcfx.setSemFuncs(
 	sem.sem_trywait
 )
 bcfx.setWinCtxFuncs(
-	winctx.MakeContextCurrent,
-	winctx.SwapBuffers,
-	winctx.SwapInterval,
-	winctx.GetProcAddress
+	func_ptr.MakeContextCurrent,
+	func_ptr.SwapBuffers,
+	func_ptr.SwapInterval,
+	func_ptr.GetProcAddress
+)
+bcfx.setMiscFuncs(
+	func_ptr.GetTime
 )
 
 bcfx.init(window)
@@ -69,14 +72,14 @@ local vertexHandle = bcfx.createVertexBuffer(ptr, sz, layoutHandle)
 
 local layoutColor = bcfx.vertexlayout.new()
 layoutColor:add(vertex_attrib.Color0, 3, attrib_type.Float, false)
-local layoutHandle = bcfx.createVertexLayout(layoutColor)
+local layoutColorHandle = bcfx.createVertexLayout(layoutColor)
 local colorTbl = {
 	1.0, 0.0, 0.0,
 	0.0, 1.0, 0.0,
 	0.0, 0.0, 1.0,
 }
 local ptr, sz = bcfx.MakeFloatArray(colorTbl, #colorTbl)
-local colorHandle = bcfx.createVertexBuffer(ptr, sz, layoutHandle)
+local colorHandle = bcfx.createVertexBuffer(ptr, sz, layoutColorHandle)
 
 local indexTbl = {
 	0, 1, 2,
@@ -112,14 +115,14 @@ local shaderProgramHandle = bcfx.createProgram(vertexShaderHandle, fragmentShade
 
 local viewID = 0
 -- bcfx.setViewWindow(viewID, window)
-local color = bcfx.PackColor(51, 76, 76, 255)
+local color = bcfx.color.pack(51, 76, 76, 255)
 bcfx.setViewClear(viewID, clear_flag.COLOR, color, 0.0, 0)
 bcfx.setViewRect(viewID, 0, 0, glfw.GetFramebufferSize(window))
 -- bcfx.setViewRect(viewID, 0, 0, glfw.GetWindowSize(window))
 
 local viewID1 = 1
 bcfx.setViewWindow(viewID1, window)
-local color = bcfx.PackColor(255, 255, 76, 255)
+local color = bcfx.color.pack(255, 255, 76, 255)
 bcfx.setViewClear(viewID1, clear_flag.COLOR, color, 0.0, 0)
 bcfx.setViewRect(viewID1, 0, 0, 600, 600)
 
@@ -137,7 +140,7 @@ end
 
 local viewID2 = 2
 bcfx.setViewWindow(viewID2, window2)
-local color = bcfx.PackColor(128, 0, 0, 255)
+local color = bcfx.color.pack(128, 0, 0, 255)
 bcfx.setViewClear(viewID2, clear_flag.COLOR, color, 0.0, 0)
 bcfx.setViewRect(viewID2, 0, 0, glfw.GetFramebufferSize(window2)) -- 
 
@@ -175,12 +178,14 @@ local AddOneFrame = (function()
 	end
 end)()
 
--- local timer = libuv.timer.new()
--- timer:start(function()
--- 	print("FrameRate:", GetFrameRate())
--- end, 1000, 1000)
+local timer = libuv.timer.new()
+timer:start(function()
+	print("FrameRate:", GetFrameRate(), "Tick:", os.clock())
+end, 1000, 1000)
 
 libuv.repl_start()
+local colorcircle = require("colorcircle")
+colorcircle.setup(window)
 
 local lastTime = 0.0
 while not glfw.WindowShouldClose(window) do
@@ -200,20 +205,24 @@ while not glfw.WindowShouldClose(window) do
 
 	bcfx.submit(viewID, shaderProgramHandle)
 
-	-- bcfx.setVertexBuffer(0, vertexHandle)
-	-- bcfx.setVertexBuffer(1, colorHandle)
-	-- bcfx.setIndexBuffer(idxHandle)
+	bcfx.setVertexBuffer(0, vertexHandle)
+	bcfx.setVertexBuffer(1, colorHandle)
+	bcfx.setIndexBuffer(idxHandle)
 
 	bcfx.submit(viewID1, shaderProgramHandle)
 
-	-- bcfx.setVertexBuffer(0, vertexHandle)
-	-- bcfx.setVertexBuffer(1, colorHandle)
-	-- bcfx.setIndexBuffer(idxHandle)
+	bcfx.setVertexBuffer(0, vertexHandle)
+	bcfx.setVertexBuffer(1, colorHandle)
+	bcfx.setIndexBuffer(idxHandle)
 
 	bcfx.submit(viewID2, shaderProgramHandle)
 
+	colorcircle.tick(delta)
+
 	bcfx.apiFrame()
 end
+
+-- libuv.repl_stop()
 
 bcfx.shutdown()
 glfw.Terminate()
