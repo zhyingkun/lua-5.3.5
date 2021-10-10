@@ -250,9 +250,29 @@ LUALIB_API void(luaL_openlib)(lua_State* L, const char* libname, const luaL_Reg*
 #define lua_writeline() (lua_writestring("\n", 1), fflush(stdout))
 #endif
 
-/* print an error message */
-#if !defined(lua_writestringerror)
-#define lua_writestringerror(s, p) (fprintf(stderr, (s), (p)), fflush(stderr))
+/* print format string */
+#if !defined(lua_printf)
+#define lua_printf(...) (fprintf(stdout, ##__VA_ARGS__), fflush(stdout))
+#endif
+
+/* print a string to stderr */
+#if !defined(lua_writestring_err)
+#define lua_writestring_err(s, l) fwrite((s), sizeof(char), (l), stderr)
+#endif
+
+/* flush a string to stderr */
+#if !defined(lua_flushstring_err)
+#define lua_flushstring_err(s, l) (fwrite((s), sizeof(char), (l), stderr), fflush(stderr))
+#endif
+
+/* print a newline and flush the output to stderr */
+#if !defined(lua_writeline_err)
+#define lua_writeline_err() (lua_writestring_err("\n", 1), fflush(stderr))
+#endif
+
+/* print format string to stderr */
+#if !defined(lua_printf_err)
+#define lua_printf_err(...) (fprintf(stderr, ##__VA_ARGS__), fflush(stderr))
 #endif
 
 /* }================================================================== */

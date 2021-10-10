@@ -127,12 +127,12 @@ static void laction(int i) {
 }
 
 static void print_usage(const char* badoption) {
-  lua_writestringerror("%s: ", progname);
+  lua_printf_err("%s: ", progname);
   if (badoption[1] == 'e' || badoption[1] == 'l')
-    lua_writestringerror("'%s' needs argument\n", badoption);
+    lua_printf_err("'%s' needs argument\n", badoption);
   else
-    lua_writestringerror("unrecognized option '%s'\n", badoption);
-  lua_writestringerror("usage: %s [options] [script [args]]\n"
+    lua_printf_err("unrecognized option '%s'\n", badoption);
+  lua_printf_err("usage: %s [options] [script [args]]\n"
                        "Available options are:\n"
                        "  -e stat  execute string 'stat'\n"
                        "  -i       enter interactive mode after executing 'script'\n"
@@ -151,8 +151,8 @@ static void print_usage(const char* badoption) {
 */
 static void l_message(const char* pname, const char* msg) {
   if (pname)
-    lua_writestringerror("%s: ", pname);
-  lua_writestringerror("%s\n", msg);
+    lua_printf_err("%s: ", pname);
+  lua_printf_err("%s\n", msg);
 }
 
 /*
@@ -401,7 +401,7 @@ static void call_registry_funcs(lua_State* L, const char* name, const char* msg)
     lua_pushnil(L);
     while (lua_next(L, idx)) {
       if (lua_pcall(L, 0, 0, idx + 1) != LUA_OK) {
-        lua_writestringerror(msg, lua_tostring(L, -1));
+        lua_printf_err(msg, lua_tostring(L, -1));
         lua_pop(L, 1);
       }
     }

@@ -337,7 +337,7 @@ LUALIB_API void luaL_pinject(lua_State* L, const char* source, int level) {
   lua_pushinteger(L, level + 1);
   if (lua_pcall(L, 3, 0, 0) != LUA_OK) {
     if (!lua_isnil(L, -1)) {
-      lua_writestringerror("Error: %s\n", luaL_tolstring(L, -1, NULL));
+      lua_printf_err("Error: %s\n", luaL_tolstring(L, -1, NULL));
     }
     lua_pop(L, 1);
   }
@@ -1595,7 +1595,7 @@ static void* l_alloc(void* ud, void* ptr, size_t osize, size_t nsize) {
 }
 
 static int panic(lua_State* L) {
-  lua_writestringerror("PANIC: unprotected error in call to Lua API (%s)\n", lua_tostring(L, -1));
+  lua_printf_err("PANIC: unprotected error in call to Lua API (%s)\n", lua_tostring(L, -1));
   return 0; /* return to Lua to abort */
 }
 
