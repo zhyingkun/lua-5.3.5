@@ -28,6 +28,8 @@ void encoder_submit(Encoder* encoder, ViewId id, Handle program) {
   uint16_t index = frame_newRenderItemIndex(frame);
   frame_setRenderItem(frame, index, (RenderItem*)&encoder->draw);
   frame_setSortKey(frame, index, sortkey_encode(id, handle_index(program)));
+  encoder->draw.streamMask = 0;
+  encoder->draw.indexBuffer = kInvalidHandle;
 }
 
 /* }====================================================== */
