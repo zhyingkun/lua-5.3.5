@@ -179,25 +179,6 @@ static void prog_init(ProgramGL* prog) {
   }
   prog->usedCount = cnt;
 }
-static void prog_bindAttributes(ProgramGL* prog, bcfx_VertexLayout* layout) {
-  for (uint8_t i = 0; i < prog->usedCount; i++) {
-    bcfx_EVertexAttrib attr = (bcfx_EVertexAttrib)prog->used[i];
-    bcfx_Attrib* attrib = &layout->attributes[attr];
-    if (attrib->num > 0) {
-      GLint loc = prog->attributes[attr];
-      uint8_t offset = layout->offset[(uint8_t)VA_Position];
-      static const GLenum attrib_glType[] = {
-          GL_UNSIGNED_BYTE, // Uint8
-          GL_UNSIGNED_INT_10_10_10_2, // Uint10
-          GL_SHORT, // Int16
-          GL_HALF_FLOAT, // Half
-          GL_FLOAT, // Float
-      };
-      GL_CHECK(glEnableVertexAttribArray(loc));
-      GL_CHECK(glVertexAttribPointer(loc, attrib->num, attrib_glType[attrib->type], attrib->normal, layout->stride, (void*)(long)offset));
-    }
-  }
-}
 
 /* }====================================================== */
 
@@ -315,22 +296,11 @@ static void gl_flip(RendererContext* ctx) {
   }
 }
 
-static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem, uint16_t flags) {
-  RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
-  ib->count = mem->sz / sizeof(GLuint);
-  GL_CHECK(glGenBuffers(1, &ib->id));
-  GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
-  GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mem->sz, mem->ptr, GL_STATIC_DRAW));
-  GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-}
-
 static void gl_createVertexLayout(RendererContext* ctx, Handle handle, const void* layout) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   bcfx_VertexLayout* vl = &glCtx->vertexLayouts[handle_index(handle)];
   memcpy((uint8_t*)vl, layout, sizeof(bcfx_VertexLayout));
 }
-
 static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem, Handle layoutHandle, uint16_t flags) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
@@ -341,7 +311,15 @@ static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, const bcf
   GL_CHECK(glBufferData(vb->target, mem->sz, mem->ptr, GL_STATIC_DRAW));
   GL_CHECK(glBindBuffer(vb->target, 0));
 }
-
+static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem, uint16_t flags) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
+  ib->count = mem->sz / sizeof(GLuint);
+  GL_CHECK(glGenBuffers(1, &ib->id));
+  GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
+  GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mem->sz, mem->ptr, GL_STATIC_DRAW));
+  GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+}
 static void gl_createShader(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem, ShaderType type) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   ShaderGL* shader = &glCtx->shaders[handle_index(handle)];
@@ -363,7 +341,6 @@ static void gl_createShader(RendererContext* ctx, Handle handle, const bcfx_MemB
     printf_err("Shader compile error: %s\n", infoLog);
   }
 }
-
 static void gl_createProgram(RendererContext* ctx, Handle handle, Handle vsh, Handle fsh) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   ShaderGL* vs = &glCtx->shaders[handle_index(vsh)];
@@ -419,6 +396,48 @@ static void gl_MakeViewCurrent(RendererContextGL* glCtx, ViewId viewId, Frame* f
     GL_CHECK(glDisable(GL_SCISSOR_TEST));
   }
 }
+static bcfx_VertexLayout* find_vertexLayout(RendererContextGL* glCtx, RenderDraw* draw, bcfx_EVertexAttrib attr, VertexBufferGL** pvb) {
+  for (uint8_t i = 0; i < BCFX_CONFIG_MAX_VERTEX_STREAMS; i++) {
+    if (draw->streamMask & (1 << i)) {
+      VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(draw->streams[i].vertexBuffer)];
+      bcfx_VertexLayout* layout = &glCtx->vertexLayouts[handle_index(vb->layout)];
+      if (layout->attributes[attr].num > 0) {
+        *pvb = vb;
+        return layout;
+      }
+    }
+  }
+  return NULL;
+}
+static void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw) {
+  GLuint curId = 0;
+  for (uint8_t i = 0; i < prog->usedCount; i++) {
+    bcfx_EVertexAttrib attr = (bcfx_EVertexAttrib)prog->used[i];
+    GLint loc = prog->attributes[attr];
+    VertexBufferGL* vb = NULL;
+    bcfx_VertexLayout* layout = find_vertexLayout(glCtx, draw, attr, &vb);
+    if (layout == NULL) {
+      GL_CHECK(glDisableVertexAttribArray(loc));
+    } else {
+      if (curId != vb->id) {
+        curId = vb->id;
+        GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
+      }
+      GL_CHECK(glEnableVertexAttribArray(loc));
+      uint8_t offset = layout->offset[attr];
+      static const GLenum attrib_glType[] = {
+          GL_UNSIGNED_BYTE, // Uint8
+          GL_UNSIGNED_INT_10_10_10_2, // Uint10
+          GL_SHORT, // Int16
+          GL_HALF_FLOAT, // Half
+          GL_FLOAT, // Float
+      };
+      bcfx_Attrib* attrib = &layout->attributes[attr];
+      GL_CHECK(glVertexAttribPointer(loc, attrib->num, attrib_glType[attrib->type], attrib->normal, layout->stride, (void*)(long)offset));
+    }
+  }
+  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
+}
 static void gl_submit(RendererContext* ctx, Frame* frame) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
 
@@ -442,19 +461,41 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
     IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
     GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
 
-    for (uint8_t i = 0; i < BCFX_CONFIG_MAX_VERTEX_STREAMS; i++) {
-      if (draw->streamMask & (1 << i)) {
-        VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(draw->streams[i].vertexBuffer)];
-        bcfx_VertexLayout* layout = &glCtx->vertexLayouts[handle_index(vb->layout)];
-        GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
-        prog_bindAttributes(prog, layout);
-      }
-    }
-    GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
+    gl_bindProgramAttributes(glCtx, prog, draw);
 
     GL_CHECK(glDrawElements(GL_TRIANGLES, ib->count, GL_UNSIGNED_INT, 0));
   }
   gl_MakeWinCurrent(glCtx, NULL);
+}
+
+static void gl_destroyVertexLayout(RendererContext* ctx, Handle handle) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  bcfx_VertexLayout* vl = &glCtx->vertexLayouts[handle_index(handle)];
+  memset((uint8_t*)vl, 0, sizeof(bcfx_VertexLayout));
+}
+static void gl_destroyVertexBuffer(RendererContext* ctx, Handle handle) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
+  GL_CHECK(glDeleteBuffers(1, &vb->id));
+  vb->id = 0;
+}
+static void gl_destroyIndexBuffer(RendererContext* ctx, Handle handle) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
+  GL_CHECK(glDeleteBuffers(1, &ib->id));
+  ib->id = 0;
+}
+static void gl_destroyShader(RendererContext* ctx, Handle handle) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  ShaderGL* shader = &glCtx->shaders[handle_index(handle)];
+  GL_CHECK(glDeleteShader(shader->id));
+  shader->id = 0;
+}
+static void gl_destroyProgram(RendererContext* ctx, Handle handle) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  ProgramGL* prog = &glCtx->programs[handle_index(handle)];
+  GL_CHECK(glDeleteProgram(prog->id));
+  prog->id = 0;
 }
 
 RendererContext* CreateRenderer(void) {
@@ -464,9 +505,9 @@ RendererContext* CreateRenderer(void) {
   renderer->init = gl_init;
   renderer->shutdown = gl_shutdown;
 
-  renderer->createIndexBuffer = gl_createIndexBuffer;
   renderer->createVertexLayout = gl_createVertexLayout;
   renderer->createVertexBuffer = gl_createVertexBuffer;
+  renderer->createIndexBuffer = gl_createIndexBuffer;
   renderer->createShader = gl_createShader;
   renderer->createProgram = gl_createProgram;
 
@@ -474,6 +515,12 @@ RendererContext* CreateRenderer(void) {
   renderer->submit = gl_submit;
   renderer->endFrame = gl_endFrame;
   renderer->flip = gl_flip;
+
+  renderer->destroyVertexLayout = gl_destroyVertexLayout;
+  renderer->destroyVertexBuffer = gl_destroyVertexBuffer;
+  renderer->destroyIndexBuffer = gl_destroyIndexBuffer;
+  renderer->destroyShader = gl_destroyShader;
+  renderer->destroyProgram = gl_destroyProgram;
 
   return renderer;
 }
