@@ -57,6 +57,7 @@ void frame_reset(Frame* frame);
 uint16_t frame_newRenderItemIndex(Frame* frame);
 void frame_setRenderItem(Frame* frame, uint16_t index, RenderItem* item);
 void frame_setSortKey(Frame* frame, uint16_t index, uint64_t sortKey);
+void frame_sort(Frame* frame);
 
 /* }====================================================== */
 
