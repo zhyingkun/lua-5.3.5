@@ -5,77 +5,9 @@
 
 /*
 ** {======================================================
-** bcfx_VertexLayout
-** =======================================================
-*/
-
-#define BCFX_VERTEXLAYOUT_TYPE "bcfx_VertexLayout*"
-
-#define luaL_checkvertexlayout(L, idx) (bcfx_VertexLayout*)luaL_checkudata(L, idx, BCFX_VERTEXLAYOUT_TYPE)
-
-#define VL_FUNCTION(name) bcfx_wrap_vl_##name
-
-static int VL_FUNCTION(add)(lua_State* L) {
-  bcfx_VertexLayout* layout = luaL_checkvertexlayout(L, 1);
-  bcfx_EVertexAttrib attrib = (bcfx_EVertexAttrib)luaL_checkinteger(L, 2);
-  uint8_t num = (uint8_t)luaL_checkinteger(L, 3);
-  bcfx_EAttribType type = (bcfx_EAttribType)luaL_checkinteger(L, 4);
-  bool normalized = (bool)luaL_checkboolean(L, 5);
-
-  bcfx_VL_add(layout, attrib, num, type, normalized);
-  return 0;
-}
-
-static int VL_FUNCTION(skip)(lua_State* L) {
-  bcfx_VertexLayout* layout = luaL_checkvertexlayout(L, 1);
-  uint8_t numbyte = (uint8_t)luaL_checkinteger(L, 2);
-
-  bcfx_VL_skip(layout, numbyte);
-  return 0;
-}
-
-#define EMPLACE_VL_FUNCTION(name) \
-  { #name, VL_FUNCTION(name) }
-static const luaL_Reg vl_metafuncs[] = {
-    EMPLACE_VL_FUNCTION(add),
-    EMPLACE_VL_FUNCTION(skip),
-    {NULL, NULL},
-};
-
-static int VL_FUNCTION(new)(lua_State* L) {
-  bcfx_VertexLayout* layout = (bcfx_VertexLayout*)lua_newuserdata(L, sizeof(bcfx_VertexLayout));
-  luaL_setmetatable(L, BCFX_VERTEXLAYOUT_TYPE);
-  bcfx_VL_init(layout);
-  return 1;
-}
-
-static const luaL_Reg vl_funcs[] = {
-    EMPLACE_VL_FUNCTION(new),
-    {NULL, NULL},
-};
-
-static void VL_FUNCTION(init_metatable)(lua_State* L) {
-  luaL_newmetatable(L, BCFX_VERTEXLAYOUT_TYPE);
-  luaL_setfuncs(L, vl_metafuncs, 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  lua_pop(L, 1); // pop the metatable
-
-  luaL_newlib(L, vl_funcs);
-  lua_setfield(L, -2, "vertexlayout");
-}
-
-/* }====================================================== */
-
-/*
-** {======================================================
 ** BCFX Wrap Functions
 ** =======================================================
 */
-
-#define BCWRAP_FUNCTION(name) bcfx_wrap_##name
 
 static int BCWRAP_FUNCTION(setThreadFuncs)(lua_State* L) {
   void* create = luaL_checklightuserdata(L, 1);
@@ -115,6 +47,11 @@ static int BCWRAP_FUNCTION(setWinCtxFuncs)(lua_State* L) {
       (bcfx_SwapBuffers)swapBuffers,
       (bcfx_SwapInterval)swapInterval,
       (bcfx_GetProcAddress)getProcAddress);
+  return 0;
+}
+static int BCWRAP_FUNCTION(setMiscFuncs)(lua_State* L) {
+  void* getTime = luaL_checklightuserdata(L, 1);
+  bcfx_setMiscFuncs((bcfx_GetTime)getTime);
   return 0;
 }
 
@@ -229,6 +166,15 @@ static int BCWRAP_FUNCTION(submit)(lua_State* L) {
   return 0;
 }
 
+static int BCWRAP_FUNCTION(destroy)(lua_State* L) {
+  int top = lua_gettop(L);
+  for (int idx = 1; idx <= top; idx++) {
+    Handle handle = (Handle)luaL_checkinteger(L, idx);
+    bcfx_destroy(handle);
+  }
+  return 0;
+}
+
 /* }====================================================== */
 
 /*
@@ -262,15 +208,6 @@ static int BCWRAP_FUNCTION(MakeUintArray)(lua_State* L) {
   lua_pushlightuserdata(L, (void*)data);
   lua_pushinteger(L, sizeof(int) * count);
   return 2;
-}
-static int BCWRAP_FUNCTION(PackColor)(lua_State* L) {
-  uint8_t r = (uint8_t)luaL_checkinteger(L, 1);
-  uint8_t g = (uint8_t)luaL_checkinteger(L, 2);
-  uint8_t b = (uint8_t)luaL_checkinteger(L, 3);
-  uint8_t a = (uint8_t)luaL_checkinteger(L, 4);
-  uint32_t rgba = (((uint32_t)r) << 24) | (((uint32_t)g) << 16) | (((uint32_t)b) << 8) | (((uint32_t)a) << 0);
-  lua_pushinteger(L, rgba);
-  return 1;
 }
 
 /* }====================================================== */
@@ -326,6 +263,7 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(setThreadFuncs),
     EMPLACE_BCWRAP_FUNCTION(setSemFuncs),
     EMPLACE_BCWRAP_FUNCTION(setWinCtxFuncs),
+    EMPLACE_BCWRAP_FUNCTION(setMiscFuncs),
     /* Basic APIs */
     EMPLACE_BCWRAP_FUNCTION(init),
     EMPLACE_BCWRAP_FUNCTION(apiFrame),
@@ -344,10 +282,11 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(setVertexBuffer),
     EMPLACE_BCWRAP_FUNCTION(setIndexBuffer),
     EMPLACE_BCWRAP_FUNCTION(submit),
+    /* Create Render Resource */
+    EMPLACE_BCWRAP_FUNCTION(destroy),
     /* Wrap Utilities */
     EMPLACE_BCWRAP_FUNCTION(MakeFloatArray),
     EMPLACE_BCWRAP_FUNCTION(MakeUintArray),
-    EMPLACE_BCWRAP_FUNCTION(PackColor),
 
     {NULL, NULL},
 };
@@ -361,5 +300,7 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   REGISTE_ENUM(shader_type);
 
   (void)VL_FUNCTION(init_metatable)(L);
+  (void)COLOR_FUNCTION(init)(L);
+
   return 1;
 }
