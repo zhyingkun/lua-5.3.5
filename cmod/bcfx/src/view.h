@@ -17,6 +17,7 @@ typedef struct {
 } Rect;
 
 void rect_set(Rect* rect, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
+#define rect_reset(rect) rect_set(rect, 0, 0, 0, 0)
 
 typedef struct {
   uint16_t flags;
@@ -27,6 +28,10 @@ typedef struct {
 } Clear;
 
 void clear_set(Clear* clear, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil);
+#define clear_setRect(clear, x, y, width, height) rect_set(&((clear)->rect), x, y, width, height)
+#define clear_reset(clear) \
+  clear_set(clear, 0, 0, 0.0, 0); \
+  rect_reset(&((clear)->rect))
 
 typedef struct {
   Window win;
@@ -34,8 +39,9 @@ typedef struct {
   Clear clear;
   Rect rect;
   Rect scissor;
-  Mat4x4 view;
-  Mat4x4 proj;
+  Mat4x4 viewMat;
+  Mat4x4 projMat;
+  ViewMode mode;
 } View;
 
 void view_setWindow(View* view, Window win);

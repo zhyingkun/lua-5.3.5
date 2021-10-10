@@ -9,8 +9,6 @@
 ** =======================================================
 */
 
-#define kInvalidHandle 0
-
 #define HANDLE_TYPE_MAP(XX) \
   XX(VertexLayout, BCFX_CONFIG_MAX_VERTEX_LAYOUT) \
   XX(VertexBuffer, BCFX_CONFIG_MAX_VERTEX_BUFFER) \

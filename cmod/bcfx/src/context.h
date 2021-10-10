@@ -47,9 +47,17 @@ Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs, bool destroy);
 
 void ctx_destroy(Context* ctx, Handle handle);
 
-void ctx_setViewClear(Context* ctx, ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil);
 void ctx_setViewWindow(Context* ctx, ViewId id, Window win);
+void ctx_setViewFrameBuffer(Context* ctx, ViewId id, Handle handle);
+
+void ctx_setViewClear(Context* ctx, ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil);
+void ctx_setViewClearRect(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 void ctx_setViewRect(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
+void ctx_setViewScissor(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
+
+void ctx_setViewTransform(Context* ctx, ViewId id, Mat4x4* viewMat, Mat4x4* projMat);
+void ctx_setViewMode(Context* ctx, ViewId id, ViewMode mode);
+void ctx_resetView(Context* ctx, ViewId id);
 
 void ctx_setVertexBuffer(Context* ctx, uint8_t stream, Handle handle);
 void ctx_setIndexBuffer(Context* ctx, Handle handle);

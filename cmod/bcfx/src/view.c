@@ -7,6 +7,13 @@
 ** =======================================================
 */
 
+void rect_set(Rect* rect, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+  rect->x = x;
+  rect->y = y;
+  rect->width = width;
+  rect->height = height;
+}
+
 void clear_set(Clear* clear, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil) {
   clear->flags = flags;
   clear->index[0] = (uint8_t)(rgba >> 24);
@@ -17,23 +24,42 @@ void clear_set(Clear* clear, uint16_t flags, uint32_t rgba, float depth, uint8_t
   clear->stencil = stencil;
 }
 
-void rect_set(Rect* rect, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
-  rect->x = x;
-  rect->y = y;
-  rect->width = width;
-  rect->height = height;
+void view_setWindow(View* view, Window win) {
+  view->win = win;
+}
+void view_setFrameBuffer(View* view, Handle handle) {
+  view->fbh = handle;
 }
 
 void view_setClear(View* view, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil) {
   clear_set(&view->clear, flags, rgba, depth, stencil);
 }
-
-void view_setWindow(View* view, Window win) {
-  view->win = win;
+void view_setClearRect(View* view, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+  clear_setRect(&view->clear, x, y, width, height);
 }
-
 void view_setRect(View* view, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
   rect_set(&view->rect, x, y, width, height);
+}
+void view_setScissor(View* view, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+  rect_set(&view->scissor, x, y, width, height);
+}
+
+void view_setTransform(View* view, Mat4x4* viewMat, Mat4x4* projMat) {
+  memcpy(&view->viewMat, viewMat, sizeof(Mat4x4));
+  memcpy(&view->projMat, projMat, sizeof(Mat4x4));
+}
+void view_setMode(View* view, ViewMode mode) {
+  view->mode = mode;
+}
+void view_reset(View* view) {
+  view->win = NULL;
+  view->fbh = kInvalidHandle;
+  clear_reset(&view->clear);
+  rect_reset(&view->rect);
+  rect_reset(&view->scissor);
+  mat_identity((Mat*)&view->viewMat);
+  mat_identity((Mat*)&view->projMat);
+  view->mode = VM_Default;
 }
 
 /* }====================================================== */

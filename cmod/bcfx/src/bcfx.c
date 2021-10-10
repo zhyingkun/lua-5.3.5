@@ -103,16 +103,40 @@ BCFX_API void bcfx_destroy(Handle handle) {
 ** =======================================================
 */
 
-BCFX_API void bcfx_setViewClear(ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil) {
-  ctx_setViewClear(s_ctx, id, flags, rgba, depth, stencil);
-}
-
 BCFX_API void bcfx_setViewWindow(ViewId id, Window win) {
   ctx_setViewWindow(s_ctx, id, win);
 }
 
+BCFX_API void bcfx_setViewFrameBuffer(ViewId id, Handle handle) {
+  ctx_setViewFrameBuffer(s_ctx, id, handle);
+}
+
+BCFX_API void bcfx_setViewClear(ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil) {
+  ctx_setViewClear(s_ctx, id, flags, rgba, depth, stencil);
+}
+
+BCFX_API void bcfx_setViewClearRect(ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+  ctx_setViewClearRect(s_ctx, id, x, y, width, height);
+}
+
 BCFX_API void bcfx_setViewRect(ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
   ctx_setViewRect(s_ctx, id, x, y, width, height);
+}
+
+BCFX_API void bcfx_setViewScissor(ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+  ctx_setViewScissor(s_ctx, id, x, y, width, height);
+}
+
+BCFX_API void bcfx_setViewTransform(ViewId id, Mat4x4* viewMat, Mat4x4* projMat) {
+  ctx_setViewTransform(s_ctx, id, viewMat, projMat);
+}
+
+BCFX_API void bcfx_setViewMode(ViewId id, ViewMode mode) {
+  ctx_setViewMode(s_ctx, id, mode);
+}
+
+BCFX_API void bcfx_resetView(ViewId id) {
+  ctx_resetView(s_ctx, id);
 }
 
 /* }====================================================== */

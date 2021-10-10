@@ -257,19 +257,43 @@ void ctx_destroy(Context* ctx, Handle handle) {
 ** =======================================================
 */
 
-void ctx_setViewClear(Context* ctx, ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil) {
-  CHECK_VIEWID(id);
-  view_setClear(&ctx->views[id], flags, rgba, depth, stencil);
-}
-
 void ctx_setViewWindow(Context* ctx, ViewId id, Window win) {
   CHECK_VIEWID(id);
   view_setWindow(&ctx->views[id], win);
 }
+void ctx_setViewFrameBuffer(Context* ctx, ViewId id, Handle handle) {
+  CHECK_VIEWID(id);
+  view_setFrameBuffer(&ctx->views[id], handle);
+}
 
+void ctx_setViewClear(Context* ctx, ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil) {
+  CHECK_VIEWID(id);
+  view_setClear(&ctx->views[id], flags, rgba, depth, stencil);
+}
+void ctx_setViewClearRect(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+  CHECK_VIEWID(id);
+  view_setClearRect(&ctx->views[id], x, y, width, height);
+}
 void ctx_setViewRect(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
   CHECK_VIEWID(id);
   view_setRect(&ctx->views[id], x, y, width, height);
+}
+void ctx_setViewScissor(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+  CHECK_VIEWID(id);
+  view_setScissor(&ctx->views[id], x, y, width, height);
+}
+
+void ctx_setViewTransform(Context* ctx, ViewId id, Mat4x4* viewMat, Mat4x4* projMat) {
+  CHECK_VIEWID(id);
+  view_setTransform(&ctx->views[id], viewMat, projMat);
+}
+void ctx_setViewMode(Context* ctx, ViewId id, ViewMode mode) {
+  CHECK_VIEWID(id);
+  view_setMode(&ctx->views[id], mode);
+}
+void ctx_resetView(Context* ctx, ViewId id) {
+  CHECK_VIEWID(id);
+  view_reset(&ctx->views[id]);
 }
 
 /* }====================================================== */

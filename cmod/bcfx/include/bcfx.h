@@ -197,6 +197,7 @@ BCFX_API void bcfx_shutdowm(void);
 */
 
 typedef uint16_t Handle;
+#define kInvalidHandle 0
 
 BCFX_API Handle bcfx_createVertexLayout(bcfx_VertexLayout* layout);
 BCFX_API Handle bcfx_createVertexBuffer(bcfx_MemBuffer* mem, Handle layout);
@@ -252,7 +253,7 @@ BCFX_API void bcfx_setViewClearRect(ViewId id, uint16_t x, uint16_t y, uint16_t 
 BCFX_API void bcfx_setViewRect(ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 BCFX_API void bcfx_setViewScissor(ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 
-BCFX_API void bcfx_setViewTransform(ViewId id, Mat4x4* view, Mat4x4* proj);
+BCFX_API void bcfx_setViewTransform(ViewId id, Mat4x4* viewMat, Mat4x4* projMat);
 BCFX_API void bcfx_setViewMode(ViewId id, ViewMode mode);
 BCFX_API void bcfx_resetView(ViewId id);
 
