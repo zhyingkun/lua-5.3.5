@@ -2,25 +2,23 @@
 #include <handle.h>
 #include <utils.h>
 
-#define HANDLE_BIT 12
+#define INDEX_BIT 12
 #define TYPE_BIT 4
-#define HANDLE_OFFSET 0
-#define TYPE_OFFSET HANDLE_BIT
+#define INDEX_OFFSET 0
+#define TYPE_OFFSET INDEX_BIT
 
-#define HANDLE_MASK ((1 << HANDLE_BIT) - 1)
+#define INDEX_MASK ((1 << INDEX_BIT) - 1)
 #define TYPE_MASK ((1 << TYPE_BIT) - 1)
 
-#define PACK_HANDLE(handle, type) ((((handle)&HANDLE_MASK) << HANDLE_OFFSET) | (((type)&TYPE_MASK) << TYPE_OFFSET))
-#define UNPACK_HANDLE(packed_handle) ((((uint16_t)packed_handle) >> HANDLE_OFFSET) & HANDLE_MASK)
-#define UNPACK_TYPE(packed_handle) ((HandleType)((((uint16_t)packed_handle) >> TYPE_OFFSET) & TYPE_MASK))
+#define PACK_HANDLE(index, type) (((((uint16_t)(index)) & INDEX_MASK) << INDEX_OFFSET) | ((((uint16_t)(type)) & TYPE_MASK) << TYPE_OFFSET))
+#define UNPACK_INDEX(handle) ((((uint16_t)handle) >> INDEX_OFFSET) & INDEX_MASK)
+#define UNPACK_TYPE(handle) ((HandleType)((((uint16_t)handle) >> TYPE_OFFSET) & TYPE_MASK))
 
 void handle_init(HandleAlloc* allocator, uint16_t max, HandleType type) {
-  assert(max <= (1 << HANDLE_BIT) &&
-         type > HT_None &&
-         type < HT_MAX);
+  assert(max <= (1 << INDEX_BIT));
   allocator->num = 0;
   allocator->max = max;
-  allocator->type = (uint8_t)type;
+  allocator->type = type;
   uint16_t* ptr = (uint16_t*)mem_malloc(sizeof(uint16_t) * max * 2);
   allocator->dense = ptr;
   allocator->sparse = ptr + max;
@@ -32,39 +30,37 @@ void handle_init(HandleAlloc* allocator, uint16_t max, HandleType type) {
 
 Handle handle_alloc(HandleAlloc* allocator) {
   if (allocator->num < allocator->max) {
-    uint16_t index = allocator->num;
+    uint16_t idx = allocator->num;
     allocator->num++;
-    uint16_t handle = allocator->dense[index];
-    allocator->sparse[handle] = index;
-    return (Handle)PACK_HANDLE(handle, allocator->type);
+    uint16_t index = allocator->dense[idx];
+    allocator->sparse[index] = idx;
+    return (Handle)PACK_HANDLE(index, allocator->type);
   }
   return kInvalidHandle;
 }
 
-void handle_free(HandleAlloc* allocator, Handle packed_handle) {
-  uint16_t handle = UNPACK_HANDLE(packed_handle);
-  uint16_t index = allocator->sparse[handle];
-  uint16_t num = allocator->num;
-  num--;
-  allocator->num = num;
-  uint16_t temp = allocator->dense[num];
-  allocator->dense[num] = handle;
-  allocator->sparse[temp] = index;
-  allocator->dense[index] = temp;
+void handle_free(HandleAlloc* allocator, Handle handle) {
+  uint16_t index = UNPACK_INDEX(handle);
+  uint16_t idx = allocator->sparse[index];
+  allocator->num--;
+  uint16_t temp = allocator->dense[allocator->num];
+  allocator->dense[allocator->num] = index;
+  allocator->sparse[temp] = idx;
+  allocator->dense[idx] = temp;
 }
 
-bool handle_isvalid(HandleAlloc* allocator, Handle packed_handle) {
-  uint16_t handle = UNPACK_HANDLE(packed_handle);
-  uint16_t index = allocator->sparse[handle];
-  return index < allocator->num && allocator->dense[index] == handle;
+bool handle_isvalid(HandleAlloc* allocator, Handle handle) {
+  uint16_t index = UNPACK_INDEX(handle);
+  uint16_t idx = allocator->sparse[index];
+  return idx < allocator->num && allocator->dense[idx] == index;
 }
 
-uint16_t handle_index(Handle packed_handle) {
-  return (uint16_t)UNPACK_HANDLE(packed_handle);
+uint16_t handle_index(Handle handle) {
+  return UNPACK_INDEX(handle);
 }
 
-HandleType handle_type(Handle packed_handle) {
-  return UNPACK_TYPE(packed_handle);
+HandleType handle_type(Handle handle) {
+  return UNPACK_TYPE(handle);
 }
 
 const char* handle_typename(HandleType type) {

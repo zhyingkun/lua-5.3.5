@@ -16,13 +16,15 @@
   XX(VertexBuffer, BCFX_CONFIG_MAX_VERTEX_BUFFER) \
   XX(IndexBuffer, BCFX_CONFIG_MAX_INDEX_BUFFER) \
   XX(Shader, BCFX_CONFIG_MAX_SHADER) \
-  XX(Program, BCFX_CONFIG_MAX_PROGRAM) \
+  XX(Program, BCFX_CONFIG_MAX_PROGRAM)
+/*
   XX(Uniform, BCFX_CONFIG_MAX_UNIFORM) \
   XX(Texture, BCFX_CONFIG_MAX_TEXTURE) \
   XX(FrameBuffer, BCFX_CONFIG_MAX_FRAME_BUFFER) \
   XX(OcclusionQuery, BCFX_CONFIG_MAX_OCCLUSION_QUERY) \
   XX(DynamicIndexBuffer, BCFX_CONFIG_MAX_DYNAMIC_INDEX_BUFFER) \
   XX(DynamicVertexBuffer, BCFX_CONFIG_MAX_DYNAMIC_VERTEX_BUFFER)
+*/
 
 // clang-format off
 typedef enum {
@@ -34,21 +36,20 @@ typedef enum {
 } HandleType;
 // clang-format on
 
-typedef struct
-{
+typedef struct {
   uint16_t num;
   uint16_t max;
-  uint8_t type;
+  HandleType type;
   uint16_t* dense;
   uint16_t* sparse;
 } HandleAlloc;
 
 void handle_init(HandleAlloc* allocator, uint16_t max, HandleType type);
 Handle handle_alloc(HandleAlloc* allocator);
-void handle_free(HandleAlloc* allocator, Handle packed_handle);
-bool handle_isvalid(HandleAlloc* allocator, Handle packed_handle);
-uint16_t handle_index(Handle packed_handle);
-HandleType handle_type(Handle packed_handle);
+void handle_free(HandleAlloc* allocator, Handle handle);
+bool handle_isvalid(HandleAlloc* allocator, Handle handle);
+uint16_t handle_index(Handle handle);
+HandleType handle_type(Handle handle);
 const char* handle_typename(HandleType type);
 
 /* }====================================================== */
