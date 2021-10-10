@@ -45,6 +45,8 @@ Handle ctx_createIndexBuffer(Context* ctx, bcfx_MemBuffer* mem);
 Handle ctx_createShader(Context* ctx, bcfx_MemBuffer* mem, ShaderType type);
 Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs, bool destroy);
 
+void ctx_destroy(Context* ctx, Handle handle);
+
 void ctx_setViewClear(Context* ctx, ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil);
 void ctx_setViewWindow(Context* ctx, ViewId id, Window win);
 void ctx_setViewRect(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);

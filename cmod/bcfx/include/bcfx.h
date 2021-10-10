@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <bcfx_math.h>
+
 /*
 ** {======================================================
 ** Export API
@@ -164,6 +166,18 @@ BCFX_API void bcfx_setWinCtxFuncs(
 
 /*
 ** {======================================================
+** Inject Misc API
+** =======================================================
+*/
+
+typedef double (*bcfx_GetTime)(void);
+
+BCFX_API void bcfx_setMiscFuncs(bcfx_GetTime getTime);
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** Basic API
 ** =======================================================
 */
@@ -200,6 +214,16 @@ BCFX_API Handle bcfx_createProgram(Handle vs, Handle fs, bool destroy);
 
 /*
 ** {======================================================
+** Destroy Render Resource
+** =======================================================
+*/
+
+BCFX_API void bcfx_destroy(Handle handle);
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** View
 ** =======================================================
 */
@@ -210,11 +234,27 @@ BCFX_API Handle bcfx_createProgram(Handle vs, Handle fs, bool destroy);
 #define BCFX_CLEAR_DEPTH (0x0002)
 #define BCFX_CLEAR_STENCIL (0x0004)
 
+typedef enum {
+  VM_Default,
+  VM_Sequential,
+  VM_DepthAscending,
+  VM_DepthDescending,
+  VM_MAX,
+} ViewMode;
+
 typedef uint16_t ViewId;
 
-BCFX_API void bcfx_setViewClear(ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil);
 BCFX_API void bcfx_setViewWindow(ViewId id, Window win);
+BCFX_API void bcfx_setViewFrameBuffer(ViewId id, Handle handle);
+
+BCFX_API void bcfx_setViewClear(ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil);
+BCFX_API void bcfx_setViewClearRect(ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 BCFX_API void bcfx_setViewRect(ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
+BCFX_API void bcfx_setViewScissor(ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
+
+BCFX_API void bcfx_setViewTransform(ViewId id, Mat4x4* view, Mat4x4* proj);
+BCFX_API void bcfx_setViewMode(ViewId id, ViewMode mode);
+BCFX_API void bcfx_resetView(ViewId id);
 
 /* }====================================================== */
 

@@ -2,12 +2,12 @@
 #include <context.h>
 
 #define HANDLE_ALLOC(name) handle_alloc(&ctx->allocators[(uint8_t)HT_##name])
-#define HANDLE_FREE(packed_handle) handle_free(&ctx->allocators[(uint8_t)handle_type(packed_handle)], packed_handle)
-#define HANDLE_ISVALID(packed_handle) handle_isvalid(&ctx->allocators[(uint8_t)handle_type(packed_handle)], packed_handle)
-#define HANDLE_TYPE(packed_handle) handle_type(packed_handle)
-#define HANDLE_TYPENAME(packed_handle) handle_typename(handle_type(packed_handle))
+#define HANDLE_FREE(handle) handle_free(&ctx->allocators[(uint8_t)handle_type(handle)], handle)
+#define HANDLE_ISVALID(handle) handle_isvalid(&ctx->allocators[(uint8_t)handle_type(handle)], handle)
+#define HANDLE_TYPE(handle) handle_type(handle)
+#define HANDLE_TYPENAME(handle) handle_typename(handle_type(handle))
 
-#define CHECK_HANDLE(packed_handle) assert(HANDLE_ISVALID(packed_handle))
+#define CHECK_HANDLE(handle) assert(HANDLE_ISVALID(handle))
 
 #define CALL_RENDERER(func, ...) renderCtx->func(renderCtx, ##__VA_ARGS__)
 
@@ -74,6 +74,24 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
       case CT_CreateProgram:
         CALL_RENDERER(createProgram, cmd->handle, param->cp.vsHandle, param->cp.fsHandle);
         break;
+      case CT_End:
+        break;
+      case CT_DestroyVertexLayout:
+        CALL_RENDERER(destroyVertexLayout, cmd->handle);
+        break;
+      case CT_DestroyIndexBuffer:
+        CALL_RENDERER(destroyIndexBuffer, cmd->handle);
+        break;
+      case CT_DestroyVertexBuffer:
+        CALL_RENDERER(destroyVertexBuffer, cmd->handle);
+        break;
+      case CT_DestroyShader:
+        CALL_RENDERER(destroyShader, cmd->handle);
+        break;
+      case CT_DestroyProgram:
+        CALL_RENDERER(destroyProgram, cmd->handle);
+        break;
+
       default:
         break;
     }
@@ -154,6 +172,7 @@ void ctx_init(Context* ctx, Window mainWin) {
 
 void ctx_shutdowm(Context* ctx) {
   ctx->running = false;
+  ctx_apiFrame(ctx); // another frame for fire render thread to exit
   thread_join(ctx->renderThread); // Wait render thread to exit
 }
 
@@ -204,6 +223,30 @@ Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs, bool destroy) {
   param->cp.fsHandle = fs;
   param->cp.destroy = destroy;
   return handle;
+}
+
+/* }====================================================== */
+
+/* }====================================================== */
+/*
+** {======================================================
+** Destroy Render Resource
+** =======================================================
+*/
+
+void ctx_destroy(Context* ctx, Handle handle) {
+  CHECK_HANDLE(handle);
+  HandleType type = handle_type(handle);
+  switch (type) {
+#define XX(name, config_max) \
+  case HT_##name: \
+    ctx_addCommand(ctx, CT_Destroy##name, handle); \
+    break;
+    HANDLE_TYPE_MAP(XX)
+#undef XX
+    default:
+      break;
+  }
 }
 
 /* }====================================================== */
