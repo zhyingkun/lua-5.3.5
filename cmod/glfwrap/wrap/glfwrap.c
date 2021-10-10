@@ -166,6 +166,7 @@ void registe_function_pointer(lua_State* L) {
   REGISTE_FUNC_GLFW(SwapBuffers);
   REGISTE_FUNC_GLFW(SwapInterval);
   REGISTE_FUNC_GLFW(GetProcAddress);
+  REGISTE_FUNC_GLFW(GetTime);
 
   lua_setfield(L, -2, "func_ptr");
 }
