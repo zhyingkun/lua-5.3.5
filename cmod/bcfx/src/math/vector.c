@@ -1,5 +1,5 @@
 #define _vector_c_
-#include <bcfx_math.h>
+#include <common.h>
 
 /*
 ** {======================================================

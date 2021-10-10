@@ -1,4 +1,4 @@
-#include <bcfx_math.h>
+#include <common.h>
 
 void g3d_translate(Vec3* vec, Mat4x4* mat) {
 }

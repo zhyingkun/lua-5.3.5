@@ -1,5 +1,5 @@
 #define _matrix_c_
-#include <bcfx_math.h>
+#include <common.h>
 
 /*
 ** {======================================================
@@ -75,8 +75,7 @@ void mat_componentWiseProduct(Mat* src1, Mat* src2, Mat* dst) {
 }
 
 void mat_multiply(Mat* src1, Mat* src2, Mat* dst) {
-  assert(src1->row == src2->col &&
-         src1->col == src2->row &&
+  assert(src1->col == src2->row &&
          src1->row == dst->row &&
          src2->col == dst->col);
   for (uint8_t i = 0; i < dst->row; i++) {
@@ -216,6 +215,38 @@ void mat_inverse(Mat* src, Mat* dst) {
 
 void mat4x4_init(Mat4x4* mat) {
   mat_init((Mat*)mat, 4, 4);
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Matrix & Vector
+** =======================================================
+*/
+
+void mat_mulLeft(Mat* mat, Vec* src, Vec* dst) {
+  assert(mat->col == src->count &&
+         mat->row == dst->count);
+  for (uint8_t i = 0; i < mat->row; i++) {
+    float temp = 0.0;
+    for (uint8_t k = 0; k < mat->col; k++) {
+      temp += MAT_ELEMENT(mat, i, k) * VEC_ELEMENT(src, k);
+    }
+    VEC_ELEMENT(dst, i) = temp;
+  }
+}
+
+void mat_mulRight(Vec* src, Mat* mat, Vec* dst) {
+  assert(src->count == mat->row &&
+         dst->count == mat->col);
+  for (uint8_t j = 0; j < mat->col; j++) {
+    float temp = 0.0;
+    for (uint8_t k = 0; k < mat->row; k++) {
+      temp += VEC_ELEMENT(src, k) * MAT_ELEMENT(mat, k, j);
+    }
+    VEC_ELEMENT(dst, j) = temp;
+  }
 }
 
 /* }====================================================== */
