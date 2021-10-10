@@ -102,6 +102,7 @@ local sandbox = (function()
 		ipairs = ipairs,
 		next = next,
 		print = print, -- for debug
+		print_err = print_err, -- for debug
 	}
 
 	local _require = (function()

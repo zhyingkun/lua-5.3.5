@@ -116,7 +116,7 @@ end
 local function SetupAnotherView(viewID, mainWin)
 	local win = glfw.CreateWindow(800, 600, "Another", nil, mainWin)
 	if not win then
-		print("GLFW CreateWindow Error:", glfw.GetError())
+		print_err("GLFW CreateWindow Error:", glfw.GetError())
 		glfw.Terminate()
 		return
 	end
@@ -156,7 +156,7 @@ local function setup(mainWin)
 
 	local timer = libuv.timer.new()
 	timer:start(function()
-		print("FrameRate:", GetFrameRate())
+		print_err("FrameRate:", GetFrameRate())
 	end, 1000, 1000)
 
 	COLOR = clear_flag.COLOR
@@ -180,7 +180,7 @@ local function tick(delta)
 	bcfx.setIndexBuffer(idxHandle)
 	bcfx.submit(2, shaderProgramHandle)
 
-	local color = bcfx.color.pack(0, 255, 0, 255)
+	local color = bcfx.color.pack(255, 255, 0, 255)
 	bcfx.setViewClear(2, COLOR, color, 0.0, 0)
 end
 

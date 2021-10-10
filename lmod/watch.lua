@@ -33,9 +33,9 @@ local function watch(mod_name, callback)
 			if events & CHANGE ~= 0 then
 				local ok, msg = reload(mod_name)
 				if ok then
-					print("reload succeed:", mod_name)
+					print_err("reload succeed:", mod_name)
 				else
-					print("reload failed:", mod_name, msg)
+					print_err("reload failed:", mod_name, msg)
 				end
 			elseif events & RENAME ~= 0 then
 				error_msg("Error RENAME filepath: %s, filename: %s", filepath, filename)
