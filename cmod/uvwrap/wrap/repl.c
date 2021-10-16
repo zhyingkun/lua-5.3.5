@@ -53,8 +53,8 @@ static const char* progname = LUA_PROGNAME;
 */
 static void l_message(const char* pname, const char* msg) {
   if (pname)
-    lua_printf_err("%s: ", pname);
-  lua_printf_err("%s\n", msg);
+    lua_printf("%s: ", pname);
+  lua_printf("%s\n", msg);
 }
 
 /*
@@ -148,7 +148,7 @@ static void call_registry_funcs(lua_State* L, const char* name, const char* msg)
     lua_pushnil(L);
     while (lua_next(L, idx)) {
       if (lua_pcall(L, 0, 0, idx + 1) != LUA_OK) {
-        lua_printf_err(msg, lua_tostring(L, -1));
+        lua_printf(msg, lua_tostring(L, -1));
         lua_pop(L, 1);
       }
     }
