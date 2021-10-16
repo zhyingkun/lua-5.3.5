@@ -73,7 +73,7 @@ const char* handle_typename(HandleType type) {
       NULL,
   };
   // clang-format on
-  if (type < HT_MAX) {
+  if (type < HT_Count) {
     return handle_name[(uint8_t)type];
   }
   return "InvalidType";

@@ -30,7 +30,7 @@ typedef enum {
 #define XX(name, config_max) HT_##name,
   HANDLE_TYPE_MAP(XX)
 #undef XX
-  HT_MAX,
+  HT_Count,
 } HandleType;
 // clang-format on
 

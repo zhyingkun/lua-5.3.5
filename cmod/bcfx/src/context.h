@@ -22,7 +22,7 @@ typedef struct {
 
   View views[BCFX_CONFIG_MAX_VIEWS];
 
-  HandleAlloc allocators[HT_MAX];
+  HandleAlloc allocators[HT_Count];
 
   Frame frames[2];
   Frame* renderFrame;
