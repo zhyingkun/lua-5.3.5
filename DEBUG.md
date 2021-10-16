@@ -1,6 +1,12 @@
 # Xcode 下调试 Lua 代码
 
-基本思路：需要断点停下来的时候，在对应 Lua 代码位置调用一下某个无副作用的 C 函数（如`debug.gethook()`），在 C 语言对应函数中加个断点，用 C 语言的断点来调试 Lua 虚拟机的上下文
+基本思路：在 IDE 中调试运行`lua`命令，并且加载 Debug 版的 cmod，进入 C 语言的调试环境！Lua 需要断点停下来的时候，在对应 Lua 代码位置调用一下某个无副作用的 C 函数（如`debug.gethook()`），在 C 语言对应函数中加个断点，用 C 语言的断点来调试 Lua 虚拟机的上下文
+
+## 准备调试环境
+
+1. 设置调试进程的`WorkingDirectory`为本工程的根目录
+2. 相对于`WorkingDirectory`，将入口脚本设置为调试参数
+3. 增加调试环境变量`LUA_INIT_5_3`，值为`@demo/scripts/debug.lua`（`LUA_INIT_5_3="@demo/scripts/debug.lua"`）
 
 ## 在命中 Xcode 断点的情况下，使用`call`指令调用如下函数来获取 LuaVM 信息
 

@@ -1,0 +1,29 @@
+local cmods = {
+	bcfx = true,
+	boolarray = true,
+	dir = true,
+	gb2312 = true,
+	glfwrap = true,
+	hello = true,
+	json = true,
+	lproc = true,
+	luasocket = true,
+	madwrap = true,
+	portaudio = true,
+	protobuf = true,
+	uvwrap = true,
+}
+
+local patterns = {
+	MacOSX = "buildXcode/cmod/%s/Debug/?.so;",
+	Windows = "buildVS/cmod/%s/Debug/?.dll;",
+	Linux = "build/cmod/%s/?.so;",
+}
+local pattern = patterns[os.sysname]
+
+local searchDirs = {}
+for cmod in pairs(cmods) do
+	table.insert(searchDirs, string.format(pattern, cmod))
+end
+
+package.cpath = table.concat(searchDirs) .. package.cpath
