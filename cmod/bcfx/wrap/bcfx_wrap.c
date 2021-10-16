@@ -77,37 +77,40 @@ static int BCWRAP_FUNCTION(createVertexLayout)(lua_State* L) {
   return 1;
 }
 static int BCWRAP_FUNCTION(createVertexBuffer)(lua_State* L) {
-  void* data = luaL_checklightuserdata(L, 1);
-  size_t sz = luaL_checkinteger(L, 2);
-  Handle layoutHandle = luaL_checkinteger(L, 3);
+  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  Handle layoutHandle = luaL_checkinteger(L, 2);
 
-  bcfx_MemBuffer mem[1];
-  mem->ptr = data;
-  mem->sz = sz;
-  Handle handle = bcfx_createVertexBuffer(mem, layoutHandle);
+  Handle handle = bcfx_createVertexBuffer(mb, layoutHandle);
+  SET_MEMBUFFER(mb, NULL, 0, AT_None, NULL, NULL); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
   lua_pushinteger(L, handle);
   return 1;
 }
 static int BCWRAP_FUNCTION(createIndexBuffer)(lua_State* L) {
-  void* data = luaL_checklightuserdata(L, 1);
-  size_t sz = luaL_checkinteger(L, 2);
+  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  if (mb->dt != DT_Uint8 &&
+      mb->dt != DT_Uint16 &&
+      mb->dt != DT_Uint32) {
+    return luaL_error(L, "index buffer only support Uint8/Uint16/Uint32");
+  }
 
-  bcfx_MemBuffer mem[1];
-  mem->ptr = data;
-  mem->sz = sz;
-  Handle handle = bcfx_createIndexBuffer(mem);
+  Handle handle = bcfx_createIndexBuffer(mb);
+  SET_MEMBUFFER(mb, NULL, 0, AT_None, NULL, NULL); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
   lua_pushinteger(L, handle);
   return 1;
 }
 static int BCWRAP_FUNCTION(createShader)(lua_State* L) {
-  size_t sz = 0;
-  void* data = (void*)luaL_checklstring(L, 1, &sz);
+  bcfx_MemBuffer buffer;
+  bcfx_MemBuffer* mb = &buffer;
+  if (lua_isstring(L, 1)) {
+    SET_MEMBUFFER(mb, NULL, 0, AT_None, NULL, NULL);
+    mb->ptr = (void*)lua_tolstring(L, 1, &mb->sz);
+  } else {
+    mb = luaL_checkmembuffer(L, 1);
+  }
   uint8_t type = (uint8_t)luaL_checkinteger(L, 2);
 
-  bcfx_MemBuffer mem[1];
-  mem->ptr = data;
-  mem->sz = sz;
-  Handle handle = bcfx_createShader(mem, (ShaderType)type);
+  Handle handle = bcfx_createShader(mb, (ShaderType)type);
+  SET_MEMBUFFER(mb, NULL, 0, AT_None, NULL, NULL); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
   lua_pushinteger(L, handle);
   return 1;
 }
@@ -173,41 +176,6 @@ static int BCWRAP_FUNCTION(destroy)(lua_State* L) {
     bcfx_destroy(handle);
   }
   return 0;
-}
-
-/* }====================================================== */
-
-/*
-** {======================================================
-** Wrap Utilities
-** =======================================================
-*/
-
-static int BCWRAP_FUNCTION(MakeFloatArray)(lua_State* L) {
-  luaL_checktype(L, 1, LUA_TTABLE);
-  size_t count = luaL_checkinteger(L, 2);
-  float* data = (float*)malloc(sizeof(float) * count);
-  for (size_t i = 0; i < count; i++) {
-    lua_rawgeti(L, 1, i + 1);
-    data[i] = lua_tonumber(L, -1);
-    lua_pop(L, 1);
-  }
-  lua_pushlightuserdata(L, (void*)data);
-  lua_pushinteger(L, sizeof(float) * count);
-  return 2;
-}
-static int BCWRAP_FUNCTION(MakeUintArray)(lua_State* L) {
-  luaL_checktype(L, 1, LUA_TTABLE);
-  size_t count = luaL_checkinteger(L, 2);
-  unsigned int* data = (unsigned int*)malloc(sizeof(unsigned int) * count);
-  for (size_t i = 0; i < count; i++) {
-    lua_rawgeti(L, 1, i + 1);
-    data[i] = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-  }
-  lua_pushlightuserdata(L, (void*)data);
-  lua_pushinteger(L, sizeof(int) * count);
-  return 2;
 }
 
 /* }====================================================== */
@@ -284,9 +252,6 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(submit),
     /* Create Render Resource */
     EMPLACE_BCWRAP_FUNCTION(destroy),
-    /* Wrap Utilities */
-    EMPLACE_BCWRAP_FUNCTION(MakeFloatArray),
-    EMPLACE_BCWRAP_FUNCTION(MakeUintArray),
 
     {NULL, NULL},
 };
@@ -301,6 +266,7 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
 
   (void)VL_FUNCTION(init_metatable)(L);
   (void)COLOR_FUNCTION(init)(L);
+  (void)MEMBUF_FUNCTION(init)(L);
 
   return 1;
 }

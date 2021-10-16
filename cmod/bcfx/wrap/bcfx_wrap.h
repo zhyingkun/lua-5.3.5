@@ -8,6 +8,13 @@
 #include <lua.h>
 #include <lauxlib.h>
 
+#ifdef _WIN32
+#include <malloc.h>
+#define alloca _alloca
+#else
+#include <alloca.h>
+#endif
+
 #include <bcfx.h>
 
 #define BCWRAP_FUNCTION(name) bcfx_wrap_##name
@@ -27,5 +34,19 @@ void VL_FUNCTION(init_metatable)(lua_State* L);
 #define COLOR_FUNCTION(name) bcfx_wrap_color_##name
 
 void COLOR_FUNCTION(init)(lua_State* L);
+
+#define MEMBUF_FUNCTION(name) bcfx_wrap_membuf_##name
+
+#define BCFX_MEMBUFFER_TYPE "bcfx_MemBuffer*"
+#define luaL_checkmembuffer(L, idx) (bcfx_MemBuffer*)luaL_checkudata(L, idx, BCFX_MEMBUFFER_TYPE)
+
+#define SET_MEMBUFFER(mb, ptr_, sz_, dt_, release_, ud_) \
+  mb->ptr = ptr_; \
+  mb->sz = sz_; \
+  mb->dt = dt_; \
+  mb->release = release_; \
+  mb->ud = ud_
+
+void MEMBUF_FUNCTION(init)(lua_State* L);
 
 #endif /* _BCFX_WRAP_H_ */
