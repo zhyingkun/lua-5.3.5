@@ -1,6 +1,30 @@
 #include <renderer.h>
 #include <bcfx_math.h>
 
+// According to bcfx_EDataType
+static GLenum data_glType[] = {
+    GL_NONE,
+    GL_UNSIGNED_BYTE,
+    GL_UNSIGNED_SHORT,
+    GL_UNSIGNED_INT,
+    GL_BYTE,
+    GL_SHORT,
+    GL_INT,
+    GL_HALF_FLOAT,
+    GL_FLOAT,
+    GL_NONE,
+};
+// According to bcfx_EAttribType
+static GLenum attrib_glType[] = {
+    GL_NONE,
+    GL_UNSIGNED_BYTE, // Uint8
+    GL_UNSIGNED_INT_10_10_10_2, // Uint10
+    GL_SHORT, // Int16
+    GL_HALF_FLOAT, // Half
+    GL_FLOAT, // Float
+    GL_NONE,
+};
+
 #ifndef NDEBUG
 static const char* err_EnumName(GLenum _enum) {
 #define GLENUM(e) \
@@ -185,6 +209,7 @@ static void prog_init(ProgramGL* prog) {
 typedef struct {
   GLuint id;
   GLsizei count;
+  GLenum type;
 } IndexBufferGL;
 typedef struct {
   GLuint id;
@@ -310,15 +335,18 @@ static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, const bcf
   GL_CHECK(glBindBuffer(vb->target, vb->id));
   GL_CHECK(glBufferData(vb->target, mem->sz, mem->ptr, GL_STATIC_DRAW));
   GL_CHECK(glBindBuffer(vb->target, 0));
+  RELEASE_MEMBUFFER(mem);
 }
 static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem, uint16_t flags) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
-  ib->count = mem->sz / sizeof(GLuint);
+  ib->count = mem->sz / sizeof_DataType[mem->dt];
+  ib->type = data_glType[mem->dt];
   GL_CHECK(glGenBuffers(1, &ib->id));
   GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
   GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mem->sz, mem->ptr, GL_STATIC_DRAW));
   GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+  RELEASE_MEMBUFFER(mem);
 }
 static void gl_createShader(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem, ShaderType type) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
@@ -340,6 +368,7 @@ static void gl_createShader(RendererContext* ctx, Handle handle, const bcfx_MemB
     GL_CHECK(glGetShaderInfoLog(shader->id, 1024, NULL, infoLog));
     printf_err("Shader compile error: %s\n", infoLog);
   }
+  RELEASE_MEMBUFFER(mem);
 }
 static void gl_createProgram(RendererContext* ctx, Handle handle, Handle vsh, Handle fsh) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
@@ -397,17 +426,24 @@ static void gl_MakeViewCurrent(RendererContextGL* glCtx, ViewId viewId, Frame* f
   }
 }
 static bcfx_VertexLayout* find_vertexLayout(RendererContextGL* glCtx, RenderDraw* draw, bcfx_EVertexAttrib attr, VertexBufferGL** pvb) {
+  bcfx_VertexLayout* target = NULL;
+  uint8_t stream = 0;
   for (uint8_t i = 0; i < BCFX_CONFIG_MAX_VERTEX_STREAMS; i++) {
     if (draw->streamMask & (1 << i)) {
       VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(draw->streams[i].vertexBuffer)];
       bcfx_VertexLayout* layout = &glCtx->vertexLayouts[handle_index(vb->layout)];
       if (layout->attributes[attr].num > 0) {
-        *pvb = vb;
-        return layout;
+        if (target == NULL) {
+          target = layout;
+          *pvb = vb;
+          stream = i;
+        } else {
+          printf_err("Duplicate binding for VertexAttribute: %d, stream: %d, previous stream: %d\n", (uint8_t)attr, i, stream);
+        }
       }
     }
   }
-  return NULL;
+  return target;
 }
 static void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw) {
   GLuint curId = 0;
@@ -425,13 +461,6 @@ static void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, 
       }
       GL_CHECK(glEnableVertexAttribArray(loc));
       uint8_t offset = layout->offset[attr];
-      static const GLenum attrib_glType[] = {
-          GL_UNSIGNED_BYTE, // Uint8
-          GL_UNSIGNED_INT_10_10_10_2, // Uint10
-          GL_SHORT, // Int16
-          GL_HALF_FLOAT, // Half
-          GL_FLOAT, // Float
-      };
       bcfx_Attrib* attrib = &layout->attributes[attr];
       GL_CHECK(glVertexAttribPointer(loc, attrib->num, attrib_glType[attrib->type], attrib->normal, layout->stride, (void*)(long)offset));
     }
@@ -463,7 +492,7 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
 
     gl_bindProgramAttributes(glCtx, prog, draw);
 
-    GL_CHECK(glDrawElements(GL_TRIANGLES, ib->count, GL_UNSIGNED_INT, 0));
+    GL_CHECK(glDrawElements(GL_TRIANGLES, ib->count, ib->type, 0));
   }
   gl_MakeWinCurrent(glCtx, NULL);
 }

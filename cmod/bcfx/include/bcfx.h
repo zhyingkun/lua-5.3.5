@@ -27,20 +27,49 @@
 
 #endif /* } */
 
+/* }====================================================== */
+
 /*
 ** {======================================================
 ** Memory Buffer, Using as value, not reference
 ** =======================================================
 */
 
+#define DATA_TYPE_MAP(XX) \
+  XX(Uint8, uint8_t) \
+  XX(Uint16, uint16_t) \
+  XX(Uint32, uint32_t) \
+  XX(Int8, int8_t) \
+  XX(Int16, int16_t) \
+  XX(Int32, int32_t)
+
+// clang-format off
+// WARNING: Change bcfx_EDataType must Update sizeof_DataType and data_glType
+typedef enum {
+  DT_None,
+#define XX(name, type) DT_##name,
+  DATA_TYPE_MAP(XX)
+#undef XX
+  DT_Half,
+  DT_Float,
+  DT_Count,
+} bcfx_EDataType;
+// clang-format on
+BCFX_API uint8_t sizeof_DataType[];
+
 typedef void (*bcfx_MemRelease)(void* ud, void* ptr);
 
 typedef struct {
   void* ptr;
   size_t sz;
+  bcfx_EDataType dt;
   bcfx_MemRelease release;
   void* ud;
 } bcfx_MemBuffer;
+
+#define RELEASE_MEMBUFFER(membuf) \
+  if (membuf->release) \
+  membuf->release(membuf->ud, membuf->ptr)
 
 /* }====================================================== */
 
@@ -72,7 +101,9 @@ typedef enum {
   VA_Count,
 } bcfx_EVertexAttrib;
 
+// WARNING: Change bcfx_EAttribType must Update sizeof_AttribType and attrib_glType
 typedef enum {
+  AT_None,
   AT_Uint8, //!< Uint8
   AT_Uint10, //!< Uint10
   AT_Int16, //!< Int16
@@ -80,6 +111,7 @@ typedef enum {
   AT_Float, //!< Float
   AT_Count,
 } bcfx_EAttribType;
+BCFX_API uint8_t sizeof_AttribType[];
 
 typedef struct {
   uint8_t normal : 1;
@@ -96,8 +128,6 @@ typedef struct {
 BCFX_API void bcfx_VL_init(bcfx_VertexLayout* layout);
 BCFX_API void bcfx_VL_add(bcfx_VertexLayout* layout, bcfx_EVertexAttrib attrib, uint8_t num, bcfx_EAttribType type, bool normalized);
 BCFX_API void bcfx_VL_skip(bcfx_VertexLayout* layout, uint8_t num_byte);
-
-/* }====================================================== */
 
 /* }====================================================== */
 
@@ -240,7 +270,7 @@ typedef enum {
   VM_Sequential,
   VM_DepthAscending,
   VM_DepthDescending,
-  VM_MAX,
+  VM_Count,
 } ViewMode;
 
 typedef uint16_t ViewId;

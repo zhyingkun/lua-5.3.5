@@ -3,11 +3,33 @@
 #include <common.h>
 #include <context.h>
 
+// clang-format off
+uint8_t sizeof_DataType[] = {
+    1,
+#define XX(name, type) sizeof(type),
+    DATA_TYPE_MAP(XX)
+#undef XX
+    2,
+    sizeof(float),
+    0,
+};
+// clang-format on
+
 /*
 ** {======================================================
 ** Vertex Layout
 ** =======================================================
 */
+
+uint8_t sizeof_AttribType[] = {
+    1,
+    sizeof(GLubyte), // GL_UNSIGNED_BYTE
+    sizeof(GLuint), // GL_UNSIGNED_INT_10_10_10_2
+    sizeof(GLshort), // GL_SHORT
+    sizeof(GLhalf), // GL_HALF_FLOAT
+    sizeof(GLfloat), // GL_FLOAT
+    0,
+};
 
 BCFX_API void bcfx_VL_init(bcfx_VertexLayout* layout) {
   memset((void*)layout, 0, sizeof(bcfx_VertexLayout));
@@ -19,13 +41,6 @@ BCFX_API void bcfx_VL_add(bcfx_VertexLayout* layout, bcfx_EVertexAttrib attrib, 
   att->type = type;
   att->normal = normalized;
   layout->offset[attrib] = layout->stride;
-  static uint8_t sizeof_AttribType[] = {
-      sizeof(GLubyte), // GL_UNSIGNED_BYTE
-      sizeof(GLuint), // GL_UNSIGNED_INT_10_10_10_2
-      sizeof(GLshort), // GL_SHORT
-      sizeof(GLhalf), // GL_HALF_FLOAT
-      sizeof(GLfloat), // GL_FLOAT
-  };
   layout->stride += sizeof_AttribType[type] * num;
 }
 
