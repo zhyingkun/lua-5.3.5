@@ -64,11 +64,11 @@ void vec_scale(Vec* src, float scale, Vec* dst) {
   }
 }
 
-float vec_dotProduct(Vec* src1, Vec* src2) {
-  assert(src1->count == src2->count);
+float vec_dotProduct(Vec* vec1, Vec* vec2) {
+  assert(vec1->count == vec2->count);
   float dot = 0.0;
-  for (uint8_t i = 0; i < src1->count; i++) {
-    dot += VEC_ELEMENT(src1, i) * VEC_ELEMENT(src2, i);
+  for (uint8_t i = 0; i < vec1->count; i++) {
+    dot += VEC_ELEMENT(vec1, i) * VEC_ELEMENT(vec2, i);
   }
   return dot;
 }
@@ -87,15 +87,15 @@ float vec_length(Vec* vec) {
   return sqrtf(squared);
 }
 
-float vec_distanceSquared(Vec* src1, Vec* src2) {
-  assert(src1->count == src2->count);
-  Vec* temp = (Vec*)alloca(VEC_SIZE(src1->count));
-  vec_subtract(src1, src2, temp);
+float vec_distanceSquared(Vec* vec1, Vec* vec2) {
+  assert(vec1->count == vec2->count);
+  Vec* temp = (Vec*)alloca(VEC_SIZE(vec1->count));
+  vec_subtract(vec1, vec2, temp);
   return vec_lengthSquared(temp);
 }
 
-float vec_distance(Vec* src1, Vec* src2) {
-  float squared = vec_distanceSquared(src1, src2);
+float vec_distance(Vec* vec1, Vec* vec2) {
+  float squared = vec_distanceSquared(vec1, vec2);
   return sqrtf(squared);
 }
 

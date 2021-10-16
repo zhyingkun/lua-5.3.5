@@ -62,6 +62,16 @@ void mat_subtract(Mat* src1, Mat* src2, Mat* dst) {
   }
 }
 
+void mat_scale(Mat* src, float scale, Mat* dst) {
+  assert(src->row == dst->row &&
+         src->col == dst->col);
+  for (uint8_t i = 0; i < dst->row; i++) {
+    for (uint8_t j = 0; j < dst->col; j++) {
+      MAT_ELEMENT(dst, i, j) = MAT_ELEMENT(src, i, j) * scale;
+    }
+  }
+}
+
 void mat_componentWiseProduct(Mat* src1, Mat* src2, Mat* dst) {
   assert(src1->row == src2->row &&
          src1->row == dst->row &&
