@@ -1,3 +1,5 @@
+package.path = "demo/triangle/?.lua;" .. package.path
+
 local libuv = require("libuv")
 local thread = libuv.thread
 local sem = thread.sem
