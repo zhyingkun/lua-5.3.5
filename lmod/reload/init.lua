@@ -167,7 +167,9 @@ local sandbox = (function()
 		local function get_G(dummy) -- will get the global value for that dummy object (maybe any value type)
 			local k = dummy_global_cache[dummy] -- the key: a.b.c
 			local G = _G
-			for w in string.gmatch(k, "[_%a]%w*") do
+			-- %a means all alphabet, contains upper and lower
+			-- %w means all alphabet and digital
+			for w in string.gmatch(k, "[_%a][_%w]*") do
 				if G == nil then
 					-- error(string.format("Invalid global: %s", k))
 					return nil
@@ -179,13 +181,13 @@ local sandbox = (function()
 		local function get_M(dummy) -- get the module for that dummy object (maybe any value type)
 			local k = dummy_module_cache[dummy]
 			local M = debug.getregistry()._LOADED
-			local from, to, name = string.find(k, "^%[([_%w][_.%w]*)%]")
+			local from, to, name = string.find(k, "^%[([_%a][_.%w]*)%]")
 			if not from then
 				-- error(string.format("Invalid module: %s", k))
 				return nil
 			end
 			local mod = assert(M[name])
-			for w in string.gmatch(k:sub(to+1), "[_%a]%w*") do
+			for w in string.gmatch(k:sub(to+1), "[_%a][_%w]*") do
 				if mod == nil then
 					-- error(string.format("Invalid module key: %s", k))
 					return nil
@@ -242,7 +244,7 @@ local enum_tbl_func_dummy = (function()
 		insert(obj_path_list, {func, table.unpack(path)})
 		for idx, name, value in debug.upvalues(func) do
 			if name == "" then break end -- c closure
-			if not name:find("^[_%w]") then
+			if not name:find("^[_%a]") then
 				error("Invalid upvalue: " .. table.concat(path, "."))
 			end
 			local t = type(value) -- type of value
