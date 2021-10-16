@@ -6,6 +6,8 @@ local clear_flag = bcfx.clear_flag
 local vertex_attrib = bcfx.vertex_attrib
 local attrib_type = bcfx.attrib_type
 local shader_type = bcfx.shader_type
+local membuf = bcfx.membuf
+local data_type = membuf.data_type
 
 local FrameRate = 0.0
 local function GetFrameRate()
@@ -46,8 +48,8 @@ local function CreateVertexBuffer()
 		0.8, -0.8, 0.0,
 		0.0, 0.8, 0.0,
 	}
-	local ptr, sz = bcfx.MakeFloatArray(vertexTbl, #vertexTbl)
-	local vertexHandle = bcfx.createVertexBuffer(ptr, sz, layoutHandle)
+	local mem = membuf.MakeMemoryBuffer(data_type.Float, vertexTbl)
+	local vertexHandle = bcfx.createVertexBuffer(mem, layoutHandle)
 	return layout, layoutHandle, vertexHandle
 end
 local function CreateColorBuffer()
@@ -59,16 +61,16 @@ local function CreateColorBuffer()
 		0.0, 1.0, 0.0,
 		0.0, 0.0, 1.0,
 	}
-	local ptr, sz = bcfx.MakeFloatArray(colorTbl, #colorTbl)
-	local colorHandle = bcfx.createVertexBuffer(ptr, sz, layoutHandle)
+	local mem = membuf.MakeMemoryBuffer(data_type.Float, colorTbl)
+	local colorHandle = bcfx.createVertexBuffer(mem, layoutHandle)
 	return layout, layoutHandle, colorHandle
 end
 local function CreateIndexBuffer()
 	local indexTbl = {
 		0, 1, 2,
 	}
-	local ptr, sz = bcfx.MakeUintArray(indexTbl, #indexTbl)
-	local idxHandle = bcfx.createIndexBuffer(ptr, sz)
+	local mem = membuf.MakeMemoryBuffer(data_type.Uint8, indexTbl)
+	local idxHandle = bcfx.createIndexBuffer(mem)
 	return idxHandle
 end
 
@@ -137,8 +139,7 @@ local colorHandle
 local idxHandle
 local shaderProgramHandle
 
-local COLOR
-
+local timer
 local function setup(mainWin)
 	layout, layoutHandle, vertexHandle = CreateVertexBuffer()
 	colorLayout, colorLayoutHandle, colorHandle = CreateColorBuffer()
@@ -158,8 +159,6 @@ local function setup(mainWin)
 	timer:start(function()
 		print_err("FrameRate:", GetFrameRate())
 	end, 1000, 1000)
-
-	COLOR = clear_flag.COLOR
 end
 
 local function tick(delta)
@@ -181,7 +180,7 @@ local function tick(delta)
 	bcfx.submit(2, shaderProgramHandle)
 
 	local color = bcfx.color.pack(255, 255, 0, 255)
-	bcfx.setViewClear(2, COLOR, color, 0.0, 0)
+	bcfx.setViewClear(2, clear_flag.COLOR, color, 0.0, 0)
 end
 
 return {

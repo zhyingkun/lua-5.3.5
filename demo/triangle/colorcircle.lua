@@ -7,6 +7,8 @@ local vertex_attrib = bcfx.vertex_attrib
 local attrib_type = bcfx.attrib_type
 local shader_type = bcfx.shader_type
 local color = bcfx.color
+local membuf = bcfx.membuf
+local data_type = membuf.data_type
 
 
 local vsStr = [[
@@ -39,32 +41,35 @@ function GenerateColorCircle(radius)
 		"fuchsia", "magenta", "purple", "blue",
 		"indigo", "cyan", "turquoise", "green",
 	}
-	local vertex = {0.0, 0.0, 1.0, 1.0, 1.0}
-	local indices = {}
-	local insert = table.insert
-	for i = 1, 12, 1 do
-		local theta = math.rad((i - 1) * 30)
-		local x = radius * math.cos(theta)
-		local y = radius * math.sin(theta)
-		insert(vertex, x)
-		insert(vertex, y)
-		local r, g, b = color.unpackf(color[ColorDefine[i]])
-		insert(vertex, r)
-		insert(vertex, g)
-		insert(vertex, b)
-		insert(indices, 0)
-		insert(indices, i)
-		insert(indices, i % 12 + 1)
-	end
+
 	local layout = bcfx.vertexlayout.new()
 	layout:add(vertex_attrib.Position, 2, attrib_type.Float, false)
 	layout:add(vertex_attrib.Color0, 3, attrib_type.Float, false)
 	local layoutHandle = bcfx.createVertexLayout(layout)
-	local ptr, sz = bcfx.MakeFloatArray(vertex, #vertex)
-	local vertexHandle = bcfx.createVertexBuffer(ptr, sz, layoutHandle)
 
-	local ptr, sz = bcfx.MakeUintArray(indices, #indices)
-	local idxHandle = bcfx.createIndexBuffer(ptr, sz)
+	local mem = membuf.MakeMemoryBuffer(data_type.Float, coroutine.wrap(function()
+		coroutine.yield(0.0, 0.0)
+		for i = 1, 12, 1 do
+			local theta = math.rad((i - 1) * 30)
+			local x = radius * math.cos(theta)
+			local y = radius * math.sin(theta)
+			coroutine.yield(x, y)
+		end
+	end), data_type.Float, coroutine.wrap(function()
+		coroutine.yield(1.0, 1.0, 1.0)
+		for i = 1, 12, 1 do
+			local r, g, b = color.unpackf(color[ColorDefine[i]])
+			coroutine.yield(r, g, b)
+		end
+	end))
+	local vertexHandle = bcfx.createVertexBuffer(mem, layoutHandle)
+
+	local mem = membuf.MakeMemoryBuffer(data_type.Uint8, coroutine.wrap(function()
+		for i = 1, 12, 1 do
+			coroutine.yield(0, i, i % 12 + 1)
+		end
+	end))
+	local idxHandle = bcfx.createIndexBuffer(mem)
 
 	local vertexShaderHandle = bcfx.createShader(vsStr, shader_type.Vertex)
 	local fragmentShaderHandle = bcfx.createShader(fsStr, shader_type.Fragment)
