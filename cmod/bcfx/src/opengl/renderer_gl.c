@@ -211,19 +211,12 @@ static bcfx_EUniformBuiltin findUniformBuiltinEnum(const char* name) {
   }
   return UB_Count;
 }
-
-static void prog_init(ProgramGL* prog) {
+static void prog_collectAttributes(ProgramGL* prog) {
   GLint activeAttribs = 0;
-  GLint activeUniforms = 0;
   GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_ATTRIBUTES, &activeAttribs));
-  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_UNIFORMS, &activeUniforms));
-
-  GLint max0, max1;
-  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &max0));
-  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &max1));
-  uint32_t maxLength = MAX(max0, max1);
+  GLint maxLength = 0;
+  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxLength));
   char* name = (char*)alloca(maxLength + 1);
-
   uint8_t cnt = 0;
   PredefinedAttrib* pa = &prog->pa;
   for (GLint i = 0; i < activeAttribs; i++) {
@@ -241,7 +234,14 @@ static void prog_init(ProgramGL* prog) {
     }
   }
   pa->usedCount = cnt;
-  cnt = 0;
+}
+static void prog_collectUniforms(ProgramGL* prog) {
+  GLint activeUniforms = 0;
+  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_UNIFORMS, &activeUniforms));
+  GLint maxLength = 0;
+  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxLength));
+  char* name = (char*)alloca(maxLength + 1);
+  uint8_t cnt = 0;
   PredefinedUniform* pu = &prog->pu;
   for (GLint i = 0; i < activeUniforms; i++) {
     GLenum gltype;
@@ -446,7 +446,8 @@ static void gl_createProgram(RendererContext* ctx, Handle handle, Handle vsh, Ha
     printf_err("Shader program link error: %s\n", infoLog);
     return;
   }
-  prog_init(prog);
+  prog_collectAttributes(prog);
+  prog_collectUniforms(prog);
 }
 
 static void gl_MakeViewCurrent(RendererContextGL* glCtx, ViewId viewId, Frame* frame) {
