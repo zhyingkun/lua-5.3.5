@@ -155,7 +155,7 @@ local function setup(mainWin)
 	SetupViewHalf(1, mainWin, pixelw / 2, pixelh / 2)
 	SetupAnotherView(2, mainWin)
 
-	local timer = libuv.timer.new()
+	timer = libuv.timer.new()
 	timer:start(function()
 		print_err("FrameRate:", GetFrameRate())
 	end, 1000, 1000)
