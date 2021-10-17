@@ -16,7 +16,7 @@ local cmods = {
 
 local patterns = {
 	MacOSX = "buildXcode/cmod/%s/Debug/?.so;",
-	Windows = "buildVS/cmod/%s/Debug/?.dll;",
+	Windows = [[buildVS\cmod\%s\Debug\?.dll;]],
 	Linux = "build/cmod/%s/?.so;",
 }
 local pattern = patterns[os.sysname]
@@ -27,3 +27,8 @@ for cmod in pairs(cmods) do
 end
 
 package.cpath = table.concat(searchDirs) .. package.cpath
+
+local lmodpath = "lmod"
+local path1 = lmodpath / "?.lua"
+local path2 = lmodpath / "?" / "init.lua"
+package.path = path1 .. ";" .. path2 .. ";" .. package.path
