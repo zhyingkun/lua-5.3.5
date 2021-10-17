@@ -279,6 +279,7 @@ BCFX_API void bcfx_setViewWindow(ViewId id, Window win);
 BCFX_API void bcfx_setViewFrameBuffer(ViewId id, Handle handle);
 
 BCFX_API void bcfx_setViewClear(ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil);
+// rect: origin is LeftBottom, x towards right, y towards top, unit is pixel
 BCFX_API void bcfx_setViewClearRect(ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 BCFX_API void bcfx_setViewRect(ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 BCFX_API void bcfx_setViewScissor(ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);

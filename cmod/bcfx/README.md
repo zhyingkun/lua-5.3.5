@@ -44,6 +44,7 @@
 1. glViewport 指定的是后续 DrawCall 中 NDC 映射过来对应的 FrameBuffer 大小（左下角为原点，X 正向右，Y 正向上，单位是像素）
 2. glScissor 指定的是渲染裁剪框，glEnable 了 GL_SCISSOR_TEST 之后，只有在这个方框内的像素会被修改（左下角为原点，X 正向右，Y 正向上，单位是像素）
 3. glClear 本质是一个修改 FrameBuffer 像素数据的操作，默认是 Clear 整个 FrameBuffer，受 Scissor 控制
+4. glfw 处理的窗口事件中，给到的坐标是基于屏幕坐标（不是像素坐标），并且，左上角为原点，X 正向右，Y 正向下。因此要注意，传递给 OpenGL/BCFX 的坐标需要使用 FrameBufferSize 之类的像素版本，并且，处理原点和 Y 正方向不一致的问题
 
 ## 关于色环
 
