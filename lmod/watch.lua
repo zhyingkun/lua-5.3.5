@@ -4,6 +4,7 @@ local OK = libuv.err_code.OK
 local CHANGE = fs_event.event_type.CHANGE
 local RENAME = fs_event.event_type.RENAME
 local RECURSIVE = fs_event.event_flag.RECURSIVE
+local sys = libuv.sys
 
 local reload = require("reload").reload
 
@@ -27,15 +28,26 @@ local function watch(mod_name, callback)
 		error_msg("Error Could not find lua module: %s", mod_name)
 	end
 	if cache_handles[mod_name] then return end
+	local last_time = sys.hrtime()
+	local function skip()
+		local now = sys.hrtime()
+		if now > last_time and now - last_time < 100000000 then
+			return true
+		end
+		last_time = now
+		return false
+	end
 	local handle = fs_event.new()
 	handle:start(function(filename, events, status)
 		if status == OK then
 			if events & CHANGE ~= 0 then
-				local ok, msg = reload(mod_name)
-				if ok then
-					print_err("reload succeed:", mod_name)
-				else
-					print_err("reload failed:", mod_name, msg)
+				if not skip() then
+					local ok, msg = reload(mod_name)
+					if ok then
+						print_err("reload succeed:", mod_name)
+					else
+						print_err("reload failed:", mod_name, msg)
+					end
 				end
 			elseif events & RENAME ~= 0 then
 				error_msg("Error RENAME filepath: %s, filename: %s", filepath, filename)
