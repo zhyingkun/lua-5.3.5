@@ -28,8 +28,14 @@ typedef enum {
 typedef struct {
   Window mainWin;
 } CmdInit;
+typedef void (*ReleaseVertexLayout)(void* ud, bcfx_VertexLayout* layout);
+#define RELEASE_VERCTX_LAYOUT(cvl) \
+  if ((cvl)->release) \
+  (cvl)->release((cvl)->ud, (cvl)->layout)
 typedef struct {
   bcfx_VertexLayout* layout;
+  ReleaseVertexLayout release;
+  void* ud;
 } CmdVertexLayout;
 typedef struct {
   Handle layoutHandle;

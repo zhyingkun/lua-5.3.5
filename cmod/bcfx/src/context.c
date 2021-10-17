@@ -61,6 +61,7 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
         break;
       case CT_CreateVertexLayout:
         CALL_RENDERER(createVertexLayout, cmd->handle, param->cvl.layout);
+        RELEASE_VERCTX_LAYOUT(&param->cvl);
         break;
       case CT_CreateIndexBuffer:
         CALL_RENDERER(createIndexBuffer, cmd->handle, &param->cib.mem, 0);
@@ -188,9 +189,17 @@ void ctx_shutdowm(Context* ctx) {
   Handle handle = HANDLE_ALLOC(name); \
   CommandParam* param = ctx_addCommand(ctx, CT_Create##name, handle);
 
+static void ctx_releaseVertexLayout(void* ud, bcfx_VertexLayout* layout) {
+  (void)ud;
+  mem_free((void*)layout);
+}
 Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout) {
   ADD_CMD_ALLOC_HANDLE(ctx, VertexLayout)
-  param->cvl.layout = layout;
+  bcfx_VertexLayout* ly = (bcfx_VertexLayout*)mem_malloc(sizeof(bcfx_VertexLayout));
+  memcpy(ly, layout, sizeof(bcfx_VertexLayout));
+  param->cvl.layout = ly;
+  param->cvl.release = ctx_releaseVertexLayout;
+  param->cvl.ud = NULL;
   return handle;
 }
 
