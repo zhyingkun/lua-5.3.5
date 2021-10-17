@@ -4,7 +4,7 @@
 
 1. 设置调试进程的`WorkingDirectory`为本工程的根目录
 2. 相对于`WorkingDirectory`，将入口脚本设置为调试参数
-3. 增加调试环境变量`LUA_INIT_5_3`，值为`@demo/scripts/debug.lua`（Windows 下是`"LUA_INIT_5_3=@demo/scripts/debug.lua"`）
+3. 增加调试环境变量`LUA_INIT_5_3`，值为`@demo/scripts/debug.lua`（Windows 下是`LUA_INIT_5_3=@demo/scripts/debug.lua`）
 
 ## Xcode 下调试 Lua 代码
 
