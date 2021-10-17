@@ -87,6 +87,7 @@ while not glfw.WindowShouldClose(window) do
 	colorcircle.tick(delta)
 
 	bcfx.apiFrame()
+	collectgarbage()
 end
 
 -- libuv.repl_stop()
