@@ -48,4 +48,20 @@
 
 #define printf_err(...) (fprintf(stderr, ##__VA_ARGS__), fflush(stderr))
 
+typedef enum {
+  UB_ViewRect,
+  UB_ViewTexel,
+  UB_View,
+  UB_InvView,
+  UB_Proj,
+  UB_InvProj,
+  UB_ViewProj,
+  UB_InvViewProj,
+  UB_Model,
+  UB_ModelView,
+  UB_ModelViewProj,
+  UB_AlphaRef,
+  UB_Count,
+} bcfx_EUniformBuiltin;
+
 #endif /* _COMMON_H_ */

@@ -141,10 +141,21 @@ static const char* glslTypeName(GLuint type) {
 }
 
 typedef struct {
-  GLuint id;
   uint8_t usedCount;
   uint8_t used[VA_Count]; // Dense.
-  GLint attributes[VA_Count]; // Sparse.
+  GLint attributes[VA_Count]; // Sparse. AttribType => Location
+} PredefinedAttrib;
+typedef struct {
+  uint8_t usedCount;
+  uint8_t used[UB_Count]; // Dense.
+  GLint uniforms[UB_Count]; // Sparse. UniformBuiltin => Location
+  uint16_t counts[UB_Count]; // Sparse.
+  GLenum glTypes[UB_Count]; // Sparse.
+} PredefinedUniform;
+typedef struct {
+  GLuint id;
+  PredefinedAttrib pa;
+  PredefinedUniform pu;
 } ProgramGL;
 
 static const char* attribNames[] = {
@@ -166,7 +177,40 @@ static const char* attribNames[] = {
     "a_texcoord5",
     "a_texcoord6",
     "a_texcoord7",
+    NULL,
 };
+static bcfx_EVertexAttrib findVertexAttributeEnum(const char* name) {
+  for (uint8_t i = 0; attribNames[i] != NULL; i++) {
+    if (strcmp(attribNames[i], name) == 0) {
+      return (bcfx_EVertexAttrib)i;
+    }
+  }
+  return VA_Count;
+}
+
+static const char* uniformNames[] = {
+    "u_viewRect",
+    "u_viewTexel",
+    "u_view",
+    "u_invView",
+    "u_proj",
+    "u_invProj",
+    "u_viewProj",
+    "u_invViewProj",
+    "u_model",
+    "u_modelView",
+    "u_modelViewProj",
+    "u_alphaRef4",
+    NULL,
+};
+static bcfx_EUniformBuiltin findUniformBuiltinEnum(const char* name) {
+  for (uint8_t i = 0; uniformNames[i] != NULL; i++) {
+    if (strcmp(attribNames[i], name) == 0) {
+      return (bcfx_EUniformBuiltin)i;
+    }
+  }
+  return UB_Count;
+}
 
 static void prog_init(ProgramGL* prog) {
   GLint activeAttribs = 0;
@@ -180,28 +224,42 @@ static void prog_init(ProgramGL* prog) {
   uint32_t maxLength = MAX(max0, max1);
   char* name = (char*)alloca(maxLength + 1);
 
+  uint8_t cnt = 0;
+  PredefinedAttrib* pa = &prog->pa;
   for (GLint i = 0; i < activeAttribs; i++) {
     GLint size;
     GLenum type = 0;
     GL_CHECK(glGetActiveAttrib(prog->id, i, maxLength + 1, NULL, &size, &type, name));
-    printf_err("Attribute %s %s is at location %d\n", glslTypeName(type), name, glGetAttribLocation(prog->id, name));
+    // printf_err("Attribute %s %s is at location %d\n", glslTypeName(type), name, glGetAttribLocation(prog->id, name));
+    bcfx_EVertexAttrib eva = findVertexAttributeEnum(name);
+    if (eva != VA_Count) {
+      GLint loc = glGetAttribLocation(prog->id, name);
+      assert(loc != -1);
+      pa->used[cnt] = eva;
+      pa->attributes[eva] = loc;
+      cnt++;
+    }
   }
+  pa->usedCount = cnt;
+  cnt = 0;
+  PredefinedUniform* pu = &prog->pu;
   for (GLint i = 0; i < activeUniforms; i++) {
     GLenum gltype;
     GLint num;
     GL_CHECK(glGetActiveUniform(prog->id, i, maxLength + 1, NULL, &num, &gltype, name));
-    GLint loc = glGetUniformLocation(prog->id, name);
-    printf_err("Uniform %s %s is at location %d, size %d\n", glslTypeName(gltype), name, loc, num);
-  }
-  uint8_t cnt = 0;
-  for (uint8_t i = 0; i < VA_Count; i++) {
-    GLint loc = glGetAttribLocation(prog->id, attribNames[i]);
-    if (-1 != loc) {
-      prog->attributes[i] = loc;
-      prog->used[cnt++] = i;
+    // printf_err("Uniform %s %s is at location %d, size %d\n", glslTypeName(gltype), name, glGetUniformLocation(prog->id, name), num);
+    bcfx_EUniformBuiltin eub = findUniformBuiltinEnum(name);
+    if (eub != UB_Count) {
+      GLint loc = glGetUniformLocation(prog->id, name);
+      assert(loc != -1);
+      pu->used[cnt] = eub;
+      pu->uniforms[eub] = loc;
+      pu->counts[eub] = num;
+      pu->glTypes[eub] = gltype;
+      cnt++;
     }
   }
-  prog->usedCount = cnt;
+  pu->usedCount = cnt;
 }
 
 /* }====================================================== */
@@ -447,9 +505,10 @@ static bcfx_VertexLayout* find_vertexLayout(RendererContextGL* glCtx, RenderDraw
 }
 static void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw) {
   GLuint curId = 0;
-  for (uint8_t i = 0; i < prog->usedCount; i++) {
-    bcfx_EVertexAttrib attr = (bcfx_EVertexAttrib)prog->used[i];
-    GLint loc = prog->attributes[attr];
+  PredefinedAttrib* pa = &prog->pa;
+  for (uint8_t i = 0; i < pa->usedCount; i++) {
+    bcfx_EVertexAttrib attr = (bcfx_EVertexAttrib)pa->used[i];
+    GLint loc = pa->attributes[attr];
     VertexBufferGL* vb = NULL;
     bcfx_VertexLayout* layout = find_vertexLayout(glCtx, draw, attr, &vb);
     if (layout == NULL) {
