@@ -69,6 +69,7 @@ local colorcircle = require("colorcircle")
 colorcircle.setup(window)
 
 require("watch").watch("triangle")
+require("watch").watch("colorcircle")
 
 local lastTime = 0.0
 while not glfw.WindowShouldClose(window) do

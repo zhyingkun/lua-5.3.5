@@ -35,7 +35,7 @@ void main() {
 }
 ]]
 
-function GenerateColorCircle(radius)
+local function GenerateColorCircle(radius)
 	local ColorDefine = {
 		"chartreuse", "yellow", "orange", "red",
 		"fuchsia", "magenta", "purple", "blue",
