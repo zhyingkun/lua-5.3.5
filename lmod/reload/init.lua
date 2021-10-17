@@ -402,7 +402,7 @@ local function patch_funcs_upvalue(newID2oldUV, newFunc2oldFunc)
 			local oldUV = newID2oldUV[id]
 			if oldUV then
 				debug.upvaluejoin(newFunc, idx, oldUV.old_func, oldUV.old_idx)
-				if value and type(value) ~= "table" then
+				if value ~= nil and type(value) ~= "table" then
 					debug.setupvalue(newFunc, idx, value)
 				end
 			end
