@@ -32,6 +32,7 @@ void g3d_rotate(float theta, Vec3* axis, Mat4x4* mat) {
   float sinTheta = sinf(rad);
   MAT_IDENTITY(mat);
   MAT_SCALE(mat, cosTheta, mat);
+  MAT_ELEMENT(mat, 3, 3) = 1.0;
 
   Mat4x4 matCA[1];
   mat4x4_init(matCA);
@@ -42,7 +43,7 @@ void g3d_rotate(float theta, Vec3* axis, Mat4x4* mat) {
   MAT_ELEMENT(matCA, 1, 2) = -VEC3_X(A);
   MAT_ELEMENT(matCA, 2, 0) = -VEC3_Y(A);
   MAT_ELEMENT(matCA, 2, 1) = VEC3_X(A);
-  MAT_ELEMENT(matCA, 3, 3) = 1.0;
+  MAT_ELEMENT(matCA, 3, 3) = 0.0;
   MAT_SCALE(matCA, sinTheta, matCA);
   MAT_ADD(mat, matCA, mat);
 
@@ -56,7 +57,7 @@ void g3d_rotate(float theta, Vec3* axis, Mat4x4* mat) {
   MAT_ELEMENT(matCA, 2, 0) = VEC3_Z(A) * VEC3_X(A);
   MAT_ELEMENT(matCA, 2, 1) = VEC3_Z(A) * VEC3_Y(A);
   MAT_ELEMENT(matCA, 2, 2) = VEC3_Z(A) * VEC3_Z(A);
-  MAT_ELEMENT(matCA, 3, 3) = 1.0;
+  MAT_ELEMENT(matCA, 3, 3) = 0.0;
   MAT_SCALE(matCA, 1 - cosTheta, matCA);
   MAT_ADD(mat, matCA, mat);
 }
