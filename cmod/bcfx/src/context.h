@@ -61,6 +61,7 @@ void ctx_resetView(Context* ctx, ViewId id);
 
 void ctx_setVertexBuffer(Context* ctx, uint8_t stream, Handle handle);
 void ctx_setIndexBuffer(Context* ctx, Handle handle);
+void ctx_setTransform(Context* ctx, Mat4x4* mat);
 void ctx_submit(Context* ctx, ViewId id, Handle handle);
 
 /* }====================================================== */

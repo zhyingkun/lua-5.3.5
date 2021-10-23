@@ -298,6 +298,7 @@ BCFX_API void bcfx_resetView(ViewId id);
 
 BCFX_API void bcfx_setVertexBuffer(uint8_t stream, Handle handle);
 BCFX_API void bcfx_setIndexBuffer(Handle handle);
+BCFX_API void bcfx_setTransform(Mat4x4* mat);
 
 BCFX_API void bcfx_submit(ViewId id, Handle handle);
 

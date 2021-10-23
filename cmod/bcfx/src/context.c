@@ -324,6 +324,9 @@ void ctx_setIndexBuffer(Context* ctx, Handle handle) {
   encoder_setIndexBuffer(ctx->encoder, handle);
 }
 
+void ctx_setTransform(Context* ctx, Mat4x4* mat) {
+}
+
 void ctx_submit(Context* ctx, ViewId id, Handle handle) {
   CHECK_VIEWID(id);
   CHECK_HANDLE(handle);

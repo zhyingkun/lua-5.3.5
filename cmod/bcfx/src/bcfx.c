@@ -36,6 +36,7 @@ BCFX_API void bcfx_VL_init(bcfx_VertexLayout* layout) {
 }
 
 BCFX_API void bcfx_VL_add(bcfx_VertexLayout* layout, bcfx_EVertexAttrib attrib, uint8_t num, bcfx_EAttribType type, bool normalized) {
+  assert(num >= 1 && num <= 4);
   bcfx_Attrib* att = &layout->attributes[attrib];
   att->num = num;
   att->type = type;
@@ -168,6 +169,10 @@ BCFX_API void bcfx_setVertexBuffer(uint8_t stream, Handle handle) {
 
 BCFX_API void bcfx_setIndexBuffer(Handle handle) {
   ctx_setIndexBuffer(s_ctx, handle);
+}
+
+BCFX_API void bcfx_setTransform(Mat4x4* mat) {
+  ctx_setTransform(s_ctx, mat);
 }
 
 BCFX_API void bcfx_submit(ViewId id, Handle handle) {
