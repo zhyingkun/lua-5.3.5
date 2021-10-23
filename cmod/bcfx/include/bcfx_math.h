@@ -64,7 +64,7 @@ void mat_transpose(Mat* src, Mat* dst);
 void mat_copy(Mat* src, Mat* dst);
 float mat_determinant(Mat* mat);
 void mat_adjoint(Mat* src, Mat* dst);
-void mat_inverse(Mat* src, Mat* dst);
+bool mat_inverse(Mat* src, Mat* dst);
 
 typedef struct {
   Mat mat;
@@ -88,6 +88,7 @@ typedef struct {
 
 #define VEC_SIZE(cnt) (sizeof(Vec) + ((cnt)-1) * sizeof(float))
 #define VEC_ELEMENT(vec, i) (((Vec*)vec)->element[i])
+#define VEC_COUNT(vec) (((Vec*)vec)->count)
 
 #define VEC_SET(vec, i, value) vec_set((Vec*)vec, i, value)
 #define VEC_GET(vec, i) vec_get((Vec*)vec, i)

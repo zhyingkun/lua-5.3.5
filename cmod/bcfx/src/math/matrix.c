@@ -196,14 +196,13 @@ void mat_adjoint(Mat* src, Mat* dst) {
   }
 }
 
-void mat_inverse(Mat* src, Mat* dst) {
+bool mat_inverse(Mat* src, Mat* dst) {
   assert(src->row == src->col &&
          src->row == dst->row &&
          src->col == dst->col);
   float det = mat_determinant(src);
   if (EQUAL(det, 0.0)) {
-    mat_zero(dst);
-    return;
+    return false;
   }
   Mat* adjoint = (Mat*)alloca(MAT_SIZE(src->row, src->col));
   mat_init(adjoint, src->row, src->col);
@@ -213,6 +212,7 @@ void mat_inverse(Mat* src, Mat* dst) {
       MAT_ELEMENT(dst, i, j) = MAT_ELEMENT(adjoint, i, j) / det;
     }
   }
+  return true;
 }
 
 /* }====================================================== */

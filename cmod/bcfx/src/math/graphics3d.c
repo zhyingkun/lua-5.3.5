@@ -1,6 +1,12 @@
 #include <common.h>
 
 void g3d_translate(Vec3* vec, Mat4x4* mat) {
+  MAT_IDENTITY(mat);
+#define SET_TRANSLATE(idx) MAT_ELEMENT(mat, idx, 3) = VEC_ELEMENT(vec, idx)
+  SET_TRANSLATE(0);
+  SET_TRANSLATE(1);
+  SET_TRANSLATE(2);
+#undef SET_TRANSLATE
 }
 
 // 'theta' are in degree, not radian
@@ -56,6 +62,13 @@ void g3d_rotate(float theta, Vec3* axis, Mat4x4* mat) {
 }
 
 void g3d_scale(Vec3* vec, Mat4x4* mat) {
+#define SET_SCALE(idx) MAT_ELEMENT(mat, idx, idx) = VEC_ELEMENT(vec, idx)
+  MAT_ZERO(mat);
+  SET_SCALE(0);
+  SET_SCALE(1);
+  SET_SCALE(2);
+  MAT_ELEMENT(mat, 3, 3) = 1.0;
+#undef SET_SCALE
 }
 
 void g3d_perspective(float fovy, float aspect, float zNear, float zFar, Mat4x4* mat) {
