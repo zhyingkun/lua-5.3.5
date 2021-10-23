@@ -173,7 +173,7 @@ void ctx_init(Context* ctx, Window mainWin) {
 
 void ctx_shutdowm(Context* ctx) {
   ctx->running = false;
-  ctx_apiFrame(ctx); // another frame for fire render thread to exit
+  ctx_apiSemPost(ctx); // maybe render thread waiting for api sem, fire render thread to exit
   thread_join(ctx->renderThread); // Wait render thread to exit
 }
 
