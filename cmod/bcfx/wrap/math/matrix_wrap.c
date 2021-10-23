@@ -18,7 +18,7 @@ Mat4x4* luaL_checkmat4x4(lua_State* L, int idx) {
 Mat* luaL_newmatrix(lua_State* L, uint8_t row, uint8_t col) {
   Mat* mat = (Mat*)lua_newuserdata(L, MAT_SIZE(row, col));
   luaL_setmetatable(L, BCFX_MATRIX_TYPE);
-  mat_init(mat, row, col);
+  MAT_INIT(mat, row, col);
   return mat;
 }
 
@@ -27,7 +27,7 @@ static int MATRIX_FUNCTION(set)(lua_State* L) {
   uint8_t row = luaL_checkinteger(L, 2);
   uint8_t col = luaL_checkinteger(L, 3);
   float value = luaL_checknumber(L, 4);
-  mat_set(mat, row, col, value);
+  MAT_SET(mat, row, col, value);
   return 0;
 }
 
@@ -35,7 +35,7 @@ static int MATRIX_FUNCTION(get)(lua_State* L) {
   Mat* mat = luaL_checkmatrix(L, 1);
   uint8_t row = luaL_checkinteger(L, 2);
   uint8_t col = luaL_checkinteger(L, 3);
-  lua_pushnumber(L, mat_get(mat, row, col));
+  lua_pushnumber(L, MAT_GET(mat, row, col));
   return 1;
 }
 
@@ -66,7 +66,7 @@ static int MATRIX_FUNCTION(scale)(lua_State* L) {
   Mat* src = luaL_checkmatrix(L, 1);
   float scale = luaL_checknumber(L, 2);
   Mat* dst = luaL_newmatrix(L, src->row, src->col);
-  mat_scale(src, scale, dst);
+  MAT_SCALE(src, scale, dst);
   return 1;
 }
 
@@ -76,7 +76,7 @@ static int MATRIX_FUNCTION(multiply)(lua_State* L) {
   if (src1->col != src2->row)
     luaL_error(L, "First matrix column(%d) must equal to Second matrix row(%d)", src1->col, src2->row);
   Mat* dst = luaL_newmatrix(L, src1->row, src2->col);
-  mat_multiply(src1, src2, dst);
+  MAT_MULTIPLY(src1, src2, dst);
   return 1;
 }
 
@@ -97,7 +97,7 @@ static int MATRIX_FUNCTION(copy)(lua_State* L) {
 
 static int MATRIX_FUNCTION(determinant)(lua_State* L) {
   Mat* mat = luaL_checkmatrix(L, 1);
-  float det = mat_determinant(mat);
+  float det = MAT_DETERMINANT(mat);
   lua_pushnumber(L, det);
   return 1;
 }
@@ -110,7 +110,7 @@ static int MATRIX_FUNCTION(adjoint)(lua_State* L) {
 static int MATRIX_FUNCTION(inverse)(lua_State* L) {
   Mat* src = luaL_checkmatrix(L, 1);
   Mat* dst = luaL_newmatrix(L, src->row, src->col);
-  bool ret = mat_inverse(src, dst);
+  bool ret = MAT_INVERSE(src, dst);
   if (!ret) {
     lua_pushnil(L);
   }
@@ -132,7 +132,7 @@ static int MATRIX_FUNCTION(__mul)(lua_State* L) {
 static int MATRIX_FUNCTION(__unm)(lua_State* L) {
   Mat* src = luaL_checkmatrix(L, 1);
   Mat* dst = luaL_newmatrix(L, src->row, src->col);
-  mat_scale(src, -1.0, dst);
+  MAT_SCALE(src, -1.0, dst);
   return 1;
 }
 

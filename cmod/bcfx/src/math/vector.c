@@ -153,6 +153,21 @@ bool vec_isZero(Vec* vec) {
   return true;
 }
 
+void vec_projection(Vec* src, Vec* axis, Vec* dst) {
+  assert(VEC_COUNT(src) == VEC_COUNT(axis) &&
+         VEC_COUNT(src) == VEC_COUNT(dst));
+  VEC_NORMALIZE(axis, dst);
+  float scale = VEC_DOT_PRODUCT(src, dst);
+  VEC_SCALE(dst, scale, dst);
+}
+
+void vec_perpendicular(Vec* src, Vec* axis, Vec* dst) {
+  assert(VEC_COUNT(src) == VEC_COUNT(axis) &&
+         VEC_COUNT(src) == VEC_COUNT(dst));
+  VEC_PROJECTION(src, axis, dst);
+  VEC_SUBTRACT(src, dst, dst);
+}
+
 /* }====================================================== */
 
 /*

@@ -57,8 +57,8 @@ void view_reset(View* view) {
   clear_reset(&view->clear);
   rect_reset(&view->rect);
   rect_reset(&view->scissor);
-  mat_identity((Mat*)&view->viewMat);
-  mat_identity((Mat*)&view->projMat);
+  MAT_IDENTITY(&view->viewMat);
+  MAT_IDENTITY(&view->projMat);
   view->mode = VM_Default;
 }
 

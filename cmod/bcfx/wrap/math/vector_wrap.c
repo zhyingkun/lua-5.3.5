@@ -18,7 +18,7 @@ Vec3* luaL_checkvec3(lua_State* L, int idx) {
 static Vec* luaL_newvector(lua_State* L, uint8_t cnt) {
   Vec* vec = (Vec*)lua_newuserdata(L, VEC_SIZE(cnt));
   luaL_setmetatable(L, BCFX_VECTOR_TYPE);
-  vec_init(vec, cnt);
+  VEC_INIT(vec, cnt);
   return vec;
 }
 
@@ -49,7 +49,7 @@ static int VECTOR_FUNCTION(scale)(lua_State* L) {
   Vec* src = luaL_checkvector(L, 1);
   float scale = luaL_checknumber(L, 2);
   Vec* dst = luaL_newvector(L, VEC_COUNT(src));
-  vec_scale(src, scale, dst);
+  VEC_SCALE(src, scale, dst);
   return 1;
 }
 
@@ -58,7 +58,7 @@ static int VECTOR_FUNCTION(dotProduct)(lua_State* L) {
   Vec* vec2 = luaL_checkvector(L, 2);
   if (VEC_COUNT(vec1) != VEC_COUNT(vec2))
     luaL_error(L, "Vector must be the same dimension: %d and %d", VEC_COUNT(vec1), VEC_COUNT(vec2));
-  float rst = vec_dotProduct(vec1, vec2);
+  float rst = VEC_DOT_PRODUCT(vec1, vec2);
   lua_pushnumber(L, rst);
   return 1;
 }
@@ -75,14 +75,14 @@ static int VECTOR_FUNCTION(crossProduct)(lua_State* L) {
 
 static int VECTOR_FUNCTION(lengthSquared)(lua_State* L) {
   Vec* vec = luaL_checkvector(L, 1);
-  float rst = vec_lengthSquared(vec);
+  float rst = VEC_LENGTH_SQUARED(vec);
   lua_pushnumber(L, rst);
   return 1;
 }
 
 static int VECTOR_FUNCTION(length)(lua_State* L) {
   Vec* vec = luaL_checkvector(L, 1);
-  float rst = vec_length(vec);
+  float rst = VEC_LENGTH(vec);
   lua_pushnumber(L, rst);
   return 1;
 }
@@ -92,7 +92,7 @@ static int VECTOR_FUNCTION(distanceSquared)(lua_State* L) {
   Vec* vec2 = luaL_checkvector(L, 2);
   if (VEC_COUNT(vec1) != VEC_COUNT(vec2))
     luaL_error(L, "Vector must be the same dimension: %d and %d", VEC_COUNT(vec1), VEC_COUNT(vec2));
-  float rst = vec_distanceSquared(vec1, vec2);
+  float rst = VEC_DISTANCE_SQUARED(vec1, vec2);
   lua_pushnumber(L, rst);
   return 1;
 }
@@ -102,7 +102,7 @@ static int VECTOR_FUNCTION(distance)(lua_State* L) {
   Vec* vec2 = luaL_checkvector(L, 2);
   if (VEC_COUNT(vec1) != VEC_COUNT(vec2))
     luaL_error(L, "Vector must be the same dimension: %d and %d", VEC_COUNT(vec1), VEC_COUNT(vec2));
-  float rst = vec_distance(vec1, vec2);
+  float rst = VEC_DISTANCE(vec1, vec2);
   lua_pushnumber(L, rst);
   return 1;
 }
@@ -110,21 +110,31 @@ static int VECTOR_FUNCTION(distance)(lua_State* L) {
 static int VECTOR_FUNCTION(normalize)(lua_State* L) {
   Vec* src = luaL_checkvector(L, 1);
   Vec* dst = luaL_newvector(L, VEC_COUNT(src));
-  vec_normalize(src, dst);
+  VEC_NORMALIZE(src, dst);
   return 1;
 }
 
 static int VECTOR_FUNCTION(copy)(lua_State* L) {
   Vec* src = luaL_checkvector(L, 1);
   Vec* dst = luaL_newvector(L, VEC_COUNT(src));
-  vec_copy(src, dst);
+  VEC_COPY(src, dst);
   return 1;
 }
 
 static int VECTOR_FUNCTION(isZero)(lua_State* L) {
   Vec* vec = luaL_checkvector(L, 1);
-  bool z = vec_isZero(vec);
+  bool z = VEC_IS_ZERO(vec);
   lua_pushboolean(L, z);
+  return 1;
+}
+
+static int VECTOR_FUNCTION(projection)(lua_State* L) {
+  TWO_SRC_ONE_DST(projection);
+  return 1;
+}
+
+static int VECTOR_FUNCTION(perpendicular)(lua_State* L) {
+  TWO_SRC_ONE_DST(perpendicular);
   return 1;
 }
 
@@ -170,7 +180,7 @@ static int VECTOR_FUNCTION(__eq)(lua_State* L) {
   Vec* vec2 = luaL_checkvector(L, 2);
   if (VEC_COUNT(vec1) != VEC_COUNT(vec2))
     luaL_error(L, "Vector must be the same dimension: %d and %d", VEC_COUNT(vec1), VEC_COUNT(vec2));
-  bool rst = vec_equals(vec1, vec2);
+  bool rst = VEC_EQUALS(vec1, vec2);
   lua_pushboolean(L, rst);
   return 1;
 }
@@ -250,6 +260,8 @@ static const luaL_Reg VECTOR_FUNCTION(metafuncs)[] = {
     EMPLACE_VECTOR_FUNCTION(normalize),
     EMPLACE_VECTOR_FUNCTION(copy),
     EMPLACE_VECTOR_FUNCTION(isZero),
+    EMPLACE_VECTOR_FUNCTION(projection),
+    EMPLACE_VECTOR_FUNCTION(perpendicular),
     EMPLACE_VECTOR_FUNCTION(__add),
     EMPLACE_VECTOR_FUNCTION(__sub),
     EMPLACE_VECTOR_FUNCTION(__mul),

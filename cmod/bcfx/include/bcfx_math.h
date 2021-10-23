@@ -35,6 +35,7 @@ typedef struct {
 #define MAT_SIZE(row, col) (sizeof(Mat) + ((row) * (col)-1) * sizeof(float))
 #define MAT_ELEMENT(mat, i, j) (((Mat*)mat)->element[(i) + ((Mat*)mat)->row * (j)])
 
+#define MAT_INIT(mat, row, col) mat_init((Mat*)mat, row, col)
 #define MAT_SET(mat, i, j, value) mat_set((Mat*)mat, i, j, value)
 #define MAT_GET(mat, i, j) mat_get((Mat*)mat, i, j)
 #define MAT_ZERO(mat) mat_zero((Mat*)mat)
@@ -90,6 +91,7 @@ typedef struct {
 #define VEC_ELEMENT(vec, i) (((Vec*)vec)->element[i])
 #define VEC_COUNT(vec) (((Vec*)vec)->count)
 
+#define VEC_INIT(vec, cnt) vec_init((Vec*)vec, cnt)
 #define VEC_SET(vec, i, value) vec_set((Vec*)vec, i, value)
 #define VEC_GET(vec, i) vec_get((Vec*)vec, i)
 #define VEC_ZERO(vec) vec_zero((Vec*)vec)
@@ -109,6 +111,8 @@ typedef struct {
 #define VEC_MIN(src1, src2, dst) vec_min((Vec*)src1, (Vec*)src2, (Vec*)dst)
 #define VEC_EQUALS(src1, src2) vec_equals((Vec*)src1, (Vec*)src2)
 #define VEC_IS_ZERO(vec) vec_isZero((Vec*)vec)
+#define VEC_PROJECTION(src, axis, dst) vec_projection((Vec*)src, (Vec*)axis, (Vec*)dst)
+#define VEC_PERPENDICULAR(src, axis, dst) vec_perpendicular((Vec*)src, (Vec*)axis, (Vec*)dst)
 
 void vec_init(Vec* vec, uint8_t cnt);
 void vec_set(Vec* vec, uint8_t i, float value);
@@ -130,6 +134,8 @@ void vec_max(Vec* src1, Vec* src2, Vec* dst);
 void vec_min(Vec* src1, Vec* src2, Vec* dst);
 bool vec_equals(Vec* src1, Vec* src2);
 bool vec_isZero(Vec* vec);
+void vec_projection(Vec* src, Vec* axis, Vec* dst);
+void vec_perpendicular(Vec* src, Vec* axis, Vec* dst);
 
 typedef struct {
   uint8_t count;
