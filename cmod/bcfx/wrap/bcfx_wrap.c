@@ -161,6 +161,12 @@ static int BCWRAP_FUNCTION(setIndexBuffer)(lua_State* L) {
   bcfx_setIndexBuffer(handle);
   return 0;
 }
+static int BCWRAP_FUNCTION(setTransform)(lua_State* L) {
+  Mat4x4* mat = luaL_checkmat4x4(L, 1);
+
+  bcfx_setTransform(mat);
+  return 0;
+}
 static int BCWRAP_FUNCTION(submit)(lua_State* L) {
   ViewId id = (ViewId)luaL_checkinteger(L, 1);
   Handle handle = (Handle)luaL_checkinteger(L, 2);
@@ -249,6 +255,7 @@ static const luaL_Reg wrap_funcs[] = {
     /* Submit Drawcall */
     EMPLACE_BCWRAP_FUNCTION(setVertexBuffer),
     EMPLACE_BCWRAP_FUNCTION(setIndexBuffer),
+    EMPLACE_BCWRAP_FUNCTION(setTransform),
     EMPLACE_BCWRAP_FUNCTION(submit),
     /* Create Render Resource */
     EMPLACE_BCWRAP_FUNCTION(destroy),
