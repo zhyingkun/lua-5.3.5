@@ -30,6 +30,7 @@ typedef struct {
   Stream streams[BCFX_CONFIG_MAX_VERTEX_STREAMS];
   uint8_t streamMask;
   Handle indexBuffer;
+  Mat4x4 model;
 } RenderDraw;
 
 typedef struct {

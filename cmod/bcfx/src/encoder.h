@@ -19,6 +19,7 @@ typedef struct {
 void encoder_begin(Encoder* encoder, Frame* frame);
 void encoder_setVertexBuffer(Encoder* encoder, uint8_t stream, Handle vertexBuffer);
 void encoder_setIndexBuffer(Encoder* encoder, Handle indexBuffer);
+void encoder_setTransform(Encoder* encoder, Mat4x4* mat);
 void encoder_submit(Encoder* encoder, ViewId id, Handle program);
 
 /* }====================================================== */

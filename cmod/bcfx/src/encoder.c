@@ -23,6 +23,10 @@ void encoder_setIndexBuffer(Encoder* encoder, Handle indexBuffer) {
   encoder->draw.indexBuffer = indexBuffer;
 }
 
+void encoder_setTransform(Encoder* encoder, Mat4x4* mat) {
+  memcpy(&encoder->draw.model, mat, sizeof(Mat4x4));
+}
+
 void encoder_submit(Encoder* encoder, ViewId id, Handle program) {
   Frame* frame = encoder->frame;
   uint16_t index = frame_newRenderItemIndex(frame);
