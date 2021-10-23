@@ -7,6 +7,14 @@
 ** =======================================================
 */
 
+Mat4x4* luaL_checkmat4x4(lua_State* L, int idx) {
+  Mat* mat = luaL_checkmatrix(L, idx);
+  if (mat->row != 4 || mat->col != 4) {
+    luaL_error(L, "Matrix must be 4x4, current is %dx%d", mat->row, mat->col);
+  }
+  return (Mat4x4*)mat;
+}
+
 Mat* luaL_newmatrix(lua_State* L, uint8_t row, uint8_t col) {
   Mat* mat = (Mat*)lua_newuserdata(L, MAT_SIZE(row, col));
   luaL_setmetatable(L, BCFX_MATRIX_TYPE);
@@ -129,17 +137,18 @@ static int MATRIX_FUNCTION(__unm)(lua_State* L) {
 }
 
 static int MATRIX_FUNCTION(__tostring)(lua_State* L) {
+  char buf[TEMP_BUF_SIZE];
   Mat* mat = luaL_checkmatrix(L, 1);
   luaL_Buffer b[1];
-  luaL_buffinitsize(L, b, 64);
-  lua_pushfstring(L, "Mat*: %dx%d\n", mat->row, mat->col);
-  luaL_addvalue(b);
+  luaL_buffinitsize(L, b, MATRIX_STR_SIZE);
+  snprintf(buf, TEMP_BUF_SIZE, "Mat*: %dx%d\n", mat->row, mat->col);
+  luaL_addstring(b, buf);
   for (int i = 0; i < mat->row; i++) {
-    lua_pushfstring(L, "\t%f", MAT_ELEMENT(mat, i, 0));
-    luaL_addvalue(b);
+    snprintf(buf, TEMP_BUF_SIZE, "\t%.2f", MAT_ELEMENT(mat, i, 0));
+    luaL_addstring(b, buf);
     for (int j = 1; j < mat->col; j++) {
-      lua_pushfstring(L, ", %f", MAT_ELEMENT(mat, i, j));
-      luaL_addvalue(b);
+      snprintf(buf, TEMP_BUF_SIZE, ", %.2f", MAT_ELEMENT(mat, i, j));
+      luaL_addstring(b, buf);
     }
     luaL_addstring(b, "\n");
   }
@@ -205,7 +214,7 @@ void MATRIX_FUNCTION(init)(lua_State* L) {
   lua_pop(L, 1);
 
   luaL_newlib(L, MATRIX_FUNCTION(funcs));
-  lua_setfield(L, -2, "vector");
+  lua_setfield(L, -2, "matrix");
 }
 
 /* }====================================================== */
