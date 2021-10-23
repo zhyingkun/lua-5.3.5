@@ -297,6 +297,22 @@ typedef struct {
   WindowSwapper swapWins[BCFX_CONFIG_MAX_WINDOW];
 } RendererContextGL;
 
+static WindowSwapper* gl_getWindowSwapper(RendererContextGL* glCtx, Window win) {
+  for (uint8_t i = 0; i < glCtx->swapCount; i++) {
+    if (glCtx->swapWins[i].win == win) {
+      return &glCtx->swapWins[i];
+    }
+  }
+  winctx_swapInterval(win == glCtx->mainWin ? 1 : 0);
+  assert(glCtx->swapCount < BCFX_CONFIG_MAX_WINDOW);
+  WindowSwapper* swapper = &glCtx->swapWins[glCtx->swapCount];
+  glCtx->swapCount++;
+  swapper->win = win;
+  // For OpenGL core profile mode, we must using a VertexArrayObject
+  // MacOSX supports forward-compatible core profile contexts for OpenGL 3.2 and above
+  GL_CHECK(glGenVertexArrays(1, &swapper->vaoId));
+  return swapper;
+}
 static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win) {
   if (win == NULL) {
     win = glCtx->mainWin;
@@ -306,22 +322,7 @@ static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win) {
   }
   glCtx->curWin = win;
   winctx_makeContextCurrent(win);
-  winctx_swapInterval(win == glCtx->mainWin ? 1 : 0);
-  for (uint8_t i = 0; i < glCtx->swapCount; i++) {
-    if (glCtx->swapWins[i].win == win) {
-      glCtx->swapWins[i].touch = true;
-      GL_CHECK(glBindVertexArray(glCtx->swapWins[i].vaoId));
-      return;
-    }
-  }
-  assert(glCtx->swapCount < BCFX_CONFIG_MAX_WINDOW);
-  WindowSwapper* swapper = &glCtx->swapWins[glCtx->swapCount];
-  glCtx->swapCount++;
-  swapper->win = win;
-  // For OpenGL core profile mode, we must using a VertexArrayObject
-  // MacOSX supports forward-compatible core profile contexts for OpenGL 3.2 and above
-  GL_CHECK(glGenVertexArrays(1, &swapper->vaoId));
-
+  WindowSwapper* swapper = gl_getWindowSwapper(glCtx, win);
   swapper->touch = true;
   GL_CHECK(glBindVertexArray(swapper->vaoId));
 }
@@ -522,7 +523,11 @@ static void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, 
       GL_CHECK(glEnableVertexAttribArray(loc));
       uint8_t offset = layout->offset[attr];
       bcfx_Attrib* attrib = &layout->attributes[attr];
-      GL_CHECK(glVertexAttribPointer(loc, attrib->num, attrib_glType[attrib->type], attrib->normal, layout->stride, (void*)(long)offset));
+      if (attrib->normal == 0 && (attrib->type == AT_Uint8 || attrib->type == AT_Int16)) {
+        GL_CHECK(glVertexAttribIPointer(loc, attrib->num, attrib_glType[attrib->type], layout->stride, (void*)(long)offset));
+      } else {
+        GL_CHECK(glVertexAttribPointer(loc, attrib->num, attrib_glType[attrib->type], attrib->normal, layout->stride, (void*)(long)offset));
+      }
     }
   }
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
