@@ -49,4 +49,21 @@ void COLOR_FUNCTION(init)(lua_State* L);
 
 void MEMBUF_FUNCTION(init)(lua_State* L);
 
+#define VECTOR_FUNCTION(name) bcfx_wrap_vector_##name
+#define BCFX_VECTOR_TYPE "Vec*"
+#define luaL_checkvector(L, idx) (Vec*)luaL_checkudata(L, idx, BCFX_VECTOR_TYPE)
+Vec3* luaL_checkvec3(lua_State* L, int idx);
+void VECTOR_FUNCTION(init)(lua_State* L);
+
+#define MATRIX_FUNCTION(name) bcfx_wrap_matrix_##name
+#define BCFX_MATRIX_TYPE "Mat*"
+#define luaL_checkmatrix(L, idx) (Mat*)luaL_checkudata(L, idx, BCFX_MATRIX_TYPE)
+Mat* luaL_newmatrix(lua_State* L, uint8_t row, uint8_t col);
+#define luaL_newmat4x4(L) (Mat4x4*)luaL_newmatrix(L, 4, 4)
+
+void MATRIX_FUNCTION(init)(lua_State* L);
+
+#define G3D_FUNCTION(name) bcfx_wrap_graphics3d_##name
+void G3D_FUNCTION(init)(lua_State* L);
+
 #endif /* _BCFX_WRAP_H_ */

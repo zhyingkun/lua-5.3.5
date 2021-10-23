@@ -268,5 +268,11 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   (void)COLOR_FUNCTION(init)(L);
   (void)MEMBUF_FUNCTION(init)(L);
 
+  lua_createtable(L, 0, 3);
+  (void)VECTOR_FUNCTION(init)(L);
+  (void)MATRIX_FUNCTION(init)(L);
+  (void)G3D_FUNCTION(init)(L);
+  lua_setfield(L, -2, "math");
+
   return 1;
 }
