@@ -156,7 +156,7 @@ typedef struct {
 void vec3_init(Vec3* vec);
 #define VEC3(v) \
   { \
-    2, { \
+    3, { \
       v, v, v \
     } \
   }
@@ -176,7 +176,7 @@ typedef struct {
 void vec4_init(Vec4* vec);
 #define VEC4(v) \
   { \
-    2, { \
+    4, { \
       v, v, v, v \
     } \
   }
