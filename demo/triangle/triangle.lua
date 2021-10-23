@@ -8,6 +8,8 @@ local attrib_type = bcfx.attrib_type
 local shader_type = bcfx.shader_type
 local membuf = bcfx.membuf
 local data_type = membuf.data_type
+local graphics3d = bcfx.math.graphics3d
+local vector = bcfx.math.vector
 
 local FrameRate = 0.0
 local function GetFrameRate()
@@ -79,10 +81,12 @@ local vsStr = [[
 in vec3 a_position;
 in vec3 a_color0;
 
+uniform mat4 u_model;
+
 out vec3 v_color0;
 
 void main() {
-	gl_Position = vec4(a_position, 1.0);
+	gl_Position = u_model * vec4(a_position, 1.0);
 	v_color0 = a_color0;
 }
 ]]
@@ -161,6 +165,7 @@ local function setup(mainWin)
 	end, 1000, 1000)
 end
 
+local angle = 0
 local function tick(delta)
 	AddOneFrame(delta)
 
@@ -172,6 +177,10 @@ local function tick(delta)
 	bcfx.setVertexBuffer(0, vertexHandle)
 	bcfx.setVertexBuffer(1, colorHandle)
 	bcfx.setIndexBuffer(idxHandle)
+	angle = (angle + 1) % 360
+	local mat = graphics3d.rotate(angle, vector.Vec3(0.0, 0.0, 1.0))
+	print(mat)
+	bcfx.setTransform(mat)
 	bcfx.submit(1, shaderProgramHandle)
 
 	bcfx.setVertexBuffer(0, vertexHandle)
