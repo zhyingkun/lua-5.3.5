@@ -205,7 +205,7 @@ static const char* uniformNames[] = {
 };
 static bcfx_EUniformBuiltin findUniformBuiltinEnum(const char* name) {
   for (uint8_t i = 0; uniformNames[i] != NULL; i++) {
-    if (strcmp(attribNames[i], name) == 0) {
+    if (strcmp(uniformNames[i], name) == 0) {
       return (bcfx_EUniformBuiltin)i;
     }
   }
@@ -532,6 +532,22 @@ static void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, 
   }
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
+static void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw) {
+  PredefinedUniform* pu = &prog->pu;
+  for (uint8_t i = 0; i < pu->usedCount; i++) {
+    bcfx_EUniformBuiltin eub = (bcfx_EUniformBuiltin)pu->used[i];
+    GLint loc = pu->uniforms[eub];
+    switch (eub) {
+      case UB_Model:
+        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, draw->model.mat.element));
+        break;
+
+      default:
+        break;
+    }
+  }
+}
+
 static void gl_submit(RendererContext* ctx, Frame* frame) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
 
@@ -556,6 +572,7 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
     GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
 
     gl_bindProgramAttributes(glCtx, prog, draw);
+    gl_setProgramUniforms(glCtx, prog, draw);
 
     GL_CHECK(glDrawElements(GL_TRIANGLES, ib->count, ib->type, 0));
   }
