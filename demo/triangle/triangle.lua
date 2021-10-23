@@ -179,7 +179,6 @@ local function tick(delta)
 	bcfx.setIndexBuffer(idxHandle)
 	angle = (angle + 1) % 360
 	local mat = graphics3d.rotate(angle, vector.Vec3(0.0, 0.0, 1.0))
-	print(mat)
 	bcfx.setTransform(mat)
 	bcfx.submit(1, shaderProgramHandle)
 
