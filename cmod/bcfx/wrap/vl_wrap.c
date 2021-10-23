@@ -11,6 +11,9 @@ static int VL_FUNCTION(add)(lua_State* L) {
   bcfx_VertexLayout* layout = luaL_checkvertexlayout(L, 1);
   bcfx_EVertexAttrib attrib = (bcfx_EVertexAttrib)luaL_checkinteger(L, 2);
   uint8_t num = (uint8_t)luaL_checkinteger(L, 3);
+  if (num < 1 || num > 4) {
+    luaL_error(L, "the num of attribute should be range: [1, 4], current is %d", num);
+  }
   bcfx_EAttribType type = (bcfx_EAttribType)luaL_checkinteger(L, 4);
   bool normalized = (bool)luaL_checkboolean(L, 5);
 
