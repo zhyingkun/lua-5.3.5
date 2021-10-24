@@ -161,7 +161,7 @@ local function setup(mainWin)
 
 	timer = libuv.timer.new()
 	timer:start(function()
-		print_err("FrameRate:", GetFrameRate())
+		print_err("FrameRate:", string.format(".2f", GetFrameRate()))
 	end, 1000, 1000)
 end
 
