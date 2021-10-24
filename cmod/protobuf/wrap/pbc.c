@@ -833,7 +833,6 @@ static int _add_rmessage(lua_State* L) {
   return 0;
 }
 
-#define REALLOC_CALLBACK "_pbc_realloc_cb_"
 static void* l_pbc_realloc_fn(void* ud, void* old_ptr, size_t new_size) {
   void* new_ptr = NULL;
   if (old_ptr == NULL) { // malloc
@@ -845,7 +844,7 @@ static void* l_pbc_realloc_fn(void* ud, void* old_ptr, size_t new_size) {
   }
   lua_State* L = (lua_State*)ud;
   lua_checkstack(L, 4);
-  lua_getfield(L, LUA_REGISTRYINDEX, REALLOC_CALLBACK);
+  lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)l_pbc_realloc_fn);
   lua_pushlightuserdata(L, old_ptr);
   lua_pushlightuserdata(L, new_ptr);
   lua_pushinteger(L, new_size);
@@ -858,9 +857,8 @@ static int l_pbc_set_realloc_cb(lua_State* L) {
   int t = lua_type(L, 1);
   if (t == LUA_TFUNCTION) {
     pbc_set_realloc_fn(l_pbc_realloc_fn, (void*)L);
-    lua_pushliteral(L, REALLOC_CALLBACK);
-    lua_pushvalue(L, 1);
-    lua_rawset(L, LUA_REGISTRYINDEX);
+    lua_settop(L, 1);
+    lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)l_pbc_realloc_fn);
   } else {
     pbc_set_realloc_fn(NULL, NULL);
   }

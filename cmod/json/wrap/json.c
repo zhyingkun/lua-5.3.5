@@ -255,12 +255,11 @@ static int json_minify(lua_State* L) {
   return 1;
 }
 
-#define REALLOC_CALLBACK "_json_realloc_cb_"
 static lua_State* jsonL = NULL;
 static void json_realloc_cb(void* old_ptr, void* new_ptr, size_t new_size) {
   lua_State* L = (lua_State*)jsonL;
   lua_checkstack(L, 4);
-  lua_getfield(L, LUA_REGISTRYINDEX, REALLOC_CALLBACK);
+  lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)json_realloc_cb);
   lua_pushlightuserdata(L, old_ptr);
   lua_pushlightuserdata(L, new_ptr);
   lua_pushinteger(L, new_size);
@@ -280,15 +279,13 @@ static cJSON_Hooks hooks = {
     json_free,
 };
 // set_realloc_cb(nil/function(old, new, nsize) end) => void
-static int
-json_set_realloc_cb(lua_State* L) {
+static int json_set_realloc_cb(lua_State* L) {
   int t = lua_type(L, 1);
   if (t == LUA_TFUNCTION) {
     jsonL = L;
     cJSON_InitHooks(&hooks);
-    lua_pushliteral(L, REALLOC_CALLBACK);
-    lua_pushvalue(L, 1);
-    lua_rawset(L, LUA_REGISTRYINDEX);
+    lua_settop(L, 1);
+    lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)json_realloc_cb);
   } else {
     jsonL = NULL;
     cJSON_InitHooks(NULL);
