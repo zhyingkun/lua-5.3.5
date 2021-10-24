@@ -11,7 +11,7 @@ void g3d_translate(Vec3* vec, Mat4x4* mat) {
 
 // 'theta' are in degree, not radian
 void g3d_rotate(float theta, Vec3* axis, Mat4x4* mat) {
-  Vec3 A[1] = {VEC3_ZERO()};
+  ALLOCA_VEC3(A);
   VEC_NORMALIZE(axis, A);
   /*
   1. assume rotate for a vector P, A has been normalized, alpha is the angle between P and A
@@ -30,22 +30,20 @@ void g3d_rotate(float theta, Vec3* axis, Mat4x4* mat) {
   float rad = theta * M_PI / 180.0;
   float cosTheta = cosf(rad);
   float sinTheta = sinf(rad);
-  MAT_IDENTITY(mat);
-  MAT_SCALE(mat, cosTheta, mat);
-  MAT_ELEMENT(mat, 3, 3) = 1.0;
 
-  Mat4x4 matCA[1];
-  mat4x4_init(matCA);
-  MAT_ZERO(matCA);
+  ALLOCA_MAT3x3(matI);
+  MAT_IDENTITY(matI);
+  MAT_SCALE(matI, cosTheta, matI);
+
+  ALLOCA_MAT3x3(matCA);
   MAT_ELEMENT(matCA, 0, 1) = -VEC3_Z(A);
   MAT_ELEMENT(matCA, 0, 2) = VEC3_Y(A);
   MAT_ELEMENT(matCA, 1, 0) = VEC3_Z(A);
   MAT_ELEMENT(matCA, 1, 2) = -VEC3_X(A);
   MAT_ELEMENT(matCA, 2, 0) = -VEC3_Y(A);
   MAT_ELEMENT(matCA, 2, 1) = VEC3_X(A);
-  MAT_ELEMENT(matCA, 3, 3) = 0.0;
   MAT_SCALE(matCA, sinTheta, matCA);
-  MAT_ADD(mat, matCA, mat);
+  MAT_ADD(matI, matCA, matI);
 
   MAT_ZERO(matCA);
   MAT_ELEMENT(matCA, 0, 0) = VEC3_X(A) * VEC3_X(A);
@@ -57,9 +55,10 @@ void g3d_rotate(float theta, Vec3* axis, Mat4x4* mat) {
   MAT_ELEMENT(matCA, 2, 0) = VEC3_Z(A) * VEC3_X(A);
   MAT_ELEMENT(matCA, 2, 1) = VEC3_Z(A) * VEC3_Y(A);
   MAT_ELEMENT(matCA, 2, 2) = VEC3_Z(A) * VEC3_Z(A);
-  MAT_ELEMENT(matCA, 3, 3) = 0.0;
   MAT_SCALE(matCA, 1 - cosTheta, matCA);
-  MAT_ADD(mat, matCA, mat);
+  MAT_ADD(matI, matCA, matI);
+
+  MAT4x4_INIT_MAT3x3(mat, matI);
 }
 
 void g3d_scale(Vec3* vec, Mat4x4* mat) {

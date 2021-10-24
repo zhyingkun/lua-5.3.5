@@ -36,8 +36,6 @@ typedef struct {
 #define MAT_ELEMENT(mat, i, j) (((Mat*)mat)->element[(i) + ((Mat*)mat)->row * (j)])
 
 #define MAT_INIT(mat, row, col) mat_init((Mat*)mat, row, col)
-#define MAT_SET(mat, i, j, value) mat_set((Mat*)mat, i, j, value)
-#define MAT_GET(mat, i, j) mat_get((Mat*)mat, i, j)
 #define MAT_ZERO(mat) mat_zero((Mat*)mat)
 #define MAT_IDENTITY(mat) mat_identity((Mat*)mat)
 #define MAT_ADD(src1, src2, dst) mat_add((Mat*)src1, (Mat*)src2, (Mat*)dst)
@@ -52,8 +50,6 @@ typedef struct {
 #define MAT_INVERSE(src, dst) mat_inverse((Mat*)src, (Mat*)dst)
 
 void mat_init(Mat* mat, uint8_t row, uint8_t col);
-void mat_set(Mat* mat, uint8_t i, uint8_t j, float value);
-float mat_get(Mat* mat, uint8_t i, uint8_t j);
 void mat_zero(Mat* mat);
 void mat_identity(Mat* mat);
 void mat_add(Mat* src1, Mat* src2, Mat* dst);
@@ -68,11 +64,42 @@ void mat_adjoint(Mat* src, Mat* dst);
 bool mat_inverse(Mat* src, Mat* dst);
 
 typedef struct {
-  Mat mat;
-  float append[4 * 4 - 1];
+  uint8_t row;
+  uint8_t col;
+  float element[3 * 3];
+} Mat3x3;
+
+#define MAT3x3_INIT(mat) mat3x3_init((Mat3x3*)mat)
+#define ALLOCA_MAT3x3(var) \
+  Mat3x3 var[1]; \
+  MAT3x3_INIT(var); \
+  MAT_ZERO(var)
+#define NEW_MAT3x3(var) \
+  Mat3x3* var = (Mat3x3*)malloc(MAT_SIZE(3, 3)); \
+  MAT3x3_INIT(var); \
+  MAT_ZERO(var)
+
+void mat3x3_init(Mat3x3* mat);
+
+typedef struct {
+  uint8_t row;
+  uint8_t col;
+  float element[4 * 4];
 } Mat4x4;
 
+#define MAT4x4_INIT(mat) mat4x4_init((Mat4x4*)mat)
+#define MAT4x4_INIT_MAT3x3(mat, mat3x3) mat4x4_initMat3x3((Mat4x4*)mat, (Mat3x3*)mat3x3)
+#define ALLOCA_MAT4x4(var) \
+  Mat4x4 var[1]; \
+  MAT4x4_INIT(var); \
+  MAT_ZERO(var)
+#define NEW_MAT4x4(var) \
+  Mat4x4* var = (Mat4x4*)malloc(MAT_SIZE(4, 4)); \
+  MAT4x4_INIT(var); \
+  MAT_ZERO(var)
+
 void mat4x4_init(Mat4x4* mat);
+void mat4x4_initMat3x3(Mat4x4* mat, Mat3x3* mat3x3);
 
 /* }====================================================== */
 
@@ -92,8 +119,6 @@ typedef struct {
 #define VEC_COUNT(vec) (((Vec*)vec)->count)
 
 #define VEC_INIT(vec, cnt) vec_init((Vec*)vec, cnt)
-#define VEC_SET(vec, i, value) vec_set((Vec*)vec, i, value)
-#define VEC_GET(vec, i) vec_get((Vec*)vec, i)
 #define VEC_ZERO(vec) vec_zero((Vec*)vec)
 #define VEC_ONE(vec) vec_one((Vec*)vec)
 #define VEC_ADD(src1, src2, dst) vec_add((Vec*)src1, (Vec*)src2, (Vec*)dst)
@@ -115,8 +140,6 @@ typedef struct {
 #define VEC_PERPENDICULAR(src, axis, dst) vec_perpendicular((Vec*)src, (Vec*)axis, (Vec*)dst)
 
 void vec_init(Vec* vec, uint8_t cnt);
-void vec_set(Vec* vec, uint8_t i, float value);
-float vec_get(Vec* vec, uint8_t i);
 void vec_zero(Vec* vec);
 void vec_one(Vec* vec);
 void vec_add(Vec* src1, Vec* src2, Vec* dst);
@@ -142,6 +165,8 @@ typedef struct {
   float element[2];
 } Vec2;
 
+#define VEC2_INIT(vec) vec2_init((Vec2*)vec)
+
 void vec2_init(Vec2* vec);
 #define VEC2(v) \
   { \
@@ -151,6 +176,11 @@ void vec2_init(Vec2* vec);
   }
 #define VEC2_ZERO() VEC2(0.0)
 #define VEC2_ONE() VEC2(1.0)
+#define ALLOCA_VEC2(var) Vec2 var[1] = {VEC2_ZERO()}
+#define NEW_VEC2(var) \
+  Vec2* var = (Vec2*)malloc(VEC_SIZE(2)); \
+  VEC2_INIT(var); \
+  VEC_ZERO(var)
 #define VEC2_X(vec) VEC_ELEMENT(vec, 0)
 #define VEC2_Y(vec) VEC_ELEMENT(vec, 1)
 
@@ -158,6 +188,8 @@ typedef struct {
   uint8_t count;
   float element[3];
 } Vec3;
+
+#define VEC3_INIT(vec) vec3_init((Vec3*)vec)
 
 void vec3_init(Vec3* vec);
 #define VEC3(v) \
@@ -168,6 +200,11 @@ void vec3_init(Vec3* vec);
   }
 #define VEC3_ZERO() VEC3(0.0)
 #define VEC3_ONE() VEC3(1.0)
+#define ALLOCA_VEC3(var) Vec3 var[1] = {VEC3_ZERO()}
+#define NEW_VEC3(var) \
+  Vec3* var = (Vec3*)malloc(VEC_SIZE(3)); \
+  VEC3_INIT(var); \
+  VEC_ZERO(var)
 #define VEC3_X(vec) VEC_ELEMENT(vec, 0)
 #define VEC3_Y(vec) VEC_ELEMENT(vec, 1)
 #define VEC3_Z(vec) VEC_ELEMENT(vec, 2)
@@ -179,6 +216,8 @@ typedef struct {
   float element[4];
 } Vec4;
 
+#define VEC4_INIT(vec) vec4_init((Vec4*)vec)
+
 void vec4_init(Vec4* vec);
 #define VEC4(v) \
   { \
@@ -188,6 +227,11 @@ void vec4_init(Vec4* vec);
   }
 #define VEC4_ZERO() VEC4(0.0);
 #define VEC4_ONE() VEC4(1.0);
+#define ALLOCA_VEC4(var) Vec4 var[1] = {VEC4_ZERO()}
+#define NEW_VEC4(var) \
+  Vec4* var = (Vec4*)malloc(VEC_SIZE(4)); \
+  VEC4_INIT(var); \
+  VEC_ZERO(var)
 #define VEC4_X(vec) VEC_ELEMENT(vec, 0)
 #define VEC4_Y(vec) VEC_ELEMENT(vec, 1)
 #define VEC4_Z(vec) VEC_ELEMENT(vec, 2)

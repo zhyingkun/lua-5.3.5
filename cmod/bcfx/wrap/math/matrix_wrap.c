@@ -27,7 +27,7 @@ static int MATRIX_FUNCTION(set)(lua_State* L) {
   uint8_t row = luaL_checkinteger(L, 2);
   uint8_t col = luaL_checkinteger(L, 3);
   float value = luaL_checknumber(L, 4);
-  MAT_SET(mat, row, col, value);
+  MAT_ELEMENT(mat, row, col) = value;
   return 0;
 }
 
@@ -35,7 +35,7 @@ static int MATRIX_FUNCTION(get)(lua_State* L) {
   Mat* mat = luaL_checkmatrix(L, 1);
   uint8_t row = luaL_checkinteger(L, 2);
   uint8_t col = luaL_checkinteger(L, 3);
-  lua_pushnumber(L, MAT_GET(mat, row, col));
+  lua_pushnumber(L, MAT_ELEMENT(mat, row, col));
   return 1;
 }
 

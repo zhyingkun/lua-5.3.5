@@ -539,7 +539,7 @@ static void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, Ren
     GLint loc = pu->uniforms[eub];
     switch (eub) {
       case UB_Model:
-        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, draw->model.mat.element));
+        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, draw->model.element));
         break;
 
       default:

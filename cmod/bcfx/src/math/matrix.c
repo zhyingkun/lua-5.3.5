@@ -219,12 +219,43 @@ bool mat_inverse(Mat* src, Mat* dst) {
 
 /*
 ** {======================================================
+** Matrix 3 x 3
+** =======================================================
+*/
+
+void mat3x3_init(Mat3x3* mat) {
+  mat_init((Mat*)mat, 3, 3);
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** Matrix 4 x 4
 ** =======================================================
 */
 
 void mat4x4_init(Mat4x4* mat) {
   mat_init((Mat*)mat, 4, 4);
+}
+
+#define COPY_MAT_FIELD(mat1, mat2, row, col) MAT_ELEMENT(mat1, row, col) = MAT_ELEMENT(mat2, row, col)
+void mat4x4_initMat3x3(Mat4x4* mat, Mat3x3* mat3x3) {
+  mat_init((Mat*)mat, 4, 4);
+  COPY_MAT_FIELD(mat, mat3x3, 0, 0);
+  COPY_MAT_FIELD(mat, mat3x3, 0, 1);
+  COPY_MAT_FIELD(mat, mat3x3, 0, 2);
+  COPY_MAT_FIELD(mat, mat3x3, 1, 0);
+  COPY_MAT_FIELD(mat, mat3x3, 1, 1);
+  COPY_MAT_FIELD(mat, mat3x3, 1, 2);
+  COPY_MAT_FIELD(mat, mat3x3, 2, 0);
+  COPY_MAT_FIELD(mat, mat3x3, 2, 1);
+  COPY_MAT_FIELD(mat, mat3x3, 2, 2);
+  for (int i = 0; i < 3; i++) {
+    MAT_ELEMENT(mat, i, 3) = 0.0;
+    MAT_ELEMENT(mat, 3, i) = 0.0;
+  }
+  MAT_ELEMENT(mat, 3, 3) = 1.0;
 }
 
 /* }====================================================== */
