@@ -271,7 +271,6 @@ typedef struct {
 } IndexBufferGL;
 typedef struct {
   GLuint id;
-  GLenum target;
   Handle layout;
 } VertexBufferGL;
 
@@ -389,11 +388,10 @@ static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, const bcf
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
   vb->layout = layoutHandle;
-  vb->target = GL_ARRAY_BUFFER;
   GL_CHECK(glGenBuffers(1, &vb->id));
-  GL_CHECK(glBindBuffer(vb->target, vb->id));
-  GL_CHECK(glBufferData(vb->target, mem->sz, mem->ptr, GL_STATIC_DRAW));
-  GL_CHECK(glBindBuffer(vb->target, 0));
+  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
+  GL_CHECK(glBufferData(GL_ARRAY_BUFFER, mem->sz, mem->ptr, GL_STATIC_DRAW));
+  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
   RELEASE_MEMBUFFER(mem);
 }
 static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem, uint16_t flags) {
