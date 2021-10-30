@@ -64,12 +64,12 @@ static int VECTOR_FUNCTION(dotProduct)(lua_State* L) {
 }
 
 static int VECTOR_FUNCTION(crossProduct)(lua_State* L) {
-  Vec* src1 = luaL_checkvector(L, 1);
-  Vec* src2 = luaL_checkvector(L, 2);
+  Vec3* src1 = (Vec3*)luaL_checkvector(L, 1);
+  Vec3* src2 = (Vec3*)luaL_checkvector(L, 2);
   if (VEC_COUNT(src1) != VEC_COUNT(src2) || VEC_COUNT(src1) != 3)
     luaL_error(L, "Vector for cross product must has 3 dimension: %d and %d", VEC_COUNT(src1), VEC_COUNT(src2));
-  Vec* dst = luaL_newvector(L, 3);
-  vec3_crossProduct((Vec3*)src1, (Vec3*)src2, (Vec3*)dst);
+  Vec3* dst = (Vec3*)luaL_newvector(L, 3);
+  VEC3_CROSS_PRODUCT(src1, src2, dst);
   return 1;
 }
 
