@@ -11,16 +11,6 @@ void vec_init(Vec* vec, uint8_t cnt) {
   vec->count = cnt;
 }
 
-void vec_set(Vec* vec, uint8_t i, float value) {
-  assert(i < vec->count);
-  VEC_ELEMENT(vec, i) = value;
-}
-
-float vec_get(Vec* vec, uint8_t i) {
-  assert(i < vec->count);
-  return VEC_ELEMENT(vec, i);
-}
-
 void vec_zero(Vec* vec) {
   for (uint8_t i = 0; i < vec->count; i++) {
     VEC_ELEMENT(vec, i) = 0.0;
@@ -33,7 +23,8 @@ void vec_one(Vec* vec) {
   }
 }
 
-void vec_add(Vec* src1, Vec* src2, Vec* dst) {
+// src and dst can be the same
+void vec_add(const Vec* src1, const Vec* src2, Vec* dst) {
   assert(src1->count == src2->count &&
          src1->count == dst->count);
   for (uint8_t i = 0; i < dst->count; i++) {
@@ -41,7 +32,8 @@ void vec_add(Vec* src1, Vec* src2, Vec* dst) {
   }
 }
 
-void vec_subtract(Vec* src1, Vec* src2, Vec* dst) {
+// src and dst can be the same
+void vec_subtract(const Vec* src1, const Vec* src2, Vec* dst) {
   assert(src1->count == src2->count &&
          src1->count == dst->count);
   for (uint8_t i = 0; i < dst->count; i++) {
@@ -49,7 +41,8 @@ void vec_subtract(Vec* src1, Vec* src2, Vec* dst) {
   }
 }
 
-void vec_componentWiseProduct(Vec* src1, Vec* src2, Vec* dst) {
+// src and dst can be the same
+void vec_componentWiseProduct(const Vec* src1, const Vec* src2, Vec* dst) {
   assert(src1->count == src2->count &&
          src1->count == dst->count);
   for (uint8_t i = 0; i < dst->count; i++) {
@@ -57,14 +50,16 @@ void vec_componentWiseProduct(Vec* src1, Vec* src2, Vec* dst) {
   }
 }
 
-void vec_scale(Vec* src, float scale, Vec* dst) {
+// src and dst can be the same
+void vec_scale(const Vec* src, float scale, Vec* dst) {
   assert(src->count == dst->count);
   for (uint8_t i = 0; i < dst->count; i++) {
     VEC_ELEMENT(dst, i) = VEC_ELEMENT(src, i) * scale;
   }
 }
 
-float vec_dotProduct(Vec* vec1, Vec* vec2) {
+// vec1 and vec2 can be the same
+float vec_dotProduct(const Vec* vec1, const Vec* vec2) {
   assert(vec1->count == vec2->count);
   float dot = 0.0;
   for (uint8_t i = 0; i < vec1->count; i++) {
@@ -73,7 +68,7 @@ float vec_dotProduct(Vec* vec1, Vec* vec2) {
   return dot;
 }
 
-float vec_lengthSquared(Vec* vec) {
+float vec_lengthSquared(const Vec* vec) {
   float result = 0.0;
   for (uint8_t i = 0; i < vec->count; i++) {
     float value = VEC_ELEMENT(vec, i);
@@ -82,36 +77,40 @@ float vec_lengthSquared(Vec* vec) {
   return result;
 }
 
-float vec_length(Vec* vec) {
+float vec_length(const Vec* vec) {
   float squared = vec_lengthSquared(vec);
   return sqrtf(squared);
 }
 
-float vec_distanceSquared(Vec* vec1, Vec* vec2) {
+// vec1 and vec2 can be the same
+float vec_distanceSquared(const Vec* vec1, const Vec* vec2) {
   assert(vec1->count == vec2->count);
   Vec* temp = (Vec*)alloca(VEC_SIZE(vec1->count));
   vec_subtract(vec1, vec2, temp);
   return vec_lengthSquared(temp);
 }
 
-float vec_distance(Vec* vec1, Vec* vec2) {
+// vec1 and vec2 can be the same
+float vec_distance(const Vec* vec1, const Vec* vec2) {
   float squared = vec_distanceSquared(vec1, vec2);
   return sqrtf(squared);
 }
 
-void vec_normalize(Vec* src, Vec* dst) {
+// src and dst can be the same
+void vec_normalize(const Vec* src, Vec* dst) {
   float length = vec_length(src);
   vec_scale(src, 1.0 / length, dst);
 }
 
-void vec_copy(Vec* src, Vec* dst) {
+void vec_copy(const Vec* src, Vec* dst) {
   assert(src->count == dst->count);
   for (uint8_t i = 0; i < dst->count; i++) {
     VEC_ELEMENT(dst, i) = VEC_ELEMENT(src, i);
   }
 }
 
-void vec_max(Vec* src1, Vec* src2, Vec* dst) {
+// src and dst can be the same
+void vec_max(const Vec* src1, const Vec* src2, Vec* dst) {
   assert(src1->count == src2->count &&
          src1->count == dst->count);
   for (uint8_t i = 0; i < dst->count; i++) {
@@ -121,7 +120,8 @@ void vec_max(Vec* src1, Vec* src2, Vec* dst) {
   }
 }
 
-void vec_min(Vec* src1, Vec* src2, Vec* dst) {
+// src and dst can be the same
+void vec_min(const Vec* src1, const Vec* src2, Vec* dst) {
   assert(src1->count == src2->count &&
          src1->count == dst->count);
   for (uint8_t i = 0; i < dst->count; i++) {
@@ -131,7 +131,7 @@ void vec_min(Vec* src1, Vec* src2, Vec* dst) {
   }
 }
 
-bool vec_equals(Vec* src1, Vec* src2) {
+bool vec_equals(const Vec* src1, const Vec* src2) {
   assert(src1->count == src2->count);
   for (uint8_t i = 0; i < src1->count; i++) {
     float v1 = VEC_ELEMENT(src1, i);
@@ -143,7 +143,7 @@ bool vec_equals(Vec* src1, Vec* src2) {
   return true;
 }
 
-bool vec_isZero(Vec* vec) {
+bool vec_isZero(const Vec* vec) {
   for (uint8_t i = 0; i < vec->count; i++) {
     float v = VEC_ELEMENT(vec, i);
     if (!EQUAL(v, 0.0)) {
@@ -153,7 +153,8 @@ bool vec_isZero(Vec* vec) {
   return true;
 }
 
-void vec_projection(Vec* src, Vec* axis, Vec* dst) {
+// src and dst should not be the same
+void vec_projection(const Vec* src, const Vec* axis, Vec* dst) {
   assert(VEC_COUNT(src) == VEC_COUNT(axis) &&
          VEC_COUNT(src) == VEC_COUNT(dst));
   VEC_NORMALIZE(axis, dst);
@@ -161,7 +162,8 @@ void vec_projection(Vec* src, Vec* axis, Vec* dst) {
   VEC_SCALE(dst, scale, dst);
 }
 
-void vec_perpendicular(Vec* src, Vec* axis, Vec* dst) {
+// src and dst should not be the same
+void vec_perpendicular(const Vec* src, const Vec* axis, Vec* dst) {
   assert(VEC_COUNT(src) == VEC_COUNT(axis) &&
          VEC_COUNT(src) == VEC_COUNT(dst));
   VEC_PROJECTION(src, axis, dst);
@@ -192,16 +194,17 @@ void vec3_init(Vec3* vec) {
   vec_init((Vec*)vec, 3);
 }
 
-void vec3_crossProduct(Vec3* src1, Vec3* src2, Vec3* dst) {
-  float x1 = VEC_ELEMENT((Vec*)src1, 0);
-  float y1 = VEC_ELEMENT((Vec*)src1, 1);
-  float z1 = VEC_ELEMENT((Vec*)src1, 2);
-  float x2 = VEC_ELEMENT((Vec*)src2, 0);
-  float y2 = VEC_ELEMENT((Vec*)src2, 1);
-  float z2 = VEC_ELEMENT((Vec*)src2, 2);
-  VEC_ELEMENT((Vec*)dst, 0) = y1 * z2 - y2 * z1;
-  VEC_ELEMENT((Vec*)dst, 1) = z1 * x2 - z2 * x1;
-  VEC_ELEMENT((Vec*)dst, 2) = x1 * y2 - x2 * y1;
+// src and dst can be the same
+void vec3_crossProduct(const Vec3* src1, const Vec3* src2, Vec3* dst) {
+  float x1 = VEC3_X(src1);
+  float y1 = VEC3_Y(src1);
+  float z1 = VEC3_Z(src1);
+  float x2 = VEC3_X(src2);
+  float y2 = VEC3_Y(src2);
+  float z2 = VEC3_Z(src2);
+  VEC3_X(dst) = y1 * z2 - y2 * z1;
+  VEC3_Y(dst) = z1 * x2 - z2 * x1;
+  VEC3_Z(dst) = x1 * y2 - x2 * y1;
 }
 
 /* }====================================================== */

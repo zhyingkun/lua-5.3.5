@@ -36,12 +36,27 @@ typedef struct {
 #define MAT_ELEMENT(mat, i, j) (((Mat*)mat)->element[(i) + ((Mat*)mat)->row * (j)])
 
 #define MAT_INIT(mat, row, col) mat_init((Mat*)mat, row, col)
+#define ALLOCA_MAT(var, row, col) \
+  Mat* var = (Mat*)alloca(MAT_SIZE(row, col)); \
+  MAT_INIT(var, row, col); \
+  MAT_ZERO(var)
+#define NEW_MAT(var, row, col) \
+  Mat* var = (Mat*)malloc(MAT_SIZE(row, col)); \
+  MAT_INIT(var, row, col); \
+  MAT_ZERO(var)
+
 #define MAT_ZERO(mat) mat_zero((Mat*)mat)
 #define MAT_IDENTITY(mat) mat_identity((Mat*)mat)
 #define MAT_ADD(src1, src2, dst) mat_add((Mat*)src1, (Mat*)src2, (Mat*)dst)
+#define MAT_ADD_(dst, src2) mat_add((Mat*)dst, (Mat*)src2, (Mat*)dst)
 #define MAT_SUBTRACT(src1, src2, dst) mat_subtract((Mat*)src1, (Mat*)src2, (Mat*)dst)
+#define MAT_SUBTRACT_(dst, src2) mat_subtract((Mat*)dst, (Mat*)src2, (Mat*)dst)
 #define MAT_SCALE(src, scale, dst) mat_scale((Mat*)src, scale, (Mat*)dst)
+#define MAT_SCALE_(dst, scale) mat_scale((Mat*)dst, scale, (Mat*)dst)
+#define MAT_NEGATIVE(src, dst) MAT_SCALE(src, -1.0, dst)
+#define MAT_NEGATIVE_(dst) MAT_SCALE_(dst, -1.0)
 #define MAT_COMPONENT_WISE_PRODUCT(src1, src2, dst) mat_componentWiseProduct((Mat*)src1, (Mat*)src2, (Mat*)dst)
+#define MAT_COMPONENT_WISE_PRODUCT_(dst, src2) mat_componentWiseProduct((Mat*)dst, (Mat*)src2, (Mat*)dst)
 #define MAT_MULTIPLY(src1, src2, dst) mat_multiply((Mat*)src1, (Mat*)src2, (Mat*)dst)
 #define MAT_TRANSPOSE(src, dst) mat_transpose((Mat*)src, (Mat*)dst)
 #define MAT_COPY(src, dst) mat_copy((Mat*)src, (Mat*)dst)
@@ -52,16 +67,16 @@ typedef struct {
 void mat_init(Mat* mat, uint8_t row, uint8_t col);
 void mat_zero(Mat* mat);
 void mat_identity(Mat* mat);
-void mat_add(Mat* src1, Mat* src2, Mat* dst);
-void mat_subtract(Mat* src1, Mat* src2, Mat* dst);
-void mat_scale(Mat* src, float scale, Mat* dst);
-void mat_componentWiseProduct(Mat* src1, Mat* src2, Mat* dst);
-void mat_multiply(Mat* src1, Mat* src2, Mat* dst);
-void mat_transpose(Mat* src, Mat* dst);
-void mat_copy(Mat* src, Mat* dst);
-float mat_determinant(Mat* mat);
-void mat_adjoint(Mat* src, Mat* dst);
-bool mat_inverse(Mat* src, Mat* dst);
+void mat_add(const Mat* src1, const Mat* src2, Mat* dst);
+void mat_subtract(const Mat* src1, const Mat* src2, Mat* dst);
+void mat_scale(const Mat* src, float scale, Mat* dst);
+void mat_componentWiseProduct(const Mat* src1, const Mat* src2, Mat* dst);
+void mat_multiply(const Mat* src1, const Mat* src2, Mat* dst);
+void mat_transpose(const Mat* src, Mat* dst);
+void mat_copy(const Mat* src, Mat* dst);
+float mat_determinant(const Mat* mat);
+void mat_adjoint(const Mat* src, Mat* dst);
+bool mat_inverse(const Mat* src, Mat* dst);
 
 typedef struct {
   uint8_t row;
@@ -99,7 +114,7 @@ typedef struct {
   MAT_ZERO(var)
 
 void mat4x4_init(Mat4x4* mat);
-void mat4x4_initMat3x3(Mat4x4* mat, Mat3x3* mat3x3);
+void mat4x4_initMat3x3(Mat4x4* mat, const Mat3x3* mat3x3);
 
 /* }====================================================== */
 
@@ -122,15 +137,20 @@ typedef struct {
 #define VEC_ZERO(vec) vec_zero((Vec*)vec)
 #define VEC_ONE(vec) vec_one((Vec*)vec)
 #define VEC_ADD(src1, src2, dst) vec_add((Vec*)src1, (Vec*)src2, (Vec*)dst)
+#define VEC_ADD_(dst, src2) vec_add((Vec*)dst, (Vec*)src2, (Vec*)dst)
 #define VEC_SUBTRACT(src1, src2, dst) vec_subtract((Vec*)src1, (Vec*)src2, (Vec*)dst)
+#define VEC_SUBTRACT_(dst, src2) vec_subtract((Vec*)dst, (Vec*)src2, (Vec*)dst)
 #define VEC_COMPONENT_WISE_PRODUCT(src1, src2, dst) vec_componentWiseProduct((Vec*)src1, (Vec*)src2, (Vec*)dst)
+#define VEC_COMPONENT_WISE_PRODUCT_(dst, src2) vec_componentWiseProduct((Vec*)dst, (Vec*)src2, (Vec*)dst)
 #define VEC_SCALE(src, scale, dst) vec_scale((Vec*)src, scale, (Vec*)dst)
+#define VEC_SCALE_(dst, scale) vec_scale((Vec*)dst, scale, (Vec*)dst)
 #define VEC_DOT_PRODUCT(vec1, vec2) vec_dotProduct((Vec*)vec1, (Vec*)vec2)
 #define VEC_LENGTH_SQUARED(vec) vec_lengthSquared((Vec*)vec)
 #define VEC_LENGTH(vec) vec_length((Vec*)vec)
 #define VEC_DISTANCE_SQUARED(vec1, vec2) vec_distanceSquared((Vec*)vec1, (Vec*)vec2)
 #define VEC_DISTANCE(vec1, vec2) vec_distance((Vec*)vec1, (Vec*)vec2)
 #define VEC_NORMALIZE(src, dst) vec_normalize((Vec*)src, (Vec*)dst)
+#define VEC_NORMALIZE_(dst) vec_normalize((Vec*)dst, (Vec*)dst)
 #define VEC_COPY(src, dst) vec_copy((Vec*)src, (Vec*)dst)
 #define VEC_MAX(src1, src2, dst) vec_max((Vec*)src1, (Vec*)src2, (Vec*)dst)
 #define VEC_MIN(src1, src2, dst) vec_min((Vec*)src1, (Vec*)src2, (Vec*)dst)
@@ -142,23 +162,23 @@ typedef struct {
 void vec_init(Vec* vec, uint8_t cnt);
 void vec_zero(Vec* vec);
 void vec_one(Vec* vec);
-void vec_add(Vec* src1, Vec* src2, Vec* dst);
-void vec_subtract(Vec* src1, Vec* src2, Vec* dst);
-void vec_componentWiseProduct(Vec* src1, Vec* src2, Vec* dst);
-void vec_scale(Vec* src, float scale, Vec* dst);
-float vec_dotProduct(Vec* vec1, Vec* vec2);
-float vec_lengthSquared(Vec* vec);
-float vec_length(Vec* vec);
-float vec_distanceSquared(Vec* vec1, Vec* vec2);
-float vec_distance(Vec* vec1, Vec* vec2);
-void vec_normalize(Vec* src, Vec* dst);
-void vec_copy(Vec* src, Vec* dst);
-void vec_max(Vec* src1, Vec* src2, Vec* dst);
-void vec_min(Vec* src1, Vec* src2, Vec* dst);
-bool vec_equals(Vec* src1, Vec* src2);
-bool vec_isZero(Vec* vec);
-void vec_projection(Vec* src, Vec* axis, Vec* dst);
-void vec_perpendicular(Vec* src, Vec* axis, Vec* dst);
+void vec_add(const Vec* src1, const Vec* src2, Vec* dst);
+void vec_subtract(const Vec* src1, const Vec* src2, Vec* dst);
+void vec_componentWiseProduct(const Vec* src1, const Vec* src2, Vec* dst);
+void vec_scale(const Vec* src, float scale, Vec* dst);
+float vec_dotProduct(const Vec* vec1, const Vec* vec2);
+float vec_lengthSquared(const Vec* vec);
+float vec_length(const Vec* vec);
+float vec_distanceSquared(const Vec* vec1, const Vec* vec2);
+float vec_distance(const Vec* vec1, const Vec* vec2);
+void vec_normalize(const Vec* src, Vec* dst);
+void vec_copy(const Vec* src, Vec* dst);
+void vec_max(const Vec* src1, const Vec* src2, Vec* dst);
+void vec_min(const Vec* src1, const Vec* src2, Vec* dst);
+bool vec_equals(const Vec* src1, const Vec* src2);
+bool vec_isZero(const Vec* vec);
+void vec_projection(const Vec* src, const Vec* axis, Vec* dst);
+void vec_perpendicular(const Vec* src, const Vec* axis, Vec* dst);
 
 typedef struct {
   uint8_t count;
@@ -209,7 +229,9 @@ void vec3_init(Vec3* vec);
 #define VEC3_Y(vec) VEC_ELEMENT(vec, 1)
 #define VEC3_Z(vec) VEC_ELEMENT(vec, 2)
 
-void vec3_crossProduct(Vec3* src1, Vec3* src2, Vec3* dst);
+#define VEC3_CROSS_PRODUCT(src1, src2, dst) vec3_crossProduct(src1, src2, dst)
+
+void vec3_crossProduct(const Vec3* src1, const Vec3* src2, Vec3* dst);
 
 typedef struct {
   uint8_t count;
@@ -245,12 +267,12 @@ void vec4_init(Vec4* vec);
 ** =======================================================
 */
 
-void g3d_translate(Vec3* vec, Mat4x4* mat);
-void g3d_rotate(float angle, Vec3* axis, Mat4x4* mat);
-void g3d_scale(Vec3* vec, Mat4x4* mat);
+void g3d_translate(const Vec3* vec, Mat4x4* mat);
+void g3d_rotate(float angle, const Vec3* axis, Mat4x4* mat);
+void g3d_scale(const Vec3* vec, Mat4x4* mat);
 void g3d_perspective(float fovy, float aspect, float zNear, float zFar, Mat4x4* mat);
 void g3d_orthogonal(float left, float right, float bottom, float top, float zNear, float zFar, Mat4x4* mat);
-void g3d_lookAt(Vec3* eye, Vec3* center, Vec3* up, Mat4x4* mat);
+void g3d_lookAt(const Vec3* eye, const Vec3* center, const Vec3* up, Mat4x4* mat);
 
 /* }====================================================== */
 
