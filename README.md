@@ -140,7 +140,6 @@ ndk-build -B # rebuild project
 9. tools: 相关工具
     - luatoken: 用于查看词法分析 Token 的整数类型对应的含义
     - luatt: 用于查看 Lua Tag Type 的整数类型对应的含义
-    - pbdump: 用于查看 protobuf 二进制信息
 
 ---
 
