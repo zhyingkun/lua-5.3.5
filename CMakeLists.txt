@@ -26,6 +26,15 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FLASE)
 # set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib") # must before add_executable
 
+function(install_script dir scriptname)
+	install(PROGRAMS ${dir}/${scriptname}.lua DESTINATION scripts)
+	install(CODE "EXECUTE_PROCESS(COMMAND
+		${CMAKE_COMMAND} -E create_symlink
+		${CMAKE_INSTALL_PREFIX}/scripts/${scriptname}.lua
+		${CMAKE_INSTALL_PREFIX}/bin/${scriptname}) 
+	")
+endfunction(install_script dir scriptname)
+
 add_subdirectory(liblua)
 add_subdirectory(lua)
 add_subdirectory(luac)
