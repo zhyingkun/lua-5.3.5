@@ -40,12 +40,14 @@ static int G3D_FUNCTION(perspective)(lua_State* L) {
 }
 
 static int G3D_FUNCTION(orthogonal)(lua_State* L) {
-  float fovy = luaL_checknumber(L, 1);
-  float aspect = luaL_checknumber(L, 2);
-  float zNear = luaL_checknumber(L, 3);
-  float zFar = luaL_checknumber(L, 4);
+  float left = luaL_checknumber(L, 1);
+  float right = luaL_checknumber(L, 2);
+  float bottom = luaL_checknumber(L, 3);
+  float top = luaL_checknumber(L, 4);
+  float zNear = luaL_checknumber(L, 5);
+  float zFar = luaL_checknumber(L, 6);
   Mat4x4* mat = luaL_newmat4x4(L);
-  g3d_perspective(fovy, aspect, zNear, zFar, mat);
+  g3d_orthogonal(left, right, bottom, top, zNear, zFar, mat);
   return 1;
 }
 
