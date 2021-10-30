@@ -1,3 +1,5 @@
+#! /usr/bin/env lua
+
 local pbdir = arg[1] -- maybe only one pb file
 local protodir = arg[2]
 

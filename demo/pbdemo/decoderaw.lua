@@ -1,9 +1,7 @@
+#! /usr/bin/env lua
+
 local file = arg[1]
-if not file then
-	print("pass varint binary file path in first parament")
-	return
-end
-local fd = io.open(file, "rb")
+local fd = file and io.open(file, "rb") or io.stdin
 local msg = fd:read("a")
 fd:close()
 fd = nil
