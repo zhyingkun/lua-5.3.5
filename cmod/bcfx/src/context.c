@@ -53,48 +53,32 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
     Command* cmd = &cmdbuf->buffer[i];
     CommandParam* param = &cmd->param;
     switch (cmd->type) {
-      case CT_RendererInit:
-        CALL_RENDERER(init, cmd->param.ci.mainWin);
-        break;
-      case CT_RendererShutdown:
-        CALL_RENDERER(shutdown);
-        break;
+#define CASE_CALL_RENDERER(type, func, ...) \
+  case CT_##type: \
+    CALL_RENDERER(func, ##__VA_ARGS__); \
+    break
+      CASE_CALL_RENDERER(RendererInit, init, cmd->param.ci.mainWin);
       case CT_CreateVertexLayout:
         CALL_RENDERER(createVertexLayout, cmd->handle, param->cvl.layout);
         RELEASE_VERCTX_LAYOUT(&param->cvl);
         break;
-      case CT_CreateIndexBuffer:
-        CALL_RENDERER(createIndexBuffer, cmd->handle, &param->cib.mem, 0);
-        break;
-      case CT_CreateVertexBuffer:
-        CALL_RENDERER(createVertexBuffer, cmd->handle, &param->cvb.mem, param->cvb.layoutHandle, 0);
-        break;
-      case CT_CreateShader:
-        CALL_RENDERER(createShader, cmd->handle, &param->cs.mem, param->cs.type);
-        break;
-      case CT_CreateProgram:
-        CALL_RENDERER(createProgram, cmd->handle, param->cp.vsHandle, param->cp.fsHandle);
-        break;
+        CASE_CALL_RENDERER(CreateVertexBuffer, createVertexBuffer, cmd->handle, &param->cvb.mem, param->cvb.layoutHandle, 0);
+        CASE_CALL_RENDERER(CreateIndexBuffer, createIndexBuffer, cmd->handle, &param->cib.mem, 0);
+        CASE_CALL_RENDERER(CreateShader, createShader, cmd->handle, &param->cs.mem, param->cs.type);
+        CASE_CALL_RENDERER(CreateProgram, createProgram, cmd->handle, param->cp.vsHandle, param->cp.fsHandle);
+        CASE_CALL_RENDERER(CreateUniform, createUniform, cmd->handle, param->cu.name, param->cu.type, param->cu.num);
+        CASE_CALL_RENDERER(CreateTexture, createTexture, cmd->handle, &param->ct.mem);
       case CT_End:
         break;
-      case CT_DestroyVertexLayout:
-        CALL_RENDERER(destroyVertexLayout, cmd->handle);
-        break;
-      case CT_DestroyIndexBuffer:
-        CALL_RENDERER(destroyIndexBuffer, cmd->handle);
-        break;
-      case CT_DestroyVertexBuffer:
-        CALL_RENDERER(destroyVertexBuffer, cmd->handle);
-        break;
-      case CT_DestroyShader:
-        CALL_RENDERER(destroyShader, cmd->handle);
-        break;
-      case CT_DestroyProgram:
-        CALL_RENDERER(destroyProgram, cmd->handle);
-        break;
-
+        CASE_CALL_RENDERER(RendererShutdown, shutdown);
+        CASE_CALL_RENDERER(DestroyVertexLayout, destroyVertexLayout, cmd->handle);
+        CASE_CALL_RENDERER(DestroyVertexBuffer, destroyVertexBuffer, cmd->handle);
+        CASE_CALL_RENDERER(DestroyIndexBuffer, destroyIndexBuffer, cmd->handle);
+        CASE_CALL_RENDERER(DestroyShader, destroyShader, cmd->handle);
+        CASE_CALL_RENDERER(DestroyProgram, destroyProgram, cmd->handle);
       default:
         break;
+#undef CASE_CALL_RENDERER
     }
   }
 }
@@ -151,7 +135,7 @@ void ctx_init(Context* ctx, Window mainWin) {
   ctx->frameCount = 0;
 
 #define XX(name, config_max) handle_init(&ctx->allocators[(uint8_t)HT_##name], config_max, HT_##name);
-  HANDLE_TYPE_MAP(XX)
+  BCFX_RESOURCE_MAP(XX)
 #undef XX
 
   ctx->submitFrame = &ctx->frames[0];
@@ -234,6 +218,23 @@ Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs, bool destroy) {
   return handle;
 }
 
+Handle ctx_createUniform(Context* ctx, const char* name, bcfx_UniformType type, uint16_t num) {
+  ADD_CMD_ALLOC_HANDLE(ctx, Uniform)
+  size_t len = strlen(name);
+  char* buf = (char*)malloc(len);
+  memcpy(buf, name, len);
+  param->cu.name = buf;
+  param->cu.type = type;
+  param->cu.num = num;
+  return handle;
+}
+
+Handle ctx_createTexture(Context* ctx, bcfx_MemBuffer* mem) {
+  ADD_CMD_ALLOC_HANDLE(ctx, Texture)
+  param->ct.mem = *mem;
+  return handle;
+}
+
 /* }====================================================== */
 
 /* }====================================================== */
@@ -251,7 +252,7 @@ void ctx_destroy(Context* ctx, Handle handle) {
   case HT_##name: \
     ctx_addCommand(ctx, CT_Destroy##name, handle); \
     break;
-    HANDLE_TYPE_MAP(XX)
+    BCFX_RESOURCE_MAP(XX)
 #undef XX
     default:
       break;
@@ -313,19 +314,29 @@ void ctx_resetView(Context* ctx, ViewId id) {
 ** =======================================================
 */
 
+void ctx_setUniformVec4(Context* ctx, Handle handle, Vec4* vec, uint16_t num) {
+}
+void ctx_setUniformMat3x3(Context* ctx, Handle handle, Mat3x3* mat, uint16_t num) {
+}
+void ctx_setUniformMat4x4(Context* ctx, Handle handle, Mat4x4* mat, uint16_t num) {
+}
+
+void ctx_touch(Context* ctx, ViewId id) {
+}
+
 void ctx_setVertexBuffer(Context* ctx, uint8_t stream, Handle handle) {
   CHECK_STREAMID(stream);
   CHECK_HANDLE(handle);
   encoder_setVertexBuffer(ctx->encoder, stream, handle);
 }
-
 void ctx_setIndexBuffer(Context* ctx, Handle handle) {
   CHECK_HANDLE(handle);
   encoder_setIndexBuffer(ctx->encoder, handle);
 }
-
 void ctx_setTransform(Context* ctx, Mat4x4* mat) {
   encoder_setTransform(ctx->encoder, mat);
+}
+void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture, uint32_t flags) {
 }
 
 void ctx_submit(Context* ctx, ViewId id, Handle handle) {

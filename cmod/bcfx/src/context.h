@@ -44,6 +44,8 @@ Handle ctx_createVertexBuffer(Context* ctx, bcfx_MemBuffer* mem, Handle layout);
 Handle ctx_createIndexBuffer(Context* ctx, bcfx_MemBuffer* mem);
 Handle ctx_createShader(Context* ctx, bcfx_MemBuffer* mem, ShaderType type);
 Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs, bool destroy);
+Handle ctx_createUniform(Context* ctx, const char* name, bcfx_UniformType type, uint16_t num);
+Handle ctx_createTexture(Context* ctx, bcfx_MemBuffer* mem);
 
 void ctx_destroy(Context* ctx, Handle handle);
 
@@ -59,9 +61,17 @@ void ctx_setViewTransform(Context* ctx, ViewId id, Mat4x4* viewMat, Mat4x4* proj
 void ctx_setViewMode(Context* ctx, ViewId id, ViewMode mode);
 void ctx_resetView(Context* ctx, ViewId id);
 
+void ctx_setUniformVec4(Context* ctx, Handle handle, Vec4* vec, uint16_t num);
+void ctx_setUniformMat3x3(Context* ctx, Handle handle, Mat3x3* mat, uint16_t num);
+void ctx_setUniformMat4x4(Context* ctx, Handle handle, Mat4x4* mat, uint16_t num);
+
+void ctx_touch(Context* ctx, ViewId id);
+
 void ctx_setVertexBuffer(Context* ctx, uint8_t stream, Handle handle);
 void ctx_setIndexBuffer(Context* ctx, Handle handle);
 void ctx_setTransform(Context* ctx, Mat4x4* mat);
+void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture, uint32_t flags);
+
 void ctx_submit(Context* ctx, ViewId id, Handle handle);
 
 /* }====================================================== */

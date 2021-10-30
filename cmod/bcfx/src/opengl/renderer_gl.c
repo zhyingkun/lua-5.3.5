@@ -273,6 +273,9 @@ typedef struct {
   GLuint id;
   Handle layout;
 } VertexBufferGL;
+typedef struct {
+  GLuint id;
+} TextureGL;
 
 typedef struct {
   Window win;
@@ -288,6 +291,7 @@ typedef struct {
   VertexBufferGL vertexBuffers[BCFX_CONFIG_MAX_VERTEX_BUFFER];
   ShaderGL shaders[BCFX_CONFIG_MAX_SHADER];
   ProgramGL programs[BCFX_CONFIG_MAX_PROGRAM];
+  TextureGL textures[BCFX_CONFIG_MAX_TEXTURE];
 
   Window mainWin;
   Window curWin;
@@ -448,6 +452,33 @@ static void gl_createProgram(RendererContext* ctx, Handle handle, Handle vsh, Ha
   prog_collectAttributes(prog);
   prog_collectUniforms(prog);
 }
+static void gl_createUniform(RendererContext* ctx, Handle handle, const char* name, bcfx_UniformType type, uint16_t num) {
+}
+static void gl_createTexture(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  TextureGL* txtr = &glCtx->textures[handle_index(handle)];
+
+  GL_CHECK(glGenTextures(1, &txtr->id));
+  GL_CHECK(glBindTexture(GL_TEXTURE_2D, txtr->id));
+  GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+  bcfx_Texture* texture = (bcfx_Texture*)mem->ptr;
+  GLenum format = GL_NONE;
+  switch (texture->nrChannels) {
+    case 1:
+      format = GL_ALPHA;
+      break;
+    case 3:
+      format = GL_RGB;
+      break;
+    case 4:
+      format = GL_RGBA;
+      break;
+    default:
+      break;
+  }
+  GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, format, GL_UNSIGNED_BYTE, texture->data));
+  GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
+}
 
 static void gl_MakeViewCurrent(RendererContextGL* glCtx, ViewId viewId, Frame* frame) {
   View* view = &frame->views[viewId];
@@ -606,6 +637,10 @@ static void gl_destroyProgram(RendererContext* ctx, Handle handle) {
   GL_CHECK(glDeleteProgram(prog->id));
   prog->id = 0;
 }
+static void gl_destroyUniform(RendererContext* ctx, Handle handle) {
+}
+static void gl_destroyTexture(RendererContext* ctx, Handle handle) {
+}
 
 RendererContext* CreateRenderer(void) {
   RendererContextGL* glCtx = (RendererContextGL*)mem_malloc(sizeof(RendererContextGL));
@@ -619,6 +654,8 @@ RendererContext* CreateRenderer(void) {
   renderer->createIndexBuffer = gl_createIndexBuffer;
   renderer->createShader = gl_createShader;
   renderer->createProgram = gl_createProgram;
+  renderer->createUniform = gl_createUniform;
+  renderer->createTexture = gl_createTexture;
 
   renderer->beginFrame = gl_beginFrame;
   renderer->submit = gl_submit;
@@ -630,6 +667,8 @@ RendererContext* CreateRenderer(void) {
   renderer->destroyIndexBuffer = gl_destroyIndexBuffer;
   renderer->destroyShader = gl_destroyShader;
   renderer->destroyProgram = gl_destroyProgram;
+  renderer->destroyUniform = gl_destroyUniform;
+  renderer->destroyTexture = gl_destroyTexture;
 
   return renderer;
 }

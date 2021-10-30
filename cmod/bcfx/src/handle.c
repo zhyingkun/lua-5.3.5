@@ -68,7 +68,7 @@ const char* handle_typename(HandleType type) {
   static const char* handle_name[] = {
       "None",
 #define XX(name, config_max) #name,
-      HANDLE_TYPE_MAP(XX)
+      BCFX_RESOURCE_MAP(XX)
 #undef XX
       NULL,
   };

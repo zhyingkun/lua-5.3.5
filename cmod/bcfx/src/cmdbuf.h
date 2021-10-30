@@ -9,21 +9,19 @@
 ** =======================================================
 */
 
+// clang-format off
 typedef enum {
   CT_RendererInit,
-  CT_CreateVertexLayout,
-  CT_CreateVertexBuffer,
-  CT_CreateIndexBuffer,
-  CT_CreateShader,
-  CT_CreateProgram,
+#define XX(name, config_max) CT_Create##name,
+  BCFX_RESOURCE_MAP(XX)
+#undef XX
   CT_End,
   CT_RendererShutdown,
-  CT_DestroyVertexLayout,
-  CT_DestroyIndexBuffer,
-  CT_DestroyVertexBuffer,
-  CT_DestroyShader,
-  CT_DestroyProgram,
+#define XX(name, config_max) CT_Destroy##name,
+  BCFX_RESOURCE_MAP(XX)
+#undef XX
 } CommandType;
+// clang-format on
 
 typedef struct {
   Window mainWin;
@@ -53,6 +51,14 @@ typedef struct {
   Handle fsHandle;
   bool destroy; // Destroy shader when destroy program
 } CmdProgram;
+typedef struct {
+  const char* name;
+  bcfx_UniformType type;
+  uint16_t num;
+} CmdUniform;
+typedef struct {
+  bcfx_MemBuffer mem;
+} CmdTexture;
 
 typedef union {
   CmdInit ci;
@@ -61,6 +67,8 @@ typedef union {
   CmdIndexBuffer cib;
   CmdShader cs;
   CmdProgram cp;
+  CmdUniform cu;
+  CmdTexture ct;
 } CommandParam;
 
 typedef struct {

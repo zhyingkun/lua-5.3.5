@@ -99,6 +99,14 @@ BCFX_API Handle bcfx_createProgram(Handle vs, Handle fs, bool destroy) {
   return ctx_createProgram(s_ctx, vs, fs, destroy);
 }
 
+BCFX_API Handle bcfx_createUniform(const char* name, bcfx_UniformType type, uint16_t num) {
+  return ctx_createUniform(s_ctx, name, type, num);
+}
+
+BCFX_API Handle bcfx_createTexture(bcfx_MemBuffer* mem) {
+  return ctx_createTexture(s_ctx, mem);
+}
+
 /* }====================================================== */
 
 /*
@@ -163,16 +171,31 @@ BCFX_API void bcfx_resetView(ViewId id) {
 ** =======================================================
 */
 
+BCFX_API void bcfx_setUniformVec4(Handle handle, Vec4* vec, uint16_t num) {
+  ctx_setUniformVec4(s_ctx, handle, vec, num);
+}
+BCFX_API void bcfx_setUniformMat3x3(Handle handle, Mat3x3* mat, uint16_t num) {
+  ctx_setUniformMat3x3(s_ctx, handle, mat, num);
+}
+BCFX_API void bcfx_setUniformMat4x4(Handle handle, Mat4x4* mat, uint16_t num) {
+  ctx_setUniformMat4x4(s_ctx, handle, mat, num);
+}
+
+BCFX_API void bcfx_touch(ViewId id) {
+  ctx_touch(s_ctx, id);
+}
+
 BCFX_API void bcfx_setVertexBuffer(uint8_t stream, Handle handle) {
   ctx_setVertexBuffer(s_ctx, stream, handle);
 }
-
 BCFX_API void bcfx_setIndexBuffer(Handle handle) {
   ctx_setIndexBuffer(s_ctx, handle);
 }
-
 BCFX_API void bcfx_setTransform(Mat4x4* mat) {
   ctx_setTransform(s_ctx, mat);
+}
+BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, uint32_t flags) {
+  ctx_setTexture(s_ctx, stage, sampler, texture, flags);
 }
 
 BCFX_API void bcfx_submit(ViewId id, Handle handle) {

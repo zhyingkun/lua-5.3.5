@@ -241,6 +241,25 @@ typedef enum {
 BCFX_API Handle bcfx_createShader(bcfx_MemBuffer* mem, ShaderType type);
 BCFX_API Handle bcfx_createProgram(Handle vs, Handle fs, bool destroy);
 
+typedef enum {
+  UT_Sampler,
+  UT_Vec4,
+  UT_Mat3x3,
+  UT_Mat4x4,
+} bcfx_UniformType;
+
+BCFX_API Handle bcfx_createUniform(const char* name, bcfx_UniformType type, uint16_t num);
+
+typedef struct {
+  void* data;
+  int width;
+  int height;
+  int nrChannels;
+} bcfx_Texture;
+
+// Memory Buffer data is a bcfx_Texture
+BCFX_API Handle bcfx_createTexture(bcfx_MemBuffer* mem);
+
 /* }====================================================== */
 
 /*
@@ -296,9 +315,16 @@ BCFX_API void bcfx_resetView(ViewId id);
 ** =======================================================
 */
 
+BCFX_API void bcfx_setUniformVec4(Handle handle, Vec4* vec, uint16_t num);
+BCFX_API void bcfx_setUniformMat3x3(Handle handle, Mat3x3* mat, uint16_t num);
+BCFX_API void bcfx_setUniformMat4x4(Handle handle, Mat4x4* mat, uint16_t num);
+
+BCFX_API void bcfx_touch(ViewId id);
+
 BCFX_API void bcfx_setVertexBuffer(uint8_t stream, Handle handle);
 BCFX_API void bcfx_setIndexBuffer(Handle handle);
 BCFX_API void bcfx_setTransform(Mat4x4* mat);
+BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, uint32_t flags);
 
 BCFX_API void bcfx_submit(ViewId id, Handle handle);
 
