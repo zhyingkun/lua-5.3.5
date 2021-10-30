@@ -88,6 +88,7 @@ void g3d_perspective(float fovy, float aspect, float zNear, float zFar, Mat4x4* 
     0, 0, 1, 0
   after this transform, the homogeneous component will be the z, which is negative
   we also can make the homogeneous component to be -z and derive another matrix
+  the homogeneous component must be z * scale, and scale != 0
   */
   ALLOCA_MAT4x4(p2oMat);
   MAT_ELEMENT(p2oMat, 0, 0) = n;
