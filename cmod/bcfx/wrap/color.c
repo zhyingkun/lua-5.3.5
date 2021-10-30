@@ -1,4 +1,4 @@
-#define _color_wrap_c_
+#define _color_c_
 #include <bcfx_wrap.h>
 
 /*
