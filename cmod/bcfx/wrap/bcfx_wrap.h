@@ -47,6 +47,7 @@ void COLOR_FUNCTION(init)(lua_State* L);
   mb->release = release_; \
   mb->ud = ud_
 
+bcfx_MemBuffer* luaL_newmembuffer(lua_State* L);
 void MEMBUF_FUNCTION(init)(lua_State* L);
 
 #define VECTOR_FUNCTION(name) bcfx_wrap_vector_##name
@@ -70,5 +71,9 @@ void G3D_FUNCTION(init)(lua_State* L);
 #define TEMP_BUF_SIZE 64
 #define VECTOR_STR_SIZE 64
 #define MATRIX_STR_SIZE 256
+
+#define UTILS_FUNCTION(name) bcfx_wrap_utils_##name
+
+void UTILS_FUNCTION(init)(lua_State* L);
 
 #endif /* _BCFX_WRAP_H_ */

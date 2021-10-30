@@ -281,5 +281,7 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   (void)G3D_FUNCTION(init)(L);
   lua_setfield(L, -2, "math");
 
+  (void)UTILS_FUNCTION(init)(L);
+
   return 1;
 }

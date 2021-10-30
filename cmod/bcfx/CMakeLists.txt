@@ -39,6 +39,7 @@ set(
 	src/opengl
 	src/opengl/glad
 	wrap
+	wrap/image
 	wrap/math
 )
 set(

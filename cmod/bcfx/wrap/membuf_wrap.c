@@ -1,21 +1,29 @@
 #define _membuf_wrap_c_
 #include <bcfx_wrap.h>
 
-static int MEMBUF_FUNCTION(Get)(lua_State* L) {
+static int MEMBUF_FUNCTION(GetClear)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   lua_pushlightuserdata(L, mb->ptr);
   lua_pushinteger(L, mb->sz);
   lua_pushinteger(L, mb->dt);
   lua_pushlightuserdata(L, mb->release);
   lua_pushlightuserdata(L, mb->ud);
+  SET_MEMBUFFER(mb, NULL, 0, DT_None, NULL, NULL);
   return 5;
 }
+
+#define RELEASE_IF_NEED(mb) \
+  if (mb->ptr != NULL && mb->release != NULL) { \
+    mb->release(mb->ud, mb->ptr); \
+  } \
+  SET_MEMBUFFER(mb, NULL, 0, DT_None, NULL, NULL)
 
 #define CHECK_AND_SET(idx, field, type, check) \
   if (!lua_isnoneornil(L, idx)) \
   mb->field = (type)luaL_check##check(L, idx)
-static int MEMBUF_FUNCTION(Set)(lua_State* L) {
+static int MEMBUF_FUNCTION(SetReplace)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  RELEASE_IF_NEED(mb);
   CHECK_AND_SET(2, ptr, void*, lightuserdata);
   CHECK_AND_SET(3, sz, size_t, integer);
   CHECK_AND_SET(4, dt, bcfx_EDataType, integer);
@@ -26,24 +34,20 @@ static int MEMBUF_FUNCTION(Set)(lua_State* L) {
 
 static int MEMBUF_FUNCTION(__gc)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  if (mb->ptr != NULL && mb->release != NULL) {
-    mb->release(mb->ud, mb->ptr);
-    mb->ptr = NULL;
-    mb->release = NULL;
-  }
+  RELEASE_IF_NEED(mb);
   return 0;
 }
 
 #define EMPLACE_MEMBUF_FUNCTION(name) \
   { #name, MEMBUF_FUNCTION(name) }
 static const luaL_Reg membuf_metafuncs[] = {
-    EMPLACE_MEMBUF_FUNCTION(Get),
-    EMPLACE_MEMBUF_FUNCTION(Set),
+    EMPLACE_MEMBUF_FUNCTION(GetClear),
+    EMPLACE_MEMBUF_FUNCTION(SetReplace),
     EMPLACE_MEMBUF_FUNCTION(__gc),
     {NULL, NULL},
 };
 
-static bcfx_MemBuffer* new_membuffer(lua_State* L) {
+bcfx_MemBuffer* luaL_newmembuffer(lua_State* L) {
   bcfx_MemBuffer* mb = (bcfx_MemBuffer*)lua_newuserdata(L, sizeof(bcfx_MemBuffer));
   luaL_setmetatable(L, BCFX_MEMBUFFER_TYPE);
   SET_MEMBUFFER(mb, NULL, 0, DT_None, NULL, NULL);
@@ -56,7 +60,7 @@ static int MEMBUF_FUNCTION(CreateMemoryBuffer)(lua_State* L) {
   bcfx_MemRelease release = (bcfx_MemRelease)luaL_optlightuserdata(L, 3, NULL);
   void* ud = luaL_optlightuserdata(L, 4, NULL);
 
-  bcfx_MemBuffer* mb = new_membuffer(L);
+  bcfx_MemBuffer* mb = luaL_newmembuffer(L);
   SET_MEMBUFFER(mb, ptr, sz, dt, release, ud);
   return 1;
 }
@@ -115,7 +119,7 @@ static int MEMBUF_FUNCTION(MakeMemoryBuffer)(lua_State* L) {
   if (num < 2 || num % 2 != 0) {
     luaL_error(L, "must passing paraments in pair with type and data");
   }
-  bcfx_MemBuffer* mb = new_membuffer(L);
+  bcfx_MemBuffer* mb = luaL_newmembuffer(L);
   if (num == 2 && lua_istable(L, 2)) {
     size_t count = luaL_len(L, 2);
     mb->dt = (bcfx_EDataType)luaL_checkinteger(L, 1);
