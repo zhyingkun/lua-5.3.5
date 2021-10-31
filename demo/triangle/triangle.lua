@@ -156,7 +156,7 @@ local function setup(mainWin)
 	end)
 	local pixelw, pixelh = glfw.GetFramebufferSize(mainWin)
 	SetupViewFull(0, mainWin, pixelw, pixelh)
-	SetupViewHalf(1, mainWin, pixelw / 2, pixelh / 2)
+	SetupViewHalf(1, mainWin, math.floor(pixelw / 2), math.floor(pixelh / 2))
 	SetupAnotherView(2, mainWin)
 
 	timer = libuv.timer.new()
