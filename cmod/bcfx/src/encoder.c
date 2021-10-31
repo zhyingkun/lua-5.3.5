@@ -12,6 +12,9 @@ void encoder_begin(Encoder* encoder, Frame* frame) {
   frame_reset(frame);
   encoder->frame = frame;
   encoder->draw.streamMask = 0;
+
+  frame->numUniformDatas = 0;
+  encoder->uniformStart = 0;
 }
 
 void encoder_setVertexBuffer(Encoder* encoder, uint8_t stream, Handle vertexBuffer) {
@@ -30,6 +33,10 @@ void encoder_setTransform(Encoder* encoder, Mat4x4* mat) {
 void encoder_submit(Encoder* encoder, ViewId id, Handle program) {
   Frame* frame = encoder->frame;
   uint16_t index = frame_newRenderItemIndex(frame);
+  encoder->draw.uniformStart = encoder->uniformStart;
+  encoder->draw.uniformCount = frame->numUniformDatas - encoder->uniformStart;
+  encoder->uniformStart = frame->numUniformDatas;
+
   frame_setRenderItem(frame, index, (RenderItem*)&encoder->draw);
   frame_setSortKey(frame, index, sortkey_encode(id, handle_index(program)));
   encoder->draw.streamMask = 0;

@@ -43,8 +43,13 @@
 
 #define BCFX_CONFIG_MAX_WINDOW 32
 
+#define BCFX_CONFIG_MAX_UNIFORM_PER_PROGRAM 32
+
+#define BCFX_CONFIG_MAX_TEXTURE_UNIT 8
+
 #define CHECK_VIEWID(id) assert(id < BCFX_CONFIG_MAX_VIEWS)
 #define CHECK_STREAMID(id) assert(id < BCFX_CONFIG_MAX_VERTEX_STREAMS)
+#define CHECK_TEXTURE_UNIT(stage) assert(stage < BCFX_CONFIG_MAX_TEXTURE_UNIT)
 
 #define printf_err(...) (fprintf(stderr, ##__VA_ARGS__), fflush(stderr))
 
@@ -78,5 +83,12 @@ typedef enum {
   UB_AlphaRef,
   UB_Count,
 } bcfx_EUniformBuiltin;
+
+typedef union {
+  int stage; // for Texture Unit
+  Vec4 vec4;
+  Mat3x3 mat3x3;
+  Mat4x4 mat4x4;
+} UniformData;
 
 #endif /* _COMMON_H_ */

@@ -31,6 +31,8 @@ typedef struct {
   uint8_t streamMask;
   Handle indexBuffer;
   Mat4x4 model;
+  uint32_t uniformStart;
+  uint32_t uniformCount;
 } RenderDraw;
 
 typedef struct {
@@ -48,6 +50,10 @@ typedef struct {
   uint32_t numRenderItems;
   RenderItem renderItems[BCFX_CONFIG_MAX_DRAW_CALLS];
   uint64_t sortKeys[BCFX_CONFIG_MAX_DRAW_CALLS];
+
+  uint32_t numUniformDatas;
+  Handle uniformHandles[BCFX_CONFIG_MAX_DRAW_CALLS];
+  UniformData uniformDatas[BCFX_CONFIG_MAX_DRAW_CALLS]; // maybe implement with serialize buffer
 
   CommandBuffer cmdPre[1];
   CommandBuffer cmdPost[1];

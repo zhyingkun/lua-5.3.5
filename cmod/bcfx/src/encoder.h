@@ -14,6 +14,7 @@ typedef struct {
   Frame* frame;
   RenderDraw draw;
   RenderCompute compute;
+  uint32_t uniformStart;
 } Encoder;
 
 void encoder_begin(Encoder* encoder, Frame* frame);

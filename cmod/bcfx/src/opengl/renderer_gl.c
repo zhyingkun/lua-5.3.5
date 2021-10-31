@@ -146,11 +146,17 @@ typedef struct {
   GLint attributes[VA_Count]; // Sparse. AttribType => Location
 } PredefinedAttrib;
 typedef struct {
+  GLint loc;
+  uint16_t num;
+  GLenum type;
+  uint16_t index;
+} UniformProperty;
+typedef struct {
   uint8_t usedCount;
   uint8_t used[UB_Count]; // Dense.
-  GLint uniforms[UB_Count]; // Sparse. UniformBuiltin => Location
-  uint16_t counts[UB_Count]; // Sparse.
-  GLenum glTypes[UB_Count]; // Sparse.
+  UniformProperty properties[UB_Count]; // Sparse.
+  uint8_t usedCountUD;
+  UniformProperty propertiesUD[BCFX_CONFIG_MAX_UNIFORM_PER_PROGRAM]; // Sparse.
 } PredefinedUniform;
 typedef struct {
   GLuint id;
@@ -187,30 +193,6 @@ static bcfx_EVertexAttrib findVertexAttributeEnum(const char* name) {
   }
   return VA_Count;
 }
-
-static const char* uniformNames[] = {
-    "u_viewRect",
-    "u_viewTexel",
-    "u_view",
-    "u_invView",
-    "u_proj",
-    "u_invProj",
-    "u_viewProj",
-    "u_invViewProj",
-    "u_model",
-    "u_modelView",
-    "u_modelViewProj",
-    "u_alphaRef4",
-    NULL,
-};
-static bcfx_EUniformBuiltin findUniformBuiltinEnum(const char* name) {
-  for (uint8_t i = 0; uniformNames[i] != NULL; i++) {
-    if (strcmp(uniformNames[i], name) == 0) {
-      return (bcfx_EUniformBuiltin)i;
-    }
-  }
-  return UB_Count;
-}
 static void prog_collectAttributes(ProgramGL* prog) {
   GLint activeAttribs = 0;
   GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_ATTRIBUTES, &activeAttribs));
@@ -235,31 +217,29 @@ static void prog_collectAttributes(ProgramGL* prog) {
   }
   pa->usedCount = cnt;
 }
-static void prog_collectUniforms(ProgramGL* prog) {
-  GLint activeUniforms = 0;
-  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_UNIFORMS, &activeUniforms));
-  GLint maxLength = 0;
-  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxLength));
-  char* name = (char*)alloca(maxLength + 1);
-  uint8_t cnt = 0;
-  PredefinedUniform* pu = &prog->pu;
-  for (GLint i = 0; i < activeUniforms; i++) {
-    GLenum gltype;
-    GLint num;
-    GL_CHECK(glGetActiveUniform(prog->id, i, maxLength + 1, NULL, &num, &gltype, name));
-    // printf_err("Uniform %s %s is at location %d, size %d\n", glslTypeName(gltype), name, glGetUniformLocation(prog->id, name), num);
-    bcfx_EUniformBuiltin eub = findUniformBuiltinEnum(name);
-    if (eub != UB_Count) {
-      GLint loc = glGetUniformLocation(prog->id, name);
-      assert(loc != -1);
-      pu->used[cnt] = eub;
-      pu->uniforms[eub] = loc;
-      pu->counts[eub] = num;
-      pu->glTypes[eub] = gltype;
-      cnt++;
+
+static const char* uniformNames[] = {
+    "u_viewRect",
+    "u_viewTexel",
+    "u_view",
+    "u_invView",
+    "u_proj",
+    "u_invProj",
+    "u_viewProj",
+    "u_invViewProj",
+    "u_model",
+    "u_modelView",
+    "u_modelViewProj",
+    "u_alphaRef4",
+    NULL,
+};
+static bcfx_EUniformBuiltin findUniformBuiltinEnum(const char* name) {
+  for (uint8_t i = 0; uniformNames[i] != NULL; i++) {
+    if (strcmp(uniformNames[i], name) == 0) {
+      return (bcfx_EUniformBuiltin)i;
     }
   }
-  pu->usedCount = cnt;
+  return UB_Count;
 }
 
 /* }====================================================== */
@@ -273,6 +253,12 @@ typedef struct {
   GLuint id;
   Handle layout;
 } VertexBufferGL;
+typedef struct {
+  const char* name;
+  bcfx_UniformType type;
+  uint16_t num;
+  UniformData data;
+} UniformGL;
 typedef struct {
   GLuint id;
 } TextureGL;
@@ -291,6 +277,8 @@ typedef struct {
   VertexBufferGL vertexBuffers[BCFX_CONFIG_MAX_VERTEX_BUFFER];
   ShaderGL shaders[BCFX_CONFIG_MAX_SHADER];
   ProgramGL programs[BCFX_CONFIG_MAX_PROGRAM];
+  uint16_t uniformCount;
+  UniformGL uniforms[BCFX_CONFIG_MAX_UNIFORM];
   TextureGL textures[BCFX_CONFIG_MAX_TEXTURE];
 
   Window mainWin;
@@ -299,6 +287,62 @@ typedef struct {
   uint8_t swapCount;
   WindowSwapper swapWins[BCFX_CONFIG_MAX_WINDOW];
 } RendererContextGL;
+
+static uint16_t findUniformUserDefined(RendererContextGL* glCtx, const char* name) {
+  uint16_t idx = 0;
+  for (uint16_t i = 0; i < glCtx->uniformCount; i++) {
+    UniformGL* uniform = NULL;
+    do {
+      uniform = &glCtx->uniforms[idx++];
+    } while (uniform->name == NULL);
+    if (strcmp(uniform->name, name) == 0) {
+      return idx;
+    }
+  }
+  return UINT16_MAX;
+}
+#define SET_UNIFORM_PROPERTY(prop, loc_, num_, gltype_, idx_) \
+  prop->loc = loc_; \
+  prop->num = num_; \
+  prop->type = gltype_; \
+  prop->index = idx_
+static void prog_collectUniforms(RendererContextGL* glCtx, ProgramGL* prog) {
+  GLint activeUniforms = 0;
+  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_UNIFORMS, &activeUniforms));
+  GLint maxLength = 0;
+  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxLength));
+  char* name = (char*)alloca(maxLength + 1);
+  uint8_t cnt = 0;
+  uint16_t cntUD = 0;
+  PredefinedUniform* pu = &prog->pu;
+  for (GLint i = 0; i < activeUniforms; i++) {
+    GLenum gltype;
+    GLint num;
+    GL_CHECK(glGetActiveUniform(prog->id, i, maxLength + 1, NULL, &num, &gltype, name));
+    GLint loc = glGetUniformLocation(prog->id, name);
+    // printf_err("Uniform %s %s is at location %d, size %d\n", glslTypeName(gltype), name, loc, num);
+    bcfx_EUniformBuiltin eub = findUniformBuiltinEnum(name);
+    if (eub != UB_Count) {
+      assert(loc != -1);
+      pu->used[cnt] = eub;
+      cnt++;
+      UniformProperty* prop = &pu->properties[eub];
+      SET_UNIFORM_PROPERTY(prop, loc, num, gltype, 0);
+    } else {
+      uint16_t idx = findUniformUserDefined(glCtx, name);
+      if (idx != UINT16_MAX) {
+        assert(loc != -1);
+        UniformProperty* prop = &pu->propertiesUD[cntUD];
+        cntUD++;
+        SET_UNIFORM_PROPERTY(prop, loc, num, gltype, idx);
+      } else {
+        printf_err("Uniform %s %s is at location %d, size %d, Does Not Find In User Defined Uniform\n", glslTypeName(gltype), name, loc, num);
+      }
+    }
+  }
+  pu->usedCount = cnt;
+  pu->usedCountUD = cntUD;
+}
 
 static WindowSwapper* gl_getWindowSwapper(RendererContextGL* glCtx, Window win) {
   for (uint8_t i = 0; i < glCtx->swapCount; i++) {
@@ -450,9 +494,14 @@ static void gl_createProgram(RendererContext* ctx, Handle handle, Handle vsh, Ha
     return;
   }
   prog_collectAttributes(prog);
-  prog_collectUniforms(prog);
+  prog_collectUniforms(glCtx, prog);
 }
 static void gl_createUniform(RendererContext* ctx, Handle handle, const char* name, bcfx_UniformType type, uint16_t num) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  UniformGL* uniform = &glCtx->uniforms[handle_index(handle)];
+  uniform->name = name;
+  uniform->type = type;
+  uniform->num = num;
 }
 static void gl_createTexture(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
@@ -565,12 +614,34 @@ static void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, Ren
   PredefinedUniform* pu = &prog->pu;
   for (uint8_t i = 0; i < pu->usedCount; i++) {
     bcfx_EUniformBuiltin eub = (bcfx_EUniformBuiltin)pu->used[i];
-    GLint loc = pu->uniforms[eub];
+    UniformProperty* prop = &pu->properties[eub];
+    GLint loc = prop->loc;
     switch (eub) {
       case UB_Model:
         GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, draw->model.element));
         break;
 
+      default:
+        break;
+    }
+  }
+  for (uint16_t i = 0; i < pu->usedCountUD; i++) {
+    UniformProperty* prop = &pu->propertiesUD[i];
+    UniformGL* uniform = &glCtx->uniforms[prop->index];
+    // assert(uniform->type == prop->type);
+    switch (uniform->type) {
+      case UT_Sampler:
+        GL_CHECK(glUniform1i(prop->loc, uniform->data.stage));
+        break;
+      case UT_Vec4:
+        GL_CHECK(glUniform4fv(prop->loc, 1, (const GLfloat*)uniform->data.vec4.element));
+        break;
+      case UT_Mat3x3:
+        GL_CHECK(glUniformMatrix3fv(prop->loc, 1, GL_FALSE, (const GLfloat*)uniform->data.mat3x3.element));
+        break;
+      case UT_Mat4x4:
+        GL_CHECK(glUniformMatrix4fv(prop->loc, 1, GL_FALSE, (const GLfloat*)uniform->data.mat4x4.element));
+        break;
       default:
         break;
     }

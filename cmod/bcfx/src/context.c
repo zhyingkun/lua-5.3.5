@@ -315,10 +315,13 @@ void ctx_resetView(Context* ctx, ViewId id) {
 */
 
 void ctx_setUniformVec4(Context* ctx, Handle handle, Vec4* vec, uint16_t num) {
+  CHECK_HANDLE(handle);
 }
 void ctx_setUniformMat3x3(Context* ctx, Handle handle, Mat3x3* mat, uint16_t num) {
+  CHECK_HANDLE(handle);
 }
 void ctx_setUniformMat4x4(Context* ctx, Handle handle, Mat4x4* mat, uint16_t num) {
+  CHECK_HANDLE(handle);
 }
 
 void ctx_touch(Context* ctx, ViewId id) {
@@ -337,6 +340,9 @@ void ctx_setTransform(Context* ctx, Mat4x4* mat) {
   encoder_setTransform(ctx->encoder, mat);
 }
 void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture, uint32_t flags) {
+  CHECK_TEXTURE_UNIT(stage);
+  CHECK_HANDLE(sampler);
+  CHECK_HANDLE(texture);
 }
 
 void ctx_submit(Context* ctx, ViewId id, Handle handle) {
