@@ -71,6 +71,23 @@ colorcircle.setup(window)
 require("watch").watch("triangle")
 require("watch").watch("colorcircle")
 
+--[[
+local graphics3d = bcfx.math.graphics3d
+local vector = bcfx.math.vector
+
+local eye = vector.Vec3(0, 0, 3)
+local center = vector.Vec3(0, 0, -1)
+local up = vector.Vec3(0, 1, 0)
+local lookAtMat = graphics3d.lookAt(eye, center, up)
+print("lookAtMat:", lookAtMat)
+
+local perspMat = graphics3d.perspective(45, 1.0, 0.1, 50)
+print("perspMat:", perspMat)
+
+local orthoMat = graphics3d.orthogonal(-3.4, 8, -6.8, 4, 0.1, 50)
+print("orthoMat:", orthoMat)
+--]]
+
 local lastTime = 0.0
 while not glfw.WindowShouldClose(window) do
 	if glfw.GetKey(window, 256) == input_state.PRESS then
