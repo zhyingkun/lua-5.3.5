@@ -119,7 +119,7 @@ static int BCWRAP_FUNCTION(createProgram)(lua_State* L) {
   Handle vs = (Handle)luaL_checkinteger(L, 1);
   Handle fs = (Handle)luaL_checkinteger(L, 2);
 
-  Handle handle = bcfx_createProgram(vs, fs, true);
+  Handle handle = bcfx_createProgram(vs, fs);
   lua_pushinteger(L, handle);
   return 1;
 }

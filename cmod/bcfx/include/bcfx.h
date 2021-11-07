@@ -259,7 +259,7 @@ typedef enum {
 } ShaderType;
 
 BCFX_API Handle bcfx_createShader(bcfx_MemBuffer* mem, ShaderType type);
-BCFX_API Handle bcfx_createProgram(Handle vs, Handle fs, bool destroy);
+BCFX_API Handle bcfx_createProgram(Handle vs, Handle fs);
 
 typedef enum {
   UT_Sampler,

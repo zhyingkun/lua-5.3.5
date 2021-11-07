@@ -49,7 +49,6 @@ typedef struct {
 typedef struct {
   Handle vsHandle;
   Handle fsHandle;
-  bool destroy; // Destroy shader when destroy program
 } CmdProgram;
 typedef struct {
   const char* name;

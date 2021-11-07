@@ -48,7 +48,7 @@ Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout);
 Handle ctx_createVertexBuffer(Context* ctx, bcfx_MemBuffer* mem, Handle layout);
 Handle ctx_createIndexBuffer(Context* ctx, bcfx_MemBuffer* mem);
 Handle ctx_createShader(Context* ctx, bcfx_MemBuffer* mem, ShaderType type);
-Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs, bool destroy);
+Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs);
 Handle ctx_createUniform(Context* ctx, const char* name, bcfx_UniformType type, uint16_t num);
 Handle ctx_createTexture(Context* ctx, bcfx_MemBuffer* mem);
 

@@ -103,8 +103,8 @@ BCFX_API Handle bcfx_createShader(bcfx_MemBuffer* mem, ShaderType type) {
   return ctx_createShader(s_ctx, mem, type);
 }
 
-BCFX_API Handle bcfx_createProgram(Handle vs, Handle fs, bool destroy) {
-  return ctx_createProgram(s_ctx, vs, fs, destroy);
+BCFX_API Handle bcfx_createProgram(Handle vs, Handle fs) {
+  return ctx_createProgram(s_ctx, vs, fs);
 }
 
 BCFX_API Handle bcfx_createUniform(const char* name, bcfx_UniformType type, uint16_t num) {

@@ -224,13 +224,12 @@ Handle ctx_createShader(Context* ctx, bcfx_MemBuffer* mem, ShaderType type) {
   return handle;
 }
 
-Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs, bool destroy) {
+Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs) {
   CHECK_HANDLE(vs);
   CHECK_HANDLE(fs);
   ADD_CMD_ALLOC_HANDLE(ctx, Program)
   param->cp.vsHandle = vs;
   param->cp.fsHandle = fs;
-  param->cp.destroy = destroy;
   return handle;
 }
 
