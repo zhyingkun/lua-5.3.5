@@ -59,6 +59,14 @@ BCFX_API void bcfx_VL_skip(bcfx_VertexLayout* layout, uint8_t num_byte) {
 
 static Context s_ctx[1];
 
+BCFX_API uint32_t bcfx_frameId(void) {
+  return ctx_frameId(s_ctx);
+}
+
+BCFX_API void bcfx_setFrameCompletedCallback(bcfx_OnFrameCompleted cb, void* ud) {
+  ctx_setFrameCompletedCallback(s_ctx, cb, ud);
+}
+
 BCFX_API void bcfx_init(Window mainWin) {
   ctx_init(s_ctx, mainWin);
 }

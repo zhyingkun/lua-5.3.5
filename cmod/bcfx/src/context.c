@@ -91,6 +91,21 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
 ** =======================================================
 */
 
+uint32_t ctx_frameId(Context* ctx) {
+  return ctx->frameCount;
+}
+
+void ctx_setFrameCompletedCallback(Context* ctx, bcfx_OnFrameCompleted cb, void* ud) {
+  ctx->frameCompleted = cb;
+  ctx->frameCompletedArg = ud;
+}
+
+static void ctx_callPrevFrameCompleted(Context* ctx) {
+  if (ctx->frameCompleted && ctx->frameCount > 0) {
+    ctx->frameCompleted(ctx->frameCompletedArg, ctx->frameCount - 1);
+  }
+}
+
 void ctx_apiFrame(Context* ctx) {
 
   memcpy(ctx->submitFrame->views, ctx->views, sizeof(ctx->views));
@@ -103,7 +118,8 @@ void ctx_apiFrame(Context* ctx) {
 
   ctx_apiSemPost(ctx);
 
-  ctx->frameCount++;
+  ctx_callPrevFrameCompleted(ctx); // before next frame, complete prev frame
+  ctx->frameCount++; // start next frame
   encoder_begin(ctx->encoder, submitFrame);
 }
 

@@ -67,9 +67,24 @@ typedef struct {
   void* ud;
 } bcfx_MemBuffer;
 
-#define RELEASE_MEMBUFFER(membuf) \
-  if (membuf->release) \
-  membuf->release(membuf->ud, membuf->ptr)
+#define MEMBUFFER_SET(mb, ptr_, sz_, dt_, release_, ud_) \
+  mb->ptr = ptr_; \
+  mb->sz = sz_; \
+  mb->dt = dt_; \
+  mb->release = release_; \
+  mb->ud = ud_
+
+#define MEMBUFFER_CLEAR(mb) \
+  MEMBUFFER_SET(mb, NULL, 0, DT_None, NULL, NULL)
+
+#define MEMBUFFER_MOVE(src, dst) \
+  *dst = *src; \
+  MEMBUFFER_CLEAR(src)
+
+#define MEMBUFFER_RELEASE(mb) \
+  if (mb->release != NULL && mb->ptr != NULL) \
+    mb->release(mb->ud, mb->ptr); \
+  MEMBUFFER_CLEAR(mb)
 
 /* }====================================================== */
 
@@ -211,6 +226,11 @@ BCFX_API void bcfx_setMiscFuncs(bcfx_GetTime getTime);
 ** Basic API
 ** =======================================================
 */
+
+BCFX_API uint32_t bcfx_frameId(void);
+
+typedef void (*bcfx_OnFrameCompleted)(void* ud, uint32_t frameId);
+BCFX_API void bcfx_setFrameCompletedCallback(bcfx_OnFrameCompleted cb, void* ud);
 
 typedef void* Window;
 

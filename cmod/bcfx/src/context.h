@@ -33,7 +33,12 @@ typedef struct {
   RendererContext* renderCtx;
 
   uint32_t frameCount;
+  bcfx_OnFrameCompleted frameCompleted;
+  void* frameCompletedArg;
 } Context;
+
+uint32_t ctx_frameId(Context* ctx);
+void ctx_setFrameCompletedCallback(Context* ctx, bcfx_OnFrameCompleted cb, void* ud);
 
 void ctx_apiFrame(Context* ctx);
 void ctx_init(Context* ctx, Window mainWin);
