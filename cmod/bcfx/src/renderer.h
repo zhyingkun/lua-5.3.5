@@ -19,12 +19,12 @@ typedef void (*RendererInit)(RendererContext* ctx, Window mainWin);
 typedef void (*RendererShutdown)(RendererContext* ctx);
 
 typedef void (*RendererCreateVertexLayout)(RendererContext* ctx, Handle handle, const void* layout);
-typedef void (*RendererCreateVertexBuffer)(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem, Handle layoutHandle, uint16_t flags);
-typedef void (*RendererCreateIndexBuffer)(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem, uint16_t flags);
-typedef void (*RendererCreateShader)(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem, ShaderType type);
+typedef void (*RendererCreateVertexBuffer)(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, Handle layoutHandle, uint16_t flags);
+typedef void (*RendererCreateIndexBuffer)(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, uint16_t flags);
+typedef void (*RendererCreateShader)(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, ShaderType type);
 typedef void (*RendererCreateProgram)(RendererContext* ctx, Handle handle, Handle vsh, Handle fsh);
 typedef void (*RendererCreateUniform)(RendererContext* ctx, Handle handle, const char* name, bcfx_UniformType type, uint16_t num);
-typedef void (*RendererCreateTexture)(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem);
+typedef void (*RendererCreateTexture)(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem);
 
 typedef void (*RendererBeginFrame)(RendererContext* ctx);
 typedef void (*RendererSubmit)(RendererContext* ctx, Frame* _render);

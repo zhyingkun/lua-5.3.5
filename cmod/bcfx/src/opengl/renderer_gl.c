@@ -208,7 +208,8 @@ static void prog_collectAttributes(ProgramGL* prog) {
     // printf_err("Attribute %s %s is at location %d\n", glslTypeName(type), name, glGetAttribLocation(prog->id, name));
     bcfx_EVertexAttrib eva = findVertexAttributeEnum(name);
     if (eva != VA_Count) {
-      GLint loc = glGetAttribLocation(prog->id, name);
+      GLint loc;
+      GL_CHECK(loc = glGetAttribLocation(prog->id, name));
       assert(loc != -1);
       pa->used[cnt] = eva;
       pa->attributes[eva] = loc;
@@ -317,9 +318,9 @@ static void prog_collectUniforms(RendererContextGL* glCtx, ProgramGL* prog) {
   PredefinedUniform* pu = &prog->pu;
   for (GLint i = 0; i < activeUniforms; i++) {
     GLenum gltype;
-    GLint num;
+    GLint num, loc;
     GL_CHECK(glGetActiveUniform(prog->id, i, maxLength + 1, NULL, &num, &gltype, name));
-    GLint loc = glGetUniformLocation(prog->id, name);
+    GL_CHECK(loc = glGetUniformLocation(prog->id, name));
     // printf_err("Uniform %s %s is at location %d, size %d\n", glslTypeName(gltype), name, loc, num);
     bcfx_EUniformBuiltin eub = findUniformBuiltinEnum(name);
     if (eub != UB_Count) {
@@ -432,7 +433,7 @@ static void gl_createVertexLayout(RendererContext* ctx, Handle handle, const voi
   bcfx_VertexLayout* vl = &glCtx->vertexLayouts[handle_index(handle)];
   memcpy((uint8_t*)vl, layout, sizeof(bcfx_VertexLayout));
 }
-static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem, Handle layoutHandle, uint16_t flags) {
+static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, Handle layoutHandle, uint16_t flags) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
   vb->layout = layoutHandle;
@@ -440,9 +441,9 @@ static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, const bcf
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
   GL_CHECK(glBufferData(GL_ARRAY_BUFFER, mem->sz, mem->ptr, GL_STATIC_DRAW));
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
-  RELEASE_MEMBUFFER(mem);
+  MEMBUFFER_RELEASE(mem);
 }
-static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem, uint16_t flags) {
+static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, uint16_t flags) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
   ib->count = mem->sz / sizeof_DataType[mem->dt];
@@ -451,9 +452,9 @@ static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, const bcfx
   GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
   GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mem->sz, mem->ptr, GL_STATIC_DRAW));
   GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-  RELEASE_MEMBUFFER(mem);
+  MEMBUFFER_RELEASE(mem);
 }
-static void gl_createShader(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem, ShaderType type) {
+static void gl_createShader(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, ShaderType type) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   ShaderGL* shader = &glCtx->shaders[handle_index(handle)];
   if (type == ST_Vertex) {
@@ -462,7 +463,7 @@ static void gl_createShader(RendererContext* ctx, Handle handle, const bcfx_MemB
     shader->type = GL_FRAGMENT_SHADER;
   } else {
   }
-  shader->id = glCreateShader(shader->type);
+  GL_CHECK(shader->id = glCreateShader(shader->type));
   GL_CHECK(glShaderSource(shader->id, 1, (const GLchar* const*)&mem->ptr, NULL));
   GL_CHECK(glCompileShader(shader->id));
 
@@ -473,14 +474,14 @@ static void gl_createShader(RendererContext* ctx, Handle handle, const bcfx_MemB
     GL_CHECK(glGetShaderInfoLog(shader->id, 1024, NULL, infoLog));
     printf_err("Shader compile error: %s\n", infoLog);
   }
-  RELEASE_MEMBUFFER(mem);
+  MEMBUFFER_RELEASE(mem);
 }
 static void gl_createProgram(RendererContext* ctx, Handle handle, Handle vsh, Handle fsh) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   ShaderGL* vs = &glCtx->shaders[handle_index(vsh)];
   ShaderGL* fs = &glCtx->shaders[handle_index(fsh)];
   ProgramGL* prog = &glCtx->programs[handle_index(handle)];
-  prog->id = glCreateProgram();
+  GL_CHECK(prog->id = glCreateProgram());
   GL_CHECK(glAttachShader(prog->id, vs->id));
   GL_CHECK(glAttachShader(prog->id, fs->id));
   GL_CHECK(glLinkProgram(prog->id));
@@ -503,7 +504,7 @@ static void gl_createUniform(RendererContext* ctx, Handle handle, const char* na
   uniform->type = type;
   uniform->num = num;
 }
-static void gl_createTexture(RendererContext* ctx, Handle handle, const bcfx_MemBuffer* mem) {
+static void gl_createTexture(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   TextureGL* txtr = &glCtx->textures[handle_index(handle)];
 
@@ -527,11 +528,10 @@ static void gl_createTexture(RendererContext* ctx, Handle handle, const bcfx_Mem
   }
   GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, format, GL_UNSIGNED_BYTE, texture->data));
   GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
+  MEMBUFFER_RELEASE(mem);
 }
 
-static void gl_MakeViewCurrent(RendererContextGL* glCtx, ViewId viewId, Frame* frame) {
-  View* view = &frame->views[viewId];
-
+static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
   gl_MakeWinCurrent(glCtx, view->win);
 
   Rect* rect = &view->rect;
@@ -610,13 +610,17 @@ static void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, 
   }
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
-static void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw) {
+static void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw, View* view) {
   PredefinedUniform* pu = &prog->pu;
   for (uint8_t i = 0; i < pu->usedCount; i++) {
     bcfx_EUniformBuiltin eub = (bcfx_EUniformBuiltin)pu->used[i];
     UniformProperty* prop = &pu->properties[eub];
     GLint loc = prop->loc;
     switch (eub) {
+      case UB_View:
+        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, view->viewMat.element));
+      case UB_Proj:
+        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, view->projMat.element));
       case UB_Model:
         GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, draw->model.element));
         break;
@@ -660,9 +664,10 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
     uint16_t program = 0;
     sortkey_decode(frame->sortKeys[i], &id, &program);
 
+    View* view = &frame->views[id];
     if (curViewId != id) { // view changed
       curViewId = id;
-      gl_MakeViewCurrent(glCtx, id, frame);
+      gl_MakeViewCurrent(glCtx, view);
     }
 
     ProgramGL* prog = &glCtx->programs[program];
@@ -672,7 +677,7 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
     GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
 
     gl_bindProgramAttributes(glCtx, prog, draw);
-    gl_setProgramUniforms(glCtx, prog, draw);
+    gl_setProgramUniforms(glCtx, prog, draw, view);
 
     GL_CHECK(glDrawElements(GL_TRIANGLES, ib->count, ib->type, 0));
   }
