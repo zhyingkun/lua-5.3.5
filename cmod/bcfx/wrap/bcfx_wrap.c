@@ -81,7 +81,7 @@ static int BCWRAP_FUNCTION(createVertexBuffer)(lua_State* L) {
   Handle layoutHandle = luaL_checkinteger(L, 2);
 
   Handle handle = bcfx_createVertexBuffer(mb, layoutHandle);
-  SET_MEMBUFFER(mb, NULL, 0, AT_None, NULL, NULL); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
+  MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
   lua_pushinteger(L, handle);
   return 1;
 }
@@ -94,7 +94,7 @@ static int BCWRAP_FUNCTION(createIndexBuffer)(lua_State* L) {
   }
 
   Handle handle = bcfx_createIndexBuffer(mb);
-  SET_MEMBUFFER(mb, NULL, 0, AT_None, NULL, NULL); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
+  MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
   lua_pushinteger(L, handle);
   return 1;
 }
@@ -102,15 +102,16 @@ static int BCWRAP_FUNCTION(createShader)(lua_State* L) {
   bcfx_MemBuffer buffer;
   bcfx_MemBuffer* mb = &buffer;
   if (lua_isstring(L, 1)) {
-    SET_MEMBUFFER(mb, NULL, 0, AT_None, NULL, NULL);
+    MEMBUFFER_CLEAR(mb);
     mb->ptr = (void*)lua_tolstring(L, 1, &mb->sz);
+    // TODO: hold shader source string
   } else {
     mb = luaL_checkmembuffer(L, 1);
   }
   uint8_t type = (uint8_t)luaL_checkinteger(L, 2);
 
   Handle handle = bcfx_createShader(mb, (ShaderType)type);
-  SET_MEMBUFFER(mb, NULL, 0, AT_None, NULL, NULL); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
+  MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
   lua_pushinteger(L, handle);
   return 1;
 }

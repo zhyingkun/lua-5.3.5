@@ -8,22 +8,16 @@ static int MEMBUF_FUNCTION(GetClear)(lua_State* L) {
   lua_pushinteger(L, mb->dt);
   lua_pushlightuserdata(L, mb->release);
   lua_pushlightuserdata(L, mb->ud);
-  SET_MEMBUFFER(mb, NULL, 0, DT_None, NULL, NULL);
+  MEMBUFFER_CLEAR(mb);
   return 5;
 }
-
-#define RELEASE_IF_NEED(mb) \
-  if (mb->ptr != NULL && mb->release != NULL) { \
-    mb->release(mb->ud, mb->ptr); \
-  } \
-  SET_MEMBUFFER(mb, NULL, 0, DT_None, NULL, NULL)
 
 #define CHECK_AND_SET(idx, field, type, check) \
   if (!lua_isnoneornil(L, idx)) \
   mb->field = (type)luaL_check##check(L, idx)
 static int MEMBUF_FUNCTION(SetReplace)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  RELEASE_IF_NEED(mb);
+  MEMBUFFER_RELEASE(mb);
   CHECK_AND_SET(2, ptr, void*, lightuserdata);
   CHECK_AND_SET(3, sz, size_t, integer);
   CHECK_AND_SET(4, dt, bcfx_EDataType, integer);
@@ -34,7 +28,7 @@ static int MEMBUF_FUNCTION(SetReplace)(lua_State* L) {
 
 static int MEMBUF_FUNCTION(__gc)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  RELEASE_IF_NEED(mb);
+  MEMBUFFER_RELEASE(mb);
   return 0;
 }
 
@@ -50,20 +44,20 @@ static const luaL_Reg membuf_metafuncs[] = {
 bcfx_MemBuffer* luaL_newmembuffer(lua_State* L) {
   bcfx_MemBuffer* mb = (bcfx_MemBuffer*)lua_newuserdata(L, sizeof(bcfx_MemBuffer));
   luaL_setmetatable(L, BCFX_MEMBUFFER_TYPE);
-  SET_MEMBUFFER(mb, NULL, 0, DT_None, NULL, NULL);
+  MEMBUFFER_CLEAR(mb);
   return mb;
 }
-static int MEMBUF_FUNCTION(CreateMemoryBuffer)(lua_State* L) {
-  void* ptr = luaL_checklightuserdata(L, 1);
-  size_t sz = luaL_checkinteger(L, 2);
-  bcfx_EDataType dt = (bcfx_EDataType)luaL_optinteger(L, 5, AT_None);
-  bcfx_MemRelease release = (bcfx_MemRelease)luaL_optlightuserdata(L, 3, NULL);
-  void* ud = luaL_optlightuserdata(L, 4, NULL);
+// static int MEMBUF_FUNCTION(CreateMemoryBuffer)(lua_State* L) {
+//   void* ptr = luaL_checklightuserdata(L, 1);
+//   size_t sz = luaL_checkinteger(L, 2);
+//   bcfx_EDataType dt = (bcfx_EDataType)luaL_optinteger(L, 5, DT_None);
+//   bcfx_MemRelease release = (bcfx_MemRelease)luaL_optlightuserdata(L, 3, NULL);
+//   void* ud = luaL_optlightuserdata(L, 4, NULL);
 
-  bcfx_MemBuffer* mb = luaL_newmembuffer(L);
-  SET_MEMBUFFER(mb, ptr, sz, dt, release, ud);
-  return 1;
-}
+//   bcfx_MemBuffer* mb = luaL_newmembuffer(L);
+//   MEMBUFFER_SET(mb, ptr, sz, dt, release, ud);
+//   return 1;
+// }
 
 #define FILL_DATA_ARRAY_TABLE(count, idx, type, totype) \
   for (size_t i = 0; i < count; i++) { \
@@ -175,7 +169,7 @@ _READ_END_:
 }
 
 static const luaL_Reg membuf_funcs[] = {
-    EMPLACE_MEMBUF_FUNCTION(CreateMemoryBuffer),
+    // EMPLACE_MEMBUF_FUNCTION(CreateMemoryBuffer),
     EMPLACE_MEMBUF_FUNCTION(MakeMemoryBuffer),
     {NULL, NULL},
 };

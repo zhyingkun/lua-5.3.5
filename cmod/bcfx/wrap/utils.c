@@ -65,7 +65,7 @@ static int dealReadFileResult(lua_State* L, const char* filename, int err, void*
     return 3;
   }
   bcfx_MemBuffer* mb = luaL_newmembuffer(L);
-  SET_MEMBUFFER(mb, ptr, sz, DT_None, utils_releaseBuf, NULL);
+  MEMBUFFER_SET(mb, ptr, sz, DT_None, utils_releaseBuf, NULL);
   return 1;
 }
 static int UTILS_FUNCTION(rfMemBuffer)(lua_State* L) {
@@ -111,7 +111,7 @@ static int dealImageParseResult(lua_State* L, bcfx_Texture* texture) {
     return 0;
   }
   bcfx_MemBuffer* mb = luaL_newmembuffer(L);
-  SET_MEMBUFFER(mb, (void*)texture, sizeof(bcfx_Texture), DT_None, utils_releaseTexture, NULL);
+  MEMBUFFER_SET(mb, (void*)texture, sizeof(bcfx_Texture), DT_None, utils_releaseTexture, NULL);
   return 1;
 }
 

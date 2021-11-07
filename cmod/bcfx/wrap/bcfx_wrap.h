@@ -40,13 +40,6 @@ void COLOR_FUNCTION(init)(lua_State* L);
 #define BCFX_MEMBUFFER_TYPE "bcfx_MemBuffer*"
 #define luaL_checkmembuffer(L, idx) (bcfx_MemBuffer*)luaL_checkudata(L, idx, BCFX_MEMBUFFER_TYPE)
 
-#define SET_MEMBUFFER(mb, ptr_, sz_, dt_, release_, ud_) \
-  mb->ptr = ptr_; \
-  mb->sz = sz_; \
-  mb->dt = dt_; \
-  mb->release = release_; \
-  mb->ud = ud_
-
 bcfx_MemBuffer* luaL_newmembuffer(lua_State* L);
 void MEMBUF_FUNCTION(init)(lua_State* L);
 
