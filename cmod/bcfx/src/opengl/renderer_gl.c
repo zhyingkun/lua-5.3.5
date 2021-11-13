@@ -583,6 +583,7 @@ static void gl_createTexture(RendererContext* ctx, Handle handle, bcfx_MemBuffer
 
 static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
   gl_MakeWinCurrent(glCtx, view->win);
+  // TODO: bind framebuffer
 
   Rect* rect = &view->rect;
   GL_CHECK(glViewport(rect->x, rect->y, rect->width, rect->height));
@@ -818,8 +819,6 @@ static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, F
 static void gl_submit(RendererContext* ctx, Frame* frame) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
 
-  GL_CHECK(glFrontFace(GL_CW));
-
   // TODO: SortKey
   uint32_t renderCount = MIN(frame->renderCount, frame->numRenderItems);
   ViewId curViewId = UINT16_MAX;
@@ -834,6 +833,10 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
       curViewId = id;
       gl_MakeViewCurrent(glCtx, view);
     }
+
+    GL_CHECK(glFrontFace(GL_CCW));
+    GL_CHECK(glEnable(GL_DEPTH_TEST));
+    GL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 
     gl_updateGlobalUniform(glCtx, draw, frame);
 
