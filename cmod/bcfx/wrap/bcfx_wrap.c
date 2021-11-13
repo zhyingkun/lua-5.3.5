@@ -5,6 +5,44 @@
 
 /*
 ** {======================================================
+** BCFX Resource Manage
+** =======================================================
+*/
+
+static void on_frame_completed(void* ud, uint32_t frameId) {
+  lua_State* L = (lua_State*)ud;
+  lua_checkstack(L, 2);
+  lua_rawgetp(L, LUA_REGISTRYINDEX, (const void*)on_frame_completed);
+  lua_pushnil(L);
+  lua_rawseti(L, -2, frameId);
+}
+
+static void init_resource_manage(lua_State* L) {
+  lua_createtable(L, 0, 2);
+  lua_rawsetp(L, LUA_REGISTRYINDEX, (const void*)on_frame_completed);
+  bcfx_setFrameCompletedCallback(on_frame_completed, (void*)L);
+}
+
+static void hold_frame_resourse(lua_State* L, uint32_t frameId, int idx) {
+  idx = lua_absindex(L, idx);
+  lua_rawgetp(L, LUA_REGISTRYINDEX, (const void*)on_frame_completed);
+  lua_rawgeti(L, -1, frameId);
+  if (lua_isnil(L, -1)) {
+    lua_pop(L, 1);
+    lua_createtable(L, 0, 4);
+    lua_pushvalue(L, -1);
+    lua_rawseti(L, -3, frameId);
+  }
+  lua_pushvalue(L, idx);
+  lua_pushboolean(L, true);
+  lua_rawset(L, -3);
+  lua_pop(L, 2);
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** BCFX Wrap Functions
 ** =======================================================
 */
@@ -42,11 +80,13 @@ static int BCWRAP_FUNCTION(setWinCtxFuncs)(lua_State* L) {
   void* swapBuffers = luaL_checklightuserdata(L, 2);
   void* swapInterval = luaL_checklightuserdata(L, 3);
   void* getProcAddress = luaL_checklightuserdata(L, 4);
+  void* getWindowSize = luaL_checklightuserdata(L, 5);
   bcfx_setWinCtxFuncs(
       (bcfx_MakeContextCurrent)makeCurrent,
       (bcfx_SwapBuffers)swapBuffers,
       (bcfx_SwapInterval)swapInterval,
-      (bcfx_GetProcAddress)getProcAddress);
+      (bcfx_GetProcAddress)getProcAddress,
+      (bcfx_GetWindowSize)getWindowSize);
   return 0;
 }
 static int BCWRAP_FUNCTION(setMiscFuncs)(lua_State* L) {
@@ -61,7 +101,8 @@ static int BCWRAP_FUNCTION(init)(lua_State* L) {
   return 0;
 }
 static int BCWRAP_FUNCTION(apiFrame)(lua_State* L) {
-  bcfx_apiFrame();
+  uint32_t renderCount = luaL_optinteger(L, 1, -1);
+  bcfx_apiFrame(renderCount);
   return 0;
 }
 static int BCWRAP_FUNCTION(shutdown)(lua_State* L) {
@@ -104,7 +145,7 @@ static int BCWRAP_FUNCTION(createShader)(lua_State* L) {
   if (lua_isstring(L, 1)) {
     MEMBUFFER_CLEAR(mb);
     mb->ptr = (void*)lua_tolstring(L, 1, &mb->sz);
-    // TODO: hold shader source string
+    hold_frame_resourse(L, bcfx_frameId(), 1);
   } else {
     mb = luaL_checkmembuffer(L, 1);
   }
@@ -120,6 +161,24 @@ static int BCWRAP_FUNCTION(createProgram)(lua_State* L) {
   Handle fs = (Handle)luaL_checkinteger(L, 2);
 
   Handle handle = bcfx_createProgram(vs, fs);
+  lua_pushinteger(L, handle);
+  return 1;
+}
+static int BCWRAP_FUNCTION(createUniform)(lua_State* L) {
+  const char* name = luaL_checkstring(L, 1);
+  bcfx_UniformType type = (bcfx_UniformType)luaL_checkinteger(L, 2);
+  uint16_t num = luaL_optinteger(L, 3, 1);
+
+  Handle handle = bcfx_createUniform(name, type, num);
+  lua_pushinteger(L, handle);
+  return 1;
+}
+static int BCWRAP_FUNCTION(createTexture)(lua_State* L) {
+  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+
+  Handle handle = bcfx_createTexture(mb);
+  MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
+
   lua_pushinteger(L, handle);
   return 1;
 }
@@ -149,6 +208,23 @@ static int BCWRAP_FUNCTION(setViewRect)(lua_State* L) {
   return 0;
 }
 
+static int BCWRAP_FUNCTION(setUniform)(lua_State* L) {
+  Handle handle = (Handle)luaL_checkinteger(L, 1);
+  Mat* mat;
+  if (luaL_testudata(L, 2, BCFX_VECTOR_TYPE)) {
+    Vec4* vec = luaL_checkvec4(L, 2);
+    bcfx_setUniformVec4(handle, vec, 1);
+  } else if ((mat = (Mat*)luaL_testudata(L, 2, BCFX_MATRIX_TYPE))) {
+    if (IS_MAT3x3(mat)) {
+      bcfx_setUniformMat3x3(handle, (Mat3x3*)mat, 1);
+    } else if (IS_MAT4x4(mat)) {
+      bcfx_setUniformMat4x4(handle, (Mat4x4*)mat, 1);
+    } else {
+    }
+  }
+  return 0;
+}
+
 static int BCWRAP_FUNCTION(setVertexBuffer)(lua_State* L) {
   uint8_t stream = luaL_checkinteger(L, 1);
   Handle handle = (Handle)luaL_checkinteger(L, 2);
@@ -158,14 +234,24 @@ static int BCWRAP_FUNCTION(setVertexBuffer)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(setIndexBuffer)(lua_State* L) {
   Handle handle = (Handle)luaL_checkinteger(L, 1);
-
-  bcfx_setIndexBuffer(handle);
+  uint32_t start = luaL_optinteger(L, 2, 0);
+  uint32_t count = luaL_optinteger(L, 2, -1);
+  bcfx_setIndexBuffer(handle, start, count);
   return 0;
 }
 static int BCWRAP_FUNCTION(setTransform)(lua_State* L) {
   Mat4x4* mat = luaL_checkmat4x4(L, 1);
 
   bcfx_setTransform(mat);
+  return 0;
+}
+static int BCWRAP_FUNCTION(setTexture)(lua_State* L) {
+  uint8_t stage = luaL_checkinteger(L, 1);
+  Handle sampler = (Handle)luaL_checkinteger(L, 2);
+  Handle texture = (Handle)luaL_checkinteger(L, 3);
+  uint32_t flags = luaL_checkinteger(L, 4);
+
+  bcfx_setTexture(stage, sampler, texture, flags);
   return 0;
 }
 static int BCWRAP_FUNCTION(submit)(lua_State* L) {
@@ -249,14 +335,18 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(createIndexBuffer),
     EMPLACE_BCWRAP_FUNCTION(createShader),
     EMPLACE_BCWRAP_FUNCTION(createProgram),
+    EMPLACE_BCWRAP_FUNCTION(createUniform),
+    EMPLACE_BCWRAP_FUNCTION(createTexture),
     /* View */
     EMPLACE_BCWRAP_FUNCTION(setViewWindow),
     EMPLACE_BCWRAP_FUNCTION(setViewClear),
     EMPLACE_BCWRAP_FUNCTION(setViewRect),
     /* Submit Drawcall */
+    EMPLACE_BCWRAP_FUNCTION(setUniform),
     EMPLACE_BCWRAP_FUNCTION(setVertexBuffer),
     EMPLACE_BCWRAP_FUNCTION(setIndexBuffer),
     EMPLACE_BCWRAP_FUNCTION(setTransform),
+    EMPLACE_BCWRAP_FUNCTION(setTexture),
     EMPLACE_BCWRAP_FUNCTION(submit),
     /* Create Render Resource */
     EMPLACE_BCWRAP_FUNCTION(destroy),
@@ -283,6 +373,8 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   lua_setfield(L, -2, "math");
 
   (void)UTILS_FUNCTION(init)(L);
+
+  init_resource_manage(L);
 
   return 1;
 }
