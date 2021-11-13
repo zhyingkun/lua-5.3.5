@@ -106,8 +106,8 @@ static void ctx_callPrevFrameCompleted(Context* ctx) {
   }
 }
 
-void ctx_apiFrame(Context* ctx) {
-
+void ctx_apiFrame(Context* ctx, uint32_t renderCount) {
+  ctx->submitFrame->renderCount = renderCount;
   memcpy(ctx->submitFrame->views, ctx->views, sizeof(ctx->views));
 
   ctx_renderSemWait(ctx);
@@ -235,7 +235,7 @@ Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs) {
 
 Handle ctx_createUniform(Context* ctx, const char* name, bcfx_UniformType type, uint16_t num) {
   ADD_CMD_ALLOC_HANDLE(ctx, Uniform)
-  size_t len = strlen(name);
+  size_t len = strlen(name) + 1;
   char* buf = (char*)malloc(len);
   memcpy(buf, name, len);
   param->cu.name = buf;
@@ -331,12 +331,18 @@ void ctx_resetView(Context* ctx, ViewId id) {
 
 void ctx_setUniformVec4(Context* ctx, Handle handle, Vec4* vec, uint16_t num) {
   CHECK_HANDLE(handle);
+  UniformData* data = encoder_addUniformData(ctx->encoder, handle);
+  data->vec4 = *vec;
 }
 void ctx_setUniformMat3x3(Context* ctx, Handle handle, Mat3x3* mat, uint16_t num) {
   CHECK_HANDLE(handle);
+  UniformData* data = encoder_addUniformData(ctx->encoder, handle);
+  data->mat3x3 = *mat;
 }
 void ctx_setUniformMat4x4(Context* ctx, Handle handle, Mat4x4* mat, uint16_t num) {
   CHECK_HANDLE(handle);
+  UniformData* data = encoder_addUniformData(ctx->encoder, handle);
+  data->mat4x4 = *mat;
 }
 
 void ctx_touch(Context* ctx, ViewId id) {
@@ -347,9 +353,9 @@ void ctx_setVertexBuffer(Context* ctx, uint8_t stream, Handle handle) {
   CHECK_HANDLE(handle);
   encoder_setVertexBuffer(ctx->encoder, stream, handle);
 }
-void ctx_setIndexBuffer(Context* ctx, Handle handle) {
+void ctx_setIndexBuffer(Context* ctx, Handle handle, uint32_t start, uint32_t count) {
   CHECK_HANDLE(handle);
-  encoder_setIndexBuffer(ctx->encoder, handle);
+  encoder_setIndexBuffer(ctx->encoder, handle, start, count);
 }
 void ctx_setTransform(Context* ctx, Mat4x4* mat) {
   encoder_setTransform(ctx->encoder, mat);
@@ -358,6 +364,9 @@ void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture,
   CHECK_TEXTURE_UNIT(stage);
   CHECK_HANDLE(sampler);
   CHECK_HANDLE(texture);
+  UniformData* data = encoder_addUniformData(ctx->encoder, sampler);
+  data->stage = stage;
+  encoder_setTexture(ctx->encoder, stage, texture, flags);
 }
 
 void ctx_submit(Context* ctx, ViewId id, Handle handle) {

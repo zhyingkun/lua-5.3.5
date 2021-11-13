@@ -24,6 +24,13 @@ static GLenum attrib_glType[] = {
     GL_FLOAT, // Float
     GL_NONE,
 };
+// According to bcfx_UniformType
+static GLenum uniform_glType[] = {
+    GL_SAMPLER_2D,
+    GL_FLOAT_VEC4,
+    GL_FLOAT_MAT3,
+    GL_FLOAT_MAT4,
+};
 
 #ifndef NDEBUG
 static const char* err_EnumName(GLenum _enum) {
@@ -247,7 +254,7 @@ static bcfx_EUniformBuiltin findUniformBuiltinEnum(const char* name) {
 
 typedef struct {
   GLuint id;
-  GLsizei count;
+  uint32_t count;
   GLenum type;
 } IndexBufferGL;
 typedef struct {
@@ -294,7 +301,10 @@ static uint16_t findUniformUserDefined(RendererContextGL* glCtx, const char* nam
   for (uint16_t i = 0; i < glCtx->uniformCount; i++) {
     UniformGL* uniform = NULL;
     do {
-      uniform = &glCtx->uniforms[idx++];
+      if (uniform != NULL) {
+        idx++;
+      }
+      uniform = &glCtx->uniforms[idx];
     } while (uniform->name == NULL);
     if (strcmp(uniform->name, name) == 0) {
       return idx;
@@ -380,6 +390,7 @@ static void gl_init(RendererContext* ctx, Window mainWin) {
   glCtx->mainWin = mainWin;
   glCtx->curWin = NULL;
   glCtx->swapCount = 0;
+  glCtx->uniformCount = 0;
   winctx_makeContextCurrent(glCtx->mainWin);
   if (!gladLoadGLLoader((GLADloadproc)winctx_getProcAddress)) {
     printf("Failed to initialize GLAD");
@@ -413,6 +424,44 @@ static void gl_endFrame(RendererContext* ctx) {
 
 static void gl_shutdown(RendererContext* ctx) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
+
+  for (size_t i = 0; i < BCFX_CONFIG_MAX_INDEX_BUFFER; i++) {
+    IndexBufferGL* ib = &glCtx->indexBuffers[i];
+    if (ib->id != 0) {
+      GL_CHECK(glDeleteBuffers(1, &ib->id));
+      ib->id = 0;
+    }
+  }
+  memset(glCtx->vertexBuffers, 0, sizeof(bcfx_VertexLayout) * BCFX_CONFIG_MAX_VERTEX_LAYOUT);
+  for (size_t i = 0; i < BCFX_CONFIG_MAX_VERTEX_BUFFER; i++) {
+    VertexBufferGL* vb = &glCtx->vertexBuffers[i];
+    if (vb->id != 0) {
+      GL_CHECK(glDeleteBuffers(1, &vb->id));
+      vb->id = 0;
+    }
+  }
+  for (size_t i = 0; i < BCFX_CONFIG_MAX_SHADER; i++) {
+    ShaderGL* shader = &glCtx->shaders[i];
+    if (shader->id != 0) {
+      GL_CHECK(glDeleteShader(shader->id));
+      shader->id = 0;
+    }
+  }
+  for (size_t i = 0; i < BCFX_CONFIG_MAX_PROGRAM; i++) {
+    ProgramGL* prog = &glCtx->programs[i];
+    if (prog->id != 0) {
+      GL_CHECK(glDeleteProgram(prog->id));
+      prog->id = 0;
+    }
+  }
+  memset(glCtx->uniforms, 0, sizeof(UniformGL) * BCFX_CONFIG_MAX_UNIFORM);
+  for (size_t i = 0; i < BCFX_CONFIG_MAX_TEXTURE; i++) {
+    TextureGL* texture = &glCtx->textures[i];
+    if (texture->id != 0) {
+      GL_CHECK(glDeleteTextures(1, &texture->id));
+      texture->id = 0;
+    }
+  }
 
   GL_CHECK(glBindVertexArray(0));
   for (uint8_t i = 0; i < glCtx->swapCount; i++) {
@@ -503,6 +552,7 @@ static void gl_createUniform(RendererContext* ctx, Handle handle, const char* na
   uniform->name = name;
   uniform->type = type;
   uniform->num = num;
+  glCtx->uniformCount++;
 }
 static void gl_createTexture(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
@@ -617,14 +667,73 @@ static void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, Ren
     UniformProperty* prop = &pu->properties[eub];
     GLint loc = prop->loc;
     switch (eub) {
+      case UB_ViewRect: {
+        float frect[4];
+        frect[0] = view->rect.x;
+        frect[1] = view->rect.y;
+        frect[2] = view->rect.width;
+        frect[3] = view->rect.height;
+        GL_CHECK(glUniform4fv(loc, 1, frect));
+      } break;
+      case UB_ViewTexel: {
+        float ftexel[4];
+        ftexel[0] = 1.0 / (float)(view->rect.width);
+        ftexel[1] = 1.0 / (float)(view->rect.height);
+        ftexel[2] = 0.0;
+        ftexel[3] = 0.0;
+        GL_CHECK(glUniform4fv(loc, 1, ftexel));
+      } break;
       case UB_View:
         GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, view->viewMat.element));
+        break;
+      case UB_InvView: {
+        ALLOCA_MAT4x4(invView);
+        MAT_INVERSE(&view->viewMat, invView);
+        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, invView->element));
+      } break;
       case UB_Proj:
         GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, view->projMat.element));
+        break;
+      case UB_InvProj: {
+        ALLOCA_MAT4x4(invProj);
+        MAT_INVERSE(&view->projMat, invProj);
+        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, invProj->element));
+      } break;
+      case UB_ViewProj: {
+        ALLOCA_MAT4x4(viewProj);
+        MAT_MULTIPLY(&view->projMat, &view->viewMat, viewProj);
+        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, viewProj->element));
+      } break;
+      case UB_InvViewProj: {
+        ALLOCA_MAT4x4(viewProj);
+        MAT_MULTIPLY(&view->projMat, &view->viewMat, viewProj);
+        ALLOCA_MAT4x4(invViewProj);
+        MAT_INVERSE(viewProj, invViewProj);
+        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, invViewProj->element));
+      } break;
       case UB_Model:
         GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, draw->model.element));
         break;
-
+      case UB_ModelView: {
+        ALLOCA_MAT4x4(modelView);
+        MAT_MULTIPLY(&view->viewMat, &draw->model, modelView);
+        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, modelView->element));
+      } break;
+      case UB_ModelViewProj: {
+        ALLOCA_MAT4x4(modelView);
+        MAT_MULTIPLY(&view->viewMat, &draw->model, modelView);
+        ALLOCA_MAT4x4(modelViewProj);
+        MAT_MULTIPLY(&view->projMat, modelView, modelViewProj);
+        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, modelViewProj->element));
+      } break;
+      case UB_AlphaRef: {
+        float falpha[4];
+        falpha[0] = 0.0;
+        falpha[1] = 0.0;
+        falpha[2] = 0.0;
+        falpha[3] = 0.0;
+        GL_CHECK(glUniform4fv(loc, 1, falpha));
+      } break;
       default:
         break;
     }
@@ -632,10 +741,12 @@ static void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, Ren
   for (uint16_t i = 0; i < pu->usedCountUD; i++) {
     UniformProperty* prop = &pu->propertiesUD[i];
     UniformGL* uniform = &glCtx->uniforms[prop->index];
-    // assert(uniform->type == prop->type);
+    if (uniform_glType[uniform->type] != prop->type) {
+      printf_err("Uniform type mismatch: %s, In shader: %d, In app: %d\n", uniform->name, prop->type, uniform->type);
+    }
     switch (uniform->type) {
       case UT_Sampler:
-        GL_CHECK(glUniform1i(prop->loc, uniform->data.stage));
+        GL_CHECK(glUniform1i(prop->loc, (GLint)uniform->data.stage));
         break;
       case UT_Vec4:
         GL_CHECK(glUniform4fv(prop->loc, 1, (const GLfloat*)uniform->data.vec4.element));
@@ -657,8 +768,10 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
 
   GL_CHECK(glFrontFace(GL_CW));
 
+  // TODO: SortKey
+  uint32_t renderCount = MIN(frame->renderCount, frame->numRenderItems);
   ViewId curViewId = UINT16_MAX;
-  for (uint32_t i = 0; i < frame->numRenderItems; i++) {
+  for (uint32_t i = 0; i < renderCount; i++) {
     RenderDraw* draw = &frame->renderItems[i].draw;
     ViewId id = 0;
     uint16_t program = 0;
@@ -670,16 +783,48 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
       gl_MakeViewCurrent(glCtx, view);
     }
 
+    for (uint32_t i = draw->uniformStart; i < draw->uniformEnd; i++) {
+      Handle handle = frame->uniformHandles[i];
+      UniformData* data = &frame->uniformDatas[i];
+      UniformGL* uniform = &glCtx->uniforms[handle_index(handle)];
+      switch (uniform->type) {
+#define CASE_UNIFORM(type, field) \
+  case UT_##type: \
+    uniform->data.field = data->field; \
+    break
+        CASE_UNIFORM(Sampler, stage);
+        CASE_UNIFORM(Vec4, vec4);
+        CASE_UNIFORM(Mat3x3, mat3x3);
+        CASE_UNIFORM(Mat4x4, mat4x4);
+#undef CASE_UNIFORM
+      }
+    }
+
     ProgramGL* prog = &glCtx->programs[program];
     GL_CHECK(glUseProgram(prog->id));
-
-    IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
-    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
 
     gl_bindProgramAttributes(glCtx, prog, draw);
     gl_setProgramUniforms(glCtx, prog, draw, view);
 
-    GL_CHECK(glDrawElements(GL_TRIANGLES, ib->count, ib->type, 0));
+    RenderBind* bind = frame->renderBinds;
+    for (uint8_t i = 0; i < BCFX_CONFIG_MAX_TEXTURE_UNIT; i++) {
+      Binding* b = &bind->binds[i];
+      if (b->handle != kInvalidHandle) {
+        TextureGL* texture = &glCtx->textures[handle_index(b->handle)];
+        GL_CHECK(glActiveTexture(GL_TEXTURE0 + i));
+        GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
+        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+      } else {
+      }
+    }
+
+    IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
+    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
+    GLsizei indexCount = (GLsizei)MIN(draw->indexCount, ib->count);
+    GL_CHECK(glDrawElements(GL_TRIANGLES, indexCount, ib->type, draw->indexStart));
   }
   gl_MakeWinCurrent(glCtx, NULL);
 }
@@ -714,12 +859,20 @@ static void gl_destroyProgram(RendererContext* ctx, Handle handle) {
   prog->id = 0;
 }
 static void gl_destroyUniform(RendererContext* ctx, Handle handle) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  UniformGL* uniform = &glCtx->uniforms[handle_index(handle)];
+  memset((uint8_t*)uniform, 0, sizeof(UniformGL));
 }
 static void gl_destroyTexture(RendererContext* ctx, Handle handle) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  TextureGL* texture = &glCtx->textures[handle_index(handle)];
+  GL_CHECK(glDeleteTextures(1, &texture->id));
+  texture->id = 0;
 }
 
 RendererContext* CreateRenderer(void) {
   RendererContextGL* glCtx = (RendererContextGL*)mem_malloc(sizeof(RendererContextGL));
+  memset(glCtx, 0, sizeof(RendererContextGL));
   RendererContext* renderer = &glCtx->api;
 
   renderer->init = gl_init;

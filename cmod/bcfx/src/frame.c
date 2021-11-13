@@ -61,6 +61,10 @@ void frame_setRenderItem(Frame* frame, uint16_t index, RenderItem* item) {
   frame->renderItems[index] = *item;
 }
 
+void frame_setRenderBind(Frame* frame, uint16_t index, RenderBind* bind) {
+  frame->renderBinds[index] = *bind;
+}
+
 void frame_setSortKey(Frame* frame, uint16_t index, uint64_t sortKey) {
   frame->sortKeys[index] = sortKey;
 }

@@ -14,13 +14,16 @@ typedef struct {
   Frame* frame;
   RenderDraw draw;
   RenderCompute compute;
+  RenderBind bind;
   uint32_t uniformStart;
 } Encoder;
 
 void encoder_begin(Encoder* encoder, Frame* frame);
 void encoder_setVertexBuffer(Encoder* encoder, uint8_t stream, Handle vertexBuffer);
-void encoder_setIndexBuffer(Encoder* encoder, Handle indexBuffer);
+void encoder_setIndexBuffer(Encoder* encoder, Handle indexBuffer, uint32_t start, uint32_t count);
 void encoder_setTransform(Encoder* encoder, Mat4x4* mat);
+UniformData* encoder_addUniformData(Encoder* encoder, Handle handle);
+void encoder_setTexture(Encoder* encoder, uint8_t stage, Handle handle, uint32_t flags);
 void encoder_submit(Encoder* encoder, ViewId id, Handle program);
 
 /* }====================================================== */

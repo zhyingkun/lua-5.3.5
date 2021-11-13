@@ -71,8 +71,8 @@ BCFX_API void bcfx_init(Window mainWin) {
   ctx_init(s_ctx, mainWin);
 }
 
-BCFX_API void bcfx_apiFrame(void) {
-  ctx_apiFrame(s_ctx);
+BCFX_API void bcfx_apiFrame(uint32_t renderCount) {
+  ctx_apiFrame(s_ctx, renderCount);
 }
 
 BCFX_API void bcfx_shutdowm(void) {
@@ -196,8 +196,8 @@ BCFX_API void bcfx_touch(ViewId id) {
 BCFX_API void bcfx_setVertexBuffer(uint8_t stream, Handle handle) {
   ctx_setVertexBuffer(s_ctx, stream, handle);
 }
-BCFX_API void bcfx_setIndexBuffer(Handle handle) {
-  ctx_setIndexBuffer(s_ctx, handle);
+BCFX_API void bcfx_setIndexBuffer(Handle handle, uint32_t start, uint32_t count) {
+  ctx_setIndexBuffer(s_ctx, handle, start, count);
 }
 BCFX_API void bcfx_setTransform(Mat4x4* mat) {
   ctx_setTransform(s_ctx, mat);

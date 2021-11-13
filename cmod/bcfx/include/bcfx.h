@@ -200,12 +200,14 @@ typedef void (*bcfx_SwapBuffers)(void* window);
 typedef void (*bcfx_SwapInterval)(int interval);
 typedef void (*bcfx_GLProc)(void);
 typedef bcfx_GLProc (*bcfx_GetProcAddress)(const char* procname);
+typedef void (*bcfx_GetWindowSize)(void* window, int* width, int* height);
 
 BCFX_API void bcfx_setWinCtxFuncs(
     bcfx_MakeContextCurrent makeCurrent,
     bcfx_SwapBuffers swapBuffers,
     bcfx_SwapInterval swapInterval,
-    bcfx_GetProcAddress getProcAddress);
+    bcfx_GetProcAddress getProcAddress,
+    bcfx_GetWindowSize getWindowSize);
 
 /* }====================================================== */
 
@@ -235,7 +237,7 @@ BCFX_API void bcfx_setFrameCompletedCallback(bcfx_OnFrameCompleted cb, void* ud)
 typedef void* Window;
 
 BCFX_API void bcfx_init(Window mainWin);
-BCFX_API void bcfx_apiFrame(void);
+BCFX_API void bcfx_apiFrame(uint32_t renderCount);
 BCFX_API void bcfx_shutdowm(void);
 
 /* }====================================================== */
@@ -261,6 +263,7 @@ typedef enum {
 BCFX_API Handle bcfx_createShader(bcfx_MemBuffer* mem, ShaderType type);
 BCFX_API Handle bcfx_createProgram(Handle vs, Handle fs);
 
+// WARNING: Change bcfx_UniformType must Update uniform_glType
 typedef enum {
   UT_Sampler,
   UT_Vec4,
@@ -342,7 +345,7 @@ BCFX_API void bcfx_setUniformMat4x4(Handle handle, Mat4x4* mat, uint16_t num);
 BCFX_API void bcfx_touch(ViewId id);
 
 BCFX_API void bcfx_setVertexBuffer(uint8_t stream, Handle handle);
-BCFX_API void bcfx_setIndexBuffer(Handle handle);
+BCFX_API void bcfx_setIndexBuffer(Handle handle, uint32_t start, uint32_t count);
 BCFX_API void bcfx_setTransform(Mat4x4* mat);
 BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, uint32_t flags);
 
