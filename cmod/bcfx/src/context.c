@@ -154,6 +154,10 @@ void ctx_init(Context* ctx, Window mainWin) {
   BCFX_RESOURCE_MAP(XX)
 #undef XX
 
+  for (size_t i = 0; i < BCFX_CONFIG_MAX_VIEWS; i++) {
+    view_reset(&ctx->views[i]);
+  }
+
   ctx->submitFrame = &ctx->frames[0];
   ctx->renderFrame = &ctx->frames[1];
   frame_init(ctx->submitFrame);
@@ -288,9 +292,11 @@ void ctx_destroy(Context* ctx, Handle handle) {
 void ctx_setViewWindow(Context* ctx, ViewId id, Window win) {
   CHECK_VIEWID(id);
   view_setWindow(&ctx->views[id], win);
+  view_setFrameBuffer(&ctx->views[id], kInvalidHandle);
 }
 void ctx_setViewFrameBuffer(Context* ctx, ViewId id, Handle handle) {
   CHECK_VIEWID(id);
+  view_setWindow(&ctx->views[id], NULL);
   view_setFrameBuffer(&ctx->views[id], handle);
 }
 
