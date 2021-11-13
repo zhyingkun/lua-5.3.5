@@ -56,7 +56,7 @@ typedef struct {
 } RenderBind;
 
 typedef struct {
-  View views[BCFX_CONFIG_MAX_VIEWS];
+  View views[BCFX_CONFIG_MAX_VIEWS]; // view data will copy from context->views
 
   uint32_t renderCount; // for limit current DrawCalls
   uint32_t numRenderItems;
