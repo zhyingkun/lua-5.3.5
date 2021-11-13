@@ -47,11 +47,13 @@ void MEMBUF_FUNCTION(init)(lua_State* L);
 #define BCFX_VECTOR_TYPE "Vec*"
 #define luaL_checkvector(L, idx) (Vec*)luaL_checkudata(L, idx, BCFX_VECTOR_TYPE)
 Vec3* luaL_checkvec3(lua_State* L, int idx);
+Vec4* luaL_checkvec4(lua_State* L, int idx);
 void VECTOR_FUNCTION(init)(lua_State* L);
 
 #define MATRIX_FUNCTION(name) bcfx_wrap_matrix_##name
 #define BCFX_MATRIX_TYPE "Mat*"
 #define luaL_checkmatrix(L, idx) (Mat*)luaL_checkudata(L, idx, BCFX_MATRIX_TYPE)
+Mat3x3* luaL_checkmat3x3(lua_State* L, int idx);
 Mat4x4* luaL_checkmat4x4(lua_State* L, int idx);
 Mat* luaL_newmatrix(lua_State* L, uint8_t row, uint8_t col);
 #define luaL_newmat4x4(L) (Mat4x4*)luaL_newmatrix(L, 4, 4)

@@ -15,6 +15,14 @@ Vec3* luaL_checkvec3(lua_State* L, int idx) {
   return (Vec3*)vec;
 }
 
+Vec4* luaL_checkvec4(lua_State* L, int idx) {
+  Vec* vec = luaL_checkvector(L, idx);
+  if (VEC_COUNT(vec) != 4) {
+    luaL_error(L, "Vector must has 4 dimension");
+  }
+  return (Vec4*)vec;
+}
+
 static Vec* luaL_newvector(lua_State* L, uint8_t cnt) {
   Vec* vec = (Vec*)lua_newuserdata(L, VEC_SIZE(cnt));
   luaL_setmetatable(L, BCFX_VECTOR_TYPE);

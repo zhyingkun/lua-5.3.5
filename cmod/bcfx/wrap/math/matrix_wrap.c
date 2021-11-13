@@ -7,6 +7,14 @@
 ** =======================================================
 */
 
+Mat3x3* luaL_checkmat3x3(lua_State* L, int idx) {
+  Mat* mat = luaL_checkmatrix(L, idx);
+  if (mat->row != 3 || mat->col != 3) {
+    luaL_error(L, "Matrix must be 3x3, current is %dx%d", mat->row, mat->col);
+  }
+  return (Mat3x3*)mat;
+}
+
 Mat4x4* luaL_checkmat4x4(lua_State* L, int idx) {
   Mat* mat = luaL_checkmatrix(L, idx);
   if (mat->row != 4 || mat->col != 4) {
