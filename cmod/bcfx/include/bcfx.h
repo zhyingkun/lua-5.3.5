@@ -265,7 +265,7 @@ BCFX_API Handle bcfx_createProgram(Handle vs, Handle fs);
 
 // WARNING: Change bcfx_UniformType must Update uniform_glType
 typedef enum {
-  UT_Sampler,
+  UT_Sampler2D,
   UT_Vec4,
   UT_Mat3x3,
   UT_Mat4x4,

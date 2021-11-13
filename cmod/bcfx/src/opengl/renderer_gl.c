@@ -556,14 +556,14 @@ static void gl_createUniform(RendererContext* ctx, Handle handle, const char* na
 }
 static void gl_createTexture(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  TextureGL* txtr = &glCtx->textures[handle_index(handle)];
+  TextureGL* texture = &glCtx->textures[handle_index(handle)];
 
-  GL_CHECK(glGenTextures(1, &txtr->id));
-  GL_CHECK(glBindTexture(GL_TEXTURE_2D, txtr->id));
+  GL_CHECK(glGenTextures(1, &texture->id));
+  GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
   GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
-  bcfx_Texture* texture = (bcfx_Texture*)mem->ptr;
+  bcfx_Texture* bt = (bcfx_Texture*)mem->ptr;
   GLenum format = GL_NONE;
-  switch (texture->nrChannels) {
+  switch (bt->nrChannels) {
     case 1:
       format = GL_ALPHA;
       break;
@@ -576,7 +576,7 @@ static void gl_createTexture(RendererContext* ctx, Handle handle, bcfx_MemBuffer
     default:
       break;
   }
-  GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, format, GL_UNSIGNED_BYTE, texture->data));
+  GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bt->width, bt->height, 0, format, GL_UNSIGNED_BYTE, bt->data));
   GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
   MEMBUFFER_RELEASE(mem);
 }
@@ -660,7 +660,23 @@ static void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, 
   }
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
-static void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw, View* view) {
+static void gl_bindTextureUnit(RendererContextGL* glCtx, RenderBind* bind, uint8_t stage) {
+  Binding* b = &bind->binds[stage];
+  if (b->handle != kInvalidHandle) {
+    TextureGL* texture = &glCtx->textures[handle_index(b->handle)];
+    GL_CHECK(glActiveTexture(GL_TEXTURE0 + stage));
+    GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
+
+    // b->samplerFlags
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+  } else {
+    printf_err("Bind texture unit %d with invalid handle\n", stage);
+  }
+}
+static void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw, View* view, RenderBind* bind) {
   PredefinedUniform* pu = &prog->pu;
   for (uint8_t i = 0; i < pu->usedCount; i++) {
     bcfx_EUniformBuiltin eub = (bcfx_EUniformBuiltin)pu->used[i];
@@ -745,8 +761,9 @@ static void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, Ren
       printf_err("Uniform type mismatch: %s, In shader: %d, In app: %d\n", uniform->name, prop->type, uniform->type);
     }
     switch (uniform->type) {
-      case UT_Sampler:
+      case UT_Sampler2D:
         GL_CHECK(glUniform1i(prop->loc, (GLint)uniform->data.stage));
+        gl_bindTextureUnit(glCtx, bind, uniform->data.stage);
         break;
       case UT_Vec4:
         GL_CHECK(glUniform4fv(prop->loc, 1, (const GLfloat*)uniform->data.vec4.element));
@@ -792,7 +809,7 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
   case UT_##type: \
     uniform->data.field = data->field; \
     break
-        CASE_UNIFORM(Sampler, stage);
+        CASE_UNIFORM(Sampler2D, stage);
         CASE_UNIFORM(Vec4, vec4);
         CASE_UNIFORM(Mat3x3, mat3x3);
         CASE_UNIFORM(Mat4x4, mat4x4);
@@ -804,22 +821,8 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
     GL_CHECK(glUseProgram(prog->id));
 
     gl_bindProgramAttributes(glCtx, prog, draw);
-    gl_setProgramUniforms(glCtx, prog, draw, view);
-
-    RenderBind* bind = frame->renderBinds;
-    for (uint8_t i = 0; i < BCFX_CONFIG_MAX_TEXTURE_UNIT; i++) {
-      Binding* b = &bind->binds[i];
-      if (b->handle != kInvalidHandle) {
-        TextureGL* texture = &glCtx->textures[handle_index(b->handle)];
-        GL_CHECK(glActiveTexture(GL_TEXTURE0 + i));
-        GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
-        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-        GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-      } else {
-      }
-    }
+    RenderBind* bind = &frame->renderBinds[i];
+    gl_setProgramUniforms(glCtx, prog, draw, view, bind);
 
     IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
     GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
