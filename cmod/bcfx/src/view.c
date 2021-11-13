@@ -57,7 +57,9 @@ void view_reset(View* view) {
   clear_reset(&view->clear);
   rect_reset(&view->rect);
   rect_reset(&view->scissor);
+  MAT4x4_INIT(&view->viewMat);
   MAT_IDENTITY(&view->viewMat);
+  MAT4x4_INIT(&view->projMat);
   MAT_IDENTITY(&view->projMat);
   view->mode = VM_Default;
 }
