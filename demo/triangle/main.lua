@@ -11,10 +11,6 @@ local input_state = glfw.input_state
 local func_ptr = glfw.func_ptr
 
 local bcfx = require("bcfx")
-local clear_flag = bcfx.clear_flag
-local vertex_attrib = bcfx.vertex_attrib
-local attrib_type = bcfx.attrib_type
-local shader_type = bcfx.shader_type
 
 glfw.set_msgh(function(msg)
 	print("GLFW pcall error: ", msg, debug.traceback())
@@ -53,7 +49,8 @@ bcfx.setWinCtxFuncs(
 	func_ptr.MakeContextCurrent,
 	func_ptr.SwapBuffers,
 	func_ptr.SwapInterval,
-	func_ptr.GetProcAddress
+	func_ptr.GetProcAddress,
+	func_ptr.GetWindowSize
 )
 bcfx.setMiscFuncs(
 	func_ptr.GetTime
@@ -63,13 +60,17 @@ bcfx.init(window)
 
 libuv.repl_start()
 
+local loader = require("loader")
+loader.SetPathPrefix(require("libdir").dirname(arg[0]) .. "/")
+
 local triangle = require("triangle")
 triangle.setup(window)
-local colorcircle = require("colorcircle")
-colorcircle.setup(window)
+
+-- local colorcircle = require("colorcircle")
+-- colorcircle.setup(window)
 
 require("watch").watch("triangle")
-require("watch").watch("colorcircle")
+-- require("watch").watch("colorcircle")
 
 --[[
 local graphics3d = bcfx.math.graphics3d
@@ -101,7 +102,7 @@ while not glfw.WindowShouldClose(window) do
 	lastTime = time
 
 	triangle.tick(delta)
-	colorcircle.tick(delta)
+	-- colorcircle.tick(delta)
 
 	bcfx.apiFrame()
 	collectgarbage()

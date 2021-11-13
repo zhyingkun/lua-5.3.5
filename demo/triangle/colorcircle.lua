@@ -96,7 +96,7 @@ local function setup(mainWin)
 
 	bcfx.setViewWindow(viewID, win)
 	bcfx.setViewRect(viewID, 0, 0, glfw.GetFramebufferSize(win))
-	bcfx.setViewClear(viewID, clear_flag.COLOR, color.white, 0.0, 0)
+	bcfx.setViewClear(viewID, clear_flag.COLOR | clear_flag.DEPTH, color.white, 1.0, 0)
 	glfw.SetFramebufferSizeCallback(win, function(window, width, height)
 		bcfx.setViewRect(viewID, 0, 0, width, height)
 	end)
