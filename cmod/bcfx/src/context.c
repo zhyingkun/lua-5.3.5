@@ -241,6 +241,9 @@ Handle ctx_createUniform(Context* ctx, const char* name, bcfx_UniformType type, 
   param->cu.name = buf;
   param->cu.type = type;
   param->cu.num = num;
+  UniformAPI* u = &ctx->uniforms[handle_index(handle)];
+  u->type = type;
+  u->num = num;
   return handle;
 }
 
@@ -329,20 +332,33 @@ void ctx_resetView(Context* ctx, ViewId id) {
 ** =======================================================
 */
 
+static void ctx_checkUniform(Context* ctx, Handle handle, bcfx_UniformType type, uint16_t num) {
+  UniformAPI* u = &ctx->uniforms[handle_index(handle)];
+  if (u->type != type || u->num != num) {
+    printf_err("Uniform mismatch, want %d, %d, got %d, %d\n", u->type, u->num, type, num);
+  }
+}
+
 void ctx_setUniformVec4(Context* ctx, Handle handle, Vec4* vec, uint16_t num) {
   CHECK_HANDLE(handle);
-  UniformData* data = encoder_addUniformData(ctx->encoder, handle);
-  data->vec4 = *vec;
+  ctx_checkUniform(ctx, handle, UT_Vec4, num);
+  for (uint16_t i = 0; i < num; i++) {
+    encoder_addUniformData(ctx->encoder, handle)->vec4 = vec[i];
+  }
 }
 void ctx_setUniformMat3x3(Context* ctx, Handle handle, Mat3x3* mat, uint16_t num) {
   CHECK_HANDLE(handle);
-  UniformData* data = encoder_addUniformData(ctx->encoder, handle);
-  data->mat3x3 = *mat;
+  ctx_checkUniform(ctx, handle, UT_Mat3x3, num);
+  for (uint16_t i = 0; i < num; i++) {
+    encoder_addUniformData(ctx->encoder, handle)->mat3x3 = mat[i];
+  }
 }
 void ctx_setUniformMat4x4(Context* ctx, Handle handle, Mat4x4* mat, uint16_t num) {
   CHECK_HANDLE(handle);
-  UniformData* data = encoder_addUniformData(ctx->encoder, handle);
-  data->mat4x4 = *mat;
+  ctx_checkUniform(ctx, handle, UT_Mat4x4, num);
+  for (uint16_t i = 0; i < num; i++) {
+    encoder_addUniformData(ctx->encoder, handle)->mat4x4 = mat[i];
+  }
 }
 
 void ctx_touch(Context* ctx, ViewId id) {
@@ -364,6 +380,7 @@ void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture,
   CHECK_TEXTURE_UNIT(stage);
   CHECK_HANDLE(sampler);
   CHECK_HANDLE(texture);
+  ctx_checkUniform(ctx, sampler, UT_Sampler2D, 1);
   UniformData* data = encoder_addUniformData(ctx->encoder, sampler);
   data->stage = stage;
   encoder_setTexture(ctx->encoder, stage, texture, flags);

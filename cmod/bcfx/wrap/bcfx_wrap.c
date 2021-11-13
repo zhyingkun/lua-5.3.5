@@ -210,17 +210,29 @@ static int BCWRAP_FUNCTION(setViewRect)(lua_State* L) {
 
 static int BCWRAP_FUNCTION(setUniform)(lua_State* L) {
   Handle handle = (Handle)luaL_checkinteger(L, 1);
-  Mat* mat;
-  if (luaL_testudata(L, 2, BCFX_VECTOR_TYPE)) {
-    Vec4* vec = luaL_checkvec4(L, 2);
-    bcfx_setUniformVec4(handle, vec, 1);
-  } else if ((mat = (Mat*)luaL_testudata(L, 2, BCFX_MATRIX_TYPE))) {
-    if (IS_MAT3x3(mat)) {
-      bcfx_setUniformMat3x3(handle, (Mat3x3*)mat, 1);
-    } else if (IS_MAT4x4(mat)) {
-      bcfx_setUniformMat4x4(handle, (Mat4x4*)mat, 1);
-    } else {
-    }
+  uint16_t num;
+  bcfx_UniformType type = bcfx_uniformInfo(handle, &num);
+  uint16_t got = lua_gettop(L) - 1;
+  if (num != got) {
+    return luaL_error(L, "Uniform mismatch: want %d, got %d", num, got);
+  }
+  switch (type) {
+#define CASE_UNIFORMTYPE(type_, check_) \
+  case UT_##type_: { \
+    type_* arr = (type_*)alloca(num * sizeof(type_)); \
+    for (uint16_t i = 0; i < num; i++) { \
+      type_* pv = luaL_check##check_(L, i + 2); \
+      arr[i] = *pv; \
+    } \
+    bcfx_setUniform##type_(handle, arr, num); \
+  } break
+    CASE_UNIFORMTYPE(Vec4, vec4);
+    CASE_UNIFORMTYPE(Mat3x3, mat3x3);
+    CASE_UNIFORMTYPE(Mat4x4, mat4x4);
+#undef CASE_UNIFORMTYPE
+    default:
+      luaL_error(L, "Uniform type error: %d", type);
+      break;
   }
   return 0;
 }
@@ -316,6 +328,17 @@ static const luaL_Enum BCWRAP_ENUM(shader_type)[] = {
     {"Fragment", ST_Fragment},
     {NULL, 0},
 };
+static const luaL_Enum BCWRAP_ENUM(sampler_flag)[] = {
+    {"U_REPEAT", BCFX_SAMPLER_U_REPEAT},
+    {"U_CLAMP", BCFX_SAMPLER_U_CLAMP},
+    {"V_REPEAT", BCFX_SAMPLER_V_REPEAT},
+    {"V_CLAMP", BCFX_SAMPLER_V_CLAMP},
+    {"MIN_LINEAR", BCFX_SAMPLER_MIN_LINEAR},
+    {"MIN_NEAREST", BCFX_SAMPLER_MIN_NEAREST},
+    {"MAG_LINEAR", BCFX_SAMPLER_MAG_LINEAR},
+    {"MAG_NEAREST", BCFX_SAMPLER_MAG_NEAREST},
+    {NULL, 0},
+};
 
 #define EMPLACE_BCWRAP_FUNCTION(name) \
   { #name, BCWRAP_FUNCTION(name) }
@@ -361,6 +384,7 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   REGISTE_ENUM(vertex_attrib);
   REGISTE_ENUM(attrib_type);
   REGISTE_ENUM(shader_type);
+  REGISTE_ENUM(sampler_flag);
 
   (void)VL_FUNCTION(init_metatable)(L);
   (void)COLOR_FUNCTION(init)(L);

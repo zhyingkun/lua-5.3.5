@@ -667,11 +667,26 @@ static void gl_bindTextureUnit(RendererContextGL* glCtx, RenderBind* bind, uint8
     GL_CHECK(glActiveTexture(GL_TEXTURE0 + stage));
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
 
-    // b->samplerFlags
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)); // must set GL_TEXTURE_MIN_FILTER
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    static GLenum textureWrap[] = {
+        GL_REPEAT,
+        GL_REPEAT,
+        GL_CLAMP_TO_EDGE,
+        GL_REPEAT,
+    };
+    static const GLenum textureFilter[] = {
+        GL_LINEAR,
+        GL_LINEAR,
+        GL_NEAREST,
+        GL_LINEAR,
+    };
+    GLenum wrapS = textureWrap[(b->samplerFlags >> BCFX_SAMPLER_U_SHIFT) & BCFX_SAMPLER_U_MASK];
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS));
+    GLenum wrapT = textureWrap[(b->samplerFlags >> BCFX_SAMPLER_V_SHIFT) & BCFX_SAMPLER_V_MASK];
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT));
+    GLenum filterMin = textureFilter[(b->samplerFlags >> BCFX_SAMPLER_MIN_SHIFT) & BCFX_SAMPLER_MIN_MASK];
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterMin)); // must set GL_TEXTURE_MIN_FILTER
+    GLenum filterMag = textureFilter[(b->samplerFlags >> BCFX_SAMPLER_MAG_SHIFT) & BCFX_SAMPLER_MAG_MASK];
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterMag));
   } else {
     printf_err("Bind texture unit %d with invalid handle\n", stage);
   }
@@ -762,6 +777,7 @@ static void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, Ren
     }
     switch (uniform->type) {
       case UT_Sampler2D:
+        assert(uniform->num == 1);
         GL_CHECK(glUniform1i(prop->loc, (GLint)uniform->data.stage));
         gl_bindTextureUnit(glCtx, bind, uniform->data.stage);
         break;
@@ -781,6 +797,7 @@ static void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, Ren
 }
 static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, Frame* frame) {
   for (uint32_t i = draw->uniformStart; i < draw->uniformEnd; i++) {
+    // Does not support uniform array, will use the last one
     Handle handle = frame->uniformHandles[i];
     UniformData* data = &frame->uniformDatas[i];
     UniformGL* uniform = &glCtx->uniforms[handle_index(handle)];

@@ -211,3 +211,19 @@ BCFX_API void bcfx_submit(ViewId id, Handle handle) {
 }
 
 /* }====================================================== */
+
+/*
+** {======================================================
+** Utilities
+** =======================================================
+*/
+
+BCFX_API bcfx_UniformType bcfx_uniformInfo(Handle handle, uint16_t* num) {
+  UniformAPI* u = &s_ctx->uniforms[handle_index(handle)];
+  if (num) {
+    *num = u->num;
+  }
+  return u->type;
+}
+
+/* }====================================================== */

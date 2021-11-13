@@ -14,6 +14,11 @@
 */
 
 typedef struct {
+  bcfx_UniformType type;
+  uint16_t num;
+} UniformAPI;
+
+typedef struct {
   bool running;
 
   Semaphore renderSem;
@@ -35,6 +40,8 @@ typedef struct {
   uint32_t frameCount;
   bcfx_OnFrameCompleted frameCompleted;
   void* frameCompletedArg;
+
+  UniformAPI uniforms[BCFX_CONFIG_MAX_UNIFORM];
 } Context;
 
 uint32_t ctx_frameId(Context* ctx);

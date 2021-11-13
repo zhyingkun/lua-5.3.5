@@ -338,6 +338,34 @@ BCFX_API void bcfx_resetView(ViewId id);
 ** =======================================================
 */
 
+#define BIT_INDEX(idx) (1 << idx)
+#define BIT_MASK(cnt) ((1 << cnt) - 1)
+
+// setTexture sampler flags
+#define BCFX_SAMPLER_U_REPEAT BIT_INDEX(0)
+#define BCFX_SAMPLER_U_CLAMP BIT_INDEX(1)
+
+#define BCFX_SAMPLER_U_SHIFT 0
+#define BCFX_SAMPLER_U_MASK BIT_MASK(2)
+
+#define BCFX_SAMPLER_V_REPEAT BIT_INDEX(2)
+#define BCFX_SAMPLER_V_CLAMP BIT_INDEX(3)
+
+#define BCFX_SAMPLER_V_SHIFT 2
+#define BCFX_SAMPLER_V_MASK BIT_MASK(2)
+
+#define BCFX_SAMPLER_MIN_LINEAR BIT_INDEX(4)
+#define BCFX_SAMPLER_MIN_NEAREST BIT_INDEX(5)
+
+#define BCFX_SAMPLER_MIN_SHIFT 4
+#define BCFX_SAMPLER_MIN_MASK BIT_MASK(2)
+
+#define BCFX_SAMPLER_MAG_LINEAR BIT_INDEX(6)
+#define BCFX_SAMPLER_MAG_NEAREST BIT_INDEX(7)
+
+#define BCFX_SAMPLER_MAG_SHIFT 6
+#define BCFX_SAMPLER_MAG_MASK BIT_MASK(2)
+
 BCFX_API void bcfx_setUniformVec4(Handle handle, Vec4* vec, uint16_t num);
 BCFX_API void bcfx_setUniformMat3x3(Handle handle, Mat3x3* mat, uint16_t num);
 BCFX_API void bcfx_setUniformMat4x4(Handle handle, Mat4x4* mat, uint16_t num);
@@ -350,6 +378,16 @@ BCFX_API void bcfx_setTransform(Mat4x4* mat);
 BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, uint32_t flags);
 
 BCFX_API void bcfx_submit(ViewId id, Handle handle);
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Utilities
+** =======================================================
+*/
+
+BCFX_API bcfx_UniformType bcfx_uniformInfo(Handle handle, uint16_t* num);
 
 /* }====================================================== */
 
