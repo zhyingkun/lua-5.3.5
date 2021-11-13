@@ -36,6 +36,7 @@ typedef struct {
 #define MAT_ELEMENT(mat, i, j) (((Mat*)mat)->element[(i) + ((Mat*)mat)->row * (j)])
 
 #define MAT_INIT(mat, row, col) mat_init((Mat*)mat, row, col)
+#define IS_MAT_DIMENSION(mat, row_, col_) (mat->row == row_ && mat->col == col_)
 #define ALLOCA_MAT(var, row, col) \
   Mat* var = (Mat*)alloca(MAT_SIZE(row, col)); \
   MAT_INIT(var, row, col); \
@@ -85,6 +86,7 @@ typedef struct {
 } Mat3x3;
 
 #define MAT3x3_INIT(mat) mat3x3_init((Mat3x3*)mat)
+#define IS_MAT3x3(mat) IS_MAT_DIMENSION(mat, 3, 3)
 #define ALLOCA_MAT3x3(var) \
   Mat3x3 var[1]; \
   MAT3x3_INIT(var); \
@@ -103,6 +105,7 @@ typedef struct {
 } Mat4x4;
 
 #define MAT4x4_INIT(mat) mat4x4_init((Mat4x4*)mat)
+#define IS_MAT4x4(mat) IS_MAT_DIMENSION(mat, 4, 4)
 #define MAT4x4_INIT_MAT3x3(mat, mat3x3) mat4x4_initMat3x3((Mat4x4*)mat, (Mat3x3*)mat3x3)
 #define ALLOCA_MAT4x4(var) \
   Mat4x4 var[1]; \
