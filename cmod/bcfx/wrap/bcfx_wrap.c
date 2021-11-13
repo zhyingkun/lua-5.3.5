@@ -189,6 +189,12 @@ static int BCWRAP_FUNCTION(setViewWindow)(lua_State* L) {
   bcfx_setViewWindow(id, win);
   return 0;
 }
+static int BCWRAP_FUNCTION(setViewFrameBuffer)(lua_State* L) {
+  ViewId id = (ViewId)luaL_checkinteger(L, 1);
+  Handle handle = (Handle)luaL_checkinteger(L, 2);
+  bcfx_setViewFrameBuffer(id, handle);
+  return 0;
+}
 static int BCWRAP_FUNCTION(setViewClear)(lua_State* L) {
   ViewId id = (ViewId)luaL_checkinteger(L, 1);
   uint16_t flags = (uint16_t)luaL_checkinteger(L, 2);
@@ -205,6 +211,13 @@ static int BCWRAP_FUNCTION(setViewRect)(lua_State* L) {
   uint16_t width = (uint16_t)luaL_checkinteger(L, 4);
   uint16_t height = (uint16_t)luaL_checkinteger(L, 5);
   bcfx_setViewRect(id, x, y, width, height);
+  return 0;
+}
+static int BCWRAP_FUNCTION(setViewTransform)(lua_State* L) {
+  ViewId id = (ViewId)luaL_checkinteger(L, 1);
+  Mat4x4* viewMat = luaL_checkmat4x4(L, 2);
+  Mat4x4* projMat = luaL_checkmat4x4(L, 3);
+  bcfx_setViewTransform(id, viewMat, projMat);
   return 0;
 }
 
@@ -362,8 +375,10 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(createTexture),
     /* View */
     EMPLACE_BCWRAP_FUNCTION(setViewWindow),
+    EMPLACE_BCWRAP_FUNCTION(setViewFrameBuffer),
     EMPLACE_BCWRAP_FUNCTION(setViewClear),
     EMPLACE_BCWRAP_FUNCTION(setViewRect),
+    EMPLACE_BCWRAP_FUNCTION(setViewTransform),
     /* Submit Drawcall */
     EMPLACE_BCWRAP_FUNCTION(setUniform),
     EMPLACE_BCWRAP_FUNCTION(setVertexBuffer),
