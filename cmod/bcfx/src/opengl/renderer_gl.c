@@ -670,7 +670,7 @@ static void gl_bindTextureUnit(RendererContextGL* glCtx, RenderBind* bind, uint8
     // b->samplerFlags
     GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
     GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)); // must set GL_TEXTURE_MIN_FILTER
     GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
   } else {
     printf_err("Bind texture unit %d with invalid handle\n", stage);
@@ -779,6 +779,24 @@ static void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, Ren
     }
   }
 }
+static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, Frame* frame) {
+  for (uint32_t i = draw->uniformStart; i < draw->uniformEnd; i++) {
+    Handle handle = frame->uniformHandles[i];
+    UniformData* data = &frame->uniformDatas[i];
+    UniformGL* uniform = &glCtx->uniforms[handle_index(handle)];
+    switch (uniform->type) {
+#define CASE_UNIFORM(type, field) \
+  case UT_##type: \
+    uniform->data.field = data->field; \
+    break
+      CASE_UNIFORM(Sampler2D, stage);
+      CASE_UNIFORM(Vec4, vec4);
+      CASE_UNIFORM(Mat3x3, mat3x3);
+      CASE_UNIFORM(Mat4x4, mat4x4);
+#undef CASE_UNIFORM
+    }
+  }
+}
 
 static void gl_submit(RendererContext* ctx, Frame* frame) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
@@ -800,22 +818,7 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
       gl_MakeViewCurrent(glCtx, view);
     }
 
-    for (uint32_t i = draw->uniformStart; i < draw->uniformEnd; i++) {
-      Handle handle = frame->uniformHandles[i];
-      UniformData* data = &frame->uniformDatas[i];
-      UniformGL* uniform = &glCtx->uniforms[handle_index(handle)];
-      switch (uniform->type) {
-#define CASE_UNIFORM(type, field) \
-  case UT_##type: \
-    uniform->data.field = data->field; \
-    break
-        CASE_UNIFORM(Sampler2D, stage);
-        CASE_UNIFORM(Vec4, vec4);
-        CASE_UNIFORM(Mat3x3, mat3x3);
-        CASE_UNIFORM(Mat4x4, mat4x4);
-#undef CASE_UNIFORM
-      }
-    }
+    gl_updateGlobalUniform(glCtx, draw, frame);
 
     ProgramGL* prog = &glCtx->programs[program];
     GL_CHECK(glUseProgram(prog->id));
