@@ -453,6 +453,18 @@ typedef union {
 } bcfx_URenderState;
 #define RENDERSTATE_UINT64(state) (((bcfx_URenderState*)&state)->stateUINT64)
 
+#define BIT_INDEX(idx) (1 << idx)
+#define BIT_MASK(cnt) ((1 << cnt) - 1)
+
+#define BCFX_DISCARD_NONE 0
+#define BCFX_DISCARD_VERTEX_STREAMS BIT_INDEX(0)
+#define BCFX_DISCARD_INDEX_BUFFER BIT_INDEX(1)
+#define BCFX_DISCARD_TRANSFORM BIT_INDEX(2)
+#define BCFX_DISCARD_BINDINGS BIT_INDEX(3)
+#define BCFX_DISCARD_STATE BIT_INDEX(4)
+#define BCFX_DISCARD_INSTANCE_DATA BIT_INDEX(5)
+#define BCFX_DISCARD_ALL BIT_MASK(6)
+
 BCFX_API void bcfx_setUniformVec4(Handle handle, Vec4* vec, uint16_t num);
 BCFX_API void bcfx_setUniformMat3x3(Handle handle, Mat3x3* mat, uint16_t num);
 BCFX_API void bcfx_setUniformMat4x4(Handle handle, Mat4x4* mat, uint16_t num);
@@ -465,7 +477,7 @@ BCFX_API void bcfx_setTransform(Mat4x4* mat);
 BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlags flags);
 BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor);
 
-BCFX_API void bcfx_submit(ViewId id, Handle handle);
+BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags);
 
 /* }====================================================== */
 

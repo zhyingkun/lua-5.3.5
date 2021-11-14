@@ -54,20 +54,39 @@ void encoder_setState(Encoder* encoder, bcfx_RenderState state, uint32_t blendCo
   encoder->draw.blendColor = blendColor;
 }
 
-void encoder_submit(Encoder* encoder, ViewId id, Handle program) {
+void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags) {
   Frame* frame = encoder->frame;
-  uint16_t index = frame_newRenderItemIndex(frame);
-  encoder->draw.uniformStart = encoder->uniformStart;
-  encoder->draw.uniformEnd = frame->numUniformDatas;
+  RenderDraw* draw = &encoder->draw;
+  RenderBind* bind = &encoder->bind;
+
+  draw->uniformStart = encoder->uniformStart;
+  draw->uniformEnd = frame->numUniformDatas;
   encoder->uniformStart = frame->numUniformDatas;
 
-  frame_setRenderItem(frame, index, (RenderItem*)&encoder->draw);
-  frame_setRenderBind(frame, index, &encoder->bind);
+  uint16_t index = frame_newRenderItemIndex(frame);
+  frame_setRenderItem(frame, index, (RenderItem*)draw);
+  frame_setRenderBind(frame, index, bind);
   frame_setSortKey(frame, index, sortkey_encode(id, handle_index(program)));
-  encoder->draw.streamMask = 0;
-  encoder->draw.indexBuffer = kInvalidHandle;
 
-  MAT_IDENTITY(&encoder->draw.model);
+  if (flags & BCFX_DISCARD_VERTEX_STREAMS) {
+    draw->streamMask = 0;
+  }
+  if (flags & BCFX_DISCARD_INDEX_BUFFER) {
+    draw->indexBuffer = kInvalidHandle;
+    draw->indexStart = 0;
+    draw->indexCount = 0;
+  }
+  if (flags & BCFX_DISCARD_TRANSFORM) {
+    MAT_IDENTITY(&draw->model);
+  }
+  if (flags & BCFX_DISCARD_BINDINGS) {
+    memset(bind, 0, sizeof(RenderBind));
+  }
+  if (flags & BCFX_DISCARD_STATE) {
+    bcfx_RenderState state = {0};
+    draw->state = state;
+    draw->blendColor = 0;
+  }
 }
 
 /* }====================================================== */

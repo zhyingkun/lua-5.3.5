@@ -450,10 +450,10 @@ void ctx_setState(Context* ctx, bcfx_RenderState state, uint32_t blendColor) {
   encoder_setState(ctx->encoder, state, blendColor);
 }
 
-void ctx_submit(Context* ctx, ViewId id, Handle handle) {
+void ctx_submit(Context* ctx, ViewId id, Handle handle, uint32_t flags) {
   CHECK_VIEWID(id);
   CHECK_HANDLE(handle);
-  encoder_submit(ctx->encoder, id, handle);
+  encoder_submit(ctx->encoder, id, handle, flags);
 }
 
 /* }====================================================== */

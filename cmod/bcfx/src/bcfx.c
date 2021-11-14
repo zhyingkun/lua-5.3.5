@@ -221,8 +221,8 @@ BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor) {
   ctx_setState(s_ctx, state, blendColor);
 }
 
-BCFX_API void bcfx_submit(ViewId id, Handle handle) {
-  ctx_submit(s_ctx, id, handle);
+BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags) {
+  ctx_submit(s_ctx, id, handle, flags);
 }
 
 /* }====================================================== */

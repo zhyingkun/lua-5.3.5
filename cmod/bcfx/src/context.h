@@ -88,7 +88,7 @@ void ctx_setTransform(Context* ctx, Mat4x4* mat);
 void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlags flags);
 void ctx_setState(Context* ctx, bcfx_RenderState state, uint32_t blendColor);
 
-void ctx_submit(Context* ctx, ViewId id, Handle handle);
+void ctx_submit(Context* ctx, ViewId id, Handle handle, uint32_t flags);
 
 /* }====================================================== */
 
