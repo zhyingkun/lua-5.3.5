@@ -307,6 +307,9 @@ BCFX_API void bcfx_destroy(Handle handle);
 #define BCFX_CLEAR_DEPTH (0x0002)
 #define BCFX_CLEAR_STENCIL (0x0004)
 
+#define BCFX_DEBUG_NONE 0
+#define BCFX_DEBUG_WIREFRAME 1
+
 typedef enum {
   VM_Default,
   VM_Sequential,
@@ -328,6 +331,8 @@ BCFX_API void bcfx_setViewScissor(ViewId id, uint16_t x, uint16_t y, uint16_t wi
 
 BCFX_API void bcfx_setViewTransform(ViewId id, Mat4x4* viewMat, Mat4x4* projMat);
 BCFX_API void bcfx_setViewMode(ViewId id, ViewMode mode);
+
+BCFX_API void bcfx_setViewDebug(ViewId id, uint32_t debug);
 BCFX_API void bcfx_resetView(ViewId id);
 
 /* }====================================================== */

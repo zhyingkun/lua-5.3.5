@@ -325,6 +325,10 @@ void ctx_setViewMode(Context* ctx, ViewId id, ViewMode mode) {
   CHECK_VIEWID(id);
   view_setMode(&ctx->views[id], mode);
 }
+void ctx_setViewDebug(Context* ctx, ViewId id, uint32_t debug) {
+  CHECK_VIEWID(id);
+  view_setDebug(&ctx->views[id], debug);
+}
 void ctx_resetView(Context* ctx, ViewId id) {
   CHECK_VIEWID(id);
   view_reset(&ctx->views[id]);

@@ -167,6 +167,10 @@ BCFX_API void bcfx_setViewMode(ViewId id, ViewMode mode) {
   ctx_setViewMode(s_ctx, id, mode);
 }
 
+BCFX_API void bcfx_setViewDebug(ViewId id, uint32_t debug) {
+  ctx_setViewDebug(s_ctx, id, debug);
+}
+
 BCFX_API void bcfx_resetView(ViewId id) {
   ctx_resetView(s_ctx, id);
 }

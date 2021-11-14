@@ -71,6 +71,8 @@ void ctx_setViewScissor(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_
 
 void ctx_setViewTransform(Context* ctx, ViewId id, Mat4x4* viewMat, Mat4x4* projMat);
 void ctx_setViewMode(Context* ctx, ViewId id, ViewMode mode);
+
+void ctx_setViewDebug(Context* ctx, ViewId id, uint32_t debug);
 void ctx_resetView(Context* ctx, ViewId id);
 
 void ctx_setUniformVec4(Context* ctx, Handle handle, Vec4* vec, uint16_t num);

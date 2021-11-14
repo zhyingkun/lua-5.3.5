@@ -51,6 +51,10 @@ void view_setTransform(View* view, Mat4x4* viewMat, Mat4x4* projMat) {
 void view_setMode(View* view, ViewMode mode) {
   view->mode = mode;
 }
+
+void view_setDebug(View* view, uint32_t debug) {
+  view->debug = debug;
+}
 void view_reset(View* view) {
   view->win = NULL;
   view->fbh = kInvalidHandle;
@@ -62,6 +66,7 @@ void view_reset(View* view) {
   MAT4x4_INIT(&view->projMat);
   MAT_IDENTITY(&view->projMat);
   view->mode = VM_Default;
+  view->debug = BCFX_DEBUG_NONE;
 }
 
 /* }====================================================== */

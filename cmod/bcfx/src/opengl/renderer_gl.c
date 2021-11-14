@@ -822,6 +822,7 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
   // TODO: SortKey
   uint32_t renderCount = MIN(frame->renderCount, frame->numRenderItems);
   ViewId curViewId = UINT16_MAX;
+  GLenum curPolMod = GL_NONE;
   for (uint32_t i = 0; i < renderCount; i++) {
     RenderDraw* draw = &frame->renderItems[i].draw;
     ViewId id = 0;
@@ -832,11 +833,16 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
     if (curViewId != id) { // view changed
       curViewId = id;
       gl_MakeViewCurrent(glCtx, view);
+
+      GLenum polMod = (view->debug & BCFX_DEBUG_WIREFRAME) ? GL_LINE : GL_FILL;
+      if (curPolMod != polMod) {
+        curPolMod = polMod;
+        GL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, curPolMod));
+      }
     }
 
     GL_CHECK(glFrontFace(GL_CCW));
     GL_CHECK(glEnable(GL_DEPTH_TEST));
-    GL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 
     gl_updateGlobalUniform(glCtx, draw, frame);
 
