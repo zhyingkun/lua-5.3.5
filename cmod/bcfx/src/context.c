@@ -100,9 +100,45 @@ void ctx_setFrameCompletedCallback(Context* ctx, bcfx_OnFrameCompleted cb, void*
   ctx->frameCompletedArg = ud;
 }
 
+typedef struct {
+  uint32_t frameId;
+  Handle handle;
+} HandleRecord;
+static HandleRecord* recordList = NULL;
+static uint32_t recordSize = 0;
+static uint32_t recordCount = 0;
+static void ctx_delayFreeHandle(Context* ctx, Handle handle) {
+  if (recordCount + 1 > recordSize) {
+    if (recordSize == 0) {
+      recordSize = 32;
+    } else {
+      recordSize *= 2;
+    }
+    recordList = (HandleRecord*)mem_realloc(recordList, recordSize * sizeof(HandleRecord));
+  }
+  recordList[recordCount].frameId = ctx->frameCount;
+  recordList[recordCount].handle = handle;
+  recordCount++;
+}
+static void ctx_freeRecordHandle(Context* ctx, uint32_t frameId) {
+  for (uint32_t i = 0; i < recordCount; i++) {
+    while (recordList[i].frameId == frameId) {
+      HANDLE_FREE(recordList[i].handle);
+      if (i + 1 < recordCount) {
+        recordList[i] = recordList[recordCount - 1];
+        recordCount--;
+      } else {
+        break;
+      }
+    }
+  }
+}
+
 static void ctx_callPrevFrameCompleted(Context* ctx) {
   if (ctx->frameCompleted && ctx->frameCount > 0) {
-    ctx->frameCompleted(ctx->frameCompletedArg, ctx->frameCount - 1);
+    uint32_t frameId = ctx->frameCount - 1;
+    ctx_freeRecordHandle(ctx, frameId);
+    ctx->frameCompleted(ctx->frameCompletedArg, frameId);
   }
 }
 
@@ -273,7 +309,6 @@ void ctx_updateProgram(Context* ctx, Handle handle, Handle vs, Handle fs) {
   CommandParam* param = ctx_addCommand(ctx, CT_CreateProgram, handle);
   param->cp.vsHandle = vs;
   param->cp.fsHandle = fs;
-  return handle;
 }
 
 /* }====================================================== */
@@ -298,6 +333,7 @@ void ctx_destroy(Context* ctx, Handle handle) {
     default:
       break;
   }
+  ctx_delayFreeHandle(ctx, handle);
 }
 
 /* }====================================================== */
