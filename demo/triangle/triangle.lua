@@ -9,7 +9,9 @@ local membuf = bcfx.membuf
 local data_type = membuf.data_type
 local graphics3d = bcfx.math.graphics3d
 local vector = bcfx.math.vector
-local sampler_flag = bcfx.sampler_flag
+local texture_wrap = bcfx.texture_wrap
+local texture_filter = bcfx.texture_filter
+local depth_func = bcfx.depth_func
 
 local loader = require("loader")
 
@@ -258,10 +260,16 @@ local function tick(delta)
 	-- local mat = graphics3d.rotate(45, vector.Vec3(1.0, 0.0, 0.0))
 	bcfx.setTransform(matRotate * matScale)
 
-	bcfx.setTexture(0, cube.uniform, cube.texture, sampler_flag.U_CLAMP | sampler_flag.V_REPEAT | sampler_flag.MIN_LINEAR | sampler_flag.MAG_NEAREST)
+	local flags = bcfx.utils.PackSamplerFlags({
+		wrapU = texture_wrap.Repeat,
+		wrapV = texture_wrap.Repeat,
+		filterMin = texture_filter.Linear,
+		filterMag = texture_filter.Linear,
+	})
+	bcfx.setTexture(0, cube.uniform, cube.texture, flags)
 
 	local state = bcfx.utils.PackRenderState({
-		depthFunc = 1,
+		depthFunc = depth_func.Less,
 	})
 	bcfx.setState(state, bcfx.color.black)
 
