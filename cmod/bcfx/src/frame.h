@@ -50,7 +50,7 @@ typedef union {
 
 typedef struct {
   Handle handle;
-  uint32_t samplerFlags;
+  bcfx_SamplerFlags samplerFlags;
 } Binding;
 
 typedef struct {

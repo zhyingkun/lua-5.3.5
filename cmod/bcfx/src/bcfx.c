@@ -214,7 +214,7 @@ BCFX_API void bcfx_setIndexBuffer(Handle handle, uint32_t start, uint32_t count)
 BCFX_API void bcfx_setTransform(Mat4x4* mat) {
   ctx_setTransform(s_ctx, mat);
 }
-BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, uint32_t flags) {
+BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlags flags) {
   ctx_setTexture(s_ctx, stage, sampler, texture, flags);
 }
 BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor) {

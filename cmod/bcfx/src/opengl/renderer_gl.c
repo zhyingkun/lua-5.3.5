@@ -31,6 +31,16 @@ static GLenum uniform_glType[] = {
     GL_FLOAT_MAT3,
     GL_FLOAT_MAT4,
 };
+// According to bcfx_ETextureWrap
+static GLenum textureWrap_glType[] = {
+    GL_REPEAT,
+    GL_CLAMP_TO_EDGE,
+};
+// According to bcfx_ETextureFilter
+static const GLenum textureFilter_glType[] = {
+    GL_LINEAR,
+    GL_NEAREST,
+};
 // According to bcfx_EFrontFace
 static GLenum frontFace_glType[] = {
     GL_CCW,
@@ -734,26 +744,11 @@ static void gl_bindTextureUnit(RendererContextGL* glCtx, RenderBind* bind, uint8
     GL_CHECK(glActiveTexture(GL_TEXTURE0 + stage));
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
 
-    static GLenum textureWrap[] = {
-        GL_REPEAT,
-        GL_REPEAT,
-        GL_CLAMP_TO_EDGE,
-        GL_REPEAT,
-    };
-    static const GLenum textureFilter[] = {
-        GL_LINEAR,
-        GL_LINEAR,
-        GL_NEAREST,
-        GL_LINEAR,
-    };
-    GLenum wrapS = textureWrap[(b->samplerFlags >> BCFX_SAMPLER_U_SHIFT) & BCFX_SAMPLER_U_MASK];
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS));
-    GLenum wrapT = textureWrap[(b->samplerFlags >> BCFX_SAMPLER_V_SHIFT) & BCFX_SAMPLER_V_MASK];
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT));
-    GLenum filterMin = textureFilter[(b->samplerFlags >> BCFX_SAMPLER_MIN_SHIFT) & BCFX_SAMPLER_MIN_MASK];
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filterMin)); // must set GL_TEXTURE_MIN_FILTER
-    GLenum filterMag = textureFilter[(b->samplerFlags >> BCFX_SAMPLER_MAG_SHIFT) & BCFX_SAMPLER_MAG_MASK];
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filterMag));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, textureWrap_glType[b->samplerFlags.wrapU]));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, textureWrap_glType[b->samplerFlags.wrapV]));
+    // must set GL_TEXTURE_MIN_FILTER, if not, you will get a black color when sample it
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, textureFilter_glType[b->samplerFlags.filterMin]));
+    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, textureFilter_glType[b->samplerFlags.filterMag]));
   } else {
     printf_err("Bind texture unit %d with invalid handle\n", stage);
   }

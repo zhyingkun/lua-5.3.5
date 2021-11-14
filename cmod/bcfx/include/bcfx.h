@@ -352,33 +352,27 @@ BCFX_API void bcfx_resetView(ViewId id);
 ** =======================================================
 */
 
-#define BIT_INDEX(idx) (1 << idx)
-#define BIT_MASK(cnt) ((1 << cnt) - 1)
-
-// setTexture sampler flags
-#define BCFX_SAMPLER_U_REPEAT BIT_INDEX(0)
-#define BCFX_SAMPLER_U_CLAMP BIT_INDEX(1)
-
-#define BCFX_SAMPLER_U_SHIFT 0
-#define BCFX_SAMPLER_U_MASK BIT_MASK(2)
-
-#define BCFX_SAMPLER_V_REPEAT BIT_INDEX(2)
-#define BCFX_SAMPLER_V_CLAMP BIT_INDEX(3)
-
-#define BCFX_SAMPLER_V_SHIFT 2
-#define BCFX_SAMPLER_V_MASK BIT_MASK(2)
-
-#define BCFX_SAMPLER_MIN_LINEAR BIT_INDEX(4)
-#define BCFX_SAMPLER_MIN_NEAREST BIT_INDEX(5)
-
-#define BCFX_SAMPLER_MIN_SHIFT 4
-#define BCFX_SAMPLER_MIN_MASK BIT_MASK(2)
-
-#define BCFX_SAMPLER_MAG_LINEAR BIT_INDEX(6)
-#define BCFX_SAMPLER_MAG_NEAREST BIT_INDEX(7)
-
-#define BCFX_SAMPLER_MAG_SHIFT 6
-#define BCFX_SAMPLER_MAG_MASK BIT_MASK(2)
+// WARNING: Change bcfx_ETextureWrap must Update frontFace_glType
+typedef enum {
+  TW_Repeat,
+  TW_Clamp,
+} bcfx_ETextureWrap;
+// WARNING: Change bcfx_ETextureFilter must Update frontFace_glType
+typedef enum {
+  TF_Linear,
+  TF_Nearest,
+} bcfx_ETextureFilter;
+typedef struct {
+  uint8_t wrapU : 1;
+  uint8_t wrapV : 1;
+  uint8_t filterMin : 1;
+  uint8_t filterMag : 1;
+} bcfx_SamplerFlags;
+typedef union {
+  uint32_t flagsUINT32;
+  bcfx_SamplerFlags flagsStruct;
+} bcfx_USamplerFlags;
+#define SAMPLERFLAGS_UINT32(flags) (((bcfx_USamplerFlags*)&flags)->flagsUINT32)
 
 // WARNING: Change bcfx_EFrontFace must Update frontFace_glType
 typedef enum {
@@ -468,7 +462,7 @@ BCFX_API void bcfx_touch(ViewId id);
 BCFX_API void bcfx_setVertexBuffer(uint8_t stream, Handle handle);
 BCFX_API void bcfx_setIndexBuffer(Handle handle, uint32_t start, uint32_t count);
 BCFX_API void bcfx_setTransform(Mat4x4* mat);
-BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, uint32_t flags);
+BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlags flags);
 BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor);
 
 BCFX_API void bcfx_submit(ViewId id, Handle handle);

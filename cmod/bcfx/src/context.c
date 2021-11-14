@@ -437,7 +437,7 @@ void ctx_setIndexBuffer(Context* ctx, Handle handle, uint32_t start, uint32_t co
 void ctx_setTransform(Context* ctx, Mat4x4* mat) {
   encoder_setTransform(ctx->encoder, mat);
 }
-void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture, uint32_t flags) {
+void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlags flags) {
   CHECK_TEXTURE_UNIT(stage);
   CHECK_HANDLE(sampler);
   CHECK_HANDLE(texture);
