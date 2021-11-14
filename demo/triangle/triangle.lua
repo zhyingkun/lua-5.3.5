@@ -253,12 +253,14 @@ local function tick(delta)
 	bcfx.setVertexBuffer(1, cube.texCoord)
 	bcfx.setIndexBuffer(cube.index)
 	angle = (angle + 1) % 360
-	local mat = graphics3d.rotate(angle, vector.Vec3(1.0, 1.0, 1.0))
+	local matScale = graphics3d.scale(vector.Vec3(1.5, 1.5, 1.5))
+	local matRotate = graphics3d.rotate(angle, vector.Vec3(1.0, 1.0, 1.0))
 	-- local mat = graphics3d.rotate(45, vector.Vec3(1.0, 0.0, 0.0))
-	bcfx.setTransform(mat)
+	bcfx.setTransform(matRotate * matScale)
 
 	bcfx.setTexture(0, cube.uniform, cube.texture, sampler_flag.U_CLAMP | sampler_flag.V_REPEAT | sampler_flag.MIN_LINEAR | sampler_flag.MAG_NEAREST)
 
+	-- bcfx.setViewDebug(1, bcfx.debug.WIREFRAME)
 	bcfx.submit(1, cube.shader)
 
 	-- bcfx.setVertexBuffer(0, vertexHandle)
