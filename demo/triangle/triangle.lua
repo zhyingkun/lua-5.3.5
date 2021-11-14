@@ -187,6 +187,7 @@ local function SetupViewHalf(viewID, win, width, height)
 	local color = bcfx.color.Pack(199, 174, 174, 255)
 	bcfx.setViewClear(viewID, clear_flag.COLOR | clear_flag.DEPTH, color, 1.0, 0)
 	bcfx.setViewRect(viewID, 0, 0, width, height)
+	-- bcfx.setViewScissor(viewID, 0, 0, width // 2, height // 2)
 
 	local viewMat = graphics3d.lookAt(
 		vector.Vec3(0.0, 0.0, 3.0), -- eye
@@ -230,7 +231,7 @@ local function setup(mainWin)
 	end)
 	local pixelw, pixelh = glfw.GetFramebufferSize(mainWin)
 	SetupViewFull(0, mainWin, pixelw, pixelh)
-	SetupViewHalf(1, mainWin, math.floor(pixelw / 2), math.floor(pixelh / 2))
+	SetupViewHalf(1, mainWin, pixelw // 2, pixelh / 2)
 
 	-- SetupAnotherView(2, mainWin)
 
