@@ -43,7 +43,7 @@ static void hold_frame_resourse(lua_State* L, uint32_t frameId, int idx) {
 
 /*
 ** {======================================================
-** BCFX Wrap Functions
+** Inject API
 ** =======================================================
 */
 
@@ -95,6 +95,14 @@ static int BCWRAP_FUNCTION(setMiscFuncs)(lua_State* L) {
   return 0;
 }
 
+/* }====================================================== */
+
+/*
+** {======================================================
+** Basic API
+** =======================================================
+*/
+
 static int BCWRAP_FUNCTION(init)(lua_State* L) {
   void* mainWin = luaL_checklightuserdata(L, 1);
   bcfx_init(mainWin);
@@ -109,6 +117,14 @@ static int BCWRAP_FUNCTION(shutdown)(lua_State* L) {
   bcfx_shutdowm();
   return 0;
 }
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Create Render Resource
+** =======================================================
+*/
 
 static int BCWRAP_FUNCTION(createVertexLayout)(lua_State* L) {
   bcfx_VertexLayout* layout = luaL_checkvertexlayout(L, 1);
@@ -183,6 +199,47 @@ static int BCWRAP_FUNCTION(createTexture)(lua_State* L) {
   return 1;
 }
 
+/* }====================================================== */
+
+/*
+** {======================================================
+** Update Render Resource
+** =======================================================
+*/
+
+static int BCWRAP_FUNCTION(updateProgram)(lua_State* L) {
+  Handle handle = (Handle)luaL_checkinteger(L, 1);
+  Handle vs = (Handle)luaL_checkinteger(L, 2);
+  Handle fs = (Handle)luaL_checkinteger(L, 3);
+  bcfx_updateProgram(handle, vs, fs);
+  return 0;
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Destroy Render Resource
+** =======================================================
+*/
+
+static int BCWRAP_FUNCTION(destroy)(lua_State* L) {
+  int top = lua_gettop(L);
+  for (int idx = 1; idx <= top; idx++) {
+    Handle handle = (Handle)luaL_checkinteger(L, idx);
+    bcfx_destroy(handle);
+  }
+  return 0;
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** View
+** =======================================================
+*/
+
 static int BCWRAP_FUNCTION(setViewWindow)(lua_State* L) {
   ViewId id = (ViewId)luaL_checkinteger(L, 1);
   Window win = (Window)luaL_checklightuserdata(L, 2);
@@ -237,6 +294,14 @@ static int BCWRAP_FUNCTION(resetView)(lua_State* L) {
   bcfx_resetView(id);
   return 0;
 }
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Submit drawcall
+** =======================================================
+*/
 
 static int BCWRAP_FUNCTION(setUniform)(lua_State* L) {
   Handle handle = (Handle)luaL_checkinteger(L, 1);
@@ -308,15 +373,6 @@ static int BCWRAP_FUNCTION(submit)(lua_State* L) {
   Handle handle = (Handle)luaL_checkinteger(L, 2);
 
   bcfx_submit(id, handle);
-  return 0;
-}
-
-static int BCWRAP_FUNCTION(destroy)(lua_State* L) {
-  int top = lua_gettop(L);
-  for (int idx = 1; idx <= top; idx++) {
-    Handle handle = (Handle)luaL_checkinteger(L, idx);
-    bcfx_destroy(handle);
-  }
   return 0;
 }
 
@@ -402,6 +458,10 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(createProgram),
     EMPLACE_BCWRAP_FUNCTION(createUniform),
     EMPLACE_BCWRAP_FUNCTION(createTexture),
+    /* Update Render Resource */
+    EMPLACE_BCWRAP_FUNCTION(updateProgram),
+    /* Create Render Resource */
+    EMPLACE_BCWRAP_FUNCTION(destroy),
     /* View */
     EMPLACE_BCWRAP_FUNCTION(setViewWindow),
     EMPLACE_BCWRAP_FUNCTION(setViewFrameBuffer),
@@ -419,8 +479,6 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(setTexture),
     EMPLACE_BCWRAP_FUNCTION(setState),
     EMPLACE_BCWRAP_FUNCTION(submit),
-    /* Create Render Resource */
-    EMPLACE_BCWRAP_FUNCTION(destroy),
 
     {NULL, NULL},
 };
