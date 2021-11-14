@@ -66,8 +66,8 @@ loader.SetPathPrefix(require("libdir").dirname(arg[0]) .. "/")
 local triangle = require("triangle")
 triangle.setup(window)
 
--- local colorcircle = require("colorcircle")
--- colorcircle.setup(window)
+local colorcircle = require("colorcircle")
+colorcircle.setup(window)
 
 require("watch").watch("triangle")
 -- require("watch").watch("colorcircle")
@@ -102,7 +102,7 @@ while not glfw.WindowShouldClose(window) do
 	lastTime = time
 
 	triangle.tick(delta)
-	-- colorcircle.tick(delta)
+	colorcircle.tick(delta)
 
 	bcfx.apiFrame()
 	collectgarbage()

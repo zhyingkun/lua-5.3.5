@@ -58,7 +58,7 @@ local function GenerateColorCircle(radius)
 	end), data_type.Float, coroutine.wrap(function()
 		coroutine.yield(1.0, 1.0, 1.0)
 		for i = 1, 12, 1 do
-			local r, g, b = color.unpackf(color[ColorDefine[i]])
+			local r, g, b = color.Unpackf(color[ColorDefine[i]])
 			coroutine.yield(r, g, b)
 		end
 	end))

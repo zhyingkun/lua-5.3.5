@@ -176,13 +176,13 @@ end
 
 local function SetupViewFull(viewID, win, width, height)
 	bcfx.setViewWindow(viewID, win)
-	local color = bcfx.color.pack(51, 76, 76, 255)
+	local color = bcfx.color.Pack(51, 76, 76, 255)
 	bcfx.setViewClear(viewID, clear_flag.COLOR | clear_flag.DEPTH, color, 1.0, 0)
 	bcfx.setViewRect(viewID, 0, 0, width, height)
 end
 local function SetupViewHalf(viewID, win, width, height)
 	bcfx.setViewWindow(viewID, win)
-	local color = bcfx.color.pack(199, 174, 174, 255)
+	local color = bcfx.color.Pack(199, 174, 174, 255)
 	bcfx.setViewClear(viewID, clear_flag.COLOR | clear_flag.DEPTH, color, 1.0, 0)
 	bcfx.setViewRect(viewID, 0, 0, width, height)
 
@@ -260,6 +260,11 @@ local function tick(delta)
 
 	bcfx.setTexture(0, cube.uniform, cube.texture, sampler_flag.U_CLAMP | sampler_flag.V_REPEAT | sampler_flag.MIN_LINEAR | sampler_flag.MAG_NEAREST)
 
+	local state = bcfx.utils.PackRenderState({
+		depthFunc = 1,
+	})
+	bcfx.setState(state, bcfx.color.black)
+
 	-- bcfx.setViewDebug(1, bcfx.debug.WIREFRAME)
 	bcfx.submit(1, cube.shader)
 
@@ -268,7 +273,7 @@ local function tick(delta)
 	-- bcfx.setIndexBuffer(idxHandle)
 	-- bcfx.submit(2, shaderProgramHandle)
 
-	-- local color = bcfx.color.pack(255, 255, 0, 255)
+	-- local color = bcfx.color.Pack(255, 255, 0, 255)
 	-- bcfx.setViewClear(2, clear_flag.COLOR, color, 0.0, 0)
 end
 
