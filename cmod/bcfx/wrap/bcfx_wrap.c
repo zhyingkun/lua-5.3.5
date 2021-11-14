@@ -270,6 +270,15 @@ static int BCWRAP_FUNCTION(setViewRect)(lua_State* L) {
   bcfx_setViewRect(id, x, y, width, height);
   return 0;
 }
+static int BCWRAP_FUNCTION(setViewScissor)(lua_State* L) {
+  ViewId id = (ViewId)luaL_checkinteger(L, 1);
+  uint16_t x = (uint16_t)luaL_checkinteger(L, 2);
+  uint16_t y = (uint16_t)luaL_checkinteger(L, 3);
+  uint16_t width = (uint16_t)luaL_checkinteger(L, 4);
+  uint16_t height = (uint16_t)luaL_checkinteger(L, 5);
+  bcfx_setViewScissor(id, x, y, width, height);
+  return 0;
+}
 static int BCWRAP_FUNCTION(setViewTransform)(lua_State* L) {
   ViewId id = (ViewId)luaL_checkinteger(L, 1);
   Mat4x4* viewMat = luaL_checkmat4x4(L, 2);
@@ -529,6 +538,7 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(setViewFrameBuffer),
     EMPLACE_BCWRAP_FUNCTION(setViewClear),
     EMPLACE_BCWRAP_FUNCTION(setViewRect),
+    EMPLACE_BCWRAP_FUNCTION(setViewScissor),
     EMPLACE_BCWRAP_FUNCTION(setViewTransform),
     EMPLACE_BCWRAP_FUNCTION(setViewMode),
     EMPLACE_BCWRAP_FUNCTION(setViewDebug),
