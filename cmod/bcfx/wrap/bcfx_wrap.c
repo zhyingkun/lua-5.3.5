@@ -372,8 +372,9 @@ static int BCWRAP_FUNCTION(setState)(lua_State* L) {
 static int BCWRAP_FUNCTION(submit)(lua_State* L) {
   ViewId id = (ViewId)luaL_checkinteger(L, 1);
   Handle handle = (Handle)luaL_checkinteger(L, 2);
+  uint32_t flags = luaL_optinteger(L, 3, BCFX_DISCARD_ALL);
 
-  bcfx_submit(id, handle);
+  bcfx_submit(id, handle, flags);
   return 0;
 }
 
@@ -487,6 +488,17 @@ static const luaL_Enum BCWRAP_ENUM(debug)[] = {
     {"WIREFRAME", BCFX_DEBUG_WIREFRAME},
     {NULL, 0},
 };
+static const luaL_Enum BCWRAP_ENUM(discard)[] = {
+    {"NONE", BCFX_DISCARD_NONE},
+    {"VERTEX_STREAMS", BCFX_DISCARD_VERTEX_STREAMS},
+    {"INDEX_BUFFER", BCFX_DISCARD_INDEX_BUFFER},
+    {"TRANSFORM", BCFX_DISCARD_TRANSFORM},
+    {"BINDINGS", BCFX_DISCARD_BINDINGS},
+    {"STATE", BCFX_DISCARD_STATE},
+    {"INSTANCE_DATA", BCFX_DISCARD_INSTANCE_DATA},
+    {"ALL", BCFX_DISCARD_ALL},
+    {NULL, 0},
+};
 
 #define EMPLACE_BCWRAP_FUNCTION(name) \
   { #name, BCWRAP_FUNCTION(name) }
@@ -548,6 +560,7 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   REGISTE_ENUM(blend_func);
   REGISTE_ENUM(blend_equation);
   REGISTE_ENUM(debug);
+  REGISTE_ENUM(discard);
 
   (void)VL_FUNCTION(init_metatable)(L);
   (void)COLOR_FUNCTION(init)(L);
