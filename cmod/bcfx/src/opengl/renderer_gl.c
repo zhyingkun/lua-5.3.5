@@ -217,6 +217,8 @@ typedef struct {
 } PredefinedUniform;
 typedef struct {
   GLuint id;
+  GLuint vs;
+  GLuint fs;
   PredefinedAttrib pa;
   PredefinedUniform pu;
 } ProgramGL;
@@ -580,9 +582,23 @@ static void gl_createProgram(RendererContext* ctx, Handle handle, Handle vsh, Ha
   ShaderGL* vs = &glCtx->shaders[handle_index(vsh)];
   ShaderGL* fs = &glCtx->shaders[handle_index(fsh)];
   ProgramGL* prog = &glCtx->programs[handle_index(handle)];
-  GL_CHECK(prog->id = glCreateProgram());
-  GL_CHECK(glAttachShader(prog->id, vs->id));
-  GL_CHECK(glAttachShader(prog->id, fs->id));
+  if (prog->id == 0) {
+    GL_CHECK(prog->id = glCreateProgram());
+  }
+  if (prog->vs != vs->id) {
+    if (prog->vs != 0) {
+      GL_CHECK(glDetachShader(prog->id, prog->vs));
+    }
+    GL_CHECK(glAttachShader(prog->id, vs->id));
+    prog->vs = vs->id;
+  }
+  if (prog->fs != fs->id) {
+    if (prog->fs != 0) {
+      GL_CHECK(glDetachShader(prog->id, prog->fs));
+    }
+    GL_CHECK(glAttachShader(prog->id, fs->id));
+    prog->fs = fs->id;
+  }
   GL_CHECK(glLinkProgram(prog->id));
 
   int success;
@@ -1028,6 +1044,8 @@ static void gl_destroyProgram(RendererContext* ctx, Handle handle) {
   ProgramGL* prog = &glCtx->programs[handle_index(handle)];
   GL_CHECK(glDeleteProgram(prog->id));
   prog->id = 0;
+  prog->vs = 0;
+  prog->fs = 0;
 }
 static void gl_destroyUniform(RendererContext* ctx, Handle handle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;

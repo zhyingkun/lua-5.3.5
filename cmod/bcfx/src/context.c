@@ -262,6 +262,25 @@ Handle ctx_createTexture(Context* ctx, bcfx_MemBuffer* mem) {
 /* }====================================================== */
 /*
 ** {======================================================
+** Update Render Resource
+** =======================================================
+*/
+
+void ctx_updateProgram(Context* ctx, Handle handle, Handle vs, Handle fs) {
+  CHECK_HANDLE(handle);
+  CHECK_HANDLE(vs);
+  CHECK_HANDLE(fs);
+  CommandParam* param = ctx_addCommand(ctx, CT_CreateProgram, handle);
+  param->cp.vsHandle = vs;
+  param->cp.fsHandle = fs;
+  return handle;
+}
+
+/* }====================================================== */
+
+/* }====================================================== */
+/*
+** {======================================================
 ** Destroy Render Resource
 ** =======================================================
 */

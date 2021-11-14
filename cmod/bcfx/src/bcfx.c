@@ -119,6 +119,18 @@ BCFX_API Handle bcfx_createTexture(bcfx_MemBuffer* mem) {
 
 /*
 ** {======================================================
+** Update Render Resource
+** =======================================================
+*/
+
+BCFX_API void bcfx_updateProgram(Handle handle, Handle vs, Handle fs) {
+  ctx_updateProgram(s_ctx, handle, vs, fs);
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** Destroy Render Resource
 ** =======================================================
 */

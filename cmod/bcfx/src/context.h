@@ -59,6 +59,8 @@ Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs);
 Handle ctx_createUniform(Context* ctx, const char* name, bcfx_UniformType type, uint16_t num);
 Handle ctx_createTexture(Context* ctx, bcfx_MemBuffer* mem);
 
+void ctx_updateProgram(Context* ctx, Handle handle, Handle vs, Handle fs);
+
 void ctx_destroy(Context* ctx, Handle handle);
 
 void ctx_setViewWindow(Context* ctx, ViewId id, Window win);
