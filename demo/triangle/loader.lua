@@ -1,6 +1,8 @@
 local bcfx = require("bcfx")
 local shader_type = bcfx.shader_type
 
+local watch = require("watch")
+
 local loader = {}
 
 local pathPrefix = ""
@@ -9,11 +11,22 @@ function loader.SetPathPrefix(prefix)
 end
 
 function loader.LoadProgram(name)
-	local vsStr = io.readfile(pathPrefix .. "Resource/Shader/" .. name .. "_vs.glsl")
-	local fsStr = io.readfile(pathPrefix .. "Resource/Shader/" .. name .. "_fs.glsl")
-	local vs = bcfx.createShader(vsStr, shader_type.Vertex)
-	local fs = bcfx.createShader(fsStr, shader_type.Fragment)
-	return bcfx.createProgram(vs, fs)
+	local vsPath = pathPrefix .. "Resource/Shader/" .. name .. "_vs.glsl"
+	local fsPath = pathPrefix .. "Resource/Shader/" .. name .. "_fs.glsl"
+	local vs = bcfx.createShader(io.readfile(vsPath), shader_type.Vertex)
+	local fs = bcfx.createShader(io.readfile(fsPath), shader_type.Fragment)
+	local prog = bcfx.createProgram(vs, fs)
+	watch.onFileChanged(vsPath, function()
+		bcfx.destroy(vs)
+		vs = bcfx.createShader(io.readfile(vsPath), shader_type.Vertex)
+		bcfx.updateProgram(prog, vs, fs)
+	end)
+	watch.onFileChanged(fsPath, function()
+		bcfx.destroy(fs)
+		fs = bcfx.createShader(io.readfile(fsPath), shader_type.Fragment)
+		bcfx.updateProgram(prog, vs, fs)
+	end)
+	return prog
 end
 
 function loader.LoadTexture(filename)

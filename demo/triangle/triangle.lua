@@ -87,7 +87,7 @@ local function CreateCubeBuffer()
 	layout:add(vertex_attrib.Position, 3, attrib_type.Float, false)
 	local layoutHandle = bcfx.createVertexLayout(layout)
 	local vertexTbl = {
-		-0.5, -0.5,  0.5, -- In OpenGL: front
+	   -0.5, -0.5,  0.5, -- In OpenGL: front
 		0.5, -0.5,  0.5, -- In Unity : back
 		0.5,  0.5,  0.5,
 	   -0.5,  0.5,  0.5,
