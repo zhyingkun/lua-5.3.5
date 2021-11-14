@@ -68,14 +68,14 @@ static int dealReadFileResult(lua_State* L, const char* filename, int err, void*
   MEMBUFFER_SET(mb, ptr, sz, DT_None, utils_releaseBuf, NULL);
   return 1;
 }
-static int UTILS_FUNCTION(rfMemBuffer)(lua_State* L) {
+static int UTILS_FUNCTION(ReadFileMemBuffer)(lua_State* L) {
   ReadFileResult* rfr = (ReadFileResult*)luaL_checklightuserdata(L, 1);
   int ret = dealReadFileResult(L, (const char*)rfr->arg, rfr->err, rfr->ptr, rfr->sz);
   free(rfr);
   return ret;
 }
 
-static int UTILS_FUNCTION(readFile)(lua_State* L) {
+static int UTILS_FUNCTION(ReadFile)(lua_State* L) {
   const char* filename = luaL_checkstring(L, 1);
   void* ptr = NULL;
   size_t sz = 0;
@@ -115,12 +115,12 @@ static int dealImageParseResult(lua_State* L, bcfx_Texture* texture) {
   return 1;
 }
 
-static int UTILS_FUNCTION(ipMemBuffer)(lua_State* L) {
+static int UTILS_FUNCTION(ImageParseMemBuffer)(lua_State* L) {
   bcfx_Texture* texture = (bcfx_Texture*)luaL_checklightuserdata(L, 1);
   return dealImageParseResult(L, texture);
 }
 
-static int UTILS_FUNCTION(imageParse)(lua_State* L) {
+static int UTILS_FUNCTION(ImageParse)(lua_State* L) {
   bcfx_MemBuffer* mb = (bcfx_MemBuffer*)luaL_checkmembuffer(L, 1);
 
   bcfx_Texture* texture = (bcfx_Texture*)utils_imageParsePtr((void*)mb);
@@ -130,13 +130,50 @@ static int UTILS_FUNCTION(imageParse)(lua_State* L) {
 
 /* }====================================================== */
 
+/*
+** {======================================================
+** RenderState
+** =======================================================
+*/
+
+#define SET_STATE_FIELD(field, type) \
+  lua_getfield(L, 1, #field); \
+  state.field = (uint8_t)luaL_opt##type(L, 2, 0); \
+  lua_pop(L, 1)
+static int UTILS_FUNCTION(PackRenderState)(lua_State* L) {
+  luaL_checktype(L, 1, LUA_TTABLE);
+  bcfx_RenderState state = {0};
+  SET_STATE_FIELD(frontFace, integer);
+  SET_STATE_FIELD(cullFace, integer);
+  SET_STATE_FIELD(noWriteZ, boolean);
+  SET_STATE_FIELD(depthFunc, integer);
+  SET_STATE_FIELD(alphaRef, integer);
+  SET_STATE_FIELD(pointSize, integer);
+  SET_STATE_FIELD(noWriteR, boolean);
+  SET_STATE_FIELD(noWriteG, boolean);
+  SET_STATE_FIELD(noWriteB, boolean);
+  SET_STATE_FIELD(noWriteA, boolean);
+  SET_STATE_FIELD(enableBlend, boolean);
+  SET_STATE_FIELD(srcRGB, integer);
+  SET_STATE_FIELD(dstRGB, integer);
+  SET_STATE_FIELD(srcAlpha, integer);
+  SET_STATE_FIELD(dstAlpha, integer);
+  SET_STATE_FIELD(blendEquRGB, integer);
+  SET_STATE_FIELD(blendEquA, integer);
+  lua_pushinteger(L, RENDERSTATE_UINT64(state));
+  return 1;
+}
+
+/* }====================================================== */
+
 #define EMPLACE_UTILS_FUNCTION(name) \
   { #name, UTILS_FUNCTION(name) }
 static const luaL_Reg utils_funcs[] = {
-    EMPLACE_UTILS_FUNCTION(rfMemBuffer),
-    EMPLACE_UTILS_FUNCTION(readFile),
-    EMPLACE_UTILS_FUNCTION(ipMemBuffer),
-    EMPLACE_UTILS_FUNCTION(imageParse),
+    EMPLACE_UTILS_FUNCTION(ReadFileMemBuffer),
+    EMPLACE_UTILS_FUNCTION(ReadFile),
+    EMPLACE_UTILS_FUNCTION(ImageParseMemBuffer),
+    EMPLACE_UTILS_FUNCTION(ImageParse),
+    EMPLACE_UTILS_FUNCTION(PackRenderState),
     {NULL, NULL},
 };
 

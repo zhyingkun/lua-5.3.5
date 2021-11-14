@@ -296,6 +296,13 @@ static int BCWRAP_FUNCTION(setTexture)(lua_State* L) {
   bcfx_setTexture(stage, sampler, texture, flags);
   return 0;
 }
+static int BCWRAP_FUNCTION(setState)(lua_State* L) {
+  bcfx_URenderState uState;
+  uState.stateUINT64 = (uint64_t)luaL_checkinteger(L, 1);
+  uint32_t rgba = (uint32_t)luaL_checkinteger(L, 2);
+  bcfx_setState(uState.stateStruct, rgba);
+  return 0;
+}
 static int BCWRAP_FUNCTION(submit)(lua_State* L) {
   ViewId id = (ViewId)luaL_checkinteger(L, 1);
   Handle handle = (Handle)luaL_checkinteger(L, 2);
@@ -410,6 +417,7 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(setIndexBuffer),
     EMPLACE_BCWRAP_FUNCTION(setTransform),
     EMPLACE_BCWRAP_FUNCTION(setTexture),
+    EMPLACE_BCWRAP_FUNCTION(setState),
     EMPLACE_BCWRAP_FUNCTION(submit),
     /* Create Render Resource */
     EMPLACE_BCWRAP_FUNCTION(destroy),
