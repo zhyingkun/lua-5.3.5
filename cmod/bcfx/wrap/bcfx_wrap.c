@@ -378,6 +378,14 @@ static int BCWRAP_FUNCTION(setState)(lua_State* L) {
   bcfx_setState(uState.stateStruct, rgba);
   return 0;
 }
+static int BCWRAP_FUNCTION(setStencil)(lua_State* L) {
+  bcfx_UStencilState uFront, uBack;
+  uFront.stateUINT32 = (uint32_t)luaL_checkinteger(L, 1);
+  uBack.stateUINT32 = (uint32_t)luaL_checkinteger(L, 2);
+
+  bcfx_setStencil(uFront.stateStruct, uBack.stateStruct);
+  return 0;
+}
 static int BCWRAP_FUNCTION(submit)(lua_State* L) {
   ViewId id = (ViewId)luaL_checkinteger(L, 1);
   Handle handle = (Handle)luaL_checkinteger(L, 2);
@@ -550,6 +558,7 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(setTransform),
     EMPLACE_BCWRAP_FUNCTION(setTexture),
     EMPLACE_BCWRAP_FUNCTION(setState),
+    EMPLACE_BCWRAP_FUNCTION(setStencil),
     EMPLACE_BCWRAP_FUNCTION(submit),
 
     {NULL, NULL},
