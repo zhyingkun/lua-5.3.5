@@ -220,6 +220,23 @@ static int BCWRAP_FUNCTION(setViewTransform)(lua_State* L) {
   bcfx_setViewTransform(id, viewMat, projMat);
   return 0;
 }
+static int BCWRAP_FUNCTION(setViewMode)(lua_State* L) {
+  ViewId id = (ViewId)luaL_checkinteger(L, 1);
+  ViewMode mode = (ViewMode)luaL_checkinteger(L, 2);
+  bcfx_setViewMode(id, mode);
+  return 0;
+}
+static int BCWRAP_FUNCTION(setViewDebug)(lua_State* L) {
+  ViewId id = (ViewId)luaL_checkinteger(L, 1);
+  uint32_t debug = (uint32_t)luaL_checkinteger(L, 2);
+  bcfx_setViewDebug(id, debug);
+  return 0;
+}
+static int BCWRAP_FUNCTION(resetView)(lua_State* L) {
+  ViewId id = (ViewId)luaL_checkinteger(L, 1);
+  bcfx_resetView(id);
+  return 0;
+}
 
 static int BCWRAP_FUNCTION(setUniform)(lua_State* L) {
   Handle handle = (Handle)luaL_checkinteger(L, 1);
@@ -352,6 +369,11 @@ static const luaL_Enum BCWRAP_ENUM(sampler_flag)[] = {
     {"MAG_NEAREST", BCFX_SAMPLER_MAG_NEAREST},
     {NULL, 0},
 };
+static const luaL_Enum BCWRAP_ENUM(debug)[] = {
+    {"NONE", BCFX_DEBUG_NONE},
+    {"WIREFRAME", BCFX_DEBUG_WIREFRAME},
+    {NULL, 0},
+};
 
 #define EMPLACE_BCWRAP_FUNCTION(name) \
   { #name, BCWRAP_FUNCTION(name) }
@@ -379,6 +401,9 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(setViewClear),
     EMPLACE_BCWRAP_FUNCTION(setViewRect),
     EMPLACE_BCWRAP_FUNCTION(setViewTransform),
+    EMPLACE_BCWRAP_FUNCTION(setViewMode),
+    EMPLACE_BCWRAP_FUNCTION(setViewDebug),
+    EMPLACE_BCWRAP_FUNCTION(resetView),
     /* Submit Drawcall */
     EMPLACE_BCWRAP_FUNCTION(setUniform),
     EMPLACE_BCWRAP_FUNCTION(setVertexBuffer),
@@ -400,6 +425,7 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   REGISTE_ENUM(attrib_type);
   REGISTE_ENUM(shader_type);
   REGISTE_ENUM(sampler_flag);
+  REGISTE_ENUM(debug);
 
   (void)VL_FUNCTION(init_metatable)(L);
   (void)COLOR_FUNCTION(init)(L);
