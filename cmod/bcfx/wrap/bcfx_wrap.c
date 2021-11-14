@@ -340,6 +340,12 @@ static int BCWRAP_FUNCTION(setUniform)(lua_State* L) {
   }
   return 0;
 }
+static int BCWRAP_FUNCTION(touch)(lua_State* L) {
+  ViewId id = (ViewId)luaL_checkinteger(L, 1);
+
+  bcfx_touch(id);
+  return 0;
+}
 
 static int BCWRAP_FUNCTION(setVertexBuffer)(lua_State* L) {
   uint8_t stream = luaL_checkinteger(L, 1);
@@ -553,6 +559,7 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(resetView),
     /* Submit Drawcall */
     EMPLACE_BCWRAP_FUNCTION(setUniform),
+    EMPLACE_BCWRAP_FUNCTION(touch),
     EMPLACE_BCWRAP_FUNCTION(setVertexBuffer),
     EMPLACE_BCWRAP_FUNCTION(setIndexBuffer),
     EMPLACE_BCWRAP_FUNCTION(setTransform),

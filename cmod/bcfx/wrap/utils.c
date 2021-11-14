@@ -187,6 +187,20 @@ static int UTILS_FUNCTION(PackRenderState)(lua_State* L) {
   return 1;
 }
 
+static int UTILS_FUNCTION(PackStencilState)(lua_State* L) {
+  luaL_checktype(L, 1, LUA_TTABLE);
+  bcfx_StencilState state = {0};
+  SET_STATE_FIELD(enable, boolean);
+  SET_STATE_FIELD(func, integer);
+  SET_STATE_FIELD(sfail, integer);
+  SET_STATE_FIELD(dpfail, integer);
+  SET_STATE_FIELD(dppass, integer);
+  SET_STATE_FIELD(ref, integer);
+  SET_STATE_FIELD(mask, boolean);
+  lua_pushinteger(L, STENCILSTATE_UINT32(state));
+  return 1;
+}
+
 /* }====================================================== */
 
 #define EMPLACE_UTILS_FUNCTION(name) \
@@ -198,6 +212,7 @@ static const luaL_Reg utils_funcs[] = {
     EMPLACE_UTILS_FUNCTION(ImageParse),
     EMPLACE_UTILS_FUNCTION(PackSamplerFlags),
     EMPLACE_UTILS_FUNCTION(PackRenderState),
+    EMPLACE_UTILS_FUNCTION(PackStencilState),
     {NULL, NULL},
 };
 
