@@ -1071,7 +1071,7 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
     IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
     GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
     GLsizei indexCount = (GLsizei)MIN(draw->indexCount, ib->count);
-    GL_CHECK(glDrawElements(GL_TRIANGLES, indexCount, ib->type, draw->indexStart));
+    GL_CHECK(glDrawElements(GL_TRIANGLES, indexCount, ib->type, (const void*)draw->indexStart));
   }
   gl_MakeWinCurrent(glCtx, NULL);
 }
