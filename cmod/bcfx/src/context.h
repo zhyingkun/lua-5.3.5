@@ -67,7 +67,6 @@ void ctx_setViewWindow(Context* ctx, ViewId id, Window win);
 void ctx_setViewFrameBuffer(Context* ctx, ViewId id, Handle handle);
 
 void ctx_setViewClear(Context* ctx, ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil);
-void ctx_setViewClearRect(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 void ctx_setViewRect(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 void ctx_setViewScissor(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 

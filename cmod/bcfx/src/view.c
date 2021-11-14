@@ -34,9 +34,6 @@ void view_setFrameBuffer(View* view, Handle handle) {
 void view_setClear(View* view, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil) {
   clear_set(&view->clear, flags, rgba, depth, stencil);
 }
-void view_setClearRect(View* view, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
-  clear_setRect(&view->clear, x, y, width, height);
-}
 void view_setRect(View* view, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
   rect_set(&view->rect, x, y, width, height);
 }

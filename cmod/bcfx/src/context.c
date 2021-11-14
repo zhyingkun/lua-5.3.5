@@ -323,10 +323,6 @@ void ctx_setViewClear(Context* ctx, ViewId id, uint16_t flags, uint32_t rgba, fl
   CHECK_VIEWID(id);
   view_setClear(&ctx->views[id], flags, rgba, depth, stencil);
 }
-void ctx_setViewClearRect(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
-  CHECK_VIEWID(id);
-  view_setClearRect(&ctx->views[id], x, y, width, height);
-}
 void ctx_setViewRect(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
   CHECK_VIEWID(id);
   view_setRect(&ctx->views[id], x, y, width, height);

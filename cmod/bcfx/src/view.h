@@ -22,16 +22,13 @@ void rect_set(Rect* rect, uint16_t x, uint16_t y, uint16_t width, uint16_t heigh
 typedef struct {
   uint16_t flags;
   uint8_t index[4];
-  Rect rect;
   float depth;
   uint8_t stencil;
 } Clear;
 
 void clear_set(Clear* clear, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil);
-#define clear_setRect(clear, x, y, width, height) rect_set(&((clear)->rect), x, y, width, height)
 #define clear_reset(clear) \
   clear_set(clear, 0, 0, 0.0, 0); \
-  rect_reset(&((clear)->rect))
 
 typedef struct {
   Window win;
@@ -49,7 +46,6 @@ void view_setWindow(View* view, Window win);
 void view_setFrameBuffer(View* view, Handle handle);
 
 void view_setClear(View* view, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil);
-void view_setClearRect(View* view, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 void view_setRect(View* view, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 void view_setScissor(View* view, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 

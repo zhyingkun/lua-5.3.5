@@ -159,10 +159,6 @@ BCFX_API void bcfx_setViewClear(ViewId id, uint16_t flags, uint32_t rgba, float 
   ctx_setViewClear(s_ctx, id, flags, rgba, depth, stencil);
 }
 
-BCFX_API void bcfx_setViewClearRect(ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
-  ctx_setViewClearRect(s_ctx, id, x, y, width, height);
-}
-
 BCFX_API void bcfx_setViewRect(ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
   ctx_setViewRect(s_ctx, id, x, y, width, height);
 }
