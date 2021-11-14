@@ -367,6 +367,8 @@ typedef struct {
   uint8_t wrapV : 1;
   uint8_t filterMin : 1;
   uint8_t filterMag : 1;
+  uint8_t byteReserve : 4;
+  uint8_t reserve[3];
 } bcfx_SamplerFlags;
 typedef union {
   uint32_t flagsUINT32;
@@ -439,6 +441,8 @@ typedef struct {
   uint8_t noWriteA : 1;
 
   uint8_t enableBlend : 1;
+  uint8_t byteReserve : 7;
+
   uint8_t srcRGB : 4;
   uint8_t dstRGB : 4;
   uint8_t srcAlpha : 4;
@@ -446,12 +450,53 @@ typedef struct {
 
   uint8_t blendEquRGB : 4;
   uint8_t blendEquA : 4;
+
+  uint8_t reserve;
 } bcfx_RenderState;
 typedef union {
   uint64_t stateUINT64;
   bcfx_RenderState stateStruct;
 } bcfx_URenderState;
 #define RENDERSTATE_UINT64(state) (((bcfx_URenderState*)&state)->stateUINT64)
+
+// WARNING: Change bcfx_EStencilFunc must Update stencilFunc_glType
+typedef enum {
+  SF_Less,
+  SF_LEqual,
+  SF_Equal,
+  SF_GEqual,
+  SF_Greater,
+  SF_NotEqual,
+  SF_Never,
+  SF_Always,
+} bcfx_EStencilFunc;
+// WARNING: Change bcfx_EStencilAction must Update stencilAction_glType
+typedef enum {
+  SA_Keep,
+  SA_Zero,
+  SA_Replace,
+  SA_Incr,
+  SA_IncrWrap,
+  SA_Decr,
+  SA_DecrWrap,
+  SA_Invert,
+} bcfx_EStencilAction;
+typedef struct {
+  uint8_t enable : 1;
+  uint8_t func : 3;
+  uint8_t sfail : 3;
+  uint8_t byteReserve : 1;
+  uint8_t dpfail : 3;
+  uint8_t dppass : 3;
+  uint8_t byteReserve2 : 2;
+  uint8_t ref;
+  uint8_t mask;
+} bcfx_StencilState;
+typedef union {
+  uint32_t stateUINT32;
+  bcfx_StencilState stateStruct;
+} bcfx_UStencilState;
+#define STENCILSTATE_UINT32(state) (((bcfx_UStencilState*)&state)->stateUINT32)
 
 #define BIT_INDEX(idx) (1 << idx)
 #define BIT_MASK(cnt) ((1 << cnt) - 1)
@@ -476,6 +521,7 @@ BCFX_API void bcfx_setIndexBuffer(Handle handle, uint32_t start, uint32_t count)
 BCFX_API void bcfx_setTransform(Mat4x4* mat);
 BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlags flags);
 BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor);
+BCFX_API void bcfx_setStencil(bcfx_StencilState front, bcfx_StencilState back);
 
 BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags);
 

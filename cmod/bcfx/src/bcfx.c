@@ -67,8 +67,15 @@ BCFX_API void bcfx_setFrameCompletedCallback(bcfx_OnFrameCompleted cb, void* ud)
   ctx_setFrameCompletedCallback(s_ctx, cb, ud);
 }
 
+#define PRINT_SIZEOF_TYPE(type) printf("sizeof(" #type "): %ld\n", sizeof(type))
 BCFX_API void bcfx_init(Window mainWin) {
   ctx_init(s_ctx, mainWin);
+  // PRINT_SIZEOF_TYPE(bcfx_SamplerFlags);
+  // PRINT_SIZEOF_TYPE(bcfx_USamplerFlags);
+  // PRINT_SIZEOF_TYPE(bcfx_RenderState);
+  // PRINT_SIZEOF_TYPE(bcfx_URenderState);
+  // PRINT_SIZEOF_TYPE(bcfx_StencilState);
+  // PRINT_SIZEOF_TYPE(bcfx_UStencilState);
 }
 
 BCFX_API void bcfx_apiFrame(uint32_t renderCount) {
@@ -219,6 +226,9 @@ BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, bcf
 }
 BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor) {
   ctx_setState(s_ctx, state, blendColor);
+}
+BCFX_API void bcfx_setStencil(bcfx_StencilState front, bcfx_StencilState back) {
+  ctx_setStencil(s_ctx, front, back);
 }
 
 BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags) {

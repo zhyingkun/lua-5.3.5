@@ -11,15 +11,20 @@
 void encoder_begin(Encoder* encoder, Frame* frame) {
   frame_reset(frame);
   encoder->frame = frame;
-  encoder->draw.streamMask = 0;
+
+  RenderDraw* draw = &encoder->draw;
+  draw->streamMask = 0;
 
   bcfx_RenderState state = {0};
-  encoder->draw.state = state;
-  encoder->draw.blendColor = 0;
+  draw->state = state;
+  draw->blendColor = 0;
+  bcfx_StencilState stencil = {0};
+  draw->stencilFront = stencil;
+  draw->stencilBack = stencil;
 
   memset(&encoder->bind, 0, sizeof(RenderBind));
-  MAT4x4_INIT(&encoder->draw.model);
-  MAT_IDENTITY(&encoder->draw.model);
+  MAT4x4_INIT(&draw->model);
+  MAT_IDENTITY(&draw->model);
 
   frame->numUniformDatas = 0;
   encoder->uniformStart = 0;
@@ -52,6 +57,10 @@ void encoder_setTexture(Encoder* encoder, uint8_t stage, Handle handle, bcfx_Sam
 void encoder_setState(Encoder* encoder, bcfx_RenderState state, uint32_t blendColor) {
   encoder->draw.state = state;
   encoder->draw.blendColor = blendColor;
+}
+void encoder_setStencil(Encoder* encoder, bcfx_StencilState front, bcfx_StencilState back) {
+  encoder->draw.stencilFront = front;
+  encoder->draw.stencilBack = back;
 }
 
 void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags) {
@@ -86,6 +95,9 @@ void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags)
     bcfx_RenderState state = {0};
     draw->state = state;
     draw->blendColor = 0;
+    bcfx_StencilState stencil = {0};
+    draw->stencilFront = stencil;
+    draw->stencilBack = stencil;
   }
 }
 

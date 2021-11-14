@@ -91,6 +91,28 @@ static GLenum blendEquation_glType[] = {
     GL_MIN,
     GL_MAX,
 };
+// According to bcfx_EStencilFunc
+static GLenum stencilFunc_glType[] = {
+    GL_LESS,
+    GL_LEQUAL,
+    GL_EQUAL,
+    GL_GEQUAL,
+    GL_GREATER,
+    GL_NOTEQUAL,
+    GL_NEVER,
+    GL_ALWAYS,
+};
+// According to bcfx_EStencilAction
+static GLenum stencilAction_glType[] = {
+    GL_KEEP,
+    GL_ZERO,
+    GL_REPLACE,
+    GL_INCR,
+    GL_INCR_WRAP,
+    GL_DECR,
+    GL_DECR_WRAP,
+    GL_INVERT,
+};
 
 #ifndef NDEBUG
 static const char* err_EnumName(GLenum _enum) {
@@ -876,6 +898,16 @@ static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, F
     }
   }
 }
+static void updateStencilState(GLenum face, bcfx_StencilState state) {
+  if (state.enable) {
+    GL_CHECK(glStencilFuncSeparate(face, stencilFunc_glType[state.func], state.ref, state.mask));
+    GL_CHECK(glStencilOpSeparate(
+        face,
+        stencilAction_glType[state.sfail],
+        stencilAction_glType[state.dpfail],
+        stencilAction_glType[state.dppass]));
+  }
+}
 #define IS_STATE_CHANGED(field) ((force || curState.field != state.field) ? (curState.field = state.field, 1) : 0)
 #define IS_STATE_NOT_EQUAL4(field1, field2, field3, field4) \
   (force || \
@@ -890,7 +922,10 @@ static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, F
   curState.field4 = state.field4
 static bcfx_RenderState curState = {0};
 static uint32_t curBlendColor = 0;
-static void gl_updateRenderState(bcfx_RenderState state, uint32_t blendColor, bool force) {
+static bool curEnableStencil = false;
+static bcfx_StencilState curStencilFront = {0};
+static bcfx_StencilState curStencilBack = {0};
+static void updateRenderState(bcfx_RenderState state, uint32_t blendColor, bcfx_StencilState front, bcfx_StencilState back, bool force) {
   if (IS_STATE_CHANGED(frontFace)) {
     GL_CHECK(glFrontFace(frontFace_glType[state.frontFace]));
   }
@@ -966,15 +1001,35 @@ static void gl_updateRenderState(bcfx_RenderState state, uint32_t blendColor, bo
           ((float)a) / 255.0));
     }
   }
+  bool enable = front.enable || back.enable;
+  if (force || curEnableStencil != enable) {
+    curEnableStencil = enable;
+    if (enable) {
+      GL_CHECK(glEnable(GL_STENCIL_TEST));
+    } else {
+      GL_CHECK(glDisable(GL_STENCIL_TEST));
+    }
+  }
+  if (enable) {
+    if (force || STENCILSTATE_UINT32(curStencilFront) != STENCILSTATE_UINT32(front)) {
+      curStencilFront = front;
+      updateStencilState(GL_FRONT, front);
+    }
+    if (force || STENCILSTATE_UINT32(curStencilBack) != STENCILSTATE_UINT32(back)) {
+      curStencilBack = back;
+      updateStencilState(GL_BACK, back);
+    }
+  }
 }
 
 static const bcfx_RenderState stateEmpty = {0};
+static const bcfx_StencilState stencilEmpty = {0};
 static void gl_submit(RendererContext* ctx, Frame* frame) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
 
   // TODO: SortKey
 
-  gl_updateRenderState(stateEmpty, 0, true);
+  updateRenderState(stateEmpty, 0, stencilEmpty, stencilEmpty, true);
 
   uint32_t renderCount = MIN(frame->renderCount, frame->numRenderItems);
   ViewId curViewId = UINT16_MAX;
@@ -997,7 +1052,12 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
       }
     }
 
-    gl_updateRenderState(draw->state, draw->blendColor, false);
+    updateRenderState(
+        draw->state,
+        draw->blendColor,
+        draw->stencilFront,
+        draw->stencilBack,
+        false);
 
     gl_updateGlobalUniform(glCtx, draw, frame);
 
