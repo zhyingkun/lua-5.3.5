@@ -8,66 +8,73 @@ local sys = libuv.sys
 
 local reload = require("reload").reload
 
+local watch = {}
+
 local function error_msg(...)
 	error(string.format(...))
 end
 
-local cache_handles = {}
-
-local function unwatch(mod_name)
-	local handle = cache_handles[mod_name]
-	if handle then
-		handle:close()
-		cache_handles[mod_name] = nil
-	end
-end
-
-local function watch(mod_name, callback)
-	local filepath = package.searchpath(mod_name, package.path)
-	if not filepath then
-		error_msg("Error Could not find lua module: %s", mod_name)
-	end
-	if cache_handles[mod_name] then return end
-	local last_time = sys.hrtime()
+local FilePath2Handle = {}
+local function onFileChangedInternal(filePath, callback, onError)
+	local lastTime = sys.hrtime()
 	local function skip()
 		local now = sys.hrtime()
-		if now > last_time and now - last_time < 100000000 then
+		if now > lastTime and now - lastTime < 100000000 then
 			return true
 		end
-		last_time = now
+		lastTime = now
 		return false
 	end
 	local handle = fs_event.new()
-	handle:start(function(filename, events, status)
+	handle:start(function(fileName, events, status)
 		if status == OK then
 			if events & CHANGE ~= 0 then
 				if not skip() then
-					local ok, msg = reload(mod_name)
-					if ok then
-						print_err("reload succeed:", mod_name)
-					else
-						print_err("reload failed:", mod_name, msg)
-					end
+					callback(filePath)
 				end
 			elseif events & RENAME ~= 0 then
-				error_msg("Error RENAME filepath: %s, filename: %s", filepath, filename)
+				error_msg("Error RENAME filePath: %s, fileName: %s", filePath, fileName)
 			end
 		else
-			local handle_str = tostring(handle)
-			unwatch(mod_name)
+			local handleStr = tostring(handle)
+			onError(filePath)
 			error_msg(
-				"Watch filepath error: %s, filename: %s, handle: %s, status: %s",
-				filepath,
-				filename,
-				handle_str,
+				"Watch filePath error: %s, fileName: %s, handle: %s, status: %s",
+				filePath,
+				fileName,
+				handleStr,
 				tostring(status)
 			)
 		end
-	end, filepath, RECURSIVE)
-	cache_handles[mod_name] = handle
+	end, filePath, RECURSIVE)
+	return handle
+end
+local function onFileChanged(filePath, callback)
+	if FilePath2Handle[filePath] then return end
+	FilePath2Handle[filePath] = onFileChangedInternal(filePath, callback, function(filePath)
+		local handle = FilePath2Handle[filePath]
+		if handle then
+			handle:close()
+			FilePath2Handle[filePath] = nil
+		end
+	end)
 end
 
-return {
-	unwatch = unwatch,
-	watch = watch,
-}
+watch.onFileChanged = onFileChanged
+
+function watch.autoReload(modName)
+	local filePath = package.searchpath(modName, package.path)
+	if not filePath then
+		error_msg("Error Could not find lua module: %s", modName)
+	end
+	onFileChanged(filePath, function(filePath)
+		local ok, msg = reload(modName)
+		if ok then
+			print_err("reload succeed:", modName)
+		else
+			print_err("reload failed:", modName, msg)
+		end
+	end)
+end
+
+return watch
