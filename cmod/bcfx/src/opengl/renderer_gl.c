@@ -31,6 +31,56 @@ static GLenum uniform_glType[] = {
     GL_FLOAT_MAT3,
     GL_FLOAT_MAT4,
 };
+// According to bcfx_EFrontFace
+static GLenum frontFace_glType[] = {
+    GL_CCW,
+    GL_CW,
+};
+// According to bcfx_ECullFace
+static GLenum cullFace_glType[] = {
+    GL_NONE,
+    GL_BACK,
+    GL_FRONT,
+    GL_FRONT_AND_BACK,
+};
+// According to bcfx_EDepthFunc
+static GLenum depthFunc_glType[] = {
+    GL_NONE,
+    GL_LESS,
+    GL_LEQUAL,
+    GL_EQUAL,
+    GL_GEQUAL,
+    GL_GREATER,
+    GL_NOTEQUAL,
+    GL_NEVER,
+    GL_ALWAYS,
+};
+// According to bcfx_EBlendFunc
+static GLenum blendFunc_glType[] = {
+    GL_ZERO,
+    GL_ONE,
+    GL_SRC_COLOR,
+    GL_ONE_MINUS_SRC_COLOR,
+    GL_DST_COLOR,
+    GL_ONE_MINUS_DST_COLOR,
+    GL_SRC_ALPHA,
+    GL_ONE_MINUS_SRC_ALPHA,
+    GL_DST_ALPHA,
+    GL_ONE_MINUS_DST_ALPHA,
+    GL_CONSTANT_COLOR,
+    GL_ONE_MINUS_CONSTANT_COLOR,
+    GL_CONSTANT_ALPHA,
+    GL_ONE_MINUS_CONSTANT_ALPHA,
+    GL_SRC_ALPHA_SATURATE,
+};
+// According to bcfx_EBlendEquation
+static GLenum blendEquation_glType[] = {
+    GL_FUNC_ADD,
+    GL_FUNC_SUBTRACT,
+    GL_FUNC_REVERSE_SUBTRACT,
+    GL_MIN,
+    GL_MAX,
+};
 
 #ifndef NDEBUG
 static const char* err_EnumName(GLenum _enum) {
@@ -759,12 +809,7 @@ static void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, Ren
         GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, modelViewProj->element));
       } break;
       case UB_AlphaRef: {
-        float falpha[4];
-        falpha[0] = 0.0;
-        falpha[1] = 0.0;
-        falpha[2] = 0.0;
-        falpha[3] = 0.0;
-        GL_CHECK(glUniform4fv(loc, 1, falpha));
+        GL_CHECK(glUniform1f(loc, ((float)draw->state.alphaRef) / 255.0));
       } break;
       default:
         break;
@@ -815,11 +860,106 @@ static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, F
     }
   }
 }
+#define IS_STATE_CHANGED(field) ((force || curState.field != state.field) ? (curState.field = state.field, 1) : 0)
+#define IS_STATE_NOT_EQUAL4(field1, field2, field3, field4) \
+  (force || \
+   curState.field1 != state.field1 || \
+   curState.field2 != state.field2 || \
+   curState.field3 != state.field3 || \
+   curState.field4 != state.field4)
+#define ASSIGN_STATE4(field1, field2, field3, field4) \
+  curState.field1 = state.field1; \
+  curState.field2 = state.field2; \
+  curState.field3 = state.field3; \
+  curState.field4 = state.field4
+static bcfx_RenderState curState = {0};
+static uint32_t curBlendColor = 0;
+static void gl_updateRenderState(bcfx_RenderState state, uint32_t blendColor, bool force) {
+  if (IS_STATE_CHANGED(frontFace)) {
+    GL_CHECK(glFrontFace(frontFace_glType[state.frontFace]));
+  }
+  if (IS_STATE_CHANGED(cullFace)) {
+    if (state.cullFace == CF_None) {
+      GL_CHECK(glDisable(GL_CULL_FACE));
+    } else {
+      GL_CHECK(glEnable(GL_CULL_FACE));
+      GL_CHECK(glCullFace(cullFace_glType[state.cullFace]));
+    }
+  }
+  if (IS_STATE_CHANGED(noWriteZ)) {
+    GL_CHECK(glDepthMask(!((GLboolean)state.noWriteZ)));
+  }
+  if (IS_STATE_CHANGED(depthFunc)) {
+    if (state.depthFunc == DF_None) {
+      if (state.noWriteZ) {
+        GL_CHECK(glDisable(GL_DEPTH_TEST));
+      } else {
+        GL_CHECK(glEnable(GL_DEPTH_TEST));
+        GL_CHECK(glDepthFunc(GL_ALWAYS));
+      }
+    } else {
+      GL_CHECK(glEnable(GL_DEPTH_TEST));
+      GL_CHECK(glDepthFunc(depthFunc_glType[state.depthFunc]));
+    }
+  }
+  // alphaRef will be set in uniform, no OpenGL API
+  if (IS_STATE_CHANGED(pointSize)) {
+    GL_CHECK(glPointSize((GLfloat)MAX(state.pointSize, 1)));
+  }
+  if (IS_STATE_NOT_EQUAL4(noWriteR, noWriteG, noWriteB, noWriteA)) {
+    ASSIGN_STATE4(noWriteR, noWriteG, noWriteB, noWriteA);
+    GL_CHECK(glColorMask(
+        !((GLboolean)state.noWriteR),
+        !((GLboolean)state.noWriteG),
+        !((GLboolean)state.noWriteB),
+        !((GLboolean)state.noWriteA)));
+  }
+  if (IS_STATE_CHANGED(enableBlend)) {
+    if (state.enableBlend) {
+      GL_CHECK(glEnable(GL_BLEND));
+    } else {
+      GL_CHECK(glDisable(GL_BLEND));
+    }
+  }
+  if (state.enableBlend) {
+    if (IS_STATE_NOT_EQUAL4(srcRGB, dstRGB, srcAlpha, dstAlpha)) {
+      ASSIGN_STATE4(srcRGB, dstRGB, srcAlpha, dstAlpha);
+      GL_CHECK(glBlendFuncSeparate(
+          blendFunc_glType[state.srcRGB],
+          blendFunc_glType[state.dstRGB],
+          blendFunc_glType[state.srcAlpha],
+          blendFunc_glType[state.dstAlpha]));
+    }
+    if (force ||
+        curState.blendEquRGB != state.blendEquRGB ||
+        curState.blendEquA != state.blendEquA) {
+      curState.blendEquRGB = state.blendEquRGB;
+      curState.blendEquA = state.blendEquA;
+      GL_CHECK(glBlendEquationSeparate(blendEquation_glType[state.blendEquRGB], blendEquation_glType[state.blendEquA]));
+    }
+    if (force || curBlendColor != blendColor) {
+      curBlendColor = blendColor;
+      uint8_t r = (uint8_t)(blendColor >> 24);
+      uint8_t g = (uint8_t)(blendColor >> 16);
+      uint8_t b = (uint8_t)(blendColor >> 8);
+      uint8_t a = (uint8_t)(blendColor >> 0);
+      GL_CHECK(glBlendColor(
+          ((float)r) / 255.0,
+          ((float)g) / 255.0,
+          ((float)b) / 255.0,
+          ((float)a) / 255.0));
+    }
+  }
+}
 
+static const bcfx_RenderState stateEmpty = {0};
 static void gl_submit(RendererContext* ctx, Frame* frame) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
 
   // TODO: SortKey
+
+  gl_updateRenderState(stateEmpty, 0, true);
+
   uint32_t renderCount = MIN(frame->renderCount, frame->numRenderItems);
   ViewId curViewId = UINT16_MAX;
   GLenum curPolMod = GL_NONE;
@@ -841,8 +981,7 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
       }
     }
 
-    GL_CHECK(glFrontFace(GL_CCW));
-    GL_CHECK(glEnable(GL_DEPTH_TEST));
+    gl_updateRenderState(draw->state, draw->blendColor, false);
 
     gl_updateGlobalUniform(glCtx, draw, frame);
 

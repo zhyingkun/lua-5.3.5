@@ -371,6 +371,85 @@ BCFX_API void bcfx_resetView(ViewId id);
 #define BCFX_SAMPLER_MAG_SHIFT 6
 #define BCFX_SAMPLER_MAG_MASK BIT_MASK(2)
 
+// WARNING: Change bcfx_EFrontFace must Update frontFace_glType
+typedef enum {
+  FF_CounterClockWise,
+  FF_ClockWise,
+} bcfx_EFrontFace;
+// WARNING: Change bcfx_ECullFace must Update cullFace_glType
+typedef enum {
+  CF_None,
+  CF_Back,
+  CF_Front,
+  CF_FrontAndBack,
+} bcfx_ECullFace;
+// WARNING: Change bcfx_EDepthFunc must Update depthFunc_glType
+typedef enum {
+  DF_None,
+  DF_Less,
+  DF_LEqual,
+  DF_Equal,
+  DF_GEqual,
+  DF_Greater,
+  DF_NotEqual,
+  DF_Never,
+  DF_Always,
+} bcfx_EDepthFunc;
+// WARNING: Change bcfx_EBlendFunc must Update blendFunc_glType
+typedef enum {
+  BF_Zero,
+  BF_One,
+  BF_SrcColor,
+  BF_OneMinusSrcColor,
+  BF_DstColor,
+  BF_OneMinusDstColor,
+  BF_SrcAlpha,
+  BF_OneMinusSrcAlpha,
+  BF_DstAlpha,
+  BF_OneMinusDstAlpha,
+  BF_ConstantColor,
+  BF_OneMinusConstantColor,
+  BF_ConstantAlpha,
+  BF_OneMinusConstantAlpha,
+  BF_SrcAlphaSaturate,
+} bcfx_EBlendFunc;
+// WARNING: Change bcfx_EBlendEquation must Update blendEquation_glType
+typedef enum {
+  BE_FuncAdd,
+  BE_FuncSubtract,
+  BE_FuncReverseSubtract,
+  BE_Min,
+  BE_Max,
+} bcfx_EBlendEquation;
+typedef struct {
+  uint8_t frontFace : 1;
+  uint8_t cullFace : 2;
+  uint8_t noWriteZ : 1;
+  uint8_t depthFunc : 4;
+
+  uint8_t alphaRef;
+  uint8_t pointSize : 4;
+
+  uint8_t noWriteR : 1;
+  uint8_t noWriteG : 1;
+  uint8_t noWriteB : 1;
+  uint8_t noWriteA : 1;
+
+  uint8_t enableBlend : 1;
+  uint8_t srcRGB : 4;
+  uint8_t dstRGB : 4;
+  uint8_t srcAlpha : 4;
+  uint8_t dstAlpha : 4;
+
+  uint8_t blendEquRGB : 4;
+  uint8_t blendEquA : 4;
+} bcfx_RenderState;
+typedef union {
+  uint64_t stateUINT64;
+  bcfx_RenderState stateStruct;
+} bcfx_URenderState;
+#define RENDERSTATE_UINT64(state) (((bcfx_URenderState*)&state)->stateUINT64)
+
 BCFX_API void bcfx_setUniformVec4(Handle handle, Vec4* vec, uint16_t num);
 BCFX_API void bcfx_setUniformMat3x3(Handle handle, Mat3x3* mat, uint16_t num);
 BCFX_API void bcfx_setUniformMat4x4(Handle handle, Mat4x4* mat, uint16_t num);
@@ -381,6 +460,7 @@ BCFX_API void bcfx_setVertexBuffer(uint8_t stream, Handle handle);
 BCFX_API void bcfx_setIndexBuffer(Handle handle, uint32_t start, uint32_t count);
 BCFX_API void bcfx_setTransform(Mat4x4* mat);
 BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, uint32_t flags);
+BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor);
 
 BCFX_API void bcfx_submit(ViewId id, Handle handle);
 

@@ -35,6 +35,8 @@ typedef struct {
   Mat4x4 model;
   uint32_t uniformStart; // include, as index, such as 0
   uint32_t uniformEnd; // exclude
+  bcfx_RenderState state;
+  uint32_t blendColor;
 } RenderDraw;
 
 typedef struct {

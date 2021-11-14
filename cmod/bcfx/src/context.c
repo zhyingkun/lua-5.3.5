@@ -395,6 +395,9 @@ void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture,
   data->stage = stage;
   encoder_setTexture(ctx->encoder, stage, texture, flags);
 }
+void ctx_setState(Context* ctx, bcfx_RenderState state, uint32_t blendColor) {
+  encoder_setState(ctx->encoder, state, blendColor);
+}
 
 void ctx_submit(Context* ctx, ViewId id, Handle handle) {
   CHECK_VIEWID(id);
