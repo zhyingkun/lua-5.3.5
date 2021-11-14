@@ -132,6 +132,29 @@ static int UTILS_FUNCTION(ImageParse)(lua_State* L) {
 
 /*
 ** {======================================================
+** Texture Sampler Flags
+** =======================================================
+*/
+
+#define SET_FLAGS_FIELD(field, type) \
+  lua_getfield(L, 1, #field); \
+  flags.field = (uint8_t)luaL_opt##type(L, 2, 0); \
+  lua_pop(L, 1)
+static int UTILS_FUNCTION(PackSamplerFlags)(lua_State* L) {
+  luaL_checktype(L, 1, LUA_TTABLE);
+  bcfx_SamplerFlags flags = {0};
+  SET_FLAGS_FIELD(wrapU, integer);
+  SET_FLAGS_FIELD(wrapV, integer);
+  SET_FLAGS_FIELD(filterMin, integer);
+  SET_FLAGS_FIELD(filterMag, integer);
+  lua_pushinteger(L, SAMPLERFLAGS_UINT32(flags));
+  return 1;
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** RenderState
 ** =======================================================
 */
@@ -173,6 +196,7 @@ static const luaL_Reg utils_funcs[] = {
     EMPLACE_UTILS_FUNCTION(ReadFile),
     EMPLACE_UTILS_FUNCTION(ImageParseMemBuffer),
     EMPLACE_UTILS_FUNCTION(ImageParse),
+    EMPLACE_UTILS_FUNCTION(PackSamplerFlags),
     EMPLACE_UTILS_FUNCTION(PackRenderState),
     {NULL, NULL},
 };

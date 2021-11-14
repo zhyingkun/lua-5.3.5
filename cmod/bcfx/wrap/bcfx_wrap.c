@@ -356,9 +356,10 @@ static int BCWRAP_FUNCTION(setTexture)(lua_State* L) {
   uint8_t stage = luaL_checkinteger(L, 1);
   Handle sampler = (Handle)luaL_checkinteger(L, 2);
   Handle texture = (Handle)luaL_checkinteger(L, 3);
-  uint32_t flags = luaL_checkinteger(L, 4);
+  bcfx_USamplerFlags flags;
+  flags.flagsUINT32 = luaL_checkinteger(L, 4);
 
-  bcfx_setTexture(stage, sampler, texture, flags);
+  bcfx_setTexture(stage, sampler, texture, flags.flagsStruct);
   return 0;
 }
 static int BCWRAP_FUNCTION(setState)(lua_State* L) {
@@ -421,15 +422,64 @@ static const luaL_Enum BCWRAP_ENUM(shader_type)[] = {
     {"Fragment", ST_Fragment},
     {NULL, 0},
 };
-static const luaL_Enum BCWRAP_ENUM(sampler_flag)[] = {
-    {"U_REPEAT", BCFX_SAMPLER_U_REPEAT},
-    {"U_CLAMP", BCFX_SAMPLER_U_CLAMP},
-    {"V_REPEAT", BCFX_SAMPLER_V_REPEAT},
-    {"V_CLAMP", BCFX_SAMPLER_V_CLAMP},
-    {"MIN_LINEAR", BCFX_SAMPLER_MIN_LINEAR},
-    {"MIN_NEAREST", BCFX_SAMPLER_MIN_NEAREST},
-    {"MAG_LINEAR", BCFX_SAMPLER_MAG_LINEAR},
-    {"MAG_NEAREST", BCFX_SAMPLER_MAG_NEAREST},
+static const luaL_Enum BCWRAP_ENUM(texture_wrap)[] = {
+    {"Repeat", TW_Repeat},
+    {"Clamp", TW_Clamp},
+    {NULL, 0},
+};
+static const luaL_Enum BCWRAP_ENUM(texture_filter)[] = {
+    {"Linear", TF_Linear},
+    {"Nearest", TF_Nearest},
+    {NULL, 0},
+};
+static const luaL_Enum BCWRAP_ENUM(front_face)[] = {
+    {"CounterClockWise", FF_CounterClockWise},
+    {"ClockWise", FF_ClockWise},
+    {NULL, 0},
+};
+static const luaL_Enum BCWRAP_ENUM(cull_face)[] = {
+    {"None", CF_None},
+    {"Back", CF_Back},
+    {"Front", CF_Front},
+    {"FrontAndBack", CF_FrontAndBack},
+    {NULL, 0},
+};
+static const luaL_Enum BCWRAP_ENUM(depth_func)[] = {
+    {"None", DF_None},
+    {"Less", DF_Less},
+    {"LEqual", DF_LEqual},
+    {"Equal", DF_Equal},
+    {"GEqual", DF_GEqual},
+    {"Greater", DF_Greater},
+    {"NotEqual", DF_NotEqual},
+    {"Never", DF_Never},
+    {"Always", DF_Always},
+    {NULL, 0},
+};
+static const luaL_Enum BCWRAP_ENUM(blend_func)[] = {
+    {"Zero", BF_Zero},
+    {"One", BF_One},
+    {"SrcColor", BF_SrcColor},
+    {"OneMinusSrcColor", BF_OneMinusSrcColor},
+    {"DstColor", BF_DstColor},
+    {"OneMinusDstColor", BF_OneMinusDstColor},
+    {"SrcAlpha", BF_SrcAlpha},
+    {"OneMinusSrcAlpha", BF_OneMinusSrcAlpha},
+    {"DstAlpha", BF_DstAlpha},
+    {"OneMinusDstAlpha", BF_OneMinusDstAlpha},
+    {"ConstantColor", BF_ConstantColor},
+    {"OneMinusConstantColor", BF_OneMinusConstantColor},
+    {"ConstantAlpha", BF_ConstantAlpha},
+    {"OneMinusConstantAlpha", BF_OneMinusConstantAlpha},
+    {"SrcAlphaSaturate", BF_SrcAlphaSaturate},
+    {NULL, 0},
+};
+static const luaL_Enum BCWRAP_ENUM(blend_equation)[] = {
+    {"FuncAdd", BE_FuncAdd},
+    {"FuncSubtract", BE_FuncSubtract},
+    {"FuncReverseSubtract", BE_FuncReverseSubtract},
+    {"Min", BE_Min},
+    {"Max", BE_Max},
     {NULL, 0},
 };
 static const luaL_Enum BCWRAP_ENUM(debug)[] = {
@@ -490,7 +540,13 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   REGISTE_ENUM(vertex_attrib);
   REGISTE_ENUM(attrib_type);
   REGISTE_ENUM(shader_type);
-  REGISTE_ENUM(sampler_flag);
+  REGISTE_ENUM(texture_wrap);
+  REGISTE_ENUM(texture_filter);
+  REGISTE_ENUM(front_face);
+  REGISTE_ENUM(cull_face);
+  REGISTE_ENUM(depth_func);
+  REGISTE_ENUM(blend_func);
+  REGISTE_ENUM(blend_equation);
   REGISTE_ENUM(debug);
 
   (void)VL_FUNCTION(init_metatable)(L);
