@@ -395,13 +395,76 @@ static int BCWRAP_FUNCTION(setStencil)(lua_State* L) {
 static int BCWRAP_FUNCTION(submit)(lua_State* L) {
   ViewId id = (ViewId)luaL_checkinteger(L, 1);
   Handle handle = (Handle)luaL_checkinteger(L, 2);
-  uint32_t flags = luaL_optinteger(L, 3, BCFX_DISCARD_ALL);
+  uint32_t flags = luaL_optinteger(L, 3, BCFX_DISCARD_NONE);
+  uint32_t depth = luaL_optinteger(L, 4, 0);
 
-  bcfx_submit(id, handle, flags);
+  bcfx_submit(id, handle, flags, depth);
   return 0;
 }
 
 /* }====================================================== */
+
+/*
+** {======================================================
+** Function Table for Lua
+** =======================================================
+*/
+
+#define EMPLACE_BCWRAP_FUNCTION(name) \
+  { #name, BCWRAP_FUNCTION(name) }
+static const luaL_Reg wrap_funcs[] = {
+    /* Static function features */
+    EMPLACE_BCWRAP_FUNCTION(setThreadFuncs),
+    EMPLACE_BCWRAP_FUNCTION(setSemFuncs),
+    EMPLACE_BCWRAP_FUNCTION(setWinCtxFuncs),
+    EMPLACE_BCWRAP_FUNCTION(setMiscFuncs),
+    /* Basic APIs */
+    EMPLACE_BCWRAP_FUNCTION(init),
+    EMPLACE_BCWRAP_FUNCTION(apiFrame),
+    EMPLACE_BCWRAP_FUNCTION(shutdown),
+    /* Create Render Resource */
+    EMPLACE_BCWRAP_FUNCTION(createVertexLayout),
+    EMPLACE_BCWRAP_FUNCTION(createVertexBuffer),
+    EMPLACE_BCWRAP_FUNCTION(createIndexBuffer),
+    EMPLACE_BCWRAP_FUNCTION(createShader),
+    EMPLACE_BCWRAP_FUNCTION(createProgram),
+    EMPLACE_BCWRAP_FUNCTION(createUniform),
+    EMPLACE_BCWRAP_FUNCTION(createTexture),
+    /* Update Render Resource */
+    EMPLACE_BCWRAP_FUNCTION(updateProgram),
+    /* Create Render Resource */
+    EMPLACE_BCWRAP_FUNCTION(destroy),
+    /* View */
+    EMPLACE_BCWRAP_FUNCTION(setViewWindow),
+    EMPLACE_BCWRAP_FUNCTION(setViewFrameBuffer),
+    EMPLACE_BCWRAP_FUNCTION(setViewClear),
+    EMPLACE_BCWRAP_FUNCTION(setViewRect),
+    EMPLACE_BCWRAP_FUNCTION(setViewScissor),
+    EMPLACE_BCWRAP_FUNCTION(setViewTransform),
+    EMPLACE_BCWRAP_FUNCTION(setViewMode),
+    EMPLACE_BCWRAP_FUNCTION(setViewDebug),
+    EMPLACE_BCWRAP_FUNCTION(resetView),
+    /* Submit DrawCall */
+    EMPLACE_BCWRAP_FUNCTION(setUniform),
+    EMPLACE_BCWRAP_FUNCTION(touch),
+    EMPLACE_BCWRAP_FUNCTION(setVertexBuffer),
+    EMPLACE_BCWRAP_FUNCTION(setIndexBuffer),
+    EMPLACE_BCWRAP_FUNCTION(setTransform),
+    EMPLACE_BCWRAP_FUNCTION(setTexture),
+    EMPLACE_BCWRAP_FUNCTION(setState),
+    EMPLACE_BCWRAP_FUNCTION(setStencil),
+    EMPLACE_BCWRAP_FUNCTION(submit),
+
+    {NULL, NULL},
+};
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Enums and Constants
+** =======================================================
+*/
 
 static const luaL_Enum BCWRAP_ENUM(clear_flag)[] = {
     {"NONE", BCFX_CLEAR_NONE},
@@ -535,6 +598,14 @@ static const luaL_Enum BCWRAP_ENUM(stencil_action)[] = {
     {"Invert", SA_Invert},
     {NULL, 0},
 };
+static const luaL_Enum BCWRAP_ENUM(view_mode)[] = {
+    {"Default", VM_Default},
+    {"Sequential", VM_Sequential},
+    {"DepthAscending", VM_DepthAscending},
+    {"DepthDescending", VM_DepthDescending},
+    {"Count", VM_Count},
+    {NULL, 0},
+};
 static const luaL_Enum BCWRAP_ENUM(debug)[] = {
     {"NONE", BCFX_DEBUG_NONE},
     {"WIREFRAME", BCFX_DEBUG_WIREFRAME},
@@ -552,53 +623,7 @@ static const luaL_Enum BCWRAP_ENUM(discard)[] = {
     {NULL, 0},
 };
 
-#define EMPLACE_BCWRAP_FUNCTION(name) \
-  { #name, BCWRAP_FUNCTION(name) }
-static const luaL_Reg wrap_funcs[] = {
-    /* Static function features */
-    EMPLACE_BCWRAP_FUNCTION(setThreadFuncs),
-    EMPLACE_BCWRAP_FUNCTION(setSemFuncs),
-    EMPLACE_BCWRAP_FUNCTION(setWinCtxFuncs),
-    EMPLACE_BCWRAP_FUNCTION(setMiscFuncs),
-    /* Basic APIs */
-    EMPLACE_BCWRAP_FUNCTION(init),
-    EMPLACE_BCWRAP_FUNCTION(apiFrame),
-    EMPLACE_BCWRAP_FUNCTION(shutdown),
-    /* Create Render Resource */
-    EMPLACE_BCWRAP_FUNCTION(createVertexLayout),
-    EMPLACE_BCWRAP_FUNCTION(createVertexBuffer),
-    EMPLACE_BCWRAP_FUNCTION(createIndexBuffer),
-    EMPLACE_BCWRAP_FUNCTION(createShader),
-    EMPLACE_BCWRAP_FUNCTION(createProgram),
-    EMPLACE_BCWRAP_FUNCTION(createUniform),
-    EMPLACE_BCWRAP_FUNCTION(createTexture),
-    /* Update Render Resource */
-    EMPLACE_BCWRAP_FUNCTION(updateProgram),
-    /* Create Render Resource */
-    EMPLACE_BCWRAP_FUNCTION(destroy),
-    /* View */
-    EMPLACE_BCWRAP_FUNCTION(setViewWindow),
-    EMPLACE_BCWRAP_FUNCTION(setViewFrameBuffer),
-    EMPLACE_BCWRAP_FUNCTION(setViewClear),
-    EMPLACE_BCWRAP_FUNCTION(setViewRect),
-    EMPLACE_BCWRAP_FUNCTION(setViewScissor),
-    EMPLACE_BCWRAP_FUNCTION(setViewTransform),
-    EMPLACE_BCWRAP_FUNCTION(setViewMode),
-    EMPLACE_BCWRAP_FUNCTION(setViewDebug),
-    EMPLACE_BCWRAP_FUNCTION(resetView),
-    /* Submit DrawCall */
-    EMPLACE_BCWRAP_FUNCTION(setUniform),
-    EMPLACE_BCWRAP_FUNCTION(touch),
-    EMPLACE_BCWRAP_FUNCTION(setVertexBuffer),
-    EMPLACE_BCWRAP_FUNCTION(setIndexBuffer),
-    EMPLACE_BCWRAP_FUNCTION(setTransform),
-    EMPLACE_BCWRAP_FUNCTION(setTexture),
-    EMPLACE_BCWRAP_FUNCTION(setState),
-    EMPLACE_BCWRAP_FUNCTION(setStencil),
-    EMPLACE_BCWRAP_FUNCTION(submit),
-
-    {NULL, NULL},
-};
+/* }====================================================== */
 
 LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   luaL_newlib(L, wrap_funcs);
@@ -616,6 +641,7 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   REGISTE_ENUM(blend_equation);
   REGISTE_ENUM(logic_operate);
   REGISTE_ENUM(stencil_action);
+  REGISTE_ENUM(view_mode);
   REGISTE_ENUM(debug);
   REGISTE_ENUM(discard);
 
