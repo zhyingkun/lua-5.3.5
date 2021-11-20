@@ -410,12 +410,20 @@ static int BCWRAP_FUNCTION(setStencil)(lua_State* L) {
   return 0;
 }
 static int BCWRAP_FUNCTION(setInstanceDataBuffer)(lua_State* L) {
+  luaL_checktype(L, 1, LUA_TTABLE);
   bcfx_InstanceDataBuffer idb[1];
-  idb->handle = luaL_optinteger(L, 1, kInvalidHandle);
-  idb->bufferOffset = 0;
-  idb->numAttrib = luaL_optinteger(L, 2, 0);
-  idb->numInstance = luaL_checkinteger(L, 3);
-  bcfx_setInstanceDataBuffer(idb, 0, 0);
+#define SET_INSTANCE_DATA_FIELD(field_) \
+  lua_getfield(L, 1, #field_); \
+  idb->field_ = luaL_optinteger(L, -1, 0); \
+  lua_pop(L, 1)
+  SET_INSTANCE_DATA_FIELD(handle);
+  SET_INSTANCE_DATA_FIELD(bufferOffset);
+  SET_INSTANCE_DATA_FIELD(numAttrib);
+  SET_INSTANCE_DATA_FIELD(numInstance);
+#undef SET_INSTANCE_DATA_FIELD
+  uint32_t start = luaL_optinteger(L, 2, 0);
+  uint32_t count = luaL_optinteger(L, 3, 0);
+  bcfx_setInstanceDataBuffer(idb, start, count);
   return 0;
 }
 static int BCWRAP_FUNCTION(submit)(lua_State* L) {
