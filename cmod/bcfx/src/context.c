@@ -69,8 +69,7 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
       CASE_CALL_RENDERER(CreateProgram, createProgram, cmd->handle, param->cp.vsHandle, param->cp.fsHandle);
       CASE_CALL_RENDERER(CreateUniform, createUniform, cmd->handle, param->cu.name, param->cu.type, param->cu.num);
       CASE_CALL_RENDERER(CreateTexture, createTexture, cmd->handle, &param->ct.mem);
-      CASE_CALL_RENDERER(CreateDynamicVertexBuffer, createDynamicVertexBuffer, cmd->handle, param->cdvb.size);
-      CASE_CALL_RENDERER(UpdateDynamicVertexBuffer, updateDynamicVertexBuffer, cmd->handle, param->cudvb.offset, &param->cudvb.mem);
+      CASE_CALL_RENDERER(UpdateVertexBuffer, updateVertexBuffer, cmd->handle, param->cuvb.offset, &param->cuvb.mem);
       case CT_End:
         break;
       // CASE_CALL_RENDERER(RendererShutdown, shutdown);
@@ -333,8 +332,11 @@ Handle ctx_createTexture(Context* ctx, bcfx_MemBuffer* mem) {
 }
 
 Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size) {
-  ADD_CMD_ALLOC_HANDLE(ctx, DynamicVertexBuffer)
-  param->cdvb.size = size;
+  ADD_CMD_ALLOC_HANDLE(ctx, VertexBuffer)
+  bcfx_MemBuffer mb = {0};
+  mb.sz = size;
+  param->cvb.mem = mb;
+  param->cvb.layoutHandle = kInvalidHandle;
   return handle;
 }
 
@@ -358,9 +360,9 @@ void ctx_updateProgram(Context* ctx, Handle handle, Handle vs, Handle fs) {
 
 void ctx_updateDynamicVertexBuffer(Context* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem) {
   CHECK_HANDLE(handle);
-  CommandParam* param = ctx_addCommand(ctx, CT_CreateDynamicVertexBuffer, handle);
-  param->cudvb.offset = offset;
-  param->cudvb.mem = *mem;
+  CommandParam* param = ctx_addCommand(ctx, CT_UpdateVertexBuffer, handle);
+  param->cuvb.offset = offset;
+  param->cuvb.mem = *mem;
 }
 
 /* }====================================================== */
@@ -507,7 +509,7 @@ void ctx_setStencil(Context* ctx, bool enable, bcfx_StencilState front, bcfx_Ste
   encoder_setStencil(ctx->encoder, enable, front, back);
 }
 void ctx_setInstanceDataBuffer(Context* ctx, const bcfx_InstanceDataBuffer* idb, uint32_t start, uint32_t count) {
-// CHECK_HANDLE(idb->handle); // No check, Support invalid instance buffer
+  // CHECK_HANDLE(idb->handle); // No check, Support invalid instance buffer
   encoder_setInstanceDataBuffer(ctx->encoder, idb, start, count);
 }
 

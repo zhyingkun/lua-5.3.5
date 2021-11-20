@@ -42,10 +42,6 @@ typedef struct {
 } VertexBufferGL;
 typedef struct {
   GLuint id;
-  size_t size;
-} DynamicVertexBufferGL;
-typedef struct {
-  GLuint id;
   GLenum type;
 } ShaderGL;
 
@@ -140,7 +136,6 @@ typedef struct {
   uint16_t uniformCount;
   UniformGL uniforms[BCFX_CONFIG_MAX_UNIFORM];
   TextureGL textures[BCFX_CONFIG_MAX_TEXTURE];
-  DynamicVertexBufferGL dynamicVertexBuffers[BCFX_CONFIG_MAX_DYNAMIC_VERTEX_BUFFER];
 
   Window mainWin;
   Window curWin;

@@ -295,7 +295,7 @@ static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, bcfx_MemB
   vb->layout = layoutHandle;
   GL_CHECK(glGenBuffers(1, &vb->id));
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
-  GL_CHECK(glBufferData(GL_ARRAY_BUFFER, mem->sz, mem->ptr, GL_STATIC_DRAW));
+  GL_CHECK(glBufferData(GL_ARRAY_BUFFER, mem->sz, mem->ptr, mem->ptr != NULL ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW));
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
   MEMBUFFER_RELEASE(mem);
 }
@@ -407,20 +407,10 @@ static void gl_createTexture(RendererContext* ctx, Handle handle, bcfx_MemBuffer
   MEMBUFFER_RELEASE(mem);
 }
 
-static void gl_createDynamicVertexBuffer(RendererContext* ctx, Handle handle, size_t size) {
+static void gl_updateVertexBuffer(RendererContext* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  DynamicVertexBufferGL* dvb = &glCtx->dynamicVertexBuffers[handle_index(handle)];
-  dvb->size = size;
-  GL_CHECK(glGenBuffers(1, &dvb->id));
-  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, dvb->id));
-  GL_CHECK(glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_DYNAMIC_DRAW));
-  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
-}
-
-static void gl_updateDynamicVertexBuffer(RendererContext* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem) {
-  RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  DynamicVertexBufferGL* dvb = &glCtx->dynamicVertexBuffers[handle_index(handle)];
-  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, dvb->id));
+  VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
+  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
   GL_CHECK(glBufferSubData(GL_ARRAY_BUFFER, offset, mem->sz, mem->ptr));
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
   MEMBUFFER_RELEASE(mem);
@@ -613,8 +603,7 @@ RendererContext* CreateRendererGL(void) {
   renderer->createUniform = gl_createUniform;
   renderer->createTexture = gl_createTexture;
 
-  renderer->createDynamicVertexBuffer = gl_createDynamicVertexBuffer;
-  renderer->updateDynamicVertexBuffer = gl_updateDynamicVertexBuffer;
+  renderer->updateVertexBuffer = gl_updateVertexBuffer;
 
   renderer->beginFrame = gl_beginFrame;
   renderer->submit = gl_submit;
