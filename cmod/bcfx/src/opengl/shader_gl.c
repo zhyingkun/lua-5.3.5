@@ -221,7 +221,7 @@ void gl_bindInstanceAttributes(RendererContextGL* glCtx, ProgramGL* prog, Render
       GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
       GL_CHECK(glEnableVertexAttribArray(loc));
       GL_CHECK(glVertexAttribDivisor(loc, 1)); // indicated it's per instance, not per vertex
-      void* offset = (void*)(long)draw->instanceDataOffset + sizeof(GLfloat) * 4 * i;
+      void* offset = (void*)((long)draw->instanceDataOffset + sizeof(GLfloat) * 4 * i);
       GL_CHECK(glVertexAttribPointer(loc, 4, GL_FLOAT, GL_FALSE, stride, offset));
     } else {
       GL_CHECK(glDisableVertexAttribArray(loc));
