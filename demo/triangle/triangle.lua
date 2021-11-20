@@ -219,6 +219,8 @@ end
 
 local triangle
 local cube
+local instanceBuffer
+local instanceData
 
 local timer
 local function setup(mainWin)
@@ -239,6 +241,15 @@ local function setup(mainWin)
 	-- timer:start(function()
 	-- 	print_err("FrameRate:", string.format("%.2f", GetFrameRate()))
 	-- end, 1000, 1000)
+
+	instanceBuffer = bcfx.createDynamicVertexBuffer(4 * 4 * 1 * 3)
+	local instanceOffset = {
+		0.0, 0.0, 0.0, 0.0,
+		0.3, 0.3, 0.3, 0.0,
+		0.6, 0.6, 0.6, 0.0
+	}
+	instanceData = membuf.MakeMemoryBuffer(data_type.Float, instanceOffset)
+	bcfx.updateDynamicVertexBuffer(instanceBuffer, 0, instanceData)
 end
 
 local angle = 0
@@ -250,6 +261,7 @@ local function tick(delta)
 	bcfx.setIndexBuffer(triangle.index)
 	local mat = graphics3d.scale(vector.Vec3(0.5, 0.5, 0.5))
 	bcfx.setTransform(mat)
+	bcfx.setInstanceDataBuffer(instanceBuffer, 1, 3)
 	bcfx.submit(0, triangle.shader, discard.ALL)
 
 	bcfx.setVertexBuffer(0, cube.vertex)
