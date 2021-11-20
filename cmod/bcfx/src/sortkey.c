@@ -87,10 +87,12 @@ static int _compare(const void* a, const void* b) {
 }
 void sortUint64Array(uint64_t* values, uint32_t num) {
   // qsort and heapsort are not stable, mergesort is stable
-  if (mergesort((void*)values, num, sizeof(uint64_t), _compare) != 0) {
-    int err = errno;
-    printf_err("mergesort error: %d, %s\n", err, strerror(err));
-  }
+  // if (mergesort((void*)values, num, sizeof(uint64_t), _compare) != 0) {
+  //   int err = errno;
+  //   printf_err("mergesort error: %d, %s\n", err, strerror(err));
+  // }
+  // heapsort and mergesort does not provide on Linux, so, using qsort
+  qsort((void*)values, num, sizeof(uint64_t), _compare);
 }
 
 /* }====================================================== */
