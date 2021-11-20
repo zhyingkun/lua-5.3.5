@@ -506,6 +506,7 @@ BCFX_API void bcfx_setUniformVec4(Handle handle, Vec4* vec, uint16_t num);
 BCFX_API void bcfx_setUniformMat3x3(Handle handle, Mat3x3* mat, uint16_t num);
 BCFX_API void bcfx_setUniformMat4x4(Handle handle, Mat4x4* mat, uint16_t num);
 
+// Touch will fire Uniform flush and Clear render buffers
 BCFX_API void bcfx_touch(ViewId id);
 
 BCFX_API void bcfx_setVertexBuffer(uint8_t stream, Handle handle);

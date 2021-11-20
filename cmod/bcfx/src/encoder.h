@@ -22,6 +22,8 @@ typedef struct {
 
 void encoder_begin(Encoder* encoder, Frame* frame);
 
+void encoder_touch(Encoder* encoder, ViewId id);
+
 void encoder_setVertexBuffer(Encoder* encoder, uint8_t stream, Handle vertexBuffer);
 void encoder_setIndexBuffer(Encoder* encoder, Handle indexBuffer, uint32_t start, uint32_t count);
 void encoder_setTransform(Encoder* encoder, Mat4x4* mat);
@@ -30,7 +32,7 @@ void encoder_setTexture(Encoder* encoder, uint8_t stage, Handle handle, bcfx_Sam
 void encoder_setState(Encoder* encoder, bcfx_RenderState state, uint32_t blendColor);
 void encoder_setStencil(Encoder* encoder, bcfx_StencilState front, bcfx_StencilState back);
 
-void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags, uint32_t depth, ViewMode mode);
+void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags, uint32_t depth, ViewMode mode, bool notTouch);
 
 /* }====================================================== */
 

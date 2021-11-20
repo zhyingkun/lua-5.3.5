@@ -423,6 +423,8 @@ void ctx_setUniformMat4x4(Context* ctx, Handle handle, Mat4x4* mat, uint16_t num
 }
 
 void ctx_touch(Context* ctx, ViewId id) {
+  CHECK_VIEWID(id);
+  encoder_touch(ctx->encoder, id);
 }
 
 void ctx_setVertexBuffer(Context* ctx, uint8_t stream, Handle handle) {
@@ -456,7 +458,7 @@ void ctx_setStencil(Context* ctx, bcfx_StencilState front, bcfx_StencilState bac
 void ctx_submit(Context* ctx, ViewId id, Handle handle, uint32_t flags, uint32_t depth) {
   CHECK_VIEWID(id);
   CHECK_HANDLE(handle);
-  encoder_submit(ctx->encoder, id, handle, flags, depth, ctx->views[id].mode);
+  encoder_submit(ctx->encoder, id, handle, flags, depth, ctx->views[id].mode, true);
 }
 
 /* }====================================================== */

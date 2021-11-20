@@ -8,26 +8,46 @@
 ** =======================================================
 */
 
+static void encoder_discard(Encoder* encoder, uint32_t flags) {
+  RenderDraw* draw = &encoder->draw;
+  RenderBind* bind = &encoder->bind;
+  if (flags & BCFX_DISCARD_VERTEX_STREAMS) {
+    draw->streamMask = 0;
+  }
+  if (flags & BCFX_DISCARD_INDEX_BUFFER) {
+    draw->indexBuffer = kInvalidHandle;
+    draw->indexStart = 0;
+    draw->indexCount = 0;
+  }
+  if (flags & BCFX_DISCARD_TRANSFORM) {
+    MAT_IDENTITY(&draw->model);
+  }
+  if (flags & BCFX_DISCARD_BINDINGS) {
+    memset(bind, 0, sizeof(RenderBind));
+  }
+  if (flags & BCFX_DISCARD_STATE) {
+    bcfx_RenderState state = {0};
+    draw->state = state;
+    draw->blendColor = 0;
+    bcfx_StencilState stencil = {0};
+    draw->stencilFront = stencil;
+    draw->stencilBack = stencil;
+  }
+}
+
 void encoder_begin(Encoder* encoder, Frame* frame) {
   frame_reset(frame);
   encoder->frame = frame;
 
-  RenderDraw* draw = &encoder->draw;
-  draw->streamMask = 0;
-
-  bcfx_RenderState state = {0};
-  draw->state = state;
-  draw->blendColor = 0;
-  bcfx_StencilState stencil = {0};
-  draw->stencilFront = stencil;
-  draw->stencilBack = stencil;
-
-  memset(&encoder->bind, 0, sizeof(RenderBind));
-  MAT4x4_INIT(&draw->model);
-  MAT_IDENTITY(&draw->model);
+  MAT4x4_INIT(&encoder->draw.model);
+  encoder_discard(encoder, BCFX_DISCARD_ALL);
 
   frame->numUniformDatas = 0;
   encoder->uniformStart = 0;
+}
+
+void encoder_touch(Encoder* encoder, ViewId id) {
+  encoder_submit(encoder, id, kInvalidHandle, BCFX_DISCARD_ALL, 0, VM_Default, false);
 }
 
 void encoder_setVertexBuffer(Encoder* encoder, uint8_t stream, Handle vertexBuffer) {
@@ -63,7 +83,7 @@ void encoder_setStencil(Encoder* encoder, bcfx_StencilState front, bcfx_StencilS
   encoder->draw.stencilBack = back;
 }
 
-void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags, uint32_t depth, ViewMode mode) {
+void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags, uint32_t depth, ViewMode mode, bool notTouch) {
   Frame* frame = encoder->frame;
   RenderDraw* draw = &encoder->draw;
   RenderBind* bind = &encoder->bind;
@@ -76,57 +96,39 @@ void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags,
   frame_setRenderItem(frame, index, (RenderItem*)draw);
   frame_setRenderBind(frame, index, bind);
 
-  uint8_t sortType = ST_Program;
-  switch (mode) {
-    case VM_Default:
-      break;
-    case VM_Sequential:
-      sortType = ST_Sequence;
-      break;
-    case VM_DepthAscending:
-      sortType = ST_Depth;
-      break;
-    case VM_DepthDescending:
-      sortType = ST_Depth;
-      depth &= SORTKEY_DEPTH_MAX;
-      depth = SORTKEY_DEPTH_MAX - depth;
-      break;
-    default:
-      break;
-  }
   SortKey* key = &encoder->sortKey;
   key->viewId = id;
-  key->notTouch = 1;
-  key->isDraw = 1;
-  key->sortType = sortType;
-  key->blend = (!!draw->state.alphaRef) + (!!draw->state.enableBlend) * 2;
-  key->program = handle_index(program);
-  key->depth = depth;
-  key->sequence = index;
+  key->notTouch = notTouch;
+
+  if (notTouch) {
+    uint8_t sortType = ST_Program;
+    switch (mode) {
+      case VM_Default:
+        break;
+      case VM_Sequential:
+        sortType = ST_Sequence;
+        break;
+      case VM_DepthAscending:
+        sortType = ST_Depth;
+        break;
+      case VM_DepthDescending:
+        sortType = ST_Depth;
+        depth &= SORTKEY_DEPTH_MAX;
+        depth = SORTKEY_DEPTH_MAX - depth;
+        break;
+      default:
+        break;
+    }
+    key->isDraw = 1;
+    key->sortType = sortType;
+    key->blend = (!!draw->state.alphaRef) + (!!draw->state.enableBlend) * 2;
+    key->program = handle_index(program);
+    key->depth = depth;
+    key->sequence = index;
+  }
   frame_setSortKey(frame, index, sortkey_encode(key));
 
-  if (flags & BCFX_DISCARD_VERTEX_STREAMS) {
-    draw->streamMask = 0;
-  }
-  if (flags & BCFX_DISCARD_INDEX_BUFFER) {
-    draw->indexBuffer = kInvalidHandle;
-    draw->indexStart = 0;
-    draw->indexCount = 0;
-  }
-  if (flags & BCFX_DISCARD_TRANSFORM) {
-    MAT_IDENTITY(&draw->model);
-  }
-  if (flags & BCFX_DISCARD_BINDINGS) {
-    memset(bind, 0, sizeof(RenderBind));
-  }
-  if (flags & BCFX_DISCARD_STATE) {
-    bcfx_RenderState state = {0};
-    draw->state = state;
-    draw->blendColor = 0;
-    bcfx_StencilState stencil = {0};
-    draw->stencilFront = stencil;
-    draw->stencilBack = stencil;
-  }
+  encoder_discard(encoder, flags);
 }
 
 /* }====================================================== */

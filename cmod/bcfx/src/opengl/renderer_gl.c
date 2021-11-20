@@ -1082,26 +1082,28 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
 
     RenderDraw* draw = &frame->renderItems[key->sequence].draw;
 
-    updateRenderState(
-        draw->state,
-        draw->blendColor,
-        draw->stencilFront,
-        draw->stencilBack,
-        false);
-
     gl_updateGlobalUniform(glCtx, draw, frame);
 
-    ProgramGL* prog = &glCtx->programs[key->program];
-    GL_CHECK(glUseProgram(prog->id));
+    if (key->notTouch) {
+      updateRenderState(
+          draw->state,
+          draw->blendColor,
+          draw->stencilFront,
+          draw->stencilBack,
+          false);
 
-    gl_bindProgramAttributes(glCtx, prog, draw);
-    RenderBind* bind = &frame->renderBinds[i];
-    gl_setProgramUniforms(glCtx, prog, draw, view, bind);
+      ProgramGL* prog = &glCtx->programs[key->program];
+      GL_CHECK(glUseProgram(prog->id));
 
-    IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
-    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
-    GLsizei indexCount = (GLsizei)MIN(draw->indexCount, ib->count);
-    GL_CHECK(glDrawElements(GL_TRIANGLES, indexCount, ib->type, (const void*)(long)draw->indexStart));
+      gl_bindProgramAttributes(glCtx, prog, draw);
+      RenderBind* bind = &frame->renderBinds[i];
+      gl_setProgramUniforms(glCtx, prog, draw, view, bind);
+
+      IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
+      GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
+      GLsizei indexCount = (GLsizei)MIN(draw->indexCount, ib->count);
+      GL_CHECK(glDrawElements(GL_TRIANGLES, indexCount, ib->type, (const void*)(long)draw->indexStart));
+    }
   }
   gl_MakeWinCurrent(glCtx, NULL);
 }
