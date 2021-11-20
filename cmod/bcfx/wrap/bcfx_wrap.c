@@ -198,6 +198,14 @@ static int BCWRAP_FUNCTION(createTexture)(lua_State* L) {
   lua_pushinteger(L, handle);
   return 1;
 }
+static int BCWRAP_FUNCTION(createDynamicVertexBuffer)(lua_State* L) {
+  size_t size = luaL_checkinteger(L, 1);
+
+  Handle handle = bcfx_createDynamicVertexBuffer(size);
+
+  lua_pushinteger(L, handle);
+  return 1;
+}
 
 /* }====================================================== */
 
@@ -212,6 +220,14 @@ static int BCWRAP_FUNCTION(updateProgram)(lua_State* L) {
   Handle vs = (Handle)luaL_checkinteger(L, 2);
   Handle fs = (Handle)luaL_checkinteger(L, 3);
   bcfx_updateProgram(handle, vs, fs);
+  return 0;
+}
+static int BCWRAP_FUNCTION(updateDynamicVertexBuffer)(lua_State* L) {
+  Handle handle = (Handle)luaL_checkinteger(L, 1);
+  size_t offset = luaL_checkinteger(L, 2);
+  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 3);
+  bcfx_updateDynamicVertexBuffer(handle, offset, mb);
+  MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
   return 0;
 }
 
@@ -393,6 +409,15 @@ static int BCWRAP_FUNCTION(setStencil)(lua_State* L) {
   bcfx_setStencil(enable, uFront.stateStruct, uBack.stateStruct);
   return 0;
 }
+static int BCWRAP_FUNCTION(setInstanceDataBuffer)(lua_State* L) {
+  bcfx_InstanceDataBuffer idb[1];
+  idb->handle = luaL_optinteger(L, 1, kInvalidHandle);
+  idb->bufferOffset = 0;
+  idb->numAttrib = luaL_optinteger(L, 2, 0);
+  idb->numInstance = luaL_checkinteger(L, 3);
+  bcfx_setInstanceDataBuffer(idb, 0, 0);
+  return 0;
+}
 static int BCWRAP_FUNCTION(submit)(lua_State* L) {
   ViewId id = (ViewId)luaL_checkinteger(L, 1);
   Handle handle = (Handle)luaL_checkinteger(L, 2);
@@ -431,8 +456,10 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(createProgram),
     EMPLACE_BCWRAP_FUNCTION(createUniform),
     EMPLACE_BCWRAP_FUNCTION(createTexture),
+    EMPLACE_BCWRAP_FUNCTION(createDynamicVertexBuffer),
     /* Update Render Resource */
     EMPLACE_BCWRAP_FUNCTION(updateProgram),
+    EMPLACE_BCWRAP_FUNCTION(updateDynamicVertexBuffer),
     /* Create Render Resource */
     EMPLACE_BCWRAP_FUNCTION(destroy),
     /* View */
@@ -454,6 +481,7 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(setTexture),
     EMPLACE_BCWRAP_FUNCTION(setState),
     EMPLACE_BCWRAP_FUNCTION(setStencil),
+    EMPLACE_BCWRAP_FUNCTION(setInstanceDataBuffer),
     EMPLACE_BCWRAP_FUNCTION(submit),
 
     {NULL, NULL},
