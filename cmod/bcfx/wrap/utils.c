@@ -165,13 +165,16 @@ static int UTILS_FUNCTION(PackSamplerFlags)(lua_State* L) {
   lua_pop(L, 1)
 static int UTILS_FUNCTION(PackRenderState)(lua_State* L) {
   luaL_checktype(L, 1, LUA_TTABLE);
+  lua_settop(L, 1);
   bcfx_RenderState state = {0};
   SET_STATE_FIELD(frontFace, integer);
   SET_STATE_FIELD(cullFace, integer);
   SET_STATE_FIELD(noWriteZ, boolean);
+  SET_STATE_FIELD(enableDepth, boolean);
   SET_STATE_FIELD(depthFunc, integer);
   SET_STATE_FIELD(alphaRef, integer);
   SET_STATE_FIELD(pointSize, integer);
+  // SET_STATE_FIELD(lineWidth, integer);
   SET_STATE_FIELD(noWriteR, boolean);
   SET_STATE_FIELD(noWriteG, boolean);
   SET_STATE_FIELD(noWriteB, boolean);
@@ -183,6 +186,8 @@ static int UTILS_FUNCTION(PackRenderState)(lua_State* L) {
   SET_STATE_FIELD(dstAlpha, integer);
   SET_STATE_FIELD(blendEquRGB, integer);
   SET_STATE_FIELD(blendEquA, integer);
+  SET_STATE_FIELD(enableLogicOp, boolean);
+  SET_STATE_FIELD(logicOp, integer);
   lua_pushinteger(L, RENDERSTATE_UINT64(state));
   return 1;
 }

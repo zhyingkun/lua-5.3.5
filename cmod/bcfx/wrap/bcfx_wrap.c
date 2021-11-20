@@ -308,7 +308,7 @@ static int BCWRAP_FUNCTION(resetView)(lua_State* L) {
 
 /*
 ** {======================================================
-** Submit drawcall
+** Submit DrawCall
 ** =======================================================
 */
 
@@ -468,16 +468,15 @@ static const luaL_Enum BCWRAP_ENUM(cull_face)[] = {
     {"FrontAndBack", CF_FrontAndBack},
     {NULL, 0},
 };
-static const luaL_Enum BCWRAP_ENUM(depth_func)[] = {
-    {"None", DF_None},
-    {"Less", DF_Less},
-    {"LEqual", DF_LEqual},
-    {"Equal", DF_Equal},
-    {"GEqual", DF_GEqual},
-    {"Greater", DF_Greater},
-    {"NotEqual", DF_NotEqual},
-    {"Never", DF_Never},
-    {"Always", DF_Always},
+static const luaL_Enum BCWRAP_ENUM(compare_func)[] = {
+    {"Less", CF_Less},
+    {"LEqual", CF_LEqual},
+    {"Equal", CF_Equal},
+    {"GEqual", CF_GEqual},
+    {"Greater", CF_Greater},
+    {"NotEqual", CF_NotEqual},
+    {"Never", CF_Never},
+    {"Always", CF_Always},
     {NULL, 0},
 };
 static const luaL_Enum BCWRAP_ENUM(blend_func)[] = {
@@ -504,6 +503,36 @@ static const luaL_Enum BCWRAP_ENUM(blend_equation)[] = {
     {"FuncReverseSubtract", BE_FuncReverseSubtract},
     {"Min", BE_Min},
     {"Max", BE_Max},
+    {NULL, 0},
+};
+static const luaL_Enum BCWRAP_ENUM(logic_operate)[] = {
+    {"Copy", LO_Copy},
+    {"CopyInverted", LO_CopyInverted},
+    {"Clear", LO_Clear},
+    {"Set", LO_Set},
+    {"Noop", LO_Noop},
+    {"Invert", LO_Invert},
+    {"And", LO_And},
+    {"NAnd", LO_NAnd},
+    {"Or", LO_Or},
+    {"NOr", LO_NOr},
+    {"Xor", LO_Xor},
+    {"Equiv", LO_Equiv},
+    {"AndReverse", LO_AndReverse},
+    {"AndInverted", LO_AndInverted},
+    {"OrReverse", LO_OrReverse},
+    {"OrInverted", LO_OrInverted},
+    {NULL, 0},
+};
+static const luaL_Enum BCWRAP_ENUM(stencil_action)[] = {
+    {"Keep", SA_Keep},
+    {"Zero", SA_Zero},
+    {"Replace", SA_Replace},
+    {"Incr", SA_Incr},
+    {"IncrWrap", SA_IncrWrap},
+    {"Decr", SA_Decr},
+    {"DecrWrap", SA_DecrWrap},
+    {"Invert", SA_Invert},
     {NULL, 0},
 };
 static const luaL_Enum BCWRAP_ENUM(debug)[] = {
@@ -557,7 +586,7 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(setViewMode),
     EMPLACE_BCWRAP_FUNCTION(setViewDebug),
     EMPLACE_BCWRAP_FUNCTION(resetView),
-    /* Submit Drawcall */
+    /* Submit DrawCall */
     EMPLACE_BCWRAP_FUNCTION(setUniform),
     EMPLACE_BCWRAP_FUNCTION(touch),
     EMPLACE_BCWRAP_FUNCTION(setVertexBuffer),
@@ -582,9 +611,11 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   REGISTE_ENUM(texture_filter);
   REGISTE_ENUM(front_face);
   REGISTE_ENUM(cull_face);
-  REGISTE_ENUM(depth_func);
+  REGISTE_ENUM(compare_func);
   REGISTE_ENUM(blend_func);
   REGISTE_ENUM(blend_equation);
+  REGISTE_ENUM(logic_operate);
+  REGISTE_ENUM(stencil_action);
   REGISTE_ENUM(debug);
   REGISTE_ENUM(discard);
 
