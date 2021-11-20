@@ -515,7 +515,7 @@ BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, bcf
 BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor);
 BCFX_API void bcfx_setStencil(bcfx_StencilState front, bcfx_StencilState back);
 
-BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags);
+BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags, uint32_t depth);
 
 /* }====================================================== */
 

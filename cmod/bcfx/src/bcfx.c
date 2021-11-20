@@ -231,8 +231,8 @@ BCFX_API void bcfx_setStencil(bcfx_StencilState front, bcfx_StencilState back) {
   ctx_setStencil(s_ctx, front, back);
 }
 
-BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags) {
-  ctx_submit(s_ctx, id, handle, flags);
+BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags, uint32_t depth) {
+  ctx_submit(s_ctx, id, handle, flags, depth);
 }
 
 /* }====================================================== */

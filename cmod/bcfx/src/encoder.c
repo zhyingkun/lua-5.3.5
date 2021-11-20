@@ -63,7 +63,7 @@ void encoder_setStencil(Encoder* encoder, bcfx_StencilState front, bcfx_StencilS
   encoder->draw.stencilBack = back;
 }
 
-void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags) {
+void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags, uint32_t depth, ViewMode mode) {
   Frame* frame = encoder->frame;
   RenderDraw* draw = &encoder->draw;
   RenderBind* bind = &encoder->bind;
@@ -75,12 +75,33 @@ void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags)
   uint16_t index = frame_newRenderItemIndex(frame);
   frame_setRenderItem(frame, index, (RenderItem*)draw);
   frame_setRenderBind(frame, index, bind);
+
+  uint8_t sortType = ST_Program;
+  switch (mode) {
+    case VM_Default:
+      break;
+    case VM_Sequential:
+      sortType = ST_Sequence;
+      break;
+    case VM_DepthAscending:
+      sortType = ST_Depth;
+      break;
+    case VM_DepthDescending:
+      sortType = ST_Depth;
+      depth &= SORTKEY_DEPTH_MAX;
+      depth = SORTKEY_DEPTH_MAX - depth;
+      break;
+    default:
+      break;
+  }
   SortKey* key = &encoder->sortKey;
+  key->viewId = id;
   key->notTouch = 1;
   key->isDraw = 1;
-  key->viewId = id;
+  key->sortType = sortType;
   key->blend = (!!draw->state.alphaRef) + (!!draw->state.enableBlend) * 2;
   key->program = handle_index(program);
+  key->depth = depth;
   key->sequence = index;
   frame_setSortKey(frame, index, sortkey_encode(key));
 

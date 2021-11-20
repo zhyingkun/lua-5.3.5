@@ -453,10 +453,10 @@ void ctx_setStencil(Context* ctx, bcfx_StencilState front, bcfx_StencilState bac
   encoder_setStencil(ctx->encoder, front, back);
 }
 
-void ctx_submit(Context* ctx, ViewId id, Handle handle, uint32_t flags) {
+void ctx_submit(Context* ctx, ViewId id, Handle handle, uint32_t flags, uint32_t depth) {
   CHECK_VIEWID(id);
   CHECK_HANDLE(handle);
-  encoder_submit(ctx->encoder, id, handle, flags);
+  encoder_submit(ctx->encoder, id, handle, flags, depth, ctx->views[id].mode);
 }
 
 /* }====================================================== */
