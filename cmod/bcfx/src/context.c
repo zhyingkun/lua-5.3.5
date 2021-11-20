@@ -201,7 +201,7 @@ static RendererDestroyers destroyers[] = {
     NULL,
 };
 
-static RendererContext* CreateRenderer() {
+static RendererContext* CreateRenderer(void) {
   return creators[RT_OpenGL]();
 }
 static void DestroyRenderer(RendererContext* renderer) {
