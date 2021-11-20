@@ -429,8 +429,8 @@ typedef enum {
 } bcfx_ELogicOperate;
 typedef struct {
   uint8_t frontFace : 1;
+  uint8_t enableCull : 1;
   uint8_t cullFace : 2;
-  uint8_t noWriteZ : 1;
   uint8_t enableDepth : 1;
   uint8_t depthFunc : 3;
 
@@ -444,8 +444,9 @@ typedef struct {
   uint8_t noWriteB : 1;
   uint8_t noWriteA : 1;
 
+  uint8_t noWriteZ : 1;
   uint8_t enableBlend : 1;
-  uint8_t reserved1 : 3;
+  uint8_t reserved1 : 2;
 
   uint8_t srcRGB : 4;
   uint8_t dstRGB : 4;
@@ -477,10 +478,9 @@ typedef enum {
   SA_Invert,
 } bcfx_EStencilAction;
 typedef struct {
-  uint8_t enable : 1;
   uint8_t func : 3;
   uint8_t sfail : 3;
-  uint8_t reserved1 : 1;
+  uint8_t reserved1 : 2;
   uint8_t dpfail : 3;
   uint8_t dppass : 3;
   uint8_t reserved2 : 2;
@@ -502,6 +502,8 @@ typedef union {
 #define BCFX_DISCARD_INSTANCE_DATA BIT_INDEX(5)
 #define BCFX_DISCARD_ALL BIT_MASK(6)
 
+#define PACK_COLOR(r, g, b, a) (((uint32_t)r) << 24) | (((uint32_t)g) << 16) | (((uint32_t)b) << 8) | (((uint32_t)a) << 0)
+
 BCFX_API void bcfx_setUniformVec4(Handle handle, Vec4* vec, uint16_t num);
 BCFX_API void bcfx_setUniformMat3x3(Handle handle, Mat3x3* mat, uint16_t num);
 BCFX_API void bcfx_setUniformMat4x4(Handle handle, Mat4x4* mat, uint16_t num);
@@ -514,7 +516,7 @@ BCFX_API void bcfx_setIndexBuffer(Handle handle, uint32_t start, uint32_t count)
 BCFX_API void bcfx_setTransform(Mat4x4* mat);
 BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlags flags);
 BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor);
-BCFX_API void bcfx_setStencil(bcfx_StencilState front, bcfx_StencilState back);
+BCFX_API void bcfx_setStencil(bool enable, bcfx_StencilState front, bcfx_StencilState back);
 
 BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags, uint32_t depth);
 

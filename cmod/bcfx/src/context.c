@@ -488,8 +488,8 @@ void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture,
 void ctx_setState(Context* ctx, bcfx_RenderState state, uint32_t blendColor) {
   encoder_setState(ctx->encoder, state, blendColor);
 }
-void ctx_setStencil(Context* ctx, bcfx_StencilState front, bcfx_StencilState back) {
-  encoder_setStencil(ctx->encoder, front, back);
+void ctx_setStencil(Context* ctx, bool enable, bcfx_StencilState front, bcfx_StencilState back) {
+  encoder_setStencil(ctx->encoder, enable, front, back);
 }
 
 void ctx_submit(Context* ctx, ViewId id, Handle handle, uint32_t flags, uint32_t depth) {

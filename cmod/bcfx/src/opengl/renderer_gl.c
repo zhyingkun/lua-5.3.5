@@ -1,129 +1,13 @@
-#include <renderer.h>
-#include <bcfx_math.h>
-#include <sortkey.h>
+#include <common_gl.h>
 
-// According to bcfx_EDataType
-static GLenum data_glType[] = {
-    GL_NONE,
-    GL_UNSIGNED_BYTE,
-    GL_UNSIGNED_SHORT,
-    GL_UNSIGNED_INT,
-    GL_BYTE,
-    GL_SHORT,
-    GL_INT,
-    GL_HALF_FLOAT,
-    GL_FLOAT,
-    GL_NONE,
-};
-// According to bcfx_EAttribType
-static GLenum attrib_glType[] = {
-    GL_NONE,
-    GL_UNSIGNED_BYTE, // Uint8
-    GL_UNSIGNED_INT_10_10_10_2, // Uint10
-    GL_SHORT, // Int16
-    GL_HALF_FLOAT, // Half
-    GL_FLOAT, // Float
-    GL_NONE,
-};
-// According to bcfx_UniformType
-static GLenum uniform_glType[] = {
-    GL_SAMPLER_2D,
-    GL_FLOAT_VEC4,
-    GL_FLOAT_MAT3,
-    GL_FLOAT_MAT4,
-};
-// According to bcfx_ETextureWrap
-static GLenum textureWrap_glType[] = {
-    GL_REPEAT,
-    GL_CLAMP_TO_EDGE,
-};
-// According to bcfx_ETextureFilter
-static const GLenum textureFilter_glType[] = {
-    GL_LINEAR,
-    GL_NEAREST,
-};
-// According to bcfx_EFrontFace
-static GLenum frontFace_glType[] = {
-    GL_CCW,
-    GL_CW,
-};
-// According to bcfx_ECullFace
-static GLenum cullFace_glType[] = {
-    GL_NONE,
-    GL_BACK,
-    GL_FRONT,
-    GL_FRONT_AND_BACK,
-};
-// According to bcfx_ECompareFunc
-static GLenum compareFunc_glType[] = {
-    GL_LESS,
-    GL_LEQUAL,
-    GL_EQUAL,
-    GL_GEQUAL,
-    GL_GREATER,
-    GL_NOTEQUAL,
-    GL_NEVER,
-    GL_ALWAYS,
-};
-// According to bcfx_EBlendFunc
-static GLenum blendFunc_glType[] = {
-    GL_ZERO,
-    GL_ONE,
-    GL_SRC_COLOR,
-    GL_ONE_MINUS_SRC_COLOR,
-    GL_DST_COLOR,
-    GL_ONE_MINUS_DST_COLOR,
-    GL_SRC_ALPHA,
-    GL_ONE_MINUS_SRC_ALPHA,
-    GL_DST_ALPHA,
-    GL_ONE_MINUS_DST_ALPHA,
-    GL_CONSTANT_COLOR,
-    GL_ONE_MINUS_CONSTANT_COLOR,
-    GL_CONSTANT_ALPHA,
-    GL_ONE_MINUS_CONSTANT_ALPHA,
-    GL_SRC_ALPHA_SATURATE,
-};
-// According to bcfx_EBlendEquation
-static GLenum blendEquation_glType[] = {
-    GL_FUNC_ADD,
-    GL_FUNC_SUBTRACT,
-    GL_FUNC_REVERSE_SUBTRACT,
-    GL_MIN,
-    GL_MAX,
-};
-// According to bcfx_ELogicOperate
-static GLenum logicOperate_glType[] = {
-    GL_COPY,
-    GL_COPY_INVERTED,
-    GL_CLEAR,
-    GL_SET,
-    GL_NOOP,
-    GL_INVERT,
-    GL_AND,
-    GL_NAND,
-    GL_OR,
-    GL_NOR,
-    GL_XOR,
-    GL_EQUIV,
-    GL_AND_REVERSE,
-    GL_AND_INVERTED,
-    GL_OR_REVERSE,
-    GL_OR_INVERTED,
-};
-// According to bcfx_EStencilAction
-static GLenum stencilAction_glType[] = {
-    GL_KEEP,
-    GL_ZERO,
-    GL_REPLACE,
-    GL_INCR,
-    GL_INCR_WRAP,
-    GL_DECR,
-    GL_DECR_WRAP,
-    GL_INVERT,
-};
+/*
+** {======================================================
+** Error Check
+** =======================================================
+*/
 
 #ifndef NDEBUG
-static const char* err_EnumName(GLenum _enum) {
+const char* err_EnumName(GLenum _enum) {
 #define GLENUM(e) \
   case e: \
     return #e
@@ -146,24 +30,128 @@ static const char* err_EnumName(GLenum _enum) {
 #undef GLENUM
   return "<Unknown enum?>";
 }
-#define GL_CHECK(call) \
-  { \
-    call; \
-    GLenum err = glGetError(); \
-    if (err != 0) { \
-      printf_err("================================================================\n"); \
-      printf_err(#call "; GL error 0x%x: %s\n", err, err_EnumName(err)); \
-      printf_err("File: %s, Line: %d\n", __FILE__, __LINE__); \
-    } \
-  }
-#else
-#define GL_CHECK(call) call
 #endif
 
-typedef struct {
-  GLuint id;
-  GLenum type;
-} ShaderGL;
+/* }====================================================== */
+
+// According to bcfx_EDataType
+const GLenum data_glType[] = {
+    GL_NONE,
+    GL_UNSIGNED_BYTE,
+    GL_UNSIGNED_SHORT,
+    GL_UNSIGNED_INT,
+    GL_BYTE,
+    GL_SHORT,
+    GL_INT,
+    GL_HALF_FLOAT,
+    GL_FLOAT,
+    GL_NONE,
+};
+// According to bcfx_EAttribType
+const GLenum attrib_glType[] = {
+    GL_NONE,
+    GL_UNSIGNED_BYTE, // Uint8
+    GL_UNSIGNED_INT_10_10_10_2, // Uint10
+    GL_SHORT, // Int16
+    GL_HALF_FLOAT, // Half
+    GL_FLOAT, // Float
+    GL_NONE,
+};
+// According to bcfx_UniformType
+const GLenum uniform_glType[] = {
+    GL_SAMPLER_2D,
+    GL_FLOAT_VEC4,
+    GL_FLOAT_MAT3,
+    GL_FLOAT_MAT4,
+};
+// According to bcfx_ETextureWrap
+const GLenum textureWrap_glType[] = {
+    GL_REPEAT,
+    GL_CLAMP_TO_EDGE,
+};
+// According to bcfx_ETextureFilter
+const GLenum textureFilter_glType[] = {
+    GL_LINEAR,
+    GL_NEAREST,
+};
+// According to bcfx_EFrontFace
+const GLenum frontFace_glType[] = {
+    GL_CCW,
+    GL_CW,
+};
+// According to bcfx_ECullFace
+const GLenum cullFace_glType[] = {
+    GL_BACK,
+    GL_FRONT,
+    GL_FRONT_AND_BACK,
+};
+// According to bcfx_ECompareFunc
+const GLenum compareFunc_glType[] = {
+    GL_LESS,
+    GL_LEQUAL,
+    GL_EQUAL,
+    GL_GEQUAL,
+    GL_GREATER,
+    GL_NOTEQUAL,
+    GL_NEVER,
+    GL_ALWAYS,
+};
+// According to bcfx_EBlendFunc
+const GLenum blendFunc_glType[] = {
+    GL_ZERO,
+    GL_ONE,
+    GL_SRC_COLOR,
+    GL_ONE_MINUS_SRC_COLOR,
+    GL_DST_COLOR,
+    GL_ONE_MINUS_DST_COLOR,
+    GL_SRC_ALPHA,
+    GL_ONE_MINUS_SRC_ALPHA,
+    GL_DST_ALPHA,
+    GL_ONE_MINUS_DST_ALPHA,
+    GL_CONSTANT_COLOR,
+    GL_ONE_MINUS_CONSTANT_COLOR,
+    GL_CONSTANT_ALPHA,
+    GL_ONE_MINUS_CONSTANT_ALPHA,
+    GL_SRC_ALPHA_SATURATE,
+};
+// According to bcfx_EBlendEquation
+const GLenum blendEquation_glType[] = {
+    GL_FUNC_ADD,
+    GL_FUNC_SUBTRACT,
+    GL_FUNC_REVERSE_SUBTRACT,
+    GL_MIN,
+    GL_MAX,
+};
+// According to bcfx_ELogicOperate
+const GLenum logicOperate_glType[] = {
+    GL_COPY,
+    GL_COPY_INVERTED,
+    GL_CLEAR,
+    GL_SET,
+    GL_NOOP,
+    GL_INVERT,
+    GL_AND,
+    GL_NAND,
+    GL_OR,
+    GL_NOR,
+    GL_XOR,
+    GL_EQUIV,
+    GL_AND_REVERSE,
+    GL_AND_INVERTED,
+    GL_OR_REVERSE,
+    GL_OR_INVERTED,
+};
+// According to bcfx_EStencilAction
+const GLenum stencilAction_glType[] = {
+    GL_KEEP,
+    GL_ZERO,
+    GL_REPLACE,
+    GL_INCR,
+    GL_INCR_WRAP,
+    GL_DECR,
+    GL_DECR_WRAP,
+    GL_INVERT,
+};
 
 /*
 ** {======================================================
@@ -236,32 +224,6 @@ static const char* glslTypeName(GLuint type) {
 #undef GLSL_TYPE
   return "<Unknown GLSL type?>";
 }
-
-typedef struct {
-  uint8_t usedCount;
-  uint8_t used[VA_Count]; // Dense.
-  GLint attributes[VA_Count]; // Sparse. AttribType => Location
-} PredefinedAttrib;
-typedef struct {
-  GLint loc;
-  uint16_t num;
-  GLenum type;
-  uint16_t index;
-} UniformProperty;
-typedef struct {
-  uint8_t usedCount;
-  uint8_t used[UB_Count]; // Dense.
-  UniformProperty properties[UB_Count]; // Sparse.
-  uint8_t usedCountUD;
-  UniformProperty propertiesUD[BCFX_CONFIG_MAX_UNIFORM_PER_PROGRAM]; // Sparse.
-} PredefinedUniform;
-typedef struct {
-  GLuint id;
-  GLuint vs;
-  GLuint fs;
-  PredefinedAttrib pa;
-  PredefinedUniform pu;
-} ProgramGL;
 
 static const char* attribNames[] = {
     "a_position",
@@ -343,50 +305,6 @@ static bcfx_EUniformBuiltin findUniformBuiltinEnum(const char* name) {
 }
 
 /* }====================================================== */
-
-typedef struct {
-  GLuint id;
-  uint32_t count;
-  GLenum type;
-} IndexBufferGL;
-typedef struct {
-  GLuint id;
-  Handle layout;
-} VertexBufferGL;
-typedef struct {
-  const char* name;
-  bcfx_UniformType type;
-  uint16_t num;
-  UniformData data;
-} UniformGL;
-typedef struct {
-  GLuint id;
-} TextureGL;
-
-typedef struct {
-  Window win;
-  GLuint vaoId;
-  bool touch;
-} WindowSwapper;
-
-typedef struct {
-  RendererContext api;
-
-  IndexBufferGL indexBuffers[BCFX_CONFIG_MAX_INDEX_BUFFER];
-  bcfx_VertexLayout vertexLayouts[BCFX_CONFIG_MAX_VERTEX_LAYOUT];
-  VertexBufferGL vertexBuffers[BCFX_CONFIG_MAX_VERTEX_BUFFER];
-  ShaderGL shaders[BCFX_CONFIG_MAX_SHADER];
-  ProgramGL programs[BCFX_CONFIG_MAX_PROGRAM];
-  uint16_t uniformCount;
-  UniformGL uniforms[BCFX_CONFIG_MAX_UNIFORM];
-  TextureGL textures[BCFX_CONFIG_MAX_TEXTURE];
-
-  Window mainWin;
-  Window curWin;
-
-  uint8_t swapCount;
-  WindowSwapper swapWins[BCFX_CONFIG_MAX_WINDOW];
-} RendererContextGL;
 
 static uint16_t findUniformUserDefined(RendererContextGL* glCtx, const char* name) {
   uint16_t idx = 0;
@@ -475,6 +393,7 @@ static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win) {
   WindowSwapper* swapper = gl_getWindowSwapper(glCtx, win);
   swapper->touch = true;
   GL_CHECK(glBindVertexArray(swapper->vaoId));
+  gl_initRenderState(glCtx);
 }
 
 static void gl_init(RendererContext* ctx, Window mainWin) {
@@ -911,154 +830,11 @@ static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, F
     }
   }
 }
-static void updateStencilState(GLenum face, bcfx_StencilState state) {
-  if (state.enable) {
-    GL_CHECK(glStencilFuncSeparate(face, compareFunc_glType[state.func], state.ref, state.mask));
-    GL_CHECK(glStencilOpSeparate(
-        face,
-        stencilAction_glType[state.sfail],
-        stencilAction_glType[state.dpfail],
-        stencilAction_glType[state.dppass]));
-  }
-}
-#define IS_STATE_CHANGED(field) ((force || curState.field != state.field) ? (curState.field = state.field, 1) : 0)
-#define IS_STATE_NOT_EQUAL4(field1, field2, field3, field4) \
-  (force || \
-   curState.field1 != state.field1 || \
-   curState.field2 != state.field2 || \
-   curState.field3 != state.field3 || \
-   curState.field4 != state.field4)
-#define ASSIGN_STATE4(field1, field2, field3, field4) \
-  curState.field1 = state.field1; \
-  curState.field2 = state.field2; \
-  curState.field3 = state.field3; \
-  curState.field4 = state.field4
-static bcfx_RenderState curState = {0};
-static uint32_t curBlendColor = 0;
-static bool curEnableStencil = false;
-static bcfx_StencilState curStencilFront = {0};
-static bcfx_StencilState curStencilBack = {0};
-static void updateRenderState(bcfx_RenderState state, uint32_t blendColor, bcfx_StencilState front, bcfx_StencilState back, bool force) {
-  if (IS_STATE_CHANGED(frontFace)) {
-    GL_CHECK(glFrontFace(frontFace_glType[state.frontFace]));
-  }
-  if (IS_STATE_CHANGED(cullFace)) {
-    if (state.cullFace == CF_None) {
-      GL_CHECK(glDisable(GL_CULL_FACE));
-    } else {
-      GL_CHECK(glEnable(GL_CULL_FACE));
-      GL_CHECK(glCullFace(cullFace_glType[state.cullFace]));
-    }
-  }
-  if (IS_STATE_CHANGED(noWriteZ)) {
-    GL_CHECK(glDepthMask(!((GLboolean)state.noWriteZ)));
-  }
-  if (IS_STATE_CHANGED(enableDepth)) {
-    if (state.enableDepth) {
-      GL_CHECK(glEnable(GL_DEPTH_TEST));
-    } else {
-      if (state.noWriteZ) {
-        GL_CHECK(glDisable(GL_DEPTH_TEST));
-      } else {
-        GL_CHECK(glEnable(GL_DEPTH_TEST));
-        GL_CHECK(glDepthFunc(GL_ALWAYS));
-        curState.depthFunc = CF_Always;
-      }
-    }
-  }
-  if (state.enableDepth && IS_STATE_CHANGED(depthFunc)) {
-    GL_CHECK(glDepthFunc(compareFunc_glType[state.depthFunc]));
-  }
-  // alphaRef will be set in uniform, no OpenGL API
-  if (IS_STATE_CHANGED(pointSize)) {
-    GL_CHECK(glPointSize((GLfloat)MAX(state.pointSize, 1)));
-  }
-  // if (IS_STATE_CHANGED(lineWidth)) {
-  //   GL_CHECK(glLineWidth((GLfloat)MAX(state.lineWidth, 1)));
-  // }
-  if (IS_STATE_NOT_EQUAL4(noWriteR, noWriteG, noWriteB, noWriteA)) {
-    ASSIGN_STATE4(noWriteR, noWriteG, noWriteB, noWriteA);
-    GL_CHECK(glColorMask(
-        !((GLboolean)state.noWriteR),
-        !((GLboolean)state.noWriteG),
-        !((GLboolean)state.noWriteB),
-        !((GLboolean)state.noWriteA)));
-  }
-  if (IS_STATE_CHANGED(enableBlend)) {
-    if (state.enableBlend) {
-      GL_CHECK(glEnable(GL_BLEND));
-    } else {
-      GL_CHECK(glDisable(GL_BLEND));
-    }
-  }
-  if (state.enableBlend) {
-    if (IS_STATE_NOT_EQUAL4(srcRGB, dstRGB, srcAlpha, dstAlpha)) {
-      ASSIGN_STATE4(srcRGB, dstRGB, srcAlpha, dstAlpha);
-      GL_CHECK(glBlendFuncSeparate(
-          blendFunc_glType[state.srcRGB],
-          blendFunc_glType[state.dstRGB],
-          blendFunc_glType[state.srcAlpha],
-          blendFunc_glType[state.dstAlpha]));
-    }
-    if (force ||
-        curState.blendEquRGB != state.blendEquRGB ||
-        curState.blendEquA != state.blendEquA) {
-      curState.blendEquRGB = state.blendEquRGB;
-      curState.blendEquA = state.blendEquA;
-      GL_CHECK(glBlendEquationSeparate(blendEquation_glType[state.blendEquRGB], blendEquation_glType[state.blendEquA]));
-    }
-    if (force || curBlendColor != blendColor) {
-      curBlendColor = blendColor;
-      uint8_t r = (uint8_t)(blendColor >> 24);
-      uint8_t g = (uint8_t)(blendColor >> 16);
-      uint8_t b = (uint8_t)(blendColor >> 8);
-      uint8_t a = (uint8_t)(blendColor >> 0);
-      GL_CHECK(glBlendColor(
-          ((float)r) / 255.0,
-          ((float)g) / 255.0,
-          ((float)b) / 255.0,
-          ((float)a) / 255.0));
-    }
-  }
-  bool enable = front.enable || back.enable;
-  if (force || curEnableStencil != enable) {
-    curEnableStencil = enable;
-    if (enable) {
-      GL_CHECK(glEnable(GL_STENCIL_TEST));
-    } else {
-      GL_CHECK(glDisable(GL_STENCIL_TEST));
-    }
-  }
-  if (enable) {
-    if (force || STENCILSTATE_UINT32(curStencilFront) != STENCILSTATE_UINT32(front)) {
-      curStencilFront = front;
-      updateStencilState(GL_FRONT, front);
-    }
-    if (force || STENCILSTATE_UINT32(curStencilBack) != STENCILSTATE_UINT32(back)) {
-      curStencilBack = back;
-      updateStencilState(GL_BACK, back);
-    }
-  }
-  if (IS_STATE_CHANGED(enableLogicOp)) {
-    if (state.enableLogicOp) {
-      GL_CHECK(glEnable(GL_COLOR_LOGIC_OP));
-    } else {
-      GL_CHECK(glDisable(GL_COLOR_LOGIC_OP));
-    }
-  }
-  if (state.enableLogicOp && IS_STATE_CHANGED(logicOp)) {
-    GL_CHECK(glLogicOp(logicOperate_glType[state.logicOp]));
-  }
-}
 
-static const bcfx_RenderState stateEmpty = {0};
-static const bcfx_StencilState stencilEmpty = {0};
 static void gl_submit(RendererContext* ctx, Frame* frame) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
 
   sortUint64Array(frame->sortKeys, frame->numRenderItems);
-
-  updateRenderState(stateEmpty, 0, stencilEmpty, stencilEmpty, true);
 
   uint32_t renderCount = MIN(frame->renderCount, frame->numRenderItems);
   ViewId curViewId = UINT16_MAX;
@@ -1085,12 +861,7 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
     gl_updateGlobalUniform(glCtx, draw, frame);
 
     if (key->notTouch) {
-      updateRenderState(
-          draw->state,
-          draw->blendColor,
-          draw->stencilFront,
-          draw->stencilBack,
-          false);
+      gl_updateRenderState(glCtx, draw);
 
       ProgramGL* prog = &glCtx->programs[key->program];
       GL_CHECK(glUseProgram(prog->id));

@@ -23,11 +23,11 @@ uint8_t sizeof_DataType[] = {
 
 uint8_t sizeof_AttribType[] = {
     1,
-    sizeof(GLubyte), // GL_UNSIGNED_BYTE
-    sizeof(GLuint), // GL_UNSIGNED_INT_10_10_10_2
-    sizeof(GLshort), // GL_SHORT
-    sizeof(GLhalf), // GL_HALF_FLOAT
-    sizeof(GLfloat), // GL_FLOAT
+    sizeof(unsigned char), // GL_UNSIGNED_BYTE
+    sizeof(unsigned int), // GL_UNSIGNED_INT_10_10_10_2
+    sizeof(unsigned short), // GL_SHORT
+    sizeof(unsigned short), // GL_HALF_FLOAT
+    sizeof(float), // GL_FLOAT
     0,
 };
 
@@ -227,8 +227,8 @@ BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, bcf
 BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor) {
   ctx_setState(s_ctx, state, blendColor);
 }
-BCFX_API void bcfx_setStencil(bcfx_StencilState front, bcfx_StencilState back) {
-  ctx_setStencil(s_ctx, front, back);
+BCFX_API void bcfx_setStencil(bool enable, bcfx_StencilState front, bcfx_StencilState back) {
+  ctx_setStencil(s_ctx, enable, front, back);
 }
 
 BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags, uint32_t depth) {

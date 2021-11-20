@@ -26,6 +26,7 @@ typedef struct {
   uint32_t uniformEnd; // exclude
   bcfx_RenderState state;
   uint32_t blendColor;
+  bool enableStencil;
   bcfx_StencilState stencilFront;
   bcfx_StencilState stencilBack;
 } RenderDraw;

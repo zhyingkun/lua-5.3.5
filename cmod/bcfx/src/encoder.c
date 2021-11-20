@@ -78,7 +78,8 @@ void encoder_setState(Encoder* encoder, bcfx_RenderState state, uint32_t blendCo
   encoder->draw.state = state;
   encoder->draw.blendColor = blendColor;
 }
-void encoder_setStencil(Encoder* encoder, bcfx_StencilState front, bcfx_StencilState back) {
+void encoder_setStencil(Encoder* encoder, bool enable, bcfx_StencilState front, bcfx_StencilState back) {
+  encoder->draw.enableStencil = enable;
   encoder->draw.stencilFront = front;
   encoder->draw.stencilBack = back;
 }
