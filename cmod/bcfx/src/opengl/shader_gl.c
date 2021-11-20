@@ -125,7 +125,7 @@ void prog_collectAttributes(ProgramGL* prog) {
   char* name = (char*)alloca(maxLength + 1);
   PredefinedAttrib* pa = &prog->pa;
   for (int i = 0; i < BCFX_CONFIG_MAX_INSTANCE_DATA; i++) {
-    pa->instanceAttr[i] = 0;
+    pa->instanceAttr[i] = -1;
   }
   uint8_t cnt = 0;
   for (GLint i = 0; i < activeAttribs; i++) {
@@ -143,7 +143,8 @@ void prog_collectAttributes(ProgramGL* prog) {
       int idx = findInstanceAttributeIndex(name);
       if (idx != -1) {
         pa->instanceAttr[idx] = loc;
-      } else {
+      } else if (strstr(name, "gl_") != name) {
+        // start with 'gl_' are OpenGL Builtin Attribute, such as gl_InstanceID
         printf_err("VertexAttribute %s %s is at location %d, size %d, Does Not Find In User Defined Uniform\n", glslTypeName(gltype), name, loc, num);
       }
     }
@@ -151,9 +152,9 @@ void prog_collectAttributes(ProgramGL* prog) {
   pa->usedCount = cnt;
   int idx = 0;
   for (int i = 0; i < BCFX_CONFIG_MAX_INSTANCE_DATA; i++) {
-    if (pa->instanceAttr[i] != 0 && i > idx) {
+    if (pa->instanceAttr[i] != -1 && i > idx) {
       pa->instanceAttr[idx] = pa->instanceAttr[i];
-      pa->instanceAttr[i] = 0;
+      pa->instanceAttr[i] = -1;
       idx++;
     }
   }
@@ -195,6 +196,7 @@ void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderD
         GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
       }
       GL_CHECK(glEnableVertexAttribArray(loc));
+      GL_CHECK(glVertexAttribDivisor(loc, 0)); // indicated it's per vertex, not per instance
       uint8_t offset = layout->offset[attr];
       bcfx_Attrib* attrib = &layout->attributes[attr];
       if (attrib->normal == 0 && (attrib->type == AT_Uint8 || attrib->type == AT_Int16)) {
@@ -202,6 +204,27 @@ void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderD
       } else {
         GL_CHECK(glVertexAttribPointer(loc, attrib->num, attrib_glType[attrib->type], attrib->normal, layout->stride, (void*)(long)offset));
       }
+    }
+  }
+  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
+}
+void gl_bindInstanceAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw) {
+  if (draw->instanceDataBuffer == kInvalidHandle) {
+    return;
+  }
+  VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(draw->instanceDataBuffer)];
+  GLsizei stride = sizeof(GLfloat) * 4 * draw->numAttrib;
+  PredefinedAttrib* pa = &prog->pa;
+  for (uint8_t i = 0; pa->instanceAttr[i] != -1; i++) {
+    GLint loc = pa->instanceAttr[i];
+    if (i < draw->numAttrib) {
+      GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
+      GL_CHECK(glEnableVertexAttribArray(loc));
+      GL_CHECK(glVertexAttribDivisor(loc, 1)); // indicated it's per instance, not per vertex
+      void* offset = (void*)(long)draw->instanceDataOffset + sizeof(GLfloat) * 4 * i;
+      GL_CHECK(glVertexAttribPointer(loc, 4, GL_FLOAT, GL_FALSE, stride, offset));
+    } else {
+      GL_CHECK(glDisableVertexAttribArray(loc));
     }
   }
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));

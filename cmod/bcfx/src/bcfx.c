@@ -122,6 +122,10 @@ BCFX_API Handle bcfx_createTexture(bcfx_MemBuffer* mem) {
   return ctx_createTexture(s_ctx, mem);
 }
 
+BCFX_API Handle bcfx_createDynamicVertexBuffer(size_t size) {
+  return ctx_createDynamicVertexBuffer(s_ctx, size);
+}
+
 /* }====================================================== */
 
 /*
@@ -132,6 +136,10 @@ BCFX_API Handle bcfx_createTexture(bcfx_MemBuffer* mem) {
 
 BCFX_API void bcfx_updateProgram(Handle handle, Handle vs, Handle fs) {
   ctx_updateProgram(s_ctx, handle, vs, fs);
+}
+
+BCFX_API void bcfx_updateDynamicVertexBuffer(Handle handle, size_t offset, bcfx_MemBuffer* mem) {
+  ctx_updateDynamicVertexBuffer(s_ctx, handle, offset, mem);
 }
 
 /* }====================================================== */
@@ -229,6 +237,9 @@ BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor) {
 }
 BCFX_API void bcfx_setStencil(bool enable, bcfx_StencilState front, bcfx_StencilState back) {
   ctx_setStencil(s_ctx, enable, front, back);
+}
+BCFX_API void bcfx_setInstanceDataBuffer(const bcfx_InstanceDataBuffer* idb, uint32_t start, uint32_t count) {
+  ctx_setInstanceDataBuffer(s_ctx, idb, start, count);
 }
 
 BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags, uint32_t depth) {

@@ -58,8 +58,10 @@ Handle ctx_createShader(Context* ctx, bcfx_MemBuffer* mem, ShaderType type);
 Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs);
 Handle ctx_createUniform(Context* ctx, const char* name, bcfx_UniformType type, uint16_t num);
 Handle ctx_createTexture(Context* ctx, bcfx_MemBuffer* mem);
+Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size);
 
 void ctx_updateProgram(Context* ctx, Handle handle, Handle vs, Handle fs);
+void ctx_updateDynamicVertexBuffer(Context* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem);
 
 void ctx_destroy(Context* ctx, Handle handle);
 
@@ -88,6 +90,7 @@ void ctx_setTransform(Context* ctx, Mat4x4* mat);
 void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlags flags);
 void ctx_setState(Context* ctx, bcfx_RenderState state, uint32_t blendColor);
 void ctx_setStencil(Context* ctx, bool enable, bcfx_StencilState front, bcfx_StencilState back);
+void ctx_setInstanceDataBuffer(Context* ctx, const bcfx_InstanceDataBuffer* idb, uint32_t start, uint32_t count);
 
 void ctx_submit(Context* ctx, ViewId id, Handle handle, uint32_t flags, uint32_t depth);
 

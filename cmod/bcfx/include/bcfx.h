@@ -262,6 +262,8 @@ typedef struct {
 // Memory Buffer data is a bcfx_Texture
 BCFX_API Handle bcfx_createTexture(bcfx_MemBuffer* mem);
 
+BCFX_API Handle bcfx_createDynamicVertexBuffer(size_t size);
+
 /* }====================================================== */
 
 /*
@@ -271,6 +273,7 @@ BCFX_API Handle bcfx_createTexture(bcfx_MemBuffer* mem);
 */
 
 BCFX_API void bcfx_updateProgram(Handle handle, Handle vs, Handle fs);
+BCFX_API void bcfx_updateDynamicVertexBuffer(Handle handle, size_t offset, bcfx_MemBuffer* mem);
 
 /* }====================================================== */
 
@@ -504,7 +507,15 @@ typedef union {
 
 #define PACK_COLOR(r, g, b, a) (((uint32_t)r) << 24) | (((uint32_t)g) << 16) | (((uint32_t)b) << 8) | (((uint32_t)a) << 0)
 
-BCFX_API void bcfx_setUniformVec4(Handle handle, Vec4* vec, uint16_t num);
+typedef struct {
+  Handle handle; // dynamic vertex buffer handle
+  uint32_t bufferOffset;
+  uint8_t numAttrib;
+  uint32_t numInstance;
+} bcfx_InstanceDataBuffer;
+
+BCFX_API void
+bcfx_setUniformVec4(Handle handle, Vec4* vec, uint16_t num);
 BCFX_API void bcfx_setUniformMat3x3(Handle handle, Mat3x3* mat, uint16_t num);
 BCFX_API void bcfx_setUniformMat4x4(Handle handle, Mat4x4* mat, uint16_t num);
 
@@ -517,6 +528,7 @@ BCFX_API void bcfx_setTransform(Mat4x4* mat);
 BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlags flags);
 BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor);
 BCFX_API void bcfx_setStencil(bool enable, bcfx_StencilState front, bcfx_StencilState back);
+BCFX_API void bcfx_setInstanceDataBuffer(const bcfx_InstanceDataBuffer* idb, uint32_t start, uint32_t count);
 
 BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags, uint32_t depth);
 

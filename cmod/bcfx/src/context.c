@@ -63,12 +63,14 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
         CALL_RENDERER(createVertexLayout, cmd->handle, param->cvl.layout);
         RELEASE_VERCTX_LAYOUT(&param->cvl);
         break;
-      CASE_CALL_RENDERER(CreateVertexBuffer, createVertexBuffer, cmd->handle, &param->cvb.mem, param->cvb.layoutHandle, 0);
-      CASE_CALL_RENDERER(CreateIndexBuffer, createIndexBuffer, cmd->handle, &param->cib.mem, 0);
+      CASE_CALL_RENDERER(CreateVertexBuffer, createVertexBuffer, cmd->handle, &param->cvb.mem, param->cvb.layoutHandle);
+      CASE_CALL_RENDERER(CreateIndexBuffer, createIndexBuffer, cmd->handle, &param->cib.mem);
       CASE_CALL_RENDERER(CreateShader, createShader, cmd->handle, &param->cs.mem, param->cs.type);
       CASE_CALL_RENDERER(CreateProgram, createProgram, cmd->handle, param->cp.vsHandle, param->cp.fsHandle);
       CASE_CALL_RENDERER(CreateUniform, createUniform, cmd->handle, param->cu.name, param->cu.type, param->cu.num);
       CASE_CALL_RENDERER(CreateTexture, createTexture, cmd->handle, &param->ct.mem);
+      CASE_CALL_RENDERER(CreateDynamicVertexBuffer, createDynamicVertexBuffer, cmd->handle, param->cdvb.size);
+      CASE_CALL_RENDERER(UpdateDynamicVertexBuffer, updateDynamicVertexBuffer, cmd->handle, param->cudvb.offset, &param->cudvb.mem);
       case CT_End:
         break;
       // CASE_CALL_RENDERER(RendererShutdown, shutdown);
@@ -330,6 +332,12 @@ Handle ctx_createTexture(Context* ctx, bcfx_MemBuffer* mem) {
   return handle;
 }
 
+Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size) {
+  ADD_CMD_ALLOC_HANDLE(ctx, DynamicVertexBuffer)
+  param->cdvb.size = size;
+  return handle;
+}
+
 /* }====================================================== */
 
 /* }====================================================== */
@@ -346,6 +354,13 @@ void ctx_updateProgram(Context* ctx, Handle handle, Handle vs, Handle fs) {
   CommandParam* param = ctx_addCommand(ctx, CT_CreateProgram, handle);
   param->cp.vsHandle = vs;
   param->cp.fsHandle = fs;
+}
+
+void ctx_updateDynamicVertexBuffer(Context* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem) {
+  CHECK_HANDLE(handle);
+  CommandParam* param = ctx_addCommand(ctx, CT_CreateDynamicVertexBuffer, handle);
+  param->cudvb.offset = offset;
+  param->cudvb.mem = *mem;
 }
 
 /* }====================================================== */
@@ -490,6 +505,10 @@ void ctx_setState(Context* ctx, bcfx_RenderState state, uint32_t blendColor) {
 }
 void ctx_setStencil(Context* ctx, bool enable, bcfx_StencilState front, bcfx_StencilState back) {
   encoder_setStencil(ctx->encoder, enable, front, back);
+}
+void ctx_setInstanceDataBuffer(Context* ctx, const bcfx_InstanceDataBuffer* idb, uint32_t start, uint32_t count) {
+// CHECK_HANDLE(idb->handle); // No check, Support invalid instance buffer
+  encoder_setInstanceDataBuffer(ctx->encoder, idb, start, count);
 }
 
 void ctx_submit(Context* ctx, ViewId id, Handle handle, uint32_t flags, uint32_t depth) {

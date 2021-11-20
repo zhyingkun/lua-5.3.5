@@ -18,12 +18,20 @@ typedef struct {
 typedef struct {
   Stream streams[BCFX_CONFIG_MAX_VERTEX_STREAMS];
   uint8_t streamMask;
+
   Handle indexBuffer;
   uint32_t indexStart;
   uint32_t indexCount;
+
+  Handle instanceDataBuffer;
+  uint32_t instanceDataOffset;
+  uint8_t numAttrib;
+  uint32_t numInstance;
+
   Mat4x4 model;
   uint32_t uniformStart; // include, as index, such as 0
   uint32_t uniformEnd; // exclude
+
   bcfx_RenderState state;
   uint32_t blendColor;
   bool enableStencil;

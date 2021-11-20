@@ -31,6 +31,7 @@ UniformData* encoder_addUniformData(Encoder* encoder, Handle handle);
 void encoder_setTexture(Encoder* encoder, uint8_t stage, Handle handle, bcfx_SamplerFlags flags);
 void encoder_setState(Encoder* encoder, bcfx_RenderState state, uint32_t blendColor);
 void encoder_setStencil(Encoder* encoder, bool enable, bcfx_StencilState front, bcfx_StencilState back);
+void encoder_setInstanceDataBuffer(Encoder* encoder, const bcfx_InstanceDataBuffer* idb, uint32_t start, uint32_t count);
 
 void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags, uint32_t depth, ViewMode mode, bool notTouch);
 

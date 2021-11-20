@@ -33,6 +33,12 @@ static void encoder_discard(Encoder* encoder, uint32_t flags) {
     draw->stencilFront = stencil;
     draw->stencilBack = stencil;
   }
+  if (flags & BCFX_DISCARD_INSTANCE_DATA) {
+    draw->instanceDataBuffer = kInvalidHandle;
+    draw->instanceDataOffset = 0;
+    draw->numAttrib = 0;
+    draw->numInstance = 0;
+  }
 }
 
 void encoder_begin(Encoder* encoder, Frame* frame) {
@@ -82,6 +88,13 @@ void encoder_setStencil(Encoder* encoder, bool enable, bcfx_StencilState front, 
   encoder->draw.enableStencil = enable;
   encoder->draw.stencilFront = front;
   encoder->draw.stencilBack = back;
+}
+void encoder_setInstanceDataBuffer(Encoder* encoder, const bcfx_InstanceDataBuffer* idb, uint32_t start, uint32_t count) {
+  RenderDraw* draw = &encoder->draw;
+  draw->instanceDataBuffer = idb->handle;
+  draw->instanceDataOffset = idb->bufferOffset + sizeof(float) * 4 * idb->numAttrib * start;
+  draw->numAttrib = idb->numAttrib;
+  draw->numInstance = count == 0 ? idb->numInstance - start : count;
 }
 
 void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags, uint32_t depth, ViewMode mode, bool notTouch) {

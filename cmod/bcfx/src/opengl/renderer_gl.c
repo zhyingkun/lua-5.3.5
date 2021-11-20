@@ -289,7 +289,7 @@ static void gl_createVertexLayout(RendererContext* ctx, Handle handle, const voi
   bcfx_VertexLayout* vl = &glCtx->vertexLayouts[handle_index(handle)];
   memcpy((uint8_t*)vl, layout, sizeof(bcfx_VertexLayout));
 }
-static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, Handle layoutHandle, uint16_t flags) {
+static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, Handle layoutHandle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
   vb->layout = layoutHandle;
@@ -299,7 +299,7 @@ static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, bcfx_MemB
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
   MEMBUFFER_RELEASE(mem);
 }
-static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, uint16_t flags) {
+static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
   ib->count = mem->sz / sizeof_DataType[mem->dt];
@@ -407,6 +407,25 @@ static void gl_createTexture(RendererContext* ctx, Handle handle, bcfx_MemBuffer
   MEMBUFFER_RELEASE(mem);
 }
 
+static void gl_createDynamicVertexBuffer(RendererContext* ctx, Handle handle, size_t size) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  DynamicVertexBufferGL* dvb = &glCtx->dynamicVertexBuffers[handle_index(handle)];
+  dvb->size = size;
+  GL_CHECK(glGenBuffers(1, &dvb->id));
+  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, dvb->id));
+  GL_CHECK(glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_DYNAMIC_DRAW));
+  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
+}
+
+static void gl_updateDynamicVertexBuffer(RendererContext* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  DynamicVertexBufferGL* dvb = &glCtx->dynamicVertexBuffers[handle_index(handle)];
+  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, dvb->id));
+  GL_CHECK(glBufferSubData(GL_ARRAY_BUFFER, offset, mem->sz, mem->ptr));
+  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
+  MEMBUFFER_RELEASE(mem);
+}
+
 static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
   gl_MakeWinCurrent(glCtx, view->win);
   // TODO: bind framebuffer
@@ -475,10 +494,24 @@ static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw
   gl_bindProgramAttributes(glCtx, prog, draw);
   gl_setProgramUniforms(glCtx, prog, draw, view, bind);
 
-  IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
-  GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
-  GLsizei indexCount = (GLsizei)MIN(draw->indexCount, ib->count);
-  GL_CHECK(glDrawElements(GL_TRIANGLES, indexCount, ib->type, (const void*)(long)draw->indexStart));
+  if (draw->indexBuffer == kInvalidHandle) {
+    if (draw->numInstance == 0) {
+      GL_CHECK(glDrawArrays(GL_TRIANGLES, draw->indexStart, draw->indexCount));
+    } else {
+      gl_bindInstanceAttributes(glCtx, prog, draw);
+      GL_CHECK(glDrawArraysInstanced(GL_TRIANGLES, draw->indexStart, draw->indexCount, draw->numInstance));
+    }
+  } else {
+    IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
+    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
+    GLsizei indexCount = (GLsizei)MIN(draw->indexCount, ib->count - draw->indexStart);
+    if (draw->numInstance == 0) {
+      GL_CHECK(glDrawElements(GL_TRIANGLES, indexCount, ib->type, (const void*)(long)draw->indexStart));
+    } else {
+      gl_bindInstanceAttributes(glCtx, prog, draw);
+      GL_CHECK(glDrawElementsInstanced(GL_TRIANGLES, indexCount, ib->type, (const void*)(long)draw->indexStart, draw->numInstance));
+    }
+  }
 }
 
 #define IS_VALUE_CHANGED(value_, want_) ((value_ != want_) ? (value_ = want_, 1) : (0))
@@ -579,6 +612,9 @@ RendererContext* CreateRendererGL(void) {
   renderer->createProgram = gl_createProgram;
   renderer->createUniform = gl_createUniform;
   renderer->createTexture = gl_createTexture;
+
+  renderer->createDynamicVertexBuffer = gl_createDynamicVertexBuffer;
+  renderer->updateDynamicVertexBuffer = gl_updateDynamicVertexBuffer;
 
   renderer->beginFrame = gl_beginFrame;
   renderer->submit = gl_submit;
