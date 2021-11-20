@@ -290,14 +290,18 @@ BCFX_API void bcfx_destroy(Handle handle);
 ** =======================================================
 */
 
-// setViewClear flags
-#define BCFX_CLEAR_NONE (0x0000)
-#define BCFX_CLEAR_COLOR (0x0001)
-#define BCFX_CLEAR_DEPTH (0x0002)
-#define BCFX_CLEAR_STENCIL (0x0004)
+#define BIT_NONE() (0)
+#define BIT_INDEX(idx) (1 << idx)
+#define BIT_MASK(cnt) ((1 << cnt) - 1)
 
-#define BCFX_DEBUG_NONE 0
-#define BCFX_DEBUG_WIREFRAME 1
+// setViewClear flags
+#define BCFX_CLEAR_NONE BIT_NONE()
+#define BCFX_CLEAR_COLOR BIT_INDEX(0)
+#define BCFX_CLEAR_DEPTH BIT_INDEX(1)
+#define BCFX_CLEAR_STENCIL BIT_INDEX(2)
+
+#define BCFX_DEBUG_NONE BIT_NONE()
+#define BCFX_DEBUG_WIREFRAME BIT_INDEX(0)
 
 typedef enum {
   VM_Default,
@@ -489,10 +493,7 @@ typedef union {
 } bcfx_UStencilState;
 #define STENCILSTATE_UINT32(state) (((bcfx_UStencilState*)&state)->stateUINT32)
 
-#define BIT_INDEX(idx) (1 << idx)
-#define BIT_MASK(cnt) ((1 << cnt) - 1)
-
-#define BCFX_DISCARD_NONE 0
+#define BCFX_DISCARD_NONE BIT_NONE()
 #define BCFX_DISCARD_VERTEX_STREAMS BIT_INDEX(0)
 #define BCFX_DISCARD_INDEX_BUFFER BIT_INDEX(1)
 #define BCFX_DISCARD_TRANSFORM BIT_INDEX(2)
