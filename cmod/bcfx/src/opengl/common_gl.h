@@ -178,3 +178,25 @@ void gl_initRenderState(RendererContextGL* glCtx);
 void gl_updateRenderState(RendererContextGL* glCtx, RenderDraw* draw);
 
 /* }====================================================== */
+
+/*
+** {======================================================
+** Shader Attributes
+** =======================================================
+*/
+
+void prog_collectAttributes(ProgramGL* prog);
+void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw);
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Shader Uniforms
+** =======================================================
+*/
+
+void prog_collectUniforms(ProgramGL* prog, RendererContextGL* glCtx);
+void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw, View* view, RenderBind* bind);
+
+/* }====================================================== */

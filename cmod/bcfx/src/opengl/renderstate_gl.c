@@ -1,5 +1,11 @@
 #include <common_gl.h>
 
+/*
+** {======================================================
+** OpenGL Render State
+** =======================================================
+*/
+
 #define GET_GL_ENUM(field_, pname_) \
   do { \
     GLint data[1]; \
@@ -260,3 +266,5 @@ void gl_updateRenderState(RendererContextGL* glCtx, RenderDraw* draw) {
   renderstate_updateStencil(stateGL, draw->enableStencil, draw->stencilFront, draw->stencilBack);
   renderstate_updateLogicOp(stateGL, draw->state);
 }
+
+/* }====================================================== */

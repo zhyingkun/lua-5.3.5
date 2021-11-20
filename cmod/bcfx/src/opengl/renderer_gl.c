@@ -34,6 +34,12 @@ const char* err_EnumName(GLenum _enum) {
 
 /* }====================================================== */
 
+/*
+** {======================================================
+** Enum Features
+** =======================================================
+*/
+
 // According to bcfx_EDataType
 const GLenum data_glType[] = {
     GL_NONE,
@@ -153,217 +159,7 @@ const GLenum stencilAction_glType[] = {
     GL_INVERT,
 };
 
-/*
-** {======================================================
-** Program in OpenGL
-** =======================================================
-*/
-
-static const char* glslTypeName(GLuint type) {
-#define GLSL_TYPE(ty) \
-  case ty: \
-    return #ty
-  switch (type) {
-    GLSL_TYPE(GL_BOOL);
-    GLSL_TYPE(GL_INT);
-    GLSL_TYPE(GL_INT_VEC2);
-    GLSL_TYPE(GL_INT_VEC3);
-    GLSL_TYPE(GL_INT_VEC4);
-    GLSL_TYPE(GL_UNSIGNED_INT);
-    GLSL_TYPE(GL_UNSIGNED_INT_VEC2);
-    GLSL_TYPE(GL_UNSIGNED_INT_VEC3);
-    GLSL_TYPE(GL_UNSIGNED_INT_VEC4);
-    GLSL_TYPE(GL_FLOAT);
-    GLSL_TYPE(GL_FLOAT_VEC2);
-    GLSL_TYPE(GL_FLOAT_VEC3);
-    GLSL_TYPE(GL_FLOAT_VEC4);
-    GLSL_TYPE(GL_FLOAT_MAT2);
-    GLSL_TYPE(GL_FLOAT_MAT3);
-    GLSL_TYPE(GL_FLOAT_MAT4);
-
-    GLSL_TYPE(GL_SAMPLER_2D);
-    GLSL_TYPE(GL_SAMPLER_2D_ARRAY);
-    GLSL_TYPE(GL_SAMPLER_2D_MULTISAMPLE);
-
-    GLSL_TYPE(GL_INT_SAMPLER_2D);
-    GLSL_TYPE(GL_INT_SAMPLER_2D_ARRAY);
-    GLSL_TYPE(GL_INT_SAMPLER_2D_MULTISAMPLE);
-
-    GLSL_TYPE(GL_UNSIGNED_INT_SAMPLER_2D);
-    GLSL_TYPE(GL_UNSIGNED_INT_SAMPLER_2D_ARRAY);
-    GLSL_TYPE(GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE);
-
-    GLSL_TYPE(GL_SAMPLER_2D_SHADOW);
-    GLSL_TYPE(GL_SAMPLER_2D_ARRAY_SHADOW);
-
-    GLSL_TYPE(GL_SAMPLER_3D);
-    GLSL_TYPE(GL_INT_SAMPLER_3D);
-    GLSL_TYPE(GL_UNSIGNED_INT_SAMPLER_3D);
-
-    GLSL_TYPE(GL_SAMPLER_CUBE);
-    GLSL_TYPE(GL_INT_SAMPLER_CUBE);
-    GLSL_TYPE(GL_UNSIGNED_INT_SAMPLER_CUBE);
-
-    GLSL_TYPE(GL_IMAGE_1D);
-    GLSL_TYPE(GL_INT_IMAGE_1D);
-    GLSL_TYPE(GL_UNSIGNED_INT_IMAGE_1D);
-
-    GLSL_TYPE(GL_IMAGE_2D);
-    GLSL_TYPE(GL_IMAGE_2D_ARRAY);
-    GLSL_TYPE(GL_INT_IMAGE_2D);
-    GLSL_TYPE(GL_UNSIGNED_INT_IMAGE_2D);
-
-    GLSL_TYPE(GL_IMAGE_3D);
-    GLSL_TYPE(GL_INT_IMAGE_3D);
-    GLSL_TYPE(GL_UNSIGNED_INT_IMAGE_3D);
-
-    GLSL_TYPE(GL_IMAGE_CUBE);
-    GLSL_TYPE(GL_INT_IMAGE_CUBE);
-    GLSL_TYPE(GL_UNSIGNED_INT_IMAGE_CUBE);
-  }
-#undef GLSL_TYPE
-  return "<Unknown GLSL type?>";
-}
-
-static const char* attribNames[] = {
-    "a_position",
-    "a_normal",
-    "a_tangent",
-    "a_bitangent",
-    "a_color0",
-    "a_color1",
-    "a_color2",
-    "a_color3",
-    "a_indices",
-    "a_weight",
-    "a_texcoord0",
-    "a_texcoord1",
-    "a_texcoord2",
-    "a_texcoord3",
-    "a_texcoord4",
-    "a_texcoord5",
-    "a_texcoord6",
-    "a_texcoord7",
-    NULL,
-};
-static bcfx_EVertexAttrib findVertexAttributeEnum(const char* name) {
-  for (uint8_t i = 0; attribNames[i] != NULL; i++) {
-    if (strcmp(attribNames[i], name) == 0) {
-      return (bcfx_EVertexAttrib)i;
-    }
-  }
-  return VA_Count;
-}
-static void prog_collectAttributes(ProgramGL* prog) {
-  GLint activeAttribs = 0;
-  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_ATTRIBUTES, &activeAttribs));
-  GLint maxLength = 0;
-  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxLength));
-  char* name = (char*)alloca(maxLength + 1);
-  uint8_t cnt = 0;
-  PredefinedAttrib* pa = &prog->pa;
-  for (GLint i = 0; i < activeAttribs; i++) {
-    GLint size;
-    GLenum type = 0;
-    GL_CHECK(glGetActiveAttrib(prog->id, i, maxLength + 1, NULL, &size, &type, name));
-    // printf_err("Attribute %s %s is at location %d\n", glslTypeName(type), name, glGetAttribLocation(prog->id, name));
-    bcfx_EVertexAttrib eva = findVertexAttributeEnum(name);
-    if (eva != VA_Count) {
-      GLint loc;
-      GL_CHECK(loc = glGetAttribLocation(prog->id, name));
-      assert(loc != -1);
-      pa->used[cnt] = eva;
-      pa->attributes[eva] = loc;
-      cnt++;
-    }
-  }
-  pa->usedCount = cnt;
-}
-
-static const char* uniformNames[] = {
-    "u_viewRect",
-    "u_viewTexel",
-    "u_view",
-    "u_invView",
-    "u_proj",
-    "u_invProj",
-    "u_viewProj",
-    "u_invViewProj",
-    "u_model",
-    "u_modelView",
-    "u_modelViewProj",
-    "u_alphaRef4",
-    NULL,
-};
-static bcfx_EUniformBuiltin findUniformBuiltinEnum(const char* name) {
-  for (uint8_t i = 0; uniformNames[i] != NULL; i++) {
-    if (strcmp(uniformNames[i], name) == 0) {
-      return (bcfx_EUniformBuiltin)i;
-    }
-  }
-  return UB_Count;
-}
-
 /* }====================================================== */
-
-static uint16_t findUniformUserDefined(RendererContextGL* glCtx, const char* name) {
-  uint16_t idx = 0;
-  for (uint16_t i = 0; i < glCtx->uniformCount; i++) {
-    UniformGL* uniform = NULL;
-    do {
-      if (uniform != NULL) {
-        idx++;
-      }
-      uniform = &glCtx->uniforms[idx];
-    } while (uniform->name == NULL);
-    if (strcmp(uniform->name, name) == 0) {
-      return idx;
-    }
-  }
-  return UINT16_MAX;
-}
-#define SET_UNIFORM_PROPERTY(prop, loc_, num_, gltype_, idx_) \
-  prop->loc = loc_; \
-  prop->num = num_; \
-  prop->type = gltype_; \
-  prop->index = idx_
-static void prog_collectUniforms(RendererContextGL* glCtx, ProgramGL* prog) {
-  GLint activeUniforms = 0;
-  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_UNIFORMS, &activeUniforms));
-  GLint maxLength = 0;
-  GL_CHECK(glGetProgramiv(prog->id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxLength));
-  char* name = (char*)alloca(maxLength + 1);
-  uint8_t cnt = 0;
-  uint16_t cntUD = 0;
-  PredefinedUniform* pu = &prog->pu;
-  for (GLint i = 0; i < activeUniforms; i++) {
-    GLenum gltype;
-    GLint num, loc;
-    GL_CHECK(glGetActiveUniform(prog->id, i, maxLength + 1, NULL, &num, &gltype, name));
-    GL_CHECK(loc = glGetUniformLocation(prog->id, name));
-    // printf_err("Uniform %s %s is at location %d, size %d\n", glslTypeName(gltype), name, loc, num);
-    bcfx_EUniformBuiltin eub = findUniformBuiltinEnum(name);
-    if (eub != UB_Count) {
-      assert(loc != -1);
-      pu->used[cnt] = eub;
-      cnt++;
-      UniformProperty* prop = &pu->properties[eub];
-      SET_UNIFORM_PROPERTY(prop, loc, num, gltype, 0);
-    } else {
-      uint16_t idx = findUniformUserDefined(glCtx, name);
-      if (idx != UINT16_MAX) {
-        assert(loc != -1);
-        UniformProperty* prop = &pu->propertiesUD[cntUD];
-        cntUD++;
-        SET_UNIFORM_PROPERTY(prop, loc, num, gltype, idx);
-      } else {
-        printf_err("Uniform %s %s is at location %d, size %d, Does Not Find In User Defined Uniform\n", glslTypeName(gltype), name, loc, num);
-      }
-    }
-  }
-  pu->usedCount = cnt;
-  pu->usedCountUD = cntUD;
-}
 
 static WindowSwapper* gl_getWindowSwapper(RendererContextGL* glCtx, Window win) {
   for (uint8_t i = 0; i < glCtx->swapCount; i++) {
@@ -574,7 +370,7 @@ static void gl_createProgram(RendererContext* ctx, Handle handle, Handle vsh, Ha
     return;
   }
   prog_collectAttributes(prog);
-  prog_collectUniforms(glCtx, prog);
+  prog_collectUniforms(prog, glCtx);
 }
 static void gl_createUniform(RendererContext* ctx, Handle handle, const char* name, bcfx_UniformType type, uint16_t num) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
@@ -649,168 +445,7 @@ static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
     GL_CHECK(glScissor(scissor->x, scissor->y, scissor->width, scissor->height));
   }
 }
-static bcfx_VertexLayout* find_vertexLayout(RendererContextGL* glCtx, RenderDraw* draw, bcfx_EVertexAttrib attr, VertexBufferGL** pvb) {
-  bcfx_VertexLayout* target = NULL;
-  uint8_t stream = 0;
-  for (uint8_t i = 0; i < BCFX_CONFIG_MAX_VERTEX_STREAMS; i++) {
-    if (draw->streamMask & (1 << i)) {
-      VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(draw->streams[i].vertexBuffer)];
-      bcfx_VertexLayout* layout = &glCtx->vertexLayouts[handle_index(vb->layout)];
-      if (layout->attributes[attr].num > 0) {
-        if (target == NULL) {
-          target = layout;
-          *pvb = vb;
-          stream = i;
-        } else {
-          printf_err("Duplicate binding for VertexAttribute: %d, stream: %d, previous stream: %d\n", (uint8_t)attr, i, stream);
-        }
-      }
-    }
-  }
-  return target;
-}
-static void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw) {
-  GLuint curId = 0;
-  PredefinedAttrib* pa = &prog->pa;
-  for (uint8_t i = 0; i < pa->usedCount; i++) {
-    bcfx_EVertexAttrib attr = (bcfx_EVertexAttrib)pa->used[i];
-    GLint loc = pa->attributes[attr];
-    VertexBufferGL* vb = NULL;
-    bcfx_VertexLayout* layout = find_vertexLayout(glCtx, draw, attr, &vb);
-    if (layout == NULL) {
-      GL_CHECK(glDisableVertexAttribArray(loc));
-    } else {
-      if (curId != vb->id) {
-        curId = vb->id;
-        GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
-      }
-      GL_CHECK(glEnableVertexAttribArray(loc));
-      uint8_t offset = layout->offset[attr];
-      bcfx_Attrib* attrib = &layout->attributes[attr];
-      if (attrib->normal == 0 && (attrib->type == AT_Uint8 || attrib->type == AT_Int16)) {
-        GL_CHECK(glVertexAttribIPointer(loc, attrib->num, attrib_glType[attrib->type], layout->stride, (void*)(long)offset));
-      } else {
-        GL_CHECK(glVertexAttribPointer(loc, attrib->num, attrib_glType[attrib->type], attrib->normal, layout->stride, (void*)(long)offset));
-      }
-    }
-  }
-  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
-}
-static void gl_bindTextureUnit(RendererContextGL* glCtx, RenderBind* bind, uint8_t stage) {
-  Binding* b = &bind->binds[stage];
-  if (b->handle != kInvalidHandle) {
-    TextureGL* texture = &glCtx->textures[handle_index(b->handle)];
-    GL_CHECK(glActiveTexture(GL_TEXTURE0 + stage));
-    GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
 
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, textureWrap_glType[b->samplerFlags.wrapU]));
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, textureWrap_glType[b->samplerFlags.wrapV]));
-    // must set GL_TEXTURE_MIN_FILTER, if not, you will get a black color when sample it
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, textureFilter_glType[b->samplerFlags.filterMin]));
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, textureFilter_glType[b->samplerFlags.filterMag]));
-  } else {
-    printf_err("Bind texture unit %d with invalid handle\n", stage);
-  }
-}
-static void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw, View* view, RenderBind* bind) {
-  PredefinedUniform* pu = &prog->pu;
-  for (uint8_t i = 0; i < pu->usedCount; i++) {
-    bcfx_EUniformBuiltin eub = (bcfx_EUniformBuiltin)pu->used[i];
-    UniformProperty* prop = &pu->properties[eub];
-    GLint loc = prop->loc;
-    switch (eub) {
-      case UB_ViewRect: {
-        float frect[4];
-        frect[0] = view->rect.x;
-        frect[1] = view->rect.y;
-        frect[2] = view->rect.width;
-        frect[3] = view->rect.height;
-        GL_CHECK(glUniform4fv(loc, 1, frect));
-      } break;
-      case UB_ViewTexel: {
-        float ftexel[4];
-        ftexel[0] = 1.0 / (float)(view->rect.width);
-        ftexel[1] = 1.0 / (float)(view->rect.height);
-        ftexel[2] = 0.0;
-        ftexel[3] = 0.0;
-        GL_CHECK(glUniform4fv(loc, 1, ftexel));
-      } break;
-      case UB_View:
-        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, view->viewMat.element));
-        break;
-      case UB_InvView: {
-        ALLOCA_MAT4x4(invView);
-        MAT_INVERSE(&view->viewMat, invView);
-        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, invView->element));
-      } break;
-      case UB_Proj:
-        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, view->projMat.element));
-        break;
-      case UB_InvProj: {
-        ALLOCA_MAT4x4(invProj);
-        MAT_INVERSE(&view->projMat, invProj);
-        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, invProj->element));
-      } break;
-      case UB_ViewProj: {
-        ALLOCA_MAT4x4(viewProj);
-        MAT_MULTIPLY(&view->projMat, &view->viewMat, viewProj);
-        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, viewProj->element));
-      } break;
-      case UB_InvViewProj: {
-        ALLOCA_MAT4x4(viewProj);
-        MAT_MULTIPLY(&view->projMat, &view->viewMat, viewProj);
-        ALLOCA_MAT4x4(invViewProj);
-        MAT_INVERSE(viewProj, invViewProj);
-        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, invViewProj->element));
-      } break;
-      case UB_Model:
-        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, draw->model.element));
-        break;
-      case UB_ModelView: {
-        ALLOCA_MAT4x4(modelView);
-        MAT_MULTIPLY(&view->viewMat, &draw->model, modelView);
-        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, modelView->element));
-      } break;
-      case UB_ModelViewProj: {
-        ALLOCA_MAT4x4(modelView);
-        MAT_MULTIPLY(&view->viewMat, &draw->model, modelView);
-        ALLOCA_MAT4x4(modelViewProj);
-        MAT_MULTIPLY(&view->projMat, modelView, modelViewProj);
-        GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, modelViewProj->element));
-      } break;
-      case UB_AlphaRef: {
-        GL_CHECK(glUniform1f(loc, ((float)draw->state.alphaRef) / 255.0));
-      } break;
-      default:
-        break;
-    }
-  }
-  for (uint16_t i = 0; i < pu->usedCountUD; i++) {
-    UniformProperty* prop = &pu->propertiesUD[i];
-    UniformGL* uniform = &glCtx->uniforms[prop->index];
-    if (uniform_glType[uniform->type] != prop->type) {
-      printf_err("Uniform type mismatch: %s, In shader: %d, In app: %d\n", uniform->name, prop->type, uniform->type);
-    }
-    switch (uniform->type) {
-      case UT_Sampler2D:
-        assert(uniform->num == 1);
-        GL_CHECK(glUniform1i(prop->loc, (GLint)uniform->data.stage));
-        gl_bindTextureUnit(glCtx, bind, uniform->data.stage);
-        break;
-      case UT_Vec4:
-        GL_CHECK(glUniform4fv(prop->loc, 1, (const GLfloat*)uniform->data.vec4.element));
-        break;
-      case UT_Mat3x3:
-        GL_CHECK(glUniformMatrix3fv(prop->loc, 1, GL_FALSE, (const GLfloat*)uniform->data.mat3x3.element));
-        break;
-      case UT_Mat4x4:
-        GL_CHECK(glUniformMatrix4fv(prop->loc, 1, GL_FALSE, (const GLfloat*)uniform->data.mat4x4.element));
-        break;
-      default:
-        break;
-    }
-  }
-}
 static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, Frame* frame) {
   for (uint32_t i = draw->uniformStart; i < draw->uniformEnd; i++) {
     // Does not support uniform array, will use the last one
@@ -831,6 +466,22 @@ static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, F
   }
 }
 
+static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw* draw, RenderBind* bind, View* view) {
+  gl_updateRenderState(glCtx, draw);
+
+  ProgramGL* prog = &glCtx->programs[progIdx];
+  GL_CHECK(glUseProgram(prog->id));
+
+  gl_bindProgramAttributes(glCtx, prog, draw);
+  gl_setProgramUniforms(glCtx, prog, draw, view, bind);
+
+  IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
+  GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
+  GLsizei indexCount = (GLsizei)MIN(draw->indexCount, ib->count);
+  GL_CHECK(glDrawElements(GL_TRIANGLES, indexCount, ib->type, (const void*)(long)draw->indexStart));
+}
+
+#define IS_VALUE_CHANGED(value_, want_) ((value_ != want_) ? (value_ = want_, 1) : (0))
 static void gl_submit(RendererContext* ctx, Frame* frame) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
 
@@ -845,13 +496,11 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
     ViewId id = key->viewId;
 
     View* view = &frame->views[id];
-    if (curViewId != id) { // view changed
-      curViewId = id;
+    if (IS_VALUE_CHANGED(curViewId, id)) { // view changed
       gl_MakeViewCurrent(glCtx, view);
 
       GLenum polMod = (view->debug & BCFX_DEBUG_WIREFRAME) ? GL_LINE : GL_FILL;
-      if (curPolMod != polMod) {
-        curPolMod = polMod;
+      if (IS_VALUE_CHANGED(curPolMod, polMod)) {
         GL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, curPolMod));
       }
     }
@@ -860,20 +509,12 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
 
     gl_updateGlobalUniform(glCtx, draw, frame);
 
-    if (key->notTouch) {
-      gl_updateRenderState(glCtx, draw);
-
-      ProgramGL* prog = &glCtx->programs[key->program];
-      GL_CHECK(glUseProgram(prog->id));
-
-      gl_bindProgramAttributes(glCtx, prog, draw);
+    if (!key->notTouch) {
+      continue; // it is a touch
+    }
+    if (key->isDraw) {
       RenderBind* bind = &frame->renderBinds[i];
-      gl_setProgramUniforms(glCtx, prog, draw, view, bind);
-
-      IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
-      GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
-      GLsizei indexCount = (GLsizei)MIN(draw->indexCount, ib->count);
-      GL_CHECK(glDrawElements(GL_TRIANGLES, indexCount, ib->type, (const void*)(long)draw->indexStart));
+      gl_submitDraw(glCtx, key->program, draw, bind, view);
     }
   }
   gl_MakeWinCurrent(glCtx, NULL);
