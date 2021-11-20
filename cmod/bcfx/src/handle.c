@@ -28,6 +28,14 @@ void handle_init(HandleAlloc* allocator, uint16_t max, HandleType type) {
   }
 }
 
+void handle_destroy(HandleAlloc* allocator) {
+  mem_free((void*)allocator->dense);
+  allocator->sparse = NULL;
+  allocator->max = 0;
+  allocator->num = 0;
+  allocator->type = HT_None;
+}
+
 Handle handle_alloc(HandleAlloc* allocator) {
   if (allocator->num < allocator->max) {
     uint16_t idx = allocator->num;

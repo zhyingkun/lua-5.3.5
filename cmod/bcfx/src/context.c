@@ -47,6 +47,7 @@ static CommandParam* ctx_addCommand(Context* ctx, CommandType type, Handle handl
 ** =======================================================
 */
 
+// clang-format off
 static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
   RendererContext* renderCtx = ctx->renderCtx;
   for (uint32_t i = 0; i < cmdbuf->count; i++) {
@@ -62,26 +63,27 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
         CALL_RENDERER(createVertexLayout, cmd->handle, param->cvl.layout);
         RELEASE_VERCTX_LAYOUT(&param->cvl);
         break;
-        CASE_CALL_RENDERER(CreateVertexBuffer, createVertexBuffer, cmd->handle, &param->cvb.mem, param->cvb.layoutHandle, 0);
-        CASE_CALL_RENDERER(CreateIndexBuffer, createIndexBuffer, cmd->handle, &param->cib.mem, 0);
-        CASE_CALL_RENDERER(CreateShader, createShader, cmd->handle, &param->cs.mem, param->cs.type);
-        CASE_CALL_RENDERER(CreateProgram, createProgram, cmd->handle, param->cp.vsHandle, param->cp.fsHandle);
-        CASE_CALL_RENDERER(CreateUniform, createUniform, cmd->handle, param->cu.name, param->cu.type, param->cu.num);
-        CASE_CALL_RENDERER(CreateTexture, createTexture, cmd->handle, &param->ct.mem);
+      CASE_CALL_RENDERER(CreateVertexBuffer, createVertexBuffer, cmd->handle, &param->cvb.mem, param->cvb.layoutHandle, 0);
+      CASE_CALL_RENDERER(CreateIndexBuffer, createIndexBuffer, cmd->handle, &param->cib.mem, 0);
+      CASE_CALL_RENDERER(CreateShader, createShader, cmd->handle, &param->cs.mem, param->cs.type);
+      CASE_CALL_RENDERER(CreateProgram, createProgram, cmd->handle, param->cp.vsHandle, param->cp.fsHandle);
+      CASE_CALL_RENDERER(CreateUniform, createUniform, cmd->handle, param->cu.name, param->cu.type, param->cu.num);
+      CASE_CALL_RENDERER(CreateTexture, createTexture, cmd->handle, &param->ct.mem);
       case CT_End:
         break;
-        CASE_CALL_RENDERER(RendererShutdown, shutdown);
-        CASE_CALL_RENDERER(DestroyVertexLayout, destroyVertexLayout, cmd->handle);
-        CASE_CALL_RENDERER(DestroyVertexBuffer, destroyVertexBuffer, cmd->handle);
-        CASE_CALL_RENDERER(DestroyIndexBuffer, destroyIndexBuffer, cmd->handle);
-        CASE_CALL_RENDERER(DestroyShader, destroyShader, cmd->handle);
-        CASE_CALL_RENDERER(DestroyProgram, destroyProgram, cmd->handle);
+      // CASE_CALL_RENDERER(RendererShutdown, shutdown);
+      CASE_CALL_RENDERER(DestroyVertexLayout, destroyVertexLayout, cmd->handle);
+      CASE_CALL_RENDERER(DestroyVertexBuffer, destroyVertexBuffer, cmd->handle);
+      CASE_CALL_RENDERER(DestroyIndexBuffer, destroyIndexBuffer, cmd->handle);
+      CASE_CALL_RENDERER(DestroyShader, destroyShader, cmd->handle);
+      CASE_CALL_RENDERER(DestroyProgram, destroyProgram, cmd->handle);
       default:
         break;
 #undef CASE_CALL_RENDERER
     }
   }
 }
+// clang-format on
 
 /* }====================================================== */
 
@@ -179,6 +181,31 @@ static void _renderThreadStart(void* arg) {
   while (ctx->running) {
     ctx_renderFrame(ctx);
   }
+  RendererContext* renderCtx = ctx->renderCtx;
+  CALL_RENDERER(shutdown);
+}
+
+typedef enum {
+  RT_OpenGL,
+} RendererType;
+
+RendererContext* CreateRendererGL(void);
+void DestroyRendererGL(RendererContext*);
+
+static RendererCreator creators[] = {
+    CreateRendererGL,
+    NULL,
+};
+static RendererDestroyers destroyers[] = {
+    DestroyRendererGL,
+    NULL,
+};
+
+static RendererContext* CreateRenderer() {
+  return creators[RT_OpenGL]();
+}
+static void DestroyRenderer(RendererContext* renderer) {
+  destroyers[RT_OpenGL](renderer);
 }
 
 void ctx_init(Context* ctx, Window mainWin) {
@@ -215,6 +242,16 @@ void ctx_shutdowm(Context* ctx) {
   ctx->running = false;
   ctx_apiSemPost(ctx); // maybe render thread waiting for api sem, fire render thread to exit
   thread_join(ctx->renderThread); // Wait render thread to exit
+
+  sem_destroy(ctx->apiSem);
+  sem_destroy(ctx->renderSem);
+
+  DestroyRenderer(ctx->renderCtx);
+  ctx->renderCtx = NULL;
+
+#define XX(name, config_max) handle_destroy(&ctx->allocators[(uint8_t)HT_##name]);
+  BCFX_RESOURCE_MAP(XX)
+#undef XX
 }
 
 /* }====================================================== */

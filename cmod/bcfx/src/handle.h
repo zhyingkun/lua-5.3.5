@@ -28,6 +28,7 @@ typedef struct {
 } HandleAlloc;
 
 void handle_init(HandleAlloc* allocator, uint16_t max, HandleType type);
+void handle_destroy(HandleAlloc* allocator);
 Handle handle_alloc(HandleAlloc* allocator);
 void handle_free(HandleAlloc* allocator, Handle handle);
 bool handle_isvalid(HandleAlloc* allocator, Handle handle);

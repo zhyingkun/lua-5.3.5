@@ -1142,6 +1142,7 @@ static void gl_destroyProgram(RendererContext* ctx, Handle handle) {
 static void gl_destroyUniform(RendererContext* ctx, Handle handle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   UniformGL* uniform = &glCtx->uniforms[handle_index(handle)];
+  free((void*)uniform->name);
   memset((uint8_t*)uniform, 0, sizeof(UniformGL));
 }
 static void gl_destroyTexture(RendererContext* ctx, Handle handle) {
@@ -1151,7 +1152,7 @@ static void gl_destroyTexture(RendererContext* ctx, Handle handle) {
   texture->id = 0;
 }
 
-RendererContext* CreateRenderer(void) {
+RendererContext* CreateRendererGL(void) {
   RendererContextGL* glCtx = (RendererContextGL*)mem_malloc(sizeof(RendererContextGL));
   memset(glCtx, 0, sizeof(RendererContextGL));
   RendererContext* renderer = &glCtx->api;
@@ -1181,4 +1182,8 @@ RendererContext* CreateRenderer(void) {
   renderer->destroyTexture = gl_destroyTexture;
 
   return renderer;
+}
+
+void DestroyRendererGL(RendererContext* renderer) {
+  mem_free((void*)renderer);
 }

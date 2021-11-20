@@ -65,7 +65,8 @@ struct RendererContext {
   RendererDestroyTexture destroyTexture;
 };
 
-RendererContext* CreateRenderer(void);
+typedef RendererContext* (*RendererCreator)(void);
+typedef void (*RendererDestroyers)(RendererContext*);
 
 /* }====================================================== */
 
