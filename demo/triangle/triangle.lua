@@ -11,7 +11,6 @@ local graphics3d = bcfx.math.graphics3d
 local vector = bcfx.math.vector
 local texture_wrap = bcfx.texture_wrap
 local texture_filter = bcfx.texture_filter
-local depth_func = bcfx.depth_func
 
 local loader = require("loader")
 
@@ -227,11 +226,11 @@ local function setup(mainWin)
 
 	glfw.SetFramebufferSizeCallback(mainWin, function(window, width, height)
 		bcfx.setViewRect(0, 0, 0, width, height)
-		bcfx.setViewRect(1, 0, 0, width / 2, height / 2)
+		bcfx.setViewRect(1, 0, 0, width // 2, height // 2)
 	end)
 	local pixelw, pixelh = glfw.GetFramebufferSize(mainWin)
 	SetupViewFull(0, mainWin, pixelw, pixelh)
-	SetupViewHalf(1, mainWin, pixelw // 2, pixelh / 2)
+	SetupViewHalf(1, mainWin, pixelw // 2, pixelh // 2)
 
 	-- SetupAnotherView(2, mainWin)
 
@@ -270,7 +269,7 @@ local function tick(delta)
 	bcfx.setTexture(0, cube.uniform, cube.texture, flags)
 
 	local state = bcfx.utils.PackRenderState({
-		depthFunc = depth_func.Less,
+		enableDepth = true,
 	})
 	bcfx.setState(state, bcfx.color.black)
 
