@@ -49,6 +49,7 @@ typedef struct {
   uint8_t usedCount;
   uint8_t used[VA_Count]; // Dense.
   GLint attributes[VA_Count]; // Sparse. AttribType => Location
+  GLint instanceAttr[BCFX_CONFIG_MAX_INSTANCE_DATA];
 } PredefinedAttrib;
 typedef struct {
   GLint loc;
