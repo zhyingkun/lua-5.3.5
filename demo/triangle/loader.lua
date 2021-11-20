@@ -11,8 +11,8 @@ function loader.SetPathPrefix(prefix)
 end
 
 function loader.LoadProgram(name)
-	local vsPath = pathPrefix .. "Resource/Shader/" .. name .. "_vs.glsl"
-	local fsPath = pathPrefix .. "Resource/Shader/" .. name .. "_fs.glsl"
+	local vsPath = pathPrefix .. "Resource/Shader/" .. name .. ".vert.glsl"
+	local fsPath = pathPrefix .. "Resource/Shader/" .. name .. ".frag.glsl"
 	local vs = bcfx.createShader(io.readfile(vsPath), shader_type.Vertex)
 	local fs = bcfx.createShader(io.readfile(fsPath), shader_type.Fragment)
 	local prog = bcfx.createProgram(vs, fs)
@@ -20,11 +20,13 @@ function loader.LoadProgram(name)
 		bcfx.destroy(vs)
 		vs = bcfx.createShader(io.readfile(vsPath), shader_type.Vertex)
 		bcfx.updateProgram(prog, vs, fs)
+		print_err("Vertex shader reload completed!")
 	end)
 	watch.onFileChanged(fsPath, function()
 		bcfx.destroy(fs)
 		fs = bcfx.createShader(io.readfile(fsPath), shader_type.Fragment)
 		bcfx.updateProgram(prog, vs, fs)
+		print_err("Fragment shader reload completed!")
 	end)
 	return prog
 end
