@@ -8,7 +8,6 @@
 */
 
 #define GET_UINT8(L, idx) ((uint8_t)(lua_isinteger(L, idx) ? lua_tointeger(L, idx) : (lua_tonumber(L, idx) * 255)))
-#define PACK_COLOR(r, g, b, a) (((uint32_t)r) << 24) | (((uint32_t)g) << 16) | (((uint32_t)b) << 8) | (((uint32_t)a) << 0)
 static int COLOR_FUNCTION(Pack)(lua_State* L) {
   luaL_checktype(L, 1, LUA_TNUMBER);
   luaL_checktype(L, 2, LUA_TNUMBER);

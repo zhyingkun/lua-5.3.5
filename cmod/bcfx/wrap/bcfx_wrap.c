@@ -385,11 +385,12 @@ static int BCWRAP_FUNCTION(setState)(lua_State* L) {
   return 0;
 }
 static int BCWRAP_FUNCTION(setStencil)(lua_State* L) {
+  int enable = luaL_checkboolean(L, 1);
   bcfx_UStencilState uFront, uBack;
-  uFront.stateUINT32 = (uint32_t)luaL_checkinteger(L, 1);
-  uBack.stateUINT32 = (uint32_t)luaL_checkinteger(L, 2);
+  uFront.stateUINT32 = (uint32_t)luaL_checkinteger(L, 2);
+  uBack.stateUINT32 = (uint32_t)luaL_checkinteger(L, 3);
 
-  bcfx_setStencil(uFront.stateStruct, uBack.stateStruct);
+  bcfx_setStencil(enable, uFront.stateStruct, uBack.stateStruct);
   return 0;
 }
 static int BCWRAP_FUNCTION(submit)(lua_State* L) {

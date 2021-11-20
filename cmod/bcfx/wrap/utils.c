@@ -168,8 +168,8 @@ static int UTILS_FUNCTION(PackRenderState)(lua_State* L) {
   lua_settop(L, 1);
   bcfx_RenderState state = {0};
   SET_STATE_FIELD(frontFace, integer);
+  SET_STATE_FIELD(enableCull, boolean);
   SET_STATE_FIELD(cullFace, integer);
-  SET_STATE_FIELD(noWriteZ, boolean);
   SET_STATE_FIELD(enableDepth, boolean);
   SET_STATE_FIELD(depthFunc, integer);
   SET_STATE_FIELD(alphaRef, integer);
@@ -179,6 +179,7 @@ static int UTILS_FUNCTION(PackRenderState)(lua_State* L) {
   SET_STATE_FIELD(noWriteG, boolean);
   SET_STATE_FIELD(noWriteB, boolean);
   SET_STATE_FIELD(noWriteA, boolean);
+  SET_STATE_FIELD(noWriteZ, boolean);
   SET_STATE_FIELD(enableBlend, boolean);
   SET_STATE_FIELD(srcRGB, integer);
   SET_STATE_FIELD(dstRGB, integer);
@@ -195,7 +196,6 @@ static int UTILS_FUNCTION(PackRenderState)(lua_State* L) {
 static int UTILS_FUNCTION(PackStencilState)(lua_State* L) {
   luaL_checktype(L, 1, LUA_TTABLE);
   bcfx_StencilState state = {0};
-  SET_STATE_FIELD(enable, boolean);
   SET_STATE_FIELD(func, integer);
   SET_STATE_FIELD(sfail, integer);
   SET_STATE_FIELD(dpfail, integer);
