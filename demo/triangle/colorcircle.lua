@@ -9,7 +9,7 @@ local shader_type = bcfx.shader_type
 local color = bcfx.color
 local membuf = bcfx.membuf
 local data_type = membuf.data_type
-
+local discard = bcfx.discard
 
 local vsStr = [[
 #version 410 core
@@ -106,7 +106,7 @@ local function tick(delta)
 	bcfx.setVertexBuffer(0, vertexHandle)
 	bcfx.setIndexBuffer(idxHandle)
 
-	bcfx.submit(viewID, shaderProgramHandle)
+	bcfx.submit(viewID, shaderProgramHandle, discard.ALL)
 end
 
 return {

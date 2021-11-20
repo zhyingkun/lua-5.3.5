@@ -11,6 +11,7 @@ local graphics3d = bcfx.math.graphics3d
 local vector = bcfx.math.vector
 local texture_wrap = bcfx.texture_wrap
 local texture_filter = bcfx.texture_filter
+local discard = bcfx.discard
 
 local loader = require("loader")
 
@@ -249,7 +250,7 @@ local function tick(delta)
 	bcfx.setIndexBuffer(triangle.index)
 	local mat = graphics3d.scale(vector.Vec3(0.5, 0.5, 0.5))
 	bcfx.setTransform(mat)
-	bcfx.submit(0, triangle.shader)
+	bcfx.submit(0, triangle.shader, discard.ALL)
 
 	bcfx.setVertexBuffer(0, cube.vertex)
 	bcfx.setVertexBuffer(1, cube.texCoord)
@@ -274,12 +275,12 @@ local function tick(delta)
 	bcfx.setState(state, bcfx.color.black)
 
 	-- bcfx.setViewDebug(1, bcfx.debug.WIREFRAME)
-	bcfx.submit(1, cube.shader)
+	bcfx.submit(1, cube.shader, discard.ALL)
 
 	-- bcfx.setVertexBuffer(0, vertexHandle)
 	-- bcfx.setVertexBuffer(1, colorHandle)
 	-- bcfx.setIndexBuffer(idxHandle)
-	-- bcfx.submit(2, shaderProgramHandle)
+	-- bcfx.submit(2, shaderProgramHandle, discard.ALL)
 
 	-- local color = bcfx.color.Pack(255, 255, 0, 255)
 	-- bcfx.setViewClear(2, clear_flag.COLOR, color, 0.0, 0)
