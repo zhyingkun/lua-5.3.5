@@ -261,7 +261,11 @@ local function tick(delta)
 	bcfx.setIndexBuffer(triangle.index)
 	local mat = graphics3d.scale(vector.Vec3(0.5, 0.5, 0.5))
 	bcfx.setTransform(mat)
-	bcfx.setInstanceDataBuffer(instanceBuffer, 1, 3)
+	bcfx.setInstanceDataBuffer({
+		handle = instanceBuffer,
+		numAttrib = 1,
+		numInstance = 3,
+	})
 	bcfx.submit(0, triangle.shader, discard.ALL)
 
 	bcfx.setVertexBuffer(0, cube.vertex)
