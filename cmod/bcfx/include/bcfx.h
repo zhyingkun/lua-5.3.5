@@ -348,7 +348,7 @@ BCFX_API void bcfx_resetView(ViewId id);
 
 /*
 ** {======================================================
-** Submit drawcall
+** Submit DrawCall
 ** =======================================================
 */
 
@@ -367,8 +367,8 @@ typedef struct {
   uint8_t wrapV : 1;
   uint8_t filterMin : 1;
   uint8_t filterMag : 1;
-  uint8_t byteReserve : 4;
-  uint8_t reserve[3];
+  uint8_t reserved1 : 4;
+  uint8_t reserved2[3];
 } bcfx_SamplerFlags;
 typedef union {
   uint32_t flagsUINT32;
@@ -388,18 +388,17 @@ typedef enum {
   CF_Front,
   CF_FrontAndBack,
 } bcfx_ECullFace;
-// WARNING: Change bcfx_EDepthFunc must Update depthFunc_glType
+// WARNING: Change bcfx_ECompareFunc must Update compareFunc_glType
 typedef enum {
-  DF_None,
-  DF_Less,
-  DF_LEqual,
-  DF_Equal,
-  DF_GEqual,
-  DF_Greater,
-  DF_NotEqual,
-  DF_Never,
-  DF_Always,
-} bcfx_EDepthFunc;
+  CF_Less,
+  CF_LEqual,
+  CF_Equal,
+  CF_GEqual,
+  CF_Greater,
+  CF_NotEqual,
+  CF_Never,
+  CF_Always,
+} bcfx_ECompareFunc;
 // WARNING: Change bcfx_EBlendFunc must Update blendFunc_glType
 typedef enum {
   BF_Zero,
@@ -426,14 +425,36 @@ typedef enum {
   BE_Min,
   BE_Max,
 } bcfx_EBlendEquation;
+// WARNING: Change bcfx_ELogicOperate must Update logicOperate_glType
+typedef enum {
+  LO_Copy,
+  LO_CopyInverted,
+  LO_Clear,
+  LO_Set,
+  LO_Noop,
+  LO_Invert,
+  LO_And,
+  LO_NAnd,
+  LO_Or,
+  LO_NOr,
+  LO_Xor,
+  LO_Equiv,
+  LO_AndReverse,
+  LO_AndInverted,
+  LO_OrReverse,
+  LO_OrInverted,
+} bcfx_ELogicOperate;
 typedef struct {
   uint8_t frontFace : 1;
   uint8_t cullFace : 2;
   uint8_t noWriteZ : 1;
-  uint8_t depthFunc : 4;
+  uint8_t enableDepth : 1;
+  uint8_t depthFunc : 3;
 
   uint8_t alphaRef;
+
   uint8_t pointSize : 4;
+  uint8_t lineWidth : 4; // current not used
 
   uint8_t noWriteR : 1;
   uint8_t noWriteG : 1;
@@ -441,7 +462,7 @@ typedef struct {
   uint8_t noWriteA : 1;
 
   uint8_t enableBlend : 1;
-  uint8_t byteReserve : 7;
+  uint8_t reserved1 : 3;
 
   uint8_t srcRGB : 4;
   uint8_t dstRGB : 4;
@@ -451,7 +472,9 @@ typedef struct {
   uint8_t blendEquRGB : 4;
   uint8_t blendEquA : 4;
 
-  uint8_t reserve;
+  uint8_t enableLogicOp : 1;
+  uint8_t logicOp : 4;
+  uint8_t reserved2 : 3;
 } bcfx_RenderState;
 typedef union {
   uint64_t stateUINT64;
@@ -459,17 +482,6 @@ typedef union {
 } bcfx_URenderState;
 #define RENDERSTATE_UINT64(state) (((bcfx_URenderState*)&state)->stateUINT64)
 
-// WARNING: Change bcfx_EStencilFunc must Update stencilFunc_glType
-typedef enum {
-  SF_Less,
-  SF_LEqual,
-  SF_Equal,
-  SF_GEqual,
-  SF_Greater,
-  SF_NotEqual,
-  SF_Never,
-  SF_Always,
-} bcfx_EStencilFunc;
 // WARNING: Change bcfx_EStencilAction must Update stencilAction_glType
 typedef enum {
   SA_Keep,
@@ -485,10 +497,10 @@ typedef struct {
   uint8_t enable : 1;
   uint8_t func : 3;
   uint8_t sfail : 3;
-  uint8_t byteReserve : 1;
+  uint8_t reserved1 : 1;
   uint8_t dpfail : 3;
   uint8_t dppass : 3;
-  uint8_t byteReserve2 : 2;
+  uint8_t reserved2 : 2;
   uint8_t ref;
   uint8_t mask;
 } bcfx_StencilState;

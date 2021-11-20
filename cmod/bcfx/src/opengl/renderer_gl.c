@@ -1,5 +1,6 @@
 #include <renderer.h>
 #include <bcfx_math.h>
+#include <sortkey.h>
 
 // According to bcfx_EDataType
 static GLenum data_glType[] = {
@@ -53,9 +54,8 @@ static GLenum cullFace_glType[] = {
     GL_FRONT,
     GL_FRONT_AND_BACK,
 };
-// According to bcfx_EDepthFunc
-static GLenum depthFunc_glType[] = {
-    GL_NONE,
+// According to bcfx_ECompareFunc
+static GLenum compareFunc_glType[] = {
     GL_LESS,
     GL_LEQUAL,
     GL_EQUAL,
@@ -91,16 +91,24 @@ static GLenum blendEquation_glType[] = {
     GL_MIN,
     GL_MAX,
 };
-// According to bcfx_EStencilFunc
-static GLenum stencilFunc_glType[] = {
-    GL_LESS,
-    GL_LEQUAL,
-    GL_EQUAL,
-    GL_GEQUAL,
-    GL_GREATER,
-    GL_NOTEQUAL,
-    GL_NEVER,
-    GL_ALWAYS,
+// According to bcfx_ELogicOperate
+static GLenum logicOperate_glType[] = {
+    GL_COPY,
+    GL_COPY_INVERTED,
+    GL_CLEAR,
+    GL_SET,
+    GL_NOOP,
+    GL_INVERT,
+    GL_AND,
+    GL_NAND,
+    GL_OR,
+    GL_NOR,
+    GL_XOR,
+    GL_EQUIV,
+    GL_AND_REVERSE,
+    GL_AND_INVERTED,
+    GL_OR_REVERSE,
+    GL_OR_INVERTED,
 };
 // According to bcfx_EStencilAction
 static GLenum stencilAction_glType[] = {
@@ -597,14 +605,17 @@ static void gl_createShader(RendererContext* ctx, Handle handle, bcfx_MemBuffer*
   } else {
   }
   GL_CHECK(shader->id = glCreateShader(shader->type));
-  GL_CHECK(glShaderSource(shader->id, 1, (const GLchar* const*)&mem->ptr, NULL));
+  const GLint length = mem->sz;
+  GL_CHECK(glShaderSource(shader->id, 1, (const GLchar* const*)&mem->ptr, &length));
   GL_CHECK(glCompileShader(shader->id));
 
-  int success;
-  char infoLog[1024];
+  GLint success;
   GL_CHECK(glGetShaderiv(shader->id, GL_COMPILE_STATUS, &success));
-  if (!success) {
-    GL_CHECK(glGetShaderInfoLog(shader->id, 1024, NULL, infoLog));
+  if (success == GL_FALSE) {
+    GLint logLen = 0;
+    GL_CHECK(glGetShaderiv(shader->id, GL_INFO_LOG_LENGTH, &logLen));
+    GLchar* infoLog = (GLchar*)alloca(logLen);
+    GL_CHECK(glGetShaderInfoLog(shader->id, logLen, NULL, infoLog));
     printf_err("Shader compile error: %s\n", infoLog);
   }
   MEMBUFFER_RELEASE(mem);
@@ -633,11 +644,13 @@ static void gl_createProgram(RendererContext* ctx, Handle handle, Handle vsh, Ha
   }
   GL_CHECK(glLinkProgram(prog->id));
 
-  int success;
-  char infoLog[1024];
+  GLint success;
   GL_CHECK(glGetProgramiv(prog->id, GL_LINK_STATUS, &success));
-  if (!success) {
-    GL_CHECK(glGetProgramInfoLog(prog->id, 1024, NULL, infoLog));
+  if (success == GL_FALSE) {
+    GLint logLen = 0;
+    GL_CHECK(glGetProgramiv(prog->id, GL_INFO_LOG_LENGTH, &logLen));
+    GLchar* infoLog = (GLchar*)alloca(logLen);
+    GL_CHECK(glGetProgramInfoLog(prog->id, logLen, NULL, infoLog));
     printf_err("Shader program link error: %s\n", infoLog);
     return;
   }
@@ -900,7 +913,7 @@ static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, F
 }
 static void updateStencilState(GLenum face, bcfx_StencilState state) {
   if (state.enable) {
-    GL_CHECK(glStencilFuncSeparate(face, stencilFunc_glType[state.func], state.ref, state.mask));
+    GL_CHECK(glStencilFuncSeparate(face, compareFunc_glType[state.func], state.ref, state.mask));
     GL_CHECK(glStencilOpSeparate(
         face,
         stencilAction_glType[state.sfail],
@@ -940,23 +953,29 @@ static void updateRenderState(bcfx_RenderState state, uint32_t blendColor, bcfx_
   if (IS_STATE_CHANGED(noWriteZ)) {
     GL_CHECK(glDepthMask(!((GLboolean)state.noWriteZ)));
   }
-  if (IS_STATE_CHANGED(depthFunc)) {
-    if (state.depthFunc == DF_None) {
+  if (IS_STATE_CHANGED(enableDepth)) {
+    if (state.enableDepth) {
+      GL_CHECK(glEnable(GL_DEPTH_TEST));
+    } else {
       if (state.noWriteZ) {
         GL_CHECK(glDisable(GL_DEPTH_TEST));
       } else {
         GL_CHECK(glEnable(GL_DEPTH_TEST));
         GL_CHECK(glDepthFunc(GL_ALWAYS));
+        curState.depthFunc = CF_Always;
       }
-    } else {
-      GL_CHECK(glEnable(GL_DEPTH_TEST));
-      GL_CHECK(glDepthFunc(depthFunc_glType[state.depthFunc]));
     }
+  }
+  if (state.enableDepth && IS_STATE_CHANGED(depthFunc)) {
+    GL_CHECK(glDepthFunc(compareFunc_glType[state.depthFunc]));
   }
   // alphaRef will be set in uniform, no OpenGL API
   if (IS_STATE_CHANGED(pointSize)) {
     GL_CHECK(glPointSize((GLfloat)MAX(state.pointSize, 1)));
   }
+  // if (IS_STATE_CHANGED(lineWidth)) {
+  //   GL_CHECK(glLineWidth((GLfloat)MAX(state.lineWidth, 1)));
+  // }
   if (IS_STATE_NOT_EQUAL4(noWriteR, noWriteG, noWriteB, noWriteA)) {
     ASSIGN_STATE4(noWriteR, noWriteG, noWriteB, noWriteA);
     GL_CHECK(glColorMask(
@@ -1020,6 +1039,16 @@ static void updateRenderState(bcfx_RenderState state, uint32_t blendColor, bcfx_
       updateStencilState(GL_BACK, back);
     }
   }
+  if (IS_STATE_CHANGED(enableLogicOp)) {
+    if (state.enableLogicOp) {
+      GL_CHECK(glEnable(GL_COLOR_LOGIC_OP));
+    } else {
+      GL_CHECK(glDisable(GL_COLOR_LOGIC_OP));
+    }
+  }
+  if (state.enableLogicOp && IS_STATE_CHANGED(logicOp)) {
+    GL_CHECK(glLogicOp(logicOperate_glType[state.logicOp]));
+  }
 }
 
 static const bcfx_RenderState stateEmpty = {0};
@@ -1027,7 +1056,7 @@ static const bcfx_StencilState stencilEmpty = {0};
 static void gl_submit(RendererContext* ctx, Frame* frame) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
 
-  // TODO: SortKey
+  sortUint64Array(frame->sortKeys, frame->numRenderItems);
 
   updateRenderState(stateEmpty, 0, stencilEmpty, stencilEmpty, true);
 
@@ -1035,10 +1064,9 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
   ViewId curViewId = UINT16_MAX;
   GLenum curPolMod = GL_NONE;
   for (uint32_t i = 0; i < renderCount; i++) {
-    RenderDraw* draw = &frame->renderItems[i].draw;
-    ViewId id = 0;
-    uint16_t program = 0;
-    sortkey_decode(frame->sortKeys[i], &id, &program);
+    SortKey key[1];
+    sortkey_decode(key, frame->sortKeys[i]);
+    ViewId id = key->viewId;
 
     View* view = &frame->views[id];
     if (curViewId != id) { // view changed
@@ -1052,6 +1080,8 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
       }
     }
 
+    RenderDraw* draw = &frame->renderItems[key->sequence].draw;
+
     updateRenderState(
         draw->state,
         draw->blendColor,
@@ -1061,7 +1091,7 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
 
     gl_updateGlobalUniform(glCtx, draw, frame);
 
-    ProgramGL* prog = &glCtx->programs[program];
+    ProgramGL* prog = &glCtx->programs[key->program];
     GL_CHECK(glUseProgram(prog->id));
 
     gl_bindProgramAttributes(glCtx, prog, draw);

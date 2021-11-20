@@ -75,7 +75,14 @@ void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags)
   uint16_t index = frame_newRenderItemIndex(frame);
   frame_setRenderItem(frame, index, (RenderItem*)draw);
   frame_setRenderBind(frame, index, bind);
-  frame_setSortKey(frame, index, sortkey_encode(id, handle_index(program)));
+  SortKey* key = &encoder->sortKey;
+  key->notTouch = 1;
+  key->isDraw = 1;
+  key->viewId = id;
+  key->blend = (!!draw->state.alphaRef) + (!!draw->state.enableBlend) * 2;
+  key->program = handle_index(program);
+  key->sequence = index;
+  frame_setSortKey(frame, index, sortkey_encode(key));
 
   if (flags & BCFX_DISCARD_VERTEX_STREAMS) {
     draw->streamMask = 0;

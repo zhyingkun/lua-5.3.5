@@ -3,6 +3,7 @@
 
 #include <common.h>
 #include <frame.h>
+#include <sortkey.h>
 
 /*
 ** {======================================================
@@ -16,6 +17,7 @@ typedef struct {
   RenderCompute compute;
   RenderBind bind;
   uint32_t uniformStart;
+  SortKey sortKey;
 } Encoder;
 
 void encoder_begin(Encoder* encoder, Frame* frame);

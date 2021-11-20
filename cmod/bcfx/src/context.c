@@ -229,7 +229,7 @@ void ctx_shutdowm(Context* ctx) {
   Handle handle = HANDLE_ALLOC(name); \
   CommandParam* param = ctx_addCommand(ctx, CT_Create##name, handle);
 
-static void ctx_releaseVertexLayout(void* ud, bcfx_VertexLayout* layout) {
+static void _releaseVertexLayout(void* ud, bcfx_VertexLayout* layout) {
   (void)ud;
   mem_free((void*)layout);
 }
@@ -238,7 +238,7 @@ Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout) {
   bcfx_VertexLayout* ly = (bcfx_VertexLayout*)mem_malloc(sizeof(bcfx_VertexLayout));
   memcpy(ly, layout, sizeof(bcfx_VertexLayout));
   param->cvl.layout = ly;
-  param->cvl.release = ctx_releaseVertexLayout;
+  param->cvl.release = _releaseVertexLayout;
   param->cvl.ud = NULL;
   return handle;
 }
@@ -389,7 +389,7 @@ void ctx_resetView(Context* ctx, ViewId id) {
 
 /*
 ** {======================================================
-** Submit drawcall
+** Submit DrawCall
 ** =======================================================
 */
 
