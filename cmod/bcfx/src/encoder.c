@@ -90,11 +90,17 @@ void encoder_setStencil(Encoder* encoder, bool enable, bcfx_StencilState front, 
   encoder->draw.stencilBack = back;
 }
 void encoder_setInstanceDataBuffer(Encoder* encoder, const bcfx_InstanceDataBuffer* idb, uint32_t start, uint32_t count) {
+  if (start > idb->numInstance) {
+    start = idb->numInstance;
+  }
+  if (count == 0 || start + count > idb->numInstance) {
+    count = idb->numInstance - start;
+  }
   RenderDraw* draw = &encoder->draw;
   draw->instanceDataBuffer = idb->handle;
   draw->instanceDataOffset = idb->bufferOffset + sizeof(float) * 4 * idb->numAttrib * start;
   draw->numAttrib = idb->numAttrib;
-  draw->numInstance = count == 0 ? idb->numInstance - start : count;
+  draw->numInstance = count;
 }
 
 void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags, uint32_t depth, ViewMode mode, bool notTouch) {
