@@ -7,24 +7,24 @@
 ** =======================================================
 */
 
-void vec_init(Vec* vec, uint8_t cnt) {
+BCFX_API void vec_init(Vec* vec, uint8_t cnt) {
   vec->count = cnt;
 }
 
-void vec_zero(Vec* vec) {
+BCFX_API void vec_zero(Vec* vec) {
   for (uint8_t i = 0; i < vec->count; i++) {
     VEC_ELEMENT(vec, i) = 0.0;
   }
 }
 
-void vec_one(Vec* vec) {
+BCFX_API void vec_one(Vec* vec) {
   for (uint8_t i = 0; i < vec->count; i++) {
     VEC_ELEMENT(vec, i) = 1.0;
   }
 }
 
 // src and dst can be the same
-void vec_add(const Vec* src1, const Vec* src2, Vec* dst) {
+BCFX_API void vec_add(const Vec* src1, const Vec* src2, Vec* dst) {
   assert(src1->count == src2->count &&
          src1->count == dst->count);
   for (uint8_t i = 0; i < dst->count; i++) {
@@ -33,7 +33,7 @@ void vec_add(const Vec* src1, const Vec* src2, Vec* dst) {
 }
 
 // src and dst can be the same
-void vec_subtract(const Vec* src1, const Vec* src2, Vec* dst) {
+BCFX_API void vec_subtract(const Vec* src1, const Vec* src2, Vec* dst) {
   assert(src1->count == src2->count &&
          src1->count == dst->count);
   for (uint8_t i = 0; i < dst->count; i++) {
@@ -42,7 +42,7 @@ void vec_subtract(const Vec* src1, const Vec* src2, Vec* dst) {
 }
 
 // src and dst can be the same
-void vec_componentWiseProduct(const Vec* src1, const Vec* src2, Vec* dst) {
+BCFX_API void vec_componentWiseProduct(const Vec* src1, const Vec* src2, Vec* dst) {
   assert(src1->count == src2->count &&
          src1->count == dst->count);
   for (uint8_t i = 0; i < dst->count; i++) {
@@ -51,7 +51,7 @@ void vec_componentWiseProduct(const Vec* src1, const Vec* src2, Vec* dst) {
 }
 
 // src and dst can be the same
-void vec_scale(const Vec* src, float scale, Vec* dst) {
+BCFX_API void vec_scale(const Vec* src, float scale, Vec* dst) {
   assert(src->count == dst->count);
   for (uint8_t i = 0; i < dst->count; i++) {
     VEC_ELEMENT(dst, i) = VEC_ELEMENT(src, i) * scale;
@@ -59,7 +59,7 @@ void vec_scale(const Vec* src, float scale, Vec* dst) {
 }
 
 // vec1 and vec2 can be the same
-float vec_dotProduct(const Vec* vec1, const Vec* vec2) {
+BCFX_API float vec_dotProduct(const Vec* vec1, const Vec* vec2) {
   assert(vec1->count == vec2->count);
   float dot = 0.0;
   for (uint8_t i = 0; i < vec1->count; i++) {
@@ -68,7 +68,7 @@ float vec_dotProduct(const Vec* vec1, const Vec* vec2) {
   return dot;
 }
 
-float vec_lengthSquared(const Vec* vec) {
+BCFX_API float vec_lengthSquared(const Vec* vec) {
   float result = 0.0;
   for (uint8_t i = 0; i < vec->count; i++) {
     float value = VEC_ELEMENT(vec, i);
@@ -77,13 +77,13 @@ float vec_lengthSquared(const Vec* vec) {
   return result;
 }
 
-float vec_length(const Vec* vec) {
+BCFX_API float vec_length(const Vec* vec) {
   float squared = vec_lengthSquared(vec);
   return sqrtf(squared);
 }
 
 // vec1 and vec2 can be the same
-float vec_distanceSquared(const Vec* vec1, const Vec* vec2) {
+BCFX_API float vec_distanceSquared(const Vec* vec1, const Vec* vec2) {
   assert(vec1->count == vec2->count);
   Vec* temp = (Vec*)alloca(VEC_SIZE(vec1->count));
   vec_subtract(vec1, vec2, temp);
@@ -91,18 +91,18 @@ float vec_distanceSquared(const Vec* vec1, const Vec* vec2) {
 }
 
 // vec1 and vec2 can be the same
-float vec_distance(const Vec* vec1, const Vec* vec2) {
+BCFX_API float vec_distance(const Vec* vec1, const Vec* vec2) {
   float squared = vec_distanceSquared(vec1, vec2);
   return sqrtf(squared);
 }
 
 // src and dst can be the same
-void vec_normalize(const Vec* src, Vec* dst) {
+BCFX_API void vec_normalize(const Vec* src, Vec* dst) {
   float length = vec_length(src);
   vec_scale(src, 1.0 / length, dst);
 }
 
-void vec_copy(const Vec* src, Vec* dst) {
+BCFX_API void vec_copy(const Vec* src, Vec* dst) {
   assert(src->count == dst->count);
   for (uint8_t i = 0; i < dst->count; i++) {
     VEC_ELEMENT(dst, i) = VEC_ELEMENT(src, i);
@@ -110,7 +110,7 @@ void vec_copy(const Vec* src, Vec* dst) {
 }
 
 // src and dst can be the same
-void vec_max(const Vec* src1, const Vec* src2, Vec* dst) {
+BCFX_API void vec_max(const Vec* src1, const Vec* src2, Vec* dst) {
   assert(src1->count == src2->count &&
          src1->count == dst->count);
   for (uint8_t i = 0; i < dst->count; i++) {
@@ -121,7 +121,7 @@ void vec_max(const Vec* src1, const Vec* src2, Vec* dst) {
 }
 
 // src and dst can be the same
-void vec_min(const Vec* src1, const Vec* src2, Vec* dst) {
+BCFX_API void vec_min(const Vec* src1, const Vec* src2, Vec* dst) {
   assert(src1->count == src2->count &&
          src1->count == dst->count);
   for (uint8_t i = 0; i < dst->count; i++) {
@@ -131,7 +131,7 @@ void vec_min(const Vec* src1, const Vec* src2, Vec* dst) {
   }
 }
 
-bool vec_equals(const Vec* src1, const Vec* src2) {
+BCFX_API bool vec_equals(const Vec* src1, const Vec* src2) {
   assert(src1->count == src2->count);
   for (uint8_t i = 0; i < src1->count; i++) {
     float v1 = VEC_ELEMENT(src1, i);
@@ -143,7 +143,7 @@ bool vec_equals(const Vec* src1, const Vec* src2) {
   return true;
 }
 
-bool vec_isZero(const Vec* vec) {
+BCFX_API bool vec_isZero(const Vec* vec) {
   for (uint8_t i = 0; i < vec->count; i++) {
     float v = VEC_ELEMENT(vec, i);
     if (!EQUAL(v, 0.0)) {
@@ -154,7 +154,7 @@ bool vec_isZero(const Vec* vec) {
 }
 
 // src and dst should not be the same
-void vec_projection(const Vec* src, const Vec* axis, Vec* dst) {
+BCFX_API void vec_projection(const Vec* src, const Vec* axis, Vec* dst) {
   assert(VEC_COUNT(src) == VEC_COUNT(axis) &&
          VEC_COUNT(src) == VEC_COUNT(dst));
   VEC_NORMALIZE(axis, dst);
@@ -163,7 +163,7 @@ void vec_projection(const Vec* src, const Vec* axis, Vec* dst) {
 }
 
 // src and dst should not be the same
-void vec_perpendicular(const Vec* src, const Vec* axis, Vec* dst) {
+BCFX_API void vec_perpendicular(const Vec* src, const Vec* axis, Vec* dst) {
   assert(VEC_COUNT(src) == VEC_COUNT(axis) &&
          VEC_COUNT(src) == VEC_COUNT(dst));
   VEC_PROJECTION(src, axis, dst);
@@ -178,7 +178,7 @@ void vec_perpendicular(const Vec* src, const Vec* axis, Vec* dst) {
 ** =======================================================
 */
 
-void vec2_init(Vec2* vec) {
+BCFX_API void vec2_init(Vec2* vec) {
   vec_init((Vec*)vec, 2);
 }
 
@@ -190,12 +190,12 @@ void vec2_init(Vec2* vec) {
 ** =======================================================
 */
 
-void vec3_init(Vec3* vec) {
+BCFX_API void vec3_init(Vec3* vec) {
   vec_init((Vec*)vec, 3);
 }
 
 // src and dst can be the same
-void vec3_crossProduct(const Vec3* src1, const Vec3* src2, Vec3* dst) {
+BCFX_API void vec3_crossProduct(const Vec3* src1, const Vec3* src2, Vec3* dst) {
   float x1 = VEC3_X(src1);
   float y1 = VEC3_Y(src1);
   float z1 = VEC3_Z(src1);
@@ -215,7 +215,7 @@ void vec3_crossProduct(const Vec3* src1, const Vec3* src2, Vec3* dst) {
 ** =======================================================
 */
 
-void vec4_init(Vec4* vec) {
+BCFX_API void vec4_init(Vec4* vec) {
   vec_init((Vec*)vec, 4);
 }
 

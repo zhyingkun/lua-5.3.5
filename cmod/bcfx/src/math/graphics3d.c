@@ -1,6 +1,6 @@
 #include <common.h>
 
-void g3d_translate(const Vec3* vec, Mat4x4* mat) {
+BCFX_API void g3d_translate(const Vec3* vec, Mat4x4* mat) {
   MAT_IDENTITY(mat);
 #define SET_TRANSLATE(idx) MAT_ELEMENT(mat, idx, 3) = VEC_ELEMENT(vec, idx)
   SET_TRANSLATE(0);
@@ -10,7 +10,7 @@ void g3d_translate(const Vec3* vec, Mat4x4* mat) {
 }
 
 // 'theta' are in degree, not radian
-void g3d_rotate(float theta, const Vec3* axis, Mat4x4* mat) {
+BCFX_API void g3d_rotate(float theta, const Vec3* axis, Mat4x4* mat) {
   ALLOCA_VEC3(A);
   VEC_NORMALIZE(axis, A);
   /*
@@ -61,7 +61,7 @@ void g3d_rotate(float theta, const Vec3* axis, Mat4x4* mat) {
   MAT4x4_INIT_MAT3x3(mat, matI);
 }
 
-void g3d_scale(const Vec3* vec, Mat4x4* mat) {
+BCFX_API void g3d_scale(const Vec3* vec, Mat4x4* mat) {
 #define SET_SCALE(idx) MAT_ELEMENT(mat, idx, idx) = VEC_ELEMENT(vec, idx)
   MAT_ZERO(mat);
   SET_SCALE(0);
@@ -73,7 +73,7 @@ void g3d_scale(const Vec3* vec, Mat4x4* mat) {
 
 // fovy is in degree, not radian, 0 < zNear < zFar
 // aspect = width / height, in near plane
-void g3d_perspective(float fovy, float aspect, float zNear, float zFar, Mat4x4* mat) {
+BCFX_API void g3d_perspective(float fovy, float aspect, float zNear, float zFar, Mat4x4* mat) {
   float n = -zNear;
   float f = -zFar;
   /*
@@ -116,7 +116,7 @@ void g3d_perspective(float fovy, float aspect, float zNear, float zFar, Mat4x4* 
 // zNear define the distance between the camera position and the near clipping planes
 // zFar  define the distance between the camera position and the far  clipping planes
 // left < right, bottom < top, 0 < zNear < zFar
-void g3d_orthogonal(float left, float right, float bottom, float top, float zNear, float zFar, Mat4x4* mat) {
+BCFX_API void g3d_orthogonal(float left, float right, float bottom, float top, float zNear, float zFar, Mat4x4* mat) {
   /*
   projection matrix should convert RightHandCoordinate to NDC (a LeftHandCoordinate)
   we mapping [left, right] to [-1, 1], [bottom, top] to [-1, 1], and -zNear to -1, -zFar to 1
@@ -136,7 +136,7 @@ void g3d_orthogonal(float left, float right, float bottom, float top, float zNea
   MAT_ELEMENT(mat, 3, 3) = 1.0;
 }
 
-void g3d_lookAt(const Vec3* eye, const Vec3* center, const Vec3* up, Mat4x4* mat) {
+BCFX_API void g3d_lookAt(const Vec3* eye, const Vec3* center, const Vec3* up, Mat4x4* mat) {
   /*
   'eye', 'center', 'up' also according to the world coordinate
   we stand at 'eye', look at 'center', 'up' is the direction points to the top of camera

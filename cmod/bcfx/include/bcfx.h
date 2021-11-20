@@ -5,29 +5,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <bcfx_misc.h>
 #include <bcfx_math.h>
-
-/*
-** {======================================================
-** Export API
-** =======================================================
-*/
-
-#if defined(BCFX_BUILD_AS_DLL) /* { */
-
-#if defined(BCFX_LIB) /* { */
-#define BCFX_API __declspec(dllexport)
-#else /* }{ */
-#define BCFX_API __declspec(dllimport)
-#endif /* } */
-
-#else /* }{ */
-
-#define BCFX_API extern
-
-#endif /* } */
-
-/* }====================================================== */
 
 /*
 ** {======================================================

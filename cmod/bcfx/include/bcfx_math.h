@@ -7,6 +7,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#include <bcfx_misc.h>
+
 /*
 ** {======================================================
 ** Utilities
@@ -65,19 +67,19 @@ typedef struct {
 #define MAT_ADJOINT(src, dst) mat_adjoint((Mat*)src, (Mat*)dst)
 #define MAT_INVERSE(src, dst) mat_inverse((Mat*)src, (Mat*)dst)
 
-void mat_init(Mat* mat, uint8_t row, uint8_t col);
-void mat_zero(Mat* mat);
-void mat_identity(Mat* mat);
-void mat_add(const Mat* src1, const Mat* src2, Mat* dst);
-void mat_subtract(const Mat* src1, const Mat* src2, Mat* dst);
-void mat_scale(const Mat* src, float scale, Mat* dst);
-void mat_componentWiseProduct(const Mat* src1, const Mat* src2, Mat* dst);
-void mat_multiply(const Mat* src1, const Mat* src2, Mat* dst);
-void mat_transpose(const Mat* src, Mat* dst);
-void mat_copy(const Mat* src, Mat* dst);
-float mat_determinant(const Mat* mat);
-void mat_adjoint(const Mat* src, Mat* dst);
-bool mat_inverse(const Mat* src, Mat* dst);
+BCFX_API void mat_init(Mat* mat, uint8_t row, uint8_t col);
+BCFX_API void mat_zero(Mat* mat);
+BCFX_API void mat_identity(Mat* mat);
+BCFX_API void mat_add(const Mat* src1, const Mat* src2, Mat* dst);
+BCFX_API void mat_subtract(const Mat* src1, const Mat* src2, Mat* dst);
+BCFX_API void mat_scale(const Mat* src, float scale, Mat* dst);
+BCFX_API void mat_componentWiseProduct(const Mat* src1, const Mat* src2, Mat* dst);
+BCFX_API void mat_multiply(const Mat* src1, const Mat* src2, Mat* dst);
+BCFX_API void mat_transpose(const Mat* src, Mat* dst);
+BCFX_API void mat_copy(const Mat* src, Mat* dst);
+BCFX_API float mat_determinant(const Mat* mat);
+BCFX_API void mat_adjoint(const Mat* src, Mat* dst);
+BCFX_API bool mat_inverse(const Mat* src, Mat* dst);
 
 typedef struct {
   uint8_t row;
@@ -96,7 +98,7 @@ typedef struct {
   MAT3x3_INIT(var); \
   MAT_ZERO(var)
 
-void mat3x3_init(Mat3x3* mat);
+BCFX_API void mat3x3_init(Mat3x3* mat);
 
 typedef struct {
   uint8_t row;
@@ -116,8 +118,8 @@ typedef struct {
   MAT4x4_INIT(var); \
   MAT_ZERO(var)
 
-void mat4x4_init(Mat4x4* mat);
-void mat4x4_initMat3x3(Mat4x4* mat, const Mat3x3* mat3x3);
+BCFX_API void mat4x4_init(Mat4x4* mat);
+BCFX_API void mat4x4_initMat3x3(Mat4x4* mat, const Mat3x3* mat3x3);
 
 /* }====================================================== */
 
@@ -162,26 +164,26 @@ typedef struct {
 #define VEC_PROJECTION(src, axis, dst) vec_projection((Vec*)src, (Vec*)axis, (Vec*)dst)
 #define VEC_PERPENDICULAR(src, axis, dst) vec_perpendicular((Vec*)src, (Vec*)axis, (Vec*)dst)
 
-void vec_init(Vec* vec, uint8_t cnt);
-void vec_zero(Vec* vec);
-void vec_one(Vec* vec);
-void vec_add(const Vec* src1, const Vec* src2, Vec* dst);
-void vec_subtract(const Vec* src1, const Vec* src2, Vec* dst);
-void vec_componentWiseProduct(const Vec* src1, const Vec* src2, Vec* dst);
-void vec_scale(const Vec* src, float scale, Vec* dst);
-float vec_dotProduct(const Vec* vec1, const Vec* vec2);
-float vec_lengthSquared(const Vec* vec);
-float vec_length(const Vec* vec);
-float vec_distanceSquared(const Vec* vec1, const Vec* vec2);
-float vec_distance(const Vec* vec1, const Vec* vec2);
-void vec_normalize(const Vec* src, Vec* dst);
-void vec_copy(const Vec* src, Vec* dst);
-void vec_max(const Vec* src1, const Vec* src2, Vec* dst);
-void vec_min(const Vec* src1, const Vec* src2, Vec* dst);
-bool vec_equals(const Vec* src1, const Vec* src2);
-bool vec_isZero(const Vec* vec);
-void vec_projection(const Vec* src, const Vec* axis, Vec* dst);
-void vec_perpendicular(const Vec* src, const Vec* axis, Vec* dst);
+BCFX_API void vec_init(Vec* vec, uint8_t cnt);
+BCFX_API void vec_zero(Vec* vec);
+BCFX_API void vec_one(Vec* vec);
+BCFX_API void vec_add(const Vec* src1, const Vec* src2, Vec* dst);
+BCFX_API void vec_subtract(const Vec* src1, const Vec* src2, Vec* dst);
+BCFX_API void vec_componentWiseProduct(const Vec* src1, const Vec* src2, Vec* dst);
+BCFX_API void vec_scale(const Vec* src, float scale, Vec* dst);
+BCFX_API float vec_dotProduct(const Vec* vec1, const Vec* vec2);
+BCFX_API float vec_lengthSquared(const Vec* vec);
+BCFX_API float vec_length(const Vec* vec);
+BCFX_API float vec_distanceSquared(const Vec* vec1, const Vec* vec2);
+BCFX_API float vec_distance(const Vec* vec1, const Vec* vec2);
+BCFX_API void vec_normalize(const Vec* src, Vec* dst);
+BCFX_API void vec_copy(const Vec* src, Vec* dst);
+BCFX_API void vec_max(const Vec* src1, const Vec* src2, Vec* dst);
+BCFX_API void vec_min(const Vec* src1, const Vec* src2, Vec* dst);
+BCFX_API bool vec_equals(const Vec* src1, const Vec* src2);
+BCFX_API bool vec_isZero(const Vec* vec);
+BCFX_API void vec_projection(const Vec* src, const Vec* axis, Vec* dst);
+BCFX_API void vec_perpendicular(const Vec* src, const Vec* axis, Vec* dst);
 
 typedef struct {
   uint8_t count;
@@ -190,7 +192,7 @@ typedef struct {
 
 #define VEC2_INIT(vec) vec2_init((Vec2*)vec)
 
-void vec2_init(Vec2* vec);
+BCFX_API void vec2_init(Vec2* vec);
 #define VEC2(v) \
   { \
     2, { \
@@ -214,7 +216,7 @@ typedef struct {
 
 #define VEC3_INIT(vec) vec3_init((Vec3*)vec)
 
-void vec3_init(Vec3* vec);
+BCFX_API void vec3_init(Vec3* vec);
 #define VEC3(v) \
   { \
     3, { \
@@ -234,7 +236,7 @@ void vec3_init(Vec3* vec);
 
 #define VEC3_CROSS_PRODUCT(src1, src2, dst) vec3_crossProduct(src1, src2, dst)
 
-void vec3_crossProduct(const Vec3* src1, const Vec3* src2, Vec3* dst);
+BCFX_API void vec3_crossProduct(const Vec3* src1, const Vec3* src2, Vec3* dst);
 
 typedef struct {
   uint8_t count;
@@ -243,7 +245,7 @@ typedef struct {
 
 #define VEC4_INIT(vec) vec4_init((Vec4*)vec)
 
-void vec4_init(Vec4* vec);
+BCFX_API void vec4_init(Vec4* vec);
 #define VEC4(v) \
   { \
     4, { \
@@ -270,12 +272,12 @@ void vec4_init(Vec4* vec);
 ** =======================================================
 */
 
-void g3d_translate(const Vec3* vec, Mat4x4* mat);
-void g3d_rotate(float angle, const Vec3* axis, Mat4x4* mat);
-void g3d_scale(const Vec3* vec, Mat4x4* mat);
-void g3d_perspective(float fovy, float aspect, float zNear, float zFar, Mat4x4* mat);
-void g3d_orthogonal(float left, float right, float bottom, float top, float zNear, float zFar, Mat4x4* mat);
-void g3d_lookAt(const Vec3* eye, const Vec3* center, const Vec3* up, Mat4x4* mat);
+BCFX_API void g3d_translate(const Vec3* vec, Mat4x4* mat);
+BCFX_API void g3d_rotate(float angle, const Vec3* axis, Mat4x4* mat);
+BCFX_API void g3d_scale(const Vec3* vec, Mat4x4* mat);
+BCFX_API void g3d_perspective(float fovy, float aspect, float zNear, float zFar, Mat4x4* mat);
+BCFX_API void g3d_orthogonal(float left, float right, float bottom, float top, float zNear, float zFar, Mat4x4* mat);
+BCFX_API void g3d_lookAt(const Vec3* eye, const Vec3* center, const Vec3* up, Mat4x4* mat);
 
 /* }====================================================== */
 
