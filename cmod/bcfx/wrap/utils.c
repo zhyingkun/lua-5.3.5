@@ -161,7 +161,7 @@ static int UTILS_FUNCTION(PackSamplerFlags)(lua_State* L) {
 
 #define SET_STATE_FIELD(field, type) \
   lua_getfield(L, 1, #field); \
-  state.field = (uint8_t)luaL_opt##type(L, 2, 0); \
+  state.field = luaL_opt##type(L, 2, 0); \
   lua_pop(L, 1)
 static int UTILS_FUNCTION(PackRenderState)(lua_State* L) {
   luaL_checktype(L, 1, LUA_TTABLE);
@@ -201,8 +201,9 @@ static int UTILS_FUNCTION(PackStencilState)(lua_State* L) {
   SET_STATE_FIELD(dpfail, integer);
   SET_STATE_FIELD(dppass, integer);
   SET_STATE_FIELD(ref, integer);
-  SET_STATE_FIELD(mask, boolean);
-  lua_pushinteger(L, STENCILSTATE_UINT32(state));
+  SET_STATE_FIELD(mask, integer);
+  SET_STATE_FIELD(writeMask, integer);
+  lua_pushinteger(L, STENCILSTATE_UINT64(state));
   return 1;
 }
 
