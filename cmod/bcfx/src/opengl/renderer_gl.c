@@ -304,6 +304,7 @@ static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, bcfx_MemB
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
   vb->layout = layoutHandle;
+  vb->size = mem->sz;
   GL_CHECK(glGenBuffers(1, &vb->id));
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
   GL_CHECK(glBufferData(GL_ARRAY_BUFFER, mem->sz, mem->ptr, mem->ptr != NULL ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW));
@@ -522,21 +523,28 @@ static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw
   gl_setProgramUniforms(glCtx, prog, draw, view, bind);
 
   if (draw->indexBuffer == kInvalidHandle) {
+    // Vertex Count
+    uint32_t total = glCtx->curVertexCount;
+    GLint start = MIN(draw->indexStart, total);
+    GLsizei count = draw->indexCount == 0 ? total - start : MIN(draw->indexCount, total - start);
     if (draw->numInstance == 0) {
-      GL_CHECK(glDrawArrays(GL_TRIANGLES, draw->indexStart, draw->indexCount));
+      GL_CHECK(glDrawArrays(GL_TRIANGLES, start, count));
     } else {
       gl_bindInstanceAttributes(glCtx, prog, draw);
-      GL_CHECK(glDrawArraysInstanced(GL_TRIANGLES, draw->indexStart, draw->indexCount, draw->numInstance));
+      GL_CHECK(glDrawArraysInstanced(GL_TRIANGLES, start, count, draw->numInstance));
     }
   } else {
     IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
     GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
-    GLsizei indexCount = (GLsizei)MIN(draw->indexCount, ib->count - draw->indexStart);
+    // Index Count
+    uint32_t total = ib->count;
+    GLint start = MIN(draw->indexStart, total);
+    GLsizei count = draw->indexCount == 0 ? total - start : MIN(draw->indexCount, total - start);
     if (draw->numInstance == 0) {
-      GL_CHECK(glDrawElements(GL_TRIANGLES, indexCount, ib->type, (const void*)(long)draw->indexStart));
+      GL_CHECK(glDrawElements(GL_TRIANGLES, count, ib->type, (const void*)(long)start));
     } else {
       gl_bindInstanceAttributes(glCtx, prog, draw);
-      GL_CHECK(glDrawElementsInstanced(GL_TRIANGLES, indexCount, ib->type, (const void*)(long)draw->indexStart, draw->numInstance));
+      GL_CHECK(glDrawElementsInstanced(GL_TRIANGLES, count, ib->type, (const void*)(long)start, draw->numInstance));
     }
   }
 }

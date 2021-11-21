@@ -39,6 +39,7 @@ typedef struct {
 typedef struct {
   GLuint id;
   Handle layout;
+  size_t size;
 } VertexBufferGL;
 typedef struct {
   GLuint id;
@@ -150,6 +151,8 @@ typedef struct {
   WindowSwapper swapWins[BCFX_CONFIG_MAX_WINDOW];
 
   RenderStateGL renderState;
+
+  uint32_t curVertexCount; // for gl_bindProgramAttributes pass count to gl_submitDraw
 } RendererContextGL;
 
 /* }====================================================== */

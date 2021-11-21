@@ -181,6 +181,7 @@ static bcfx_VertexLayout* find_vertexLayout(RendererContextGL* glCtx, RenderDraw
   return target;
 }
 void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw) {
+  glCtx->curVertexCount = 0;
   GLuint curId = 0;
   PredefinedAttrib* pa = &prog->pa;
   for (uint8_t i = 0; i < pa->usedCount; i++) {
@@ -191,6 +192,9 @@ void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderD
     if (layout == NULL) {
       GL_CHECK(glDisableVertexAttribArray(loc));
     } else {
+      if (attr == VA_Position) {
+        glCtx->curVertexCount = vb->size / layout->stride;
+      }
       if (curId != vb->id) {
         curId = vb->id;
         GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
