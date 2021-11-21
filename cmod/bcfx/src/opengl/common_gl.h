@@ -100,6 +100,7 @@ typedef struct {
   GLenum dppass;
   GLint ref;
   GLuint mask;
+  GLuint writeMask;
 } StencilStateGL;
 typedef struct {
   GLenum frontFace;

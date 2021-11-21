@@ -40,6 +40,7 @@ static void stencilstate_init(StencilStateGL* state, bool bIsFront) {
     GET_GL_ENUM(dppass, GL_STENCIL_PASS_DEPTH_PASS);
     GET_GL_INT(ref, GL_STENCIL_REF);
     GET_GL_INT(mask, GL_STENCIL_VALUE_MASK);
+    GET_GL_INT(writeMask, GL_STENCIL_WRITEMASK);
   } else {
     GET_GL_ENUM(func, GL_STENCIL_BACK_FUNC);
     GET_GL_ENUM(sfail, GL_STENCIL_BACK_FAIL);
@@ -47,6 +48,7 @@ static void stencilstate_init(StencilStateGL* state, bool bIsFront) {
     GET_GL_ENUM(dppass, GL_STENCIL_BACK_PASS_DEPTH_PASS);
     GET_GL_INT(ref, GL_STENCIL_BACK_REF);
     GET_GL_INT(mask, GL_STENCIL_BACK_VALUE_MASK);
+    GET_GL_INT(writeMask, GL_STENCIL_BACK_WRITEMASK);
   }
 }
 #define IS_STATE_NOT_EQUAL3(field1_, field2_, field3_) \
@@ -57,6 +59,7 @@ static void stencilstate_init(StencilStateGL* state, bool bIsFront) {
   stateGL->field1_ = field1_; \
   stateGL->field2_ = field2_; \
   stateGL->field3_ = field3_
+#define IS_STATE_CHANGED(field_) ((stateGL->field_ != field_) ? (stateGL->field_ = field_, 1) : 0)
 static void stencilstate_update(StencilStateGL* stateGL, GLenum face, bcfx_StencilState state) {
   GLenum func = compareFunc_glType[state.func];
   GLenum sfail = stencilAction_glType[state.sfail];
@@ -71,6 +74,10 @@ static void stencilstate_update(StencilStateGL* stateGL, GLenum face, bcfx_Stenc
   if (IS_STATE_NOT_EQUAL3(sfail, dpfail, dppass)) {
     ASSIGN_STATE3(sfail, dpfail, dppass);
     GL_CHECK(glStencilOpSeparate(face, sfail, dpfail, dppass));
+  }
+  GLuint writeMask = state.writeMask;
+  if (IS_STATE_CHANGED(writeMask)) {
+    GL_CHECK(glStencilMaskSeparate(face, writeMask));
   }
 }
 
@@ -114,7 +121,6 @@ static void renderstate_init(RenderStateGL* state) {
   stencilstate_init(&state->stencilFront, true);
   stencilstate_init(&state->stencilBack, false);
 }
-#define IS_STATE_CHANGED(field_) ((stateGL->field_ != field_) ? (stateGL->field_ = field_, 1) : 0)
 static void renderstate_updateCull(RenderStateGL* stateGL, bcfx_RenderState state) {
   GLenum frontFace = frontFace_glType[state.frontFace];
   if (IS_STATE_CHANGED(frontFace)) {

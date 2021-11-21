@@ -498,12 +498,14 @@ typedef struct {
   uint8_t reserved2 : 2;
   uint8_t ref;
   uint8_t mask;
+  uint8_t writeMask;
+  uint8_t reserved3[3];
 } bcfx_StencilState;
 typedef union {
-  uint32_t stateUINT32;
+  uint64_t stateUINT64;
   bcfx_StencilState stateStruct;
 } bcfx_UStencilState;
-#define STENCILSTATE_UINT32(state) (((bcfx_UStencilState*)&state)->stateUINT32)
+#define STENCILSTATE_UINT64(state) (((bcfx_UStencilState*)&state)->stateUINT64)
 
 #define BCFX_DISCARD_NONE BIT_NONE()
 #define BCFX_DISCARD_VERTEX_STREAMS BIT_INDEX(0)
