@@ -484,12 +484,13 @@ static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
     GL_CHECK(glEnable(GL_SCISSOR_TEST));
     GL_CHECK(glScissor(rect->x, rect->y, rect->width, rect->height));
     GL_CHECK(glClear(flags));
-    GL_CHECK(glDisable(GL_SCISSOR_TEST));
   }
   Rect* scissor = &view->scissor;
   if (scissor->width != 0 && scissor->height != 0) {
     GL_CHECK(glEnable(GL_SCISSOR_TEST));
     GL_CHECK(glScissor(scissor->x, scissor->y, scissor->width, scissor->height));
+  } else {
+    GL_CHECK(glDisable(GL_SCISSOR_TEST));
   }
 }
 
