@@ -158,6 +158,12 @@ const GLenum stencilAction_glType[] = {
     GL_DECR_WRAP,
     GL_INVERT,
 };
+// According to bcfx_ETextureFormat
+const TextureFormatInfo textureFormat_glType[] = {
+    {GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE},
+    {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE},
+    {GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8},
+};
 
 /* }====================================================== */
 
@@ -177,25 +183,30 @@ static WindowSwapper* gl_getWindowSwapper(RendererContextGL* glCtx, Window win) 
   GL_CHECK(glGenVertexArrays(1, &swapper->vaoId));
   return swapper;
 }
-static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win) {
+static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win, GLuint mainWinFb) {
   if (win == NULL) {
     win = glCtx->mainWin;
   }
-  if (glCtx->curWin == win) {
-    return;
+  if (glCtx->curWin != win) {
+    glCtx->curWin = win;
+    winctx_makeContextCurrent(win);
+    WindowSwapper* swapper = gl_getWindowSwapper(glCtx, win);
+    swapper->touch = true;
+    GL_CHECK(glBindVertexArray(swapper->vaoId));
+    gl_initRenderState(glCtx);
   }
-  glCtx->curWin = win;
-  winctx_makeContextCurrent(win);
-  WindowSwapper* swapper = gl_getWindowSwapper(glCtx, win);
-  swapper->touch = true;
-  GL_CHECK(glBindVertexArray(swapper->vaoId));
-  gl_initRenderState(glCtx);
+  // only mainWin has non zero fb
+  if (glCtx->mainWin == win && glCtx->curMainWinFb != mainWinFb) {
+    glCtx->curMainWinFb = mainWinFb;
+    GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, mainWinFb));
+  }
 }
 
 static void gl_init(RendererContext* ctx, Window mainWin) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   glCtx->mainWin = mainWin;
   glCtx->curWin = NULL;
+  glCtx->curMainWinFb = 0;
   glCtx->swapCount = 0;
   glCtx->uniformCount = 0;
   winctx_makeContextCurrent(glCtx->mainWin);
@@ -204,7 +215,7 @@ static void gl_init(RendererContext* ctx, Window mainWin) {
     exit(-1);
   }
   winctx_makeContextCurrent(NULL);
-  gl_MakeWinCurrent(glCtx, glCtx->mainWin);
+  gl_MakeWinCurrent(glCtx, glCtx->mainWin, 0);
 }
 
 static void gl_beginFrame(RendererContext* ctx) {
@@ -380,31 +391,53 @@ static void gl_createUniform(RendererContext* ctx, Handle handle, const char* na
   uniform->num = num;
   glCtx->uniformCount++;
 }
-static void gl_createTexture(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem) {
+static void gl_createTexture(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, bcfx_ETextureFormat format) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   TextureGL* texture = &glCtx->textures[handle_index(handle)];
+  texture->format = format;
 
   GL_CHECK(glGenTextures(1, &texture->id));
   GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
   GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+
   bcfx_Texture* bt = (bcfx_Texture*)mem->ptr;
-  GLenum format = GL_NONE;
-  switch (bt->nrChannels) {
-    case 1:
-      format = GL_ALPHA;
-      break;
-    case 3:
-      format = GL_RGB;
-      break;
-    case 4:
-      format = GL_RGBA;
-      break;
-    default:
-      break;
-  }
-  GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bt->width, bt->height, 0, format, GL_UNSIGNED_BYTE, bt->data));
+  const TextureFormatInfo* fi = &textureFormat_glType[format];
+  GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, fi->internalFormat, bt->width, bt->height, 0, fi->format, fi->type, bt->data));
+
   GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
   MEMBUFFER_RELEASE(mem);
+}
+static void gl_createFrameBuffer(RendererContext* ctx, Handle handle, uint8_t num, Handle* handles) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  FrameBufferGL* fb = &glCtx->frameBuffers[handle_index(handle)];
+  GL_CHECK(glGenFramebuffers(1, &fb->id));
+  GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, fb->id));
+  GLenum buffers[BCFX_CONFIG_MAX_FRAME_BUFFER_ATTACHMENTS];
+  uint8_t colorIdx = 0;
+  for (uint8_t i = 0; i < num; i++) {
+    TextureGL* texture = &glCtx->textures[handle_index(handles[i])];
+    GLenum attachment;
+    if (texture->format == TF_D24S8) {
+      attachment = GL_DEPTH_STENCIL_ATTACHMENT;
+    } else {
+      attachment = GL_COLOR_ATTACHMENT0 + colorIdx;
+      buffers[colorIdx] = attachment;
+      colorIdx++;
+    }
+    GL_CHECK(glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture->id, 0));
+  }
+  if (colorIdx == 0) {
+    GL_CHECK(glDrawBuffer(GL_NONE));
+  } else {
+    GL_CHECK(glDrawBuffers(colorIdx, buffers));
+  }
+  GL_CHECK(glReadBuffer(GL_NONE));
+  GLenum complete;
+  GL_CHECK(complete = glCheckFramebufferStatus(GL_FRAMEBUFFER));
+  if (complete != GL_FRAMEBUFFER_COMPLETE) {
+    printf_err("Check framebuffer state error: %d, %s\n", complete, err_EnumName(complete));
+  }
+  GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
 static void gl_updateVertexBuffer(RendererContext* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem) {
@@ -417,8 +450,12 @@ static void gl_updateVertexBuffer(RendererContext* ctx, Handle handle, size_t of
 }
 
 static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
-  gl_MakeWinCurrent(glCtx, view->win);
-  // TODO: bind framebuffer
+  GLuint mainWinFb = 0;
+  if (view->fbh != kInvalidHandle) {
+    // only mainWin can has framebuffer
+    mainWinFb = glCtx->frameBuffers[handle_index(view->fbh)].id;
+  }
+  gl_MakeWinCurrent(glCtx, view->win, mainWinFb);
 
   Rect* rect = &view->rect;
   GL_CHECK(glViewport(rect->x, rect->y, rect->width, rect->height));
@@ -540,7 +577,7 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
       gl_submitDraw(glCtx, key->program, draw, bind, view);
     }
   }
-  gl_MakeWinCurrent(glCtx, NULL);
+  gl_MakeWinCurrent(glCtx, NULL, 0); // set mainWin framebuffer to 0 for fixed swap nothing error in MacOSX
 }
 
 static void gl_destroyVertexLayout(RendererContext* ctx, Handle handle) {
@@ -602,6 +639,7 @@ RendererContext* CreateRendererGL(void) {
   renderer->createProgram = gl_createProgram;
   renderer->createUniform = gl_createUniform;
   renderer->createTexture = gl_createTexture;
+  renderer->createFrameBuffer = gl_createFrameBuffer;
 
   renderer->updateVertexBuffer = gl_updateVertexBuffer;
 

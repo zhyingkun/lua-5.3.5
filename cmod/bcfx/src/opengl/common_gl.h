@@ -80,7 +80,11 @@ typedef struct {
 } UniformGL;
 typedef struct {
   GLuint id;
+  bcfx_ETextureFormat format;
 } TextureGL;
+typedef struct {
+  GLuint id;
+} FrameBufferGL;
 
 typedef struct {
   Window win;
@@ -136,9 +140,11 @@ typedef struct {
   uint16_t uniformCount;
   UniformGL uniforms[BCFX_CONFIG_MAX_UNIFORM];
   TextureGL textures[BCFX_CONFIG_MAX_TEXTURE];
+  FrameBufferGL frameBuffers[BCFX_CONFIG_MAX_FRAME_BUFFER];
 
   Window mainWin;
   Window curWin;
+  GLuint curMainWinFb;
 
   uint8_t swapCount;
   WindowSwapper swapWins[BCFX_CONFIG_MAX_WINDOW];
@@ -166,6 +172,13 @@ extern const GLenum blendFunc_glType[];
 extern const GLenum blendEquation_glType[];
 extern const GLenum logicOperate_glType[];
 extern const GLenum stencilAction_glType[];
+
+typedef struct {
+  GLenum internalFormat;
+  GLenum format;
+  GLenum type;
+} TextureFormatInfo;
+extern const TextureFormatInfo textureFormat_glType[];
 
 /* }====================================================== */
 

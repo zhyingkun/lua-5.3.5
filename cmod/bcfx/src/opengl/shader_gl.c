@@ -263,14 +263,12 @@ static bcfx_EUniformBuiltin findUniformBuiltinEnum(const char* name) {
 }
 static uint16_t findUniformUserDefined(RendererContextGL* glCtx, const char* name) {
   uint16_t idx = 0;
-  for (uint16_t i = 0; i < glCtx->uniformCount; i++) {
-    UniformGL* uniform = NULL;
-    do {
-      if (uniform != NULL) {
-        idx++;
-      }
+  for (uint16_t i = 0; i < glCtx->uniformCount; i++, idx++) {
+    UniformGL* uniform = &glCtx->uniforms[idx];
+    while (uniform->name == NULL) {
+      idx++;
       uniform = &glCtx->uniforms[idx];
-    } while (uniform->name == NULL);
+    }
     if (strcmp(uniform->name, name) == 0) {
       return idx;
     }

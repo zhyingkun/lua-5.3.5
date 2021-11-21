@@ -102,6 +102,10 @@ BCFX_API Handle bcfx_createVertexBuffer(bcfx_MemBuffer* mem, Handle handle) {
   return ctx_createVertexBuffer(s_ctx, mem, handle);
 }
 
+BCFX_API Handle bcfx_createDynamicVertexBuffer(size_t size) {
+  return ctx_createDynamicVertexBuffer(s_ctx, size);
+}
+
 BCFX_API Handle bcfx_createIndexBuffer(bcfx_MemBuffer* mem) {
   return ctx_createIndexBuffer(s_ctx, mem);
 }
@@ -118,12 +122,16 @@ BCFX_API Handle bcfx_createUniform(const char* name, bcfx_UniformType type, uint
   return ctx_createUniform(s_ctx, name, type, num);
 }
 
-BCFX_API Handle bcfx_createTexture(bcfx_MemBuffer* mem) {
-  return ctx_createTexture(s_ctx, mem);
+BCFX_API Handle bcfx_createTexture(bcfx_MemBuffer* mem, bcfx_ETextureFormat format) {
+  return ctx_createTexture(s_ctx, mem, format);
 }
 
-BCFX_API Handle bcfx_createDynamicVertexBuffer(size_t size) {
-  return ctx_createDynamicVertexBuffer(s_ctx, size);
+BCFX_API Handle bcfx_createRenderTexture(uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
+  return ctx_createRenderTexture(s_ctx, width, height, format);
+}
+
+BCFX_API Handle bcfx_createFrameBuffer(uint8_t num, Handle* handles) {
+  return ctx_createFrameBuffer(s_ctx, num, handles);
 }
 
 /* }====================================================== */

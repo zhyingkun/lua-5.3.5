@@ -27,6 +27,7 @@ typedef enum {
 typedef struct {
   Window mainWin;
 } CmdInit;
+
 typedef void (*ReleaseVertexLayout)(void* ud, bcfx_VertexLayout* layout);
 #define RELEASE_VERCTX_LAYOUT(cvl) \
   if ((cvl)->release) \
@@ -58,7 +59,15 @@ typedef struct {
 } CmdUniform;
 typedef struct {
   bcfx_MemBuffer mem;
+  bcfx_ETextureFormat format;
+  uint16_t width;
+  uint16_t height;
 } CmdTexture;
+typedef struct {
+  uint8_t num;
+  Handle handles[BCFX_CONFIG_MAX_FRAME_BUFFER_ATTACHMENTS];
+} CmdFrameBuffer;
+
 typedef struct {
   size_t offset;
   bcfx_MemBuffer mem;
@@ -66,6 +75,7 @@ typedef struct {
 
 typedef union {
   CmdInit ci;
+
   CmdVertexLayout cvl;
   CmdVertexBuffer cvb;
   CmdIndexBuffer cib;
@@ -73,6 +83,8 @@ typedef union {
   CmdProgram cp;
   CmdUniform cu;
   CmdTexture ct;
+  CmdFrameBuffer cfb;
+
   CmdUpdateVertexBuffer cuvb;
 } CommandParam;
 

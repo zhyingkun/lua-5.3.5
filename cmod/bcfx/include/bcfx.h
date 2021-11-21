@@ -47,11 +47,11 @@ typedef struct {
 } bcfx_MemBuffer;
 
 #define MEMBUFFER_SET(mb, ptr_, sz_, dt_, release_, ud_) \
-  mb->ptr = ptr_; \
-  mb->sz = sz_; \
-  mb->dt = dt_; \
-  mb->release = release_; \
-  mb->ud = ud_
+  (mb)->ptr = ptr_; \
+  (mb)->sz = sz_; \
+  (mb)->dt = dt_; \
+  (mb)->release = release_; \
+  (mb)->ud = ud_
 
 #define MEMBUFFER_CLEAR(mb) \
   MEMBUFFER_SET(mb, NULL, 0, DT_None, NULL, NULL)
@@ -232,6 +232,7 @@ typedef uint16_t Handle;
 
 BCFX_API Handle bcfx_createVertexLayout(bcfx_VertexLayout* layout);
 BCFX_API Handle bcfx_createVertexBuffer(bcfx_MemBuffer* mem, Handle layout);
+BCFX_API Handle bcfx_createDynamicVertexBuffer(size_t size);
 BCFX_API Handle bcfx_createIndexBuffer(bcfx_MemBuffer* mem);
 
 typedef enum {
@@ -259,10 +260,18 @@ typedef struct {
   int nrChannels;
 } bcfx_Texture;
 
-// Memory Buffer data is a bcfx_Texture
-BCFX_API Handle bcfx_createTexture(bcfx_MemBuffer* mem);
+// WARNING: Change bcfx_ETextureFormat must Update textureFormat_glType
+typedef enum {
+  TF_RGB8,
+  TF_RGBA8,
+  TF_D24S8,
+} bcfx_ETextureFormat;
 
-BCFX_API Handle bcfx_createDynamicVertexBuffer(size_t size);
+// Memory Buffer data is a bcfx_Texture
+BCFX_API Handle bcfx_createTexture(bcfx_MemBuffer* mem, bcfx_ETextureFormat format);
+BCFX_API Handle bcfx_createRenderTexture(uint16_t width, uint16_t height, bcfx_ETextureFormat format);
+
+BCFX_API Handle bcfx_createFrameBuffer(uint8_t num, Handle* handles);
 
 /* }====================================================== */
 

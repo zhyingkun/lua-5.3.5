@@ -24,7 +24,8 @@ typedef void (*RendererCreateIndexBuffer)(RendererContext* ctx, Handle handle, b
 typedef void (*RendererCreateShader)(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, ShaderType type);
 typedef void (*RendererCreateProgram)(RendererContext* ctx, Handle handle, Handle vsh, Handle fsh);
 typedef void (*RendererCreateUniform)(RendererContext* ctx, Handle handle, const char* name, bcfx_UniformType type, uint16_t num);
-typedef void (*RendererCreateTexture)(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem);
+typedef void (*RendererCreateTexture)(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, bcfx_ETextureFormat format);
+typedef void (*RendererCreateFrameBuffer)(RendererContext* ctx, Handle handle, uint8_t num, Handle* handles);
 
 typedef void (*RendererUpdateVertexBuffer)(RendererContext* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem);
 
@@ -52,6 +53,7 @@ struct RendererContext {
   RendererCreateProgram createProgram;
   RendererCreateUniform createUniform;
   RendererCreateTexture createTexture;
+  RendererCreateFrameBuffer createFrameBuffer;
 
   RendererUpdateVertexBuffer updateVertexBuffer;
 
