@@ -12,6 +12,7 @@ local vector = bcfx.math.vector
 local texture_wrap = bcfx.texture_wrap
 local texture_filter = bcfx.texture_filter
 local discard = bcfx.discard
+local texture_format = bcfx.texture_format
 
 local loader = require("loader")
 
@@ -176,18 +177,43 @@ local function CreateCubeBuffer()
 	}
 end
 
+local function CreateBlitBuffer()
+	local layout = bcfx.vertexlayout.new()
+	layout:add(vertex_attrib.Position, 2, attrib_type.Float, false)
+	layout:add(vertex_attrib.TexCoord0, 2, attrib_type.Float, false)
+	local layoutHandle = bcfx.createVertexLayout(layout)
+	local vertexTbl = {
+		-1.0, -1.0, 0.0, 0.0,
+		1.0, -1.0, 1.0, 0.0,
+		1.0, 1.0, 1.0, 1.0,
+		-1.0, -1.0, 0.0, 0.0,
+		1.0, 1.0, 1.0, 1.0,
+		-1.0, 1.0, 0.0, 1.0,
+	}
+	local mem = membuf.MakeMemoryBuffer(data_type.Float, vertexTbl)
+	local vertexHandle = bcfx.createVertexBuffer(mem, layoutHandle)
+
+	local uniformHandle = bcfx.createUniform("blit_texture", 0)
+	local shaderProgramHandle = loader.LoadProgram("blit")
+
+	return {
+		vertex = vertexHandle,
+		uniform = uniformHandle,
+		shader = shaderProgramHandle,
+	}
+end
+
 local function SetupViewFull(viewID, win, width, height)
 	bcfx.setViewWindow(viewID, win)
 	local color = bcfx.color.Pack(51, 76, 76, 255)
 	bcfx.setViewClear(viewID, clear_flag.COLOR | clear_flag.DEPTH, color, 1.0, 0)
 	bcfx.setViewRect(viewID, 0, 0, width, height)
 end
-local function SetupViewHalf(viewID, win, width, height)
-	bcfx.setViewWindow(viewID, win)
+local function SetupFrameBufferView(viewID, fb, width, height)
+	bcfx.setViewFrameBuffer(viewID, fb)
 	local color = bcfx.color.Pack(199, 174, 174, 255)
 	bcfx.setViewClear(viewID, clear_flag.COLOR | clear_flag.DEPTH, color, 1.0, 0)
 	bcfx.setViewRect(viewID, 0, 0, width, height)
-	-- bcfx.setViewScissor(viewID, 0, 0, width // 2, height // 2)
 
 	local viewMat = graphics3d.lookAt(
 		vector.Vec3(0.0, 0.0, 3.0), -- eye
@@ -201,6 +227,11 @@ local function SetupViewHalf(viewID, win, width, height)
 		40.0 -- zFar
 	)
 	bcfx.setViewTransform(viewID, viewMat, projMat)
+end
+local function SetupViewHalf(viewID, win, width, height)
+	bcfx.setViewWindow(viewID, win)
+	bcfx.setViewRect(viewID, 0, 0, width, height)
+	-- bcfx.setViewScissor(viewID, 0, 0, width // 2, height // 2)
 end
 local function SetupAnotherView(viewID, mainWin)
 	local win = glfw.CreateWindow(800, 600, "Another", nil, mainWin)
@@ -222,6 +253,11 @@ local cube
 local instanceBuffer
 local instanceData
 
+local colorRT
+local dsRT
+local frameBuffer
+local blit
+
 local timer
 local function setup(mainWin)
 	triangle = CreateTriangleBuffer()
@@ -229,13 +265,21 @@ local function setup(mainWin)
 
 	glfw.SetFramebufferSizeCallback(mainWin, function(window, width, height)
 		bcfx.setViewRect(0, 0, 0, width, height)
-		bcfx.setViewRect(1, 0, 0, width // 2, height // 2)
+		bcfx.setViewRect(2, 0, 0, width // 2, height // 2)
 	end)
 	local pixelw, pixelh = glfw.GetFramebufferSize(mainWin)
 	SetupViewFull(0, mainWin, pixelw, pixelh)
-	SetupViewHalf(1, mainWin, pixelw // 2, pixelh // 2)
 
-	-- SetupAnotherView(2, mainWin)
+	colorRT = bcfx.createRenderTexture(600, 600, texture_format.RGBA8)
+	dsRT = bcfx.createRenderTexture(600, 600, texture_format.D24S8)
+	frameBuffer = bcfx.createFrameBuffer(colorRT, dsRT)
+	blit = CreateBlitBuffer()
+	blit.texture = colorRT
+	SetupFrameBufferView(1, frameBuffer, 600, 600)
+
+	SetupViewHalf(2, mainWin, pixelw // 2, pixelh // 2)
+
+	-- SetupAnotherView(3, mainWin)
 
 	-- timer = libuv.timer.new()
 	-- timer:start(function()
@@ -293,13 +337,17 @@ local function tick(delta)
 	-- bcfx.setViewDebug(1, bcfx.debug.WIREFRAME)
 	bcfx.submit(1, cube.shader, discard.ALL)
 
+	bcfx.setVertexBuffer(0, blit.vertex)
+	bcfx.setTexture(0, blit.uniform, blit.texture, flags)
+	bcfx.submit(2, blit.shader, discard.ALL)
+
 	-- bcfx.setVertexBuffer(0, vertexHandle)
 	-- bcfx.setVertexBuffer(1, colorHandle)
 	-- bcfx.setIndexBuffer(idxHandle)
-	-- bcfx.submit(2, shaderProgramHandle, discard.ALL)
+	-- bcfx.submit(3, shaderProgramHandle, discard.ALL)
 
 	-- local color = bcfx.color.Pack(255, 255, 0, 255)
-	-- bcfx.setViewClear(2, clear_flag.COLOR, color, 0.0, 0)
+	-- bcfx.setViewClear(3, clear_flag.COLOR, color, 0.0, 0)
 end
 
 return {
