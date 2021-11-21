@@ -119,6 +119,7 @@ void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags,
   SortKey* key = &encoder->sortKey;
   key->viewId = id;
   key->notTouch = notTouch;
+  key->sequence = index;
 
   if (notTouch) {
     uint8_t sortType = ST_Program;
@@ -144,7 +145,6 @@ void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags,
     key->blend = (!!draw->state.alphaRef) + (!!draw->state.enableBlend) * 2;
     key->program = handle_index(program);
     key->depth = depth;
-    key->sequence = index;
   }
   frame_setSortKey(frame, index, sortkey_encode(key));
 
