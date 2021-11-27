@@ -1,6 +1,17 @@
 #ifndef NK_INTERNAL_H
 #define NK_INTERNAL_H
 
+// #define NK_BUFFER_DEFAULT_INITIAL_SIZE (4*1024)
+// #define NK_ASSERT assert
+// #define NK_MEMSET memset
+// #define NK_MEMCPY memcpy
+// #define NK_SIN sin
+// #define NK_COS cos
+// #define NK_DTOA dtoa
+// #define NK_VSNPRINTF vsnprintf
+
+// #define NK_SQRT sqrt
+
 #ifndef NK_POOL_DEFAULT_CAPACITY
 #define NK_POOL_DEFAULT_CAPACITY 16
 #endif
@@ -96,9 +107,13 @@ NK_GLOBAL const struct nk_color nk_yellow = {255,255,0,255};
 /* math */
 NK_LIB float nk_inv_sqrt(float n);
 #ifndef NK_SIN
+#define NK_SIN nk_sin
+#define NK_SIN_IMPLEMENTATION
 NK_LIB float nk_sin(float x);
 #endif
 #ifndef NK_COS
+#define NK_COS nk_cos
+#define NK_COS_IMPLEMENTATION
 NK_LIB float nk_cos(float x);
 #endif
 NK_LIB nk_uint nk_round_up_pow2(nk_uint v);
@@ -119,15 +134,21 @@ NK_LIB int nk_to_upper(int c);
 NK_LIB int nk_to_lower(int c);
 
 #ifndef NK_MEMCPY
+#define NK_MEMCPY nk_memcopy
+#define NK_MEMCPY_IMPLEMENTATION
 NK_LIB void* nk_memcopy(void *dst, const void *src, nk_size n);
 #endif
 #ifndef NK_MEMSET
+#define NK_MEMSET nk_memset
+#define NK_MEMSET_IMPLEMENTATION
 NK_LIB void nk_memset(void *ptr, int c0, nk_size size);
 #endif
 NK_LIB void nk_zero(void *ptr, nk_size size);
 NK_LIB char *nk_itoa(char *s, long n);
 NK_LIB int nk_string_float_limit(char *string, int prec);
 #ifndef NK_DTOA
+#define NK_DTOA nk_dtoa
+#define NK_DTOA_IMPLEMENTATION
 NK_LIB char *nk_dtoa(char *s, double n);
 #endif
 NK_LIB int nk_text_clamp(const struct nk_user_font *font, const char *text, int text_len, float space, int *glyphs, float *text_width, nk_rune *sep_list, int sep_count);

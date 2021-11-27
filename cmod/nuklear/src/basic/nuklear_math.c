@@ -45,8 +45,7 @@ nk_inv_sqrt(float n)
     conv.f = conv.f * (threehalfs - (x2 * conv.f * conv.f));
     return conv.f;
 }
-#ifndef NK_SIN
-#define NK_SIN nk_sin
+#ifdef NK_SIN_IMPLEMENTATION
 NK_LIB float
 nk_sin(float x)
 {
@@ -61,8 +60,7 @@ nk_sin(float x)
     return a0 + x*(a1 + x*(a2 + x*(a3 + x*(a4 + x*(a5 + x*(a6 + x*a7))))));
 }
 #endif
-#ifndef NK_COS
-#define NK_COS nk_cos
+#ifdef NK_COS_IMPLEMENTATION
 NK_LIB float
 nk_cos(float x)
 {
