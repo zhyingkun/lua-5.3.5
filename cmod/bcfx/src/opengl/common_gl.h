@@ -88,6 +88,14 @@ typedef struct {
 } FrameBufferGL;
 
 typedef struct {
+  GLuint fb;
+  GLuint colorRb;
+  GLuint d24s8Rb;
+  int width;
+  int height;
+} TripleBuffer;
+
+typedef struct {
   Window win;
   GLuint vaoId;
   bool touch;
@@ -147,6 +155,10 @@ typedef struct {
   Window mainWin;
   Window curWin;
   GLuint curMainWinFb;
+
+  int mwfbWidth;
+  int mwfbHeight;
+  TripleBuffer mainWinTripleBuffer;
 
   uint8_t swapCount;
   WindowSwapper swapWins[BCFX_CONFIG_MAX_WINDOW];
@@ -218,5 +230,17 @@ void gl_bindInstanceAttributes(RendererContextGL* glCtx, ProgramGL* prog, Render
 
 void prog_collectUniforms(ProgramGL* prog, RendererContextGL* glCtx);
 void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw, View* view, RenderBind* bind);
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Triple Buffer for OpenGL
+** =======================================================
+*/
+
+void gl_initMainWinTripleBuffer(RendererContextGL* glCtx, bool enable);
+void gl_blitMainWinTripleBuffer(RendererContextGL* glCtx);
+GLuint gl_getTripleFrameBuffer(RendererContextGL* glCtx);
 
 /* }====================================================== */

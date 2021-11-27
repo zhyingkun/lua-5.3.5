@@ -20,6 +20,7 @@ typedef struct {
 
 typedef struct {
   bool running;
+  Window mainWin;
 
   Semaphore renderSem;
   Semaphore apiSem;

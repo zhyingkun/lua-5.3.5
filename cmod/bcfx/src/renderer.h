@@ -29,8 +29,8 @@ typedef void (*RendererCreateFrameBuffer)(RendererContext* ctx, Handle handle, u
 
 typedef void (*RendererUpdateVertexBuffer)(RendererContext* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem);
 
-typedef void (*RendererBeginFrame)(RendererContext* ctx);
-typedef void (*RendererSubmit)(RendererContext* ctx, Frame* _render);
+typedef void (*RendererBeginFrame)(RendererContext* ctx, Frame* frame);
+typedef void (*RendererSubmit)(RendererContext* ctx, Frame* frame);
 typedef void (*RendererEndFrame)(RendererContext* ctx);
 typedef void (*RendererFlip)(RendererContext* ctx);
 

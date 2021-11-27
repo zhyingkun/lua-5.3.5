@@ -160,6 +160,7 @@ void ctx_apiFrame(Context* ctx, uint32_t renderCount) {
 
   ctx_renderSemWait(ctx);
 
+  winctx_getFramebufferSize(ctx->mainWin, &ctx->submitFrame->mwfbWidth, &ctx->submitFrame->mwfbHeight);
   Frame* submitFrame = ctx->renderFrame;
   ctx->renderFrame = ctx->submitFrame;
   ctx->submitFrame = submitFrame;
@@ -175,7 +176,7 @@ static void ctx_renderFrame(Context* ctx) {
   RendererContext* renderCtx = ctx->renderCtx;
   ctx_apiSemWait(ctx);
 
-  CALL_RENDERER(beginFrame);
+  CALL_RENDERER(beginFrame, ctx->renderFrame);
   ctx_rendererExecCommands(ctx, ctx->renderFrame->cmdPre);
   CALL_RENDERER(submit, ctx->renderFrame);
   ctx_rendererExecCommands(ctx, ctx->renderFrame->cmdPost);
@@ -221,6 +222,7 @@ static void DestroyRenderer(RendererContext* renderer) {
 void ctx_init(Context* ctx, Window mainWin) {
   assert(mainWin != NULL);
   ctx->running = true;
+  ctx->mainWin = mainWin;
   ctx->frameCount = 0;
 
 #define XX(name, config_max) handle_init(&ctx->allocators[(uint8_t)HT_##name], config_max, HT_##name);

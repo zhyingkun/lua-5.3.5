@@ -216,10 +216,13 @@ static void gl_init(RendererContext* ctx, Window mainWin) {
   }
   winctx_makeContextCurrent(NULL);
   gl_MakeWinCurrent(glCtx, glCtx->mainWin, 0);
+  gl_initMainWinTripleBuffer(glCtx, false);
 }
 
-static void gl_beginFrame(RendererContext* ctx) {
+static void gl_beginFrame(RendererContext* ctx, Frame* frame) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  glCtx->mwfbWidth = frame->mwfbWidth;
+  glCtx->mwfbHeight = frame->mwfbHeight;
   for (uint8_t i = 1; i < glCtx->swapCount; i++) { // start at 1, leave main win unchanged
     glCtx->swapWins[i].touch = false;
   }
@@ -289,6 +292,7 @@ static void gl_shutdown(RendererContext* ctx) {
 
 static void gl_flip(RendererContext* ctx) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  gl_blitMainWinTripleBuffer(glCtx);
   winctx_swapBuffers(glCtx->mainWin);
   for (uint8_t i = 1; i < glCtx->swapCount; i++) {
     winctx_swapBuffers(glCtx->swapWins[i].win);
@@ -455,6 +459,8 @@ static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
   if (view->fbh != kInvalidHandle) {
     // only mainWin can has framebuffer
     mainWinFb = glCtx->frameBuffers[handle_index(view->fbh)].id;
+  } else if (view->win == glCtx->mainWin) {
+    mainWinFb = gl_getTripleFrameBuffer(glCtx);
   }
   gl_MakeWinCurrent(glCtx, view->win, mainWinFb);
 

@@ -117,19 +117,19 @@ static bcfx_MakeContextCurrent _MakeContextCurrent = NULL;
 static bcfx_SwapBuffers _SwapBuffers = NULL;
 static bcfx_SwapInterval _SwapInterval = NULL;
 static bcfx_GetProcAddress _GetProcAddress = NULL;
-static bcfx_GetWindowSize _GetWindowSize = NULL;
+static bcfx_GetFramebufferSize _GetFramebufferSize = NULL;
 
 BCFX_API void bcfx_setWinCtxFuncs(
     bcfx_MakeContextCurrent makeCurrent,
     bcfx_SwapBuffers swapBuffers,
     bcfx_SwapInterval swapInterval,
     bcfx_GetProcAddress getProcAddress,
-    bcfx_GetWindowSize getWindowSize) {
+    bcfx_GetFramebufferSize getFramebufferSize) {
   _MakeContextCurrent = makeCurrent;
   _SwapBuffers = swapBuffers;
   _SwapInterval = swapInterval;
   _GetProcAddress = getProcAddress;
-  _GetWindowSize = getWindowSize;
+  _GetFramebufferSize = getFramebufferSize;
 }
 
 void winctx_makeContextCurrent(void* window) {
@@ -144,8 +144,8 @@ void winctx_swapInterval(int interval) {
 bcfx_GLProc winctx_getProcAddress(const char* procname) {
   return _GetProcAddress(procname);
 }
-void winctx_getWindowSize(void* window, int* width, int* height) {
-  _GetWindowSize(window, width, height);
+void winctx_getFramebufferSize(void* window, int* width, int* height) {
+  _GetFramebufferSize(window, width, height);
 }
 
 /* }====================================================== */

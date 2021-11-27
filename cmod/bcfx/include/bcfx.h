@@ -179,14 +179,14 @@ typedef void (*bcfx_SwapBuffers)(void* window);
 typedef void (*bcfx_SwapInterval)(int interval);
 typedef void (*bcfx_GLProc)(void);
 typedef bcfx_GLProc (*bcfx_GetProcAddress)(const char* procname);
-typedef void (*bcfx_GetWindowSize)(void* window, int* width, int* height);
+typedef void (*bcfx_GetFramebufferSize)(void* window, int* width, int* height);
 
 BCFX_API void bcfx_setWinCtxFuncs(
     bcfx_MakeContextCurrent makeCurrent,
     bcfx_SwapBuffers swapBuffers,
     bcfx_SwapInterval swapInterval,
     bcfx_GetProcAddress getProcAddress,
-    bcfx_GetWindowSize getWindowSize);
+    bcfx_GetFramebufferSize getFramebufferSize);
 
 /* }====================================================== */
 

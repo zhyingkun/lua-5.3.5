@@ -72,6 +72,9 @@ typedef struct {
 
   CommandBuffer cmdPre[1];
   CommandBuffer cmdPost[1];
+
+  int mwfbWidth; // MainWindowFrameBuffer
+  int mwfbHeight;
 } Frame;
 
 void frame_init(Frame* frame);

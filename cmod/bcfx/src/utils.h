@@ -58,7 +58,7 @@ void winctx_makeContextCurrent(void* window);
 void winctx_swapBuffers(void* window);
 void winctx_swapInterval(int interval);
 bcfx_GLProc winctx_getProcAddress(const char* procname);
-void winctx_getWindowSize(void* window, int* width, int* height);
+void winctx_getFramebufferSize(void* window, int* width, int* height);
 
 /* }====================================================== */
 
