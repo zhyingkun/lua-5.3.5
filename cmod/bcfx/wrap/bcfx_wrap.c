@@ -80,13 +80,13 @@ static int BCWRAP_FUNCTION(setWinCtxFuncs)(lua_State* L) {
   void* swapBuffers = luaL_checklightuserdata(L, 2);
   void* swapInterval = luaL_checklightuserdata(L, 3);
   void* getProcAddress = luaL_checklightuserdata(L, 4);
-  void* getWindowSize = luaL_checklightuserdata(L, 5);
+  void* getFramebufferSize = luaL_checklightuserdata(L, 5);
   bcfx_setWinCtxFuncs(
       (bcfx_MakeContextCurrent)makeCurrent,
       (bcfx_SwapBuffers)swapBuffers,
       (bcfx_SwapInterval)swapInterval,
       (bcfx_GetProcAddress)getProcAddress,
-      (bcfx_GetWindowSize)getWindowSize);
+      (bcfx_GetFramebufferSize)getFramebufferSize);
   return 0;
 }
 static int BCWRAP_FUNCTION(setMiscFuncs)(lua_State* L) {
