@@ -50,7 +50,7 @@ bcfx.setWinCtxFuncs(
 	func_ptr.SwapBuffers,
 	func_ptr.SwapInterval,
 	func_ptr.GetProcAddress,
-	func_ptr.GetWindowSize
+	func_ptr.GetFramebufferSize
 )
 bcfx.setMiscFuncs(
 	func_ptr.GetTime
