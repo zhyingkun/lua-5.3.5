@@ -162,6 +162,13 @@ static int BCWRAP_FUNCTION(createIndexBuffer)(lua_State* L) {
   lua_pushinteger(L, handle);
   return 1;
 }
+static int BCWRAP_FUNCTION(createDynamicIndexBuffer)(lua_State* L) {
+  size_t size = luaL_checkinteger(L, 1);
+
+  Handle handle = bcfx_createDynamicIndexBuffer(size);
+  lua_pushinteger(L, handle);
+  return 1;
+}
 static int BCWRAP_FUNCTION(createShader)(lua_State* L) {
   bcfx_MemBuffer buffer;
   bcfx_MemBuffer* mb = &buffer;
@@ -252,6 +259,14 @@ static int BCWRAP_FUNCTION(updateDynamicVertexBuffer)(lua_State* L) {
   size_t offset = luaL_checkinteger(L, 2);
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 3);
   bcfx_updateDynamicVertexBuffer(handle, offset, mb);
+  MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
+  return 0;
+}
+static int BCWRAP_FUNCTION(updateDynamicIndexBuffer)(lua_State* L) {
+  Handle handle = (Handle)luaL_checkinteger(L, 1);
+  size_t offset = luaL_checkinteger(L, 2);
+  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 3);
+  bcfx_updateDynamicIndexBuffer(handle, offset, mb);
   MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
   return 0;
 }
@@ -486,6 +501,7 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(createVertexBuffer),
     EMPLACE_BCWRAP_FUNCTION(createDynamicVertexBuffer),
     EMPLACE_BCWRAP_FUNCTION(createIndexBuffer),
+    EMPLACE_BCWRAP_FUNCTION(createDynamicIndexBuffer),
     EMPLACE_BCWRAP_FUNCTION(createShader),
     EMPLACE_BCWRAP_FUNCTION(createProgram),
     EMPLACE_BCWRAP_FUNCTION(createUniform),
@@ -495,6 +511,7 @@ static const luaL_Reg wrap_funcs[] = {
     /* Update Render Resource */
     EMPLACE_BCWRAP_FUNCTION(updateProgram),
     EMPLACE_BCWRAP_FUNCTION(updateDynamicVertexBuffer),
+    EMPLACE_BCWRAP_FUNCTION(updateDynamicIndexBuffer),
     /* Create Render Resource */
     EMPLACE_BCWRAP_FUNCTION(destroy),
     /* View */
