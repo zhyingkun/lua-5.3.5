@@ -16,6 +16,7 @@ typedef enum {
   BCFX_RESOURCE_MAP(XX)
 #undef XX
   CT_UpdateVertexBuffer,
+  CT_UpdateIndexBuffer,
   CT_End,
   CT_RendererShutdown,
 #define XX(name, config_max) CT_Destroy##name,
@@ -72,6 +73,10 @@ typedef struct {
   size_t offset;
   bcfx_MemBuffer mem;
 } CmdUpdateVertexBuffer;
+typedef struct {
+  size_t offset;
+  bcfx_MemBuffer mem;
+} CmdUpdateIndexBuffer;
 
 typedef union {
   CmdInit ci;
@@ -86,6 +91,7 @@ typedef union {
   CmdFrameBuffer cfb;
 
   CmdUpdateVertexBuffer cuvb;
+  CmdUpdateIndexBuffer cuib;
 } CommandParam;
 
 typedef struct {

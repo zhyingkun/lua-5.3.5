@@ -110,6 +110,10 @@ BCFX_API Handle bcfx_createIndexBuffer(bcfx_MemBuffer* mem) {
   return ctx_createIndexBuffer(s_ctx, mem);
 }
 
+BCFX_API Handle bcfx_createDynamicIndexBuffer(size_t size) {
+  return ctx_createDynamicIndexBuffer(s_ctx, size);
+}
+
 BCFX_API Handle bcfx_createShader(bcfx_MemBuffer* mem, ShaderType type) {
   return ctx_createShader(s_ctx, mem, type);
 }
@@ -148,6 +152,10 @@ BCFX_API void bcfx_updateProgram(Handle handle, Handle vs, Handle fs) {
 
 BCFX_API void bcfx_updateDynamicVertexBuffer(Handle handle, size_t offset, bcfx_MemBuffer* mem) {
   ctx_updateDynamicVertexBuffer(s_ctx, handle, offset, mem);
+}
+
+BCFX_API void bcfx_updateDynamicIndexBuffer(Handle handle, size_t offset, bcfx_MemBuffer* mem) {
+  ctx_updateDynamicIndexBuffer(s_ctx, handle, offset, mem);
 }
 
 /* }====================================================== */

@@ -322,7 +322,7 @@ static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, bcfx_MemBu
   ib->type = data_glType[mem->dt];
   GL_CHECK(glGenBuffers(1, &ib->id));
   GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
-  GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mem->sz, mem->ptr, GL_STATIC_DRAW));
+  GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mem->sz, mem->ptr, mem->ptr != NULL ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW));
   GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
   MEMBUFFER_RELEASE(mem);
 }
@@ -449,6 +449,17 @@ static void gl_updateVertexBuffer(RendererContext* ctx, Handle handle, size_t of
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
+  GL_CHECK(glBufferSubData(GL_ARRAY_BUFFER, offset, mem->sz, mem->ptr));
+  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
+  MEMBUFFER_RELEASE(mem);
+}
+
+static void gl_updateIndexBuffer(RendererContext* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
+  ib->count = mem->sz / sizeof_DataType[mem->dt];
+  ib->type = data_glType[mem->dt];
+  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, ib->id));
   GL_CHECK(glBufferSubData(GL_ARRAY_BUFFER, offset, mem->sz, mem->ptr));
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
   MEMBUFFER_RELEASE(mem);
@@ -657,6 +668,7 @@ RendererContext* CreateRendererGL(void) {
   renderer->createFrameBuffer = gl_createFrameBuffer;
 
   renderer->updateVertexBuffer = gl_updateVertexBuffer;
+  renderer->updateIndexBuffer = gl_updateIndexBuffer;
 
   renderer->beginFrame = gl_beginFrame;
   renderer->submit = gl_submit;

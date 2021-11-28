@@ -56,6 +56,7 @@ Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout);
 Handle ctx_createVertexBuffer(Context* ctx, bcfx_MemBuffer* mem, Handle layout);
 Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size);
 Handle ctx_createIndexBuffer(Context* ctx, bcfx_MemBuffer* mem);
+Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size);
 Handle ctx_createShader(Context* ctx, bcfx_MemBuffer* mem, ShaderType type);
 Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs);
 Handle ctx_createUniform(Context* ctx, const char* name, bcfx_UniformType type, uint16_t num);
@@ -65,6 +66,7 @@ Handle ctx_createFrameBuffer(Context* ctx, uint8_t num, Handle* handles);
 
 void ctx_updateProgram(Context* ctx, Handle handle, Handle vs, Handle fs);
 void ctx_updateDynamicVertexBuffer(Context* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem);
+void ctx_updateDynamicIndexBuffer(Context* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem);
 
 void ctx_destroy(Context* ctx, Handle handle);
 

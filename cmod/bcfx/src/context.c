@@ -315,6 +315,14 @@ Handle ctx_createIndexBuffer(Context* ctx, bcfx_MemBuffer* mem) {
   return handle;
 }
 
+Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size) {
+  ADD_CMD_ALLOC_HANDLE(ctx, IndexBuffer)
+  bcfx_MemBuffer mb = {0};
+  mb.sz = size;
+  param->cib.mem = mb;
+  return handle;
+}
+
 Handle ctx_createShader(Context* ctx, bcfx_MemBuffer* mem, ShaderType type) {
   ADD_CMD_ALLOC_HANDLE(ctx, Shader)
   param->cs.mem = *mem;
@@ -395,6 +403,13 @@ void ctx_updateDynamicVertexBuffer(Context* ctx, Handle handle, size_t offset, b
   CommandParam* param = ctx_addCommand(ctx, CT_UpdateVertexBuffer, handle);
   param->cuvb.offset = offset;
   param->cuvb.mem = *mem;
+}
+
+void ctx_updateDynamicIndexBuffer(Context* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem) {
+  CHECK_HANDLE(handle);
+  CommandParam* param = ctx_addCommand(ctx, CT_UpdateIndexBuffer, handle);
+  param->cuib.offset = offset;
+  param->cuib.mem = *mem;
 }
 
 /* }====================================================== */

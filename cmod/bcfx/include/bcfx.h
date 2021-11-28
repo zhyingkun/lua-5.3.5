@@ -234,6 +234,7 @@ BCFX_API Handle bcfx_createVertexLayout(bcfx_VertexLayout* layout);
 BCFX_API Handle bcfx_createVertexBuffer(bcfx_MemBuffer* mem, Handle layout);
 BCFX_API Handle bcfx_createDynamicVertexBuffer(size_t size);
 BCFX_API Handle bcfx_createIndexBuffer(bcfx_MemBuffer* mem);
+BCFX_API Handle bcfx_createDynamicIndexBuffer(size_t size);
 
 typedef enum {
   ST_Vertex,
@@ -283,6 +284,7 @@ BCFX_API Handle bcfx_createFrameBuffer(uint8_t num, Handle* handles);
 
 BCFX_API void bcfx_updateProgram(Handle handle, Handle vs, Handle fs);
 BCFX_API void bcfx_updateDynamicVertexBuffer(Handle handle, size_t offset, bcfx_MemBuffer* mem);
+BCFX_API void bcfx_updateDynamicIndexBuffer(Handle handle, size_t offset, bcfx_MemBuffer* mem);
 
 /* }====================================================== */
 

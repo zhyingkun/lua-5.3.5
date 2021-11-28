@@ -28,6 +28,7 @@ typedef void (*RendererCreateTexture)(RendererContext* ctx, Handle handle, bcfx_
 typedef void (*RendererCreateFrameBuffer)(RendererContext* ctx, Handle handle, uint8_t num, Handle* handles);
 
 typedef void (*RendererUpdateVertexBuffer)(RendererContext* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem);
+typedef void (*RendererUpdateIndexBuffer)(RendererContext* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem);
 
 typedef void (*RendererBeginFrame)(RendererContext* ctx, Frame* frame);
 typedef void (*RendererSubmit)(RendererContext* ctx, Frame* frame);
@@ -56,6 +57,7 @@ struct RendererContext {
   RendererCreateFrameBuffer createFrameBuffer;
 
   RendererUpdateVertexBuffer updateVertexBuffer;
+  RendererUpdateIndexBuffer updateIndexBuffer;
 
   RendererBeginFrame beginFrame;
   RendererSubmit submit;
