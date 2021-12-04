@@ -172,6 +172,8 @@ function imgui.tick(delta)
 	})
 
 	local w_, h_ = glfw.GetWindowSize(mainWin)
+	local scaleX = width / w_
+	local scaleY = height / h_
 
 	local offset = 0
 	for cmd in nk.DrawElements(cmds) do
@@ -182,7 +184,7 @@ function imgui.tick(delta)
 		offset = offset + count
 
 		bcfx.setTexture(0, uniformTex, texture, flags)
-		bcfx.setScissor(x*2, y*2, w*2, h*2) -- convert window coordinate to pixel coordinate
+		bcfx.setScissor(x*scaleX, y*scaleY, w*scaleX, h*scaleY) -- convert window coordinate to pixel coordinate
 		bcfx.submit(255, imguiShader, discard.INDEX_BUFFER | discard.BINDINGS)
 		end
 	end
