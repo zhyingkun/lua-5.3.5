@@ -5,6 +5,7 @@ local bcfx = require("bcfx")
 local clear_flag = bcfx.clear_flag
 local vertex_attrib = bcfx.vertex_attrib
 local attrib_type = bcfx.attrib_type
+local index_type = bcfx.index_type
 local membuf = bcfx.membuf
 local data_type = membuf.data_type
 local graphics3d = bcfx.math.graphics3d
@@ -73,7 +74,7 @@ local function CreateTriangleBuffer()
 		0, 1, 2,
 	}
 	local mem = membuf.MakeMemoryBuffer(data_type.Uint8, indexTbl)
-	local idxHandle = bcfx.createIndexBuffer(mem)
+	local idxHandle = bcfx.createIndexBuffer(mem, index_type.Uint8)
 
 	local shaderProgramHandle = loader.LoadProgram("triangle")
 
@@ -159,7 +160,7 @@ local function CreateCubeBuffer()
 		20, 21, 22, 20, 22, 23, -- down
 	}
 	local mem = membuf.MakeMemoryBuffer(data_type.Uint8, indexTbl)
-	local idxHandle = bcfx.createIndexBuffer(mem)
+	local idxHandle = bcfx.createIndexBuffer(mem, index_type.Uint8)
 
 	uniformHandle = bcfx.createUniform("my_texture", 0)
 
@@ -264,6 +265,7 @@ local function setup(mainWin)
 	cube = CreateCubeBuffer()
 
 	glfw.SetFramebufferSizeCallback(mainWin, function(window, width, height)
+		bcfx.setViewRect(255, 0, 0, width, height)
 		bcfx.setViewRect(0, 0, 0, width, height)
 		bcfx.setViewRect(2, 0, 0, width // 2, height // 2)
 	end)
@@ -286,7 +288,7 @@ local function setup(mainWin)
 	-- 	print_err("FrameRate:", string.format("%.2f", GetFrameRate()))
 	-- end, 1000, 1000)
 
-	instanceBuffer = bcfx.createDynamicVertexBuffer(4 * 4 * 1 * 3)
+	instanceBuffer = bcfx.createDynamicVertexBuffer(4 * 4 * 1 * 3, 0)
 	local instanceOffset = {
 		0.0, 0.0, 0.0, 0.0,
 		0.3, 0.3, 0.3, 0.0,

@@ -65,12 +65,19 @@ loader.SetPathPrefix(require("libdir").dirname(arg[0]) .. "/")
 
 local triangle = require("triangle")
 triangle.setup(window)
-
 -- local colorcircle = require("colorcircle")
 -- colorcircle.setup(window)
 
+local input = require("input")
+input.ImGUIInit(window)
+local imgui = require("imgui")
+imgui.setup(window)
+
+
 require("watch").autoReload("triangle")
 -- require("watch").autoReload("colorcircle")
+
+require("watch").autoReload("imgui")
 
 --[[
 local graphics3d = bcfx.math.graphics3d
@@ -91,11 +98,11 @@ print("orthoMat:", orthoMat)
 
 local lastTime = 0.0
 while not glfw.WindowShouldClose(window) do
-	if glfw.GetKey(window, 256) == input_state.PRESS then
-		glfw.SetWindowShouldClose(window, true)
-	end
-	glfw.PollEvents()
 	libuv.run_nowait()
+
+	input.ImGUIPrePollEvent()
+	glfw.PollEvents() -- will fire user input, keyboard or mouse
+	input.ImGUIPostPollEvent()
 
 	local time = glfw.GetTime()
 	local delta = time - lastTime
@@ -103,6 +110,7 @@ while not glfw.WindowShouldClose(window) do
 
 	triangle.tick(delta)
 	-- colorcircle.tick(delta)
+	imgui.tick(delta)
 
 	bcfx.apiFrame()
 	collectgarbage()
