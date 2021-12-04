@@ -344,8 +344,8 @@ static int BCWRAP_FUNCTION(setViewScissor)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(setViewTransform)(lua_State* L) {
   ViewId id = (ViewId)luaL_checkinteger(L, 1);
-  Mat4x4* viewMat = luaL_checkmat4x4(L, 2);
-  Mat4x4* projMat = luaL_checkmat4x4(L, 3);
+  Mat4x4* viewMat = luaL_optmat4x4(L, 2, NULL);
+  Mat4x4* projMat = luaL_optmat4x4(L, 3, NULL);
   bcfx_setViewTransform(id, viewMat, projMat);
   return 0;
 }
