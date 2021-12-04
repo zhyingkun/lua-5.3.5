@@ -39,14 +39,18 @@ typedef struct {
   RendererContext* renderCtx;
 
   uint32_t frameCount;
-  bcfx_OnFrameCompleted frameCompleted;
-  void* frameCompletedArg;
+  bcfx_OnFrameCompleted onFrameCompleted;
+  void* onFrameCompletedArg;
+
+  bcfx_OnFrameViewCapture onFrameViewCapture;
+  void* onFrameViewCaptureArg;
 
   UniformAPI uniforms[BCFX_CONFIG_MAX_UNIFORM];
 } Context;
 
 uint32_t ctx_frameId(Context* ctx);
 void ctx_setFrameCompletedCallback(Context* ctx, bcfx_OnFrameCompleted cb, void* ud);
+void ctx_callOnFrameCompleted(Context* ctx, uint32_t frameId);
 
 void ctx_apiFrame(Context* ctx, uint32_t renderCount);
 void ctx_init(Context* ctx, Window mainWin);
@@ -82,6 +86,10 @@ void ctx_setViewMode(Context* ctx, ViewId id, ViewMode mode);
 
 void ctx_setViewDebug(Context* ctx, ViewId id, uint32_t debug);
 void ctx_resetView(Context* ctx, ViewId id);
+
+void ctx_setFrameViewCaptureCallback(Context* ctx, bcfx_OnFrameViewCapture callback, void* ud);
+void ctx_requestCurrentFrameViewCapture(Context* ctx, ViewId id);
+void ctx_callOnFrameViewCapture(Context* ctx, Frame* frame, uint32_t frameId);
 
 void ctx_setUniformVec4(Context* ctx, Handle handle, Vec4* vec, uint16_t num);
 void ctx_setUniformMat3x3(Context* ctx, Handle handle, Mat3x3* mat, uint16_t num);

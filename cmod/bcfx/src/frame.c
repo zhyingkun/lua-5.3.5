@@ -14,6 +14,11 @@ void frame_init(Frame* frame) {
 
   cmdbuf_init(frame->cmdPre);
   cmdbuf_init(frame->cmdPost);
+
+  for (int i = 0; i < BCFX_VIEW_CAPTURE_BYTES; i++) {
+    frame->viewCapture[i] = 0;
+  }
+  frame->numVCR = 0;
 }
 
 void frame_reset(Frame* frame) {
@@ -21,6 +26,11 @@ void frame_reset(Frame* frame) {
 
   cmdbuf_reset(frame->cmdPre);
   cmdbuf_reset(frame->cmdPost);
+
+  for (int i = 0; i < BCFX_VIEW_CAPTURE_BYTES; i++) {
+    frame->viewCapture[i] = 0;
+  }
+  frame->numVCR = 0;
 }
 
 uint16_t frame_newRenderItemIndex(Frame* frame) {

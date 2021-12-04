@@ -105,8 +105,13 @@ uint32_t ctx_frameId(Context* ctx) {
 }
 
 void ctx_setFrameCompletedCallback(Context* ctx, bcfx_OnFrameCompleted cb, void* ud) {
-  ctx->frameCompleted = cb;
-  ctx->frameCompletedArg = ud;
+  ctx->onFrameCompleted = cb;
+  ctx->onFrameCompletedArg = ud;
+}
+void ctx_callOnFrameCompleted(Context* ctx, uint32_t frameId) {
+  if (ctx->onFrameCompleted) {
+    ctx->onFrameCompleted(ctx->onFrameCompletedArg, frameId);
+  }
 }
 
 typedef struct {
@@ -143,14 +148,6 @@ static void ctx_freeRecordHandle(Context* ctx, uint32_t frameId) {
   }
 }
 
-static void ctx_callPrevFrameCompleted(Context* ctx) {
-  if (ctx->frameCompleted && ctx->frameCount > 0) {
-    uint32_t frameId = ctx->frameCount - 1;
-    ctx_freeRecordHandle(ctx, frameId);
-    ctx->frameCompleted(ctx->frameCompletedArg, frameId);
-  }
-}
-
 void ctx_apiFrame(Context* ctx, uint32_t renderCount) {
   ctx->submitFrame->renderCount = renderCount;
   memcpy(ctx->submitFrame->views, ctx->views, sizeof(ctx->views));
@@ -164,7 +161,12 @@ void ctx_apiFrame(Context* ctx, uint32_t renderCount) {
 
   ctx_apiSemPost(ctx);
 
-  ctx_callPrevFrameCompleted(ctx); // before next frame, complete prev frame
+  if (ctx->frameCount > 0) { // frame 'n' submit frame means frame 'n-1' render completed
+    uint32_t frameId = ctx->frameCount - 1;
+    ctx_callOnFrameViewCapture(ctx, submitFrame, frameId);
+    ctx_freeRecordHandle(ctx, frameId);
+    ctx_callOnFrameCompleted(ctx, frameId); // before next frame, complete prev frame
+  }
   ctx->frameCount++; // start next frame
   encoder_begin(ctx->encoder, submitFrame);
 }
@@ -489,6 +491,25 @@ void ctx_setViewDebug(Context* ctx, ViewId id, uint32_t debug) {
 void ctx_resetView(Context* ctx, ViewId id) {
   CHECK_VIEWID(id);
   view_reset(&ctx->views[id]);
+}
+
+void ctx_setFrameViewCaptureCallback(Context* ctx, bcfx_OnFrameViewCapture callback, void* ud) {
+  ctx->onFrameViewCapture = callback;
+  ctx->onFrameViewCaptureArg = ud;
+}
+void ctx_requestCurrentFrameViewCapture(Context* ctx, ViewId id) {
+  Frame* frame = ctx->submitFrame;
+  frame->viewCapture[VIEW_BYTE_INDEX(id)] |= VIEW_OFFSET_BIT(id);
+}
+void ctx_callOnFrameViewCapture(Context* ctx, Frame* frame, uint32_t frameId) {
+  for (uint8_t i = 0; i < frame->numVCR; i++) {
+    bcfx_FrameViewCaptureResult* result = &frame->viewCaptureResults[i];
+      if (ctx->onFrameViewCapture) {
+          ctx->onFrameViewCapture(ctx->onFrameViewCaptureArg, frameId, result);
+      }
+      MEMBUFFER_RELEASE(&result->mb);
+  }
+  frame->numVCR = 0;
 }
 
 /* }====================================================== */

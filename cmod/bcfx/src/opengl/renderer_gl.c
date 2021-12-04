@@ -427,10 +427,11 @@ static void gl_createFrameBuffer(RendererContext* ctx, Handle handle, uint8_t nu
   }
   if (colorIdx == 0) {
     GL_CHECK(glDrawBuffer(GL_NONE));
+    GL_CHECK(glReadBuffer(GL_NONE));
   } else {
     GL_CHECK(glDrawBuffers(colorIdx, buffers));
+    GL_CHECK(glReadBuffer(GL_COLOR_ATTACHMENT0));
   }
-  GL_CHECK(glReadBuffer(GL_NONE));
   GLenum complete;
   GL_CHECK(complete = glCheckFramebufferStatus(GL_FRAMEBUFFER));
   if (complete != GL_FRAMEBUFFER_COMPLETE) {
@@ -516,6 +517,32 @@ static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, F
   }
 }
 
+static inline bool shouldCaptureView(Frame* frame, ViewId id) {
+  return (frame->numVCR < BCFX_CONFIG_MAX_VIEW_CAPTURE) &&
+         (frame->viewCapture[VIEW_BYTE_INDEX(id)] & VIEW_OFFSET_BIT(id)) != 0;
+}
+static void _releaseFrameCapture(void* ud, void* ptr) {
+    (void)ud;
+    mem_free(ptr);
+}
+static void frameCaptureView(Frame* frame, ViewId id) {
+  if (IS_VIEWID_VALID(id) && shouldCaptureView(frame, id)) {
+    View* view = &frame->views[id];
+    Rect* rect = &view->rect;
+      size_t sz = rect->width * rect->height * 4;
+    void* data = mem_malloc(sz);
+
+      GL_CHECK(glFlush());
+    GL_CHECK(glReadPixels(rect->x, rect->y, rect->width, rect->height, GL_RGBA, GL_UNSIGNED_BYTE, data));
+
+      bcfx_FrameViewCaptureResult* result = &frame->viewCaptureResults[frame->numVCR++];
+    result->id = id;
+    result->width = rect->width;
+    result->height = rect->height;
+      MEMBUFFER_SET(&result->mb, data, sz, _releaseFrameCapture, NULL);
+  }
+}
+
 static Rect* findScissor(Rect* viewsci, Rect* drawsci, Rect* dst) {
   bool bHasVS = !rect_isZeroArea(viewsci);
   bool bHasDS = !rect_isZeroArea(drawsci);
@@ -589,7 +616,9 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
     ViewId id = key->viewId;
 
     View* view = &frame->views[id];
-    if (IS_VALUE_CHANGED(curViewId, id)) { // view changed
+    if (curViewId != id) { // view changed
+      frameCaptureView(frame, curViewId);
+      curViewId = id;
       gl_MakeViewCurrent(glCtx, view);
 
       GLenum polMod = (view->debug & BCFX_DEBUG_WIREFRAME) ? GL_LINE : GL_FILL;
@@ -610,6 +639,7 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
       gl_submitDraw(glCtx, key->program, draw, bind, view);
     }
   }
+  frameCaptureView(frame, curViewId);
   gl_MakeWinCurrent(glCtx, NULL, 0); // set mainWin framebuffer to 0 for fixed swap nothing error in MacOSX
 }
 

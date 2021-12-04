@@ -33,12 +33,12 @@ typedef struct {
   MEMBUFFER_SET(mb, NULL, 0, NULL, NULL)
 
 #define MEMBUFFER_MOVE(src, dst) \
-  *dst = *src; \
+  *(dst) = *(src); \
   MEMBUFFER_CLEAR(src)
 
 #define MEMBUFFER_RELEASE(mb) \
-  if (mb->release != NULL && mb->ptr != NULL) \
-    mb->release(mb->ud, mb->ptr); \
+  if ((mb)->release != NULL && (mb)->ptr != NULL) \
+    (mb)->release((mb)->ud, (mb)->ptr); \
   MEMBUFFER_CLEAR(mb)
 
 /* }====================================================== */
@@ -317,6 +317,18 @@ BCFX_API void bcfx_setViewMode(ViewId id, ViewMode mode);
 
 BCFX_API void bcfx_setViewDebug(ViewId id, uint32_t debug);
 BCFX_API void bcfx_resetView(ViewId id);
+
+typedef struct {
+  ViewId id;
+  uint16_t width;
+  uint16_t height;
+  bcfx_MemBuffer mb;
+} bcfx_FrameViewCaptureResult;
+
+typedef void (*bcfx_OnFrameViewCapture)(void* ud, uint32_t frameId, bcfx_FrameViewCaptureResult* result);
+
+BCFX_API void bcfx_setFrameViewCaptureCallback(bcfx_OnFrameViewCapture callback, void* ud);
+BCFX_API void bcfx_requestCurrentFrameViewCapture(ViewId id);
 
 /* }====================================================== */
 

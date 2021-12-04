@@ -23,6 +23,12 @@
 #define BCFX_CONFIG_VIEW_ID_BITS 8
 #define BCFX_CONFIG_PROGRAM_BITS 9
 
+#define BCFX_UINT64_BITS (6) // 2^6 is 64bit
+#define BCFX_VIEW_CAPTURE_BYTES (1 << (BCFX_CONFIG_VIEW_ID_BITS - BCFX_UINT64_BITS))
+#define BCFX_VIEW_CAPTURE_BYTE_MASK (BCFX_VIEW_CAPTURE_BYTES - 1)
+#define VIEW_BYTE_INDEX(id) ((id >> BCFX_UINT64_BITS) & BCFX_VIEW_CAPTURE_BYTE_MASK)
+#define VIEW_OFFSET_BIT(id) (1 << (id & ((1 << BCFX_UINT64_BITS) - 1)))
+
 // max number of render resource is 4096
 // because current implementation using 12 bits for handle index
 #define BCFX_CONFIG_MAX_VERTEX_LAYOUT 64
@@ -48,6 +54,10 @@
 #define BCFX_CONFIG_MAX_INSTANCE_DATA 5
 
 #define BCFX_CONFIG_MAX_FRAME_BUFFER_ATTACHMENTS 8
+
+#define BCFX_CONFIG_MAX_VIEW_CAPTURE 16
+
+#define IS_VIEWID_VALID(id) (id < BCFX_CONFIG_MAX_VIEWS)
 
 #define CHECK_VIEWID(id) assert(id < BCFX_CONFIG_MAX_VIEWS)
 #define CHECK_STREAMID(id) assert(id < BCFX_CONFIG_MAX_VERTEX_STREAMS)

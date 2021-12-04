@@ -201,6 +201,14 @@ BCFX_API void bcfx_resetView(ViewId id) {
   ctx_resetView(s_ctx, id);
 }
 
+BCFX_API void bcfx_setFrameViewCaptureCallback(bcfx_OnFrameViewCapture callback, void* ud) {
+  ctx_setFrameViewCaptureCallback(s_ctx, callback, ud);
+}
+
+BCFX_API void bcfx_requestCurrentFrameViewCapture(ViewId id) {
+  ctx_requestCurrentFrameViewCapture(s_ctx, id);
+}
+
 /* }====================================================== */
 
 /*

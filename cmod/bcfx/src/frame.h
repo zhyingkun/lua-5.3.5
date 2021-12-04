@@ -76,6 +76,10 @@ typedef struct {
 
   int mwfbWidth; // MainWindowFrameBuffer
   int mwfbHeight;
+
+  uint64_t viewCapture[BCFX_VIEW_CAPTURE_BYTES]; // api thread pass to render thread
+  uint8_t numVCR;
+  bcfx_FrameViewCaptureResult viewCaptureResults[BCFX_CONFIG_MAX_VIEW_CAPTURE]; // render thread pass to api thread
 } Frame;
 
 void frame_init(Frame* frame);
