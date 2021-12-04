@@ -65,7 +65,7 @@ static int dealReadFileResult(lua_State* L, const char* filename, int err, void*
     return 3;
   }
   bcfx_MemBuffer* mb = luaL_newmembuffer(L);
-  MEMBUFFER_SET(mb, ptr, sz, DT_None, utils_releaseBuf, NULL);
+  MEMBUFFER_SET(mb, ptr, sz, utils_releaseBuf, NULL);
   return 1;
 }
 static int UTILS_FUNCTION(ReadFileMemBuffer)(lua_State* L) {
@@ -91,41 +91,108 @@ static int UTILS_FUNCTION(ReadFile)(lua_State* L) {
 ** =======================================================
 */
 
-static void utils_releaseTexture(void* ud, void* ptr) {
-  (void)ud;
-  bcfx_Texture* texture = (bcfx_Texture*)ptr;
-  stbi_image_free((stbi_uc*)texture->data);
-  free((void*)texture);
-}
+// According to bcfx_ETextureFormat
+static int textureFormat_channels[] = {
+    3,
+    4,
+    4,
+};
 
+typedef struct {
+  bcfx_MemBuffer mb;
+  bcfx_ETextureFormat format;
+} LoadTexture;
+
+typedef struct {
+  uint8_t* data;
+  int width;
+  int height;
+  int nrChannels;
+  int wantChannels;
+} LoadedTexture;
+
+static int UTILS_FUNCTION(PackImageParseParam)(lua_State* L) {
+  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  bcfx_ETextureFormat format = (bcfx_ETextureFormat)luaL_checkinteger(L, 2);
+
+  LoadTexture* load = (LoadTexture*)malloc(sizeof(LoadTexture));
+  load->mb = *mb;
+  MEMBUFFER_CLEAR(mb);
+  load->format = format;
+  lua_pushlightuserdata(L, load);
+  return 1;
+}
 static void* utils_imageParsePtr(void* arg) {
-  bcfx_Texture* texture = (bcfx_Texture*)malloc(sizeof(bcfx_Texture));
-  bcfx_MemBuffer* mb = (bcfx_MemBuffer*)arg;
-  texture->data = (void*)stbi_load_from_memory((const stbi_uc*)mb->ptr, mb->sz, &texture->width, &texture->height, &texture->nrChannels, 0);
-  return (void*)texture;
+  LoadTexture* load = (LoadTexture*)arg;
+  LoadedTexture* loaded = (LoadedTexture*)malloc(sizeof(LoadedTexture));
+  loaded->wantChannels = textureFormat_channels[load->format];
+  bcfx_MemBuffer* mb = &load->mb;
+  loaded->data = (void*)stbi_load_from_memory((const stbi_uc*)mb->ptr, mb->sz, &loaded->width, &loaded->height, &loaded->nrChannels, loaded->wantChannels);
+  MEMBUFFER_RELEASE(mb);
+  return (void*)loaded;
 }
-
-static int dealImageParseResult(lua_State* L, bcfx_Texture* texture) {
-  if (!texture->data) {
-    utils_releaseTexture(NULL, texture);
+static void _releaseImageSTB(void* ud, void* ptr) {
+  (void)ud;
+  stbi_image_free((stbi_uc*)ptr);
+}
+static int dealImageParseResult(lua_State* L, LoadedTexture* loaded) {
+  if (!loaded->data) {
     return 0;
   }
   bcfx_MemBuffer* mb = luaL_newmembuffer(L);
-  MEMBUFFER_SET(mb, (void*)texture, sizeof(bcfx_Texture), DT_None, utils_releaseTexture, NULL);
-  return 1;
+  MEMBUFFER_SET(mb, (void*)loaded->data, loaded->width * loaded->height * loaded->wantChannels, _releaseImageSTB, NULL);
+  lua_pushinteger(L, loaded->width);
+  lua_pushinteger(L, loaded->height);
+  lua_pushinteger(L, loaded->nrChannels);
+  lua_pushinteger(L, loaded->wantChannels);
+  return 5;
 }
-
-static int UTILS_FUNCTION(ImageParseMemBuffer)(lua_State* L) {
-  bcfx_Texture* texture = (bcfx_Texture*)luaL_checklightuserdata(L, 1);
-  return dealImageParseResult(L, texture);
+static int UTILS_FUNCTION(UnpackImageParseResult)(lua_State* L) {
+  LoadedTexture* loaded = (LoadedTexture*)luaL_checklightuserdata(L, 1);
+  int ret = dealImageParseResult(L, loaded);
+  free((void*)loaded);
+  return ret;
 }
 
 static int UTILS_FUNCTION(ImageParse)(lua_State* L) {
-  bcfx_MemBuffer* mb = (bcfx_MemBuffer*)luaL_checkmembuffer(L, 1);
+  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  bcfx_ETextureFormat format = (bcfx_ETextureFormat)luaL_checkinteger(L, 2);
 
-  bcfx_Texture* texture = (bcfx_Texture*)utils_imageParsePtr((void*)mb);
-
+  LoadTexture load[1];
+  load->mb = *mb;
+  MEMBUFFER_CLEAR(mb);
+  load->format = format;
+  LoadedTexture* texture = (LoadedTexture*)utils_imageParsePtr((void*)load);
   return dealImageParseResult(L, texture);
+}
+
+static int UTILS_FUNCTION(ImageWrite)(lua_State* L) {
+  const char* filename = luaL_checkstring(L, 1);
+  int width = luaL_checkinteger(L, 2);
+  int height = luaL_checkinteger(L, 3);
+  int components = luaL_checkinteger(L, 4);
+  void* data = luaL_checklightuserdata(L, 5);
+
+  stbi_write_png(filename, width, height, components, data, width * components);
+  return 0;
+}
+
+static void utils_releaseTex(void* ud, void* ptr) {
+  (void)ud;
+  free((void*)ptr);
+}
+static int UTILS_FUNCTION(MakeTextureMemBuffer)(lua_State* L) {
+  void* data = luaL_checklightuserdata(L, 1);
+  int width = luaL_checkinteger(L, 2);
+  int height = luaL_checkinteger(L, 3);
+  int nrChannels = luaL_checkinteger(L, 4);
+
+  size_t len = width * height * nrChannels;
+  void* another = malloc(len);
+  memcpy((char*)another, (char*)data, len);
+  bcfx_MemBuffer* mb = luaL_newmembuffer(L);
+  MEMBUFFER_SET(mb, (void*)another, len, utils_releaseTex, NULL);
+  return 1;
 }
 
 /* }====================================================== */
@@ -214,11 +281,14 @@ static int UTILS_FUNCTION(PackStencilState)(lua_State* L) {
 static const luaL_Reg utils_funcs[] = {
     EMPLACE_UTILS_FUNCTION(ReadFileMemBuffer),
     EMPLACE_UTILS_FUNCTION(ReadFile),
-    EMPLACE_UTILS_FUNCTION(ImageParseMemBuffer),
+    EMPLACE_UTILS_FUNCTION(PackImageParseParam),
+    EMPLACE_UTILS_FUNCTION(UnpackImageParseResult),
     EMPLACE_UTILS_FUNCTION(ImageParse),
+    EMPLACE_UTILS_FUNCTION(ImageWrite),
     EMPLACE_UTILS_FUNCTION(PackSamplerFlags),
     EMPLACE_UTILS_FUNCTION(PackRenderState),
     EMPLACE_UTILS_FUNCTION(PackStencilState),
+    EMPLACE_UTILS_FUNCTION(MakeTextureMemBuffer),
     {NULL, NULL},
 };
 

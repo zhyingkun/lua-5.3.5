@@ -1,15 +1,44 @@
 #define _membuf_wrap_c_
 #include <bcfx_wrap.h>
 
+#define DATA_TYPE_MAP(XX) \
+  XX(Uint8, uint8_t) \
+  XX(Uint16, uint16_t) \
+  XX(Uint32, uint32_t) \
+  XX(Int8, int8_t) \
+  XX(Int16, int16_t) \
+  XX(Int32, int32_t)
+
+// clang-format off
+// WARNING: Change bcfx_EDataType must Update sizeof_DataType
+typedef enum {
+#define XX(name, type) DT_##name,
+  DATA_TYPE_MAP(XX)
+#undef XX
+  DT_Half,
+  DT_Float,
+} bcfx_EDataType;
+// clang-format on
+BCFX_API uint8_t sizeof_DataType[];
+
+// clang-format off
+uint8_t sizeof_DataType[] = {
+#define XX(name, type) sizeof(type),
+    DATA_TYPE_MAP(XX)
+#undef XX
+    2,
+    sizeof(float),
+};
+// clang-format on
+
 static int MEMBUF_FUNCTION(GetClear)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   lua_pushlightuserdata(L, mb->ptr);
   lua_pushinteger(L, mb->sz);
-  lua_pushinteger(L, mb->dt);
   lua_pushlightuserdata(L, mb->release);
   lua_pushlightuserdata(L, mb->ud);
   MEMBUFFER_CLEAR(mb);
-  return 5;
+  return 4;
 }
 
 #define CHECK_AND_SET(idx, field, type, check) \
@@ -20,9 +49,8 @@ static int MEMBUF_FUNCTION(SetReplace)(lua_State* L) {
   MEMBUFFER_RELEASE(mb);
   CHECK_AND_SET(2, ptr, void*, lightuserdata);
   CHECK_AND_SET(3, sz, size_t, integer);
-  CHECK_AND_SET(4, dt, bcfx_EDataType, integer);
-  CHECK_AND_SET(5, release, bcfx_MemRelease, lightuserdata);
-  CHECK_AND_SET(6, ud, void*, lightuserdata);
+  CHECK_AND_SET(4, release, bcfx_MemRelease, lightuserdata);
+  CHECK_AND_SET(5, ud, void*, lightuserdata);
   return 0;
 }
 
@@ -47,17 +75,16 @@ bcfx_MemBuffer* luaL_newmembuffer(lua_State* L) {
   MEMBUFFER_CLEAR(mb);
   return mb;
 }
-// static int MEMBUF_FUNCTION(CreateMemoryBuffer)(lua_State* L) {
-//   void* ptr = luaL_checklightuserdata(L, 1);
-//   size_t sz = luaL_checkinteger(L, 2);
-//   bcfx_EDataType dt = (bcfx_EDataType)luaL_optinteger(L, 5, DT_None);
-//   bcfx_MemRelease release = (bcfx_MemRelease)luaL_optlightuserdata(L, 3, NULL);
-//   void* ud = luaL_optlightuserdata(L, 4, NULL);
+static int MEMBUF_FUNCTION(CreateMemoryBuffer)(lua_State* L) {
+  void* ptr = luaL_optlightuserdata(L, 1, NULL);
+  size_t sz = luaL_optinteger(L, 2, 0);
+  bcfx_MemRelease release = (bcfx_MemRelease)luaL_optlightuserdata(L, 3, NULL);
+  void* ud = luaL_optlightuserdata(L, 4, NULL);
 
-//   bcfx_MemBuffer* mb = luaL_newmembuffer(L);
-//   MEMBUFFER_SET(mb, ptr, sz, dt, release, ud);
-//   return 1;
-// }
+  bcfx_MemBuffer* mb = luaL_newmembuffer(L);
+  MEMBUFFER_SET(mb, ptr, sz, release, ud);
+  return 1;
+}
 
 #define FILL_DATA_ARRAY_TABLE(count, idx, type, totype) \
   for (size_t i = 0; i < count; i++) { \
@@ -115,13 +142,13 @@ static int MEMBUF_FUNCTION(MakeMemoryBuffer)(lua_State* L) {
   }
   bcfx_MemBuffer* mb = luaL_newmembuffer(L);
   if (num == 2 && lua_istable(L, 2)) {
+    bcfx_EDataType type = (bcfx_EDataType)luaL_checkinteger(L, 1);
     size_t count = luaL_len(L, 2);
-    mb->dt = (bcfx_EDataType)luaL_checkinteger(L, 1);
-    mb->sz = sizeof_DataType[mb->dt] * count;
+    mb->sz = sizeof_DataType[type] * count;
     mb->ptr = malloc(mb->sz);
     mb->release = MEMBUF_FUNCTION(Release);
     mb->ud = NULL;
-    fill_buffer_from_table(mb->ptr, mb->dt, count, L, 2);
+    fill_buffer_from_table(mb->ptr, type, count, L, 2);
   } else {
     mb->sz = 0;
     size_t msz = 1024;
@@ -135,7 +162,6 @@ static int MEMBUF_FUNCTION(MakeMemoryBuffer)(lua_State* L) {
       counts[i] = -1;
       dts[i] = (bcfx_EDataType)luaL_checkinteger(L, i * 2 + 1);
     }
-    mb->dt = cnt == 1 ? dts[0] : DT_None;
     while (true) {
       for (int i = 0; i < cnt; i++) {
         lua_pushvalue(L, i * 2 + 2);
@@ -169,20 +195,18 @@ _READ_END_:
 }
 
 static const luaL_Reg membuf_funcs[] = {
-    // EMPLACE_MEMBUF_FUNCTION(CreateMemoryBuffer),
+    EMPLACE_MEMBUF_FUNCTION(CreateMemoryBuffer),
     EMPLACE_MEMBUF_FUNCTION(MakeMemoryBuffer),
     {NULL, NULL},
 };
 
 // clang-format off
 static const luaL_Enum BCWRAP_ENUM(data_type)[] = {
-    {"None", DT_None},
 #define XX(name, type) {#name, DT_##name},
     DATA_TYPE_MAP(XX)
 #undef XX
     {"Half", DT_Half},
     {"Float", DT_Float},
-    {"Count", DT_Count},
     {NULL, 0},
 };
 // clang-format on

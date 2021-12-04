@@ -189,6 +189,7 @@ static const luaL_Reg MATRIX_FUNCTION(metafuncs)[] = {
 
 #define INIT_MAT4x4_ELEMENT(mat, row, col, value) MAT_ELEMENT(mat, row, col) = luaL_optnumber(L, row * 4 + col + 1, value)
 static int MATRIX_FUNCTION(Mat4x4)(lua_State* L) {
+  lua_settop(L, 16);
   Mat4x4* mat = luaL_newmat4x4(L);
   INIT_MAT4x4_ELEMENT(mat, 0, 0, 1.0);
   INIT_MAT4x4_ELEMENT(mat, 0, 1, 0.0);

@@ -113,6 +113,11 @@ static int BCWRAP_FUNCTION(apiFrame)(lua_State* L) {
   bcfx_apiFrame(renderCount);
   return 0;
 }
+static int BCWRAP_FUNCTION(frameId)(lua_State* L) {
+  uint32_t id = bcfx_frameId();
+  lua_pushinteger(L, id);
+  return 1;
+}
 static int BCWRAP_FUNCTION(shutdown)(lua_State* L) {
   bcfx_shutdowm();
   return 0;
@@ -144,28 +149,26 @@ static int BCWRAP_FUNCTION(createVertexBuffer)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(createDynamicVertexBuffer)(lua_State* L) {
   size_t size = luaL_checkinteger(L, 1);
+  Handle layoutHandle = luaL_checkinteger(L, 2);
 
-  Handle handle = bcfx_createDynamicVertexBuffer(size);
+  Handle handle = bcfx_createDynamicVertexBuffer(size, layoutHandle);
   lua_pushinteger(L, handle);
   return 1;
 }
 static int BCWRAP_FUNCTION(createIndexBuffer)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  if (mb->dt != DT_Uint8 &&
-      mb->dt != DT_Uint16 &&
-      mb->dt != DT_Uint32) {
-    return luaL_error(L, "index buffer only support Uint8/Uint16/Uint32");
-  }
+  bcfx_EIndexType type = (bcfx_EIndexType)luaL_checkinteger(L, 2);
 
-  Handle handle = bcfx_createIndexBuffer(mb);
+  Handle handle = bcfx_createIndexBuffer(mb, type);
   MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
   lua_pushinteger(L, handle);
   return 1;
 }
 static int BCWRAP_FUNCTION(createDynamicIndexBuffer)(lua_State* L) {
   size_t size = luaL_checkinteger(L, 1);
+  bcfx_EIndexType type = (bcfx_EIndexType)luaL_checkinteger(L, 2);
 
-  Handle handle = bcfx_createDynamicIndexBuffer(size);
+  Handle handle = bcfx_createDynamicIndexBuffer(size, type);
   lua_pushinteger(L, handle);
   return 1;
 }
@@ -205,9 +208,11 @@ static int BCWRAP_FUNCTION(createUniform)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(createTexture)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  bcfx_ETextureFormat format = (bcfx_ETextureFormat)luaL_checkinteger(L, 2);
+  uint16_t width = luaL_checkinteger(L, 2);
+  uint16_t height = luaL_checkinteger(L, 3);
+  bcfx_ETextureFormat format = (bcfx_ETextureFormat)luaL_checkinteger(L, 4);
 
-  Handle handle = bcfx_createTexture(mb, format);
+  Handle handle = bcfx_createTexture(mb, width, height, format);
   MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
 
   lua_pushinteger(L, handle);
@@ -258,6 +263,7 @@ static int BCWRAP_FUNCTION(updateDynamicVertexBuffer)(lua_State* L) {
   Handle handle = (Handle)luaL_checkinteger(L, 1);
   size_t offset = luaL_checkinteger(L, 2);
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 3);
+
   bcfx_updateDynamicVertexBuffer(handle, offset, mb);
   MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
   return 0;
@@ -266,6 +272,7 @@ static int BCWRAP_FUNCTION(updateDynamicIndexBuffer)(lua_State* L) {
   Handle handle = (Handle)luaL_checkinteger(L, 1);
   size_t offset = luaL_checkinteger(L, 2);
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 3);
+
   bcfx_updateDynamicIndexBuffer(handle, offset, mb);
   MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
   return 0;
@@ -433,6 +440,15 @@ static int BCWRAP_FUNCTION(setTexture)(lua_State* L) {
   bcfx_setTexture(stage, sampler, texture, flags.flagsStruct);
   return 0;
 }
+static int BCWRAP_FUNCTION(setScissor)(lua_State* L) {
+  uint16_t x = (uint16_t)luaL_checkinteger(L, 1);
+  uint16_t y = (uint16_t)luaL_checkinteger(L, 2);
+  uint16_t width = (uint16_t)luaL_checkinteger(L, 3);
+  uint16_t height = (uint16_t)luaL_checkinteger(L, 4);
+
+  bcfx_setScissor(x, y, width, height);
+  return 0;
+}
 static int BCWRAP_FUNCTION(setState)(lua_State* L) {
   bcfx_URenderState uState;
   uState.stateUINT64 = (uint64_t)luaL_checkinteger(L, 1);
@@ -495,6 +511,7 @@ static const luaL_Reg wrap_funcs[] = {
     /* Basic APIs */
     EMPLACE_BCWRAP_FUNCTION(init),
     EMPLACE_BCWRAP_FUNCTION(apiFrame),
+    EMPLACE_BCWRAP_FUNCTION(frameId),
     EMPLACE_BCWRAP_FUNCTION(shutdown),
     /* Create Render Resource */
     EMPLACE_BCWRAP_FUNCTION(createVertexLayout),
@@ -531,6 +548,7 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(setIndexBuffer),
     EMPLACE_BCWRAP_FUNCTION(setTransform),
     EMPLACE_BCWRAP_FUNCTION(setTexture),
+    EMPLACE_BCWRAP_FUNCTION(setScissor),
     EMPLACE_BCWRAP_FUNCTION(setState),
     EMPLACE_BCWRAP_FUNCTION(setStencil),
     EMPLACE_BCWRAP_FUNCTION(setInstanceDataBuffer),
@@ -582,7 +600,12 @@ static const luaL_Enum BCWRAP_ENUM(attrib_type)[] = {
     {"Int16", AT_Int16},
     {"Half", AT_Half},
     {"Float", AT_Float},
-    {"Count", AT_Count},
+    {NULL, 0},
+};
+static const luaL_Enum BCWRAP_ENUM(index_type)[] = {
+    {"Uint8", IT_Uint8},
+    {"Uint16", IT_Uint16},
+    {"Uint32", IT_Uint32},
     {NULL, 0},
 };
 static const luaL_Enum BCWRAP_ENUM(shader_type)[] = {
@@ -606,7 +629,6 @@ static const luaL_Enum BCWRAP_ENUM(front_face)[] = {
     {NULL, 0},
 };
 static const luaL_Enum BCWRAP_ENUM(cull_face)[] = {
-    {"None", CF_None},
     {"Back", CF_Back},
     {"Front", CF_Front},
     {"FrontAndBack", CF_FrontAndBack},
@@ -718,6 +740,7 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   REGISTE_ENUM(clear_flag);
   REGISTE_ENUM(vertex_attrib);
   REGISTE_ENUM(attrib_type);
+  REGISTE_ENUM(index_type);
   REGISTE_ENUM(shader_type);
   REGISTE_ENUM(texture_wrap);
   REGISTE_ENUM(texture_filter);
