@@ -9,6 +9,7 @@ local cmods = {
 	lproc = true,
 	luasocket = true,
 	madwrap = true,
+	nuklear = true,
 	portaudio = true,
 	protobuf = true,
 	uvwrap = true,
