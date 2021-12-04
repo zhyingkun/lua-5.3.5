@@ -39,11 +39,12 @@ typedef struct {
   void* ud;
 } CmdVertexLayout;
 typedef struct {
-  Handle layoutHandle;
   bcfx_MemBuffer mem;
+  Handle layoutHandle;
 } CmdVertexBuffer;
 typedef struct {
   bcfx_MemBuffer mem;
+  bcfx_EIndexType type;
 } CmdIndexBuffer;
 typedef struct {
   bcfx_MemBuffer mem;
@@ -60,9 +61,9 @@ typedef struct {
 } CmdUniform;
 typedef struct {
   bcfx_MemBuffer mem;
-  bcfx_ETextureFormat format;
   uint16_t width;
   uint16_t height;
+  bcfx_ETextureFormat format;
 } CmdTexture;
 typedef struct {
   uint8_t num;

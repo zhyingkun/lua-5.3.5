@@ -7,7 +7,8 @@
 #define HANDLE_TYPE(handle) handle_type(handle)
 #define HANDLE_TYPENAME(handle) handle_typename(handle_type(handle))
 
-#define CHECK_HANDLE(handle) assert(HANDLE_ISVALID(handle))
+#define CHECK_HANDLE(handle, targetType) assert(HANDLE_TYPE(handle) == (targetType) && HANDLE_ISVALID(handle))
+#define CHECK_HANDLE_IF_VALID(handle, targetType) assert((handle) == kInvalidHandle || (HANDLE_TYPE(handle) == (targetType) && HANDLE_ISVALID(handle)))
 
 #define CALL_RENDERER(func, ...) renderCtx->func(renderCtx, ##__VA_ARGS__)
 
@@ -64,21 +65,14 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
         RELEASE_VERCTX_LAYOUT(&param->cvl);
         break;
       CASE_CALL_RENDERER(CreateVertexBuffer, createVertexBuffer, cmd->handle, &param->cvb.mem, param->cvb.layoutHandle);
-      CASE_CALL_RENDERER(CreateIndexBuffer, createIndexBuffer, cmd->handle, &param->cib.mem);
+      CASE_CALL_RENDERER(CreateIndexBuffer, createIndexBuffer, cmd->handle, &param->cib.mem, param->cib.type);
       CASE_CALL_RENDERER(CreateShader, createShader, cmd->handle, &param->cs.mem, param->cs.type);
       CASE_CALL_RENDERER(CreateProgram, createProgram, cmd->handle, param->cp.vsHandle, param->cp.fsHandle);
       CASE_CALL_RENDERER(CreateUniform, createUniform, cmd->handle, param->cu.name, param->cu.type, param->cu.num);
-      case CT_CreateTexture: {
-        bcfx_Texture texture = {0};
-        if (param->ct.width != 0 && param->ct.height != 0) {
-          texture.width = param->ct.width;
-          texture.height = param->ct.height;
-          param->ct.mem.ptr = (void*)&texture;
-        }
-        CALL_RENDERER(createTexture, cmd->handle, &param->ct.mem, param->ct.format);
-      } break;
+      CASE_CALL_RENDERER(CreateTexture, createTexture, cmd->handle, &param->ct.mem, param->ct.width, param->ct.height, param->ct.format);
       CASE_CALL_RENDERER(CreateFrameBuffer, createFrameBuffer, cmd->handle, param->cfb.num, param->cfb.handles);
       CASE_CALL_RENDERER(UpdateVertexBuffer, updateVertexBuffer, cmd->handle, param->cuvb.offset, &param->cuvb.mem);
+      CASE_CALL_RENDERER(UpdateIndexBuffer, updateIndexBuffer, cmd->handle, param->cuib.offset, &param->cuib.mem);
       case CT_End:
         break;
       // CASE_CALL_RENDERER(RendererShutdown, shutdown);
@@ -87,6 +81,9 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
       CASE_CALL_RENDERER(DestroyIndexBuffer, destroyIndexBuffer, cmd->handle);
       CASE_CALL_RENDERER(DestroyShader, destroyShader, cmd->handle);
       CASE_CALL_RENDERER(DestroyProgram, destroyProgram, cmd->handle);
+      CASE_CALL_RENDERER(DestroyUniform, destroyUniform, cmd->handle);
+      CASE_CALL_RENDERER(DestroyTexture, destroyTexture, cmd->handle);
+      CASE_CALL_RENDERER(DestroyFrameBuffer, destroyFrameBuffer, cmd->handle);
       default:
         break;
 #undef CASE_CALL_RENDERER
@@ -285,7 +282,7 @@ static void _releaseVertexLayout(void* ud, bcfx_VertexLayout* layout) {
 Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout) {
   ADD_CMD_ALLOC_HANDLE(ctx, VertexLayout)
   bcfx_VertexLayout* ly = (bcfx_VertexLayout*)mem_malloc(sizeof(bcfx_VertexLayout));
-  memcpy(ly, layout, sizeof(bcfx_VertexLayout));
+  *ly = *layout;
   param->cvl.layout = ly;
   param->cvl.release = _releaseVertexLayout;
   param->cvl.ud = NULL;
@@ -293,33 +290,36 @@ Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout) {
 }
 
 Handle ctx_createVertexBuffer(Context* ctx, bcfx_MemBuffer* mem, Handle layoutHandle) {
-  CHECK_HANDLE(layoutHandle);
+  CHECK_HANDLE(layoutHandle, HT_VertexLayout);
   ADD_CMD_ALLOC_HANDLE(ctx, VertexBuffer)
   param->cvb.mem = *mem;
   param->cvb.layoutHandle = layoutHandle;
   return handle;
 }
 
-Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size) {
+Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size, Handle layoutHandle) {
+  CHECK_HANDLE_IF_VALID(layoutHandle, HT_VertexLayout);
   ADD_CMD_ALLOC_HANDLE(ctx, VertexBuffer)
   bcfx_MemBuffer mb = {0};
   mb.sz = size;
   param->cvb.mem = mb;
-  param->cvb.layoutHandle = kInvalidHandle;
+  param->cvb.layoutHandle = layoutHandle;
   return handle;
 }
 
-Handle ctx_createIndexBuffer(Context* ctx, bcfx_MemBuffer* mem) {
+Handle ctx_createIndexBuffer(Context* ctx, bcfx_MemBuffer* mem, bcfx_EIndexType type) {
   ADD_CMD_ALLOC_HANDLE(ctx, IndexBuffer)
   param->cib.mem = *mem;
+  param->cib.type = type;
   return handle;
 }
 
-Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size) {
+Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size, bcfx_EIndexType type) {
   ADD_CMD_ALLOC_HANDLE(ctx, IndexBuffer)
   bcfx_MemBuffer mb = {0};
   mb.sz = size;
   param->cib.mem = mb;
+  param->cib.type = type;
   return handle;
 }
 
@@ -331,8 +331,8 @@ Handle ctx_createShader(Context* ctx, bcfx_MemBuffer* mem, ShaderType type) {
 }
 
 Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs) {
-  CHECK_HANDLE(vs);
-  CHECK_HANDLE(fs);
+  CHECK_HANDLE(vs, HT_Shader);
+  CHECK_HANDLE(fs, HT_Shader);
   ADD_CMD_ALLOC_HANDLE(ctx, Program)
   param->cp.vsHandle = vs;
   param->cp.fsHandle = fs;
@@ -353,21 +353,21 @@ Handle ctx_createUniform(Context* ctx, const char* name, bcfx_UniformType type, 
   return handle;
 }
 
-Handle ctx_createTexture(Context* ctx, bcfx_MemBuffer* mem, bcfx_ETextureFormat format) {
+Handle ctx_createTexture(Context* ctx, bcfx_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   param->ct.mem = *mem;
+  param->ct.width = width;
+  param->ct.height = height;
   param->ct.format = format;
-  param->ct.width = 0;
-  param->ct.height = 0;
   return handle;
 }
 
 Handle ctx_createRenderTexture(Context* ctx, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   MEMBUFFER_CLEAR(&param->ct.mem);
-  param->ct.format = format;
   param->ct.width = width;
   param->ct.height = height;
+  param->ct.format = format;
   return handle;
 }
 
@@ -375,7 +375,12 @@ Handle ctx_createFrameBuffer(Context* ctx, uint8_t num, Handle* handles) {
   ADD_CMD_ALLOC_HANDLE(ctx, FrameBuffer)
   param->cfb.num = num;
   for (uint8_t i = 0; i < BCFX_CONFIG_MAX_FRAME_BUFFER_ATTACHMENTS; i++) {
-    param->cfb.handles[i] = i < num ? handles[i] : kInvalidHandle;
+    if (i < num) {
+      CHECK_HANDLE(handles[i], HT_Texture);
+      param->cfb.handles[i] = handles[i];
+    } else {
+      param->cfb.handles[i] = kInvalidHandle;
+    }
   }
   return handle;
 }
@@ -390,23 +395,23 @@ Handle ctx_createFrameBuffer(Context* ctx, uint8_t num, Handle* handles) {
 */
 
 void ctx_updateProgram(Context* ctx, Handle handle, Handle vs, Handle fs) {
-  CHECK_HANDLE(handle);
-  CHECK_HANDLE(vs);
-  CHECK_HANDLE(fs);
+  CHECK_HANDLE(handle, HT_Program);
+  CHECK_HANDLE(vs, HT_Shader);
+  CHECK_HANDLE(fs, HT_Shader);
   CommandParam* param = ctx_addCommand(ctx, CT_CreateProgram, handle);
   param->cp.vsHandle = vs;
   param->cp.fsHandle = fs;
 }
 
 void ctx_updateDynamicVertexBuffer(Context* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem) {
-  CHECK_HANDLE(handle);
+  CHECK_HANDLE(handle, HT_VertexBuffer);
   CommandParam* param = ctx_addCommand(ctx, CT_UpdateVertexBuffer, handle);
   param->cuvb.offset = offset;
   param->cuvb.mem = *mem;
 }
 
 void ctx_updateDynamicIndexBuffer(Context* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem) {
-  CHECK_HANDLE(handle);
+  CHECK_HANDLE(handle, HT_IndexBuffer);
   CommandParam* param = ctx_addCommand(ctx, CT_UpdateIndexBuffer, handle);
   param->cuib.offset = offset;
   param->cuib.mem = *mem;
@@ -422,8 +427,8 @@ void ctx_updateDynamicIndexBuffer(Context* ctx, Handle handle, size_t offset, bc
 */
 
 void ctx_destroy(Context* ctx, Handle handle) {
-  CHECK_HANDLE(handle);
   HandleType type = handle_type(handle);
+  CHECK_HANDLE(handle, type);
   switch (type) {
 #define XX(name, config_max) \
   case HT_##name: \
@@ -502,21 +507,21 @@ static void ctx_checkUniform(Context* ctx, Handle handle, bcfx_UniformType type,
 }
 
 void ctx_setUniformVec4(Context* ctx, Handle handle, Vec4* vec, uint16_t num) {
-  CHECK_HANDLE(handle);
+  CHECK_HANDLE(handle, HT_Uniform);
   ctx_checkUniform(ctx, handle, UT_Vec4, num);
   for (uint16_t i = 0; i < num; i++) {
     encoder_addUniformData(ctx->encoder, handle)->vec4 = vec[i];
   }
 }
 void ctx_setUniformMat3x3(Context* ctx, Handle handle, Mat3x3* mat, uint16_t num) {
-  CHECK_HANDLE(handle);
+  CHECK_HANDLE(handle, HT_Uniform);
   ctx_checkUniform(ctx, handle, UT_Mat3x3, num);
   for (uint16_t i = 0; i < num; i++) {
     encoder_addUniformData(ctx->encoder, handle)->mat3x3 = mat[i];
   }
 }
 void ctx_setUniformMat4x4(Context* ctx, Handle handle, Mat4x4* mat, uint16_t num) {
-  CHECK_HANDLE(handle);
+  CHECK_HANDLE(handle, HT_Uniform);
   ctx_checkUniform(ctx, handle, UT_Mat4x4, num);
   for (uint16_t i = 0; i < num; i++) {
     encoder_addUniformData(ctx->encoder, handle)->mat4x4 = mat[i];
@@ -530,11 +535,11 @@ void ctx_touch(Context* ctx, ViewId id) {
 
 void ctx_setVertexBuffer(Context* ctx, uint8_t stream, Handle handle) {
   CHECK_STREAMID(stream);
-  CHECK_HANDLE(handle);
+  CHECK_HANDLE(handle, HT_VertexBuffer);
   encoder_setVertexBuffer(ctx->encoder, stream, handle);
 }
 void ctx_setIndexBuffer(Context* ctx, Handle handle, uint32_t start, uint32_t count) {
-  CHECK_HANDLE(handle);
+  CHECK_HANDLE(handle, HT_IndexBuffer);
   encoder_setIndexBuffer(ctx->encoder, handle, start, count);
 }
 void ctx_setTransform(Context* ctx, Mat4x4* mat) {
@@ -542,12 +547,15 @@ void ctx_setTransform(Context* ctx, Mat4x4* mat) {
 }
 void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlags flags) {
   CHECK_TEXTURE_UNIT(stage);
-  CHECK_HANDLE(sampler);
-  CHECK_HANDLE(texture);
+  CHECK_HANDLE(sampler, HT_Uniform);
+  CHECK_HANDLE(texture, HT_Texture);
   ctx_checkUniform(ctx, sampler, UT_Sampler2D, 1);
   UniformData* data = encoder_addUniformData(ctx->encoder, sampler);
   data->stage = stage;
   encoder_setTexture(ctx->encoder, stage, texture, flags);
+}
+void ctx_setScissor(Context* ctx, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+  encoder_setScissor(ctx->encoder, x, y, width, height);
 }
 void ctx_setState(Context* ctx, bcfx_RenderState state, uint32_t blendColor) {
   encoder_setState(ctx->encoder, state, blendColor);
@@ -556,13 +564,13 @@ void ctx_setStencil(Context* ctx, bool enable, bcfx_StencilState front, bcfx_Ste
   encoder_setStencil(ctx->encoder, enable, front, back);
 }
 void ctx_setInstanceDataBuffer(Context* ctx, const bcfx_InstanceDataBuffer* idb, uint32_t start, uint32_t count) {
-  // CHECK_HANDLE(idb->handle); // No check, Support invalid instance buffer
+  CHECK_HANDLE_IF_VALID(idb->handle, HT_VertexBuffer); // Support invalid instance buffer
   encoder_setInstanceDataBuffer(ctx->encoder, idb, start, count);
 }
 
 void ctx_submit(Context* ctx, ViewId id, Handle handle, uint32_t flags, uint32_t depth) {
   CHECK_VIEWID(id);
-  CHECK_HANDLE(handle);
+  CHECK_HANDLE(handle, HT_Program);
   encoder_submit(ctx->encoder, id, handle, flags, depth, ctx->views[id].mode, true);
 }
 

@@ -33,8 +33,8 @@ const char* err_EnumName(GLenum _enum);
 
 typedef struct {
   GLuint id;
-  uint32_t count;
-  GLenum type;
+  uint32_t count; // how many indices in this buffer, not byte
+  bcfx_EIndexType type;
 } IndexBufferGL;
 typedef struct {
   GLuint id;

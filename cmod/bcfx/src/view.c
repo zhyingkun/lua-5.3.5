@@ -13,6 +13,16 @@ void rect_set(Rect* rect, uint16_t x, uint16_t y, uint16_t width, uint16_t heigh
   rect->width = width;
   rect->height = height;
 }
+void rect_intersect(Rect* src1, Rect* src2, Rect* dst) {
+  uint16_t sx = MAX(src1->x, src2->x); // start
+  uint16_t sy = MAX(src1->y, src2->y);
+  uint16_t ex = MIN(src1->x + src1->width, src2->x + src2->width); // end
+  uint16_t ey = MIN(src1->y + src1->height, src2->y + src2->height);
+  dst->x = sx;
+  dst->y = sy;
+  dst->width = ex > sx ? ex - sx : 0;
+  dst->height = ey > sy ? ey - sy : 0;
+}
 
 void clear_set(Clear* clear, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil) {
   clear->flags = flags;
@@ -42,8 +52,12 @@ void view_setScissor(View* view, uint16_t x, uint16_t y, uint16_t width, uint16_
 }
 
 void view_setTransform(View* view, Mat4x4* viewMat, Mat4x4* projMat) {
-  memcpy(&view->viewMat, viewMat, sizeof(Mat4x4));
-  memcpy(&view->projMat, projMat, sizeof(Mat4x4));
+  if (viewMat) {
+    view->viewMat = *viewMat;
+  }
+  if (projMat) {
+    view->projMat = *projMat;
+  }
 }
 void view_setMode(View* view, ViewMode mode) {
   view->mode = mode;

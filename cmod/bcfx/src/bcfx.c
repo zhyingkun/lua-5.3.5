@@ -3,39 +3,26 @@
 #include <common.h>
 #include <context.h>
 
-// clang-format off
-uint8_t sizeof_DataType[] = {
-    1,
-#define XX(name, type) sizeof(type),
-    DATA_TYPE_MAP(XX)
-#undef XX
-    2,
-    sizeof(float),
-    0,
-};
-// clang-format on
-
 /*
 ** {======================================================
 ** Vertex Layout
 ** =======================================================
 */
 
+// According to bcfx_EAttribType
 uint8_t sizeof_AttribType[] = {
-    1,
-    sizeof(unsigned char), // GL_UNSIGNED_BYTE
-    sizeof(unsigned int), // GL_UNSIGNED_INT_10_10_10_2
-    sizeof(unsigned short), // GL_SHORT
-    sizeof(unsigned short), // GL_HALF_FLOAT
+    sizeof(uint8_t), // GL_UNSIGNED_BYTE
+    sizeof(uint32_t), // GL_UNSIGNED_INT_10_10_10_2
+    sizeof(uint16_t), // GL_SHORT
+    sizeof(uint16_t), // GL_HALF_FLOAT
     sizeof(float), // GL_FLOAT
-    0,
 };
 
-BCFX_API void bcfx_VL_init(bcfx_VertexLayout* layout) {
+BCFX_API void bcfx_vertexLayoutInit(bcfx_VertexLayout* layout) {
   memset((void*)layout, 0, sizeof(bcfx_VertexLayout));
 }
 
-BCFX_API void bcfx_VL_add(bcfx_VertexLayout* layout, bcfx_EVertexAttrib attrib, uint8_t num, bcfx_EAttribType type, bool normalized) {
+BCFX_API void bcfx_vertexLayoutAdd(bcfx_VertexLayout* layout, bcfx_EVertexAttrib attrib, uint8_t num, bcfx_EAttribType type, bool normalized) {
   assert(num >= 1 && num <= 4);
   bcfx_Attrib* att = &layout->attributes[attrib];
   att->num = num;
@@ -45,7 +32,7 @@ BCFX_API void bcfx_VL_add(bcfx_VertexLayout* layout, bcfx_EVertexAttrib attrib, 
   layout->stride += sizeof_AttribType[type] * num;
 }
 
-BCFX_API void bcfx_VL_skip(bcfx_VertexLayout* layout, uint8_t num_byte) {
+BCFX_API void bcfx_vertexLayoutSkip(bcfx_VertexLayout* layout, uint8_t num_byte) {
   layout->stride += num_byte;
 }
 
@@ -98,20 +85,20 @@ BCFX_API Handle bcfx_createVertexLayout(bcfx_VertexLayout* layout) {
   return ctx_createVertexLayout(s_ctx, layout);
 }
 
-BCFX_API Handle bcfx_createVertexBuffer(bcfx_MemBuffer* mem, Handle handle) {
-  return ctx_createVertexBuffer(s_ctx, mem, handle);
+BCFX_API Handle bcfx_createVertexBuffer(bcfx_MemBuffer* mem, Handle layoutHandle) {
+  return ctx_createVertexBuffer(s_ctx, mem, layoutHandle);
 }
 
-BCFX_API Handle bcfx_createDynamicVertexBuffer(size_t size) {
-  return ctx_createDynamicVertexBuffer(s_ctx, size);
+BCFX_API Handle bcfx_createDynamicVertexBuffer(size_t size, Handle layoutHandle) {
+  return ctx_createDynamicVertexBuffer(s_ctx, size, layoutHandle);
 }
 
-BCFX_API Handle bcfx_createIndexBuffer(bcfx_MemBuffer* mem) {
-  return ctx_createIndexBuffer(s_ctx, mem);
+BCFX_API Handle bcfx_createIndexBuffer(bcfx_MemBuffer* mem, bcfx_EIndexType type) {
+  return ctx_createIndexBuffer(s_ctx, mem, type);
 }
 
-BCFX_API Handle bcfx_createDynamicIndexBuffer(size_t size) {
-  return ctx_createDynamicIndexBuffer(s_ctx, size);
+BCFX_API Handle bcfx_createDynamicIndexBuffer(size_t size, bcfx_EIndexType type) {
+  return ctx_createDynamicIndexBuffer(s_ctx, size, type);
 }
 
 BCFX_API Handle bcfx_createShader(bcfx_MemBuffer* mem, ShaderType type) {
@@ -126,8 +113,8 @@ BCFX_API Handle bcfx_createUniform(const char* name, bcfx_UniformType type, uint
   return ctx_createUniform(s_ctx, name, type, num);
 }
 
-BCFX_API Handle bcfx_createTexture(bcfx_MemBuffer* mem, bcfx_ETextureFormat format) {
-  return ctx_createTexture(s_ctx, mem, format);
+BCFX_API Handle bcfx_createTexture(bcfx_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
+  return ctx_createTexture(s_ctx, mem, width, height, format);
 }
 
 BCFX_API Handle bcfx_createRenderTexture(uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
@@ -247,6 +234,9 @@ BCFX_API void bcfx_setTransform(Mat4x4* mat) {
 }
 BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlags flags) {
   ctx_setTexture(s_ctx, stage, sampler, texture, flags);
+}
+BCFX_API void bcfx_setScissor(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+  ctx_setScissor(s_ctx, x, y, width, height);
 }
 BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor) {
   ctx_setState(s_ctx, state, blendColor);

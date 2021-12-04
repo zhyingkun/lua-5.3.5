@@ -26,6 +26,7 @@ static void encoder_discard(Encoder* encoder, uint32_t flags) {
     memset(bind, 0, sizeof(RenderBind));
   }
   if (flags & BCFX_DISCARD_STATE) {
+    rect_reset(&draw->scissor);
     bcfx_RenderState state = {0};
     draw->state = state;
     draw->blendColor = 0;
@@ -66,7 +67,7 @@ void encoder_setIndexBuffer(Encoder* encoder, Handle indexBuffer, uint32_t start
   encoder->draw.indexCount = count;
 }
 void encoder_setTransform(Encoder* encoder, Mat4x4* mat) {
-  memcpy(&encoder->draw.model, mat, sizeof(Mat4x4));
+  encoder->draw.model = *mat;
 }
 UniformData* encoder_addUniformData(Encoder* encoder, Handle handle) {
   Frame* frame = encoder->frame;
@@ -79,6 +80,13 @@ void encoder_setTexture(Encoder* encoder, uint8_t stage, Handle handle, bcfx_Sam
   Binding* bind = &encoder->bind.binds[stage];
   bind->handle = handle;
   bind->samplerFlags = flags;
+}
+void encoder_setScissor(Encoder* encoder, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
+  Rect* scissor = &encoder->draw.scissor;
+  scissor->x = x;
+  scissor->y = y;
+  scissor->width = width;
+  scissor->height = height;
 }
 void encoder_setState(Encoder* encoder, bcfx_RenderState state, uint32_t blendColor) {
   encoder->draw.state = state;

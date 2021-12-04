@@ -53,14 +53,14 @@ void ctx_init(Context* ctx, Window mainWin);
 void ctx_shutdowm(Context* ctx);
 
 Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout);
-Handle ctx_createVertexBuffer(Context* ctx, bcfx_MemBuffer* mem, Handle layout);
-Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size);
-Handle ctx_createIndexBuffer(Context* ctx, bcfx_MemBuffer* mem);
-Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size);
+Handle ctx_createVertexBuffer(Context* ctx, bcfx_MemBuffer* mem, Handle layoutHandle);
+Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size, Handle layoutHandle);
+Handle ctx_createIndexBuffer(Context* ctx, bcfx_MemBuffer* mem, bcfx_EIndexType type);
+Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size, bcfx_EIndexType type);
 Handle ctx_createShader(Context* ctx, bcfx_MemBuffer* mem, ShaderType type);
 Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs);
 Handle ctx_createUniform(Context* ctx, const char* name, bcfx_UniformType type, uint16_t num);
-Handle ctx_createTexture(Context* ctx, bcfx_MemBuffer* mem, bcfx_ETextureFormat format);
+Handle ctx_createTexture(Context* ctx, bcfx_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format);
 Handle ctx_createRenderTexture(Context* ctx, uint16_t width, uint16_t height, bcfx_ETextureFormat format);
 Handle ctx_createFrameBuffer(Context* ctx, uint8_t num, Handle* handles);
 
@@ -93,6 +93,7 @@ void ctx_setVertexBuffer(Context* ctx, uint8_t stream, Handle handle);
 void ctx_setIndexBuffer(Context* ctx, Handle handle, uint32_t start, uint32_t count);
 void ctx_setTransform(Context* ctx, Mat4x4* mat);
 void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlags flags);
+void ctx_setScissor(Context* ctx, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 void ctx_setState(Context* ctx, bcfx_RenderState state, uint32_t blendColor);
 void ctx_setStencil(Context* ctx, bool enable, bcfx_StencilState front, bcfx_StencilState back);
 void ctx_setInstanceDataBuffer(Context* ctx, const bcfx_InstanceDataBuffer* idb, uint32_t start, uint32_t count);

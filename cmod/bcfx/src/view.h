@@ -17,6 +17,8 @@ typedef struct {
 } Rect;
 
 void rect_set(Rect* rect, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
+void rect_intersect(Rect* src1, Rect* src2, Rect* dst);
+#define rect_isZeroArea(rect) ((rect)->width == 0 || (rect)->height == 0)
 #define rect_reset(rect) rect_set(rect, 0, 0, 0, 0)
 
 typedef struct {
@@ -28,7 +30,7 @@ typedef struct {
 
 void clear_set(Clear* clear, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil);
 #define clear_reset(clear) \
-  clear_set(clear, 0, 0, 0.0, 0); \
+  clear_set(clear, 0, 0, 0.0, 0);
 
 typedef struct {
   Window win;

@@ -40,28 +40,24 @@ const char* err_EnumName(GLenum _enum) {
 ** =======================================================
 */
 
-// According to bcfx_EDataType
-const GLenum data_glType[] = {
-    GL_NONE,
+const uint8_t sizeof_IndexType[] = {
+    sizeof(uint8_t),
+    sizeof(uint16_t),
+    sizeof(uint32_t),
+};
+// According to bcfx_EIndexType
+const GLenum index_glType[] = {
     GL_UNSIGNED_BYTE,
     GL_UNSIGNED_SHORT,
     GL_UNSIGNED_INT,
-    GL_BYTE,
-    GL_SHORT,
-    GL_INT,
-    GL_HALF_FLOAT,
-    GL_FLOAT,
-    GL_NONE,
 };
 // According to bcfx_EAttribType
 const GLenum attrib_glType[] = {
-    GL_NONE,
     GL_UNSIGNED_BYTE, // Uint8
     GL_UNSIGNED_INT_10_10_10_2, // Uint10
     GL_SHORT, // Int16
     GL_HALF_FLOAT, // Half
     GL_FLOAT, // Float
-    GL_NONE,
 };
 // According to bcfx_UniformType
 const GLenum uniform_glType[] = {
@@ -299,10 +295,9 @@ static void gl_flip(RendererContext* ctx) {
   }
 }
 
-static void gl_createVertexLayout(RendererContext* ctx, Handle handle, const void* layout) {
+static void gl_createVertexLayout(RendererContext* ctx, Handle handle, const bcfx_VertexLayout* layout) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  bcfx_VertexLayout* vl = &glCtx->vertexLayouts[handle_index(handle)];
-  memcpy((uint8_t*)vl, layout, sizeof(bcfx_VertexLayout));
+  glCtx->vertexLayouts[handle_index(handle)] = *layout;
 }
 static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, Handle layoutHandle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
@@ -315,11 +310,11 @@ static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, bcfx_MemB
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
   MEMBUFFER_RELEASE(mem);
 }
-static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem) {
+static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, bcfx_EIndexType type) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
-  ib->count = mem->sz / sizeof_DataType[mem->dt];
-  ib->type = data_glType[mem->dt];
+  ib->count = mem->sz / sizeof_IndexType[type];
+  ib->type = type;
   GL_CHECK(glGenBuffers(1, &ib->id));
   GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
   GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mem->sz, mem->ptr, mem->ptr != NULL ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW));
@@ -396,7 +391,7 @@ static void gl_createUniform(RendererContext* ctx, Handle handle, const char* na
   uniform->num = num;
   glCtx->uniformCount++;
 }
-static void gl_createTexture(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, bcfx_ETextureFormat format) {
+static void gl_createTexture(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   TextureGL* texture = &glCtx->textures[handle_index(handle)];
   texture->format = format;
@@ -405,9 +400,8 @@ static void gl_createTexture(RendererContext* ctx, Handle handle, bcfx_MemBuffer
   GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
   GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 
-  bcfx_Texture* bt = (bcfx_Texture*)mem->ptr;
   const TextureFormatInfo* fi = &textureFormat_glType[format];
-  GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, fi->internalFormat, bt->width, bt->height, 0, fi->format, fi->type, bt->data));
+  GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, fi->internalFormat, width, height, 0, fi->format, fi->type, mem->ptr));
 
   GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
   MEMBUFFER_RELEASE(mem);
@@ -457,8 +451,6 @@ static void gl_updateVertexBuffer(RendererContext* ctx, Handle handle, size_t of
 static void gl_updateIndexBuffer(RendererContext* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
-  ib->count = mem->sz / sizeof_DataType[mem->dt];
-  ib->type = data_glType[mem->dt];
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, ib->id));
   GL_CHECK(glBufferSubData(GL_ARRAY_BUFFER, offset, mem->sz, mem->ptr));
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
@@ -470,7 +462,7 @@ static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
   if (view->fbh != kInvalidHandle) {
     // only mainWin can has framebuffer
     mainWinFb = glCtx->frameBuffers[handle_index(view->fbh)].id;
-  } else if (view->win == glCtx->mainWin) {
+  } else if (view->win == NULL || view->win == glCtx->mainWin) {
     mainWinFb = gl_getTripleFrameBuffer(glCtx);
   }
   gl_MakeWinCurrent(glCtx, view->win, mainWinFb);
@@ -502,13 +494,6 @@ static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
     GL_CHECK(glScissor(rect->x, rect->y, rect->width, rect->height));
     GL_CHECK(glClear(flags));
   }
-  Rect* scissor = &view->scissor;
-  if (scissor->width != 0 && scissor->height != 0) {
-    GL_CHECK(glEnable(GL_SCISSOR_TEST));
-    GL_CHECK(glScissor(scissor->x, scissor->y, scissor->width, scissor->height));
-  } else {
-    GL_CHECK(glDisable(GL_SCISSOR_TEST));
-  }
 }
 
 static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, Frame* frame) {
@@ -531,7 +516,28 @@ static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, F
   }
 }
 
+static Rect* findScissor(Rect* viewsci, Rect* drawsci, Rect* dst) {
+  bool bHasVS = !rect_isZeroArea(viewsci);
+  bool bHasDS = !rect_isZeroArea(drawsci);
+  if (bHasVS && bHasDS) {
+    rect_intersect(viewsci, drawsci, dst);
+    return dst;
+  }
+  return bHasVS ? viewsci : (bHasDS ? drawsci : NULL);
+}
+static void updateRenderScissor(View* view, RenderDraw* draw) {
+  Rect dst;
+  Rect* scissor = findScissor(&view->scissor, &draw->scissor, &dst);
+  if (scissor != NULL) {
+    GL_CHECK(glEnable(GL_SCISSOR_TEST));
+    GL_CHECK(glScissor(scissor->x, scissor->y, scissor->width, scissor->height));
+  } else {
+    GL_CHECK(glDisable(GL_SCISSOR_TEST));
+  }
+}
+
 static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw* draw, RenderBind* bind, View* view) {
+  updateRenderScissor(view, draw);
   gl_updateRenderState(glCtx, draw);
 
   ProgramGL* prog = &glCtx->programs[progIdx];
@@ -556,13 +562,14 @@ static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw
     GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
     // Index Count
     uint32_t total = ib->count;
-    GLint start = MIN(draw->indexStart, total);
+    GLint start = MIN(draw->indexStart, total); // in indices
     GLsizei count = draw->indexCount == 0 ? total - start : MIN(draw->indexCount, total - start);
+    const void* indices = start * sizeof_IndexType[ib->type]; // in byte
     if (draw->numInstance == 0) {
-      GL_CHECK(glDrawElements(GL_TRIANGLES, count, ib->type, (const void*)(long)start));
+      GL_CHECK(glDrawElements(GL_TRIANGLES, count, index_glType[ib->type], indices));
     } else {
       gl_bindInstanceAttributes(glCtx, prog, draw);
-      GL_CHECK(glDrawElementsInstanced(GL_TRIANGLES, count, ib->type, (const void*)(long)start, draw->numInstance));
+      GL_CHECK(glDrawElementsInstanced(GL_TRIANGLES, count, index_glType[ib->type], indices, draw->numInstance));
     }
   }
 }
@@ -649,6 +656,12 @@ static void gl_destroyTexture(RendererContext* ctx, Handle handle) {
   GL_CHECK(glDeleteTextures(1, &texture->id));
   texture->id = 0;
 }
+static void gl_destroyFrameBuffer(RendererContext* ctx, Handle handle) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  FrameBufferGL* fb = &glCtx->frameBuffers[handle_index(handle)];
+  GL_CHECK(glDeleteFramebuffers(1, &fb->id));
+  fb->id = 0;
+}
 
 RendererContext* CreateRendererGL(void) {
   RendererContextGL* glCtx = (RendererContextGL*)mem_malloc(sizeof(RendererContextGL));
@@ -682,6 +695,7 @@ RendererContext* CreateRendererGL(void) {
   renderer->destroyProgram = gl_destroyProgram;
   renderer->destroyUniform = gl_destroyUniform;
   renderer->destroyTexture = gl_destroyTexture;
+  renderer->destroyFrameBuffer = gl_destroyFrameBuffer;
 
   return renderer;
 }

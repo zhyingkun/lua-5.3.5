@@ -32,6 +32,7 @@ typedef struct {
   uint32_t uniformStart; // include, as index, such as 0
   uint32_t uniformEnd; // exclude
 
+  Rect scissor;
   bcfx_RenderState state;
   uint32_t blendColor;
   bool enableStencil;

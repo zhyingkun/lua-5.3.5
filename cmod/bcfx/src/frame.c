@@ -42,13 +42,4 @@ void frame_setSortKey(Frame* frame, uint16_t index, uint64_t sortKey) {
   frame->sortKeys[index] = sortKey;
 }
 
-static int _compareSortKey(const void* pa, const void* pb) {
-  uint64_t a = *(uint64_t*)pa;
-  uint64_t b = *(uint64_t*)pb;
-  return (a < b) ? 1 : ((a > b) ? -1 : 0);
-}
-void frame_sort(Frame* frame) {
-  qsort(frame->sortKeys, frame->numRenderItems, sizeof(uint64_t), _compareSortKey);
-}
-
 /* }====================================================== */

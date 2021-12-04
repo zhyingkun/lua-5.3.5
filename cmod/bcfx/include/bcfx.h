@@ -14,47 +14,23 @@
 ** =======================================================
 */
 
-#define DATA_TYPE_MAP(XX) \
-  XX(Uint8, uint8_t) \
-  XX(Uint16, uint16_t) \
-  XX(Uint32, uint32_t) \
-  XX(Int8, int8_t) \
-  XX(Int16, int16_t) \
-  XX(Int32, int32_t)
-
-// clang-format off
-// WARNING: Change bcfx_EDataType must Update sizeof_DataType and data_glType
-typedef enum {
-  DT_None,
-#define XX(name, type) DT_##name,
-  DATA_TYPE_MAP(XX)
-#undef XX
-  DT_Half,
-  DT_Float,
-  DT_Count,
-} bcfx_EDataType;
-// clang-format on
-BCFX_API uint8_t sizeof_DataType[];
-
 typedef void (*bcfx_MemRelease)(void* ud, void* ptr);
 
 typedef struct {
   void* ptr;
   size_t sz;
-  bcfx_EDataType dt;
   bcfx_MemRelease release;
   void* ud;
 } bcfx_MemBuffer;
 
-#define MEMBUFFER_SET(mb, ptr_, sz_, dt_, release_, ud_) \
+#define MEMBUFFER_SET(mb, ptr_, sz_, release_, ud_) \
   (mb)->ptr = ptr_; \
   (mb)->sz = sz_; \
-  (mb)->dt = dt_; \
   (mb)->release = release_; \
   (mb)->ud = ud_
 
 #define MEMBUFFER_CLEAR(mb) \
-  MEMBUFFER_SET(mb, NULL, 0, DT_None, NULL, NULL)
+  MEMBUFFER_SET(mb, NULL, 0, NULL, NULL)
 
 #define MEMBUFFER_MOVE(src, dst) \
   *dst = *src; \
@@ -97,20 +73,19 @@ typedef enum {
 
 // WARNING: Change bcfx_EAttribType must Update sizeof_AttribType and attrib_glType
 typedef enum {
-  AT_None,
-  AT_Uint8, //!< Uint8
-  AT_Uint10, //!< Uint10
-  AT_Int16, //!< Int16
-  AT_Half, //!< Half
-  AT_Float, //!< Float
-  AT_Count,
+  AT_Uint8,
+  AT_Uint10,
+  AT_Int16,
+  AT_Half,
+  AT_Float,
 } bcfx_EAttribType;
 BCFX_API uint8_t sizeof_AttribType[];
 
 typedef struct {
   uint8_t normal : 1;
   uint8_t type : 3;
-  uint8_t num : 2;
+  uint8_t num : 3;
+  uint8_t reserved : 1;
 } bcfx_Attrib;
 
 typedef struct {
@@ -119,9 +94,10 @@ typedef struct {
   bcfx_Attrib attributes[VA_Count];
 } bcfx_VertexLayout;
 
-BCFX_API void bcfx_VL_init(bcfx_VertexLayout* layout);
-BCFX_API void bcfx_VL_add(bcfx_VertexLayout* layout, bcfx_EVertexAttrib attrib, uint8_t num, bcfx_EAttribType type, bool normalized);
-BCFX_API void bcfx_VL_skip(bcfx_VertexLayout* layout, uint8_t num_byte);
+BCFX_API void bcfx_vertexLayoutInit(bcfx_VertexLayout* layout);
+BCFX_API void bcfx_vertexLayoutAdd(bcfx_VertexLayout* layout, bcfx_EVertexAttrib attrib, uint8_t num, bcfx_EAttribType type, bool normalized);
+BCFX_API void bcfx_vertexLayoutSkip(bcfx_VertexLayout* layout, uint8_t num_byte);
+BCFX_API void bcfx_vertexLayoutClear(bcfx_VertexLayout* layout);
 
 /* }====================================================== */
 
@@ -231,10 +207,18 @@ typedef uint16_t Handle;
 #define kInvalidHandle 0
 
 BCFX_API Handle bcfx_createVertexLayout(bcfx_VertexLayout* layout);
-BCFX_API Handle bcfx_createVertexBuffer(bcfx_MemBuffer* mem, Handle layout);
-BCFX_API Handle bcfx_createDynamicVertexBuffer(size_t size);
-BCFX_API Handle bcfx_createIndexBuffer(bcfx_MemBuffer* mem);
-BCFX_API Handle bcfx_createDynamicIndexBuffer(size_t size);
+BCFX_API Handle bcfx_createVertexBuffer(bcfx_MemBuffer* mem, Handle layoutHandle);
+BCFX_API Handle bcfx_createDynamicVertexBuffer(size_t size, Handle layoutHandle);
+
+// WARNING: Change bcfx_EIndexType must Update sizeof_IndexType and index_glType
+typedef enum {
+  IT_Uint8,
+  IT_Uint16,
+  IT_Uint32,
+} bcfx_EIndexType;
+
+BCFX_API Handle bcfx_createIndexBuffer(bcfx_MemBuffer* mem, bcfx_EIndexType type);
+BCFX_API Handle bcfx_createDynamicIndexBuffer(size_t size, bcfx_EIndexType type);
 
 typedef enum {
   ST_Vertex,
@@ -254,13 +238,6 @@ typedef enum {
 
 BCFX_API Handle bcfx_createUniform(const char* name, bcfx_UniformType type, uint16_t num);
 
-typedef struct {
-  void* data;
-  int width;
-  int height;
-  int nrChannels;
-} bcfx_Texture;
-
 // WARNING: Change bcfx_ETextureFormat must Update textureFormat_glType
 typedef enum {
   TF_RGB8,
@@ -268,8 +245,7 @@ typedef enum {
   TF_D24S8,
 } bcfx_ETextureFormat;
 
-// Memory Buffer data is a bcfx_Texture
-BCFX_API Handle bcfx_createTexture(bcfx_MemBuffer* mem, bcfx_ETextureFormat format);
+BCFX_API Handle bcfx_createTexture(bcfx_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format);
 BCFX_API Handle bcfx_createRenderTexture(uint16_t width, uint16_t height, bcfx_ETextureFormat format);
 
 BCFX_API Handle bcfx_createFrameBuffer(uint8_t num, Handle* handles);
@@ -283,6 +259,7 @@ BCFX_API Handle bcfx_createFrameBuffer(uint8_t num, Handle* handles);
 */
 
 BCFX_API void bcfx_updateProgram(Handle handle, Handle vs, Handle fs);
+// offset measured in bytes, the same as the size of mem
 BCFX_API void bcfx_updateDynamicVertexBuffer(Handle handle, size_t offset, bcfx_MemBuffer* mem);
 BCFX_API void bcfx_updateDynamicIndexBuffer(Handle handle, size_t offset, bcfx_MemBuffer* mem);
 
@@ -380,7 +357,6 @@ typedef enum {
 } bcfx_EFrontFace;
 // WARNING: Change bcfx_ECullFace must Update cullFace_glType
 typedef enum {
-  CF_None,
   CF_Back,
   CF_Front,
   CF_FrontAndBack,
@@ -536,9 +512,11 @@ BCFX_API void bcfx_setUniformMat4x4(Handle handle, Mat4x4* mat, uint16_t num);
 BCFX_API void bcfx_touch(ViewId id);
 
 BCFX_API void bcfx_setVertexBuffer(uint8_t stream, Handle handle);
+// start and count calculate in indexes，not byte
 BCFX_API void bcfx_setIndexBuffer(Handle handle, uint32_t start, uint32_t count);
 BCFX_API void bcfx_setTransform(Mat4x4* mat);
 BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlags flags);
+BCFX_API void bcfx_setScissor(uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor);
 BCFX_API void bcfx_setStencil(bool enable, bcfx_StencilState front, bcfx_StencilState back);
 BCFX_API void bcfx_setInstanceDataBuffer(const bcfx_InstanceDataBuffer* idb, uint32_t start, uint32_t count);
