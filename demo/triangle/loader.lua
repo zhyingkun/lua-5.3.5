@@ -35,8 +35,8 @@ end
 function loader.LoadTexture(filename)
 	local filePath = pathPrefix .. "Resource/Texture/" .. filename;
 	local fileData = bcfx.utils.ReadFile(filePath)
-	local parseMB = bcfx.utils.ImageParse(fileData)
-	return bcfx.createTexture(parseMB, texture_format.RGBA8)
+	local parseMB, width, height = bcfx.utils.ImageParse(fileData, texture_format.RGBA8)
+	return bcfx.createTexture(parseMB, width, height, texture_format.RGBA8)
 end
 
 return loader
