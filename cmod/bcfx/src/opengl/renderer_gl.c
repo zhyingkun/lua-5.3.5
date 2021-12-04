@@ -562,9 +562,9 @@ static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw
     GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
     // Index Count
     uint32_t total = ib->count;
-    GLint start = MIN(draw->indexStart, total); // in indices
+    uint64_t start = MIN(draw->indexStart, total); // count in indices
     GLsizei count = draw->indexCount == 0 ? total - start : MIN(draw->indexCount, total - start);
-    const void* indices = start * sizeof_IndexType[ib->type]; // in byte
+    const void* indices = (const void*)(start * sizeof_IndexType[ib->type]); // offset in byte
     if (draw->numInstance == 0) {
       GL_CHECK(glDrawElements(GL_TRIANGLES, count, index_glType[ib->type], indices));
     } else {
