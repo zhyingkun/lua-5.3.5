@@ -5,6 +5,7 @@ local bcfx = require("bcfx")
 local clear_flag = bcfx.clear_flag
 local vertex_attrib = bcfx.vertex_attrib
 local attrib_type = bcfx.attrib_type
+local index_type = bcfx.index_type
 local shader_type = bcfx.shader_type
 local color = bcfx.color
 local membuf = bcfx.membuf
@@ -69,7 +70,7 @@ local function GenerateColorCircle(radius)
 			coroutine.yield(0, i, i % 12 + 1)
 		end
 	end))
-	local idxHandle = bcfx.createIndexBuffer(mem)
+	local idxHandle = bcfx.createIndexBuffer(mem, index_type.Uint8)
 
 	local vertexShaderHandle = bcfx.createShader(vsStr, shader_type.Vertex)
 	local fragmentShaderHandle = bcfx.createShader(fsStr, shader_type.Fragment)
