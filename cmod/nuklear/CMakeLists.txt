@@ -38,6 +38,7 @@ set(
 	src/basic
 	src/stb
 	wrap
+	wrap/font
 )
 set(
 	NOT_INCLUDE_DIR
