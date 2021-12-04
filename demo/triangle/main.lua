@@ -96,6 +96,12 @@ local orthoMat = graphics3d.orthogonal(-3.4, 8, -6.8, 4, 0.1, 50)
 print("orthoMat:", orthoMat)
 --]]
 
+bcfx.setFrameViewCaptureCallback(function(frameId, viewId, width, height, data)
+	print("setFrameViewCaptureCallback Lua", frameId, viewId, width, height, data)
+	bcfx.utils.ImageWrite(
+		tostring(frameId) .. "_" .. tostring(viewId) .. "FrameViewCapture.png", width, height, 4, data)
+end)
+
 local lastTime = 0.0
 while not glfw.WindowShouldClose(window) do
 	libuv.run_nowait()
@@ -111,6 +117,13 @@ while not glfw.WindowShouldClose(window) do
 	triangle.tick(delta)
 	-- colorcircle.tick(delta)
 	imgui.tick(delta)
+
+	if bcfx.frameId() == 2 and false then
+		bcfx.requestCurrentFrameViewCapture(0)
+		bcfx.requestCurrentFrameViewCapture(1)
+		bcfx.requestCurrentFrameViewCapture(2)
+		bcfx.requestCurrentFrameViewCapture(255)
+	end
 
 	bcfx.apiFrame()
 	collectgarbage()
