@@ -15,6 +15,14 @@ static void on_frame_completed(void* ud, uint32_t frameId) {
   lua_rawgetp(L, LUA_REGISTRYINDEX, (const void*)on_frame_completed);
   lua_pushnil(L);
   lua_rawseti(L, -2, frameId);
+  lua_pop(L, 1);
+  lua_rawgetp(L, LUA_REGISTRYINDEX, (const void*)(((char*)on_frame_completed) + 1));
+  if (lua_isfunction(L, -1)) {
+    lua_pushinteger(L, frameId);
+    lua_pcall(L, 1, 0, 0);
+  } else {
+    lua_pop(L, 1);
+  }
 }
 
 static void init_resource_manage(lua_State* L) {
@@ -103,6 +111,16 @@ static int BCWRAP_FUNCTION(setMiscFuncs)(lua_State* L) {
 ** =======================================================
 */
 
+static int BCWRAP_FUNCTION(frameId)(lua_State* L) {
+  uint32_t id = bcfx_frameId();
+  lua_pushinteger(L, id);
+  return 1;
+}
+static int BCWRAP_FUNCTION(setFrameCompletedCallback)(lua_State* L) {
+  lua_settop(L, 1);
+  lua_rawsetp(L, LUA_REGISTRYINDEX, (const void*)(((char*)on_frame_completed) + 1));
+  return 0;
+}
 static int BCWRAP_FUNCTION(init)(lua_State* L) {
   void* mainWin = luaL_checklightuserdata(L, 1);
   bcfx_init(mainWin);
@@ -112,11 +130,6 @@ static int BCWRAP_FUNCTION(apiFrame)(lua_State* L) {
   uint32_t renderCount = luaL_optinteger(L, 1, -1);
   bcfx_apiFrame(renderCount);
   return 0;
-}
-static int BCWRAP_FUNCTION(frameId)(lua_State* L) {
-  uint32_t id = bcfx_frameId();
-  lua_pushinteger(L, id);
-  return 1;
 }
 static int BCWRAP_FUNCTION(shutdown)(lua_State* L) {
   bcfx_shutdowm();
@@ -509,9 +522,10 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(setWinCtxFuncs),
     EMPLACE_BCWRAP_FUNCTION(setMiscFuncs),
     /* Basic APIs */
+    EMPLACE_BCWRAP_FUNCTION(frameId),
+    EMPLACE_BCWRAP_FUNCTION(setFrameCompletedCallback),
     EMPLACE_BCWRAP_FUNCTION(init),
     EMPLACE_BCWRAP_FUNCTION(apiFrame),
-    EMPLACE_BCWRAP_FUNCTION(frameId),
     EMPLACE_BCWRAP_FUNCTION(shutdown),
     /* Create Render Resource */
     EMPLACE_BCWRAP_FUNCTION(createVertexLayout),
