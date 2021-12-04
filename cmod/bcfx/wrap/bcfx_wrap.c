@@ -380,6 +380,40 @@ static int BCWRAP_FUNCTION(resetView)(lua_State* L) {
   return 0;
 }
 
+static void _onFrameViewCapture(void* ud, uint32_t frameId, bcfx_FrameViewCaptureResult* result) {
+  lua_State* L = (lua_State*)ud;
+  lua_checkstack(L, 6);
+  lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)_onFrameViewCapture);
+  if (lua_isfunction(L, -1)) {
+    lua_pushinteger(L, frameId);
+    lua_pushinteger(L, result->id);
+    lua_pushinteger(L, result->width);
+    lua_pushinteger(L, result->height);
+    bcfx_MemBuffer* mb = luaL_newmembuffer(L);
+    MEMBUFFER_MOVE(&result->mb, mb);
+    lua_pcall(L, 5, 0, 0);
+  } else {
+    lua_pop(L, 1);
+  }
+}
+static int BCWRAP_FUNCTION(setFrameViewCaptureCallback)(lua_State* L) {
+  lua_settop(L, 1);
+  if (lua_isfunction(L, 1)) {
+    lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)_onFrameViewCapture);
+    bcfx_setFrameViewCaptureCallback(_onFrameViewCapture, (void*)L);
+  } else {
+    lua_pushnil(L);
+    lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)_onFrameViewCapture);
+    bcfx_setFrameViewCaptureCallback(NULL, NULL);
+  }
+  return 0;
+}
+static int BCWRAP_FUNCTION(requestCurrentFrameViewCapture)(lua_State* L) {
+  ViewId id = (ViewId)luaL_checkinteger(L, 1);
+  bcfx_requestCurrentFrameViewCapture(id);
+  return 0;
+}
+
 /* }====================================================== */
 
 /*
@@ -555,6 +589,8 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(setViewMode),
     EMPLACE_BCWRAP_FUNCTION(setViewDebug),
     EMPLACE_BCWRAP_FUNCTION(resetView),
+    EMPLACE_BCWRAP_FUNCTION(setFrameViewCaptureCallback),
+    EMPLACE_BCWRAP_FUNCTION(requestCurrentFrameViewCapture),
     /* Submit DrawCall */
     EMPLACE_BCWRAP_FUNCTION(setUniform),
     EMPLACE_BCWRAP_FUNCTION(touch),

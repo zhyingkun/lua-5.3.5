@@ -171,9 +171,11 @@ static int UTILS_FUNCTION(ImageWrite)(lua_State* L) {
   int width = luaL_checkinteger(L, 2);
   int height = luaL_checkinteger(L, 3);
   int components = luaL_checkinteger(L, 4);
-  void* data = luaL_checklightuserdata(L, 5);
+  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 5);
 
-  stbi_write_png(filename, width, height, components, data, width * components);
+  stbi_write_png(filename, width, height, components, mb->ptr, width * components);
+
+  MEMBUFFER_RELEASE(mb);
   return 0;
 }
 
@@ -308,4 +310,5 @@ void UTILS_FUNCTION(init)(lua_State* L) {
   lua_setfield(L, -2, "utils");
 
   stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
+  stbi_flip_vertically_on_write(true);
 }
