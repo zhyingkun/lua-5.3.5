@@ -56,7 +56,7 @@ local function CreateTriangleBuffer()
 		1.0, -1.0, 0.0,
 		0.0, 1.0, 0.0,
 	}
-	local mem = membuf.MakeMemoryBuffer(data_type.Float, vertexTbl)
+	local mem = membuf.MakeMemBuffer(data_type.Float, vertexTbl)
 	local vertexHandle = bcfx.createVertexBuffer(mem, layoutHandle)
 
 	local layout = bcfx.vertexlayout.new()
@@ -67,13 +67,13 @@ local function CreateTriangleBuffer()
 		0.0, 1.0, 0.0,
 		0.0, 0.0, 1.0,
 	}
-	local mem = membuf.MakeMemoryBuffer(data_type.Float, colorTbl)
+	local mem = membuf.MakeMemBuffer(data_type.Float, colorTbl)
 	local colorHandle = bcfx.createVertexBuffer(mem, layoutHandle)
 
 	local indexTbl = {
 		0, 1, 2,
 	}
-	local mem = membuf.MakeMemoryBuffer(data_type.Uint8, indexTbl)
+	local mem = membuf.MakeMemBuffer(data_type.Uint8, indexTbl)
 	local idxHandle = bcfx.createIndexBuffer(mem, index_type.Uint8)
 
 	local shaderProgramHandle = loader.LoadProgram("triangle")
@@ -116,7 +116,7 @@ local function CreateCubeBuffer()
 		0.5, -0.5, -0.5,
 		0.5, -0.5,  0.5,
 	 }
-	local mem = membuf.MakeMemoryBuffer(data_type.Float, vertexTbl)
+	local mem = membuf.MakeMemBuffer(data_type.Float, vertexTbl)
 	local vertexHandle = bcfx.createVertexBuffer(mem, layoutHandle)
 
 	local layout = bcfx.vertexlayout.new()
@@ -148,7 +148,7 @@ local function CreateCubeBuffer()
 		1.0, 1.0,
 		0.0, 1.0,
 	  }
-	local mem = membuf.MakeMemoryBuffer(data_type.Float, texCoordTbl)
+	local mem = membuf.MakeMemBuffer(data_type.Float, texCoordTbl)
 	local texCoordHandle = bcfx.createVertexBuffer(mem, layoutHandle)
 
 	local indexTbl = {
@@ -159,7 +159,7 @@ local function CreateCubeBuffer()
 		16, 17, 18, 16, 18, 19, -- up
 		20, 21, 22, 20, 22, 23, -- down
 	}
-	local mem = membuf.MakeMemoryBuffer(data_type.Uint8, indexTbl)
+	local mem = membuf.MakeMemBuffer(data_type.Uint8, indexTbl)
 	local idxHandle = bcfx.createIndexBuffer(mem, index_type.Uint8)
 
 	uniformHandle = bcfx.createUniform("my_texture", 0)
@@ -191,7 +191,7 @@ local function CreateBlitBuffer()
 		1.0, 1.0, 1.0, 1.0,
 		-1.0, 1.0, 0.0, 1.0,
 	}
-	local mem = membuf.MakeMemoryBuffer(data_type.Float, vertexTbl)
+	local mem = membuf.MakeMemBuffer(data_type.Float, vertexTbl)
 	local vertexHandle = bcfx.createVertexBuffer(mem, layoutHandle)
 
 	local uniformHandle = bcfx.createUniform("blit_texture", 0)
@@ -294,7 +294,7 @@ local function setup(mainWin)
 		0.3, 0.3, 0.3, 0.0,
 		0.6, 0.6, 0.6, 0.0
 	}
-	instanceData = membuf.MakeMemoryBuffer(data_type.Float, instanceOffset)
+	instanceData = membuf.MakeMemBuffer(data_type.Float, instanceOffset)
 	bcfx.updateDynamicVertexBuffer(instanceBuffer, 0, instanceData)
 end
 

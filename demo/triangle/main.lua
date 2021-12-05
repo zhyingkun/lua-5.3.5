@@ -96,10 +96,33 @@ local orthoMat = graphics3d.orthogonal(-3.4, 8, -6.8, 4, 0.1, 50)
 print("orthoMat:", orthoMat)
 --]]
 
-bcfx.setFrameViewCaptureCallback(function(frameId, viewId, width, height, data)
-	print("setFrameViewCaptureCallback Lua", frameId, viewId, width, height, data)
-	bcfx.utils.ImageWrite(
-		tostring(frameId) .. "_" .. tostring(viewId) .. "FrameViewCapture.png", width, height, 4, data)
+local function ImageEncodeAsync(mb, x, y, comp, type, sorq, callback) -- stride or quality
+	local ptr = bcfx.image.PackImageEncodeParam(mb, x, y, comp, type, sorq);
+	libuv.queue_work(bcfx.image.ImageEncodePtr, ptr, function(status, result)
+		local mb = bcfx.image.UnpackImageEncodeResult(result)
+		print("ImageEncodeAsync Callback:", mb)
+		callback(mb)
+	end)
+end
+
+local function WriteFileAsync(fileName, mb, callback)
+	local ptr = bcfx.mbio.PackWriteFileParam(fileName, mb)
+	libuv.queue_work(bcfx.mbio.WriteFilePtr, ptr, function(status, result)
+		local ret = bcfx.mbio.UnpackWriteFileResult(result)
+		callback(ret)
+	end)
+end
+
+bcfx.setFrameViewCaptureCallback(function(frameId, viewId, width, height, mb)
+	print("setFrameViewCaptureCallback Lua", frameId, viewId, width, height, mb)
+	local fileName = tostring(frameId) .. "_" .. tostring(viewId) .. "FrameViewCapture.png";
+	-- local mb = bcfx.image.ImageEncode(mb, width, height, 4, bcfx.image.image_type.PNG, width * 4)
+	-- bcfx.mbio.WriteFile(fileName, mb)
+	ImageEncodeAsync(mb, width, height, 4, bcfx.image.image_type.PNG, width * 4, function(mb)
+		WriteFileAsync(fileName, mb, function(ret)
+			print("setFrameViewCaptureCallback Async WriteFile End:", ret)
+		end)
+	end)
 end)
 
 local lastTime = 0.0
@@ -118,7 +141,7 @@ while not glfw.WindowShouldClose(window) do
 	-- colorcircle.tick(delta)
 	imgui.tick(delta)
 
-	if bcfx.frameId() == 2 and false then
+	if bcfx.frameId() == 60 and false then
 		bcfx.requestCurrentFrameViewCapture(0)
 		bcfx.requestCurrentFrameViewCapture(1)
 		bcfx.requestCurrentFrameViewCapture(2)

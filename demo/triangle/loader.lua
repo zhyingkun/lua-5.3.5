@@ -1,6 +1,8 @@
 local bcfx = require("bcfx")
 local shader_type = bcfx.shader_type
 local texture_format = bcfx.texture_format
+local mbio = bcfx.mbio
+local image = bcfx.image
 
 local watch = require("watch")
 
@@ -34,8 +36,8 @@ end
 
 function loader.LoadTexture(filename)
 	local filePath = pathPrefix .. "Resource/Texture/" .. filename;
-	local fileData = bcfx.utils.ReadFile(filePath)
-	local parseMB, width, height = bcfx.utils.ImageParse(fileData, texture_format.RGBA8)
+	local fileData = mbio.ReadFile(filePath)
+	local parseMB, width, height = image.ImageDecode(fileData, texture_format.RGBA8)
 	return bcfx.createTexture(parseMB, width, height, texture_format.RGBA8)
 end
 
