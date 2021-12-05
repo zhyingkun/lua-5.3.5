@@ -24,6 +24,10 @@
   luaL_newenum(L, BCWRAP_ENUM(name)); \
   lua_setfield(L, -2, #name)
 
+#define REGISTE_LIGHTUSERDATA(name, lightuserdata) \
+  lua_pushlightuserdata(L, (void*)(lightuserdata)); \
+  lua_setfield(L, -2, #name)
+
 #define VL_FUNCTION(name) bcfx_wrap_vl_##name
 
 #define BCFX_VERTEXLAYOUT_TYPE "bcfx_VertexLayout*"
@@ -70,7 +74,12 @@ void G3D_FUNCTION(init)(lua_State* L);
 #define MATRIX_STR_SIZE 256
 
 #define UTILS_FUNCTION(name) bcfx_wrap_utils_##name
-
 void UTILS_FUNCTION(init)(lua_State* L);
+
+#define MBIO_FUNCTION(name) bcfx_wrap_mbio_##name
+void MBIO_FUNCTION(init)(lua_State* L);
+
+#define IMAGE_FUNCTION(name) bcfx_wrap_membuf_io_##name
+void IMAGE_FUNCTION(init)(lua_State* L);
 
 #endif /* _BCFX_WRAP_H_ */

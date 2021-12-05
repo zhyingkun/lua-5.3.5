@@ -1,6 +1,14 @@
 #define _membuf_wrap_c_
 #include <bcfx_wrap.h>
 
+#include <string.h>
+
+/*
+** {======================================================
+** MemoryBuffer
+** =======================================================
+*/
+
 #define DATA_TYPE_MAP(XX) \
   XX(Uint8, uint8_t) \
   XX(Uint16, uint16_t) \
@@ -75,7 +83,16 @@ bcfx_MemBuffer* luaL_newmembuffer(lua_State* L) {
   MEMBUFFER_CLEAR(mb);
   return mb;
 }
-static int MEMBUF_FUNCTION(CreateMemoryBuffer)(lua_State* L) {
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** MemoryBuffer Utilities
+** =======================================================
+*/
+
+static int MEMBUF_FUNCTION(CreateMemBuffer)(lua_State* L) {
   void* ptr = luaL_optlightuserdata(L, 1, NULL);
   size_t sz = luaL_optinteger(L, 2, 0);
   bcfx_MemRelease release = (bcfx_MemRelease)luaL_optlightuserdata(L, 3, NULL);
@@ -83,6 +100,21 @@ static int MEMBUF_FUNCTION(CreateMemoryBuffer)(lua_State* L) {
 
   bcfx_MemBuffer* mb = luaL_newmembuffer(L);
   MEMBUFFER_SET(mb, ptr, sz, release, ud);
+  return 1;
+}
+
+static void _releaseBuffer(void* ud, void* ptr) {
+  (void)ud;
+  free((void*)ptr);
+}
+static int MEMBUF_FUNCTION(CopyRawToMemBuffer)(lua_State* L) {
+  void* data = luaL_checklightuserdata(L, 1);
+  size_t len = luaL_checkinteger(L, 2);
+
+  void* another = malloc(len);
+  memcpy((char*)another, (char*)data, len);
+  bcfx_MemBuffer* mb = luaL_newmembuffer(L);
+  MEMBUFFER_SET(mb, (void*)another, len, _releaseBuffer, NULL);
   return 1;
 }
 
@@ -135,7 +167,7 @@ static void fill_buffer_from_stack(void* ptr, bcfx_EDataType dt, size_t count, l
 static void MEMBUF_FUNCTION(Release)(void* ud, void* ptr) {
   free(ptr);
 }
-static int MEMBUF_FUNCTION(MakeMemoryBuffer)(lua_State* L) {
+static int MEMBUF_FUNCTION(MakeMemBuffer)(lua_State* L) {
   int num = lua_gettop(L);
   if (num < 2 || num % 2 != 0) {
     luaL_error(L, "must passing paraments in pair with type and data");
@@ -194,9 +226,12 @@ _READ_END_:
   return 1;
 }
 
+/* }====================================================== */
+
 static const luaL_Reg membuf_funcs[] = {
-    EMPLACE_MEMBUF_FUNCTION(CreateMemoryBuffer),
-    EMPLACE_MEMBUF_FUNCTION(MakeMemoryBuffer),
+    EMPLACE_MEMBUF_FUNCTION(CreateMemBuffer),
+    EMPLACE_MEMBUF_FUNCTION(CopyRawToMemBuffer),
+    EMPLACE_MEMBUF_FUNCTION(MakeMemBuffer),
     {NULL, NULL},
 };
 
