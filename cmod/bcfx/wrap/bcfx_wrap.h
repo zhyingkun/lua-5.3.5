@@ -82,4 +82,7 @@ void MBIO_FUNCTION(init)(lua_State* L);
 #define IMAGE_FUNCTION(name) bcfx_wrap_membuf_io_##name
 void IMAGE_FUNCTION(init)(lua_State* L);
 
+#define MESH_FUNCTION(name) bcfx_wrap_mesh_##name
+void MESH_FUNCTION(init)(lua_State* L);
+
 #endif /* _BCFX_WRAP_H_ */

@@ -811,6 +811,7 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   (void)MEMBUF_FUNCTION(init)(L);
   (void)MBIO_FUNCTION(init)(L);
   (void)IMAGE_FUNCTION(init)(L);
+  (void)MESH_FUNCTION(init)(L);
 
   lua_createtable(L, 0, 3);
   (void)VECTOR_FUNCTION(init)(L);
