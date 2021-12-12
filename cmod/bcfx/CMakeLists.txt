@@ -41,6 +41,7 @@ set(
 	wrap
 	wrap/image
 	wrap/math
+	wrap/mesh
 )
 set(
 	NOT_INCLUDE_DIR
