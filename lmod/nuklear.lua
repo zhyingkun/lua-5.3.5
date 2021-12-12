@@ -2,44 +2,44 @@ local libnk = require("libnuklear")
 
 local nk = {}
 
-function nk.font_config()
+function nk.FontConfig()
 	return libnk.font_config()
 end
 
-function nk.font_atlas()
+function nk.FontAtlas()
 	return libnk.font_atlas()
 end
 
-function nk.buffer()
+function nk.Buffer()
 	return libnk.buffer()
 end
 
-function nk.context(font)
+function nk.Context(font)
 	return libnk.context(font)
 end
 
 local curCtx
-function nk.SetContext(ctx)
+function nk.setContext(ctx)
 	curCtx = ctx
 end
 
-function nk.input_begin()
+function nk.inputBegin()
 	libnk.input_begin(curCtx)
 end
-function nk.input_key(key, down)
+function nk.inputKey(key, down)
 	libnk.input_key(curCtx, key, down)
 end
-function nk.input_motion(x, y)
+function nk.inputMotion(x, y)
 	libnk.input_motion(curCtx, x, y)
 end
-function nk.input_button(button, x, y, down)
+function nk.inputButton(button, x, y, down)
 	libnk.input_button(curCtx, button, x, y, down)
 end
-function nk.input_end()
+function nk.inputEnd()
 	libnk.input_end(curCtx)
 end
 
-function nk.style_set_font(font)
+function nk.styleSetFont(font)
 	libnk.style_set_font(curCtx, font)
 end
 
@@ -47,11 +47,11 @@ function nk.begin(title, x, y, w, h, flags)
 	return libnk.begin(curCtx, title, x, y, w, h, flags)
 end
 
-function nk.endnk()
+function nk.endNk()
 	libnk.endnk(curCtx)
 end
 
-function nk.layout_row_dynamic(height, cols)
+function nk.layoutRowDynamic(height, cols)
 	libnk.layout_row_dynamic(curCtx, height, cols)
 end
 
@@ -59,7 +59,7 @@ function nk.label(str, alignment)
 	libnk.label(curCtx, str, alignment)
 end
 
-function nk.layout_row(fmt, height, cols, ratio)
+function nk.layoutRow(fmt, height, cols, ratio)
 	libnk.layout_row(curCtx, fmt, height, cols, ratio)
 end
 
@@ -67,7 +67,7 @@ function nk.spacing(cols)
 	libnk.spacing(curCtx, cols)
 end
 
-function nk.button_image_label(img, label, align)
+function nk.buttonImageLabel(img, label, align)
 	-- libnk.button_image_label(curCtx, img, label, align)
 end
 
@@ -79,7 +79,7 @@ function nk.convert(cmds, vbuf, ebuf, config)
 	libnk.convert(curCtx, cmds, vbuf, ebuf, config)
 end
 
-function nk.DrawElements(cmds)
+function nk.drawElements(cmds)
 	return function(cmds, cmd)
 		if cmd == nil then
 			cmd = libnk.draw_list_begin(curCtx, cmds)
