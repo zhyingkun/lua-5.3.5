@@ -43,9 +43,9 @@ local mainWin
 
 function imgui.setup(mainWin_)
 	mainWin = mainWin_
-	local atlas = nk.font_atlas()
+	local atlas = nk.FontAtlas()
 	atlas:begin()
-	local cfg = nk.font_config()
+	local cfg = nk.FontConfig()
 	font = atlas:add_default(22, cfg)
 	local image, width, height = atlas:bake(1)
 	-- bcfx.utils.ImageWrite("zykTest.png", width, height, 4, image)
@@ -53,10 +53,10 @@ function imgui.setup(mainWin_)
 	local imageHandle = bcfx.createTexture(mb, width, height, bcfx.texture_format.RGBA8)
 	nullTex = atlas:endatlas(imageHandle)
 
-	local ctx = nk.context(font)
-	nk.SetContext(ctx)
+	local ctx = nk.Context(font)
+	nk.setContext(ctx)
 
-	cmds = nk.buffer()
+	cmds = nk.Buffer()
 	local vsize = 4 * 1024 * 1024
 	local esize = 4 * 1024 * 1024
 
@@ -113,32 +113,32 @@ function imgui.setup(mainWin_)
 		dstAlpha = blend_func.OneMinusSrcAlpha,
 	})
 
-	vbuf1 = nk.buffer(vsize)
-	ebuf1 = nk.buffer(esize)
-	vbuf2 = nk.buffer(vsize)
-	ebuf2 = nk.buffer(esize)
+	vbuf1 = nk.Buffer(vsize)
+	ebuf1 = nk.Buffer(esize)
+	vbuf2 = nk.Buffer(vsize)
+	ebuf2 = nk.Buffer(esize)
 
 	-- bcfx.setViewDebug(255, bcfx.debug.WIREFRAME)
 end
 
 function imgui.tick(delta)
-	nk.style_set_font(font)
+	nk.styleSetFont(font)
 	if nk.begin("Basic Demo", 0, 0, 400, 300, 
 		panel_flag.BORDER  |panel_flag.MOVABLE |panel_flag.TITLE|
 		panel_flag.SCALABLE|panel_flag.CLOSABLE|panel_flag.MINIMIZABLE)
 	then
-		nk.layout_row_dynamic(50, 1)
+		nk.layoutRowDynamic(50, 1)
 		nk.label("ABCDEFGHIJKLMNOPQRSTUVWXYZ", text_alignment.LEFT)
-		nk.layout_row_dynamic(50, 1)
+		nk.layoutRowDynamic(50, 1)
 		nk.label("", text_alignment.LEFT)
-		nk.layout_row_dynamic(20, 1)
+		nk.layoutRowDynamic(20, 1)
 		nk.label("", 1)
-		nk.layout_row_dynamic(20, 1)
+		nk.layoutRowDynamic(20, 1)
 		nk.label("1234567890", text_alignment.RIGHT)
-		nk.layout_row_dynamic(20, 1)
+		nk.layoutRowDynamic(20, 1)
 		nk.spacing(1)
 	end
-	nk.endnk()
+	nk.endNk()
 
 	local vbuf, ebuf
 	if bcfx.frameId() % 2 == 0 then
@@ -176,7 +176,7 @@ function imgui.tick(delta)
 	local scaleY = height / h_
 
 	local offset = 0
-	for cmd in nk.DrawElements(cmds) do
+	for cmd in nk.drawElements(cmds) do
 		local count, texture, x, y, w, h = nk.UnpackDrawCommand(cmd, w_, h_)
 
 		if count > 0 then
