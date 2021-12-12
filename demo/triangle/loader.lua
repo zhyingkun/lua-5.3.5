@@ -41,4 +41,10 @@ function loader.LoadTexture(filename)
 	return bcfx.createTexture(parseMB, width, height, texture_format.RGBA8)
 end
 
+function loader.loadMesh(fileName)
+	local filePath = pathPrefix .. "Resource/Mesh/" .. fileName;
+	local fileData = mbio.ReadFile(filePath)
+	return bcfx.mesh.MeshParse(fileData)
+end
+
 return loader

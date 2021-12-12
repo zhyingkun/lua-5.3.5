@@ -178,6 +178,27 @@ local function CreateCubeBuffer()
 	}
 end
 
+local function CreateSpotBuffer()
+	local vbMB, ibMB = loader.loadMesh("spot_quadrangulated.obj")
+	local layout = bcfx.vertexlayout.new()
+	layout:add(vertex_attrib.Position, 3, attrib_type.Float, false)
+	layout:add(vertex_attrib.Normal, 3, attrib_type.Float, false)
+	layout:add(vertex_attrib.TexCoord0, 2, attrib_type.Float, false)
+	local layoutHandle = bcfx.createVertexLayout(layout)
+	local vertexHandle = bcfx.createVertexBuffer(vbMB, layoutHandle)
+	local idxHandle = bcfx.createIndexBuffer(ibMB, index_type.Uint32)
+
+	local textureHandle = loader.LoadTexture("spot_texture.png")
+
+	return {
+		vertex = vertexHandle,
+		index = idxHandle,
+		-- uniform = uniformHandle, -- same as cube
+		-- shader = shaderProgramHandle,
+		texture = textureHandle,
+	}
+end
+
 local function CreateBlitBuffer()
 	local layout = bcfx.vertexlayout.new()
 	layout:add(vertex_attrib.Position, 2, attrib_type.Float, false)
@@ -251,6 +272,7 @@ end
 
 local triangle
 local cube
+local spot
 local instanceBuffer
 local instanceData
 
@@ -263,6 +285,7 @@ local timer
 local function setup(mainWin)
 	triangle = CreateTriangleBuffer()
 	cube = CreateCubeBuffer()
+	spot = CreateSpotBuffer()
 
 	glfw.SetFramebufferSizeCallback(mainWin, function(window, width, height)
 		bcfx.setViewRect(255, 0, 0, width, height)
@@ -272,14 +295,16 @@ local function setup(mainWin)
 	local pixelw, pixelh = glfw.GetFramebufferSize(mainWin)
 	SetupViewFull(0, mainWin, pixelw, pixelh)
 
-	colorRT = bcfx.createRenderTexture(600, 600, texture_format.RGBA8)
-	dsRT = bcfx.createRenderTexture(600, 600, texture_format.D24S8)
+	local fbWidth = pixelw // 2
+	local fbHeight = pixelh // 2
+	colorRT = bcfx.createRenderTexture(fbWidth, fbHeight, texture_format.RGBA8)
+	dsRT = bcfx.createRenderTexture(fbWidth, fbHeight, texture_format.D24S8)
 	frameBuffer = bcfx.createFrameBuffer(colorRT, dsRT)
 	blit = CreateBlitBuffer()
 	blit.texture = colorRT
-	SetupFrameBufferView(1, frameBuffer, 600, 600)
+	SetupFrameBufferView(1, frameBuffer, fbWidth, fbHeight)
 
-	SetupViewHalf(2, mainWin, pixelw // 2, pixelh // 2)
+	SetupViewHalf(2, mainWin, fbWidth, fbHeight)
 
 	-- SetupAnotherView(3, mainWin)
 
@@ -314,12 +339,17 @@ local function tick(delta)
 	})
 	bcfx.submit(0, triangle.shader, discard.ALL)
 
-	bcfx.setVertexBuffer(0, cube.vertex)
-	bcfx.setVertexBuffer(1, cube.texCoord)
-	bcfx.setIndexBuffer(cube.index)
+	-- bcfx.setVertexBuffer(0, cube.vertex)
+	-- bcfx.setVertexBuffer(1, cube.texCoord)
+	-- bcfx.setIndexBuffer(cube.index)
+	bcfx.setVertexBuffer(0, spot.vertex)
+	bcfx.setIndexBuffer(spot.index)
+
 	angle = (angle + 1) % 360
 	local matScale = graphics3d.scale(vector.Vec3(1.5, 1.5, 1.5))
 	local matRotate = graphics3d.rotate(angle, vector.Vec3(1.0, 1.0, 1.0))
+	local matScale = graphics3d.scale(vector.Vec3(1.0, 1.0, 1.0))
+	local matRotate = graphics3d.rotate(angle, vector.Vec3(0.0, 1.0, 0.0))
 	-- local mat = graphics3d.rotate(45, vector.Vec3(1.0, 0.0, 0.0))
 	bcfx.setTransform(matRotate * matScale)
 
@@ -329,7 +359,8 @@ local function tick(delta)
 		filterMin = texture_filter.Linear,
 		filterMag = texture_filter.Linear,
 	})
-	bcfx.setTexture(0, cube.uniform, cube.texture, flags)
+	-- bcfx.setTexture(0, cube.uniform, cube.texture, flags)
+	bcfx.setTexture(0, cube.uniform, spot.texture, flags)
 
 	local state = bcfx.utils.PackRenderState({
 		enableDepth = true,
