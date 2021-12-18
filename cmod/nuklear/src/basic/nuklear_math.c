@@ -140,57 +140,57 @@ nk_log10(double n) {
     exp = -exp;
   return exp;
 }
-NK_API struct nk_rect
+NK_API nk_rect
 nk_get_null_rect(void) {
   return nk_null_rect;
 }
-NK_API struct nk_rect
-nk_rect(float x, float y, float w, float h) {
-  struct nk_rect r;
+NK_API nk_rect
+nk_make_rect(float x, float y, float w, float h) {
+  nk_rect r;
   r.x = x;
   r.y = y;
   r.w = w;
   r.h = h;
   return r;
 }
-NK_API struct nk_rect
-nk_recti(int x, int y, int w, int h) {
-  struct nk_rect r;
+NK_API nk_rect
+nk_make_recti(int x, int y, int w, int h) {
+  nk_rect r;
   r.x = (float)x;
   r.y = (float)y;
   r.w = (float)w;
   r.h = (float)h;
   return r;
 }
-NK_API struct nk_rect
-nk_recta(struct nk_vec2 pos, struct nk_vec2 size) {
-  return nk_rect(pos.x, pos.y, size.x, size.y);
+NK_API nk_rect
+nk_recta(nk_vec2 pos, nk_vec2 size) {
+  return nk_make_rect(pos.x, pos.y, size.x, size.y);
 }
-NK_API struct nk_rect
+NK_API nk_rect
 nk_rectv(const float* r) {
-  return nk_rect(r[0], r[1], r[2], r[3]);
+  return nk_make_rect(r[0], r[1], r[2], r[3]);
 }
-NK_API struct nk_rect
+NK_API nk_rect
 nk_rectiv(const int* r) {
-  return nk_recti(r[0], r[1], r[2], r[3]);
+  return nk_make_recti(r[0], r[1], r[2], r[3]);
 }
-NK_API struct nk_vec2
-nk_rect_pos(struct nk_rect r) {
-  struct nk_vec2 ret;
+NK_API nk_vec2
+nk_rect_pos(nk_rect r) {
+  nk_vec2 ret;
   ret.x = r.x;
   ret.y = r.y;
   return ret;
 }
-NK_API struct nk_vec2
-nk_rect_size(struct nk_rect r) {
-  struct nk_vec2 ret;
+NK_API nk_vec2
+nk_rect_size(nk_rect r) {
+  nk_vec2 ret;
   ret.x = r.w;
   ret.y = r.h;
   return ret;
 }
-NK_LIB struct nk_rect
-nk_shrink_rect(struct nk_rect r, float amount) {
-  struct nk_rect res;
+NK_LIB nk_rect
+nk_shrink_make_rect(nk_rect r, float amount) {
+  nk_rect res;
   r.w = NK_MAX(r.w, 2 * amount);
   r.h = NK_MAX(r.h, 2 * amount);
   res.x = r.x + amount;
@@ -199,8 +199,7 @@ nk_shrink_rect(struct nk_rect r, float amount) {
   res.h = r.h - 2 * amount;
   return res;
 }
-NK_LIB struct nk_rect
-nk_pad_rect(struct nk_rect r, struct nk_vec2 pad) {
+NK_LIB nk_rect nk_pad_rect(nk_rect r, nk_vec2 pad) {
   r.w = NK_MAX(r.w, 2 * pad.x);
   r.h = NK_MAX(r.h, 2 * pad.y);
   r.x += pad.x;
@@ -209,31 +208,26 @@ nk_pad_rect(struct nk_rect r, struct nk_vec2 pad) {
   r.h -= 2 * pad.y;
   return r;
 }
-NK_API struct nk_vec2
-nk_vec2(float x, float y) {
-  struct nk_vec2 ret;
+NK_API nk_vec2 nk_make_vec2(float x, float y) {
+  nk_vec2 ret;
   ret.x = x;
   ret.y = y;
   return ret;
 }
-NK_API struct nk_vec2
-nk_vec2i(int x, int y) {
-  struct nk_vec2 ret;
+NK_API nk_vec2 nk_make_vec2i(int x, int y) {
+  nk_vec2 ret;
   ret.x = (float)x;
   ret.y = (float)y;
   return ret;
 }
-NK_API struct nk_vec2
-nk_vec2v(const float* v) {
-  return nk_vec2(v[0], v[1]);
+NK_API nk_vec2 nk_vec2v(const float* v) {
+  return nk_make_vec2(v[0], v[1]);
 }
-NK_API struct nk_vec2
-nk_vec2iv(const int* v) {
-  return nk_vec2i(v[0], v[1]);
+NK_API nk_vec2 nk_vec2iv(const int* v) {
+  return nk_make_vec2i(v[0], v[1]);
 }
-NK_LIB void
-nk_unify(struct nk_rect* clip, const struct nk_rect* a, float x0, float y0,
-         float x1, float y1) {
+NK_LIB void nk_unify(nk_rect* clip, const nk_rect* a, float x0, float y0,
+                     float x1, float y1) {
   NK_ASSERT(a);
   NK_ASSERT(clip);
   clip->x = NK_MAX(a->x, x0);
@@ -244,9 +238,8 @@ nk_unify(struct nk_rect* clip, const struct nk_rect* a, float x0, float y0,
   clip->h = NK_MAX(0, clip->h);
 }
 
-NK_API void
-nk_triangle_from_direction(struct nk_vec2* result, struct nk_rect r,
-                           float pad_x, float pad_y, enum nk_heading direction) {
+NK_API void nk_triangle_from_direction(nk_vec2* result, nk_rect r,
+                                       float pad_x, float pad_y, nk_heading direction) {
   float w_half, h_half;
   NK_ASSERT(result);
 
@@ -262,20 +255,20 @@ nk_triangle_from_direction(struct nk_vec2* result, struct nk_rect r,
   h_half = r.h / 2.0f;
 
   if (direction == NK_UP) {
-    result[0] = nk_vec2(r.x + w_half, r.y);
-    result[1] = nk_vec2(r.x + r.w, r.y + r.h);
-    result[2] = nk_vec2(r.x, r.y + r.h);
+    result[0] = nk_make_vec2(r.x + w_half, r.y);
+    result[1] = nk_make_vec2(r.x + r.w, r.y + r.h);
+    result[2] = nk_make_vec2(r.x, r.y + r.h);
   } else if (direction == NK_RIGHT) {
-    result[0] = nk_vec2(r.x, r.y);
-    result[1] = nk_vec2(r.x + r.w, r.y + h_half);
-    result[2] = nk_vec2(r.x, r.y + r.h);
+    result[0] = nk_make_vec2(r.x, r.y);
+    result[1] = nk_make_vec2(r.x + r.w, r.y + h_half);
+    result[2] = nk_make_vec2(r.x, r.y + r.h);
   } else if (direction == NK_DOWN) {
-    result[0] = nk_vec2(r.x, r.y);
-    result[1] = nk_vec2(r.x + r.w, r.y);
-    result[2] = nk_vec2(r.x + w_half, r.y + r.h);
+    result[0] = nk_make_vec2(r.x, r.y);
+    result[1] = nk_make_vec2(r.x + r.w, r.y);
+    result[2] = nk_make_vec2(r.x + w_half, r.y + r.h);
   } else {
-    result[0] = nk_vec2(r.x, r.y + h_half);
-    result[1] = nk_vec2(r.x + r.w, r.y);
-    result[2] = nk_vec2(r.x + r.w, r.y + r.h);
+    result[0] = nk_make_vec2(r.x, r.y + h_half);
+    result[1] = nk_make_vec2(r.x + r.w, r.y);
+    result[2] = nk_make_vec2(r.x + r.w, r.y + r.h);
   }
 }

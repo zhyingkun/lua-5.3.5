@@ -6,10 +6,10 @@
  *                          9-SLICE
  *
  * ===============================================================*/
-NK_API struct nk_nine_slice
-nk_sub9slice_ptr(void* ptr, nk_ushort w, nk_ushort h, struct nk_rect rgn, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b) {
-  struct nk_nine_slice s;
-  struct nk_image* i = &s.img;
+NK_API nk_nine_slice
+nk_sub9slice_ptr(void* ptr, nk_ushort w, nk_ushort h, nk_rect rgn, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b) {
+  nk_nine_slice s;
+  nk_image* i = &s.img;
   nk_zero(&s, sizeof(s));
   i->handle.ptr = ptr;
   i->w = w;
@@ -24,10 +24,10 @@ nk_sub9slice_ptr(void* ptr, nk_ushort w, nk_ushort h, struct nk_rect rgn, nk_ush
   s.b = b;
   return s;
 }
-NK_API struct nk_nine_slice
-nk_sub9slice_id(int id, nk_ushort w, nk_ushort h, struct nk_rect rgn, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b) {
-  struct nk_nine_slice s;
-  struct nk_image* i = &s.img;
+NK_API nk_nine_slice
+nk_sub9slice_id(int id, nk_ushort w, nk_ushort h, nk_rect rgn, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b) {
+  nk_nine_slice s;
+  nk_image* i = &s.img;
   nk_zero(&s, sizeof(s));
   i->handle.id = id;
   i->w = w;
@@ -42,10 +42,10 @@ nk_sub9slice_id(int id, nk_ushort w, nk_ushort h, struct nk_rect rgn, nk_ushort 
   s.b = b;
   return s;
 }
-NK_API struct nk_nine_slice
-nk_sub9slice_handle(nk_handle handle, nk_ushort w, nk_ushort h, struct nk_rect rgn, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b) {
-  struct nk_nine_slice s;
-  struct nk_image* i = &s.img;
+NK_API nk_nine_slice
+nk_sub9slice_handle(nk_handle handle, nk_ushort w, nk_ushort h, nk_rect rgn, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b) {
+  nk_nine_slice s;
+  nk_image* i = &s.img;
   nk_zero(&s, sizeof(s));
   i->handle = handle;
   i->w = w;
@@ -60,10 +60,10 @@ nk_sub9slice_handle(nk_handle handle, nk_ushort w, nk_ushort h, struct nk_rect r
   s.b = b;
   return s;
 }
-NK_API struct nk_nine_slice
+NK_API nk_nine_slice
 nk_nine_slice_handle(nk_handle handle, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b) {
-  struct nk_nine_slice s;
-  struct nk_image* i = &s.img;
+  nk_nine_slice s;
+  nk_image* i = &s.img;
   nk_zero(&s, sizeof(s));
   i->handle = handle;
   i->w = 0;
@@ -78,10 +78,10 @@ nk_nine_slice_handle(nk_handle handle, nk_ushort l, nk_ushort t, nk_ushort r, nk
   s.b = b;
   return s;
 }
-NK_API struct nk_nine_slice
+NK_API nk_nine_slice
 nk_nine_slice_ptr(void* ptr, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b) {
-  struct nk_nine_slice s;
-  struct nk_image* i = &s.img;
+  nk_nine_slice s;
+  nk_image* i = &s.img;
   nk_zero(&s, sizeof(s));
   NK_ASSERT(ptr);
   i->handle.ptr = ptr;
@@ -97,10 +97,10 @@ nk_nine_slice_ptr(void* ptr, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b)
   s.b = b;
   return s;
 }
-NK_API struct nk_nine_slice
+NK_API nk_nine_slice
 nk_nine_slice_id(int id, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b) {
-  struct nk_nine_slice s;
-  struct nk_image* i = &s.img;
+  nk_nine_slice s;
+  nk_image* i = &s.img;
   nk_zero(&s, sizeof(s));
   i->handle.id = id;
   i->w = 0;
@@ -115,8 +115,7 @@ nk_nine_slice_id(int id, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b) {
   s.b = b;
   return s;
 }
-NK_API int
-nk_nine_slice_is_sub9slice(const struct nk_nine_slice* slice) {
+NK_API int nk_nine_slice_is_sub9slice(const nk_nine_slice* slice) {
   NK_ASSERT(slice);
   return !(slice->img.w == 0 && slice->img.h == 0);
 }

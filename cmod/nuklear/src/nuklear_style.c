@@ -6,7 +6,7 @@
  *                              STYLE
  *
  * ===============================================================*/
-NK_API void nk_style_default(struct nk_context* ctx) {
+NK_API void nk_style_default(nk_context* ctx) {
   nk_style_from_table(ctx, 0);
 }
 #define NK_COLOR_MAP(NK_COLOR) \
@@ -39,7 +39,7 @@ NK_API void nk_style_default(struct nk_context* ctx) {
   NK_COLOR(NK_COLOR_SCROLLBAR_CURSOR_ACTIVE, 150, 150, 150, 255) \
   NK_COLOR(NK_COLOR_TAB_HEADER, 40, 40, 40, 255)
 
-NK_GLOBAL const struct nk_color
+NK_GLOBAL const nk_color
     nk_default_color_style[NK_COLOR_COUNT] = {
 #define NK_COLOR(a, b, c, d, e) {b, c, d, e},
         NK_COLOR_MAP(NK_COLOR)
@@ -52,53 +52,52 @@ NK_GLOBAL const char* nk_color_names[NK_COLOR_COUNT] = {
 };
 
 NK_API const char*
-nk_style_get_color_by_name(enum nk_style_colors c) {
+nk_style_get_color_by_name(nk_style_colors c) {
   return nk_color_names[c];
 }
-NK_API struct nk_style_item
-nk_style_item_color(struct nk_color col) {
-  struct nk_style_item i;
+NK_API nk_style_item
+nk_style_item_color(nk_color col) {
+  nk_style_item i;
   i.type = NK_STYLE_ITEM_COLOR;
   i.data.color = col;
   return i;
 }
-NK_API struct nk_style_item
-nk_style_item_image(struct nk_image img) {
-  struct nk_style_item i;
+NK_API nk_style_item
+nk_style_item_image(nk_image img) {
+  nk_style_item i;
   i.type = NK_STYLE_ITEM_IMAGE;
   i.data.image = img;
   return i;
 }
-NK_API struct nk_style_item
-nk_style_item_nine_slice(struct nk_nine_slice slice) {
-  struct nk_style_item i;
+NK_API nk_style_item
+nk_style_item_nine_slice(nk_nine_slice slice) {
+  nk_style_item i;
   i.type = NK_STYLE_ITEM_NINE_SLICE;
   i.data.slice = slice;
   return i;
 }
-NK_API struct nk_style_item
+NK_API nk_style_item
 nk_style_item_hide(void) {
-  struct nk_style_item i;
+  nk_style_item i;
   i.type = NK_STYLE_ITEM_COLOR;
   i.data.color = nk_rgba(0, 0, 0, 0);
   return i;
 }
-NK_API void
-nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
-  struct nk_style* style;
-  struct nk_style_text* text;
-  struct nk_style_button* button;
-  struct nk_style_toggle* toggle;
-  struct nk_style_selectable* select;
-  struct nk_style_slider* slider;
-  struct nk_style_progress* prog;
-  struct nk_style_scrollbar* scroll;
-  struct nk_style_edit* edit;
-  struct nk_style_property* property;
-  struct nk_style_combo* combo;
-  struct nk_style_chart* chart;
-  struct nk_style_tab* tab;
-  struct nk_style_window* win;
+NK_API void nk_style_from_table(nk_context* ctx, const nk_color* table) {
+  nk_style* style;
+  nk_style_text* text;
+  nk_style_button* button;
+  nk_style_toggle* toggle;
+  nk_style_selectable* select;
+  nk_style_slider* slider;
+  nk_style_progress* prog;
+  nk_style_scrollbar* scroll;
+  nk_style_edit* edit;
+  nk_style_property* property;
+  nk_style_combo* combo;
+  nk_style_chart* chart;
+  nk_style_tab* tab;
+  nk_style_window* win;
 
   NK_ASSERT(ctx);
   if (!ctx)
@@ -109,7 +108,7 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   /* default text */
   text = &style->text;
   text->color = table[NK_COLOR_TEXT];
-  text->padding = nk_vec2(0, 0);
+  text->padding = nk_make_vec2(0, 0);
 
   /* default button */
   button = &style->button;
@@ -122,9 +121,9 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   button->text_normal = table[NK_COLOR_TEXT];
   button->text_hover = table[NK_COLOR_TEXT];
   button->text_active = table[NK_COLOR_TEXT];
-  button->padding = nk_vec2(2.0f, 2.0f);
-  button->image_padding = nk_vec2(0.0f, 0.0f);
-  button->touch_padding = nk_vec2(0.0f, 0.0f);
+  button->padding = nk_make_vec2(2.0f, 2.0f);
+  button->image_padding = nk_make_vec2(0.0f, 0.0f);
+  button->touch_padding = nk_make_vec2(0.0f, 0.0f);
   button->userdata = nk_handle_ptr(0);
   button->text_alignment = NK_TEXT_CENTERED;
   button->border = 1.0f;
@@ -143,8 +142,8 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   button->text_normal = table[NK_COLOR_TEXT];
   button->text_hover = table[NK_COLOR_TEXT];
   button->text_active = table[NK_COLOR_TEXT];
-  button->padding = nk_vec2(2.0f, 2.0f);
-  button->touch_padding = nk_vec2(0.0f, 0.0f);
+  button->padding = nk_make_vec2(2.0f, 2.0f);
+  button->touch_padding = nk_make_vec2(0.0f, 0.0f);
   button->userdata = nk_handle_ptr(0);
   button->text_alignment = NK_TEXT_CENTERED;
   button->border = 0.0f;
@@ -163,8 +162,8 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   button->text_normal = table[NK_COLOR_TEXT];
   button->text_hover = table[NK_COLOR_TEXT];
   button->text_active = table[NK_COLOR_TEXT];
-  button->padding = nk_vec2(2.0f, 2.0f);
-  button->touch_padding = nk_vec2(0.0f, 0.0f);
+  button->padding = nk_make_vec2(2.0f, 2.0f);
+  button->touch_padding = nk_make_vec2(0.0f, 0.0f);
   button->userdata = nk_handle_ptr(0);
   button->text_alignment = NK_TEXT_CENTERED;
   button->border = 0.0f;
@@ -185,8 +184,8 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   toggle->text_normal = table[NK_COLOR_TEXT];
   toggle->text_hover = table[NK_COLOR_TEXT];
   toggle->text_active = table[NK_COLOR_TEXT];
-  toggle->padding = nk_vec2(2.0f, 2.0f);
-  toggle->touch_padding = nk_vec2(0, 0);
+  toggle->padding = nk_make_vec2(2.0f, 2.0f);
+  toggle->touch_padding = nk_make_vec2(0, 0);
   toggle->border_color = nk_rgba(0, 0, 0, 0);
   toggle->border = 0.0f;
   toggle->spacing = 4;
@@ -204,8 +203,8 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   toggle->text_normal = table[NK_COLOR_TEXT];
   toggle->text_hover = table[NK_COLOR_TEXT];
   toggle->text_active = table[NK_COLOR_TEXT];
-  toggle->padding = nk_vec2(3.0f, 3.0f);
-  toggle->touch_padding = nk_vec2(0, 0);
+  toggle->padding = nk_make_vec2(3.0f, 3.0f);
+  toggle->touch_padding = nk_make_vec2(0, 0);
   toggle->border_color = nk_rgba(0, 0, 0, 0);
   toggle->border = 0.0f;
   toggle->spacing = 4;
@@ -225,9 +224,9 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   select->text_normal_active = table[NK_COLOR_TEXT];
   select->text_hover_active = table[NK_COLOR_TEXT];
   select->text_pressed_active = table[NK_COLOR_TEXT];
-  select->padding = nk_vec2(2.0f, 2.0f);
-  select->image_padding = nk_vec2(2.0f, 2.0f);
-  select->touch_padding = nk_vec2(0, 0);
+  select->padding = nk_make_vec2(2.0f, 2.0f);
+  select->image_padding = nk_make_vec2(2.0f, 2.0f);
+  select->touch_padding = nk_make_vec2(0, 0);
   select->userdata = nk_handle_ptr(0);
   select->rounding = 0.0f;
   select->draw_begin = 0;
@@ -248,9 +247,9 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   slider->cursor_active = nk_style_item_color(table[NK_COLOR_SLIDER_CURSOR_ACTIVE]);
   slider->inc_symbol = NK_SYMBOL_TRIANGLE_RIGHT;
   slider->dec_symbol = NK_SYMBOL_TRIANGLE_LEFT;
-  slider->cursor_size = nk_vec2(16, 16);
-  slider->padding = nk_vec2(2, 2);
-  slider->spacing = nk_vec2(2, 2);
+  slider->cursor_size = nk_make_vec2(16, 16);
+  slider->padding = nk_make_vec2(2, 2);
+  slider->spacing = nk_make_vec2(2, 2);
   slider->userdata = nk_handle_ptr(0);
   slider->show_buttons = nk_false;
   slider->bar_height = 8;
@@ -268,8 +267,8 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   button->text_normal = nk_rgb(175, 175, 175);
   button->text_hover = nk_rgb(175, 175, 175);
   button->text_active = nk_rgb(175, 175, 175);
-  button->padding = nk_vec2(8.0f, 8.0f);
-  button->touch_padding = nk_vec2(0.0f, 0.0f);
+  button->padding = nk_make_vec2(8.0f, 8.0f);
+  button->touch_padding = nk_make_vec2(0.0f, 0.0f);
   button->userdata = nk_handle_ptr(0);
   button->text_alignment = NK_TEXT_CENTERED;
   button->border = 1.0f;
@@ -290,7 +289,7 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   prog->border_color = nk_rgba(0, 0, 0, 0);
   prog->cursor_border_color = nk_rgba(0, 0, 0, 0);
   prog->userdata = nk_handle_ptr(0);
-  prog->padding = nk_vec2(4, 4);
+  prog->padding = nk_make_vec2(4, 4);
   prog->rounding = 0;
   prog->border = 0;
   prog->cursor_rounding = 0;
@@ -312,7 +311,7 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   scroll->userdata = nk_handle_ptr(0);
   scroll->border_color = table[NK_COLOR_SCROLLBAR];
   scroll->cursor_border_color = table[NK_COLOR_SCROLLBAR];
-  scroll->padding = nk_vec2(0, 0);
+  scroll->padding = nk_make_vec2(0, 0);
   scroll->show_buttons = nk_false;
   scroll->border = 0;
   scroll->rounding = 0;
@@ -332,8 +331,8 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   button->text_normal = nk_rgb(175, 175, 175);
   button->text_hover = nk_rgb(175, 175, 175);
   button->text_active = nk_rgb(175, 175, 175);
-  button->padding = nk_vec2(4.0f, 4.0f);
-  button->touch_padding = nk_vec2(0.0f, 0.0f);
+  button->padding = nk_make_vec2(4.0f, 4.0f);
+  button->touch_padding = nk_make_vec2(0.0f, 0.0f);
   button->userdata = nk_handle_ptr(0);
   button->text_alignment = NK_TEXT_CENTERED;
   button->border = 1.0f;
@@ -362,9 +361,9 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   edit->selected_hover = table[NK_COLOR_TEXT];
   edit->selected_text_normal = table[NK_COLOR_EDIT];
   edit->selected_text_hover = table[NK_COLOR_EDIT];
-  edit->scrollbar_size = nk_vec2(10, 10);
+  edit->scrollbar_size = nk_make_vec2(10, 10);
   edit->scrollbar = style->scrollv;
-  edit->padding = nk_vec2(4, 4);
+  edit->padding = nk_make_vec2(4, 4);
   edit->row_padding = 2;
   edit->cursor_size = 4;
   edit->border = 1;
@@ -383,7 +382,7 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   property->sym_left = NK_SYMBOL_TRIANGLE_LEFT;
   property->sym_right = NK_SYMBOL_TRIANGLE_RIGHT;
   property->userdata = nk_handle_ptr(0);
-  property->padding = nk_vec2(4, 4);
+  property->padding = nk_make_vec2(4, 4);
   property->border = 1;
   property->rounding = 10;
   property->draw_begin = 0;
@@ -400,8 +399,8 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   button->text_normal = table[NK_COLOR_TEXT];
   button->text_hover = table[NK_COLOR_TEXT];
   button->text_active = table[NK_COLOR_TEXT];
-  button->padding = nk_vec2(0.0f, 0.0f);
-  button->touch_padding = nk_vec2(0.0f, 0.0f);
+  button->padding = nk_make_vec2(0.0f, 0.0f);
+  button->touch_padding = nk_make_vec2(0.0f, 0.0f);
   button->userdata = nk_handle_ptr(0);
   button->text_alignment = NK_TEXT_CENTERED;
   button->border = 0.0f;
@@ -428,7 +427,7 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   edit->selected_hover = table[NK_COLOR_TEXT];
   edit->selected_text_normal = table[NK_COLOR_EDIT];
   edit->selected_text_hover = table[NK_COLOR_EDIT];
-  edit->padding = nk_vec2(0, 0);
+  edit->padding = nk_make_vec2(0, 0);
   edit->cursor_size = 8;
   edit->border = 0;
   edit->rounding = 0;
@@ -440,7 +439,7 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   chart->border_color = table[NK_COLOR_BORDER];
   chart->selected_color = table[NK_COLOR_CHART_COLOR_HIGHLIGHT];
   chart->color = table[NK_COLOR_CHART_COLOR];
-  chart->padding = nk_vec2(4, 4);
+  chart->padding = nk_make_vec2(4, 4);
   chart->border = 0;
   chart->rounding = 0;
 
@@ -456,9 +455,9 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   combo->sym_normal = NK_SYMBOL_TRIANGLE_DOWN;
   combo->sym_hover = NK_SYMBOL_TRIANGLE_DOWN;
   combo->sym_active = NK_SYMBOL_TRIANGLE_DOWN;
-  combo->content_padding = nk_vec2(4, 4);
-  combo->button_padding = nk_vec2(0, 4);
-  combo->spacing = nk_vec2(4, 0);
+  combo->content_padding = nk_make_vec2(4, 4);
+  combo->button_padding = nk_make_vec2(0, 4);
+  combo->spacing = nk_make_vec2(4, 0);
   combo->border = 1;
   combo->rounding = 0;
 
@@ -473,8 +472,8 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   button->text_normal = table[NK_COLOR_TEXT];
   button->text_hover = table[NK_COLOR_TEXT];
   button->text_active = table[NK_COLOR_TEXT];
-  button->padding = nk_vec2(2.0f, 2.0f);
-  button->touch_padding = nk_vec2(0.0f, 0.0f);
+  button->padding = nk_make_vec2(2.0f, 2.0f);
+  button->touch_padding = nk_make_vec2(0.0f, 0.0f);
   button->userdata = nk_handle_ptr(0);
   button->text_alignment = NK_TEXT_CENTERED;
   button->border = 0.0f;
@@ -489,8 +488,8 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   tab->text = table[NK_COLOR_TEXT];
   tab->sym_minimize = NK_SYMBOL_TRIANGLE_RIGHT;
   tab->sym_maximize = NK_SYMBOL_TRIANGLE_DOWN;
-  tab->padding = nk_vec2(4, 4);
-  tab->spacing = nk_vec2(4, 4);
+  tab->padding = nk_make_vec2(4, 4);
+  tab->spacing = nk_make_vec2(4, 4);
   tab->indent = 10.0f;
   tab->border = 1;
   tab->rounding = 0;
@@ -506,8 +505,8 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   button->text_normal = table[NK_COLOR_TEXT];
   button->text_hover = table[NK_COLOR_TEXT];
   button->text_active = table[NK_COLOR_TEXT];
-  button->padding = nk_vec2(2.0f, 2.0f);
-  button->touch_padding = nk_vec2(0.0f, 0.0f);
+  button->padding = nk_make_vec2(2.0f, 2.0f);
+  button->touch_padding = nk_make_vec2(0.0f, 0.0f);
   button->userdata = nk_handle_ptr(0);
   button->text_alignment = NK_TEXT_CENTERED;
   button->border = 0.0f;
@@ -527,8 +526,8 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   button->text_normal = table[NK_COLOR_TEXT];
   button->text_hover = table[NK_COLOR_TEXT];
   button->text_active = table[NK_COLOR_TEXT];
-  button->padding = nk_vec2(2.0f, 2.0f);
-  button->touch_padding = nk_vec2(0.0f, 0.0f);
+  button->padding = nk_make_vec2(2.0f, 2.0f);
+  button->touch_padding = nk_make_vec2(0.0f, 0.0f);
   button->userdata = nk_handle_ptr(0);
   button->text_alignment = NK_TEXT_CENTERED;
   button->border = 0.0f;
@@ -549,9 +548,9 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   win->header.label_normal = table[NK_COLOR_TEXT];
   win->header.label_hover = table[NK_COLOR_TEXT];
   win->header.label_active = table[NK_COLOR_TEXT];
-  win->header.label_padding = nk_vec2(4, 4);
-  win->header.padding = nk_vec2(4, 4);
-  win->header.spacing = nk_vec2(0, 0);
+  win->header.label_padding = nk_make_vec2(4, 4);
+  win->header.padding = nk_make_vec2(4, 4);
+  win->header.spacing = nk_make_vec2(0, 0);
 
   /* window header close button */
   button = &style->window.header.close_button;
@@ -564,8 +563,8 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   button->text_normal = table[NK_COLOR_TEXT];
   button->text_hover = table[NK_COLOR_TEXT];
   button->text_active = table[NK_COLOR_TEXT];
-  button->padding = nk_vec2(0.0f, 0.0f);
-  button->touch_padding = nk_vec2(0.0f, 0.0f);
+  button->padding = nk_make_vec2(0.0f, 0.0f);
+  button->touch_padding = nk_make_vec2(0.0f, 0.0f);
   button->userdata = nk_handle_ptr(0);
   button->text_alignment = NK_TEXT_CENTERED;
   button->border = 0.0f;
@@ -584,8 +583,8 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   button->text_normal = table[NK_COLOR_TEXT];
   button->text_hover = table[NK_COLOR_TEXT];
   button->text_active = table[NK_COLOR_TEXT];
-  button->padding = nk_vec2(0.0f, 0.0f);
-  button->touch_padding = nk_vec2(0.0f, 0.0f);
+  button->padding = nk_make_vec2(0.0f, 0.0f);
+  button->touch_padding = nk_make_vec2(0.0f, 0.0f);
   button->userdata = nk_handle_ptr(0);
   button->text_alignment = NK_TEXT_CENTERED;
   button->border = 0.0f;
@@ -606,9 +605,9 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   win->scaler = nk_style_item_color(table[NK_COLOR_TEXT]);
 
   win->rounding = 0.0f;
-  win->spacing = nk_vec2(4, 4);
-  win->scrollbar_size = nk_vec2(10, 10);
-  win->min_size = nk_vec2(64, 64);
+  win->spacing = nk_make_vec2(4, 4);
+  win->scrollbar_size = nk_make_vec2(10, 10);
+  win->min_size = nk_make_vec2(64, 64);
 
   win->combo_border = 1.0f;
   win->contextual_border = 1.0f;
@@ -619,17 +618,16 @@ nk_style_from_table(struct nk_context* ctx, const struct nk_color* table) {
   win->border = 2.0f;
   win->min_row_height_padding = 8;
 
-  win->padding = nk_vec2(4, 4);
-  win->group_padding = nk_vec2(4, 4);
-  win->popup_padding = nk_vec2(4, 4);
-  win->combo_padding = nk_vec2(4, 4);
-  win->contextual_padding = nk_vec2(4, 4);
-  win->menu_padding = nk_vec2(4, 4);
-  win->tooltip_padding = nk_vec2(4, 4);
+  win->padding = nk_make_vec2(4, 4);
+  win->group_padding = nk_make_vec2(4, 4);
+  win->popup_padding = nk_make_vec2(4, 4);
+  win->combo_padding = nk_make_vec2(4, 4);
+  win->contextual_padding = nk_make_vec2(4, 4);
+  win->menu_padding = nk_make_vec2(4, 4);
+  win->tooltip_padding = nk_make_vec2(4, 4);
 }
-NK_API void
-nk_style_set_font(struct nk_context* ctx, const struct nk_user_font* font) {
-  struct nk_style* style;
+NK_API void nk_style_set_font(nk_context* ctx, const nk_user_font* font) {
+  nk_style* style;
   NK_ASSERT(ctx);
 
   if (!ctx)
@@ -641,9 +639,9 @@ nk_style_set_font(struct nk_context* ctx, const struct nk_user_font* font) {
     nk_layout_reset_min_row_height(ctx);
 }
 NK_API nk_bool
-nk_style_push_font(struct nk_context* ctx, const struct nk_user_font* font) {
-  struct nk_config_stack_user_font* font_stack;
-  struct nk_config_stack_user_font_element* element;
+nk_style_push_font(nk_context* ctx, const nk_user_font* font) {
+  nk_config_stack_user_font* font_stack;
+  nk_config_stack_user_font_element* element;
 
   NK_ASSERT(ctx);
   if (!ctx)
@@ -661,9 +659,9 @@ nk_style_push_font(struct nk_context* ctx, const struct nk_user_font* font) {
   return 1;
 }
 NK_API nk_bool
-nk_style_pop_font(struct nk_context* ctx) {
-  struct nk_config_stack_user_font* font_stack;
-  struct nk_config_stack_user_font_element* element;
+nk_style_pop_font(nk_context* ctx) {
+  nk_config_stack_user_font* font_stack;
+  nk_config_stack_user_font_element* element;
 
   NK_ASSERT(ctx);
   if (!ctx)
@@ -679,9 +677,9 @@ nk_style_pop_font(struct nk_context* ctx) {
   return 1;
 }
 #define NK_STYLE_PUSH_IMPLEMENATION(prefix, type, stack) \
-  nk_style_push_##type(struct nk_context* ctx, prefix##_##type* address, prefix##_##type value) { \
-    struct nk_config_stack_##type* type_stack; \
-    struct nk_config_stack_##type##_element* element; \
+  nk_style_push_##type(nk_context* ctx, prefix##_##type* address, prefix##_##type value) { \
+    nk_config_stack_##type* type_stack; \
+    nk_config_stack_##type##_element* element; \
     NK_ASSERT(ctx); \
     if (!ctx) \
       return 0; \
@@ -696,9 +694,9 @@ nk_style_pop_font(struct nk_context* ctx) {
     return 1; \
   }
 #define NK_STYLE_POP_IMPLEMENATION(type, stack) \
-  nk_style_pop_##type(struct nk_context* ctx) { \
-    struct nk_config_stack_##type* type_stack; \
-    struct nk_config_stack_##type##_element* element; \
+  nk_style_pop_##type(nk_context* ctx) { \
+    nk_config_stack_##type* type_stack; \
+    nk_config_stack_##type##_element* element; \
     NK_ASSERT(ctx); \
     if (!ctx) \
       return 0; \
@@ -710,21 +708,20 @@ nk_style_pop_font(struct nk_context* ctx) {
     *element->address = element->old_value; \
     return 1; \
   }
-NK_API nk_bool NK_STYLE_PUSH_IMPLEMENATION(struct nk, style_item, style_items)
-    NK_API nk_bool NK_STYLE_PUSH_IMPLEMENATION(nk, float, floats)
-        NK_API nk_bool NK_STYLE_PUSH_IMPLEMENATION(struct nk, vec2, vectors)
-            NK_API nk_bool NK_STYLE_PUSH_IMPLEMENATION(nk, flags, flags)
-                NK_API nk_bool NK_STYLE_PUSH_IMPLEMENATION(struct nk, color, colors)
+NK_API nk_bool NK_STYLE_PUSH_IMPLEMENATION(nk, style_item, style_items);
+NK_API nk_bool NK_STYLE_PUSH_IMPLEMENATION(nk, float, floats);
+NK_API nk_bool NK_STYLE_PUSH_IMPLEMENATION(nk, vec2, vectors);
+NK_API nk_bool NK_STYLE_PUSH_IMPLEMENATION(nk, flags, flags);
+NK_API nk_bool NK_STYLE_PUSH_IMPLEMENATION(nk, color, colors);
 
-                    NK_API nk_bool NK_STYLE_POP_IMPLEMENATION(style_item, style_items)
-                        NK_API nk_bool NK_STYLE_POP_IMPLEMENATION(float, floats)
-                            NK_API nk_bool NK_STYLE_POP_IMPLEMENATION(vec2, vectors)
-                                NK_API nk_bool NK_STYLE_POP_IMPLEMENATION(flags, flags)
-                                    NK_API nk_bool NK_STYLE_POP_IMPLEMENATION(color, colors)
+NK_API nk_bool NK_STYLE_POP_IMPLEMENATION(style_item, style_items);
+NK_API nk_bool NK_STYLE_POP_IMPLEMENATION(float, floats);
+NK_API nk_bool NK_STYLE_POP_IMPLEMENATION(vec2, vectors);
+NK_API nk_bool NK_STYLE_POP_IMPLEMENATION(flags, flags);
+NK_API nk_bool NK_STYLE_POP_IMPLEMENATION(color, colors);
 
-                                        NK_API nk_bool
-    nk_style_set_cursor(struct nk_context* ctx, enum nk_style_cursor c) {
-  struct nk_style* style;
+NK_API nk_bool nk_style_set_cursor(nk_context* ctx, nk_style_cursor c) {
+  nk_style* style;
   NK_ASSERT(ctx);
   if (!ctx)
     return 0;
@@ -735,28 +732,23 @@ NK_API nk_bool NK_STYLE_PUSH_IMPLEMENATION(struct nk, style_item, style_items)
   }
   return 0;
 }
-NK_API void
-nk_style_show_cursor(struct nk_context* ctx) {
+NK_API void nk_style_show_cursor(nk_context* ctx) {
   ctx->style.cursor_visible = nk_true;
 }
-NK_API void
-nk_style_hide_cursor(struct nk_context* ctx) {
+NK_API void nk_style_hide_cursor(nk_context* ctx) {
   ctx->style.cursor_visible = nk_false;
 }
-NK_API void
-nk_style_load_cursor(struct nk_context* ctx, enum nk_style_cursor cursor,
-                     const struct nk_cursor* c) {
-  struct nk_style* style;
+NK_API void nk_style_load_cursor(nk_context* ctx, nk_style_cursor cursor, const nk_cursor* c) {
+  nk_style* style;
   NK_ASSERT(ctx);
   if (!ctx)
     return;
   style = &ctx->style;
   style->cursors[cursor] = c;
 }
-NK_API void
-nk_style_load_all_cursors(struct nk_context* ctx, struct nk_cursor* cursors) {
+NK_API void nk_style_load_all_cursors(nk_context* ctx, nk_cursor* cursors) {
   int i = 0;
-  struct nk_style* style;
+  nk_style* style;
   NK_ASSERT(ctx);
   if (!ctx)
     return;

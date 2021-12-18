@@ -85,8 +85,7 @@ done:
 }
 #endif
 #ifdef NK_MEMSET_IMPLEMENTATION
-NK_LIB void
-nk_memset(void* ptr, int c0, nk_size size) {
+NK_LIB void nk_memset(void* ptr, int c0, nk_size size) {
 #define nk_word unsigned
 #define nk_wsize sizeof(nk_word)
 #define nk_wmask (nk_wsize - 1)
@@ -137,21 +136,18 @@ nk_memset(void* ptr, int c0, nk_size size) {
 #undef nk_wmask
 }
 #endif
-NK_LIB void
-nk_zero(void* ptr, nk_size size) {
+NK_LIB void nk_zero(void* ptr, nk_size size) {
   NK_ASSERT(ptr);
   NK_MEMSET(ptr, 0, size);
 }
-NK_API int
-nk_strlen(const char* str) {
+NK_API int nk_strlen(const char* str) {
   int siz = 0;
   NK_ASSERT(str);
   while (str && *str++ != '\0')
     siz++;
   return siz;
 }
-NK_API int
-nk_strtoi(const char* str, const char** endptr) {
+NK_API int nk_strtoi(const char* str, const char** endptr) {
   int neg = 1;
   const char* p = str;
   int value = 0;
@@ -175,8 +171,7 @@ nk_strtoi(const char* str, const char** endptr) {
     *endptr = p;
   return neg * value;
 }
-NK_API double
-nk_strtod(const char* str, const char** endptr) {
+NK_API double nk_strtod(const char* str, const char** endptr) {
   double m;
   double neg = 1.0;
   const char* p = str;
@@ -235,16 +230,14 @@ nk_strtod(const char* str, const char** endptr) {
     *endptr = p;
   return number;
 }
-NK_API float
-nk_strtof(const char* str, const char** endptr) {
+NK_API float nk_strtof(const char* str, const char** endptr) {
   float float_value;
   double double_value;
   double_value = NK_STRTOD(str, endptr);
   float_value = (float)double_value;
   return float_value;
 }
-NK_API int
-nk_stricmp(const char* s1, const char* s2) {
+NK_API int nk_stricmp(const char* s1, const char* s2) {
   nk_int c1, c2, d;
   do {
     c1 = *s1++;
@@ -266,8 +259,7 @@ nk_stricmp(const char* s1, const char* s2) {
   } while (c1);
   return 0;
 }
-NK_API int
-nk_stricmpn(const char* s1, const char* s2, int n) {
+NK_API int nk_stricmpn(const char* s1, const char* s2, int n) {
   int c1, c2, d;
   NK_ASSERT(n >= 0);
   do {
@@ -313,8 +305,7 @@ nk_str_match_star(int c, const char* regexp, const char* text) {
   } while (*text != '\0' && (*text++ == c || c == '.'));
   return 0;
 }
-NK_API int
-nk_strfilter(const char* text, const char* regexp) {
+NK_API int nk_strfilter(const char* text, const char* regexp) {
   /*
     c    matches any literal character c
     .    matches any single character
@@ -329,9 +320,8 @@ nk_strfilter(const char* text, const char* regexp) {
   } while (*text++ != '\0');
   return 0;
 }
-NK_API int
-nk_strmatch_fuzzy_text(const char* str, int str_len,
-                       const char* pattern, int* out_score) {
+NK_API int nk_strmatch_fuzzy_text(const char* str, int str_len,
+                                  const char* pattern, int* out_score) {
 /* Returns true if each character in pattern is found sequentially within str
      * if found then out_score is also set. Score value has no intrinsic meaning.
      * Range varies with pattern. Can only compare scores with same search pattern. */
@@ -448,8 +438,7 @@ nk_strmatch_fuzzy_text(const char* str, int str_len,
     *out_score = score;
   return nk_true;
 }
-NK_API int
-nk_strmatch_fuzzy_string(char const* str, char const* pattern, int* out_score) {
+NK_API int nk_strmatch_fuzzy_string(char const* str, char const* pattern, int* out_score) {
   return nk_strmatch_fuzzy_text(str, nk_strlen(str), pattern, out_score);
 }
 NK_LIB int
@@ -472,8 +461,7 @@ nk_string_float_limit(char* string, int prec) {
   }
   return (int)(c - string);
 }
-NK_INTERN void
-nk_strrev_ascii(char* s) {
+NK_INTERN void nk_strrev_ascii(char* s) {
   int len = nk_strlen(s);
   int end = len / 2;
   int i = 0;
@@ -594,22 +582,22 @@ nk_dtoa(char* s, double n) {
 #ifndef NK_INCLUDE_STANDARD_IO
 NK_INTERN int
 nk_vsnprintf(char* buf, int buf_size, const char* fmt, va_list args) {
-  enum nk_arg_type {
+  typedef enum {
     NK_ARG_TYPE_CHAR,
     NK_ARG_TYPE_SHORT,
     NK_ARG_TYPE_DEFAULT,
     NK_ARG_TYPE_LONG
-  };
-  enum nk_arg_flags {
+  } nk_arg_type;
+  typedef enum {
     NK_ARG_FLAG_LEFT = 0x01,
     NK_ARG_FLAG_PLUS = 0x02,
     NK_ARG_FLAG_SPACE = 0x04,
     NK_ARG_FLAG_NUM = 0x10,
     NK_ARG_FLAG_ZERO = 0x20
-  };
+  } nk_arg_flags;
 
   char number_buffer[NK_MAX_NUMBER_BUFFER];
-  enum nk_arg_type arg_type = NK_ARG_TYPE_DEFAULT;
+  nk_arg_type arg_type = NK_ARG_TYPE_DEFAULT;
   int precision = NK_DEFAULT;
   int width = NK_DEFAULT;
   nk_flags flag = 0;
@@ -1021,7 +1009,7 @@ nk_murmur_hash(const void* key, int len, nk_hash seed) {
 }
 #ifdef NK_INCLUDE_STANDARD_IO
 NK_LIB char*
-nk_file_load(const char* path, nk_size* siz, struct nk_allocator* alloc) {
+nk_file_load(const char* path, nk_size* siz, nk_allocator* alloc) {
   char* buf;
   FILE* fd;
   long ret;
@@ -1055,7 +1043,7 @@ nk_file_load(const char* path, nk_size* siz, struct nk_allocator* alloc) {
 }
 #endif
 NK_LIB int
-nk_text_clamp(const struct nk_user_font* font, const char* text,
+nk_text_clamp(const nk_user_font* font, const char* text,
               int text_len, float space, int* glyphs, float* text_width,
               nk_rune* sep_list, int sep_count) {
   int i = 0;
@@ -1102,12 +1090,12 @@ nk_text_clamp(const struct nk_user_font* font, const char* text,
     return (!sep_len) ? len : sep_len;
   }
 }
-NK_LIB struct nk_vec2
-nk_text_calculate_text_bounds(const struct nk_user_font* font,
+NK_LIB nk_vec2
+nk_text_calculate_text_bounds(const nk_user_font* font,
                               const char* begin, int byte_len, float row_height, const char** remaining,
-                              struct nk_vec2* out_offset, int* glyphs, int op) {
+                              nk_vec2* out_offset, int* glyphs, int op) {
   float line_height = row_height;
-  struct nk_vec2 text_size = nk_vec2(0, 0);
+  nk_vec2 text_size = nk_make_vec2(0, 0);
   float line_width = 0.0f;
 
   float glyph_width;
@@ -1115,7 +1103,7 @@ nk_text_calculate_text_bounds(const struct nk_user_font* font,
   nk_rune unicode = 0;
   int text_len = 0;
   if (!begin || byte_len <= 0 || !font)
-    return nk_vec2(0, row_height);
+    return nk_make_vec2(0, row_height);
 
   glyph_len = nk_utf_decode(begin, &unicode, byte_len);
   if (!glyph_len)
@@ -1155,7 +1143,7 @@ nk_text_calculate_text_bounds(const struct nk_user_font* font,
   if (text_size.x < line_width)
     text_size.x = line_width;
   if (out_offset)
-    *out_offset = nk_vec2(line_width, text_size.y + line_height);
+    *out_offset = nk_make_vec2(line_width, text_size.y + line_height);
   if (line_width > 0 || text_size.y == 0.0f)
     text_size.y += line_height;
   if (remaining)

@@ -8,9 +8,9 @@
  * ===============================================================*/
 NK_LIB nk_bool
 nk_color_picker_behavior(nk_flags* state,
-                         const struct nk_rect* bounds, const struct nk_rect* matrix,
-                         const struct nk_rect* hue_bar, const struct nk_rect* alpha_bar,
-                         struct nk_colorf* color, const struct nk_input* in) {
+                         const nk_rect* bounds, const nk_rect* matrix,
+                         const nk_rect* hue_bar, const nk_rect* alpha_bar,
+                         nk_colorf* color, const nk_input* in) {
   float hsva[4];
   nk_bool value_changed = 0;
   nk_bool hsv_changed = 0;
@@ -22,19 +22,19 @@ nk_color_picker_behavior(nk_flags* state,
 
   /* color matrix */
   nk_colorf_hsva_fv(hsva, *color);
-  if (nk_button_behavior(state, *matrix, in, NK_BUTTON_REPEATER)) {
+  if (nk_do_button_behavior(state, *matrix, in, NK_BUTTON_REPEATER)) {
     hsva[1] = NK_SATURATE((in->mouse.pos.x - matrix->x) / (matrix->w - 1));
     hsva[2] = 1.0f - NK_SATURATE((in->mouse.pos.y - matrix->y) / (matrix->h - 1));
     value_changed = hsv_changed = 1;
   }
   /* hue bar */
-  if (nk_button_behavior(state, *hue_bar, in, NK_BUTTON_REPEATER)) {
+  if (nk_do_button_behavior(state, *hue_bar, in, NK_BUTTON_REPEATER)) {
     hsva[0] = NK_SATURATE((in->mouse.pos.y - hue_bar->y) / (hue_bar->h - 1));
     value_changed = hsv_changed = 1;
   }
   /* alpha bar */
   if (alpha_bar) {
-    if (nk_button_behavior(state, *alpha_bar, in, NK_BUTTON_REPEATER)) {
+    if (nk_do_button_behavior(state, *alpha_bar, in, NK_BUTTON_REPEATER)) {
       hsva[3] = 1.0f - NK_SATURATE((in->mouse.pos.y - alpha_bar->y) / (alpha_bar->h - 1));
       value_changed = 1;
     }
@@ -57,16 +57,15 @@ nk_color_picker_behavior(nk_flags* state,
     *state |= NK_WIDGET_STATE_LEFT;
   return value_changed;
 }
-NK_LIB void
-nk_draw_color_picker(struct nk_command_buffer* o, const struct nk_rect* matrix,
-                     const struct nk_rect* hue_bar, const struct nk_rect* alpha_bar,
-                     struct nk_colorf col) {
-  NK_STORAGE const struct nk_color black = {0, 0, 0, 255};
-  NK_STORAGE const struct nk_color white = {255, 255, 255, 255};
-  NK_STORAGE const struct nk_color black_trans = {0, 0, 0, 0};
+NK_LIB void nk_draw_color_picker(nk_command_buffer* o, const nk_rect* matrix,
+                                 const nk_rect* hue_bar, const nk_rect* alpha_bar,
+                                 nk_colorf col) {
+  NK_STORAGE const nk_color black = {0, 0, 0, 255};
+  NK_STORAGE const nk_color white = {255, 255, 255, 255};
+  NK_STORAGE const nk_color black_trans = {0, 0, 0, 0};
 
   const float crosshair_size = 7.0f;
-  struct nk_color temp;
+  nk_color temp;
   float hsva[4];
   float line_y;
   int i;
@@ -78,10 +77,10 @@ nk_draw_color_picker(struct nk_command_buffer* o, const struct nk_rect* matrix,
   /* draw hue bar */
   nk_colorf_hsva_fv(hsva, col);
   for (i = 0; i < 6; ++i) {
-    NK_GLOBAL const struct nk_color hue_colors[] = {
+    NK_GLOBAL const nk_color hue_colors[] = {
         {255, 0, 0, 255}, {255, 255, 0, 255}, {0, 255, 0, 255}, {0, 255, 255, 255}, {0, 0, 255, 255}, {255, 0, 255, 255}, {255, 0, 0, 255}};
     nk_fill_rect_multi_color(o,
-                             nk_rect(hue_bar->x, hue_bar->y + (float)i * (hue_bar->h / 6.0f) + 0.5f, hue_bar->w, (hue_bar->h / 6.0f) + 0.5f),
+                             nk_make_rect(hue_bar->x, hue_bar->y + (float)i * (hue_bar->h / 6.0f) + 0.5f, hue_bar->w, (hue_bar->h / 6.0f) + 0.5f),
                              hue_colors[i],
                              hue_colors[i],
                              hue_colors[i + 1],
@@ -106,7 +105,7 @@ nk_draw_color_picker(struct nk_command_buffer* o, const struct nk_rect* matrix,
 
   /* draw cross-hair */
   {
-    struct nk_vec2 p;
+    nk_vec2 p;
     float S = hsva[1];
     float V = hsva[2];
     p.x = (float)(int)(matrix->x + S * matrix->w);
@@ -119,14 +118,14 @@ nk_draw_color_picker(struct nk_command_buffer* o, const struct nk_rect* matrix,
 }
 NK_LIB nk_bool
 nk_do_color_picker(nk_flags* state,
-                   struct nk_command_buffer* out, struct nk_colorf* col,
-                   enum nk_color_format fmt, struct nk_rect bounds,
-                   struct nk_vec2 padding, const struct nk_input* in,
-                   const struct nk_user_font* font) {
+                   nk_command_buffer* out, nk_colorf* col,
+                   nk_color_format fmt, nk_rect bounds,
+                   nk_vec2 padding, const nk_input* in,
+                   const nk_user_font* font) {
   int ret = 0;
-  struct nk_rect matrix;
-  struct nk_rect hue_bar;
-  struct nk_rect alpha_bar;
+  nk_rect matrix;
+  nk_rect hue_bar;
+  nk_rect alpha_bar;
   float bar_w;
 
   NK_ASSERT(out);
@@ -162,15 +161,15 @@ nk_do_color_picker(nk_flags* state,
   return ret;
 }
 NK_API nk_bool
-nk_color_pick(struct nk_context* ctx, struct nk_colorf* color,
-              enum nk_color_format fmt) {
-  struct nk_window* win;
-  struct nk_panel* layout;
-  const struct nk_style* config;
-  const struct nk_input* in;
+nk_color_pick(nk_context* ctx, nk_colorf* color,
+              nk_color_format fmt) {
+  nk_window* win;
+  nk_panel* layout;
+  const nk_style* config;
+  const nk_input* in;
 
-  enum nk_widget_layout_states state;
-  struct nk_rect bounds;
+  nk_widget_layout_states state;
+  nk_rect bounds;
 
   NK_ASSERT(ctx);
   NK_ASSERT(color);
@@ -186,11 +185,11 @@ nk_color_pick(struct nk_context* ctx, struct nk_colorf* color,
   if (!state)
     return 0;
   in = (state == NK_WIDGET_ROM || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
-  return nk_do_color_picker(&ctx->last_widget_state, &win->buffer, color, fmt, bounds, nk_vec2(0, 0), in, config->font);
+  return nk_do_color_picker(&ctx->last_widget_state, &win->buffer, color, fmt, bounds, nk_make_vec2(0, 0), in, config->font);
 }
-NK_API struct nk_colorf
-nk_color_picker(struct nk_context* ctx, struct nk_colorf color,
-                enum nk_color_format fmt) {
+NK_API nk_colorf
+nk_color_picker(nk_context* ctx, nk_colorf color,
+                nk_color_format fmt) {
   nk_color_pick(ctx, &color, fmt);
   return color;
 }

@@ -7,13 +7,13 @@
  *
  * ===============================================================*/
 NK_API nk_bool
-nk_contextual_begin(struct nk_context* ctx, nk_flags flags, struct nk_vec2 size,
-                    struct nk_rect trigger_bounds) {
-  struct nk_window* win;
-  struct nk_window* popup;
-  struct nk_rect body;
+nk_contextual_begin(nk_context* ctx, nk_flags flags, nk_vec2 size,
+                    nk_rect trigger_bounds) {
+  nk_window* win;
+  nk_window* popup;
+  nk_rect body;
 
-  NK_STORAGE const struct nk_rect null_rect = {-1, -1, 0, 0};
+  NK_STORAGE const nk_rect null_rect = {-1, -1, 0, 0};
   int is_clicked = 0;
   int is_open = 0;
   int ret = 0;
@@ -65,14 +65,14 @@ nk_contextual_begin(struct nk_context* ctx, nk_flags flags, struct nk_vec2 size,
   return ret;
 }
 NK_API nk_bool
-nk_contextual_item_text(struct nk_context* ctx, const char* text, int len,
+nk_contextual_item_text(nk_context* ctx, const char* text, int len,
                         nk_flags alignment) {
-  struct nk_window* win;
-  const struct nk_input* in;
-  const struct nk_style* style;
+  nk_window* win;
+  const nk_input* in;
+  const nk_style* style;
 
-  struct nk_rect bounds;
-  enum nk_widget_layout_states state;
+  nk_rect bounds;
+  nk_widget_layout_states state;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -94,18 +94,18 @@ nk_contextual_item_text(struct nk_context* ctx, const char* text, int len,
   return nk_false;
 }
 NK_API nk_bool
-nk_contextual_item_label(struct nk_context* ctx, const char* label, nk_flags align) {
+nk_contextual_item_label(nk_context* ctx, const char* label, nk_flags align) {
   return nk_contextual_item_text(ctx, label, nk_strlen(label), align);
 }
 NK_API nk_bool
-nk_contextual_item_image_text(struct nk_context* ctx, struct nk_image img,
+nk_contextual_item_image_text(nk_context* ctx, nk_image img,
                               const char* text, int len, nk_flags align) {
-  struct nk_window* win;
-  const struct nk_input* in;
-  const struct nk_style* style;
+  nk_window* win;
+  const nk_input* in;
+  const nk_style* style;
 
-  struct nk_rect bounds;
-  enum nk_widget_layout_states state;
+  nk_rect bounds;
+  nk_widget_layout_states state;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -127,19 +127,19 @@ nk_contextual_item_image_text(struct nk_context* ctx, struct nk_image img,
   return nk_false;
 }
 NK_API nk_bool
-nk_contextual_item_image_label(struct nk_context* ctx, struct nk_image img,
+nk_contextual_item_image_label(nk_context* ctx, nk_image img,
                                const char* label, nk_flags align) {
   return nk_contextual_item_image_text(ctx, img, label, nk_strlen(label), align);
 }
 NK_API nk_bool
-nk_contextual_item_symbol_text(struct nk_context* ctx, enum nk_symbol_type symbol,
+nk_contextual_item_symbol_text(nk_context* ctx, nk_symbol_type symbol,
                                const char* text, int len, nk_flags align) {
-  struct nk_window* win;
-  const struct nk_input* in;
-  const struct nk_style* style;
+  nk_window* win;
+  const nk_input* in;
+  const nk_style* style;
 
-  struct nk_rect bounds;
-  enum nk_widget_layout_states state;
+  nk_rect bounds;
+  nk_widget_layout_states state;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -161,12 +161,11 @@ nk_contextual_item_symbol_text(struct nk_context* ctx, enum nk_symbol_type symbo
   return nk_false;
 }
 NK_API nk_bool
-nk_contextual_item_symbol_label(struct nk_context* ctx, enum nk_symbol_type symbol,
+nk_contextual_item_symbol_label(nk_context* ctx, nk_symbol_type symbol,
                                 const char* text, nk_flags align) {
   return nk_contextual_item_symbol_text(ctx, symbol, text, nk_strlen(text), align);
 }
-NK_API void
-nk_contextual_close(struct nk_context* ctx) {
+NK_API void nk_contextual_close(nk_context* ctx) {
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
   NK_ASSERT(ctx->current->layout);
@@ -174,10 +173,9 @@ nk_contextual_close(struct nk_context* ctx) {
     return;
   nk_popup_close(ctx);
 }
-NK_API void
-nk_contextual_end(struct nk_context* ctx) {
-  struct nk_window* popup;
-  struct nk_panel* panel;
+NK_API void nk_contextual_end(nk_context* ctx) {
+  nk_window* popup;
+  nk_panel* panel;
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
   if (!ctx || !ctx->current)
@@ -193,9 +191,9 @@ nk_contextual_end(struct nk_context* ctx) {
         how big it will be. We therefore do not directly know when a
         click outside the non-blocking popup must close it at that direct frame.
         Instead it will be closed in the next frame.*/
-    struct nk_rect body = {0, 0, 0, 0};
+    nk_rect body = {0, 0, 0, 0};
     if (panel->at_y < (panel->bounds.y + panel->bounds.h)) {
-      struct nk_vec2 padding = nk_panel_get_padding(&ctx->style, panel->type);
+      nk_vec2 padding = nk_panel_get_padding(&ctx->style, panel->type);
       body = panel->bounds;
       body.y = (panel->at_y + panel->footer_height + panel->border + padding.y + panel->row.height);
       body.h = (panel->bounds.y + panel->bounds.h) - body.y;

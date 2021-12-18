@@ -6,41 +6,40 @@
  *                              WIDGET
  *
  * ===============================================================*/
-NK_API struct nk_rect
-nk_widget_bounds(struct nk_context* ctx) {
-  struct nk_rect bounds;
+NK_API nk_rect
+nk_widget_bounds(nk_context* ctx) {
+  nk_rect bounds;
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
   if (!ctx || !ctx->current)
-    return nk_rect(0, 0, 0, 0);
+    return nk_make_rect(0, 0, 0, 0);
   nk_layout_peek(&bounds, ctx);
   return bounds;
 }
-NK_API struct nk_vec2
-nk_widget_position(struct nk_context* ctx) {
-  struct nk_rect bounds;
+NK_API nk_vec2
+nk_widget_position(nk_context* ctx) {
+  nk_rect bounds;
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
   if (!ctx || !ctx->current)
-    return nk_vec2(0, 0);
+    return nk_make_vec2(0, 0);
 
   nk_layout_peek(&bounds, ctx);
-  return nk_vec2(bounds.x, bounds.y);
+  return nk_make_vec2(bounds.x, bounds.y);
 }
-NK_API struct nk_vec2
-nk_widget_size(struct nk_context* ctx) {
-  struct nk_rect bounds;
+NK_API nk_vec2
+nk_widget_size(nk_context* ctx) {
+  nk_rect bounds;
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
   if (!ctx || !ctx->current)
-    return nk_vec2(0, 0);
+    return nk_make_vec2(0, 0);
 
   nk_layout_peek(&bounds, ctx);
-  return nk_vec2(bounds.w, bounds.h);
+  return nk_make_vec2(bounds.w, bounds.h);
 }
-NK_API float
-nk_widget_width(struct nk_context* ctx) {
-  struct nk_rect bounds;
+NK_API float nk_widget_width(nk_context* ctx) {
+  nk_rect bounds;
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
   if (!ctx || !ctx->current)
@@ -49,9 +48,8 @@ nk_widget_width(struct nk_context* ctx) {
   nk_layout_peek(&bounds, ctx);
   return bounds.w;
 }
-NK_API float
-nk_widget_height(struct nk_context* ctx) {
-  struct nk_rect bounds;
+NK_API float nk_widget_height(nk_context* ctx) {
+  nk_rect bounds;
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
   if (!ctx || !ctx->current)
@@ -61,9 +59,9 @@ nk_widget_height(struct nk_context* ctx) {
   return bounds.h;
 }
 NK_API nk_bool
-nk_widget_is_hovered(struct nk_context* ctx) {
-  struct nk_rect c, v;
-  struct nk_rect bounds;
+nk_widget_is_hovered(nk_context* ctx) {
+  nk_rect c, v;
+  nk_rect bounds;
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
   if (!ctx || !ctx->current || ctx->active != ctx->current)
@@ -82,9 +80,9 @@ nk_widget_is_hovered(struct nk_context* ctx) {
   return nk_input_is_mouse_hovering_rect(&ctx->input, bounds);
 }
 NK_API nk_bool
-nk_widget_is_mouse_clicked(struct nk_context* ctx, enum nk_buttons btn) {
-  struct nk_rect c, v;
-  struct nk_rect bounds;
+nk_widget_is_mouse_clicked(nk_context* ctx, nk_buttons btn) {
+  nk_rect c, v;
+  nk_rect bounds;
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
   if (!ctx || !ctx->current || ctx->active != ctx->current)
@@ -103,9 +101,9 @@ nk_widget_is_mouse_clicked(struct nk_context* ctx, enum nk_buttons btn) {
   return nk_input_mouse_clicked(&ctx->input, btn, bounds);
 }
 NK_API nk_bool
-nk_widget_has_mouse_click_down(struct nk_context* ctx, enum nk_buttons btn, nk_bool down) {
-  struct nk_rect c, v;
-  struct nk_rect bounds;
+nk_widget_has_mouse_click_down(nk_context* ctx, nk_buttons btn, nk_bool down) {
+  nk_rect c, v;
+  nk_rect bounds;
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
   if (!ctx || !ctx->current || ctx->active != ctx->current)
@@ -123,12 +121,12 @@ nk_widget_has_mouse_click_down(struct nk_context* ctx, enum nk_buttons btn, nk_b
     return 0;
   return nk_input_has_mouse_click_down_in_rect(&ctx->input, btn, bounds, down);
 }
-NK_API enum nk_widget_layout_states
-nk_widget(struct nk_rect* bounds, const struct nk_context* ctx) {
-  struct nk_rect c, v;
-  struct nk_window* win;
-  struct nk_panel* layout;
-  const struct nk_input* in;
+NK_API nk_widget_layout_states
+nk_widget(nk_rect* bounds, const nk_context* ctx) {
+  nk_rect c, v;
+  nk_window* win;
+  nk_panel* layout;
+  const nk_input* in;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -170,11 +168,11 @@ nk_widget(struct nk_rect* bounds, const struct nk_context* ctx) {
     return NK_WIDGET_ROM;
   return NK_WIDGET_VALID;
 }
-NK_API enum nk_widget_layout_states
-nk_widget_fitting(struct nk_rect* bounds, struct nk_context* ctx,
-                  struct nk_vec2 item_padding) {
+NK_API nk_widget_layout_states
+nk_widget_fitting(nk_rect* bounds, nk_context* ctx,
+                  nk_vec2 item_padding) {
   /* update the bounds to stand without padding  */
-  enum nk_widget_layout_states state;
+  nk_widget_layout_states state;
   NK_UNUSED(item_padding);
 
   NK_ASSERT(ctx);
@@ -186,11 +184,10 @@ nk_widget_fitting(struct nk_rect* bounds, struct nk_context* ctx,
   state = nk_widget(bounds, ctx);
   return state;
 }
-NK_API void
-nk_spacing(struct nk_context* ctx, int cols) {
-  struct nk_window* win;
-  struct nk_panel* layout;
-  struct nk_rect none;
+NK_API void nk_spacing(nk_context* ctx, int cols) {
+  nk_window* win;
+  nk_panel* layout;
+  nk_rect none;
   int i, index, rows;
 
   NK_ASSERT(ctx);

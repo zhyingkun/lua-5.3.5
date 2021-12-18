@@ -7,14 +7,14 @@
  *
  * ===============================================================*/
 /* stb_textedit.h - v1.8  - public domain - Sean Barrett */
-struct nk_text_find {
+typedef struct {
   float x, y; /* position of n'th character */
   float height; /* height of line */
   int first_char, length; /* first char of row, and length */
   int prev_first; /*_ first char of previous row */
-};
+} nk_text_find;
 
-struct nk_text_edit_row {
+typedef struct {
   float x0, x1;
   /* starting x location, end x location (allows for align=right, etc) */
   float baseline_y_delta;
@@ -22,25 +22,24 @@ struct nk_text_edit_row {
   float ymin, ymax;
   /* height of row above and below baseline */
   int num_chars;
-};
+} nk_text_edit_row;
 
 /* forward declarations */
-NK_INTERN void nk_textedit_makeundo_delete(struct nk_text_edit*, int, int);
-NK_INTERN void nk_textedit_makeundo_insert(struct nk_text_edit*, int, int);
-NK_INTERN void nk_textedit_makeundo_replace(struct nk_text_edit*, int, int, int);
+NK_INTERN void nk_textedit_makeundo_delete(nk_text_edit*, int, int);
+NK_INTERN void nk_textedit_makeundo_insert(nk_text_edit*, int, int);
+NK_INTERN void nk_textedit_makeundo_replace(nk_text_edit*, int, int, int);
 #define NK_TEXT_HAS_SELECTION(s) ((s)->select_start != (s)->select_end)
 
 NK_INTERN float
-nk_textedit_get_width(const struct nk_text_edit* edit, int line_start, int char_id,
-                      const struct nk_user_font* font) {
+nk_textedit_get_width(const nk_text_edit* edit, int line_start, int char_id,
+                      const nk_user_font* font) {
   int len = 0;
   nk_rune unicode = 0;
   const char* str = nk_str_at_const(&edit->string, line_start + char_id, &unicode, &len);
   return font->width(font->userdata, font->height, str, len);
 }
-NK_INTERN void
-nk_textedit_layout_row(struct nk_text_edit_row* r, struct nk_text_edit* edit,
-                       int line_start_id, float row_height, const struct nk_user_font* font) {
+NK_INTERN void nk_textedit_layout_row(nk_text_edit_row* r, nk_text_edit* edit,
+                                      int line_start_id, float row_height, const nk_user_font* font) {
   int l;
   int glyphs = 0;
   nk_rune unicode;
@@ -48,14 +47,14 @@ nk_textedit_layout_row(struct nk_text_edit_row* r, struct nk_text_edit* edit,
   int len = nk_str_len_char(&edit->string);
   const char* end = nk_str_get_const(&edit->string) + len;
   const char* text = nk_str_at_const(&edit->string, line_start_id, &unicode, &l);
-  const struct nk_vec2 size = nk_text_calculate_text_bounds(font,
-                                                            text,
-                                                            (int)(end - text),
-                                                            row_height,
-                                                            &remaining,
-                                                            0,
-                                                            &glyphs,
-                                                            NK_STOP_ON_NEW_LINE);
+  const nk_vec2 size = nk_text_calculate_text_bounds(font,
+                                                     text,
+                                                     (int)(end - text),
+                                                     row_height,
+                                                     &remaining,
+                                                     0,
+                                                     &glyphs,
+                                                     NK_STOP_ON_NEW_LINE);
 
   r->x0 = 0.0f;
   r->x1 = size.x;
@@ -65,9 +64,9 @@ nk_textedit_layout_row(struct nk_text_edit_row* r, struct nk_text_edit* edit,
   r->num_chars = glyphs;
 }
 NK_INTERN int
-nk_textedit_locate_coord(struct nk_text_edit* edit, float x, float y,
-                         const struct nk_user_font* font, float row_height) {
-  struct nk_text_edit_row r;
+nk_textedit_locate_coord(nk_text_edit* edit, float x, float y,
+                         const nk_user_font* font, float row_height) {
+  nk_text_edit_row r;
   int n = edit->string.len;
   float base_y = 0, prev_x;
   int i = 0, k;
@@ -125,9 +124,8 @@ nk_textedit_locate_coord(struct nk_text_edit* edit, float x, float y,
   else
     return i + r.num_chars;
 }
-NK_LIB void
-nk_textedit_click(struct nk_text_edit* state, float x, float y,
-                  const struct nk_user_font* font, float row_height) {
+NK_LIB void nk_textedit_click(nk_text_edit* state, float x, float y,
+                              const nk_user_font* font, float row_height) {
   /* API click: on mouse down, move the cursor to the clicked location,
      * and reset the selection */
   state->cursor = nk_textedit_locate_coord(state, x, y, font, row_height);
@@ -135,9 +133,8 @@ nk_textedit_click(struct nk_text_edit* state, float x, float y,
   state->select_end = state->cursor;
   state->has_preferred_x = 0;
 }
-NK_LIB void
-nk_textedit_drag(struct nk_text_edit* state, float x, float y,
-                 const struct nk_user_font* font, float row_height) {
+NK_LIB void nk_textedit_drag(nk_text_edit* state, float x, float y,
+                             const nk_user_font* font, float row_height) {
   /* API drag: on mouse drag, move the cursor and selection endpoint
      * to the clicked location */
   int p = nk_textedit_locate_coord(state, x, y, font, row_height);
@@ -145,12 +142,11 @@ nk_textedit_drag(struct nk_text_edit* state, float x, float y,
     state->select_start = state->cursor;
   state->cursor = state->select_end = p;
 }
-NK_INTERN void
-nk_textedit_find_charpos(struct nk_text_find* find, struct nk_text_edit* state,
-                         int n, int single_line, const struct nk_user_font* font, float row_height) {
+NK_INTERN void nk_textedit_find_charpos(nk_text_find* find, nk_text_edit* state,
+                                        int n, int single_line, const nk_user_font* font, float row_height) {
   /* find the x/y location of a character, and remember info about the previous
      * row in case we get a move-up event (for page up, we'll have to rescan) */
-  struct nk_text_edit_row r;
+  nk_text_edit_row r;
   int prev_start = 0;
   int z = state->string.len;
   int i = 0, first;
@@ -202,8 +198,7 @@ nk_textedit_find_charpos(struct nk_text_find* find, struct nk_text_edit* state,
   for (i = 0; first + i < n; ++i)
     find->x += nk_textedit_get_width(state, first, i, font);
 }
-NK_INTERN void
-nk_textedit_clamp(struct nk_text_edit* state) {
+NK_INTERN void nk_textedit_clamp(nk_text_edit* state) {
   /* make the selection/cursor state valid if client altered the string */
   int n = state->string.len;
   if (NK_TEXT_HAS_SELECTION(state)) {
@@ -218,15 +213,13 @@ nk_textedit_clamp(struct nk_text_edit* state) {
   if (state->cursor > n)
     state->cursor = n;
 }
-NK_API void
-nk_textedit_delete(struct nk_text_edit* state, int where, int len) {
+NK_API void nk_textedit_delete(nk_text_edit* state, int where, int len) {
   /* delete characters while updating undo */
   nk_textedit_makeundo_delete(state, where, len);
   nk_str_delete_runes(&state->string, where, len);
   state->has_preferred_x = 0;
 }
-NK_API void
-nk_textedit_delete_selection(struct nk_text_edit* state) {
+NK_API void nk_textedit_delete_selection(nk_text_edit* state) {
   /* delete the section */
   nk_textedit_clamp(state);
   if (NK_TEXT_HAS_SELECTION(state)) {
@@ -240,8 +233,7 @@ nk_textedit_delete_selection(struct nk_text_edit* state) {
     state->has_preferred_x = 0;
   }
 }
-NK_INTERN void
-nk_textedit_sortselection(struct nk_text_edit* state) {
+NK_INTERN void nk_textedit_sortselection(nk_text_edit* state) {
   /* canonicalize the selection so start <= end */
   if (state->select_end < state->select_start) {
     int temp = state->select_end;
@@ -249,8 +241,7 @@ nk_textedit_sortselection(struct nk_text_edit* state) {
     state->select_start = temp;
   }
 }
-NK_INTERN void
-nk_textedit_move_to_first(struct nk_text_edit* state) {
+NK_INTERN void nk_textedit_move_to_first(nk_text_edit* state) {
   /* move cursor to first character of selection */
   if (NK_TEXT_HAS_SELECTION(state)) {
     nk_textedit_sortselection(state);
@@ -259,8 +250,7 @@ nk_textedit_move_to_first(struct nk_text_edit* state) {
     state->has_preferred_x = 0;
   }
 }
-NK_INTERN void
-nk_textedit_move_to_last(struct nk_text_edit* state) {
+NK_INTERN void nk_textedit_move_to_last(nk_text_edit* state) {
   /* move cursor to last character of selection */
   if (NK_TEXT_HAS_SELECTION(state)) {
     nk_textedit_sortselection(state);
@@ -271,7 +261,7 @@ nk_textedit_move_to_last(struct nk_text_edit* state) {
   }
 }
 NK_INTERN int
-nk_is_word_boundary(struct nk_text_edit* state, int idx) {
+nk_is_word_boundary(nk_text_edit* state, int idx) {
   int len;
   nk_rune c;
   if (idx <= 0)
@@ -283,7 +273,7 @@ nk_is_word_boundary(struct nk_text_edit* state, int idx) {
           c == '|');
 }
 NK_INTERN int
-nk_textedit_move_to_word_previous(struct nk_text_edit* state) {
+nk_textedit_move_to_word_previous(nk_text_edit* state) {
   int c = state->cursor - 1;
   while (c >= 0 && !nk_is_word_boundary(state, c))
     --c;
@@ -294,7 +284,7 @@ nk_textedit_move_to_word_previous(struct nk_text_edit* state) {
   return c;
 }
 NK_INTERN int
-nk_textedit_move_to_word_next(struct nk_text_edit* state) {
+nk_textedit_move_to_word_next(nk_text_edit* state) {
   const int len = state->string.len;
   int c = state->cursor + 1;
   while (c < len && !nk_is_word_boundary(state, c))
@@ -305,8 +295,7 @@ nk_textedit_move_to_word_next(struct nk_text_edit* state) {
 
   return c;
 }
-NK_INTERN void
-nk_textedit_prep_selection_at_cursor(struct nk_text_edit* state) {
+NK_INTERN void nk_textedit_prep_selection_at_cursor(nk_text_edit* state) {
   /* update selection and cursor to match each other */
   if (!NK_TEXT_HAS_SELECTION(state))
     state->select_start = state->select_end = state->cursor;
@@ -314,7 +303,7 @@ nk_textedit_prep_selection_at_cursor(struct nk_text_edit* state) {
     state->cursor = state->select_end;
 }
 NK_API nk_bool
-nk_textedit_cut(struct nk_text_edit* state) {
+nk_textedit_cut(nk_text_edit* state) {
   /* API cut: delete selection */
   if (state->mode == NK_TEXT_EDIT_MODE_VIEW)
     return 0;
@@ -326,7 +315,7 @@ nk_textedit_cut(struct nk_text_edit* state) {
   return 0;
 }
 NK_API nk_bool
-nk_textedit_paste(struct nk_text_edit* state, char const* ctext, int len) {
+nk_textedit_paste(nk_text_edit* state, char const* ctext, int len) {
   /* API paste: replace existing selection with passed-in text */
   int glyphs;
   const char* text = (const char*)ctext;
@@ -350,8 +339,7 @@ nk_textedit_paste(struct nk_text_edit* state, char const* ctext, int len) {
     --state->undo.undo_point;
   return 0;
 }
-NK_API void
-nk_textedit_text(struct nk_text_edit* state, const char* text, int total_len) {
+NK_API void nk_textedit_text(nk_text_edit* state, const char* text, int total_len) {
   nk_rune unicode;
   int glyph_len;
   int text_len = 0;
@@ -396,9 +384,8 @@ nk_textedit_text(struct nk_text_edit* state, const char* text, int total_len) {
     glyph_len = nk_utf_decode(text + text_len, &unicode, total_len - text_len);
   }
 }
-NK_LIB void
-nk_textedit_key(struct nk_text_edit* state, enum nk_keys key, int shift_mod,
-                const struct nk_user_font* font, float row_height) {
+NK_LIB void nk_textedit_key(nk_text_edit* state, nk_keys key, int shift_mod,
+                            const nk_user_font* font, float row_height) {
 retry:
   switch (key) {
     case NK_KEY_NONE:
@@ -516,8 +503,8 @@ retry:
       break;
 
     case NK_KEY_DOWN: {
-      struct nk_text_find find;
-      struct nk_text_edit_row row;
+      nk_text_find find;
+      nk_text_edit_row row;
       int i, sel = shift_mod;
 
       if (state->single_line) {
@@ -562,8 +549,8 @@ retry:
     } break;
 
     case NK_KEY_UP: {
-      struct nk_text_find find;
-      struct nk_text_edit_row row;
+      nk_text_find find;
+      nk_text_edit_row row;
       int i, sel = shift_mod;
 
       if (state->single_line) {
@@ -660,7 +647,7 @@ retry:
 
     case NK_KEY_TEXT_LINE_START: {
       if (shift_mod) {
-        struct nk_text_find find;
+        nk_text_find find;
         nk_textedit_clamp(state);
         nk_textedit_prep_selection_at_cursor(state);
         if (state->string.len && state->cursor == state->string.len)
@@ -669,7 +656,7 @@ retry:
         state->cursor = state->select_end = find.first_char;
         state->has_preferred_x = 0;
       } else {
-        struct nk_text_find find;
+        nk_text_find find;
         if (state->string.len && state->cursor == state->string.len)
           --state->cursor;
         nk_textedit_clamp(state);
@@ -682,7 +669,7 @@ retry:
 
     case NK_KEY_TEXT_LINE_END: {
       if (shift_mod) {
-        struct nk_text_find find;
+        nk_text_find find;
         nk_textedit_clamp(state);
         nk_textedit_prep_selection_at_cursor(state);
         nk_textedit_find_charpos(&find, state, state->cursor, state->single_line, font, row_height);
@@ -692,7 +679,7 @@ retry:
           --state->cursor;
         state->select_end = state->cursor;
       } else {
-        struct nk_text_find find;
+        nk_text_find find;
         nk_textedit_clamp(state);
         nk_textedit_move_to_first(state);
         nk_textedit_find_charpos(&find, state, state->cursor, state->single_line, font, row_height);
@@ -705,13 +692,11 @@ retry:
     } break;
   }
 }
-NK_INTERN void
-nk_textedit_flush_redo(struct nk_text_undo_state* state) {
+NK_INTERN void nk_textedit_flush_redo(nk_text_undo_state* state) {
   state->redo_point = NK_TEXTEDIT_UNDOSTATECOUNT;
   state->redo_char_point = NK_TEXTEDIT_UNDOCHARCOUNT;
 }
-NK_INTERN void
-nk_textedit_discard_undo(struct nk_text_undo_state* state) {
+NK_INTERN void nk_textedit_discard_undo(nk_text_undo_state* state) {
   /* discard the oldest entry in the undo list */
   if (state->undo_point > 0) {
     /* if the 0th undo state has characters, clean those up */
@@ -729,8 +714,7 @@ nk_textedit_discard_undo(struct nk_text_undo_state* state) {
     NK_MEMCPY(state->undo_rec, state->undo_rec + 1, (nk_size)((nk_size)state->undo_point * sizeof(state->undo_rec[0])));
   }
 }
-NK_INTERN void
-nk_textedit_discard_redo(struct nk_text_undo_state* state) {
+NK_INTERN void nk_textedit_discard_redo(nk_text_undo_state* state) {
   /*  discard the oldest entry in the redo list--it's bad if this
     ever happens, but because undo & redo have to store the actual
     characters in different cases, the redo character buffer can
@@ -761,8 +745,8 @@ nk_textedit_discard_redo(struct nk_text_undo_state* state) {
                 num * sizeof(state->undo_rec[0]));
   }
 }
-NK_INTERN struct nk_text_undo_record*
-nk_textedit_create_undo_record(struct nk_text_undo_state* state, int numchars) {
+NK_INTERN nk_text_undo_record*
+nk_textedit_create_undo_record(nk_text_undo_state* state, int numchars) {
   /* any time we create a new undo record, we discard redo*/
   nk_textedit_flush_redo(state);
 
@@ -786,9 +770,9 @@ nk_textedit_create_undo_record(struct nk_text_undo_state* state, int numchars) {
   return &state->undo_rec[state->undo_point++];
 }
 NK_INTERN nk_rune*
-nk_textedit_createundo(struct nk_text_undo_state* state, int pos,
+nk_textedit_createundo(nk_text_undo_state* state, int pos,
                        int insert_len, int delete_len) {
-  struct nk_text_undo_record* r = nk_textedit_create_undo_record(state, insert_len);
+  nk_text_undo_record* r = nk_textedit_create_undo_record(state, insert_len);
   if (r == 0)
     return 0;
 
@@ -805,10 +789,9 @@ nk_textedit_createundo(struct nk_text_undo_state* state, int pos,
     return &state->undo_char[r->char_storage];
   }
 }
-NK_API void
-nk_textedit_undo(struct nk_text_edit* state) {
-  struct nk_text_undo_state* s = &state->undo;
-  struct nk_text_undo_record u, *r;
+NK_API void nk_textedit_undo(nk_text_edit* state) {
+  nk_text_undo_state* s = &state->undo;
+  nk_text_undo_record u, *r;
   if (s->undo_point == 0)
     return;
 
@@ -869,10 +852,9 @@ nk_textedit_undo(struct nk_text_edit* state) {
   s->undo_point--;
   s->redo_point--;
 }
-NK_API void
-nk_textedit_redo(struct nk_text_edit* state) {
-  struct nk_text_undo_state* s = &state->undo;
-  struct nk_text_undo_record *u, r;
+NK_API void nk_textedit_redo(nk_text_edit* state) {
+  nk_text_undo_state* s = &state->undo;
+  nk_text_undo_record *u, r;
   if (s->redo_point == NK_TEXTEDIT_UNDOSTATECOUNT)
     return;
 
@@ -916,12 +898,10 @@ nk_textedit_redo(struct nk_text_edit* state) {
   s->undo_point++;
   s->redo_point++;
 }
-NK_INTERN void
-nk_textedit_makeundo_insert(struct nk_text_edit* state, int where, int length) {
+NK_INTERN void nk_textedit_makeundo_insert(nk_text_edit* state, int where, int length) {
   nk_textedit_createundo(&state->undo, where, 0, length);
 }
-NK_INTERN void
-nk_textedit_makeundo_delete(struct nk_text_edit* state, int where, int length) {
+NK_INTERN void nk_textedit_makeundo_delete(nk_text_edit* state, int where, int length) {
   int i;
   nk_rune* p = nk_textedit_createundo(&state->undo, where, length, 0);
   if (p) {
@@ -929,9 +909,8 @@ nk_textedit_makeundo_delete(struct nk_text_edit* state, int where, int length) {
       p[i] = nk_str_rune_at(&state->string, where + i);
   }
 }
-NK_INTERN void
-nk_textedit_makeundo_replace(struct nk_text_edit* state, int where,
-                             int old_length, int new_length) {
+NK_INTERN void nk_textedit_makeundo_replace(nk_text_edit* state, int where,
+                                            int old_length, int new_length) {
   int i;
   nk_rune* p = nk_textedit_createundo(&state->undo, where, old_length, new_length);
   if (p) {
@@ -939,9 +918,8 @@ nk_textedit_makeundo_replace(struct nk_text_edit* state, int where,
       p[i] = nk_str_rune_at(&state->string, where + i);
   }
 }
-NK_LIB void
-nk_textedit_clear_state(struct nk_text_edit* state, enum nk_text_edit_type type,
-                        nk_plugin_filter filter) {
+NK_LIB void nk_textedit_clear_state(nk_text_edit* state, nk_text_edit_type type,
+                                    nk_plugin_filter filter) {
   /* reset the state to default */
   state->undo.undo_point = 0;
   state->undo.undo_char_point = 0;
@@ -956,47 +934,42 @@ nk_textedit_clear_state(struct nk_text_edit* state, enum nk_text_edit_type type,
   state->single_line = (unsigned char)(type == NK_TEXT_EDIT_SINGLE_LINE);
   state->mode = NK_TEXT_EDIT_MODE_VIEW;
   state->filter = filter;
-  state->scrollbar = nk_vec2(0, 0);
+  state->scrollbar = nk_make_vec2(0, 0);
 }
-NK_API void
-nk_textedit_init_fixed(struct nk_text_edit* state, void* memory, nk_size size) {
+NK_API void nk_textedit_init_fixed(nk_text_edit* state, void* memory, nk_size size) {
   NK_ASSERT(state);
   NK_ASSERT(memory);
   if (!state || !memory || !size)
     return;
-  NK_MEMSET(state, 0, sizeof(struct nk_text_edit));
+  NK_MEMSET(state, 0, sizeof(nk_text_edit));
   nk_textedit_clear_state(state, NK_TEXT_EDIT_SINGLE_LINE, 0);
   nk_str_init_fixed(&state->string, memory, size);
 }
-NK_API void
-nk_textedit_init(struct nk_text_edit* state, struct nk_allocator* alloc, nk_size size) {
+NK_API void nk_textedit_init(nk_text_edit* state, nk_allocator* alloc, nk_size size) {
   NK_ASSERT(state);
   NK_ASSERT(alloc);
   if (!state || !alloc)
     return;
-  NK_MEMSET(state, 0, sizeof(struct nk_text_edit));
+  NK_MEMSET(state, 0, sizeof(nk_text_edit));
   nk_textedit_clear_state(state, NK_TEXT_EDIT_SINGLE_LINE, 0);
   nk_str_init(&state->string, alloc, size);
 }
 #ifdef NK_INCLUDE_DEFAULT_ALLOCATOR
-NK_API void
-nk_textedit_init_default(struct nk_text_edit* state) {
+NK_API void nk_textedit_init_default(nk_text_edit* state) {
   NK_ASSERT(state);
   if (!state)
     return;
-  NK_MEMSET(state, 0, sizeof(struct nk_text_edit));
+  NK_MEMSET(state, 0, sizeof(nk_text_edit));
   nk_textedit_clear_state(state, NK_TEXT_EDIT_SINGLE_LINE, 0);
   nk_str_init_default(&state->string);
 }
 #endif
-NK_API void
-nk_textedit_select_all(struct nk_text_edit* state) {
+NK_API void nk_textedit_select_all(nk_text_edit* state) {
   NK_ASSERT(state);
   state->select_start = 0;
   state->select_end = state->string.len;
 }
-NK_API void
-nk_textedit_free(struct nk_text_edit* state) {
+NK_API void nk_textedit_free(nk_text_edit* state) {
   NK_ASSERT(state);
   if (!state)
     return;

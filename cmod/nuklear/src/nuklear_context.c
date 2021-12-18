@@ -6,8 +6,7 @@
  *                          CONTEXT
  *
  * ===============================================================*/
-NK_INTERN void
-nk_setup(struct nk_context* ctx, const struct nk_user_font* font) {
+NK_INTERN void nk_setup(nk_context* ctx, const nk_user_font* font) {
   NK_ASSERT(ctx);
   if (!ctx)
     return;
@@ -22,8 +21,8 @@ nk_setup(struct nk_context* ctx, const struct nk_user_font* font) {
 }
 #ifdef NK_INCLUDE_DEFAULT_ALLOCATOR
 NK_API nk_bool
-nk_init_default(struct nk_context* ctx, const struct nk_user_font* font) {
-  struct nk_allocator alloc;
+nk_init_default(nk_context* ctx, const nk_user_font* font) {
+  nk_allocator alloc;
   alloc.userdata.ptr = 0;
   alloc.alloc = nk_malloc;
   alloc.free = nk_mfree;
@@ -31,8 +30,8 @@ nk_init_default(struct nk_context* ctx, const struct nk_user_font* font) {
 }
 #endif
 NK_API nk_bool
-nk_init_fixed(struct nk_context* ctx, void* memory, nk_size size,
-              const struct nk_user_font* font) {
+nk_init_fixed(nk_context* ctx, void* memory, nk_size size,
+              const nk_user_font* font) {
   NK_ASSERT(memory);
   if (!memory)
     return 0;
@@ -42,8 +41,8 @@ nk_init_fixed(struct nk_context* ctx, void* memory, nk_size size,
   return 1;
 }
 NK_API nk_bool
-nk_init_custom(struct nk_context* ctx, struct nk_buffer* cmds,
-               struct nk_buffer* pool, const struct nk_user_font* font) {
+nk_init_custom(nk_context* ctx, nk_buffer* cmds,
+               nk_buffer* pool, const nk_user_font* font) {
   NK_ASSERT(cmds);
   NK_ASSERT(pool);
   if (!cmds || !pool)
@@ -56,15 +55,15 @@ nk_init_custom(struct nk_context* ctx, struct nk_buffer* cmds,
     nk_pool_init_fixed(&ctx->pool, pool->memory.ptr, pool->memory.size);
   } else {
     /* create dynamic pool from buffer allocator */
-    struct nk_allocator* alloc = &pool->pool;
+    nk_allocator* alloc = &pool->pool;
     nk_pool_init(&ctx->pool, alloc, NK_POOL_DEFAULT_CAPACITY);
   }
   ctx->use_pool = nk_true;
   return 1;
 }
 NK_API nk_bool
-nk_init(struct nk_context* ctx, struct nk_allocator* alloc,
-        const struct nk_user_font* font) {
+nk_init(nk_context* ctx, nk_allocator* alloc,
+        const nk_user_font* font) {
   NK_ASSERT(alloc);
   if (!alloc)
     return 0;
@@ -75,8 +74,7 @@ nk_init(struct nk_context* ctx, struct nk_allocator* alloc,
   return 1;
 }
 #ifdef NK_INCLUDE_COMMAND_USERDATA
-NK_API void
-nk_set_user_data(struct nk_context* ctx, nk_handle handle) {
+NK_API void nk_set_user_data(nk_context* ctx, nk_handle handle) {
   if (!ctx)
     return;
   ctx->userdata = handle;
@@ -84,8 +82,7 @@ nk_set_user_data(struct nk_context* ctx, nk_handle handle) {
     ctx->current->buffer.userdata = handle;
 }
 #endif
-NK_API void
-nk_free(struct nk_context* ctx) {
+NK_API void nk_free(nk_context* ctx) {
   NK_ASSERT(ctx);
   if (!ctx)
     return;
@@ -106,10 +103,9 @@ nk_free(struct nk_context* ctx) {
   ctx->freelist = 0;
   ctx->count = 0;
 }
-NK_API void
-nk_clear(struct nk_context* ctx) {
-  struct nk_window* iter;
-  struct nk_window* next;
+NK_API void nk_clear(nk_context* ctx) {
+  nk_window* iter;
+  nk_window* next;
   NK_ASSERT(ctx);
 
   if (!ctx)
@@ -153,12 +149,12 @@ nk_clear(struct nk_context* ctx) {
     }
     /* remove unused window state tables */
     {
-      struct nk_table *n, *it = iter->tables;
+      nk_table *n, *it = iter->tables;
       while (it) {
         n = it->next;
         if (it->seq != ctx->seq) {
           nk_remove_table(iter, it);
-          nk_zero(it, sizeof(union nk_page_data));
+          nk_zero(it, sizeof(nk_page_data));
           nk_free_table(ctx, it);
           if (it == iter->tables)
             iter->tables = n;
@@ -177,8 +173,7 @@ nk_clear(struct nk_context* ctx) {
   }
   ctx->seq++;
 }
-NK_LIB void
-nk_start_buffer(struct nk_context* ctx, struct nk_command_buffer* buffer) {
+NK_LIB void nk_start_buffer(nk_context* ctx, nk_command_buffer* buffer) {
   NK_ASSERT(ctx);
   NK_ASSERT(buffer);
   if (!ctx || !buffer)
@@ -188,15 +183,13 @@ nk_start_buffer(struct nk_context* ctx, struct nk_command_buffer* buffer) {
   buffer->last = buffer->begin;
   buffer->clip = nk_null_rect;
 }
-NK_LIB void
-nk_start(struct nk_context* ctx, struct nk_window* win) {
+NK_LIB void nk_start(nk_context* ctx, nk_window* win) {
   NK_ASSERT(ctx);
   NK_ASSERT(win);
   nk_start_buffer(ctx, &win->buffer);
 }
-NK_LIB void
-nk_start_popup(struct nk_context* ctx, struct nk_window* win) {
-  struct nk_popup_buffer* buf;
+NK_LIB void nk_start_popup(nk_context* ctx, nk_window* win) {
+  nk_popup_buffer* buf;
   NK_ASSERT(ctx);
   NK_ASSERT(win);
   if (!ctx || !win)
@@ -210,9 +203,8 @@ nk_start_popup(struct nk_context* ctx, struct nk_window* win) {
   buf->last = buf->begin;
   buf->active = nk_true;
 }
-NK_LIB void
-nk_finish_popup(struct nk_context* ctx, struct nk_window* win) {
-  struct nk_popup_buffer* buf;
+NK_LIB void nk_finish_popup(nk_context* ctx, nk_window* win) {
+  nk_popup_buffer* buf;
   NK_ASSERT(ctx);
   NK_ASSERT(win);
   if (!ctx || !win)
@@ -222,18 +214,16 @@ nk_finish_popup(struct nk_context* ctx, struct nk_window* win) {
   buf->last = win->buffer.last;
   buf->end = win->buffer.end;
 }
-NK_LIB void
-nk_finish_buffer(struct nk_context* ctx, struct nk_command_buffer* buffer) {
+NK_LIB void nk_finish_buffer(nk_context* ctx, nk_command_buffer* buffer) {
   NK_ASSERT(ctx);
   NK_ASSERT(buffer);
   if (!ctx || !buffer)
     return;
   buffer->end = ctx->memory.allocated;
 }
-NK_LIB void
-nk_finish(struct nk_context* ctx, struct nk_window* win) {
-  struct nk_popup_buffer* buf;
-  struct nk_command* parent_last;
+NK_LIB void nk_finish(nk_context* ctx, nk_window* win) {
+  nk_popup_buffer* buf;
+  nk_command* parent_last;
   void* memory;
 
   NK_ASSERT(ctx);
@@ -246,21 +236,20 @@ nk_finish(struct nk_context* ctx, struct nk_window* win) {
 
   buf = &win->popup.buf;
   memory = ctx->memory.memory.ptr;
-  parent_last = nk_ptr_add(struct nk_command, memory, buf->parent);
+  parent_last = nk_ptr_add(nk_command, memory, buf->parent);
   parent_last->next = buf->end;
 }
-NK_LIB void
-nk_build(struct nk_context* ctx) {
-  struct nk_window* it = 0;
-  struct nk_command* cmd = 0;
+NK_LIB void nk_build(nk_context* ctx) {
+  nk_window* it = 0;
+  nk_command* cmd = 0;
   nk_byte* buffer = 0;
 
   /* draw cursor overlay */
   if (!ctx->style.cursor_active)
     ctx->style.cursor_active = ctx->style.cursors[NK_CURSOR_ARROW];
   if (ctx->style.cursor_active && !ctx->input.mouse.grabbed && ctx->style.cursor_visible) {
-    struct nk_rect mouse_bounds;
-    const struct nk_cursor* cursor = ctx->style.cursor_active;
+    nk_rect mouse_bounds;
+    const nk_cursor* cursor = ctx->style.cursor_active;
     nk_command_buffer_init(&ctx->overlay, &ctx->memory, NK_CLIPPING_OFF);
     nk_start_buffer(ctx, &ctx->overlay);
 
@@ -276,12 +265,12 @@ nk_build(struct nk_context* ctx) {
   it = ctx->begin;
   buffer = (nk_byte*)ctx->memory.memory.ptr;
   while (it != 0) {
-    struct nk_window* next = it->next;
+    nk_window* next = it->next;
     if (it->buffer.last == it->buffer.begin || (it->flags & NK_WINDOW_HIDDEN) ||
         it->seq != ctx->seq)
       goto cont;
 
-    cmd = nk_ptr_add(struct nk_command, buffer, it->buffer.last);
+    cmd = nk_ptr_add(nk_command, buffer, it->buffer.last);
     while (next && ((next->buffer.last == next->buffer.begin) ||
                     (next->flags & NK_WINDOW_HIDDEN) || next->seq != ctx->seq))
       next = next->next; /* skip empty command buffers */
@@ -294,14 +283,14 @@ nk_build(struct nk_context* ctx) {
   /* append all popup draw commands into lists */
   it = ctx->begin;
   while (it != 0) {
-    struct nk_window* next = it->next;
-    struct nk_popup_buffer* buf;
+    nk_window* next = it->next;
+    nk_popup_buffer* buf;
     if (!it->popup.buf.active)
       goto skip;
 
     buf = &it->popup.buf;
     cmd->next = buf->begin;
-    cmd = nk_ptr_add(struct nk_command, buffer, buf->last);
+    cmd = nk_ptr_add(nk_command, buffer, buf->last);
     buf->active = nk_false;
   skip:
     it = next;
@@ -314,9 +303,9 @@ nk_build(struct nk_context* ctx) {
       cmd->next = ctx->memory.allocated;
   }
 }
-NK_API const struct nk_command*
-nk__begin(struct nk_context* ctx) {
-  struct nk_window* iter;
+NK_API const nk_command*
+nk__begin(nk_context* ctx) {
+  nk_window* iter;
   nk_byte* buffer;
   NK_ASSERT(ctx);
   if (!ctx)
@@ -335,19 +324,19 @@ nk__begin(struct nk_context* ctx) {
     iter = iter->next;
   if (!iter)
     return 0;
-  return nk_ptr_add_const(struct nk_command, buffer, iter->buffer.begin);
+  return nk_ptr_add_const(nk_command, buffer, iter->buffer.begin);
 }
 
-NK_API const struct nk_command*
-nk__next(struct nk_context* ctx, const struct nk_command* cmd) {
+NK_API const nk_command*
+nk__next(nk_context* ctx, const nk_command* cmd) {
   nk_byte* buffer;
-  const struct nk_command* next;
+  const nk_command* next;
   NK_ASSERT(ctx);
   if (!ctx || !cmd || !ctx->count)
     return 0;
   if (cmd->next >= ctx->memory.allocated)
     return 0;
   buffer = (nk_byte*)ctx->memory.memory.ptr;
-  next = nk_ptr_add_const(struct nk_command, buffer, cmd->next);
+  next = nk_ptr_add_const(nk_command, buffer, cmd->next);
   return next;
 }

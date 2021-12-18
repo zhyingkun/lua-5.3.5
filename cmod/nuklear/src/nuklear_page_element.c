@@ -6,9 +6,9 @@
  *                          PAGE ELEMENT
  *
  * ===============================================================*/
-NK_LIB struct nk_page_element*
-nk_create_page_element(struct nk_context* ctx) {
-  struct nk_page_element* elem;
+NK_LIB nk_page_element*
+nk_create_page_element(nk_context* ctx) {
+  nk_page_element* elem;
   if (ctx->freelist) {
     /* unlink page element from free list */
     elem = ctx->freelist;
@@ -21,9 +21,9 @@ nk_create_page_element(struct nk_context* ctx) {
       return 0;
   } else {
     /* allocate new page element from back of fixed size memory buffer */
-    NK_STORAGE const nk_size size = sizeof(struct nk_page_element);
-    NK_STORAGE const nk_size align = NK_ALIGNOF(struct nk_page_element);
-    elem = (struct nk_page_element*)nk_buffer_alloc(&ctx->memory, NK_BUFFER_BACK, size, align);
+    NK_STORAGE const nk_size size = sizeof(nk_page_element);
+    NK_STORAGE const nk_size align = NK_ALIGNOF(nk_page_element);
+    elem = (nk_page_element*)nk_buffer_alloc(&ctx->memory, NK_BUFFER_BACK, size, align);
     NK_ASSERT(elem);
     if (!elem)
       return 0;
@@ -33,9 +33,8 @@ nk_create_page_element(struct nk_context* ctx) {
   elem->prev = 0;
   return elem;
 }
-NK_LIB void
-nk_link_page_element_into_freelist(struct nk_context* ctx,
-                                   struct nk_page_element* elem) {
+NK_LIB void nk_link_page_element_into_freelist(nk_context* ctx,
+                                               nk_page_element* elem) {
   /* link table into freelist */
   if (!ctx->freelist) {
     ctx->freelist = elem;
@@ -44,8 +43,7 @@ nk_link_page_element_into_freelist(struct nk_context* ctx,
     ctx->freelist = elem;
   }
 }
-NK_LIB void
-nk_free_page_element(struct nk_context* ctx, struct nk_page_element* elem) {
+NK_LIB void nk_free_page_element(nk_context* ctx, nk_page_element* elem) {
   /* we have a pool so just add to free list */
   if (ctx->use_pool) {
     nk_link_page_element_into_freelist(ctx, elem);
@@ -56,7 +54,7 @@ nk_free_page_element(struct nk_context* ctx, struct nk_page_element* elem) {
     void* elem_end = (void*)(elem + 1);
     void* buffer_end = (nk_byte*)ctx->memory.memory.ptr + ctx->memory.size;
     if (elem_end == buffer_end)
-      ctx->memory.size -= sizeof(struct nk_page_element);
+      ctx->memory.size -= sizeof(nk_page_element);
     else
       nk_link_page_element_into_freelist(ctx, elem);
   }

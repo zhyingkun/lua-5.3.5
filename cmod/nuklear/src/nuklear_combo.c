@@ -7,12 +7,12 @@
  *
  * ===============================================================*/
 NK_INTERN nk_bool
-nk_combo_begin(struct nk_context* ctx, struct nk_window* win,
-               struct nk_vec2 size, nk_bool is_clicked, struct nk_rect header) {
-  struct nk_window* popup;
+nk_combo_begin(nk_context* ctx, nk_window* win,
+               nk_vec2 size, nk_bool is_clicked, nk_rect header) {
+  nk_window* popup;
   int is_open = 0;
   int is_active = 0;
-  struct nk_rect body;
+  nk_rect body;
   nk_hash hash;
 
   NK_ASSERT(ctx);
@@ -33,7 +33,7 @@ nk_combo_begin(struct nk_context* ctx, struct nk_window* win,
   if ((is_clicked && is_open && !is_active) || (is_open && !is_active) ||
       (!is_open && !is_active && !is_clicked))
     return 0;
-  if (!nk_nonblock_begin(ctx, 0, body, (is_clicked && is_open) ? nk_rect(0, 0, 0, 0) : header, NK_PANEL_COMBO))
+  if (!nk_nonblock_begin(ctx, 0, body, (is_clicked && is_open) ? nk_make_rect(0, 0, 0, 0) : header, NK_PANEL_COMBO))
     return 0;
 
   win->popup.type = NK_PANEL_COMBO;
@@ -41,17 +41,17 @@ nk_combo_begin(struct nk_context* ctx, struct nk_window* win,
   return 1;
 }
 NK_API nk_bool
-nk_combo_begin_text(struct nk_context* ctx, const char* selected, int len,
-                    struct nk_vec2 size) {
-  const struct nk_input* in;
-  struct nk_window* win;
-  struct nk_style* style;
+nk_combo_begin_text(nk_context* ctx, const char* selected, int len,
+                    nk_vec2 size) {
+  const nk_input* in;
+  nk_window* win;
+  nk_style* style;
 
-  enum nk_widget_layout_states s;
+  nk_widget_layout_states s;
   int is_clicked = nk_false;
-  struct nk_rect header;
-  const struct nk_style_item* background;
-  struct nk_text text;
+  nk_rect header;
+  const nk_style_item* background;
+  nk_text text;
 
   NK_ASSERT(ctx);
   NK_ASSERT(selected);
@@ -67,7 +67,7 @@ nk_combo_begin_text(struct nk_context* ctx, const char* selected, int len,
     return 0;
 
   in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_ROM) ? 0 : &ctx->input;
-  if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
+  if (nk_do_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
     is_clicked = nk_true;
 
   /* draw combo box header background and border */
@@ -99,12 +99,12 @@ nk_combo_begin_text(struct nk_context* ctx, const char* selected, int len,
   }
   {
     /* print currently selected text item */
-    struct nk_rect label;
-    struct nk_rect button;
-    struct nk_rect content;
+    nk_rect label;
+    nk_rect button;
+    nk_rect content;
     int draw_button_symbol;
 
-    enum nk_symbol_type sym;
+    nk_symbol_type sym;
     if (ctx->last_widget_state & NK_WIDGET_STATE_HOVER)
       sym = style->combo.sym_hover;
     else if (is_clicked)
@@ -127,7 +127,7 @@ nk_combo_begin_text(struct nk_context* ctx, const char* selected, int len,
     content.h = button.h - 2 * style->combo.button.padding.y;
 
     /* draw selected label */
-    text.padding = nk_vec2(0, 0);
+    text.padding = nk_make_vec2(0, 0);
     label.x = header.x + style->combo.content_padding.x;
     label.y = header.y + style->combo.content_padding.y;
     label.h = header.h - 2 * style->combo.content_padding.y;
@@ -144,19 +144,19 @@ nk_combo_begin_text(struct nk_context* ctx, const char* selected, int len,
   return nk_combo_begin(ctx, win, size, is_clicked, header);
 }
 NK_API nk_bool
-nk_combo_begin_label(struct nk_context* ctx, const char* selected, struct nk_vec2 size) {
+nk_combo_begin_label(nk_context* ctx, const char* selected, nk_vec2 size) {
   return nk_combo_begin_text(ctx, selected, nk_strlen(selected), size);
 }
 NK_API nk_bool
-nk_combo_begin_color(struct nk_context* ctx, struct nk_color color, struct nk_vec2 size) {
-  struct nk_window* win;
-  struct nk_style* style;
-  const struct nk_input* in;
+nk_combo_begin_color(nk_context* ctx, nk_color color, nk_vec2 size) {
+  nk_window* win;
+  nk_style* style;
+  const nk_input* in;
 
-  struct nk_rect header;
+  nk_rect header;
   int is_clicked = nk_false;
-  enum nk_widget_layout_states s;
-  const struct nk_style_item* background;
+  nk_widget_layout_states s;
+  const nk_style_item* background;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -171,7 +171,7 @@ nk_combo_begin_color(struct nk_context* ctx, struct nk_color color, struct nk_ve
     return 0;
 
   in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_ROM) ? 0 : &ctx->input;
-  if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
+  if (nk_do_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
     is_clicked = nk_true;
 
   /* draw combo box header background and border */
@@ -195,12 +195,12 @@ nk_combo_begin_color(struct nk_context* ctx, struct nk_color color, struct nk_ve
       break;
   }
   {
-    struct nk_rect content;
-    struct nk_rect button;
-    struct nk_rect bounds;
+    nk_rect content;
+    nk_rect button;
+    nk_rect bounds;
     int draw_button_symbol;
 
-    enum nk_symbol_type sym;
+    nk_symbol_type sym;
     if (ctx->last_widget_state & NK_WIDGET_STATE_HOVER)
       sym = style->combo.sym_hover;
     else if (is_clicked)
@@ -239,17 +239,17 @@ nk_combo_begin_color(struct nk_context* ctx, struct nk_color color, struct nk_ve
   return nk_combo_begin(ctx, win, size, is_clicked, header);
 }
 NK_API nk_bool
-nk_combo_begin_symbol(struct nk_context* ctx, enum nk_symbol_type symbol, struct nk_vec2 size) {
-  struct nk_window* win;
-  struct nk_style* style;
-  const struct nk_input* in;
+nk_combo_begin_symbol(nk_context* ctx, nk_symbol_type symbol, nk_vec2 size) {
+  nk_window* win;
+  nk_style* style;
+  const nk_input* in;
 
-  struct nk_rect header;
+  nk_rect header;
   int is_clicked = nk_false;
-  enum nk_widget_layout_states s;
-  const struct nk_style_item* background;
-  struct nk_color sym_background;
-  struct nk_color symbol_color;
+  nk_widget_layout_states s;
+  const nk_style_item* background;
+  nk_color sym_background;
+  nk_color symbol_color;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -264,7 +264,7 @@ nk_combo_begin_symbol(struct nk_context* ctx, enum nk_symbol_type symbol, struct
     return 0;
 
   in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_ROM) ? 0 : &ctx->input;
-  if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
+  if (nk_do_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
     is_clicked = nk_true;
 
   /* draw combo box header background and border */
@@ -295,11 +295,11 @@ nk_combo_begin_symbol(struct nk_context* ctx, enum nk_symbol_type symbol, struct
       break;
   }
   {
-    struct nk_rect bounds = {0, 0, 0, 0};
-    struct nk_rect content;
-    struct nk_rect button;
+    nk_rect bounds = {0, 0, 0, 0};
+    nk_rect content;
+    nk_rect button;
 
-    enum nk_symbol_type sym;
+    nk_symbol_type sym;
     if (ctx->last_widget_state & NK_WIDGET_STATE_HOVER)
       sym = style->combo.sym_hover;
     else if (is_clicked)
@@ -331,18 +331,18 @@ nk_combo_begin_symbol(struct nk_context* ctx, enum nk_symbol_type symbol, struct
   return nk_combo_begin(ctx, win, size, is_clicked, header);
 }
 NK_API nk_bool
-nk_combo_begin_symbol_text(struct nk_context* ctx, const char* selected, int len,
-                           enum nk_symbol_type symbol, struct nk_vec2 size) {
-  struct nk_window* win;
-  struct nk_style* style;
-  struct nk_input* in;
+nk_combo_begin_symbol_text(nk_context* ctx, const char* selected, int len,
+                           nk_symbol_type symbol, nk_vec2 size) {
+  nk_window* win;
+  nk_style* style;
+  nk_input* in;
 
-  struct nk_rect header;
+  nk_rect header;
   int is_clicked = nk_false;
-  enum nk_widget_layout_states s;
-  const struct nk_style_item* background;
-  struct nk_color symbol_color;
-  struct nk_text text;
+  nk_widget_layout_states s;
+  const nk_style_item* background;
+  nk_color symbol_color;
+  nk_text text;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -357,7 +357,7 @@ nk_combo_begin_symbol_text(struct nk_context* ctx, const char* selected, int len
     return 0;
 
   in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_ROM) ? 0 : &ctx->input;
-  if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
+  if (nk_do_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
     is_clicked = nk_true;
 
   /* draw combo box header background and border */
@@ -391,12 +391,12 @@ nk_combo_begin_symbol_text(struct nk_context* ctx, const char* selected, int len
       break;
   }
   {
-    struct nk_rect content;
-    struct nk_rect button;
-    struct nk_rect label;
-    struct nk_rect image;
+    nk_rect content;
+    nk_rect button;
+    nk_rect label;
+    nk_rect image;
 
-    enum nk_symbol_type sym;
+    nk_symbol_type sym;
     if (ctx->last_widget_state & NK_WIDGET_STATE_HOVER)
       sym = style->combo.sym_hover;
     else if (is_clicked)
@@ -424,7 +424,7 @@ nk_combo_begin_symbol_text(struct nk_context* ctx, const char* selected, int len
     nk_draw_symbol(&win->buffer, symbol, image, text.background, symbol_color, 1.0f, style->font);
 
     /* draw label */
-    text.padding = nk_vec2(0, 0);
+    text.padding = nk_make_vec2(0, 0);
     label.x = image.x + image.w + style->combo.spacing.x + style->combo.content_padding.x;
     label.y = header.y + style->combo.content_padding.y;
     label.w = (button.x - style->combo.content_padding.x) - label.x;
@@ -434,15 +434,15 @@ nk_combo_begin_symbol_text(struct nk_context* ctx, const char* selected, int len
   return nk_combo_begin(ctx, win, size, is_clicked, header);
 }
 NK_API nk_bool
-nk_combo_begin_image(struct nk_context* ctx, struct nk_image img, struct nk_vec2 size) {
-  struct nk_window* win;
-  struct nk_style* style;
-  const struct nk_input* in;
+nk_combo_begin_image(nk_context* ctx, nk_image img, nk_vec2 size) {
+  nk_window* win;
+  nk_style* style;
+  const nk_input* in;
 
-  struct nk_rect header;
+  nk_rect header;
   int is_clicked = nk_false;
-  enum nk_widget_layout_states s;
-  const struct nk_style_item* background;
+  nk_widget_layout_states s;
+  const nk_style_item* background;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -457,7 +457,7 @@ nk_combo_begin_image(struct nk_context* ctx, struct nk_image img, struct nk_vec2
     return 0;
 
   in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_ROM) ? 0 : &ctx->input;
-  if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
+  if (nk_do_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
     is_clicked = nk_true;
 
   /* draw combo box header background and border */
@@ -481,12 +481,12 @@ nk_combo_begin_image(struct nk_context* ctx, struct nk_image img, struct nk_vec2
       break;
   }
   {
-    struct nk_rect bounds = {0, 0, 0, 0};
-    struct nk_rect content;
-    struct nk_rect button;
+    nk_rect bounds = {0, 0, 0, 0};
+    nk_rect content;
+    nk_rect button;
     int draw_button_symbol;
 
-    enum nk_symbol_type sym;
+    nk_symbol_type sym;
     if (ctx->last_widget_state & NK_WIDGET_STATE_HOVER)
       sym = style->combo.sym_hover;
     else if (is_clicked)
@@ -525,17 +525,17 @@ nk_combo_begin_image(struct nk_context* ctx, struct nk_image img, struct nk_vec2
   return nk_combo_begin(ctx, win, size, is_clicked, header);
 }
 NK_API nk_bool
-nk_combo_begin_image_text(struct nk_context* ctx, const char* selected, int len,
-                          struct nk_image img, struct nk_vec2 size) {
-  struct nk_window* win;
-  struct nk_style* style;
-  struct nk_input* in;
+nk_combo_begin_image_text(nk_context* ctx, const char* selected, int len,
+                          nk_image img, nk_vec2 size) {
+  nk_window* win;
+  nk_style* style;
+  nk_input* in;
 
-  struct nk_rect header;
+  nk_rect header;
   int is_clicked = nk_false;
-  enum nk_widget_layout_states s;
-  const struct nk_style_item* background;
-  struct nk_text text;
+  nk_widget_layout_states s;
+  const nk_style_item* background;
+  nk_text text;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -550,7 +550,7 @@ nk_combo_begin_image_text(struct nk_context* ctx, const char* selected, int len,
     return 0;
 
   in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_ROM) ? 0 : &ctx->input;
-  if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
+  if (nk_do_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
     is_clicked = nk_true;
 
   /* draw combo box header background and border */
@@ -581,13 +581,13 @@ nk_combo_begin_image_text(struct nk_context* ctx, const char* selected, int len,
       break;
   }
   {
-    struct nk_rect content;
-    struct nk_rect button;
-    struct nk_rect label;
-    struct nk_rect image;
+    nk_rect content;
+    nk_rect button;
+    nk_rect label;
+    nk_rect image;
     int draw_button_symbol;
 
-    enum nk_symbol_type sym;
+    nk_symbol_type sym;
     if (ctx->last_widget_state & NK_WIDGET_STATE_HOVER)
       sym = style->combo.sym_hover;
     else if (is_clicked)
@@ -619,7 +619,7 @@ nk_combo_begin_image_text(struct nk_context* ctx, const char* selected, int len,
     nk_draw_image(&win->buffer, image, &img, nk_white);
 
     /* draw label */
-    text.padding = nk_vec2(0, 0);
+    text.padding = nk_make_vec2(0, 0);
     label.x = image.x + image.w + style->combo.spacing.x + style->combo.content_padding.x;
     label.y = header.y + style->combo.content_padding.y;
     label.h = header.h - 2 * style->combo.content_padding.y;
@@ -632,56 +632,55 @@ nk_combo_begin_image_text(struct nk_context* ctx, const char* selected, int len,
   return nk_combo_begin(ctx, win, size, is_clicked, header);
 }
 NK_API nk_bool
-nk_combo_begin_symbol_label(struct nk_context* ctx,
-                            const char* selected, enum nk_symbol_type type, struct nk_vec2 size) {
+nk_combo_begin_symbol_label(nk_context* ctx,
+                            const char* selected, nk_symbol_type type, nk_vec2 size) {
   return nk_combo_begin_symbol_text(ctx, selected, nk_strlen(selected), type, size);
 }
 NK_API nk_bool
-nk_combo_begin_image_label(struct nk_context* ctx,
-                           const char* selected, struct nk_image img, struct nk_vec2 size) {
+nk_combo_begin_image_label(nk_context* ctx,
+                           const char* selected, nk_image img, nk_vec2 size) {
   return nk_combo_begin_image_text(ctx, selected, nk_strlen(selected), img, size);
 }
 NK_API nk_bool
-nk_combo_item_text(struct nk_context* ctx, const char* text, int len, nk_flags align) {
+nk_combo_item_text(nk_context* ctx, const char* text, int len, nk_flags align) {
   return nk_contextual_item_text(ctx, text, len, align);
 }
 NK_API nk_bool
-nk_combo_item_label(struct nk_context* ctx, const char* label, nk_flags align) {
+nk_combo_item_label(nk_context* ctx, const char* label, nk_flags align) {
   return nk_contextual_item_label(ctx, label, align);
 }
 NK_API nk_bool
-nk_combo_item_image_text(struct nk_context* ctx, struct nk_image img, const char* text,
+nk_combo_item_image_text(nk_context* ctx, nk_image img, const char* text,
                          int len, nk_flags alignment) {
   return nk_contextual_item_image_text(ctx, img, text, len, alignment);
 }
 NK_API nk_bool
-nk_combo_item_image_label(struct nk_context* ctx, struct nk_image img,
+nk_combo_item_image_label(nk_context* ctx, nk_image img,
                           const char* text, nk_flags alignment) {
   return nk_contextual_item_image_label(ctx, img, text, alignment);
 }
 NK_API nk_bool
-nk_combo_item_symbol_text(struct nk_context* ctx, enum nk_symbol_type sym,
+nk_combo_item_symbol_text(nk_context* ctx, nk_symbol_type sym,
                           const char* text, int len, nk_flags alignment) {
   return nk_contextual_item_symbol_text(ctx, sym, text, len, alignment);
 }
 NK_API nk_bool
-nk_combo_item_symbol_label(struct nk_context* ctx, enum nk_symbol_type sym,
+nk_combo_item_symbol_label(nk_context* ctx, nk_symbol_type sym,
                            const char* label, nk_flags alignment) {
   return nk_contextual_item_symbol_label(ctx, sym, label, alignment);
 }
-NK_API void nk_combo_end(struct nk_context* ctx) {
+NK_API void nk_combo_end(nk_context* ctx) {
   nk_contextual_end(ctx);
 }
-NK_API void nk_combo_close(struct nk_context* ctx) {
+NK_API void nk_combo_close(nk_context* ctx) {
   nk_contextual_close(ctx);
 }
-NK_API int
-nk_combo(struct nk_context* ctx, const char** items, int count,
-         int selected, int item_height, struct nk_vec2 size) {
+NK_API int nk_combo(nk_context* ctx, const char** items, int count,
+                    int selected, int item_height, nk_vec2 size) {
   int i = 0;
   int max_height;
-  struct nk_vec2 item_spacing;
-  struct nk_vec2 window_padding;
+  nk_vec2 item_spacing;
+  nk_vec2 window_padding;
 
   NK_ASSERT(ctx);
   NK_ASSERT(items);
@@ -704,13 +703,12 @@ nk_combo(struct nk_context* ctx, const char** items, int count,
   }
   return selected;
 }
-NK_API int
-nk_combo_separator(struct nk_context* ctx, const char* items_separated_by_separator,
-                   int separator, int selected, int count, int item_height, struct nk_vec2 size) {
+NK_API int nk_combo_separator(nk_context* ctx, const char* items_separated_by_separator,
+                              int separator, int selected, int count, int item_height, nk_vec2 size) {
   int i;
   int max_height;
-  struct nk_vec2 item_spacing;
-  struct nk_vec2 window_padding;
+  nk_vec2 item_spacing;
+  nk_vec2 window_padding;
   const char* current_item;
   const char* iter;
   int length = 0;
@@ -755,18 +753,16 @@ nk_combo_separator(struct nk_context* ctx, const char* items_separated_by_separa
   }
   return selected;
 }
-NK_API int
-nk_combo_string(struct nk_context* ctx, const char* items_separated_by_zeros,
-                int selected, int count, int item_height, struct nk_vec2 size) {
+NK_API int nk_combo_string(nk_context* ctx, const char* items_separated_by_zeros,
+                           int selected, int count, int item_height, nk_vec2 size) {
   return nk_combo_separator(ctx, items_separated_by_zeros, '\0', selected, count, item_height, size);
 }
-NK_API int
-nk_combo_callback(struct nk_context* ctx, void (*item_getter)(void*, int, const char**),
-                  void* userdata, int selected, int count, int item_height, struct nk_vec2 size) {
+NK_API int nk_combo_callback(nk_context* ctx, void (*item_getter)(void*, int, const char**),
+                             void* userdata, int selected, int count, int item_height, nk_vec2 size) {
   int i;
   int max_height;
-  struct nk_vec2 item_spacing;
-  struct nk_vec2 window_padding;
+  nk_vec2 item_spacing;
+  nk_vec2 window_padding;
   const char* item;
 
   NK_ASSERT(ctx);
@@ -793,24 +789,20 @@ nk_combo_callback(struct nk_context* ctx, void (*item_getter)(void*, int, const 
   }
   return selected;
 }
-NK_API void
-nk_combobox(struct nk_context* ctx, const char** items, int count,
-            int* selected, int item_height, struct nk_vec2 size) {
+NK_API void nk_combobox(nk_context* ctx, const char** items, int count,
+                        int* selected, int item_height, nk_vec2 size) {
   *selected = nk_combo(ctx, items, count, *selected, item_height, size);
 }
-NK_API void
-nk_combobox_string(struct nk_context* ctx, const char* items_separated_by_zeros,
-                   int* selected, int count, int item_height, struct nk_vec2 size) {
+NK_API void nk_combobox_string(nk_context* ctx, const char* items_separated_by_zeros,
+                               int* selected, int count, int item_height, nk_vec2 size) {
   *selected = nk_combo_string(ctx, items_separated_by_zeros, *selected, count, item_height, size);
 }
-NK_API void
-nk_combobox_separator(struct nk_context* ctx, const char* items_separated_by_separator,
-                      int separator, int* selected, int count, int item_height, struct nk_vec2 size) {
+NK_API void nk_combobox_separator(nk_context* ctx, const char* items_separated_by_separator,
+                                  int separator, int* selected, int count, int item_height, nk_vec2 size) {
   *selected = nk_combo_separator(ctx, items_separated_by_separator, separator, *selected, count, item_height, size);
 }
-NK_API void
-nk_combobox_callback(struct nk_context* ctx,
-                     void (*item_getter)(void* data, int id, const char** out_text),
-                     void* userdata, int* selected, int count, int item_height, struct nk_vec2 size) {
+NK_API void nk_combobox_callback(nk_context* ctx,
+                                 void (*item_getter)(void* data, int id, const char** out_text),
+                                 void* userdata, int* selected, int count, int item_height, nk_vec2 size) {
   *selected = nk_combo_callback(ctx, item_getter, userdata, *selected, count, item_height, size);
 }

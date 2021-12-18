@@ -7,16 +7,16 @@
  *
  * ===============================================================*/
 NK_API nk_bool
-nk_group_scrolled_offset_begin(struct nk_context* ctx,
+nk_group_scrolled_offset_begin(nk_context* ctx,
                                nk_uint* x_offset, nk_uint* y_offset, const char* title, nk_flags flags) {
-  struct nk_rect bounds;
-  struct nk_window panel;
-  struct nk_window* win;
+  nk_rect bounds;
+  nk_window panel;
+  nk_window* win;
 
   win = ctx->current;
   nk_panel_alloc_space(&bounds, ctx);
   {
-    const struct nk_rect* c = &win->layout->clip;
+    const nk_rect* c = &win->layout->clip;
     if (!NK_INTERSECT(c->x, c->y, c->w, c->h, bounds.x, bounds.y, bounds.w, bounds.h) &&
         !(flags & NK_WINDOW_MOVABLE)) {
       return 0;
@@ -32,7 +32,7 @@ nk_group_scrolled_offset_begin(struct nk_context* ctx,
   panel.scrollbar.x = *x_offset;
   panel.scrollbar.y = *y_offset;
   panel.buffer = win->buffer;
-  panel.layout = (struct nk_panel*)nk_create_panel(ctx);
+  panel.layout = (nk_panel*)nk_create_panel(ctx);
   ctx->current = &panel;
   nk_panel_begin(ctx, (flags & NK_WINDOW_TITLE) ? title : 0, NK_PANEL_GROUP);
 
@@ -55,15 +55,14 @@ nk_group_scrolled_offset_begin(struct nk_context* ctx,
   }
   return 1;
 }
-NK_API void
-nk_group_scrolled_end(struct nk_context* ctx) {
-  struct nk_window* win;
-  struct nk_panel* parent;
-  struct nk_panel* g;
+NK_API void nk_group_scrolled_end(nk_context* ctx) {
+  nk_window* win;
+  nk_panel* parent;
+  nk_panel* g;
 
-  struct nk_rect clip;
-  struct nk_window pan;
-  struct nk_vec2 panel_padding;
+  nk_rect clip;
+  nk_window pan;
+  nk_vec2 panel_padding;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -116,16 +115,16 @@ nk_group_scrolled_end(struct nk_context* ctx) {
   return;
 }
 NK_API nk_bool
-nk_group_scrolled_begin(struct nk_context* ctx,
-                        struct nk_scroll* scroll, const char* title, nk_flags flags) {
+nk_group_scrolled_begin(nk_context* ctx,
+                        nk_scroll* scroll, const char* title, nk_flags flags) {
   return nk_group_scrolled_offset_begin(ctx, &scroll->x, &scroll->y, title, flags);
 }
 NK_API nk_bool
-nk_group_begin_titled(struct nk_context* ctx, const char* id,
+nk_group_begin_titled(nk_context* ctx, const char* id,
                       const char* title, nk_flags flags) {
   int id_len;
   nk_hash id_hash;
-  struct nk_window* win;
+  nk_window* win;
   nk_uint* x_offset;
   nk_uint* y_offset;
 
@@ -155,18 +154,16 @@ nk_group_begin_titled(struct nk_context* ctx, const char* id,
   return nk_group_scrolled_offset_begin(ctx, x_offset, y_offset, title, flags);
 }
 NK_API nk_bool
-nk_group_begin(struct nk_context* ctx, const char* title, nk_flags flags) {
+nk_group_begin(nk_context* ctx, const char* title, nk_flags flags) {
   return nk_group_begin_titled(ctx, title, title, flags);
 }
-NK_API void
-nk_group_end(struct nk_context* ctx) {
+NK_API void nk_group_end(nk_context* ctx) {
   nk_group_scrolled_end(ctx);
 }
-NK_API void
-nk_group_get_scroll(struct nk_context* ctx, const char* id, nk_uint* x_offset, nk_uint* y_offset) {
+NK_API void nk_group_get_scroll(nk_context* ctx, const char* id, nk_uint* x_offset, nk_uint* y_offset) {
   int id_len;
   nk_hash id_hash;
-  struct nk_window* win;
+  nk_window* win;
   nk_uint* x_offset_ptr;
   nk_uint* y_offset_ptr;
 
@@ -198,11 +195,10 @@ nk_group_get_scroll(struct nk_context* ctx, const char* id, nk_uint* x_offset, n
   if (y_offset)
     *y_offset = *y_offset_ptr;
 }
-NK_API void
-nk_group_set_scroll(struct nk_context* ctx, const char* id, nk_uint x_offset, nk_uint y_offset) {
+NK_API void nk_group_set_scroll(nk_context* ctx, const char* id, nk_uint x_offset, nk_uint y_offset) {
   int id_len;
   nk_hash id_hash;
-  struct nk_window* win;
+  nk_window* win;
   nk_uint* x_offset_ptr;
   nk_uint* y_offset_ptr;
 

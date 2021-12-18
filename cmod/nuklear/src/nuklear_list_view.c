@@ -7,7 +7,7 @@
  *
  * ===============================================================*/
 NK_API nk_bool
-nk_list_view_begin(struct nk_context* ctx, struct nk_list_view* view,
+nk_list_view_begin(nk_context* ctx, nk_list_view* view,
                    const char* title, nk_flags flags, int row_height, int row_count) {
   int title_len;
   nk_hash title_hash;
@@ -15,10 +15,10 @@ nk_list_view_begin(struct nk_context* ctx, struct nk_list_view* view,
   nk_uint* y_offset;
 
   int result;
-  struct nk_window* win;
-  struct nk_panel* layout;
-  const struct nk_style* style;
-  struct nk_vec2 item_spacing;
+  nk_window* win;
+  nk_panel* layout;
+  const nk_style* style;
+  nk_vec2 item_spacing;
 
   NK_ASSERT(ctx);
   NK_ASSERT(view);
@@ -62,11 +62,10 @@ nk_list_view_begin(struct nk_context* ctx, struct nk_list_view* view,
   view->ctx = ctx;
   return result;
 }
-NK_API void
-nk_list_view_end(struct nk_list_view* view) {
-  struct nk_context* ctx;
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API void nk_list_view_end(nk_list_view* view) {
+  nk_context* ctx;
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(view);
   NK_ASSERT(view->ctx);

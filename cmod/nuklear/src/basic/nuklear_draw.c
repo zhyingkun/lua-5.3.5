@@ -6,9 +6,8 @@
  *                          DRAW
  *
  * ===============================================================*/
-NK_LIB void
-nk_command_buffer_init(struct nk_command_buffer* cb,
-                       struct nk_buffer* b, enum nk_command_clipping clip) {
+NK_LIB void nk_command_buffer_init(nk_command_buffer* cb,
+                                   nk_buffer* b, nk_command_clipping clip) {
   NK_ASSERT(cb);
   NK_ASSERT(b);
   if (!cb || !b)
@@ -19,8 +18,7 @@ nk_command_buffer_init(struct nk_command_buffer* cb,
   cb->end = b->allocated;
   cb->last = b->allocated;
 }
-NK_LIB void
-nk_command_buffer_reset(struct nk_command_buffer* b) {
+NK_LIB void nk_command_buffer_reset(nk_command_buffer* b) {
   NK_ASSERT(b);
   if (!b)
     return;
@@ -33,10 +31,10 @@ nk_command_buffer_reset(struct nk_command_buffer* b) {
 #endif
 }
 NK_LIB void*
-nk_command_buffer_push(struct nk_command_buffer* b,
-                       enum nk_command_type t, nk_size size) {
-  NK_STORAGE const nk_size align = NK_ALIGNOF(struct nk_command);
-  struct nk_command* cmd;
+nk_command_buffer_push(nk_command_buffer* b,
+                       nk_command_type t, nk_size size) {
+  NK_STORAGE const nk_size align = NK_ALIGNOF(nk_command);
+  nk_command* cmd;
   nk_size alignment;
   void* unaligned;
   void* memory;
@@ -45,7 +43,7 @@ nk_command_buffer_push(struct nk_command_buffer* b,
   NK_ASSERT(b->base);
   if (!b)
     return 0;
-  cmd = (struct nk_command*)nk_buffer_alloc(b->base, NK_BUFFER_FRONT, size, align);
+  cmd = (nk_command*)nk_buffer_alloc(b->base, NK_BUFFER_FRONT, size, align);
   if (!cmd)
     return 0;
 
@@ -66,9 +64,8 @@ nk_command_buffer_push(struct nk_command_buffer* b,
   b->end = cmd->next;
   return cmd;
 }
-NK_API void
-nk_push_scissor(struct nk_command_buffer* b, struct nk_rect r) {
-  struct nk_command_scissor* cmd;
+NK_API void nk_push_scissor(nk_command_buffer* b, nk_rect r) {
+  nk_command_scissor* cmd;
   NK_ASSERT(b);
   if (!b)
     return;
@@ -77,7 +74,7 @@ nk_push_scissor(struct nk_command_buffer* b, struct nk_rect r) {
   b->clip.y = r.y;
   b->clip.w = r.w;
   b->clip.h = r.h;
-  cmd = (struct nk_command_scissor*)
+  cmd = (nk_command_scissor*)
       nk_command_buffer_push(b, NK_COMMAND_SCISSOR, sizeof(*cmd));
 
   if (!cmd)
@@ -87,14 +84,13 @@ nk_push_scissor(struct nk_command_buffer* b, struct nk_rect r) {
   cmd->w = (unsigned short)NK_MAX(0, r.w);
   cmd->h = (unsigned short)NK_MAX(0, r.h);
 }
-NK_API void
-nk_stroke_line(struct nk_command_buffer* b, float x0, float y0,
-               float x1, float y1, float line_thickness, struct nk_color c) {
-  struct nk_command_line* cmd;
+NK_API void nk_stroke_line(nk_command_buffer* b, float x0, float y0,
+                           float x1, float y1, float line_thickness, nk_color c) {
+  nk_command_line* cmd;
   NK_ASSERT(b);
   if (!b || line_thickness <= 0)
     return;
-  cmd = (struct nk_command_line*)
+  cmd = (nk_command_line*)
       nk_command_buffer_push(b, NK_COMMAND_LINE, sizeof(*cmd));
   if (!cmd)
     return;
@@ -105,16 +101,15 @@ nk_stroke_line(struct nk_command_buffer* b, float x0, float y0,
   cmd->end.y = (short)y1;
   cmd->color = c;
 }
-NK_API void
-nk_stroke_curve(struct nk_command_buffer* b, float ax, float ay,
-                float ctrl0x, float ctrl0y, float ctrl1x, float ctrl1y,
-                float bx, float by, float line_thickness, struct nk_color col) {
-  struct nk_command_curve* cmd;
+NK_API void nk_stroke_curve(nk_command_buffer* b, float ax, float ay,
+                            float ctrl0x, float ctrl0y, float ctrl1x, float ctrl1y,
+                            float bx, float by, float line_thickness, nk_color col) {
+  nk_command_curve* cmd;
   NK_ASSERT(b);
   if (!b || col.a == 0 || line_thickness <= 0)
     return;
 
-  cmd = (struct nk_command_curve*)
+  cmd = (nk_command_curve*)
       nk_command_buffer_push(b, NK_COMMAND_CURVE, sizeof(*cmd));
   if (!cmd)
     return;
@@ -129,19 +124,18 @@ nk_stroke_curve(struct nk_command_buffer* b, float ax, float ay,
   cmd->end.y = (short)by;
   cmd->color = col;
 }
-NK_API void
-nk_stroke_rect(struct nk_command_buffer* b, struct nk_rect rect,
-               float rounding, float line_thickness, struct nk_color c) {
-  struct nk_command_rect* cmd;
+NK_API void nk_stroke_rect(nk_command_buffer* b, nk_rect rect,
+                           float rounding, float line_thickness, nk_color c) {
+  nk_command_rect* cmd;
   NK_ASSERT(b);
   if (!b || c.a == 0 || rect.w == 0 || rect.h == 0 || line_thickness <= 0)
     return;
   if (b->use_clipping) {
-    const struct nk_rect* clip = &b->clip;
+    const nk_rect* clip = &b->clip;
     if (!NK_INTERSECT(rect.x, rect.y, rect.w, rect.h, clip->x, clip->y, clip->w, clip->h))
       return;
   }
-  cmd = (struct nk_command_rect*)
+  cmd = (nk_command_rect*)
       nk_command_buffer_push(b, NK_COMMAND_RECT, sizeof(*cmd));
   if (!cmd)
     return;
@@ -153,20 +147,19 @@ nk_stroke_rect(struct nk_command_buffer* b, struct nk_rect rect,
   cmd->h = (unsigned short)NK_MAX(0, rect.h);
   cmd->color = c;
 }
-NK_API void
-nk_fill_rect(struct nk_command_buffer* b, struct nk_rect rect,
-             float rounding, struct nk_color c) {
-  struct nk_command_rect_filled* cmd;
+NK_API void nk_fill_rect(nk_command_buffer* b, nk_rect rect,
+                         float rounding, nk_color c) {
+  nk_command_rect_filled* cmd;
   NK_ASSERT(b);
   if (!b || c.a == 0 || rect.w == 0 || rect.h == 0)
     return;
   if (b->use_clipping) {
-    const struct nk_rect* clip = &b->clip;
+    const nk_rect* clip = &b->clip;
     if (!NK_INTERSECT(rect.x, rect.y, rect.w, rect.h, clip->x, clip->y, clip->w, clip->h))
       return;
   }
 
-  cmd = (struct nk_command_rect_filled*)
+  cmd = (nk_command_rect_filled*)
       nk_command_buffer_push(b, NK_COMMAND_RECT_FILLED, sizeof(*cmd));
   if (!cmd)
     return;
@@ -177,21 +170,20 @@ nk_fill_rect(struct nk_command_buffer* b, struct nk_rect rect,
   cmd->h = (unsigned short)NK_MAX(0, rect.h);
   cmd->color = c;
 }
-NK_API void
-nk_fill_rect_multi_color(struct nk_command_buffer* b, struct nk_rect rect,
-                         struct nk_color left, struct nk_color top, struct nk_color right,
-                         struct nk_color bottom) {
-  struct nk_command_rect_multi_color* cmd;
+NK_API void nk_fill_rect_multi_color(nk_command_buffer* b, nk_rect rect,
+                                     nk_color left, nk_color top, nk_color right,
+                                     nk_color bottom) {
+  nk_command_rect_multi_color* cmd;
   NK_ASSERT(b);
   if (!b || rect.w == 0 || rect.h == 0)
     return;
   if (b->use_clipping) {
-    const struct nk_rect* clip = &b->clip;
+    const nk_rect* clip = &b->clip;
     if (!NK_INTERSECT(rect.x, rect.y, rect.w, rect.h, clip->x, clip->y, clip->w, clip->h))
       return;
   }
 
-  cmd = (struct nk_command_rect_multi_color*)
+  cmd = (nk_command_rect_multi_color*)
       nk_command_buffer_push(b, NK_COMMAND_RECT_MULTI_COLOR, sizeof(*cmd));
   if (!cmd)
     return;
@@ -204,19 +196,18 @@ nk_fill_rect_multi_color(struct nk_command_buffer* b, struct nk_rect rect,
   cmd->right = right;
   cmd->bottom = bottom;
 }
-NK_API void
-nk_stroke_circle(struct nk_command_buffer* b, struct nk_rect r,
-                 float line_thickness, struct nk_color c) {
-  struct nk_command_circle* cmd;
+NK_API void nk_stroke_circle(nk_command_buffer* b, nk_rect r,
+                             float line_thickness, nk_color c) {
+  nk_command_circle* cmd;
   if (!b || r.w == 0 || r.h == 0 || line_thickness <= 0)
     return;
   if (b->use_clipping) {
-    const struct nk_rect* clip = &b->clip;
+    const nk_rect* clip = &b->clip;
     if (!NK_INTERSECT(r.x, r.y, r.w, r.h, clip->x, clip->y, clip->w, clip->h))
       return;
   }
 
-  cmd = (struct nk_command_circle*)
+  cmd = (nk_command_circle*)
       nk_command_buffer_push(b, NK_COMMAND_CIRCLE, sizeof(*cmd));
   if (!cmd)
     return;
@@ -227,19 +218,18 @@ nk_stroke_circle(struct nk_command_buffer* b, struct nk_rect r,
   cmd->h = (unsigned short)NK_MAX(r.h, 0);
   cmd->color = c;
 }
-NK_API void
-nk_fill_circle(struct nk_command_buffer* b, struct nk_rect r, struct nk_color c) {
-  struct nk_command_circle_filled* cmd;
+NK_API void nk_fill_circle(nk_command_buffer* b, nk_rect r, nk_color c) {
+  nk_command_circle_filled* cmd;
   NK_ASSERT(b);
   if (!b || c.a == 0 || r.w == 0 || r.h == 0)
     return;
   if (b->use_clipping) {
-    const struct nk_rect* clip = &b->clip;
+    const nk_rect* clip = &b->clip;
     if (!NK_INTERSECT(r.x, r.y, r.w, r.h, clip->x, clip->y, clip->w, clip->h))
       return;
   }
 
-  cmd = (struct nk_command_circle_filled*)
+  cmd = (nk_command_circle_filled*)
       nk_command_buffer_push(b, NK_COMMAND_CIRCLE_FILLED, sizeof(*cmd));
   if (!cmd)
     return;
@@ -249,13 +239,12 @@ nk_fill_circle(struct nk_command_buffer* b, struct nk_rect r, struct nk_color c)
   cmd->h = (unsigned short)NK_MAX(r.h, 0);
   cmd->color = c;
 }
-NK_API void
-nk_stroke_arc(struct nk_command_buffer* b, float cx, float cy, float radius,
-              float a_min, float a_max, float line_thickness, struct nk_color c) {
-  struct nk_command_arc* cmd;
+NK_API void nk_stroke_arc(nk_command_buffer* b, float cx, float cy, float radius,
+                          float a_min, float a_max, float line_thickness, nk_color c) {
+  nk_command_arc* cmd;
   if (!b || c.a == 0 || line_thickness <= 0)
     return;
-  cmd = (struct nk_command_arc*)
+  cmd = (nk_command_arc*)
       nk_command_buffer_push(b, NK_COMMAND_ARC, sizeof(*cmd));
   if (!cmd)
     return;
@@ -267,14 +256,13 @@ nk_stroke_arc(struct nk_command_buffer* b, float cx, float cy, float radius,
   cmd->a[1] = a_max;
   cmd->color = c;
 }
-NK_API void
-nk_fill_arc(struct nk_command_buffer* b, float cx, float cy, float radius,
-            float a_min, float a_max, struct nk_color c) {
-  struct nk_command_arc_filled* cmd;
+NK_API void nk_fill_arc(nk_command_buffer* b, float cx, float cy, float radius,
+                        float a_min, float a_max, nk_color c) {
+  nk_command_arc_filled* cmd;
   NK_ASSERT(b);
   if (!b || c.a == 0)
     return;
-  cmd = (struct nk_command_arc_filled*)
+  cmd = (nk_command_arc_filled*)
       nk_command_buffer_push(b, NK_COMMAND_ARC_FILLED, sizeof(*cmd));
   if (!cmd)
     return;
@@ -285,22 +273,21 @@ nk_fill_arc(struct nk_command_buffer* b, float cx, float cy, float radius,
   cmd->a[1] = a_max;
   cmd->color = c;
 }
-NK_API void
-nk_stroke_triangle(struct nk_command_buffer* b, float x0, float y0, float x1,
-                   float y1, float x2, float y2, float line_thickness, struct nk_color c) {
-  struct nk_command_triangle* cmd;
+NK_API void nk_stroke_triangle(nk_command_buffer* b, float x0, float y0, float x1,
+                               float y1, float x2, float y2, float line_thickness, nk_color c) {
+  nk_command_triangle* cmd;
   NK_ASSERT(b);
   if (!b || c.a == 0 || line_thickness <= 0)
     return;
   if (b->use_clipping) {
-    const struct nk_rect* clip = &b->clip;
+    const nk_rect* clip = &b->clip;
     if (!NK_INBOX(x0, y0, clip->x, clip->y, clip->w, clip->h) &&
         !NK_INBOX(x1, y1, clip->x, clip->y, clip->w, clip->h) &&
         !NK_INBOX(x2, y2, clip->x, clip->y, clip->w, clip->h))
       return;
   }
 
-  cmd = (struct nk_command_triangle*)
+  cmd = (nk_command_triangle*)
       nk_command_buffer_push(b, NK_COMMAND_TRIANGLE, sizeof(*cmd));
   if (!cmd)
     return;
@@ -313,24 +300,23 @@ nk_stroke_triangle(struct nk_command_buffer* b, float x0, float y0, float x1,
   cmd->c.y = (short)y2;
   cmd->color = c;
 }
-NK_API void
-nk_fill_triangle(struct nk_command_buffer* b, float x0, float y0, float x1,
-                 float y1, float x2, float y2, struct nk_color c) {
-  struct nk_command_triangle_filled* cmd;
+NK_API void nk_fill_triangle(nk_command_buffer* b, float x0, float y0, float x1,
+                             float y1, float x2, float y2, nk_color c) {
+  nk_command_triangle_filled* cmd;
   NK_ASSERT(b);
   if (!b || c.a == 0)
     return;
   if (!b)
     return;
   if (b->use_clipping) {
-    const struct nk_rect* clip = &b->clip;
+    const nk_rect* clip = &b->clip;
     if (!NK_INBOX(x0, y0, clip->x, clip->y, clip->w, clip->h) &&
         !NK_INBOX(x1, y1, clip->x, clip->y, clip->w, clip->h) &&
         !NK_INBOX(x2, y2, clip->x, clip->y, clip->w, clip->h))
       return;
   }
 
-  cmd = (struct nk_command_triangle_filled*)
+  cmd = (nk_command_triangle_filled*)
       nk_command_buffer_push(b, NK_COMMAND_TRIANGLE_FILLED, sizeof(*cmd));
   if (!cmd)
     return;
@@ -342,18 +328,17 @@ nk_fill_triangle(struct nk_command_buffer* b, float x0, float y0, float x1,
   cmd->c.y = (short)y2;
   cmd->color = c;
 }
-NK_API void
-nk_stroke_polygon(struct nk_command_buffer* b, float* points, int point_count,
-                  float line_thickness, struct nk_color col) {
+NK_API void nk_stroke_polygon(nk_command_buffer* b, float* points, int point_count,
+                              float line_thickness, nk_color col) {
   int i;
   nk_size size = 0;
-  struct nk_command_polygon* cmd;
+  nk_command_polygon* cmd;
 
   NK_ASSERT(b);
   if (!b || col.a == 0 || line_thickness <= 0)
     return;
   size = sizeof(*cmd) + sizeof(short) * 2 * (nk_size)point_count;
-  cmd = (struct nk_command_polygon*)nk_command_buffer_push(b, NK_COMMAND_POLYGON, size);
+  cmd = (nk_command_polygon*)nk_command_buffer_push(b, NK_COMMAND_POLYGON, size);
   if (!cmd)
     return;
   cmd->color = col;
@@ -364,18 +349,17 @@ nk_stroke_polygon(struct nk_command_buffer* b, float* points, int point_count,
     cmd->points[i].y = (short)points[i * 2 + 1];
   }
 }
-NK_API void
-nk_fill_polygon(struct nk_command_buffer* b, float* points, int point_count,
-                struct nk_color col) {
+NK_API void nk_fill_polygon(nk_command_buffer* b, float* points, int point_count,
+                            nk_color col) {
   int i;
   nk_size size = 0;
-  struct nk_command_polygon_filled* cmd;
+  nk_command_polygon_filled* cmd;
 
   NK_ASSERT(b);
   if (!b || col.a == 0)
     return;
   size = sizeof(*cmd) + sizeof(short) * 2 * (nk_size)point_count;
-  cmd = (struct nk_command_polygon_filled*)
+  cmd = (nk_command_polygon_filled*)
       nk_command_buffer_push(b, NK_COMMAND_POLYGON_FILLED, size);
   if (!cmd)
     return;
@@ -386,18 +370,17 @@ nk_fill_polygon(struct nk_command_buffer* b, float* points, int point_count,
     cmd->points[i].y = (short)points[i * 2 + 1];
   }
 }
-NK_API void
-nk_stroke_polyline(struct nk_command_buffer* b, float* points, int point_count,
-                   float line_thickness, struct nk_color col) {
+NK_API void nk_stroke_polyline(nk_command_buffer* b, float* points, int point_count,
+                               float line_thickness, nk_color col) {
   int i;
   nk_size size = 0;
-  struct nk_command_polyline* cmd;
+  nk_command_polyline* cmd;
 
   NK_ASSERT(b);
   if (!b || col.a == 0 || line_thickness <= 0)
     return;
   size = sizeof(*cmd) + sizeof(short) * 2 * (nk_size)point_count;
-  cmd = (struct nk_command_polyline*)nk_command_buffer_push(b, NK_COMMAND_POLYLINE, size);
+  cmd = (nk_command_polyline*)nk_command_buffer_push(b, NK_COMMAND_POLYLINE, size);
   if (!cmd)
     return;
   cmd->color = col;
@@ -408,20 +391,19 @@ nk_stroke_polyline(struct nk_command_buffer* b, float* points, int point_count,
     cmd->points[i].y = (short)points[i * 2 + 1];
   }
 }
-NK_API void
-nk_draw_image(struct nk_command_buffer* b, struct nk_rect r,
-              const struct nk_image* img, struct nk_color col) {
-  struct nk_command_image* cmd;
+NK_API void nk_draw_image(nk_command_buffer* b, nk_rect r,
+                          const nk_image* img, nk_color col) {
+  nk_command_image* cmd;
   NK_ASSERT(b);
   if (!b)
     return;
   if (b->use_clipping) {
-    const struct nk_rect* c = &b->clip;
+    const nk_rect* c = &b->clip;
     if (c->w == 0 || c->h == 0 || !NK_INTERSECT(r.x, r.y, r.w, r.h, c->x, c->y, c->w, c->h))
       return;
   }
 
-  cmd = (struct nk_command_image*)
+  cmd = (nk_command_image*)
       nk_command_buffer_push(b, NK_COMMAND_IMAGE, sizeof(*cmd));
   if (!cmd)
     return;
@@ -432,11 +414,10 @@ nk_draw_image(struct nk_command_buffer* b, struct nk_rect r,
   cmd->img = *img;
   cmd->col = col;
 }
-NK_API void
-nk_draw_nine_slice(struct nk_command_buffer* b, struct nk_rect r,
-                   const struct nk_nine_slice* slc, struct nk_color col) {
-  struct nk_image img;
-  const struct nk_image* slcimg = (const struct nk_image*)slc;
+NK_API void nk_draw_nine_slice(nk_command_buffer* b, nk_rect r,
+                               const nk_nine_slice* slc, nk_color col) {
+  nk_image img;
+  const nk_image* slcimg = (const nk_image*)slc;
   nk_ushort rgnX, rgnY, rgnW, rgnH;
   rgnX = slcimg->region[0];
   rgnY = slcimg->region[1];
@@ -453,7 +434,7 @@ nk_draw_nine_slice(struct nk_command_buffer* b, struct nk_rect r,
   img.region[3] = slc->t;
 
   nk_draw_image(b,
-                nk_rect(r.x, r.y, (float)slc->l, (float)slc->t),
+                nk_make_rect(r.x, r.y, (float)slc->l, (float)slc->t),
                 &img,
                 col);
 
@@ -466,75 +447,74 @@ nk_draw_nine_slice(struct nk_command_buffer* b, struct nk_rect r,
   /* top-center */
   IMG_RGN(rgnX + slc->l, rgnY, rgnW - slc->l - slc->r, slc->t);
   nk_draw_image(b,
-                nk_rect(r.x + (float)slc->l, r.y, (float)(r.w - slc->l - slc->r), (float)slc->t),
+                nk_make_rect(r.x + (float)slc->l, r.y, (float)(r.w - slc->l - slc->r), (float)slc->t),
                 &img,
                 col);
 
   /* top-right */
   IMG_RGN(rgnX + rgnW - slc->r, rgnY, slc->r, slc->t);
   nk_draw_image(b,
-                nk_rect(r.x + r.w - (float)slc->r, r.y, (float)slc->r, (float)slc->t),
+                nk_make_rect(r.x + r.w - (float)slc->r, r.y, (float)slc->r, (float)slc->t),
                 &img,
                 col);
 
   /* center-left */
   IMG_RGN(rgnX, rgnY + slc->t, slc->l, rgnH - slc->t - slc->b);
   nk_draw_image(b,
-                nk_rect(r.x, r.y + (float)slc->t, (float)slc->l, (float)(r.h - slc->t - slc->b)),
+                nk_make_rect(r.x, r.y + (float)slc->t, (float)slc->l, (float)(r.h - slc->t - slc->b)),
                 &img,
                 col);
 
   /* center */
   IMG_RGN(rgnX + slc->l, rgnY + slc->t, rgnW - slc->l - slc->r, rgnH - slc->t - slc->b);
   nk_draw_image(b,
-                nk_rect(r.x + (float)slc->l, r.y + (float)slc->t, (float)(r.w - slc->l - slc->r), (float)(r.h - slc->t - slc->b)),
+                nk_make_rect(r.x + (float)slc->l, r.y + (float)slc->t, (float)(r.w - slc->l - slc->r), (float)(r.h - slc->t - slc->b)),
                 &img,
                 col);
 
   /* center-right */
   IMG_RGN(rgnX + rgnW - slc->r, rgnY + slc->t, slc->r, rgnH - slc->t - slc->b);
   nk_draw_image(b,
-                nk_rect(r.x + r.w - (float)slc->r, r.y + (float)slc->t, (float)slc->r, (float)(r.h - slc->t - slc->b)),
+                nk_make_rect(r.x + r.w - (float)slc->r, r.y + (float)slc->t, (float)slc->r, (float)(r.h - slc->t - slc->b)),
                 &img,
                 col);
 
   /* bottom-left */
   IMG_RGN(rgnX, rgnY + rgnH - slc->b, slc->l, slc->b);
   nk_draw_image(b,
-                nk_rect(r.x, r.y + r.h - (float)slc->b, (float)slc->l, (float)slc->b),
+                nk_make_rect(r.x, r.y + r.h - (float)slc->b, (float)slc->l, (float)slc->b),
                 &img,
                 col);
 
   /* bottom-center */
   IMG_RGN(rgnX + slc->l, rgnY + rgnH - slc->b, rgnW - slc->l - slc->r, slc->b);
   nk_draw_image(b,
-                nk_rect(r.x + (float)slc->l, r.y + r.h - (float)slc->b, (float)(r.w - slc->l - slc->r), (float)slc->b),
+                nk_make_rect(r.x + (float)slc->l, r.y + r.h - (float)slc->b, (float)(r.w - slc->l - slc->r), (float)slc->b),
                 &img,
                 col);
 
   /* bottom-right */
   IMG_RGN(rgnX + rgnW - slc->r, rgnY + rgnH - slc->b, slc->r, slc->b);
   nk_draw_image(b,
-                nk_rect(r.x + r.w - (float)slc->r, r.y + r.h - (float)slc->b, (float)slc->r, (float)slc->b),
+                nk_make_rect(r.x + r.w - (float)slc->r, r.y + r.h - (float)slc->b, (float)slc->r, (float)slc->b),
                 &img,
                 col);
 
 #undef IMG_RGN
 }
-NK_API void
-nk_push_custom(struct nk_command_buffer* b, struct nk_rect r,
-               nk_command_custom_callback cb, nk_handle usr) {
-  struct nk_command_custom* cmd;
+NK_API void nk_push_custom(nk_command_buffer* b, nk_rect r,
+                           nk_command_custom_callback cb, nk_handle usr) {
+  nk_command_custom* cmd;
   NK_ASSERT(b);
   if (!b)
     return;
   if (b->use_clipping) {
-    const struct nk_rect* c = &b->clip;
+    const nk_rect* c = &b->clip;
     if (c->w == 0 || c->h == 0 || !NK_INTERSECT(r.x, r.y, r.w, r.h, c->x, c->y, c->w, c->h))
       return;
   }
 
-  cmd = (struct nk_command_custom*)
+  cmd = (nk_command_custom*)
       nk_command_buffer_push(b, NK_COMMAND_CUSTOM, sizeof(*cmd));
   if (!cmd)
     return;
@@ -545,19 +525,18 @@ nk_push_custom(struct nk_command_buffer* b, struct nk_rect r,
   cmd->callback_data = usr;
   cmd->callback = cb;
 }
-NK_API void
-nk_draw_text(struct nk_command_buffer* b, struct nk_rect r,
-             const char* string, int length, const struct nk_user_font* font,
-             struct nk_color bg, struct nk_color fg) {
+NK_API void nk_draw_text(nk_command_buffer* b, nk_rect r,
+                         const char* string, int length, const nk_user_font* font,
+                         nk_color bg, nk_color fg) {
   float text_width = 0;
-  struct nk_command_text* cmd;
+  nk_command_text* cmd;
 
   NK_ASSERT(b);
   NK_ASSERT(font);
   if (!b || !string || !length || (bg.a == 0 && fg.a == 0))
     return;
   if (b->use_clipping) {
-    const struct nk_rect* c = &b->clip;
+    const nk_rect* c = &b->clip;
     if (c->w == 0 || c->h == 0 || !NK_INTERSECT(r.x, r.y, r.w, r.h, c->x, c->y, c->w, c->h))
       return;
   }
@@ -572,7 +551,7 @@ nk_draw_text(struct nk_command_buffer* b, struct nk_rect r,
 
   if (!length)
     return;
-  cmd = (struct nk_command_text*)
+  cmd = (nk_command_text*)
       nk_command_buffer_push(b, NK_COMMAND_TEXT, sizeof(*cmd) + (nk_size)(length + 1));
   if (!cmd)
     return;

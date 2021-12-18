@@ -6,10 +6,9 @@
  *                          LAYOUT
  *
  * ===============================================================*/
-NK_API void
-nk_layout_set_min_row_height(struct nk_context* ctx, float height) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API void nk_layout_set_min_row_height(nk_context* ctx, float height) {
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -21,10 +20,9 @@ nk_layout_set_min_row_height(struct nk_context* ctx, float height) {
   layout = win->layout;
   layout->row.min_height = height;
 }
-NK_API void
-nk_layout_reset_min_row_height(struct nk_context* ctx) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API void nk_layout_reset_min_row_height(nk_context* ctx) {
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -39,12 +37,12 @@ nk_layout_reset_min_row_height(struct nk_context* ctx) {
   layout->row.min_height += ctx->style.window.min_row_height_padding * 2;
 }
 NK_LIB float
-nk_layout_row_calculate_usable_space(const struct nk_style* style, enum nk_panel_type type,
+nk_layout_row_calculate_usable_space(const nk_style* style, nk_panel_type type,
                                      float total_space, int columns) {
   float panel_spacing;
   float panel_space;
 
-  struct nk_vec2 spacing;
+  nk_vec2 spacing;
 
   NK_UNUSED(type);
 
@@ -55,15 +53,14 @@ nk_layout_row_calculate_usable_space(const struct nk_style* style, enum nk_panel
   panel_space = total_space - panel_spacing;
   return panel_space;
 }
-NK_LIB void
-nk_panel_layout(const struct nk_context* ctx, struct nk_window* win,
-                float height, int cols) {
-  struct nk_panel* layout;
-  const struct nk_style* style;
-  struct nk_command_buffer* out;
+NK_LIB void nk_panel_layout(const nk_context* ctx, nk_window* win,
+                            float height, int cols) {
+  nk_panel* layout;
+  const nk_style* style;
+  nk_command_buffer* out;
 
-  struct nk_vec2 item_spacing;
-  struct nk_color color;
+  nk_vec2 item_spacing;
+  nk_color color;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -99,7 +96,7 @@ nk_panel_layout(const struct nk_context* ctx, struct nk_window* win,
   layout->row.item_offset = 0;
   if (layout->flags & NK_WINDOW_DYNAMIC) {
     /* draw background for dynamic panels */
-    struct nk_rect background;
+    nk_rect background;
     background.x = win->bounds.x;
     background.w = win->bounds.w;
     background.y = layout->at_y - 1.0f;
@@ -107,11 +104,9 @@ nk_panel_layout(const struct nk_context* ctx, struct nk_window* win,
     nk_fill_rect(out, background, 0, color);
   }
 }
-NK_LIB void
-nk_row_layout(struct nk_context* ctx, enum nk_layout_format fmt,
-              float height, int cols, int width) {
+NK_LIB void nk_make_row_layout(nk_context* ctx, nk_layout_format fmt, float height, int cols, int width) {
   /* update the current row and set the current row layout */
-  struct nk_window* win;
+  nk_window* win;
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
   NK_ASSERT(ctx->current->layout);
@@ -130,9 +125,8 @@ nk_row_layout(struct nk_context* ctx, enum nk_layout_format fmt,
   win->layout->row.item_offset = 0;
   win->layout->row.item_width = (float)width;
 }
-NK_API float
-nk_layout_ratio_from_pixel(struct nk_context* ctx, float pixel_width) {
-  struct nk_window* win;
+NK_API float nk_layout_ratio_from_pixel(nk_context* ctx, float pixel_width) {
+  nk_window* win;
   NK_ASSERT(ctx);
   NK_ASSERT(pixel_width);
   if (!ctx || !ctx->current || !ctx->current->layout)
@@ -140,19 +134,16 @@ nk_layout_ratio_from_pixel(struct nk_context* ctx, float pixel_width) {
   win = ctx->current;
   return NK_CLAMP(0.0f, pixel_width / win->bounds.x, 1.0f);
 }
-NK_API void
-nk_layout_row_dynamic(struct nk_context* ctx, float height, int cols) {
-  nk_row_layout(ctx, NK_DYNAMIC, height, cols, 0);
+NK_API void nk_layout_row_dynamic(nk_context* ctx, float height, int cols) {
+  nk_make_row_layout(ctx, NK_DYNAMIC, height, cols, 0);
 }
-NK_API void
-nk_layout_row_static(struct nk_context* ctx, float height, int item_width, int cols) {
-  nk_row_layout(ctx, NK_STATIC, height, cols, item_width);
+NK_API void nk_layout_row_static(nk_context* ctx, float height, int item_width, int cols) {
+  nk_make_row_layout(ctx, NK_STATIC, height, cols, item_width);
 }
-NK_API void
-nk_layout_row_begin(struct nk_context* ctx, enum nk_layout_format fmt,
-                    float row_height, int cols) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API void nk_layout_row_begin(nk_context* ctx, nk_layout_format fmt,
+                                float row_height, int cols) {
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -174,10 +165,9 @@ nk_layout_row_begin(struct nk_context* ctx, enum nk_layout_format fmt,
   layout->row.item_offset = 0;
   layout->row.columns = cols;
 }
-NK_API void
-nk_layout_row_push(struct nk_context* ctx, float ratio_or_width) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API void nk_layout_row_push(nk_context* ctx, float ratio_or_width) {
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -202,10 +192,9 @@ nk_layout_row_push(struct nk_context* ctx, float ratio_or_width) {
   } else
     layout->row.item_width = ratio_or_width;
 }
-NK_API void
-nk_layout_row_end(struct nk_context* ctx) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API void nk_layout_row_end(nk_context* ctx) {
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -221,13 +210,12 @@ nk_layout_row_end(struct nk_context* ctx) {
   layout->row.item_width = 0;
   layout->row.item_offset = 0;
 }
-NK_API void
-nk_layout_row(struct nk_context* ctx, enum nk_layout_format fmt,
-              float height, int cols, const float* ratio) {
+NK_API void nk_layout_row(nk_context* ctx, nk_layout_format fmt,
+                          float height, int cols, const float* ratio) {
   int i;
   int n_undef = 0;
-  struct nk_window* win;
-  struct nk_panel* layout;
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -260,10 +248,9 @@ nk_layout_row(struct nk_context* ctx, enum nk_layout_format fmt,
   layout->row.item_offset = 0;
   layout->row.filled = 0;
 }
-NK_API void
-nk_layout_row_template_begin(struct nk_context* ctx, float height) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API void nk_layout_row_template_begin(nk_context* ctx, float height) {
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -286,10 +273,9 @@ nk_layout_row_template_begin(struct nk_context* ctx, float height) {
   layout->row.item.w = 0;
   layout->row.item.h = 0;
 }
-NK_API void
-nk_layout_row_template_push_dynamic(struct nk_context* ctx) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API void nk_layout_row_template_push_dynamic(nk_context* ctx) {
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -307,10 +293,9 @@ nk_layout_row_template_push_dynamic(struct nk_context* ctx) {
     return;
   layout->row.templates[layout->row.columns++] = -1.0f;
 }
-NK_API void
-nk_layout_row_template_push_variable(struct nk_context* ctx, float min_width) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API void nk_layout_row_template_push_variable(nk_context* ctx, float min_width) {
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -328,10 +313,9 @@ nk_layout_row_template_push_variable(struct nk_context* ctx, float min_width) {
     return;
   layout->row.templates[layout->row.columns++] = -min_width;
 }
-NK_API void
-nk_layout_row_template_push_static(struct nk_context* ctx, float width) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API void nk_layout_row_template_push_static(nk_context* ctx, float width) {
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -349,10 +333,9 @@ nk_layout_row_template_push_static(struct nk_context* ctx, float width) {
     return;
   layout->row.templates[layout->row.columns++] = width;
 }
-NK_API void
-nk_layout_row_template_end(struct nk_context* ctx) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API void nk_layout_row_template_end(nk_context* ctx) {
+  nk_window* win;
+  nk_panel* layout;
 
   int i = 0;
   int variable_count = 0;
@@ -400,11 +383,10 @@ nk_layout_row_template_end(struct nk_context* ctx) {
     }
   }
 }
-NK_API void
-nk_layout_space_begin(struct nk_context* ctx, enum nk_layout_format fmt,
-                      float height, int widget_count) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API void nk_layout_space_begin(nk_context* ctx, nk_layout_format fmt,
+                                  float height, int widget_count) {
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -425,10 +407,9 @@ nk_layout_space_begin(struct nk_context* ctx, enum nk_layout_format fmt,
   layout->row.item_width = 0;
   layout->row.item_offset = 0;
 }
-NK_API void
-nk_layout_space_end(struct nk_context* ctx) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API void nk_layout_space_end(nk_context* ctx) {
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -443,10 +424,9 @@ nk_layout_space_end(struct nk_context* ctx) {
   layout->row.item_offset = 0;
   nk_zero(&layout->row.item, sizeof(layout->row.item));
 }
-NK_API void
-nk_layout_space_push(struct nk_context* ctx, struct nk_rect rect) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API void nk_layout_space_push(nk_context* ctx, nk_rect rect) {
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -458,11 +438,11 @@ nk_layout_space_push(struct nk_context* ctx, struct nk_rect rect) {
   layout = win->layout;
   layout->row.item = rect;
 }
-NK_API struct nk_rect
-nk_layout_space_bounds(struct nk_context* ctx) {
-  struct nk_rect ret;
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API nk_rect
+nk_layout_space_bounds(nk_context* ctx) {
+  nk_rect ret;
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -476,11 +456,11 @@ nk_layout_space_bounds(struct nk_context* ctx) {
   ret.h = layout->row.height;
   return ret;
 }
-NK_API struct nk_rect
-nk_layout_widget_bounds(struct nk_context* ctx) {
-  struct nk_rect ret;
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API nk_rect
+nk_layout_widget_bounds(nk_context* ctx) {
+  nk_rect ret;
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -494,10 +474,10 @@ nk_layout_widget_bounds(struct nk_context* ctx) {
   ret.h = layout->row.height;
   return ret;
 }
-NK_API struct nk_vec2
-nk_layout_space_to_screen(struct nk_context* ctx, struct nk_vec2 ret) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API nk_vec2
+nk_layout_space_to_screen(nk_context* ctx, nk_vec2 ret) {
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -509,10 +489,10 @@ nk_layout_space_to_screen(struct nk_context* ctx, struct nk_vec2 ret) {
   ret.y += layout->at_y - (float)*layout->offset_y;
   return ret;
 }
-NK_API struct nk_vec2
-nk_layout_space_to_local(struct nk_context* ctx, struct nk_vec2 ret) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API nk_vec2
+nk_layout_space_to_local(nk_context* ctx, nk_vec2 ret) {
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -524,10 +504,10 @@ nk_layout_space_to_local(struct nk_context* ctx, struct nk_vec2 ret) {
   ret.y += -layout->at_y + (float)*layout->offset_y;
   return ret;
 }
-NK_API struct nk_rect
-nk_layout_space_rect_to_screen(struct nk_context* ctx, struct nk_rect ret) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API nk_rect
+nk_layout_space_rect_to_screen(nk_context* ctx, nk_rect ret) {
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -539,10 +519,10 @@ nk_layout_space_rect_to_screen(struct nk_context* ctx, struct nk_rect ret) {
   ret.y += layout->at_y - (float)*layout->offset_y;
   return ret;
 }
-NK_API struct nk_rect
-nk_layout_space_rect_to_local(struct nk_context* ctx, struct nk_rect ret) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_API nk_rect
+nk_layout_space_rect_to_local(nk_context* ctx, nk_rect ret) {
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -554,20 +534,18 @@ nk_layout_space_rect_to_local(struct nk_context* ctx, struct nk_rect ret) {
   ret.y += -layout->at_y + (float)*layout->offset_y;
   return ret;
 }
-NK_LIB void
-nk_panel_alloc_row(const struct nk_context* ctx, struct nk_window* win) {
-  struct nk_panel* layout = win->layout;
-  struct nk_vec2 spacing = ctx->style.window.spacing;
+NK_LIB void nk_panel_alloc_row(const nk_context* ctx, nk_window* win) {
+  nk_panel* layout = win->layout;
+  nk_vec2 spacing = ctx->style.window.spacing;
   const float row_height = layout->row.height - spacing.y;
   nk_panel_layout(ctx, win, row_height, layout->row.columns);
 }
-NK_LIB void
-nk_layout_widget_space(struct nk_rect* bounds, const struct nk_context* ctx,
-                       struct nk_window* win, int modify) {
-  struct nk_panel* layout;
-  const struct nk_style* style;
+NK_LIB void nk_layout_widget_space(nk_rect* bounds, const nk_context* ctx,
+                                   nk_window* win, int modify) {
+  nk_panel* layout;
+  const nk_style* style;
 
-  struct nk_vec2 spacing;
+  nk_vec2 spacing;
 
   float item_offset = 0;
   float item_width = 0;
@@ -700,10 +678,9 @@ nk_layout_widget_space(struct nk_rect* bounds, const struct nk_context* ctx,
     layout->max_x = bounds->x + bounds->w;
   bounds->x -= (float)*layout->offset_x;
 }
-NK_LIB void
-nk_panel_alloc_space(struct nk_rect* bounds, const struct nk_context* ctx) {
-  struct nk_window* win;
-  struct nk_panel* layout;
+NK_LIB void nk_panel_alloc_space(nk_rect* bounds, const nk_context* ctx) {
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -721,18 +698,17 @@ nk_panel_alloc_space(struct nk_rect* bounds, const struct nk_context* ctx) {
   nk_layout_widget_space(bounds, ctx, win, nk_true);
   layout->row.index++;
 }
-NK_LIB void
-nk_layout_peek(struct nk_rect* bounds, struct nk_context* ctx) {
+NK_LIB void nk_layout_peek(nk_rect* bounds, nk_context* ctx) {
   float y;
   int index;
-  struct nk_window* win;
-  struct nk_panel* layout;
+  nk_window* win;
+  nk_panel* layout;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
   NK_ASSERT(ctx->current->layout);
   if (!ctx || !ctx->current || !ctx->current->layout) {
-    *bounds = nk_rect(0, 0, 0, 0);
+    *bounds = nk_make_rect(0, 0, 0, 0);
     return;
   }
 
@@ -751,8 +727,7 @@ nk_layout_peek(struct nk_rect* bounds, struct nk_context* ctx) {
   layout->at_y = y;
   layout->row.index = index;
 }
-NK_API void
-nk_spacer(struct nk_context* ctx) {
-  struct nk_rect dummy_rect = {0};
+NK_API void nk_spacer(nk_context* ctx) {
+  nk_rect dummy_rect = {0};
   nk_panel_alloc_space(&dummy_rect, ctx);
 }

@@ -7,18 +7,17 @@
  *
  * ===============================================================*/
 NK_LIB void*
-nk_create_panel(struct nk_context* ctx) {
-  struct nk_page_element* elem;
+nk_create_panel(nk_context* ctx) {
+  nk_page_element* elem;
   elem = nk_create_page_element(ctx);
   if (!elem)
     return 0;
   nk_zero_struct(*elem);
   return &elem->data.pan;
 }
-NK_LIB void
-nk_free_panel(struct nk_context* ctx, struct nk_panel* pan) {
-  union nk_page_data* pd = NK_CONTAINER_OF(pan, union nk_page_data, pan);
-  struct nk_page_element* pe = NK_CONTAINER_OF(pd, struct nk_page_element, data);
+NK_LIB void nk_free_panel(nk_context* ctx, nk_panel* pan) {
+  nk_page_data* pd = NK_CONTAINER_OF(pan, nk_page_data, pan);
+  nk_page_element* pe = NK_CONTAINER_OF(pd, nk_page_element, data);
   nk_free_page_element(ctx, pe);
 }
 NK_LIB nk_bool
@@ -29,8 +28,8 @@ nk_panel_has_header(nk_flags flags, const char* title) {
   active = active && !(flags & NK_WINDOW_HIDDEN) && title;
   return active;
 }
-NK_LIB struct nk_vec2
-nk_panel_get_padding(const struct nk_style* style, enum nk_panel_type type) {
+NK_LIB nk_vec2
+nk_panel_get_padding(const nk_style* style, nk_panel_type type) {
   switch (type) {
     default:
     case NK_PANEL_WINDOW:
@@ -50,8 +49,8 @@ nk_panel_get_padding(const struct nk_style* style, enum nk_panel_type type) {
   }
 }
 NK_LIB float
-nk_panel_get_border(const struct nk_style* style, nk_flags flags,
-                    enum nk_panel_type type) {
+nk_panel_get_border(const nk_style* style, nk_flags flags,
+                    nk_panel_type type) {
   if (flags & NK_WINDOW_BORDER) {
     switch (type) {
       default:
@@ -73,8 +72,8 @@ nk_panel_get_border(const struct nk_style* style, nk_flags flags,
   } else
     return 0;
 }
-NK_LIB struct nk_color
-nk_panel_get_border_color(const struct nk_style* style, enum nk_panel_type type) {
+NK_LIB nk_color
+nk_panel_get_border_color(const nk_style* style, nk_panel_type type) {
   switch (type) {
     default:
     case NK_PANEL_WINDOW:
@@ -94,24 +93,24 @@ nk_panel_get_border_color(const struct nk_style* style, enum nk_panel_type type)
   }
 }
 NK_LIB nk_bool
-nk_panel_is_sub(enum nk_panel_type type) {
+nk_panel_is_sub(nk_panel_type type) {
   return (type & NK_PANEL_SET_SUB) ? 1 : 0;
 }
 NK_LIB nk_bool
-nk_panel_is_nonblock(enum nk_panel_type type) {
+nk_panel_is_nonblock(nk_panel_type type) {
   return (type & NK_PANEL_SET_NONBLOCK) ? 1 : 0;
 }
 NK_LIB nk_bool
-nk_panel_begin(struct nk_context* ctx, const char* title, enum nk_panel_type panel_type) {
-  struct nk_input* in;
-  struct nk_window* win;
-  struct nk_panel* layout;
-  struct nk_command_buffer* out;
-  const struct nk_style* style;
-  const struct nk_user_font* font;
+nk_panel_begin(nk_context* ctx, const char* title, nk_panel_type panel_type) {
+  nk_input* in;
+  nk_window* win;
+  nk_panel* layout;
+  nk_command_buffer* out;
+  const nk_style* style;
+  const nk_user_font* font;
 
-  struct nk_vec2 scrollbar_size;
-  struct nk_vec2 panel_padding;
+  nk_vec2 scrollbar_size;
+  nk_vec2 panel_padding;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -120,7 +119,7 @@ nk_panel_begin(struct nk_context* ctx, const char* title, enum nk_panel_type pan
     return 0;
   nk_zero(ctx->current->layout, sizeof(*ctx->current->layout));
   if ((ctx->current->flags & NK_WINDOW_HIDDEN) || (ctx->current->flags & NK_WINDOW_CLOSED)) {
-    nk_zero(ctx->current->layout, sizeof(struct nk_panel));
+    nk_zero(ctx->current->layout, sizeof(nk_panel));
     ctx->current->layout->type = panel_type;
     return 0;
   }
@@ -145,7 +144,7 @@ nk_panel_begin(struct nk_context* ctx, const char* title, enum nk_panel_type pan
     int left_mouse_click_in_cursor;
 
     /* calculate draggable window space */
-    struct nk_rect header;
+    nk_rect header;
     header.x = win->bounds.x;
     header.y = win->bounds.y;
     header.w = win->bounds.w;
@@ -179,7 +178,7 @@ nk_panel_begin(struct nk_context* ctx, const char* title, enum nk_panel_type pan
   layout->bounds.w -= 2 * panel_padding.x;
   if (win->flags & NK_WINDOW_BORDER) {
     layout->border = nk_panel_get_border(style, win->flags, panel_type);
-    layout->bounds = nk_shrink_rect(layout->bounds, layout->border);
+    layout->bounds = nk_shrink_make_rect(layout->bounds, layout->border);
   } else
     layout->border = 0;
   layout->at_y = layout->bounds.y;
@@ -206,9 +205,9 @@ nk_panel_begin(struct nk_context* ctx, const char* title, enum nk_panel_type pan
 
   /* panel header */
   if (nk_panel_has_header(win->flags, title)) {
-    struct nk_text text;
-    struct nk_rect header;
-    const struct nk_style_item* background = 0;
+    nk_text text;
+    nk_rect header;
+    const nk_style_item* background = 0;
 
     /* calculate header bounds */
     header.x = win->bounds.x;
@@ -255,7 +254,7 @@ nk_panel_begin(struct nk_context* ctx, const char* title, enum nk_panel_type pan
 
     /* window close button */
     {
-      struct nk_rect button;
+      nk_rect button;
       button.y = header.y + style->window.header.padding.y;
       button.h = header.h - 2 * style->window.header.padding.y;
       button.w = button.h;
@@ -298,9 +297,9 @@ nk_panel_begin(struct nk_context* ctx, const char* title, enum nk_panel_type pan
 
     { /* window header title */
       int text_len = nk_strlen(title);
-      struct nk_rect label = {0, 0, 0, 0};
+      nk_rect label = {0, 0, 0, 0};
       float t = font->width(font->userdata, font->height, title, text_len);
-      text.padding = nk_vec2(0, 0);
+      text.padding = nk_make_vec2(0, 0);
 
       label.x = header.x + style->window.header.padding.x;
       label.x += style->window.header.label_padding.x;
@@ -314,7 +313,7 @@ nk_panel_begin(struct nk_context* ctx, const char* title, enum nk_panel_type pan
 
   /* draw window background */
   if (!(layout->flags & NK_WINDOW_MINIMIZED) && !(layout->flags & NK_WINDOW_DYNAMIC)) {
-    struct nk_rect body;
+    nk_rect body;
     body.x = win->bounds.x;
     body.w = win->bounds.w;
     body.y = (win->bounds.y + layout->header_height);
@@ -335,7 +334,7 @@ nk_panel_begin(struct nk_context* ctx, const char* title, enum nk_panel_type pan
 
   /* set clipping rectangle */
   {
-    struct nk_rect clip;
+    nk_rect clip;
     layout->clip = layout->bounds;
     nk_unify(&clip, &win->buffer.clip, layout->clip.x, layout->clip.y, layout->clip.x + layout->clip.w, layout->clip.y + layout->clip.h);
     nk_push_scissor(out, clip);
@@ -343,16 +342,15 @@ nk_panel_begin(struct nk_context* ctx, const char* title, enum nk_panel_type pan
   }
   return !(layout->flags & NK_WINDOW_HIDDEN) && !(layout->flags & NK_WINDOW_MINIMIZED);
 }
-NK_LIB void
-nk_panel_end(struct nk_context* ctx) {
-  struct nk_input* in;
-  struct nk_window* window;
-  struct nk_panel* layout;
-  const struct nk_style* style;
-  struct nk_command_buffer* out;
+NK_LIB void nk_panel_end(nk_context* ctx) {
+  nk_input* in;
+  nk_window* window;
+  nk_panel* layout;
+  const nk_style* style;
+  nk_command_buffer* out;
 
-  struct nk_vec2 scrollbar_size;
-  struct nk_vec2 panel_padding;
+  nk_vec2 scrollbar_size;
+  nk_vec2 panel_padding;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -378,7 +376,7 @@ nk_panel_end(struct nk_context* ctx) {
   /* dynamic panels */
   if (layout->flags & NK_WINDOW_DYNAMIC && !(layout->flags & NK_WINDOW_MINIMIZED)) {
     /* update panel height to fit dynamic growth */
-    struct nk_rect empty_space;
+    nk_rect empty_space;
     if (layout->at_y < (layout->bounds.y + layout->bounds.h))
       layout->bounds.h = layout->at_y - layout->bounds.y;
 
@@ -419,7 +417,7 @@ nk_panel_end(struct nk_context* ctx) {
   if (!(layout->flags & NK_WINDOW_NO_SCROLLBAR) &&
       !(layout->flags & NK_WINDOW_MINIMIZED) &&
       window->scrollbar_hiding_timer < NK_SCROLLBAR_HIDING_TIMEOUT) {
-    struct nk_rect scroll;
+    nk_rect scroll;
     int scroll_has_scrolling;
     float scroll_target;
     float scroll_offset;
@@ -429,8 +427,8 @@ nk_panel_end(struct nk_context* ctx) {
     /* mouse wheel scrolling */
     if (nk_panel_is_sub(layout->type)) {
       /* sub-window mouse wheel scrolling */
-      struct nk_window* root_window = window;
-      struct nk_panel* root_panel = window->layout;
+      nk_window* root_window = window;
+      nk_panel* root_panel = window->layout;
       while (root_panel->parent)
         root_panel = root_panel->parent;
       while (root_window->parent)
@@ -510,9 +508,9 @@ nk_panel_end(struct nk_context* ctx) {
 
   /* window border */
   if (layout->flags & NK_WINDOW_BORDER) {
-    struct nk_color border_color = nk_panel_get_border_color(style, layout->type);
+    nk_color border_color = nk_panel_get_border_color(style, layout->type);
     const float padding_y = (layout->flags & NK_WINDOW_MINIMIZED) ? (style->window.border + window->bounds.y + layout->header_height) : ((layout->flags & NK_WINDOW_DYNAMIC) ? (layout->bounds.y + layout->bounds.h + layout->footer_height) : (window->bounds.y + window->bounds.h));
-    struct nk_rect b = window->bounds;
+    nk_rect b = window->bounds;
     b.h = padding_y - window->bounds.y;
     nk_stroke_rect(out, b, 0, layout->border, border_color);
   }
@@ -520,7 +518,7 @@ nk_panel_end(struct nk_context* ctx) {
   /* scaler */
   if ((layout->flags & NK_WINDOW_SCALABLE) && in && !(layout->flags & NK_WINDOW_MINIMIZED)) {
     /* calculate scaler bounds */
-    struct nk_rect scaler;
+    nk_rect scaler;
     scaler.w = scrollbar_size.x;
     scaler.h = scrollbar_size.y;
     scaler.y = layout->bounds.y + layout->bounds.h;
@@ -533,7 +531,7 @@ nk_panel_end(struct nk_context* ctx) {
 
     /* draw scaler */
     {
-      const struct nk_style_item* item = &style->window.scaler;
+      const nk_style_item* item = &style->window.scaler;
       if (item->type == NK_STYLE_ITEM_IMAGE)
         nk_draw_image(out, scaler, &item->data.image, nk_white);
       else {
@@ -547,7 +545,7 @@ nk_panel_end(struct nk_context* ctx) {
 
     /* do window scaling */
     if (!(window->flags & NK_WINDOW_ROM)) {
-      struct nk_vec2 window_size = style->window.min_size;
+      nk_vec2 window_size = style->window.min_size;
       int left_mouse_down = in->mouse.buttons[NK_BUTTON_LEFT].down;
       int left_mouse_click_in_scaler = nk_input_has_mouse_click_down_in_rect(in,
                                                                              NK_BUTTON_LEFT,

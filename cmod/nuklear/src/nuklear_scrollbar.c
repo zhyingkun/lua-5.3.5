@@ -7,11 +7,11 @@
  *
  * ===============================================================*/
 NK_LIB float
-nk_scrollbar_behavior(nk_flags* state, struct nk_input* in,
-                      int has_scrolling, const struct nk_rect* scroll,
-                      const struct nk_rect* cursor, const struct nk_rect* empty0,
-                      const struct nk_rect* empty1, float scroll_offset,
-                      float target, float scroll_step, enum nk_orientation o) {
+nk_scrollbar_behavior(nk_flags* state, nk_input* in,
+                      int has_scrolling, const nk_rect* scroll,
+                      const nk_rect* cursor, const nk_rect* empty0,
+                      const nk_rect* empty1, float scroll_offset,
+                      float target, float scroll_step, nk_orientation o) {
   nk_flags ws = 0;
   int left_mouse_down;
   unsigned int left_mouse_clicked;
@@ -52,14 +52,14 @@ nk_scrollbar_behavior(nk_flags* state, struct nk_input* in,
       in->mouse.buttons[NK_BUTTON_LEFT].clicked_pos.x = cursor_x + cursor->w / 2.0f;
     }
   } else if ((nk_input_is_key_pressed(in, NK_KEY_SCROLL_UP) && o == NK_VERTICAL && has_scrolling) ||
-             nk_button_behavior(&ws, *empty0, in, NK_BUTTON_DEFAULT)) {
+             nk_do_button_behavior(&ws, *empty0, in, NK_BUTTON_DEFAULT)) {
     /* scroll page up by click on empty space or shortcut */
     if (o == NK_VERTICAL)
       scroll_offset = NK_MAX(0, scroll_offset - scroll->h);
     else
       scroll_offset = NK_MAX(0, scroll_offset - scroll->w);
   } else if ((nk_input_is_key_pressed(in, NK_KEY_SCROLL_DOWN) && o == NK_VERTICAL && has_scrolling) ||
-             nk_button_behavior(&ws, *empty1, in, NK_BUTTON_DEFAULT)) {
+             nk_do_button_behavior(&ws, *empty1, in, NK_BUTTON_DEFAULT)) {
     /* scroll page down by click on empty space or shortcut */
     if (o == NK_VERTICAL)
       scroll_offset = NK_MIN(scroll_offset + scroll->h, target - scroll->h);
@@ -89,12 +89,11 @@ nk_scrollbar_behavior(nk_flags* state, struct nk_input* in,
     *state |= NK_WIDGET_STATE_LEFT;
   return scroll_offset;
 }
-NK_LIB void
-nk_draw_scrollbar(struct nk_command_buffer* out, nk_flags state,
-                  const struct nk_style_scrollbar* style, const struct nk_rect* bounds,
-                  const struct nk_rect* scroll) {
-  const struct nk_style_item* background;
-  const struct nk_style_item* cursor;
+NK_LIB void nk_draw_scrollbar(nk_command_buffer* out, nk_flags state,
+                              const nk_style_scrollbar* style, const nk_rect* bounds,
+                              const nk_rect* scroll) {
+  const nk_style_item* background;
+  const nk_style_item* cursor;
 
   /* select correct colors/images to draw */
   if (state & NK_WIDGET_STATE_ACTIVED) {
@@ -138,13 +137,13 @@ nk_draw_scrollbar(struct nk_command_buffer* out, nk_flags state,
 }
 NK_LIB float
 nk_do_scrollbarv(nk_flags* state,
-                 struct nk_command_buffer* out, struct nk_rect scroll, int has_scrolling,
+                 nk_command_buffer* out, nk_rect scroll, int has_scrolling,
                  float offset, float target, float step, float button_pixel_inc,
-                 const struct nk_style_scrollbar* style, struct nk_input* in,
-                 const struct nk_user_font* font) {
-  struct nk_rect empty_north;
-  struct nk_rect empty_south;
-  struct nk_rect cursor;
+                 const nk_style_scrollbar* style, nk_input* in,
+                 const nk_user_font* font) {
+  nk_rect empty_north;
+  nk_rect empty_south;
+  nk_rect cursor;
 
   float scroll_step;
   float scroll_offset;
@@ -166,7 +165,7 @@ nk_do_scrollbarv(nk_flags* state,
   if (style->show_buttons) {
     nk_flags ws;
     float scroll_h;
-    struct nk_rect button;
+    nk_rect button;
 
     button.x = scroll.x;
     button.w = scroll.w;
@@ -227,13 +226,13 @@ nk_do_scrollbarv(nk_flags* state,
 }
 NK_LIB float
 nk_do_scrollbarh(nk_flags* state,
-                 struct nk_command_buffer* out, struct nk_rect scroll, int has_scrolling,
+                 nk_command_buffer* out, nk_rect scroll, int has_scrolling,
                  float offset, float target, float step, float button_pixel_inc,
-                 const struct nk_style_scrollbar* style, struct nk_input* in,
-                 const struct nk_user_font* font) {
-  struct nk_rect cursor;
-  struct nk_rect empty_west;
-  struct nk_rect empty_east;
+                 const nk_style_scrollbar* style, nk_input* in,
+                 const nk_user_font* font) {
+  nk_rect cursor;
+  nk_rect empty_west;
+  nk_rect empty_east;
 
   float scroll_step;
   float scroll_offset;
@@ -255,7 +254,7 @@ nk_do_scrollbarh(nk_flags* state,
   if (style->show_buttons) {
     nk_flags ws;
     float scroll_w;
-    struct nk_rect button;
+    nk_rect button;
     button.y = scroll.y;
     button.w = scroll.h;
     button.h = scroll.h;

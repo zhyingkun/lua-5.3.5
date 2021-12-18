@@ -19,9 +19,9 @@ nk_handle_id(int id) {
   handle.id = id;
   return handle;
 }
-NK_API struct nk_image
-nk_subimage_ptr(void* ptr, nk_ushort w, nk_ushort h, struct nk_rect r) {
-  struct nk_image s;
+NK_API nk_image
+nk_subimage_ptr(void* ptr, nk_ushort w, nk_ushort h, nk_rect r) {
+  nk_image s;
   nk_zero(&s, sizeof(s));
   s.handle.ptr = ptr;
   s.w = w;
@@ -32,9 +32,9 @@ nk_subimage_ptr(void* ptr, nk_ushort w, nk_ushort h, struct nk_rect r) {
   s.region[3] = (nk_ushort)r.h;
   return s;
 }
-NK_API struct nk_image
-nk_subimage_id(int id, nk_ushort w, nk_ushort h, struct nk_rect r) {
-  struct nk_image s;
+NK_API nk_image
+nk_subimage_id(int id, nk_ushort w, nk_ushort h, nk_rect r) {
+  nk_image s;
   nk_zero(&s, sizeof(s));
   s.handle.id = id;
   s.w = w;
@@ -45,9 +45,9 @@ nk_subimage_id(int id, nk_ushort w, nk_ushort h, struct nk_rect r) {
   s.region[3] = (nk_ushort)r.h;
   return s;
 }
-NK_API struct nk_image
-nk_subimage_handle(nk_handle handle, nk_ushort w, nk_ushort h, struct nk_rect r) {
-  struct nk_image s;
+NK_API nk_image
+nk_subimage_handle(nk_handle handle, nk_ushort w, nk_ushort h, nk_rect r) {
+  nk_image s;
   nk_zero(&s, sizeof(s));
   s.handle = handle;
   s.w = w;
@@ -58,9 +58,9 @@ nk_subimage_handle(nk_handle handle, nk_ushort w, nk_ushort h, struct nk_rect r)
   s.region[3] = (nk_ushort)r.h;
   return s;
 }
-NK_API struct nk_image
+NK_API nk_image
 nk_image_handle(nk_handle handle) {
-  struct nk_image s;
+  nk_image s;
   nk_zero(&s, sizeof(s));
   s.handle = handle;
   s.w = 0;
@@ -71,9 +71,9 @@ nk_image_handle(nk_handle handle) {
   s.region[3] = 0;
   return s;
 }
-NK_API struct nk_image
+NK_API nk_image
 nk_image_ptr(void* ptr) {
-  struct nk_image s;
+  nk_image s;
   nk_zero(&s, sizeof(s));
   NK_ASSERT(ptr);
   s.handle.ptr = ptr;
@@ -85,9 +85,9 @@ nk_image_ptr(void* ptr) {
   s.region[3] = 0;
   return s;
 }
-NK_API struct nk_image
+NK_API nk_image
 nk_image_id(int id) {
-  struct nk_image s;
+  nk_image s;
   nk_zero(&s, sizeof(s));
   s.handle.id = id;
   s.w = 0;
@@ -99,14 +99,13 @@ nk_image_id(int id) {
   return s;
 }
 NK_API nk_bool
-nk_image_is_subimage(const struct nk_image* img) {
+nk_image_is_subimage(const nk_image* img) {
   NK_ASSERT(img);
   return !(img->w == 0 && img->h == 0);
 }
-NK_API void
-nk_image(struct nk_context* ctx, struct nk_image img) {
-  struct nk_window* win;
-  struct nk_rect bounds;
+NK_API void nk_image_widget(nk_context* ctx, nk_image img) {
+  nk_window* win;
+  nk_rect bounds;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -119,10 +118,9 @@ nk_image(struct nk_context* ctx, struct nk_image img) {
     return;
   nk_draw_image(&win->buffer, bounds, &img, nk_white);
 }
-NK_API void
-nk_image_color(struct nk_context* ctx, struct nk_image img, struct nk_color col) {
-  struct nk_window* win;
-  struct nk_rect bounds;
+NK_API void nk_image_color(nk_context* ctx, nk_image img, nk_color col) {
+  nk_window* win;
+  nk_rect bounds;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);

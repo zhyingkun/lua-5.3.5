@@ -7,11 +7,11 @@
  *
  * ===============================================================*/
 NK_API nk_bool
-nk_tooltip_begin(struct nk_context* ctx, float width) {
+nk_tooltip_begin(nk_context* ctx, float width) {
   int x, y, w, h;
-  struct nk_window* win;
-  const struct nk_input* in;
-  struct nk_rect bounds;
+  nk_window* win;
+  const nk_input* in;
+  nk_rect bounds;
   int ret;
 
   NK_ASSERT(ctx);
@@ -44,8 +44,7 @@ nk_tooltip_begin(struct nk_context* ctx, float width) {
   return ret;
 }
 
-NK_API void
-nk_tooltip_end(struct nk_context* ctx) {
+NK_API void nk_tooltip_end(nk_context* ctx) {
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
   if (!ctx || !ctx->current)
@@ -54,10 +53,9 @@ nk_tooltip_end(struct nk_context* ctx) {
   nk_popup_close(ctx);
   nk_popup_end(ctx);
 }
-NK_API void
-nk_tooltip(struct nk_context* ctx, const char* text) {
-  const struct nk_style* style;
-  struct nk_vec2 padding;
+NK_API void nk_tooltip(nk_context* ctx, const char* text) {
+  const nk_style* style;
+  nk_vec2 padding;
 
   int text_len;
   float text_width;
@@ -86,20 +84,18 @@ nk_tooltip(struct nk_context* ctx, const char* text) {
   /* execute tooltip and fill with text */
   if (nk_tooltip_begin(ctx, (float)text_width)) {
     nk_layout_row_dynamic(ctx, (float)text_height, 1);
-    nk_text(ctx, text, text_len, NK_TEXT_LEFT);
+    nk_text_widget(ctx, text, text_len, NK_TEXT_LEFT);
     nk_tooltip_end(ctx);
   }
 }
 #ifdef NK_INCLUDE_STANDARD_VARARGS
-NK_API void
-nk_tooltipf(struct nk_context* ctx, const char* fmt, ...) {
+NK_API void nk_tooltipf(nk_context* ctx, const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
   nk_tooltipfv(ctx, fmt, args);
   va_end(args);
 }
-NK_API void
-nk_tooltipfv(struct nk_context* ctx, const char* fmt, va_list args) {
+NK_API void nk_tooltipfv(nk_context* ctx, const char* fmt, va_list args) {
   char buf[256];
   nk_strfmt(buf, NK_LEN(buf), fmt, args);
   nk_tooltip(ctx, buf);

@@ -7,11 +7,11 @@
  *
  * ===============================================================*/
 NK_API nk_bool
-nk_popup_begin(struct nk_context* ctx, enum nk_popup_type type,
-               const char* title, nk_flags flags, struct nk_rect rect) {
-  struct nk_window* popup;
-  struct nk_window* win;
-  struct nk_panel* panel;
+nk_popup_begin(nk_context* ctx, nk_popup_type type,
+               const char* title, nk_flags flags, nk_rect rect) {
+  nk_window* popup;
+  nk_window* win;
+  nk_panel* panel;
 
   int title_len;
   nk_hash title_hash;
@@ -33,7 +33,7 @@ nk_popup_begin(struct nk_context* ctx, enum nk_popup_type type,
 
   popup = win->popup.win;
   if (!popup) {
-    popup = (struct nk_window*)nk_create_window(ctx);
+    popup = (nk_window*)nk_create_window(ctx);
     popup->parent = win;
     win->popup.win = popup;
     win->popup.active = 0;
@@ -60,7 +60,7 @@ nk_popup_begin(struct nk_context* ctx, enum nk_popup_type type,
   popup->parent = win;
   popup->bounds = rect;
   popup->seq = ctx->seq;
-  popup->layout = (struct nk_panel*)nk_create_panel(ctx);
+  popup->layout = (nk_panel*)nk_create_panel(ctx);
   popup->flags = flags;
   popup->flags |= NK_WINDOW_BORDER;
   if (type == NK_POPUP_DYNAMIC)
@@ -73,7 +73,7 @@ nk_popup_begin(struct nk_context* ctx, enum nk_popup_type type,
 
   if (nk_panel_begin(ctx, title, NK_PANEL_POPUP)) {
     /* popup is running therefore invalidate parent panels */
-    struct nk_panel* root;
+    nk_panel* root;
     root = win->layout;
     while (root) {
       root->flags |= NK_WINDOW_ROM;
@@ -87,7 +87,7 @@ nk_popup_begin(struct nk_context* ctx, enum nk_popup_type type,
     return 1;
   } else {
     /* popup was closed/is invalid so cleanup */
-    struct nk_panel* root;
+    nk_panel* root;
     root = win->layout;
     while (root) {
       root->flags |= NK_WINDOW_REMOVE_ROM;
@@ -103,12 +103,12 @@ nk_popup_begin(struct nk_context* ctx, enum nk_popup_type type,
   }
 }
 NK_LIB nk_bool
-nk_nonblock_begin(struct nk_context* ctx,
-                  nk_flags flags, struct nk_rect body, struct nk_rect header,
-                  enum nk_panel_type panel_type) {
-  struct nk_window* popup;
-  struct nk_window* win;
-  struct nk_panel* panel;
+nk_nonblock_begin(nk_context* ctx,
+                  nk_flags flags, nk_rect body, nk_rect header,
+                  nk_panel_type panel_type) {
+  nk_window* popup;
+  nk_window* win;
+  nk_panel* panel;
   int is_active = nk_true;
 
   NK_ASSERT(ctx);
@@ -125,7 +125,7 @@ nk_nonblock_begin(struct nk_context* ctx,
   popup = win->popup.win;
   if (!popup) {
     /* create window for nonblocking popup */
-    popup = (struct nk_window*)nk_create_window(ctx);
+    popup = (nk_window*)nk_create_window(ctx);
     popup->parent = win;
     win->popup.win = popup;
     win->popup.type = panel_type;
@@ -147,7 +147,7 @@ nk_nonblock_begin(struct nk_context* ctx,
 
   if (!is_active) {
     /* remove read only mode from all parent panels */
-    struct nk_panel* root = win->layout;
+    nk_panel* root = win->layout;
     while (root) {
       root->flags |= NK_WINDOW_REMOVE_ROM;
       root = root->parent;
@@ -156,7 +156,7 @@ nk_nonblock_begin(struct nk_context* ctx,
   }
   popup->bounds = body;
   popup->parent = win;
-  popup->layout = (struct nk_panel*)nk_create_panel(ctx);
+  popup->layout = (nk_panel*)nk_create_panel(ctx);
   popup->flags = flags;
   popup->flags |= NK_WINDOW_BORDER;
   popup->flags |= NK_WINDOW_DYNAMIC;
@@ -177,7 +177,7 @@ nk_nonblock_begin(struct nk_context* ctx,
 
   /* set read only mode to all parent panels */
   {
-    struct nk_panel* root;
+    nk_panel* root;
     root = win->layout;
     while (root) {
       root->flags |= NK_WINDOW_ROM;
@@ -186,9 +186,8 @@ nk_nonblock_begin(struct nk_context* ctx,
   }
   return is_active;
 }
-NK_API void
-nk_popup_close(struct nk_context* ctx) {
-  struct nk_window* popup;
+NK_API void nk_popup_close(nk_context* ctx) {
+  nk_window* popup;
   NK_ASSERT(ctx);
   if (!ctx || !ctx->current)
     return;
@@ -198,10 +197,9 @@ nk_popup_close(struct nk_context* ctx) {
   NK_ASSERT(popup->layout->type & NK_PANEL_SET_POPUP);
   popup->flags |= NK_WINDOW_HIDDEN;
 }
-NK_API void
-nk_popup_end(struct nk_context* ctx) {
-  struct nk_window* win;
-  struct nk_window* popup;
+NK_API void nk_popup_end(nk_context* ctx) {
+  nk_window* win;
+  nk_window* popup;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -214,7 +212,7 @@ nk_popup_end(struct nk_context* ctx) {
     return;
   win = popup->parent;
   if (popup->flags & NK_WINDOW_HIDDEN) {
-    struct nk_panel* root;
+    nk_panel* root;
     root = win->layout;
     while (root) {
       root->flags |= NK_WINDOW_REMOVE_ROM;
@@ -230,9 +228,8 @@ nk_popup_end(struct nk_context* ctx) {
   ctx->current = win;
   nk_push_scissor(&win->buffer, win->layout->clip);
 }
-NK_API void
-nk_popup_get_scroll(struct nk_context* ctx, nk_uint* offset_x, nk_uint* offset_y) {
-  struct nk_window* popup;
+NK_API void nk_popup_get_scroll(nk_context* ctx, nk_uint* offset_x, nk_uint* offset_y) {
+  nk_window* popup;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
@@ -246,9 +243,8 @@ nk_popup_get_scroll(struct nk_context* ctx, nk_uint* offset_x, nk_uint* offset_y
   if (offset_y)
     *offset_y = popup->scrollbar.y;
 }
-NK_API void
-nk_popup_set_scroll(struct nk_context* ctx, nk_uint offset_x, nk_uint offset_y) {
-  struct nk_window* popup;
+NK_API void nk_popup_set_scroll(nk_context* ctx, nk_uint offset_x, nk_uint offset_y) {
+  nk_window* popup;
 
   NK_ASSERT(ctx);
   NK_ASSERT(ctx->current);
