@@ -35,10 +35,13 @@ static int NKFONTATLAS_FUNCTION(bake)(lua_State* L) {
   nk_font_atlas_format format = (nk_font_atlas_format)luaL_checkinteger(L, 2);
   int width, height;
   const void* image = nk_font_atlas_bake(atlas, &width, &height, format);
+  nk_allocator allocator = nk_font_atlas_move_pixel(atlas, NULL);
   lua_pushlightuserdata(L, (void*)image);
+  lua_pushlightuserdata(L, allocator.free);
+  lua_pushlightuserdata(L, allocator.userdata.ptr);
   lua_pushinteger(L, width);
   lua_pushinteger(L, height);
-  return 3;
+  return 5;
 }
 static int NKFONTATLAS_FUNCTION(endatlas)(lua_State* L) {
   nk_font_atlas* atlas = luaL_checkatlas(L, 1);
