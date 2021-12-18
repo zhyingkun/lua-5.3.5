@@ -231,6 +231,12 @@ void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf);
 ** =======================================================
 */
 
+extern lua_State* staticL;
+// #define GET_HANDLE_LUA_STATE(L, handle) L = (lua_State*)uv_handle_get_data((uv_handle_t*)handle)
+#define GET_HANDLE_LUA_STATE(L, handle) L = staticL
+// #define GET_REQ_LUA_STATE(L, req) L = (lua_State*)uv_req_get_data((uv_req_t*)req)
+#define GET_REQ_LUA_STATE(L, req) L = staticL
+
 #define CHECK_IS_ASYNC(L, idx) (lua_type(L, idx) == LUA_TFUNCTION)
 
 #define HOLD_LUA_OBJECT(L, ptr, num, idx) \
@@ -250,9 +256,10 @@ void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf);
     uv_req_set_data((uv_req_t*)req, (void*)L); \
     HOLD_LUA_OBJECT(L, req, 0, idx); \
   } while (0)
+
 #define PUSH_REQ_CALLBACK_CLEAN(L, req) \
   do { \
-    L = (lua_State*)uv_req_get_data((uv_req_t*)req); \
+    GET_REQ_LUA_STATE(L, req); \
     PREPARE_CALL_LUA(L); \
     PUSH_HOLD_OBJECT(L, req, 0); \
     UNHOLD_LUA_OBJECT(L, req, 0); \
@@ -262,7 +269,6 @@ void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf);
 #define UNHOLD_REQ_PARAM(L, req, num) UNHOLD_LUA_OBJECT(L, req, REQ_BASE_INDEX + num)
 #define PUSH_REQ_PARAM(L, req, num) PUSH_HOLD_OBJECT(L, req, num)
 
-#define GET_HANDLE_DATA(L, handle) L = (lua_State*)uv_handle_get_data((uv_handle_t*)handle)
 #define SET_HANDLE_CALLBACK(L, handle, num, idx) \
   do { \
     uv_handle_set_data((uv_handle_t*)handle, (void*)L); \
@@ -270,7 +276,7 @@ void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf);
   } while (0)
 #define PUSH_HANDLE_CALLBACK(L, handle, num) \
   do { \
-    GET_HANDLE_DATA(L, handle); \
+    GET_HANDLE_LUA_STATE(L, handle); \
     PREPARE_CALL_LUA(L); \
     PUSH_HOLD_OBJECT(L, handle, num); \
   } while (0)
@@ -304,7 +310,7 @@ void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf);
   SET_HANDLE_CALLBACK(L, handle, IDX_HANDLE_CLOSE, idx)
 #define PUSH_HANDLE_CLOSE_CALLBACK_CLEAN(L, handle) \
   do { \
-    GET_HANDLE_DATA(L, handle); \
+    GET_HANDLE_LUA_STATE(L, handle); \
     PREPARE_CALL_LUA(L); \
     PUSH_HOLD_OBJECT(L, handle, IDX_HANDLE_CLOSE); \
     UNHOLD_LUA_OBJECT(L, handle, IDX_HANDLE_CLOSE); \
@@ -317,7 +323,7 @@ void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf);
   int msgh = lua_gettop(L) - (nargs + 1); \
   if (lua_pcall(L, nargs, 0, msgh) != LUA_OK) { \
     if (!lua_isnil(L, -1)) { \
-      printf("Error: %s\n", lua_tostring(L, -1)); \
+      fprintf(stderr, "Error: %s\n", lua_tostring(L, -1)); \
     } \
     lua_pop(L, 1); \
   } \

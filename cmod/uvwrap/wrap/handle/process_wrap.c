@@ -62,7 +62,7 @@ static void STDIOCONT_FUNCTION(init_metatable)(lua_State* L) {
 
 static void PROCESS_CALLBACK(new)(uv_process_t* handle, int64_t exit_status, int term_signal) {
   lua_State* L;
-  GET_HANDLE_DATA(L, handle);
+  GET_HANDLE_LUA_STATE(L, handle);
   PUSH_HANDLE_CALLBACK(L, handle, IDX_PROCESS_SPAWN);
   lua_pushinteger(L, exit_status);
   lua_pushinteger(L, term_signal);

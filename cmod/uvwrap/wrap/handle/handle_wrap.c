@@ -51,7 +51,7 @@ static int HANDLE_FUNCTION(close)(lua_State* L) {
 
 static void HANDLE_CALLBACK(__gc)(uv_handle_t* handle) {
   lua_State* L;
-  GET_HANDLE_DATA(L, handle);
+  GET_HANDLE_LUA_STATE(L, handle);
   CLEAR_HANDLE_CALLBACK(L, handle, IDX_HANDLE_CALLBACK);
   UNHOLD_HANDLE_ITSELF(L, handle);
 }

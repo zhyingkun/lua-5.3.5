@@ -3,6 +3,8 @@
 #define uvwrap_c
 #include <uvwrap.h>
 
+lua_State* staticL;
+
 static int uvwrap_set_msgh(lua_State* L) {
   lua_settop(L, 1);
   lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)ERROR_FUNCTION(msgh));
@@ -176,6 +178,12 @@ static const luaL_Enum UVWRAP_ENUM(alloc_type)[] = {
 };
 
 LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
+  int isMain = lua_pushthread(L);
+  if (!isMain) {
+    return luaL_error(L, "libuvwrap must be required in lua main thread");
+  }
+  lua_pop(L, 1);
+  staticL = L;
   int err = uv_replace_allocator(
       MEMORY_FUNCTION(malloc_uv),
       MEMORY_FUNCTION(realloc_uv),
