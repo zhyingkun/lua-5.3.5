@@ -11,7 +11,7 @@
   lua_getfield(L, 1, #field); \
   flags.field = (uint8_t)luaL_opt##type(L, 2, 0); \
   lua_pop(L, 1)
-static int UTILS_FUNCTION(PackSamplerFlags)(lua_State* L) {
+static int UTILS_FUNCTION(packSamplerFlags)(lua_State* L) {
   luaL_checktype(L, 1, LUA_TTABLE);
   bcfx_SamplerFlags flags = {0};
   SET_FLAGS_FIELD(wrapU, integer);
@@ -34,7 +34,7 @@ static int UTILS_FUNCTION(PackSamplerFlags)(lua_State* L) {
   lua_getfield(L, 1, #field); \
   state.field = luaL_opt##type(L, 2, 0); \
   lua_pop(L, 1)
-static int UTILS_FUNCTION(PackRenderState)(lua_State* L) {
+static int UTILS_FUNCTION(packRenderState)(lua_State* L) {
   luaL_checktype(L, 1, LUA_TTABLE);
   lua_settop(L, 1);
   bcfx_RenderState state = {0};
@@ -64,7 +64,7 @@ static int UTILS_FUNCTION(PackRenderState)(lua_State* L) {
   return 1;
 }
 
-static int UTILS_FUNCTION(PackStencilState)(lua_State* L) {
+static int UTILS_FUNCTION(packStencilState)(lua_State* L) {
   luaL_checktype(L, 1, LUA_TTABLE);
   bcfx_StencilState state = {0};
   SET_STATE_FIELD(func, integer);
@@ -83,9 +83,9 @@ static int UTILS_FUNCTION(PackStencilState)(lua_State* L) {
 #define EMPLACE_UTILS_FUNCTION(name) \
   { #name, UTILS_FUNCTION(name) }
 static const luaL_Reg utils_funcs[] = {
-    EMPLACE_UTILS_FUNCTION(PackSamplerFlags),
-    EMPLACE_UTILS_FUNCTION(PackRenderState),
-    EMPLACE_UTILS_FUNCTION(PackStencilState),
+    EMPLACE_UTILS_FUNCTION(packSamplerFlags),
+    EMPLACE_UTILS_FUNCTION(packRenderState),
+    EMPLACE_UTILS_FUNCTION(packStencilState),
     {NULL, NULL},
 };
 

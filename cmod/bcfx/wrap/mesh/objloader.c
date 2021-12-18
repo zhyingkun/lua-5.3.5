@@ -6,6 +6,13 @@
 #include <string.h>
 #include <assert.h>
 
+static char* str_ndup(const char* str, size_t sz) {
+  char* ptr = (char*)malloc(sz + 1);
+  memcpy(ptr, str, sz);
+  ptr[sz] = '\0';
+  return ptr;
+}
+
 /*
 ** {======================================================
 ** Private API
@@ -146,19 +153,47 @@ void mla_destroy(MaterialLibraryArray* mla) {
   array_destroy((Array*)mla);
 }
 
-void material_init(Material* m) {
+void material_init(Material* mtl) {
+  mtl->name = NULL;
+  Float3 f3Zero = {0};
+  mtl->ka = f3Zero;
+  mtl->kd = f3Zero;
+  mtl->ks = f3Zero;
+  mtl->ns = 0.0;
+  mtl->ni = 0.0;
+  mtl->d = 0.0;
+  mtl->illum = 0;
+  mtl->mapKa = NULL;
+  mtl->mapKd = NULL;
+  mtl->mapKs = NULL;
+  mtl->mapNs = NULL;
+  mtl->mapD = NULL;
+  mtl->mapBump = NULL;
 }
-void material_destroy(Material* m) {
-}
-void mtla_init(MaterialArray* ma) {
-}
-Material* mtla_addUninitialized(MaterialArray* ma) {
-  return NULL;
-}
-void mtla_destroy(MaterialArray* ma) {
+void material_destroy(Material* mtl) {
+  free((void*)mtl->name);
+  free((void*)mtl->mapKa);
+  free((void*)mtl->mapKd);
+  free((void*)mtl->mapKs);
+  free((void*)mtl->mapNs);
+  free((void*)mtl->mapD);
+  free((void*)mtl->mapBump);
 }
 
-size_t _getLine(const char* buf, size_t sz) {
+void mtla_init(MaterialArray* mtla) {
+  array_init((Array*)mtla, 4, sizeof(Material));
+}
+Material* mtla_addUninitialized(MaterialArray* mtla) {
+  return (Material*)array_add((Array*)mtla, sizeof(Material));
+}
+void mtla_destroy(MaterialArray* mtla) {
+  for (uint32_t i = 0; i < mtla->num; i++) {
+    material_destroy(&mtla->arr[i]);
+  }
+  array_destroy((Array*)mtla);
+}
+
+static size_t _getLine(const char* buf, size_t sz) {
   for (size_t i = 0; i < sz; i++) {
     if (buf[i] == '\r' || buf[i] == '\n') {
       return i;
@@ -170,7 +205,7 @@ size_t _getLine(const char* buf, size_t sz) {
 #define MAX_TOKEN 8
 
 // maybe empty string in return list
-int _split(const char* buf, size_t sz, char c, const char* list[], size_t count[]) {
+static int _split(const char* buf, size_t sz, char c, const char* list[], size_t count[]) {
   int idx = 0;
   count[idx] = 0;
   list[idx] = buf;
@@ -193,7 +228,7 @@ int _split(const char* buf, size_t sz, char c, const char* list[], size_t count[
 }
 
 // no empty string in return list
-int _splitSpace(const char* buf, size_t sz, const char* list[], size_t count[]) {
+static int _splitSpace(const char* buf, size_t sz, const char* list[], size_t count[]) {
   int idx = 0;
   list[idx] = buf;
   count[idx] = 0;
@@ -224,7 +259,7 @@ int _splitSpace(const char* buf, size_t sz, const char* list[], size_t count[]) 
 }
 
 // token must end with '\0'
-int _isToken(const char* ptr, size_t sz, const char* token) {
+static int _isToken(const char* ptr, size_t sz, const char* token) {
   for (size_t i = 0; i < sz; i++) {
     if (ptr[i] != token[i]) {
       return 0;
@@ -236,7 +271,7 @@ int _isToken(const char* ptr, size_t sz, const char* token) {
 #define IS_TOKEN(list_, count_, num_, idx_, token_) (idx_ < num_ && _isToken(list_[0], count_[0], token_))
 #define IS_FIRST_TOKEN(token_) IS_TOKEN(strList, szList, num, 0, token_)
 
-float _stringToFloat(const char* str, size_t sz) {
+static float _stringToFloat(const char* str, size_t sz) {
   // char* temp = (char*)alloca(sz + 1);
   // memcpy(temp, str, sz);
   // temp[sz] = '\0';
@@ -244,15 +279,15 @@ float _stringToFloat(const char* str, size_t sz) {
   return atof(str);
 }
 
-int _stringToInt(const char* str, size_t sz) {
+static int _stringToInt(const char* str, size_t sz) {
   return atoi(str);
 }
 
-Float3* _getElementF3(Float3Array* f3a, int idx) {
+static Float3* _getElementF3(Float3Array* f3a, int idx) {
   idx = idx % f3a->num;
   return &f3a->arr[idx];
 }
-Float2* _getElementF2(Float2Array* f2a, int idx) {
+static Float2* _getElementF2(Float2Array* f2a, int idx) {
   idx = idx % f2a->num;
   return &f2a->arr[idx];
 }
@@ -260,7 +295,7 @@ Float2* _getElementF2(Float2Array* f2a, int idx) {
 
 #define FACE_MAX_VERTEX 4
 
-int _parseOneVertex(ObjLoader* loader, const char* buf, size_t sz) {
+static int _parseOneVertex(ObjLoader* loader, const char* buf, size_t sz) {
   const char* strList[MAX_TOKEN];
   size_t szList[MAX_TOKEN];
   int num = _split(buf, sz, '/', strList, szList);
@@ -289,8 +324,9 @@ int _parseOneVertex(ObjLoader* loader, const char* buf, size_t sz) {
 }
 
 #define ATOF_STRLIST(idx) _stringToFloat(strList[idx], szList[idx])
+#define ATOI_STRLIST(idx) _stringToInt(strList[idx], szList[idx])
 
-void _parseOneLine(ObjLoader* loader, const char* buf, size_t sz) {
+static void _parseMeshOneLine(ObjLoader* loader, const char* buf, size_t sz) {
   const char* strList[MAX_TOKEN];
   size_t szList[MAX_TOKEN];
   int num = _splitSpace(buf, sz, strList, szList);
@@ -299,7 +335,7 @@ void _parseOneLine(ObjLoader* loader, const char* buf, size_t sz) {
     loader->curMesh = ma_addUninitialized(loader->ma);
     mesh_init(loader->curMesh);
     if (num > 1) {
-      loader->curMesh->name = strndup(strList[1], szList[1]);
+      loader->curMesh->name = str_ndup(strList[1], szList[1]);
     }
   } else if (IS_FIRST_TOKEN("v")) {
     Float3 f3[1];
@@ -358,9 +394,66 @@ void _parseOneLine(ObjLoader* loader, const char* buf, size_t sz) {
       assert(0); // support triangle and quadrangulate only
     }
   } else if (IS_FIRST_TOKEN("usemtl")) {
-    loader->curMesh->materialName = (const char*)strndup(strList[1], szList[1]);
+    loader->curMesh->materialName = (const char*)str_ndup(strList[1], szList[1]);
   } else if (IS_FIRST_TOKEN("mtllib")) {
-    mla_add(loader->mla, (const char*)strndup(strList[1], szList[1]));
+    mla_add(loader->mla, (const char*)str_ndup(strList[1], szList[1]));
+  }
+}
+
+static void _parseMaterialOneLine(MtlLoader* loader, const char* buf, size_t sz) {
+  const char* strList[MAX_TOKEN];
+  size_t szList[MAX_TOKEN];
+  int num = _splitSpace(buf, sz, strList, szList);
+
+  if (IS_FIRST_TOKEN("newmtl")) {
+    loader->curMtl = mtla_addUninitialized(loader->mtla);
+    material_init(loader->curMtl);
+    if (num > 1) {
+      loader->curMtl->name = str_ndup(strList[1], szList[1]);
+    }
+  } else if (IS_FIRST_TOKEN("Ka")) {
+    if (num == 4) {
+      Float3* f3 = &loader->curMtl->ka;
+      f3->x = ATOF_STRLIST(1);
+      f3->y = ATOF_STRLIST(2);
+      f3->z = ATOF_STRLIST(3);
+    }
+  } else if (IS_FIRST_TOKEN("Kd")) {
+    if (num == 4) {
+      Float3* f3 = &loader->curMtl->kd;
+      f3->x = ATOF_STRLIST(1);
+      f3->y = ATOF_STRLIST(2);
+      f3->z = ATOF_STRLIST(3);
+    }
+  } else if (IS_FIRST_TOKEN("Ks")) {
+    if (num == 4) {
+      Float3* f3 = &loader->curMtl->ks;
+      f3->x = ATOF_STRLIST(1);
+      f3->y = ATOF_STRLIST(2);
+      f3->z = ATOF_STRLIST(3);
+    }
+  } else if (IS_FIRST_TOKEN("Ns")) {
+    loader->curMtl->ns = ATOF_STRLIST(1);
+  } else if (IS_FIRST_TOKEN("Ni")) {
+    loader->curMtl->ni = ATOF_STRLIST(1);
+  } else if (IS_FIRST_TOKEN("d")) {
+    loader->curMtl->d = ATOF_STRLIST(1);
+  } else if (IS_FIRST_TOKEN("illum")) {
+    loader->curMtl->illum = ATOI_STRLIST(1);
+  } else if (IS_FIRST_TOKEN("map_Ka")) {
+    loader->curMtl->mapKa = str_ndup(strList[1], szList[1]);
+  } else if (IS_FIRST_TOKEN("map_Kd")) {
+    loader->curMtl->mapKd = str_ndup(strList[1], szList[1]);
+  } else if (IS_FIRST_TOKEN("map_Ks")) {
+    loader->curMtl->mapKs = str_ndup(strList[1], szList[1]);
+  } else if (IS_FIRST_TOKEN("map_Ns")) {
+    loader->curMtl->mapNs = str_ndup(strList[1], szList[1]);
+  } else if (IS_FIRST_TOKEN("map_d")) {
+    loader->curMtl->mapD = str_ndup(strList[1], szList[1]);
+  } else if (IS_FIRST_TOKEN("map_Bump") ||
+             IS_FIRST_TOKEN("map_bump") ||
+             IS_FIRST_TOKEN("bump")) {
+    loader->curMtl->mapBump = str_ndup(strList[1], szList[1]);
   }
 }
 
@@ -384,7 +477,7 @@ MeshLoaded objloader_loadMesh(const char* buf, size_t sz) {
   while (sz > 0) {
     size_t len = _getLine(buf, sz);
     if (len > 0 && buf[0] != '#') {
-      _parseOneLine(loader, buf, len);
+      _parseMeshOneLine(loader, buf, len);
     }
     len++; // include '\n'
     sz -= len;
@@ -401,18 +494,30 @@ MeshLoaded objloader_loadMesh(const char* buf, size_t sz) {
   loaded.mla = loader->mla[0];
   return loaded;
 }
-
 void objloader_destroyMesh(MeshLoaded* ml) {
   ma_destroy(&ml->ma);
   mla_destroy(&ml->mla);
 }
 
 MaterialArray objloader_loadMaterial(const char* buf, size_t sz) {
-  MaterialArray ma = {0};
-  return ma;
+  MtlLoader loader[1];
+  mtla_init(loader->mtla);
+  loader->curMtl = NULL;
+
+  while (sz > 0) {
+    size_t len = _getLine(buf, sz);
+    if (len > 0 && buf[0] != '#') {
+      _parseMaterialOneLine(loader, buf, len);
+    }
+    len++; // include '\n'
+    sz -= len;
+    buf += len;
+  }
+
+  return loader->mtla[0];
 }
-void objloader_destroyMaterial(MaterialArray* ma) {
-  mtla_destroy(ma);
+void objloader_destroyMaterial(MaterialArray* mtla) {
+  mtla_destroy(mtla);
 }
 
 /* }====================================================== */

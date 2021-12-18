@@ -8,7 +8,7 @@
 */
 
 #define GET_UINT8(L, idx) ((uint8_t)(lua_isinteger(L, idx) ? lua_tointeger(L, idx) : (lua_tonumber(L, idx) * 255)))
-static int COLOR_FUNCTION(Pack)(lua_State* L) {
+static int COLOR_FUNCTION(pack)(lua_State* L) {
   luaL_checktype(L, 1, LUA_TNUMBER);
   luaL_checktype(L, 2, LUA_TNUMBER);
   luaL_checktype(L, 3, LUA_TNUMBER);
@@ -22,7 +22,7 @@ static int COLOR_FUNCTION(Pack)(lua_State* L) {
   return 1;
 }
 
-static int COLOR_FUNCTION(Unpack)(lua_State* L) {
+static int COLOR_FUNCTION(unpack)(lua_State* L) {
   uint32_t rgba = (uint32_t)luaL_checkinteger(L, 1);
   uint8_t r = (uint8_t)(rgba >> 24);
   uint8_t g = (uint8_t)(rgba >> 16);
@@ -35,7 +35,7 @@ static int COLOR_FUNCTION(Unpack)(lua_State* L) {
   return 4;
 }
 
-static int COLOR_FUNCTION(Unpackf)(lua_State* L) {
+static int COLOR_FUNCTION(unpackf)(lua_State* L) {
   uint32_t rgba = (uint32_t)luaL_checkinteger(L, 1);
   uint8_t r = (uint8_t)(rgba >> 24);
   uint8_t g = (uint8_t)(rgba >> 16);
@@ -51,9 +51,9 @@ static int COLOR_FUNCTION(Unpackf)(lua_State* L) {
 #define EMPLACE_COLOR_FUNCTION(name) \
   { #name, COLOR_FUNCTION(name) }
 static const luaL_Reg color_funcs[] = {
-    EMPLACE_COLOR_FUNCTION(Pack),
-    EMPLACE_COLOR_FUNCTION(Unpack),
-    EMPLACE_COLOR_FUNCTION(Unpackf),
+    EMPLACE_COLOR_FUNCTION(pack),
+    EMPLACE_COLOR_FUNCTION(unpack),
+    EMPLACE_COLOR_FUNCTION(unpackf),
     {NULL, NULL},
 };
 

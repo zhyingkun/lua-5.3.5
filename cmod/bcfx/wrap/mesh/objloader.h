@@ -142,6 +142,11 @@ typedef struct {
   Float3Array normals[1];
 } ObjLoader;
 
+typedef struct {
+  MaterialArray mtla[1];
+  Material* curMtl;
+} MtlLoader;
+
 /* }====================================================== */
 
 /*

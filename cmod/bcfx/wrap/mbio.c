@@ -49,7 +49,7 @@ typedef struct {
   int err;
 } ReadFileResult;
 
-static int MBIO_FUNCTION(PackReadFileParam)(lua_State* L) {
+static int MBIO_FUNCTION(packReadFileParam)(lua_State* L) {
   size_t size;
   const char* fileName = luaL_checklstring(L, 1, &size);
 
@@ -62,7 +62,7 @@ static int MBIO_FUNCTION(PackReadFileParam)(lua_State* L) {
   lua_pushlightuserdata(L, (void*)param);
   return 1;
 }
-static void* MBIO_FUNCTION(ReadFilePtr)(void* arg) {
+static void* MBIO_FUNCTION(readFilePtr)(void* arg) {
   ReadFileParam* param = (ReadFileParam*)arg;
   ReadFileResult* result = (ReadFileResult*)malloc(sizeof(ReadFileResult));
   result->err = _readFileAllToBuffer(param->fileName, &result->ptr, &result->sz);
@@ -81,14 +81,14 @@ static int _dealReadFileResult(lua_State* L, int err, void* ptr, size_t sz) {
   MEMBUFFER_SET(mb, ptr, sz, _releaseBuffer, NULL);
   return 1;
 }
-static int MBIO_FUNCTION(UnpackReadFileResult)(lua_State* L) {
+static int MBIO_FUNCTION(unpackReadFileResult)(lua_State* L) {
   ReadFileResult* result = (ReadFileResult*)luaL_checklightuserdata(L, 1);
   int ret = _dealReadFileResult(L, result->err, result->ptr, result->sz);
   free((void*)result);
   return ret;
 }
 
-static int MBIO_FUNCTION(ReadFile)(lua_State* L) {
+static int MBIO_FUNCTION(readFile)(lua_State* L) {
   const char* fileName = luaL_checkstring(L, 1);
   void* ptr = NULL;
   size_t sz = 0;
@@ -124,7 +124,7 @@ typedef struct {
   bcfx_MemBuffer mb;
 } WriteFileParam;
 
-static int MBIO_FUNCTION(PackWriteFileParam)(lua_State* L) {
+static int MBIO_FUNCTION(packWriteFileParam)(lua_State* L) {
   size_t size;
   const char* fileName = luaL_checklstring(L, 1, &size);
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 2);
@@ -140,7 +140,7 @@ static int MBIO_FUNCTION(PackWriteFileParam)(lua_State* L) {
   lua_pushlightuserdata(L, (void*)param);
   return 1;
 }
-static void* MBIO_FUNCTION(WriteFilePtr)(void* arg) {
+static void* MBIO_FUNCTION(writeFilePtr)(void* arg) {
   WriteFileParam* param = (WriteFileParam*)arg;
   long err = _writeFileAllFromBuffer(param->fileName, param->mb.ptr, param->mb.sz);
   MEMBUFFER_RELEASE(&param->mb);
@@ -158,12 +158,12 @@ static int _dealWriteFileResult(lua_State* L, int err) {
   lua_pushboolean(L, 1);
   return 1;
 }
-static int MBIO_FUNCTION(UnpackWriteFileResult)(lua_State* L) {
+static int MBIO_FUNCTION(unpackWriteFileResult)(lua_State* L) {
   void* err = luaL_checklightuserdata(L, 1);
   return _dealWriteFileResult(L, (long)err);
 }
 
-static int MBIO_FUNCTION(WriteFile)(lua_State* L) {
+static int MBIO_FUNCTION(writeFile)(lua_State* L) {
   const char* fileName = luaL_checkstring(L, 1);
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 2);
 
@@ -177,12 +177,12 @@ static int MBIO_FUNCTION(WriteFile)(lua_State* L) {
 #define EMPLACE_MBIO_FUNCTION(name) \
   { #name, MBIO_FUNCTION(name) }
 static const luaL_Reg MBIO_FUNCTION(funcs)[] = {
-    EMPLACE_MBIO_FUNCTION(PackReadFileParam),
-    EMPLACE_MBIO_FUNCTION(UnpackReadFileResult),
-    EMPLACE_MBIO_FUNCTION(ReadFile),
-    EMPLACE_MBIO_FUNCTION(PackWriteFileParam),
-    EMPLACE_MBIO_FUNCTION(UnpackWriteFileResult),
-    EMPLACE_MBIO_FUNCTION(WriteFile),
+    EMPLACE_MBIO_FUNCTION(packReadFileParam),
+    EMPLACE_MBIO_FUNCTION(unpackReadFileResult),
+    EMPLACE_MBIO_FUNCTION(readFile),
+    EMPLACE_MBIO_FUNCTION(packWriteFileParam),
+    EMPLACE_MBIO_FUNCTION(unpackWriteFileResult),
+    EMPLACE_MBIO_FUNCTION(writeFile),
     {NULL, NULL},
 };
 
@@ -192,8 +192,8 @@ static const luaL_Reg MBIO_FUNCTION(funcs)[] = {
 void MBIO_FUNCTION(init)(lua_State* L) {
   luaL_newlib(L, MBIO_FUNCTION(funcs));
 
-  REGISTE_FUNC_MBIO(ReadFilePtr);
-  REGISTE_FUNC_MBIO(WriteFilePtr);
+  REGISTE_FUNC_MBIO(readFilePtr);
+  REGISTE_FUNC_MBIO(writeFilePtr);
 
   lua_setfield(L, -2, "mbio");
 }

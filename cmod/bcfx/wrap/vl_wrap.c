@@ -29,25 +29,28 @@ static int VL_FUNCTION(skip)(lua_State* L) {
   return 0;
 }
 
+static int VL_FUNCTION(clear)(lua_State* L) {
+  bcfx_VertexLayout* layout = luaL_checkvertexlayout(L, 1);
+
+  bcfx_vertexLayoutClear(layout);
+  return 0;
+}
+
 #define EMPLACE_VL_FUNCTION(name) \
   { #name, VL_FUNCTION(name) }
 static const luaL_Reg vl_metafuncs[] = {
     EMPLACE_VL_FUNCTION(add),
     EMPLACE_VL_FUNCTION(skip),
+    EMPLACE_VL_FUNCTION(clear),
     {NULL, NULL},
 };
 
-static int VL_FUNCTION(new)(lua_State* L) {
+static int VL_FUNCTION(VertexLayout)(lua_State* L) {
   bcfx_VertexLayout* layout = (bcfx_VertexLayout*)lua_newuserdata(L, sizeof(bcfx_VertexLayout));
   luaL_setmetatable(L, BCFX_VERTEXLAYOUT_TYPE);
   bcfx_vertexLayoutInit(layout);
   return 1;
 }
-
-static const luaL_Reg vl_funcs[] = {
-    EMPLACE_VL_FUNCTION(new),
-    {NULL, NULL},
-};
 
 void VL_FUNCTION(init_metatable)(lua_State* L) {
   luaL_newmetatable(L, BCFX_VERTEXLAYOUT_TYPE);
@@ -58,8 +61,8 @@ void VL_FUNCTION(init_metatable)(lua_State* L) {
 
   lua_pop(L, 1); // pop the metatable
 
-  luaL_newlib(L, vl_funcs);
-  lua_setfield(L, -2, "vertexlayout");
+  lua_pushcfunction(L, VL_FUNCTION(VertexLayout));
+  lua_setfield(L, -2, "VertexLayout");
 }
 
 /* }====================================================== */

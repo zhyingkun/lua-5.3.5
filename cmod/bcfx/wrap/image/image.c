@@ -32,7 +32,7 @@ typedef struct {
   int wantChannels;
 } ImageDecodeResult;
 
-static int IMAGE_FUNCTION(PackImageDecodeParam)(lua_State* L) {
+static int IMAGE_FUNCTION(packImageDecodeParam)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   bcfx_ETextureFormat format = (bcfx_ETextureFormat)luaL_checkinteger(L, 2);
 
@@ -43,7 +43,7 @@ static int IMAGE_FUNCTION(PackImageDecodeParam)(lua_State* L) {
   lua_pushlightuserdata(L, (void*)param);
   return 1;
 }
-static void* IMAGE_FUNCTION(ImageDecodePtr)(void* arg) {
+static void* IMAGE_FUNCTION(imageDecodePtr)(void* arg) {
   ImageDecodeParam* param = (ImageDecodeParam*)arg;
   ImageDecodeResult* result = (ImageDecodeResult*)malloc(sizeof(ImageDecodeResult));
   result->wantChannels = textureFormat_channels[param->format];
@@ -69,14 +69,14 @@ static int _dealImageDecodeResult(lua_State* L, void* data, int width, int heigh
   lua_pushinteger(L, wantChannels);
   return 5;
 }
-static int IMAGE_FUNCTION(UnpackImageDecodeResult)(lua_State* L) {
+static int IMAGE_FUNCTION(unpackImageDecodeResult)(lua_State* L) {
   ImageDecodeResult* result = (ImageDecodeResult*)luaL_checklightuserdata(L, 1);
   int ret = _dealImageDecodeResult(L, result->data, result->width, result->height, result->nrChannels, result->wantChannels);
   free((void*)result);
   return ret;
 }
 
-static int IMAGE_FUNCTION(ImageDecode)(lua_State* L) {
+static int IMAGE_FUNCTION(imageDecode)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   bcfx_ETextureFormat format = (bcfx_ETextureFormat)luaL_checkinteger(L, 2);
 
@@ -86,6 +86,8 @@ static int IMAGE_FUNCTION(ImageDecode)(lua_State* L) {
   MEMBUFFER_RELEASE(mb);
   return _dealImageDecodeResult(L, data, width, height, nrChannels, wantChannels);
 }
+
+/* }====================================================== */
 
 /*
 ** {======================================================
@@ -184,7 +186,7 @@ static int _imageEncodeToMemBuffer(ImageEncodeParam* param, bcfx_MemBuffer* mb) 
   return 0;
 }
 
-static int IMAGE_FUNCTION(PackImageEncodeParam)(lua_State* L) {
+static int IMAGE_FUNCTION(packImageEncodeParam)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   int width = luaL_checkinteger(L, 2);
   int height = luaL_checkinteger(L, 3);
@@ -205,7 +207,7 @@ static int IMAGE_FUNCTION(PackImageEncodeParam)(lua_State* L) {
   lua_pushlightuserdata(L, (void*)param);
   return 1;
 }
-static void* IMAGE_FUNCTION(ImageEncodePtr)(void* arg) {
+static void* IMAGE_FUNCTION(imageEncodePtr)(void* arg) {
   ImageEncodeParam* param = (ImageEncodeParam*)arg;
   ImageEncodeResult* result = (ImageEncodeResult*)malloc(sizeof(ImageEncodeResult));
   result->err = _imageEncodeToMemBuffer(param, &result->mb);
@@ -221,14 +223,14 @@ static int _dealImageEncodeResult(lua_State* L, int err, bcfx_MemBuffer* mb) {
   MEMBUFFER_MOVE(mb, membuf);
   return 1;
 }
-static int IMAGE_FUNCTION(UnpackImageEncodeResult)(lua_State* L) {
+static int IMAGE_FUNCTION(unpackImageEncodeResult)(lua_State* L) {
   ImageEncodeResult* result = (ImageEncodeResult*)luaL_checklightuserdata(L, 1);
   int ret = _dealImageEncodeResult(L, result->err, &result->mb);
   free((void*)result);
   return ret;
 }
 
-static int IMAGE_FUNCTION(ImageEncode)(lua_State* L) {
+static int IMAGE_FUNCTION(imageEncode)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   int width = luaL_checkinteger(L, 2);
   int height = luaL_checkinteger(L, 3);
@@ -255,15 +257,79 @@ static int IMAGE_FUNCTION(ImageEncode)(lua_State* L) {
 
 /* }====================================================== */
 
+/*
+** {======================================================
+** Image Utils
+** =======================================================
+*/
+
+typedef struct {
+  bcfx_MemBuffer mb;
+  int width;
+  int height;
+} ImageFlipVerticalParam;
+
+static int IMAGE_FUNCTION(packImageFlipVerticalParam)(lua_State* L) {
+  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  int width = luaL_checkinteger(L, 2);
+  int height = luaL_checkinteger(L, 3);
+
+  ImageFlipVerticalParam* param = (ImageFlipVerticalParam*)malloc(sizeof(ImageFlipVerticalParam));
+  MEMBUFFER_MOVE(mb, &param->mb);
+  param->width = width;
+  param->height = height;
+
+  lua_pushlightuserdata(L, (void*)param);
+  return 1;
+}
+static void* IMAGE_FUNCTION(imageFlipVerticalPtr)(void* arg) {
+  ImageFlipVerticalParam* param = (ImageFlipVerticalParam*)arg;
+  bcfx_MemBuffer* mb = &param->mb;
+  int width = param->width;
+  int height = param->height;
+
+  int bytesPerPixel = mb->sz / (width * height);
+  stbi__vertical_flip(mb->ptr, width, height, bytesPerPixel);
+
+  return (void*)param;
+}
+static int IMAGE_FUNCTION(unpackImageFlipVerticalResult)(lua_State* L) {
+  ImageFlipVerticalParam* param = (ImageFlipVerticalParam*)luaL_checklightuserdata(L, 1);
+  bcfx_MemBuffer* mb = &param->mb;
+
+  bcfx_MemBuffer* membuf = luaL_newmembuffer(L);
+  MEMBUFFER_MOVE(mb, membuf);
+
+  free((void*)param);
+  return 1;
+}
+static int IMAGE_FUNCTION(imageFlipVertical)(lua_State* L) {
+  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  int width = luaL_checkinteger(L, 2);
+  int height = luaL_checkinteger(L, 3);
+
+  int bytesPerPixel = mb->sz / (width * height);
+  stbi__vertical_flip(mb->ptr, width, height, bytesPerPixel);
+
+  bcfx_MemBuffer* membuf = luaL_newmembuffer(L);
+  MEMBUFFER_MOVE(mb, membuf);
+  return 1;
+}
+
+/* }====================================================== */
+
 #define EMPLACE_IMAGE_FUNCTION(name) \
   { #name, IMAGE_FUNCTION(name) }
 static const luaL_Reg IMAGE_FUNCTION(funcs)[] = {
-    EMPLACE_IMAGE_FUNCTION(PackImageDecodeParam),
-    EMPLACE_IMAGE_FUNCTION(UnpackImageDecodeResult),
-    EMPLACE_IMAGE_FUNCTION(ImageDecode),
-    EMPLACE_IMAGE_FUNCTION(PackImageEncodeParam),
-    EMPLACE_IMAGE_FUNCTION(UnpackImageEncodeResult),
-    EMPLACE_IMAGE_FUNCTION(ImageEncode),
+    EMPLACE_IMAGE_FUNCTION(packImageDecodeParam),
+    EMPLACE_IMAGE_FUNCTION(unpackImageDecodeResult),
+    EMPLACE_IMAGE_FUNCTION(imageDecode),
+    EMPLACE_IMAGE_FUNCTION(packImageEncodeParam),
+    EMPLACE_IMAGE_FUNCTION(unpackImageEncodeResult),
+    EMPLACE_IMAGE_FUNCTION(imageEncode),
+    EMPLACE_IMAGE_FUNCTION(packImageFlipVerticalParam),
+    EMPLACE_IMAGE_FUNCTION(unpackImageFlipVerticalResult),
+    EMPLACE_IMAGE_FUNCTION(imageFlipVertical),
     {NULL, NULL},
 };
 
@@ -281,8 +347,9 @@ static const luaL_Enum BCWRAP_ENUM(image_type)[] = {
 void IMAGE_FUNCTION(init)(lua_State* L) {
   luaL_newlib(L, IMAGE_FUNCTION(funcs));
 
-  REGISTE_FUNC_IMAGE(ImageDecodePtr);
-  REGISTE_FUNC_IMAGE(ImageEncodePtr);
+  REGISTE_FUNC_IMAGE(imageDecodePtr);
+  REGISTE_FUNC_IMAGE(imageEncodePtr);
+  REGISTE_FUNC_IMAGE(imageFlipVerticalPtr);
 
   REGISTE_ENUM(image_type);
 

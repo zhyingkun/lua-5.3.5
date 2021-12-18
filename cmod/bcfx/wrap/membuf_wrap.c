@@ -39,7 +39,7 @@ uint8_t sizeof_DataType[] = {
 };
 // clang-format on
 
-static int MEMBUF_FUNCTION(GetClear)(lua_State* L) {
+static int MEMBUF_FUNCTION(getClear)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   lua_pushlightuserdata(L, mb->ptr);
   lua_pushinteger(L, mb->sz);
@@ -52,7 +52,7 @@ static int MEMBUF_FUNCTION(GetClear)(lua_State* L) {
 #define CHECK_AND_SET(idx, field, type, check) \
   if (!lua_isnoneornil(L, idx)) \
   mb->field = (type)luaL_check##check(L, idx)
-static int MEMBUF_FUNCTION(SetReplace)(lua_State* L) {
+static int MEMBUF_FUNCTION(setReplace)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   MEMBUFFER_RELEASE(mb);
   CHECK_AND_SET(2, ptr, void*, lightuserdata);
@@ -71,8 +71,8 @@ static int MEMBUF_FUNCTION(__gc)(lua_State* L) {
 #define EMPLACE_MEMBUF_FUNCTION(name) \
   { #name, MEMBUF_FUNCTION(name) }
 static const luaL_Reg membuf_metafuncs[] = {
-    EMPLACE_MEMBUF_FUNCTION(GetClear),
-    EMPLACE_MEMBUF_FUNCTION(SetReplace),
+    EMPLACE_MEMBUF_FUNCTION(getClear),
+    EMPLACE_MEMBUF_FUNCTION(setReplace),
     EMPLACE_MEMBUF_FUNCTION(__gc),
     {NULL, NULL},
 };
@@ -92,7 +92,7 @@ bcfx_MemBuffer* luaL_newmembuffer(lua_State* L) {
 ** =======================================================
 */
 
-static int MEMBUF_FUNCTION(CreateMemBuffer)(lua_State* L) {
+static int MEMBUF_FUNCTION(MemBuffer)(lua_State* L) {
   void* ptr = luaL_optlightuserdata(L, 1, NULL);
   size_t sz = luaL_optinteger(L, 2, 0);
   bcfx_MemRelease release = (bcfx_MemRelease)luaL_optlightuserdata(L, 3, NULL);
@@ -103,21 +103,6 @@ static int MEMBUF_FUNCTION(CreateMemBuffer)(lua_State* L) {
   return 1;
 }
 
-static void _releaseBuffer(void* ud, void* ptr) {
-  (void)ud;
-  free((void*)ptr);
-}
-static int MEMBUF_FUNCTION(CopyRawToMemBuffer)(lua_State* L) {
-  void* data = luaL_checklightuserdata(L, 1);
-  size_t len = luaL_checkinteger(L, 2);
-
-  void* another = malloc(len);
-  memcpy((char*)another, (char*)data, len);
-  bcfx_MemBuffer* mb = luaL_newmembuffer(L);
-  MEMBUFFER_SET(mb, (void*)another, len, _releaseBuffer, NULL);
-  return 1;
-}
-
 #define FILL_DATA_ARRAY_TABLE(count, idx, type, totype) \
   for (size_t i = 0; i < count; i++) { \
     lua_rawgeti(L, idx, i + 1); \
@@ -125,7 +110,7 @@ static int MEMBUF_FUNCTION(CopyRawToMemBuffer)(lua_State* L) {
     lua_pop(L, 1); \
   } \
   break
-static void fill_buffer_from_table(void* ptr, bcfx_EDataType dt, size_t count, lua_State* L, int idx) {
+static void _fillBufferFromTable(void* ptr, bcfx_EDataType dt, size_t count, lua_State* L, int idx) {
   switch (dt) {
 #define XX(name, type) \
   case DT_##name: \
@@ -146,7 +131,7 @@ static void fill_buffer_from_table(void* ptr, bcfx_EDataType dt, size_t count, l
     ((type*)ptr)[i] = lua_to##totype(L, base + i); \
   } \
   break
-static void fill_buffer_from_stack(void* ptr, bcfx_EDataType dt, size_t count, lua_State* L) {
+static void _fillBufferFromStack(void* ptr, bcfx_EDataType dt, size_t count, lua_State* L) {
   // base is the first one
   int base = lua_gettop(L) - count + 1;
   switch (dt) {
@@ -164,10 +149,11 @@ static void fill_buffer_from_stack(void* ptr, bcfx_EDataType dt, size_t count, l
   }
   lua_pop(L, count);
 }
-static void MEMBUF_FUNCTION(Release)(void* ud, void* ptr) {
+static void _releaseMemBuffer(void* ud, void* ptr) {
+  (void)ud;
   free(ptr);
 }
-static int MEMBUF_FUNCTION(MakeMemBuffer)(lua_State* L) {
+static int MEMBUF_FUNCTION(makeMemBuffer)(lua_State* L) {
   int num = lua_gettop(L);
   if (num < 2 || num % 2 != 0) {
     luaL_error(L, "must passing paraments in pair with type and data");
@@ -178,14 +164,14 @@ static int MEMBUF_FUNCTION(MakeMemBuffer)(lua_State* L) {
     size_t count = luaL_len(L, 2);
     mb->sz = sizeof_DataType[type] * count;
     mb->ptr = malloc(mb->sz);
-    mb->release = MEMBUF_FUNCTION(Release);
+    mb->release = _releaseMemBuffer;
     mb->ud = NULL;
-    fill_buffer_from_table(mb->ptr, type, count, L, 2);
+    _fillBufferFromTable(mb->ptr, type, count, L, 2);
   } else {
     mb->sz = 0;
     size_t msz = 1024;
     mb->ptr = malloc(msz);
-    mb->release = MEMBUF_FUNCTION(Release);
+    mb->release = _releaseMemBuffer;
     mb->ud = NULL;
     int cnt = num / 2;
     int* counts = (int*)alloca(sizeof(int) * cnt + sizeof(bcfx_EDataType) * cnt);
@@ -218,7 +204,7 @@ static int MEMBUF_FUNCTION(MakeMemBuffer)(lua_State* L) {
           } while (msz < mb->sz);
           mb->ptr = realloc(mb->ptr, msz);
         }
-        fill_buffer_from_stack(((uint8_t*)mb->ptr) + start, dts[i], count, L);
+        _fillBufferFromStack(((uint8_t*)mb->ptr) + start, dts[i], count, L);
       }
     }
   }
@@ -229,9 +215,8 @@ _READ_END_:
 /* }====================================================== */
 
 static const luaL_Reg membuf_funcs[] = {
-    EMPLACE_MEMBUF_FUNCTION(CreateMemBuffer),
-    EMPLACE_MEMBUF_FUNCTION(CopyRawToMemBuffer),
-    EMPLACE_MEMBUF_FUNCTION(MakeMemBuffer),
+    EMPLACE_MEMBUF_FUNCTION(MemBuffer),
+    EMPLACE_MEMBUF_FUNCTION(makeMemBuffer),
     {NULL, NULL},
 };
 

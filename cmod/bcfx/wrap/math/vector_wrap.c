@@ -23,7 +23,7 @@ Vec4* luaL_checkvec4(lua_State* L, int idx) {
   return (Vec4*)vec;
 }
 
-static Vec* luaL_newvector(lua_State* L, uint8_t cnt) {
+Vec* luaL_newvector(lua_State* L, uint8_t cnt) {
   Vec* vec = (Vec*)lua_newuserdata(L, VEC_SIZE(cnt));
   luaL_setmetatable(L, BCFX_VECTOR_TYPE);
   VEC_INIT(vec, cnt);
