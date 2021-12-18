@@ -36,6 +36,10 @@ BCFX_API void bcfx_vertexLayoutSkip(bcfx_VertexLayout* layout, uint8_t num_byte)
   layout->stride += num_byte;
 }
 
+BCFX_API void bcfx_vertexLayoutClear(bcfx_VertexLayout* layout) {
+  memset((void*)layout, 0, sizeof(bcfx_VertexLayout));
+}
+
 /* }====================================================== */
 
 /*

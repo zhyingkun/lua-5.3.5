@@ -504,10 +504,10 @@ void ctx_requestCurrentFrameViewCapture(Context* ctx, ViewId id) {
 void ctx_callOnFrameViewCapture(Context* ctx, Frame* frame, uint32_t frameId) {
   for (uint8_t i = 0; i < frame->numVCR; i++) {
     bcfx_FrameViewCaptureResult* result = &frame->viewCaptureResults[i];
-      if (ctx->onFrameViewCapture) {
-          ctx->onFrameViewCapture(ctx->onFrameViewCaptureArg, frameId, result);
-      }
-      MEMBUFFER_RELEASE(&result->mb);
+    if (ctx->onFrameViewCapture) {
+      ctx->onFrameViewCapture(ctx->onFrameViewCaptureArg, frameId, result);
+    }
+    MEMBUFFER_RELEASE(&result->mb);
   }
   frame->numVCR = 0;
 }

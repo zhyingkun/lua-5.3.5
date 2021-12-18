@@ -522,24 +522,24 @@ static inline bool shouldCaptureView(Frame* frame, ViewId id) {
          (frame->viewCapture[VIEW_BYTE_INDEX(id)] & VIEW_OFFSET_BIT(id)) != 0;
 }
 static void _releaseFrameCapture(void* ud, void* ptr) {
-    (void)ud;
-    mem_free(ptr);
+  (void)ud;
+  mem_free(ptr);
 }
 static void frameCaptureView(Frame* frame, ViewId id) {
   if (IS_VIEWID_VALID(id) && shouldCaptureView(frame, id)) {
     View* view = &frame->views[id];
     Rect* rect = &view->rect;
-      size_t sz = rect->width * rect->height * 4;
+    size_t sz = rect->width * rect->height * 4;
     void* data = mem_malloc(sz);
 
-      GL_CHECK(glFlush());
+    GL_CHECK(glFlush());
     GL_CHECK(glReadPixels(rect->x, rect->y, rect->width, rect->height, GL_RGBA, GL_UNSIGNED_BYTE, data));
 
-      bcfx_FrameViewCaptureResult* result = &frame->viewCaptureResults[frame->numVCR++];
+    bcfx_FrameViewCaptureResult* result = &frame->viewCaptureResults[frame->numVCR++];
     result->id = id;
     result->width = rect->width;
     result->height = rect->height;
-      MEMBUFFER_SET(&result->mb, data, sz, _releaseFrameCapture, NULL);
+    MEMBUFFER_SET(&result->mb, data, sz, _releaseFrameCapture, NULL);
   }
 }
 
