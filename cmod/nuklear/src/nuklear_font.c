@@ -1316,6 +1316,13 @@ failed:
   }
   return 0;
 }
+NK_API nk_allocator nk_font_atlas_move_pixel(nk_font_atlas* atlas, void** p_pixel) {
+  if (p_pixel) {
+    *p_pixel = atlas->pixel;
+  }
+  atlas->pixel = NULL;
+  return atlas->temporary;
+}
 NK_API void nk_font_atlas_end(nk_font_atlas* atlas, nk_handle texture,
                               nk_draw_null_texture* null) {
   int i = 0;

@@ -3970,6 +3970,7 @@ NK_API nk_font* nk_font_atlas_add_from_file(nk_font_atlas* atlas, const char* fi
 NK_API nk_font* nk_font_atlas_add_compressed(nk_font_atlas*, void* memory, nk_size size, float height, const nk_font_config*);
 NK_API nk_font* nk_font_atlas_add_compressed_base85(nk_font_atlas*, const char* data, float height, const nk_font_config* config);
 NK_API const void* nk_font_atlas_bake(nk_font_atlas*, int* width, int* height, nk_font_atlas_format);
+NK_API nk_allocator nk_font_atlas_move_pixel(nk_font_atlas* atlas, void** p_pixel);
 NK_API void nk_font_atlas_end(nk_font_atlas*, nk_handle tex, nk_draw_null_texture*);
 NK_API const nk_font_glyph* nk_font_find_glyph(nk_font*, nk_rune unicode);
 NK_API void nk_font_atlas_cleanup(nk_font_atlas* atlas);
