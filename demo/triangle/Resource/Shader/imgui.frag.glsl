@@ -9,7 +9,8 @@ in vec4 v_color0;
 out vec4 FragColor;
 
 void main(){
-   FragColor = v_color0 * texture(Texture, v_texcoord0.st);
+   vec2 uv = vec2(v_texcoord0.s, 1.0 - v_texcoord0.t);
+   FragColor = v_color0 * texture(Texture, uv);
    // FragColor = vec4(1.0, 1.0, 1.0, 1.0);
    // FragColor = v_color0;
    // FragColor = texture(Texture, v_texcoord0.st);

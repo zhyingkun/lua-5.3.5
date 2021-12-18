@@ -36,15 +36,16 @@ end
 
 function loader.LoadTexture(filename)
 	local filePath = pathPrefix .. "Resource/Texture/" .. filename;
-	local fileData = mbio.ReadFile(filePath)
-	local parseMB, width, height = image.ImageDecode(fileData, texture_format.RGBA8)
+	local fileData = mbio.readFile(filePath)
+	local parseMB, width, height = image.imageDecode(fileData, texture_format.RGBA8)
 	return bcfx.createTexture(parseMB, width, height, texture_format.RGBA8)
 end
 
 function loader.loadMesh(fileName)
 	local filePath = pathPrefix .. "Resource/Mesh/" .. fileName;
-	local fileData = mbio.ReadFile(filePath)
-	return bcfx.mesh.MeshParse(fileData)
+	local fileData = mbio.readFile(filePath)
+	local meshs, materialLibraryNames = bcfx.mesh.meshParse(fileData)
+	return meshs[1].vertex, meshs[1].index
 end
 
 return loader

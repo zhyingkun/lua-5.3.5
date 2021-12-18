@@ -48,7 +48,7 @@ local AddOneFrame = (function()
 end)()
 
 local function CreateTriangleBuffer()
-	local layout = bcfx.vertexlayout.new()
+	local layout = bcfx.VertexLayout()
 	layout:add(vertex_attrib.Position, 3, attrib_type.Float, false)
 	local layoutHandle = bcfx.createVertexLayout(layout)
 	local vertexTbl = {
@@ -56,10 +56,10 @@ local function CreateTriangleBuffer()
 		1.0, -1.0, 0.0,
 		0.0, 1.0, 0.0,
 	}
-	local mem = membuf.MakeMemBuffer(data_type.Float, vertexTbl)
+	local mem = membuf.makeMemBuffer(data_type.Float, vertexTbl)
 	local vertexHandle = bcfx.createVertexBuffer(mem, layoutHandle)
 
-	local layout = bcfx.vertexlayout.new()
+	local layout = bcfx.VertexLayout()
 	layout:add(vertex_attrib.Color0, 3, attrib_type.Float, false)
 	local layoutHandle = bcfx.createVertexLayout(layout)
 	local colorTbl = {
@@ -67,13 +67,13 @@ local function CreateTriangleBuffer()
 		0.0, 1.0, 0.0,
 		0.0, 0.0, 1.0,
 	}
-	local mem = membuf.MakeMemBuffer(data_type.Float, colorTbl)
+	local mem = membuf.makeMemBuffer(data_type.Float, colorTbl)
 	local colorHandle = bcfx.createVertexBuffer(mem, layoutHandle)
 
 	local indexTbl = {
 		0, 1, 2,
 	}
-	local mem = membuf.MakeMemBuffer(data_type.Uint8, indexTbl)
+	local mem = membuf.makeMemBuffer(data_type.Uint8, indexTbl)
 	local idxHandle = bcfx.createIndexBuffer(mem, index_type.Uint8)
 
 	local shaderProgramHandle = loader.LoadProgram("triangle")
@@ -87,7 +87,7 @@ local function CreateTriangleBuffer()
 end
 
 local function CreateCubeBuffer()
-	local layout = bcfx.vertexlayout.new()
+	local layout = bcfx.VertexLayout()
 	layout:add(vertex_attrib.Position, 3, attrib_type.Float, false)
 	local layoutHandle = bcfx.createVertexLayout(layout)
 	local vertexTbl = {
@@ -116,10 +116,10 @@ local function CreateCubeBuffer()
 		0.5, -0.5, -0.5,
 		0.5, -0.5,  0.5,
 	 }
-	local mem = membuf.MakeMemBuffer(data_type.Float, vertexTbl)
+	local mem = membuf.makeMemBuffer(data_type.Float, vertexTbl)
 	local vertexHandle = bcfx.createVertexBuffer(mem, layoutHandle)
 
-	local layout = bcfx.vertexlayout.new()
+	local layout = bcfx.VertexLayout()
 	layout:add(vertex_attrib.TexCoord0, 2, attrib_type.Float, false)
 	local layoutHandle = bcfx.createVertexLayout(layout)
 	local texCoordTbl = {
@@ -148,7 +148,7 @@ local function CreateCubeBuffer()
 		1.0, 1.0,
 		0.0, 1.0,
 	  }
-	local mem = membuf.MakeMemBuffer(data_type.Float, texCoordTbl)
+	local mem = membuf.makeMemBuffer(data_type.Float, texCoordTbl)
 	local texCoordHandle = bcfx.createVertexBuffer(mem, layoutHandle)
 
 	local indexTbl = {
@@ -159,7 +159,7 @@ local function CreateCubeBuffer()
 		16, 17, 18, 16, 18, 19, -- up
 		20, 21, 22, 20, 22, 23, -- down
 	}
-	local mem = membuf.MakeMemBuffer(data_type.Uint8, indexTbl)
+	local mem = membuf.makeMemBuffer(data_type.Uint8, indexTbl)
 	local idxHandle = bcfx.createIndexBuffer(mem, index_type.Uint8)
 
 	uniformHandle = bcfx.createUniform("my_texture", 0)
@@ -180,7 +180,7 @@ end
 
 local function CreateSpotBuffer()
 	local vbMB, ibMB = loader.loadMesh("spot_quadrangulated.obj")
-	local layout = bcfx.vertexlayout.new()
+	local layout = bcfx.VertexLayout()
 	layout:add(vertex_attrib.Position, 3, attrib_type.Float, false)
 	layout:add(vertex_attrib.Normal, 3, attrib_type.Float, false)
 	layout:add(vertex_attrib.TexCoord0, 2, attrib_type.Float, false)
@@ -200,7 +200,7 @@ local function CreateSpotBuffer()
 end
 
 local function CreateBlitBuffer()
-	local layout = bcfx.vertexlayout.new()
+	local layout = bcfx.VertexLayout()
 	layout:add(vertex_attrib.Position, 2, attrib_type.Float, false)
 	layout:add(vertex_attrib.TexCoord0, 2, attrib_type.Float, false)
 	local layoutHandle = bcfx.createVertexLayout(layout)
@@ -212,7 +212,7 @@ local function CreateBlitBuffer()
 		1.0, 1.0, 1.0, 1.0,
 		-1.0, 1.0, 0.0, 1.0,
 	}
-	local mem = membuf.MakeMemBuffer(data_type.Float, vertexTbl)
+	local mem = membuf.makeMemBuffer(data_type.Float, vertexTbl)
 	local vertexHandle = bcfx.createVertexBuffer(mem, layoutHandle)
 
 	local uniformHandle = bcfx.createUniform("blit_texture", 0)
@@ -227,13 +227,13 @@ end
 
 local function SetupViewFull(viewID, win, width, height)
 	bcfx.setViewWindow(viewID, win)
-	local color = bcfx.color.Pack(51, 76, 76, 255)
+	local color = bcfx.color.pack(51, 76, 76, 255)
 	bcfx.setViewClear(viewID, clear_flag.COLOR | clear_flag.DEPTH, color, 1.0, 0)
 	bcfx.setViewRect(viewID, 0, 0, width, height)
 end
 local function SetupFrameBufferView(viewID, fb, width, height)
 	bcfx.setViewFrameBuffer(viewID, fb)
-	local color = bcfx.color.Pack(199, 174, 174, 255)
+	local color = bcfx.color.pack(199, 174, 174, 255)
 	bcfx.setViewClear(viewID, clear_flag.COLOR | clear_flag.DEPTH, color, 1.0, 0)
 	bcfx.setViewRect(viewID, 0, 0, width, height)
 
@@ -302,6 +302,7 @@ local function setup(mainWin)
 	frameBuffer = bcfx.createFrameBuffer(colorRT, dsRT)
 	blit = CreateBlitBuffer()
 	blit.texture = colorRT
+	_imgRT_ = colorRT
 	SetupFrameBufferView(1, frameBuffer, fbWidth, fbHeight)
 
 	SetupViewHalf(2, mainWin, fbWidth, fbHeight)
@@ -319,7 +320,7 @@ local function setup(mainWin)
 		0.3, 0.3, 0.3, 0.0,
 		0.6, 0.6, 0.6, 0.0
 	}
-	instanceData = membuf.MakeMemBuffer(data_type.Float, instanceOffset)
+	instanceData = membuf.makeMemBuffer(data_type.Float, instanceOffset)
 	bcfx.updateDynamicVertexBuffer(instanceBuffer, 0, instanceData)
 end
 
@@ -353,7 +354,7 @@ local function tick(delta)
 	-- local mat = graphics3d.rotate(45, vector.Vec3(1.0, 0.0, 0.0))
 	bcfx.setTransform(matRotate * matScale)
 
-	local flags = bcfx.utils.PackSamplerFlags({
+	local flags = bcfx.utils.packSamplerFlags({
 		wrapU = texture_wrap.Repeat,
 		wrapV = texture_wrap.Repeat,
 		filterMin = texture_filter.Linear,
@@ -362,7 +363,7 @@ local function tick(delta)
 	-- bcfx.setTexture(0, cube.uniform, cube.texture, flags)
 	bcfx.setTexture(0, cube.uniform, spot.texture, flags)
 
-	local state = bcfx.utils.PackRenderState({
+	local state = bcfx.utils.packRenderState({
 		enableDepth = true,
 	})
 	bcfx.setState(state, bcfx.color.black)
@@ -379,7 +380,7 @@ local function tick(delta)
 	-- bcfx.setIndexBuffer(idxHandle)
 	-- bcfx.submit(3, shaderProgramHandle, discard.ALL)
 
-	-- local color = bcfx.color.Pack(255, 255, 0, 255)
+	-- local color = bcfx.color.pack(255, 255, 0, 255)
 	-- bcfx.setViewClear(3, clear_flag.COLOR, color, 0.0, 0)
 end
 
