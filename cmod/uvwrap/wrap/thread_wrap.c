@@ -12,7 +12,7 @@ static void* wrap_thread_create(void* entry, void* arg) {
   }
   return (void*)tid;
 }
-static void* wrap_thread_self() {
+static void* wrap_thread_self(void) {
   uv_thread_t* tid = (uv_thread_t*)MEMORY_FUNCTION(malloc)(sizeof(uv_thread_t));
   *tid = uv_thread_self();
   return (void*)tid;

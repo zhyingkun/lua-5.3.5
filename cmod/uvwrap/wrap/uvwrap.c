@@ -89,15 +89,19 @@ static const void* luaL_checkarg(lua_State* L, int idx) {
       if (lua_isinteger(L, idx)) {
         return (void*)lua_tointeger(L, idx);
       }
+      break;
     case LUA_TLIGHTUSERDATA:
-    case LUA_TUSERDATA:
       return lua_topointer(L, idx);
+    case LUA_TUSERDATA:
+      // return lua_topointer(L, idx);
+      break; // do not support lua reference object
     case LUA_TSTRING:
-      return (const void*)lua_tostring(L, idx);
+      // return (const void*)lua_tostring(L, idx);
+      break; // do not support lua reference object
     default:
       break;
   }
-  luaL_argerror(L, idx, "arg for worker must be nil/boolean/integer/lightuserdata/userdata/string");
+  luaL_argerror(L, idx, "arg for worker must be nil/boolean/integer/lightuserdata");
   return NULL;
 }
 static void callback_queue_work(uv_work_t* req, int status) {
