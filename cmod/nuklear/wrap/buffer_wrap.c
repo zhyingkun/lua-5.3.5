@@ -9,7 +9,7 @@
 */
 
 static int NKBUFFER_FUNCTION(getPointer)(lua_State* L) {
-  struct nk_buffer* buffer = luaL_checkbuffer(L, 1);
+  nk_buffer* buffer = luaL_checkbuffer(L, 1);
   char* buf = malloc(8192);
   memcpy((void*)buf, buffer->memory.ptr, 8192);
   lua_pushlightuserdata(L, buf);
@@ -17,13 +17,13 @@ static int NKBUFFER_FUNCTION(getPointer)(lua_State* L) {
 }
 
 static int NKBUFFER_FUNCTION(getNeeded)(lua_State* L) {
-  struct nk_buffer* buffer = luaL_checkbuffer(L, 1);
+  nk_buffer* buffer = luaL_checkbuffer(L, 1);
   lua_pushinteger(L, buffer->needed);
   return 1;
 }
 
 static int NKBUFFER_FUNCTION(clear)(lua_State* L) {
-  struct nk_buffer* buffer = luaL_checkbuffer(L, 1);
+  nk_buffer* buffer = luaL_checkbuffer(L, 1);
   nk_buffer_clear(buffer);
   return 0;
 }

@@ -8,8 +8,8 @@
 */
 
 static int NKCONTEXT_FUNCTION(__newindex)(lua_State* L) {
-  struct nk_buffer* buffer = luaL_checkbuffer(L, 1);
-    (void)buffer;
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  (void)ctx;
   return 0;
 }
 

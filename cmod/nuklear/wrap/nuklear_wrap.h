@@ -26,24 +26,26 @@
 
 #define NUKLEAR_FONTCFG_TYPE "nk_font_config*"
 #define NKFONTCFG_FUNCTION(name) nuklear_font_config_wrap_##name
-#define luaL_checkfontconfig(L, idx) (struct nk_font_config*)luaL_checkudata(L, idx, NUKLEAR_FONTCFG_TYPE)
+#define luaL_checkfontconfig(L, idx) (nk_font_config*)luaL_checkudata(L, idx, NUKLEAR_FONTCFG_TYPE)
 void NKFONTCFG_FUNCTION(init_metatable)(lua_State* L);
 
 #define NUKLEAR_FONTATLAS_TYPE "nk_font_atlas*"
 #define NKFONTATLAS_FUNCTION(name) nuklear_font_atlas_wrap_##name
-#define luaL_checkatlas(L, idx) (struct nk_font_atlas*)luaL_checkudata(L, idx, NUKLEAR_FONTATLAS_TYPE)
+#define luaL_checkatlas(L, idx) (nk_font_atlas*)luaL_checkudata(L, idx, NUKLEAR_FONTATLAS_TYPE)
 void NKFONTATLAS_FUNCTION(init_metatable)(lua_State* L);
 
-#define luaL_checkfont(L, idx) (struct nk_font*)luaL_checklightuserdata(L, idx)
+#define luaL_checkfont(L, idx) (nk_font*)luaL_checklightuserdata(L, idx)
 
 #define NUKLEAR_BUFFER_TYPE "nk_buffer*"
 #define NKBUFFER_FUNCTION(name) nuklear_buffer_wrap_##name
-#define luaL_checkbuffer(L, idx) (struct nk_buffer*)luaL_checkudata(L, idx, NUKLEAR_BUFFER_TYPE)
+#define luaL_checkbuffer(L, idx) (nk_buffer*)luaL_checkudata(L, idx, NUKLEAR_BUFFER_TYPE)
 void NKBUFFER_FUNCTION(init_metatable)(lua_State* L);
 
 #define NUKLEAR_CONTEXT_TYPE "nk_context*"
 #define NKCONTEXT_FUNCTION(name) nuklear_context_wrap_##name
-#define luaL_checkcontext(L, idx) (struct nk_context*)luaL_checkudata(L, idx, NUKLEAR_CONTEXT_TYPE)
+#define luaL_checkcontext(L, idx) (nk_context*)luaL_checkudata(L, idx, NUKLEAR_CONTEXT_TYPE)
 void NKCONTEXT_FUNCTION(init_metatable)(lua_State* L);
+
+#define luaL_checkimage(L, idx) (nk_image*)lua_topointer(L, idx)
 
 #endif /* _NUKLEAR_WRAP_H_ */

@@ -8,8 +8,8 @@
 */
 
 static int NKFONTCFG_FUNCTION(__newindex)(lua_State* L) {
-    (void)L;
-//  struct nk_font_config* cfg = luaL_checkfontconfig(L, 1);
+  (void)L;
+  //  nk_font_config* cfg = luaL_checkfontconfig(L, 1);
 
   return 0;
 }
