@@ -18,6 +18,10 @@ function nk.Context(font)
 	return libnk.context(font)
 end
 
+function nk.Image(handle)
+	return libnk.image(handle)
+end
+
 local curCtx
 function nk.setContext(ctx)
 	curCtx = ctx
@@ -55,6 +59,10 @@ function nk.layoutRowDynamic(height, cols)
 	libnk.layout_row_dynamic(curCtx, height, cols)
 end
 
+function nk.layoutRowStatic(height, itemWidth, cols)
+	libnk.layout_row_static(curCtx, height, itemWidth, cols)
+end
+
 function nk.label(str, alignment)
 	libnk.label(curCtx, str, alignment)
 end
@@ -67,9 +75,34 @@ function nk.spacing(cols)
 	libnk.spacing(curCtx, cols)
 end
 
-function nk.buttonImageLabel(img, label, align)
-	-- libnk.button_image_label(curCtx, img, label, align)
+function nk.buttonLabel(title)
+	return libnk.button_label(curCtx, title)
 end
+
+function nk.buttonImage(img)
+	return libnk.button_image(curCtx, img)
+end
+
+function nk.buttonImageLabel(img, label, align)
+	return libnk.button_image_label(curCtx, img, label, align)
+end
+
+function nk.imageWidget(img)
+	libnk.image_widget(curCtx, img)
+end
+
+function nk.popupBegin(type, title, flags, rectX, rectY, rectW, rectH)
+	return libnk.popup_begin(curCtx, type, title, flags, rectX, rectY, rectW, rectH)
+end
+
+function nk.popupClose()
+	libnk.popup_close(curCtx)
+end
+
+function nk.popupEnd()
+	libnk.popup_end(curCtx)
+end
+
 
 function nk.clear()
 	libnk.clear(curCtx)
