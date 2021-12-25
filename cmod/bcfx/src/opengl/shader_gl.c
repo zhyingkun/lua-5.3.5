@@ -193,6 +193,7 @@ void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderD
       GL_CHECK(glDisableVertexAttribArray(loc));
     } else {
       if (attr == VA_Position) {
+        // glCtx->curVertexCount = vb->count;
         glCtx->curVertexCount = vb->size / layout->stride;
       }
       if (curId != vb->id) {

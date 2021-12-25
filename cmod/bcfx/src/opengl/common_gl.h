@@ -25,6 +25,25 @@ const char* err_EnumName(GLenum _enum);
 
 /* }====================================================== */
 
+#define CLAMP_OFFSET_COUNT(total_, offset_, count_) \
+  do { \
+    if ((offset_) > (total_)) { \
+      (offset_) = (total_); \
+      printf_err("Error: offset > total, File: %s, Line: %d\n", __FILE__, __LINE__); \
+    } \
+    if ((count_) > (total_) - (offset_)) { \
+      (count_) = (total_) - (offset_); \
+      printf_err("Error: count > total - offset, File: %s, Line: %d\n", __FILE__, __LINE__); \
+    } \
+  } while (0)
+
+#define CHECK_DYNAMIC_BUFFER(bgl_) \
+  do { \
+    if (!(bgl_)->bIsDynamic) { \
+      printf_err("Error: should be dynamic buffer, not static, File: %s, Line: %d\n", __FILE__, __LINE__); \
+    } \
+  } while (0)
+
 /*
 ** {======================================================
 ** Renderer Context
@@ -35,10 +54,14 @@ typedef struct {
   GLuint id;
   uint32_t count; // how many indices in this buffer, not byte
   bcfx_EIndexType type;
+  bool bIsDynamic;
+  size_t size;
 } IndexBufferGL;
 typedef struct {
   GLuint id;
+  // uint32_t count; // how many vertex in this buffer, not byte
   Handle layout;
+  bool bIsDynamic;
   size_t size;
 } VertexBufferGL;
 typedef struct {

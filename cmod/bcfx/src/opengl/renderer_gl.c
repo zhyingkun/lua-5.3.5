@@ -302,11 +302,14 @@ static void gl_createVertexLayout(RendererContext* ctx, Handle handle, const bcf
 static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, Handle layoutHandle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
+  // bcfx_VertexLayout* layout = &glCtx->vertexLayouts[handle_index(layoutHandle)];
+  // vb->count = mem->sz / layout->stride;
   vb->layout = layoutHandle;
+  vb->bIsDynamic = mem->ptr == NULL;
   vb->size = mem->sz;
   GL_CHECK(glGenBuffers(1, &vb->id));
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
-  GL_CHECK(glBufferData(GL_ARRAY_BUFFER, mem->sz, mem->ptr, mem->ptr != NULL ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW));
+  GL_CHECK(glBufferData(GL_ARRAY_BUFFER, vb->size, mem->ptr, vb->bIsDynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
   MEMBUFFER_RELEASE(mem);
 }
@@ -315,9 +318,11 @@ static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, bcfx_MemBu
   IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
   ib->count = mem->sz / sizeof_IndexType[type];
   ib->type = type;
+  ib->bIsDynamic = mem->ptr == NULL;
+  ib->size = mem->sz;
   GL_CHECK(glGenBuffers(1, &ib->id));
   GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
-  GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, mem->sz, mem->ptr, mem->ptr != NULL ? GL_STATIC_DRAW : GL_DYNAMIC_DRAW));
+  GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, ib->size, mem->ptr, ib->bIsDynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
   GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
   MEMBUFFER_RELEASE(mem);
 }
@@ -443,8 +448,11 @@ static void gl_createFrameBuffer(RendererContext* ctx, Handle handle, uint8_t nu
 static void gl_updateVertexBuffer(RendererContext* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
+  CHECK_DYNAMIC_BUFFER(vb);
+  size_t size = mem->sz;
+  CLAMP_OFFSET_COUNT(vb->size, offset, size);
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
-  GL_CHECK(glBufferSubData(GL_ARRAY_BUFFER, offset, mem->sz, mem->ptr));
+  GL_CHECK(glBufferSubData(GL_ARRAY_BUFFER, offset, size, mem->ptr));
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
   MEMBUFFER_RELEASE(mem);
 }
@@ -452,8 +460,11 @@ static void gl_updateVertexBuffer(RendererContext* ctx, Handle handle, size_t of
 static void gl_updateIndexBuffer(RendererContext* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
+  CHECK_DYNAMIC_BUFFER(ib);
+  size_t size = mem->sz;
+  CLAMP_OFFSET_COUNT(ib->size, offset, size);
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, ib->id));
-  GL_CHECK(glBufferSubData(GL_ARRAY_BUFFER, offset, mem->sz, mem->ptr));
+  GL_CHECK(glBufferSubData(GL_ARRAY_BUFFER, offset, size, mem->ptr));
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
   MEMBUFFER_RELEASE(mem);
 }
@@ -575,9 +586,10 @@ static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw
 
   if (draw->indexBuffer == kInvalidHandle) {
     // Vertex Count
-    uint32_t total = glCtx->curVertexCount;
-    GLint start = MIN(draw->indexStart, total);
-    GLsizei count = draw->indexCount == 0 ? total - start : MIN(draw->indexCount, total - start);
+    GLint total = glCtx->curVertexCount;
+    GLint start = draw->indexStart;
+    GLsizei count = draw->indexCount == 0 ? total : draw->indexCount;
+    CLAMP_OFFSET_COUNT(total, start, count);
     if (draw->numInstance == 0) {
       GL_CHECK(glDrawArrays(GL_TRIANGLES, start, count));
     } else {
@@ -588,10 +600,11 @@ static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw
     IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
     GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
     // Index Count
-    uint32_t total = ib->count;
-    uint64_t start = MIN(draw->indexStart, total); // count in indices
-    GLsizei count = draw->indexCount == 0 ? total - start : MIN(draw->indexCount, total - start);
-    const void* indices = (const void*)(start * sizeof_IndexType[ib->type]); // offset in byte
+    GLsizei total = ib->count;
+    GLsizei start = draw->indexStart; // count in indices
+    GLsizei count = draw->indexCount == 0 ? total : draw->indexCount;
+    CLAMP_OFFSET_COUNT(total, start, count);
+    const void* indices = (const void*)((uint64_t)start * sizeof_IndexType[ib->type]); // offset in byte
     if (draw->numInstance == 0) {
       GL_CHECK(glDrawElements(GL_TRIANGLES, count, index_glType[ib->type], indices));
     } else {
