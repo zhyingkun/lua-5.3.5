@@ -17,17 +17,15 @@ static int COLOR_FUNCTION(pack)(lua_State* L) {
   uint8_t b = GET_UINT8(L, 3);
   uint8_t a = lua_type(L, 4) == LUA_TNUMBER ? GET_UINT8(L, 4) : 255;
 
-  uint32_t rgba = PACK_COLOR(r, g, b, a);
+  uint32_t rgba = bcfx_packColor(r, g, b, a);
   lua_pushinteger(L, rgba);
   return 1;
 }
 
 static int COLOR_FUNCTION(unpack)(lua_State* L) {
   uint32_t rgba = (uint32_t)luaL_checkinteger(L, 1);
-  uint8_t r = (uint8_t)(rgba >> 24);
-  uint8_t g = (uint8_t)(rgba >> 16);
-  uint8_t b = (uint8_t)(rgba >> 8);
-  uint8_t a = (uint8_t)(rgba >> 0);
+  uint8_t r, g, b, a;
+  bcfx_unpackColor(rgba, &r, &g, &b, &a);
   lua_pushinteger(L, r);
   lua_pushinteger(L, g);
   lua_pushinteger(L, b);
@@ -37,10 +35,8 @@ static int COLOR_FUNCTION(unpack)(lua_State* L) {
 
 static int COLOR_FUNCTION(unpackf)(lua_State* L) {
   uint32_t rgba = (uint32_t)luaL_checkinteger(L, 1);
-  uint8_t r = (uint8_t)(rgba >> 24);
-  uint8_t g = (uint8_t)(rgba >> 16);
-  uint8_t b = (uint8_t)(rgba >> 8);
-  uint8_t a = (uint8_t)(rgba >> 0);
+  uint8_t r, g, b, a;
+  bcfx_unpackColor(rgba, &r, &g, &b, &a);
   lua_pushnumber(L, ((float)r) / 255.0);
   lua_pushnumber(L, ((float)g) / 255.0);
   lua_pushnumber(L, ((float)b) / 255.0);
@@ -87,7 +83,7 @@ void COLOR_FUNCTION(init)(lua_State* L) {
 
   for (uint8_t i = 0; PredefinedColors[i].name != NULL; i++) {
     const ColorDefine* cd = &PredefinedColors[i];
-    lua_pushinteger(L, PACK_COLOR(cd->red, cd->green, cd->blue, 255));
+    lua_pushinteger(L, bcfx_packColor(cd->red, cd->green, cd->blue, 255));
     lua_setfield(L, -2, cd->name);
   }
 
