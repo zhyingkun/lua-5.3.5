@@ -50,9 +50,10 @@ static int NKWRAP_FUNCTION(nk_tree_state_push)(lua_State* L) {
   const char* title = luaL_checkstring(L, 3);
   nk_collapse_states state = (nk_collapse_states)luaL_checkboolean(L, 4);
 
-  nk_bool ret = nk_tree_state_push(ctx, type, title, state);
+  nk_bool ret = nk_tree_state_push(ctx, type, title, &state);
   lua_pushboolean(L, (int)ret);
-  return 1;
+  lua_pushboolean(L, (int)state);
+  return 2;
 }
 static int NKWRAP_FUNCTION(nk_tree_state_image_push)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
@@ -61,9 +62,10 @@ static int NKWRAP_FUNCTION(nk_tree_state_image_push)(lua_State* L) {
   const char* title = luaL_checkstring(L, 4);
   nk_collapse_states state = (nk_collapse_states)luaL_checkboolean(L, 5);
 
-  nk_bool ret = nk_tree_state_image_push(ctx, type, *img, title, state);
+  nk_bool ret = nk_tree_state_image_push(ctx, type, *img, title, &state);
   lua_pushboolean(L, (int)ret);
-  return 1;
+  lua_pushboolean(L, (int)state);
+  return 2;
 }
 static int NKWRAP_FUNCTION(nk_tree_state_pop)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
