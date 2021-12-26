@@ -182,7 +182,7 @@ NK_API void nk_labelfv_colored_wrap(nk_context* ctx, nk_color color,
                                     const char* fmt, va_list args) {
   char buf[256];
   nk_strfmt(buf, NK_LEN(buf), fmt, args);
-  nk_label_colored_wrap(ctx, buf, color);
+  nk_label_wrap_colored(ctx, buf, color);
 }
 
 NK_API void nk_labelfv(nk_context* ctx, nk_flags flags, const char* fmt, va_list args) {
@@ -246,6 +246,6 @@ NK_API void nk_label_colored(nk_context* ctx, const char* str, nk_flags align,
 NK_API void nk_label_wrap(nk_context* ctx, const char* str) {
   nk_text_wrap(ctx, str, nk_strlen(str));
 }
-NK_API void nk_label_colored_wrap(nk_context* ctx, const char* str, nk_color color) {
+NK_API void nk_label_wrap_colored(nk_context* ctx, const char* str, nk_color color) {
   nk_text_wrap_colored(ctx, str, nk_strlen(str), color);
 }

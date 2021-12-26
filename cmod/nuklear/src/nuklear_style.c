@@ -52,7 +52,7 @@ NK_GLOBAL const char* nk_color_names[NK_COLOR_COUNT] = {
 };
 
 NK_API const char*
-nk_style_get_color_by_name(nk_style_colors c) {
+nk_style_get_color_name(nk_style_colors c) {
   return nk_color_names[c];
 }
 NK_API nk_style_item

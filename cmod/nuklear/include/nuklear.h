@@ -2994,7 +2994,7 @@ NK_API void nk_text_wrap_colored(nk_context*, const char*, int, nk_color);
 NK_API void nk_label(nk_context*, const char*, nk_flags align);
 NK_API void nk_label_colored(nk_context*, const char*, nk_flags align, nk_color);
 NK_API void nk_label_wrap(nk_context*, const char*);
-NK_API void nk_label_colored_wrap(nk_context*, const char*, nk_color);
+NK_API void nk_label_wrap_colored(nk_context*, const char*, nk_color);
 NK_API void nk_image_widget(nk_context*, nk_image);
 NK_API void nk_image_color(nk_context*, nk_image, nk_color);
 #ifdef NK_INCLUDE_STANDARD_VARARGS
@@ -3492,7 +3492,7 @@ typedef enum {
   NK_COLOR_SCROLLBAR_CURSOR_HOVER,
   NK_COLOR_SCROLLBAR_CURSOR_ACTIVE,
   NK_COLOR_TAB_HEADER,
-  NK_COLOR_COUNT
+  NK_COLOR_COUNT,
 } nk_style_colors;
 typedef enum {
   NK_CURSOR_ARROW,
@@ -3502,13 +3502,13 @@ typedef enum {
   NK_CURSOR_RESIZE_HORIZONTAL,
   NK_CURSOR_RESIZE_TOP_LEFT_DOWN_RIGHT,
   NK_CURSOR_RESIZE_TOP_RIGHT_DOWN_LEFT,
-  NK_CURSOR_COUNT
+  NK_CURSOR_COUNT,
 } nk_style_cursor;
 NK_API void nk_style_default(nk_context*);
 NK_API void nk_style_from_table(nk_context*, const nk_color*);
 NK_API void nk_style_load_cursor(nk_context*, nk_style_cursor, const nk_cursor*);
 NK_API void nk_style_load_all_cursors(nk_context*, nk_cursor*);
-NK_API const char* nk_style_get_color_by_name(nk_style_colors);
+NK_API const char* nk_style_get_color_name(nk_style_colors);
 NK_API void nk_style_set_font(nk_context*, const nk_user_font*);
 NK_API nk_bool nk_style_set_cursor(nk_context*, nk_style_cursor);
 NK_API void nk_style_show_cursor(nk_context*);
