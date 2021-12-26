@@ -115,7 +115,7 @@ static void renderstate_init(RenderStateGL* state) {
     uint8_t g = data[1] * 255.0;
     uint8_t b = data[2] * 255.0;
     uint8_t a = data[3] * 255.0;
-    state->blendColor = PACK_COLOR(r, g, b, a);
+    state->blendColor = bcfx_packColor(r, g, b, a);
   }
   GET_GL_BOOLEAN(enableStencil, GL_STENCIL_TEST);
   stencilstate_init(&state->stencilFront, true);

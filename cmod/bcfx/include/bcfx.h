@@ -10,6 +10,25 @@
 
 /*
 ** {======================================================
+** Color
+** =======================================================
+*/
+
+typedef struct {
+  uint8_t r, g, b, a;
+} bcfx_Color;
+typedef union {
+  uint32_t rgba;
+  bcfx_Color color;
+} bcfx_UColor;
+
+BCFX_API uint32_t bcfx_packColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+BCFX_API void bcfx_unpackColor(uint32_t rgba, uint8_t* r, uint8_t* g, uint8_t* b, uint8_t* a);
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** Memory Buffer, Using as value, not reference
 ** =======================================================
 */
@@ -505,8 +524,6 @@ typedef union {
 #define BCFX_DISCARD_STATE BIT_INDEX(4)
 #define BCFX_DISCARD_INSTANCE_DATA BIT_INDEX(5)
 #define BCFX_DISCARD_ALL BIT_MASK(6)
-
-#define PACK_COLOR(r, g, b, a) (((uint32_t)r) << 24) | (((uint32_t)g) << 16) | (((uint32_t)b) << 8) | (((uint32_t)a) << 0)
 
 typedef struct {
   Handle handle; // dynamic vertex buffer handle

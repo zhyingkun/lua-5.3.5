@@ -26,10 +26,7 @@ void rect_intersect(Rect* src1, Rect* src2, Rect* dst) {
 
 void clear_set(Clear* clear, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil) {
   clear->flags = flags;
-  clear->index[0] = (uint8_t)(rgba >> 24);
-  clear->index[1] = (uint8_t)(rgba >> 16);
-  clear->index[2] = (uint8_t)(rgba >> 8);
-  clear->index[3] = (uint8_t)(rgba >> 0);
+  clear->rgba = rgba;
   clear->depth = depth;
   clear->stencil = stencil;
 }

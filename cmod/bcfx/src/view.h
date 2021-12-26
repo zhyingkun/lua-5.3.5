@@ -23,7 +23,7 @@ void rect_intersect(Rect* src1, Rect* src2, Rect* dst);
 
 typedef struct {
   uint16_t flags;
-  uint8_t index[4];
+  uint32_t rgba; // clear color
   float depth;
   uint8_t stencil;
 } Clear;

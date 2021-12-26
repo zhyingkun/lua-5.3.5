@@ -3,6 +3,32 @@
 
 /*
 ** {======================================================
+** Color
+** =======================================================
+*/
+
+BCFX_API uint32_t bcfx_packColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+  bcfx_UColor uc;
+  uc.color.r = r;
+  uc.color.g = g;
+  uc.color.b = b;
+  uc.color.a = a;
+  return uc.rgba;
+}
+
+BCFX_API void bcfx_unpackColor(uint32_t rgba, uint8_t* r, uint8_t* g, uint8_t* b, uint8_t* a) {
+  bcfx_UColor uc;
+  uc.rgba = rgba;
+  *r = uc.color.r;
+  *g = uc.color.g;
+  *b = uc.color.b;
+  *a = uc.color.a;
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** Memory
 ** =======================================================
 */

@@ -61,6 +61,8 @@ BCFX_API void bcfx_setFrameCompletedCallback(bcfx_OnFrameCompleted cb, void* ud)
 #define PRINT_SIZEOF_TYPE(type) printf("sizeof(" #type "): %ld\n", sizeof(type))
 BCFX_API void bcfx_init(Window mainWin) {
   ctx_init(s_ctx, mainWin);
+  // PRINT_SIZEOF_TYPE(bcfx_Color);
+  // PRINT_SIZEOF_TYPE(bcfx_UColor);
   // PRINT_SIZEOF_TYPE(bcfx_SamplerFlags);
   // PRINT_SIZEOF_TYPE(bcfx_USamplerFlags);
   // PRINT_SIZEOF_TYPE(bcfx_RenderState);

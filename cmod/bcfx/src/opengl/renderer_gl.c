@@ -485,10 +485,12 @@ static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
   GLuint flags = 0;
   if (clear->flags & BCFX_CLEAR_COLOR) {
     flags |= GL_COLOR_BUFFER_BIT;
-    float rr = clear->index[0] * 1.0f / 255.0f;
-    float gg = clear->index[1] * 1.0f / 255.0f;
-    float bb = clear->index[2] * 1.0f / 255.0f;
-    float aa = clear->index[3] * 1.0f / 255.0f;
+    uint8_t r, g, b, a;
+    bcfx_unpackColor(clear->rgba, &r, &g, &b, &a);
+    float rr = ((float)r) / 255.0f;
+    float gg = ((float)g) / 255.0f;
+    float bb = ((float)b) / 255.0f;
+    float aa = ((float)a) / 255.0f;
     GL_CHECK(glClearColor(rr, gg, bb, aa));
     GL_CHECK(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
   }
