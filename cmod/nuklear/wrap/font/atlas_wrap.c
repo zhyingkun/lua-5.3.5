@@ -3,7 +3,7 @@
 
 /*
 ** {======================================================
-** Nuklear font atlas
+** Nuklear FontAtlas
 ** =======================================================
 */
 
@@ -58,7 +58,7 @@ static int NKFONTATLAS_FUNCTION(clear)(lua_State* L) {
 
 #define EMPLACE_NKFONTATLAS_FUNCTION(name) \
   { #name, NKFONTATLAS_FUNCTION(name) }
-static const luaL_Reg atlas_metafuncs[] = {
+static const luaL_Reg metafuncs[] = {
     EMPLACE_NKFONTATLAS_FUNCTION(begin),
     EMPLACE_NKFONTATLAS_FUNCTION(add),
     EMPLACE_NKFONTATLAS_FUNCTION(add_default),
@@ -68,9 +68,23 @@ static const luaL_Reg atlas_metafuncs[] = {
     {NULL, NULL},
 };
 
-void NKFONTATLAS_FUNCTION(init_metatable)(lua_State* L) {
+static int NKFONTATLAS_FUNCTION(FontAtlas)(lua_State* L) {
+  nk_font_atlas* atlas = (nk_font_atlas*)lua_newuserdata(L, sizeof(nk_font_atlas));
+  luaL_setmetatable(L, NUKLEAR_FONTATLAS_TYPE);
+  nk_font_atlas_init_default(atlas);
+  return 1;
+}
+
+static const luaL_Reg funcs[] = {
+    EMPLACE_NKFONTATLAS_FUNCTION(FontAtlas),
+    {NULL, NULL},
+};
+
+void NKFONTATLAS_FUNCTION(init)(lua_State* L) {
+  luaL_setfuncs(L, funcs, 0);
+
   luaL_newmetatable(L, NUKLEAR_FONTATLAS_TYPE);
-  luaL_setfuncs(L, atlas_metafuncs, 0);
+  luaL_setfuncs(L, metafuncs, 0);
 
   lua_pushvalue(L, -1);
   lua_setfield(L, -2, "__index");

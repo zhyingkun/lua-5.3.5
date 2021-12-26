@@ -1,0 +1,137 @@
+#define _input_wrap_c_
+#include <nuklear_wrap.h>
+
+/*
+** {======================================================
+** Nuklear Input
+** =======================================================
+*/
+
+static int NKWRAP_FUNCTION(input_begin)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+
+  nk_input_begin(ctx);
+  return 0;
+}
+static int NKWRAP_FUNCTION(input_motion)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  int x = luaL_checkinteger(L, 2);
+  int y = luaL_checkinteger(L, 3);
+
+  nk_input_motion(ctx, x, y);
+  return 0;
+}
+static int NKWRAP_FUNCTION(input_key)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_keys key = (nk_keys)luaL_checkinteger(L, 2);
+  nk_bool down = (nk_bool)luaL_checkboolean(L, 3);
+
+  nk_input_key(ctx, key, down);
+  return 0;
+}
+static int NKWRAP_FUNCTION(input_button)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_buttons button = (nk_buttons)luaL_checkinteger(L, 2);
+  int x = luaL_checkinteger(L, 3);
+  int y = luaL_checkinteger(L, 4);
+  nk_bool down = (nk_bool)luaL_checkboolean(L, 5);
+
+  nk_input_button(ctx, button, x, y, down);
+  return 0;
+}
+static int NKWRAP_FUNCTION(input_scroll)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_vec2 val;
+  val.x = luaL_checknumber(L, 2);
+  val.y = luaL_checknumber(L, 3);
+
+  nk_input_scroll(ctx, val);
+  return 0;
+}
+static int NKWRAP_FUNCTION(input_char)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  char c = (char)luaL_checkinteger(L, 2);
+
+  nk_input_char(ctx, c);
+  return 0;
+}
+// nk_input_glyph
+static int NKWRAP_FUNCTION(input_unicode)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_rune codepoint = (nk_rune)luaL_checkinteger(L, 2);
+
+  nk_input_unicode(ctx, codepoint);
+  return 0;
+}
+static int NKWRAP_FUNCTION(input_end)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+
+  nk_input_end(ctx);
+  return 0;
+}
+
+/* }====================================================== */
+
+#define EMPLACE_NKWRAP_FUNCTION(name) \
+  { #name, NKWRAP_FUNCTION(name) }
+static const luaL_Reg wrap_funcs[] = {
+    EMPLACE_NKWRAP_FUNCTION(input_begin),
+    EMPLACE_NKWRAP_FUNCTION(input_motion),
+    EMPLACE_NKWRAP_FUNCTION(input_key),
+    EMPLACE_NKWRAP_FUNCTION(input_button),
+    EMPLACE_NKWRAP_FUNCTION(input_scroll),
+    EMPLACE_NKWRAP_FUNCTION(input_char),
+    EMPLACE_NKWRAP_FUNCTION(input_unicode),
+    EMPLACE_NKWRAP_FUNCTION(input_end),
+    {NULL, NULL},
+};
+
+static const luaL_Enum NKWRAP_ENUM(keyboard)[] = {
+    {"NONE", NK_KEY_NONE},
+    {"SHIFT", NK_KEY_SHIFT},
+    {"CTRL", NK_KEY_CTRL},
+    {"DEL", NK_KEY_DEL},
+    {"ENTER", NK_KEY_ENTER},
+    {"TAB", NK_KEY_TAB},
+    {"BACKSPACE", NK_KEY_BACKSPACE},
+    {"COPY", NK_KEY_COPY},
+    {"CUT", NK_KEY_CUT},
+    {"PASTE", NK_KEY_PASTE},
+    {"UP", NK_KEY_UP},
+    {"DOWN", NK_KEY_DOWN},
+    {"LEFT", NK_KEY_LEFT},
+    {"RIGHT", NK_KEY_RIGHT},
+    {"TEXT_INSERT_MODE", NK_KEY_TEXT_INSERT_MODE},
+    {"TEXT_REPLACE_MODE", NK_KEY_TEXT_REPLACE_MODE},
+    {"TEXT_RESET_MODE", NK_KEY_TEXT_RESET_MODE},
+    {"TEXT_LINE_START", NK_KEY_TEXT_LINE_START},
+    {"TEXT_LINE_END", NK_KEY_TEXT_LINE_END},
+    {"TEXT_START", NK_KEY_TEXT_START},
+    {"TEXT_END", NK_KEY_TEXT_END},
+    {"TEXT_UNDO", NK_KEY_TEXT_UNDO},
+    {"TEXT_REDO", NK_KEY_TEXT_REDO},
+    {"TEXT_SELECT_ALL", NK_KEY_TEXT_SELECT_ALL},
+    {"TEXT_WORD_LEFT", NK_KEY_TEXT_WORD_LEFT},
+    {"TEXT_WORD_RIGHT", NK_KEY_TEXT_WORD_RIGHT},
+    {"SCROLL_START", NK_KEY_SCROLL_START},
+    {"SCROLL_END", NK_KEY_SCROLL_END},
+    {"SCROLL_DOWN", NK_KEY_SCROLL_DOWN},
+    {"SCROLL_UP", NK_KEY_SCROLL_UP},
+    {"MAX", NK_KEY_MAX},
+    {NULL, 0},
+};
+static const luaL_Enum NKWRAP_ENUM(mouse_button)[] = {
+    {"LEFT", NK_BUTTON_LEFT},
+    {"MIDDLE", NK_BUTTON_MIDDLE},
+    {"RIGHT", NK_BUTTON_RIGHT},
+    {"DOUBLE", NK_BUTTON_DOUBLE},
+    {"MAX", NK_BUTTON_MAX},
+    {NULL, 0},
+};
+
+void NKWRAP_FUNCTION(init_input)(lua_State* L) {
+  luaL_setfuncs(L, wrap_funcs, 0);
+
+  REGISTE_ENUM(keyboard);
+  REGISTE_ENUM(mouse_button);
+}
