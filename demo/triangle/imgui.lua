@@ -130,35 +130,44 @@ function imgui.tick(delta)
 		panel_flag.SCALABLE|panel_flag.CLOSABLE|panel_flag.MINIMIZABLE)
 	then
 		nk.layoutRowDynamic(50, 1)
-		nk.label("ABCDEFGHIJKLMNOPQRSTUVWXYZ", text_alignment.LEFT)
+		nk.textWidget("ABCDEFGHIJKLMNOPQRSTUVWXYZ", text_alignment.LEFT)
 		nk.layoutRowDynamic(20, 1)
-		nk.label("1234567890", text_alignment.RIGHT)
-		nk.layoutRowDynamic(20, 1)
-		if nk.buttonImageLabel(_img_, "Button", text_alignment.LEFT) then
+		nk.textWidget("1234567890", text_alignment.RIGHT)
+		nk.layoutRowDynamic(50, 1)
+		if nk.buttonImageText(_img_, "Button", text_alignment.LEFT) then
 			print("OnButtonClicked")
 			_OpenPopup_ = not _OpenPopup_
 		end
-		-- nk.layoutRowDynamic(400, 1)
-		-- nk.imageWidget(_img_)
 		if _OpenPopup_ then
-			if nk.popupBegin(0, "Image Popup", 0, 265, 0, 320, 220) then
+			if nk.popupBegin(0, "Image Popup", 0, 265, 0, 280, 220) then
 				nk.layoutRowStatic(82, 82, 3);
-				-- nk.label("ABCDEFGHIJKLMNOPQRSTUVWXYZ", text_alignment.LEFT)
+				-- nk.textWidget("ABCDEFGHIJKLMNOPQRSTUVWXYZ", text_alignment.LEFT)
 				for i = 1, 9 do
 					if nk.buttonImage(_img_) then
 						_OpenPopup_ = false
 						nk.popupClose()
 					end
 				end
-				-- if nk.buttonImageLabel(_img_, "Button", text_alignment.LEFT) then
+				-- if nk.buttonImageText(_img_, "Button", text_alignment.LEFT) then
 				-- 	_OpenPopup_ = false
 				-- 	nk.popupClose()
 				-- end
 				nk.popupEnd()
 			end
 		end
+		nk.layoutRowDynamic(110, 1)
+		local ret, begin, count = nk.listViewBegin("zykTest", panel_flag.BORDER, 25, 100)
+		if ret then
+			nk.layoutRowDynamic(25, 1)
+			for i = 1, count, 1 do
+				nk.textWidget("Test" .. tostring(begin + i), text_alignment.CENTERED);
+			end
+			nk.listViewEnd();
+		end
+		nk.layoutRowStatic(120, 120, 1)
+		nk.imageWidget(_img_)
 	end
-	nk.endNk()
+	nk.endWindow()
 
 	local vbuf, ebuf
 	if bcfx.frameId() % 2 == 0 then
@@ -173,16 +182,16 @@ function imgui.tick(delta)
 
 	nk.convert(cmds, vbuf, ebuf, nullTex)
 
-	vertexMemBuffer:setReplace(vbuf:getPointer(), vbuf:getNeeded()) -- 
-	indexMemBuffer:setReplace(ebuf:getPointer(), ebuf:getNeeded()) -- 
+	vertexMemBuffer:setReplace(vbuf:frontBufferPtr(), vbuf:frontBufferAllocated()) -- 
+	indexMemBuffer:setReplace(ebuf:frontBufferPtr(), ebuf:frontBufferAllocated()) -- 
 	bcfx.updateDynamicVertexBuffer(vertexHandle, 0, vertexMemBuffer)
 	bcfx.updateDynamicIndexBuffer(indexHandle, 0, indexMemBuffer)
 
 	bcfx.setVertexBuffer(0, vertexHandle)
 	bcfx.setState(state, bcfx.color.black)
 	bcfx.setViewTransform(255, viewMat, projMat)
-	local width, height = glfw.GetFramebufferSize(mainWin)
-	bcfx.setViewRect(255, 0, 0, width, height)
+	local pixelWidth, pixelHeight = glfw.GetFramebufferSize(mainWin)
+	bcfx.setViewRect(255, 0, 0, pixelWidth, pixelHeight)
 
 	local flags = bcfx.utils.packSamplerFlags({
 		wrapU = texture_wrap.Repeat,
@@ -191,26 +200,14 @@ function imgui.tick(delta)
 		filterMag = texture_filter.Linear,
 	})
 
-	local w_, h_ = glfw.GetWindowSize(mainWin)
-	local scaleX = width / w_
-	local scaleY = height / h_
+	local screenWidth, screenHeight = glfw.GetWindowSize(mainWin)
 
-	local offset = 0
-	local dc = 0
-	for cmd in nk.drawElements(cmds) do
-		local count, texture, x, y, w, h = nk.UnpackDrawCommand(cmd, w_, h_)
-
-		if count > 0 then
+	nk.drawForEach(cmds, screenWidth, screenHeight, pixelWidth, pixelHeight, function(offset, count, texture, x, y, w, h)
 		bcfx.setIndexBuffer(indexHandle, offset, count)
-		offset = offset + count
-
 		bcfx.setTexture(0, uniformTex, texture, flags)
-		bcfx.setScissor(x*scaleX, y*scaleY, w*scaleX, h*scaleY) -- convert window coordinate to pixel coordinate
+		bcfx.setScissor(x, y, w, h) -- in pixel coordinate
 		bcfx.submit(255, imguiShader, discard.INDEX_BUFFER | discard.BINDINGS)
-		dc = dc + 1
-		end
-	end
-	-- print("offset", offset, dc)
+	end)
 	--[[
 	bcfx.setIndexBuffer(indexHandle, 0, 324)
 	bcfx.setTexture(0, uniformTex, imageHandle, flags)
