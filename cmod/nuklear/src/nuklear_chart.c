@@ -311,16 +311,19 @@ NK_API void nk_plot_function(nk_context* ctx, nk_chart_type type, void* userdata
   if (!ctx || !value_getter || !count)
     return;
 
-  max_value = min_value = value_getter(userdata, offset);
-  for (i = 0; i < count; ++i) {
+  float* values = (float*)alloca(sizeof(float) * count);
+
+  values[0] = max_value = min_value = value_getter(userdata, offset);
+  for (i = 1; i < count; ++i) {
     float value = value_getter(userdata, i + offset);
     min_value = NK_MIN(value, min_value);
     max_value = NK_MAX(value, max_value);
+    values[i] = value;
   }
 
   if (nk_chart_begin(ctx, type, count, min_value, max_value)) {
     for (i = 0; i < count; ++i)
-      nk_chart_push(ctx, value_getter(userdata, i + offset));
+      nk_chart_push(ctx, values[i]);
     nk_chart_end(ctx);
   }
 }

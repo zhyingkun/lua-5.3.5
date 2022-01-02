@@ -119,6 +119,13 @@ extern "C" {
 #endif
 #endif
 
+#ifdef _WIN32
+#include <malloc.h>
+#define alloca _alloca
+#else
+#include <alloca.h>
+#endif
+
 /*
  * ===============================================================
  *
@@ -2674,7 +2681,7 @@ NK_API void nk_group_set_scroll(nk_context*, const char* id, nk_uint x_offset, n
  * =============================================================================
 /// ### Tree
 /// Trees represent two different concept. First the concept of a collapsable
-/// UI section that can be either in a hidden or visibile state. They allow the UI
+/// UI section that can be either in a hidden or visible state. They allow the UI
 /// user to selectively minimize the current set of visible UI to comprehend.
 /// The second concept are tree widgets for visual UI representation of trees.<br /><br />
 ///
