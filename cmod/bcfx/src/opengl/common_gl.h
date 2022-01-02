@@ -7,8 +7,9 @@
 ** =======================================================
 */
 
-#ifndef NDEBUG
 const char* err_EnumName(GLenum _enum);
+
+#ifndef NDEBUG
 #define GL_CHECK(call) \
   { \
     call; \

@@ -6,7 +6,6 @@
 ** =======================================================
 */
 
-#ifndef NDEBUG
 const char* err_EnumName(GLenum _enum) {
 #define GLENUM(e) \
   case e: \
@@ -30,7 +29,6 @@ const char* err_EnumName(GLenum _enum) {
 #undef GLENUM
   return "<Unknown enum?>";
 }
-#endif
 
 /* }====================================================== */
 
