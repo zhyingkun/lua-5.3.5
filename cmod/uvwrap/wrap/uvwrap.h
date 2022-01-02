@@ -253,7 +253,7 @@ extern lua_State* staticL;
 
 #define SET_REQ_CALLBACK(L, idx, req) \
   do { \
-    uv_req_set_data((uv_req_t*)req, (void*)L); \
+    /* uv_req_set_data((uv_req_t*)req, (void*)L); */ \
     HOLD_LUA_OBJECT(L, req, 0, idx); \
   } while (0)
 
