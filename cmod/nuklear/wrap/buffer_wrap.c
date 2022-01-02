@@ -68,13 +68,7 @@ static const luaL_Reg funcs[] = {
 void NKBUFFER_FUNCTION(init)(lua_State* L) {
   luaL_setfuncs(L, funcs, 0);
 
-  luaL_newmetatable(L, NUKLEAR_BUFFER_TYPE);
-  luaL_setfuncs(L, metafuncs, 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  lua_pop(L, 1); // pop the metatable
+  REGISTE_METATABLE(NUKLEAR_BUFFER_TYPE, metafuncs);
 }
 
 /* }====================================================== */

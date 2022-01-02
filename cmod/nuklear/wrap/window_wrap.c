@@ -10,12 +10,8 @@
 static int NKWRAP_FUNCTION(begin)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   const char* title = luaL_checkstring(L, 2);
-  nk_rect bounds;
-  bounds.x = luaL_checknumber(L, 3);
-  bounds.y = luaL_checknumber(L, 4);
-  bounds.w = luaL_checknumber(L, 5);
-  bounds.h = luaL_checknumber(L, 6);
-  nk_flags flags = luaL_checknkflags(L, 7);
+  nk_rect bounds = luaL_checknkrect(L, 3);
+  nk_flags flags = luaL_checknkflags(L, 4);
 
   nk_bool ret = nk_begin(ctx, title, bounds, flags);
   lua_pushboolean(L, (int)ret);
@@ -25,12 +21,8 @@ static int NKWRAP_FUNCTION(begin_titled)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   const char* name = luaL_checkstring(L, 2);
   const char* title = luaL_checkstring(L, 3);
-  nk_rect bounds;
-  bounds.x = luaL_checknumber(L, 4);
-  bounds.y = luaL_checknumber(L, 5);
-  bounds.w = luaL_checknumber(L, 6);
-  bounds.h = luaL_checknumber(L, 7);
-  nk_flags flags = luaL_checknkflags(L, 8);
+  nk_rect bounds = luaL_checknkrect(L, 4);
+  nk_flags flags = luaL_checknkflags(L, 5);
 
   nk_bool ret = nk_begin_titled(ctx, name, title, bounds, flags);
   lua_pushboolean(L, (int)ret);
@@ -47,27 +39,22 @@ static int NKWRAP_FUNCTION(window_get_bounds)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_rect rect = nk_window_get_bounds(ctx);
-  lua_pushnumber(L, rect.x);
-  lua_pushnumber(L, rect.y);
-  lua_pushnumber(L, rect.w);
-  lua_pushnumber(L, rect.h);
-  return 4;
+  luaL_pushnkrect(L, rect);
+  return 1;
 }
 static int NKWRAP_FUNCTION(window_get_position)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_vec2 pos = nk_window_get_position(ctx);
-  lua_pushnumber(L, pos.x);
-  lua_pushnumber(L, pos.y);
-  return 2;
+  luaL_pushnkvec2(L, pos);
+  return 1;
 }
 static int NKWRAP_FUNCTION(window_get_size)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_vec2 size = nk_window_get_size(ctx);
-  lua_pushnumber(L, size.x);
-  lua_pushnumber(L, size.y);
-  return 2;
+  luaL_pushnkvec2(L, size);
+  return 1;
 }
 static int NKWRAP_FUNCTION(window_get_width)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
@@ -88,37 +75,37 @@ static int NKWRAP_FUNCTION(window_get_content_region)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_rect rect = nk_window_get_content_region(ctx);
-  lua_pushnumber(L, rect.x);
-  lua_pushnumber(L, rect.y);
-  lua_pushnumber(L, rect.w);
-  lua_pushnumber(L, rect.h);
-  return 4;
+  luaL_pushnkrect(L, rect);
+  return 1;
 }
 static int NKWRAP_FUNCTION(window_get_content_region_min)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_vec2 min = nk_window_get_content_region_min(ctx);
-  lua_pushnumber(L, min.x);
-  lua_pushnumber(L, min.y);
-  return 2;
+  luaL_pushnkvec2(L, min);
+  return 1;
 }
 static int NKWRAP_FUNCTION(window_get_content_region_max)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_vec2 max = nk_window_get_content_region_max(ctx);
-  lua_pushnumber(L, max.x);
-  lua_pushnumber(L, max.y);
-  return 2;
+  luaL_pushnkvec2(L, max);
+  return 1;
 }
 static int NKWRAP_FUNCTION(window_get_content_region_size)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_vec2 size = nk_window_get_content_region_size(ctx);
-  lua_pushnumber(L, size.x);
-  lua_pushnumber(L, size.y);
-  return 2;
+  luaL_pushnkvec2(L, size);
+  return 1;
 }
-// nk_window_get_canvas
+static int NKWRAP_FUNCTION(window_get_canvas)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+
+  nk_command_buffer* canvas = nk_window_get_canvas(ctx);
+  luaL_pushnkcommandbuffer(L, canvas);
+  return 1;
+}
 static int NKWRAP_FUNCTION(window_get_scroll)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
@@ -191,11 +178,7 @@ static int NKWRAP_FUNCTION(item_is_any_active)(lua_State* L) {
 static int NKWRAP_FUNCTION(window_set_bounds)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   const char* name = luaL_checkstring(L, 2);
-  nk_rect bounds;
-  bounds.x = luaL_checknumber(L, 3);
-  bounds.y = luaL_checknumber(L, 4);
-  bounds.w = luaL_checknumber(L, 5);
-  bounds.h = luaL_checknumber(L, 6);
+  nk_rect bounds = luaL_checknkrect(L, 3);
 
   nk_window_set_bounds(ctx, name, bounds);
   return 0;
@@ -203,9 +186,7 @@ static int NKWRAP_FUNCTION(window_set_bounds)(lua_State* L) {
 static int NKWRAP_FUNCTION(window_set_position)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   const char* name = luaL_checkstring(L, 2);
-  nk_vec2 pos;
-  pos.x = luaL_checknumber(L, 3);
-  pos.y = luaL_checknumber(L, 4);
+  nk_vec2 pos = luaL_checknkvec2(L, 3);
 
   nk_window_set_position(ctx, name, pos);
   return 0;
@@ -213,9 +194,7 @@ static int NKWRAP_FUNCTION(window_set_position)(lua_State* L) {
 static int NKWRAP_FUNCTION(window_set_size)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   const char* name = luaL_checkstring(L, 2);
-  nk_vec2 size;
-  size.x = luaL_checknumber(L, 3);
-  size.y = luaL_checknumber(L, 4);
+  nk_vec2 size = luaL_checknkvec2(L, 3);
 
   nk_window_set_size(ctx, name, size);
   return 0;
@@ -294,6 +273,7 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_NKWRAP_FUNCTION(window_get_content_region_min),
     EMPLACE_NKWRAP_FUNCTION(window_get_content_region_max),
     EMPLACE_NKWRAP_FUNCTION(window_get_content_region_size),
+    EMPLACE_NKWRAP_FUNCTION(window_get_canvas),
     EMPLACE_NKWRAP_FUNCTION(window_get_scroll),
     EMPLACE_NKWRAP_FUNCTION(window_has_focus),
     EMPLACE_NKWRAP_FUNCTION(window_is_hovered),
@@ -316,6 +296,23 @@ static const luaL_Reg wrap_funcs[] = {
     {NULL, NULL},
 };
 
+static const luaL_Enum NKWRAP_ENUM(panel_flag)[] = {
+    {"BORDER", NK_WINDOW_BORDER},
+    {"MOVABLE", NK_WINDOW_MOVABLE},
+    {"SCALABLE", NK_WINDOW_SCALABLE},
+    {"CLOSABLE", NK_WINDOW_CLOSABLE},
+    {"MINIMIZABLE", NK_WINDOW_MINIMIZABLE},
+    {"NO_SCROLLBAR", NK_WINDOW_NO_SCROLLBAR},
+    {"TITLE", NK_WINDOW_TITLE},
+    {"SCROLL_AUTO_HIDE", NK_WINDOW_SCROLL_AUTO_HIDE},
+    {"BACKGROUND", NK_WINDOW_BACKGROUND},
+    {"SCALE_LEFT", NK_WINDOW_SCALE_LEFT},
+    {"NO_INPUT", NK_WINDOW_NO_INPUT},
+    {NULL, 0},
+};
+
 void NKWRAP_FUNCTION(init_window)(lua_State* L) {
   luaL_setfuncs(L, wrap_funcs, 0);
+
+  REGISTE_ENUM(panel_flag);
 }

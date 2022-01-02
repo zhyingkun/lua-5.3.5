@@ -23,27 +23,25 @@ static int NKWRAP_FUNCTION(input_motion)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(input_key)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_keys key = (nk_keys)luaL_checkinteger(L, 2);
-  nk_bool down = (nk_bool)luaL_checkboolean(L, 3);
+  nk_keys key = luaL_checknkkeys(L, 2);
+  nk_bool down = luaL_checknkbool(L, 3);
 
   nk_input_key(ctx, key, down);
   return 0;
 }
 static int NKWRAP_FUNCTION(input_button)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_buttons button = (nk_buttons)luaL_checkinteger(L, 2);
+  nk_buttons button = luaL_checknkbuttons(L, 2);
   int x = luaL_checkinteger(L, 3);
   int y = luaL_checkinteger(L, 4);
-  nk_bool down = (nk_bool)luaL_checkboolean(L, 5);
+  nk_bool down = luaL_checknkbool(L, 5);
 
   nk_input_button(ctx, button, x, y, down);
   return 0;
 }
 static int NKWRAP_FUNCTION(input_scroll)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_vec2 val;
-  val.x = luaL_checknumber(L, 2);
-  val.y = luaL_checknumber(L, 3);
+  nk_vec2 val = luaL_checknkvec2(L, 2);
 
   nk_input_scroll(ctx, val);
   return 0;
@@ -58,7 +56,7 @@ static int NKWRAP_FUNCTION(input_char)(lua_State* L) {
 // nk_input_glyph
 static int NKWRAP_FUNCTION(input_unicode)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_rune codepoint = (nk_rune)luaL_checkinteger(L, 2);
+  nk_rune codepoint = luaL_checknkrune(L, 2);
 
   nk_input_unicode(ctx, codepoint);
   return 0;
@@ -72,9 +70,146 @@ static int NKWRAP_FUNCTION(input_end)(lua_State* L) {
 
 /* }====================================================== */
 
+/*
+** {======================================================
+** Nuklear Input Checking
+** =======================================================
+*/
+
+static int NKWRAP_FUNCTION(input_has_mouse_click)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_buttons button = luaL_checknkbuttons(L, 2);
+
+  nk_bool ret = nk_input_has_mouse_click(&ctx->input, button);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(input_has_mouse_click_in_rect)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_buttons button = luaL_checknkbuttons(L, 2);
+  nk_rect rect = luaL_checknkrect(L, 3);
+
+  nk_bool ret = nk_input_has_mouse_click_in_rect(&ctx->input, button, rect);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(input_has_mouse_click_down_in_rect)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_buttons button = luaL_checknkbuttons(L, 2);
+  nk_rect rect = luaL_checknkrect(L, 3);
+  nk_bool down = luaL_checknkbool(L, 4);
+
+  nk_bool ret = nk_input_has_mouse_click_down_in_rect(&ctx->input, button, rect, down);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(input_is_mouse_click_in_rect)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_buttons button = luaL_checknkbuttons(L, 2);
+  nk_rect rect = luaL_checknkrect(L, 3);
+
+  nk_bool ret = nk_input_is_mouse_click_in_rect(&ctx->input, button, rect);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(input_is_mouse_click_down_in_rect)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_buttons button = luaL_checknkbuttons(L, 2);
+  nk_rect rect = luaL_checknkrect(L, 3);
+  nk_bool down = luaL_checknkbool(L, 4);
+
+  nk_bool ret = nk_input_is_mouse_click_down_in_rect(&ctx->input, button, rect, down);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(input_any_mouse_click_in_rect)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_rect rect = luaL_checknkrect(L, 2);
+
+  nk_bool ret = nk_input_any_mouse_click_in_rect(&ctx->input, rect);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(input_is_mouse_prev_hovering_rect)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_rect rect = luaL_checknkrect(L, 2);
+
+  nk_bool ret = nk_input_is_mouse_prev_hovering_rect(&ctx->input, rect);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(input_is_mouse_hovering_rect)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_rect rect = luaL_checknkrect(L, 2);
+
+  nk_bool ret = nk_input_is_mouse_hovering_rect(&ctx->input, rect);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(input_mouse_clicked)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_buttons button = luaL_checknkbuttons(L, 2);
+  nk_rect rect = luaL_checknkrect(L, 3);
+
+  nk_bool ret = nk_input_mouse_clicked(&ctx->input, button, rect);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(input_is_mouse_down)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_buttons button = luaL_checknkbuttons(L, 2);
+
+  nk_bool ret = nk_input_is_mouse_down(&ctx->input, button);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(input_is_mouse_pressed)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_buttons button = luaL_checknkbuttons(L, 2);
+
+  nk_bool ret = nk_input_is_mouse_pressed(&ctx->input, button);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(input_is_mouse_released)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_buttons button = luaL_checknkbuttons(L, 2);
+
+  nk_bool ret = nk_input_is_mouse_released(&ctx->input, button);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(input_is_key_pressed)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_keys key = luaL_checknkkeys(L, 2);
+
+  nk_bool ret = nk_input_is_key_pressed(&ctx->input, key);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(input_is_key_released)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_keys key = luaL_checknkkeys(L, 2);
+
+  nk_bool ret = nk_input_is_key_released(&ctx->input, key);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(input_is_key_down)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_keys key = luaL_checknkkeys(L, 2);
+
+  nk_bool ret = nk_input_is_key_down(&ctx->input, key);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+
+/* }====================================================== */
+
 #define EMPLACE_NKWRAP_FUNCTION(name) \
   { #name, NKWRAP_FUNCTION(name) }
 static const luaL_Reg wrap_funcs[] = {
+    /* Input */
     EMPLACE_NKWRAP_FUNCTION(input_begin),
     EMPLACE_NKWRAP_FUNCTION(input_motion),
     EMPLACE_NKWRAP_FUNCTION(input_key),
@@ -83,6 +218,22 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_NKWRAP_FUNCTION(input_char),
     EMPLACE_NKWRAP_FUNCTION(input_unicode),
     EMPLACE_NKWRAP_FUNCTION(input_end),
+    /*  Input Checking */
+    EMPLACE_NKWRAP_FUNCTION(input_has_mouse_click),
+    EMPLACE_NKWRAP_FUNCTION(input_has_mouse_click_in_rect),
+    EMPLACE_NKWRAP_FUNCTION(input_has_mouse_click_down_in_rect),
+    EMPLACE_NKWRAP_FUNCTION(input_is_mouse_click_in_rect),
+    EMPLACE_NKWRAP_FUNCTION(input_is_mouse_click_down_in_rect),
+    EMPLACE_NKWRAP_FUNCTION(input_any_mouse_click_in_rect),
+    EMPLACE_NKWRAP_FUNCTION(input_is_mouse_prev_hovering_rect),
+    EMPLACE_NKWRAP_FUNCTION(input_is_mouse_hovering_rect),
+    EMPLACE_NKWRAP_FUNCTION(input_mouse_clicked),
+    EMPLACE_NKWRAP_FUNCTION(input_is_mouse_down),
+    EMPLACE_NKWRAP_FUNCTION(input_is_mouse_pressed),
+    EMPLACE_NKWRAP_FUNCTION(input_is_mouse_released),
+    EMPLACE_NKWRAP_FUNCTION(input_is_key_pressed),
+    EMPLACE_NKWRAP_FUNCTION(input_is_key_released),
+    EMPLACE_NKWRAP_FUNCTION(input_is_key_down),
     {NULL, NULL},
 };
 

@@ -24,11 +24,8 @@ static int NKWRAP_FUNCTION(layout_widget_bounds)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_rect rect = nk_layout_widget_bounds(ctx);
-  lua_pushnumber(L, rect.x);
-  lua_pushnumber(L, rect.y);
-  lua_pushnumber(L, rect.w);
-  lua_pushnumber(L, rect.h);
-  return 4;
+  luaL_pushnkrect(L, rect);
+  return 1;
 }
 static int NKWRAP_FUNCTION(layout_ratio_from_pixel)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
@@ -58,7 +55,7 @@ static int NKWRAP_FUNCTION(layout_row_static)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(layout_row_begin)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_layout_format fmt = (nk_layout_format)luaL_checkinteger(L, 2);
+  nk_layout_format fmt = luaL_checknklayoutformat(L, 2);
   float rowHeight = luaL_checknumber(L, 3);
   int cols = luaL_checkinteger(L, 4);
 
@@ -80,16 +77,18 @@ static int NKWRAP_FUNCTION(layout_row_end)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(layout_row)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_layout_format fmt = (nk_layout_format)luaL_checkinteger(L, 2);
+  nk_layout_format fmt = luaL_checknklayoutformat(L, 2);
   float height = luaL_checknumber(L, 3);
   int cols = luaL_checkinteger(L, 4);
-  luaL_checktype(L, 5, LUA_TTABLE);
-  lua_settop(L, 5);
+#define RATIO_IDX 5
+  luaL_checktype(L, RATIO_IDX, LUA_TTABLE);
+
   float* ratio = (float*)alloca(sizeof(float) * cols);
   for (int i = 0; i < cols; i++) {
-    ratio[i] = lua_rawgeti(L, -1, i + 1) == LUA_TNUMBER ? lua_tonumber(L, -1) : 1.0;
+    ratio[i] = lua_rawgeti(L, RATIO_IDX, i + 1) == LUA_TNUMBER ? lua_tonumber(L, -1) : 1.0;
     lua_pop(L, 1);
   }
+#undef RATIO_IDX
 
   nk_layout_row(ctx, fmt, height, cols, ratio);
   return 0;
@@ -129,7 +128,7 @@ static int NKWRAP_FUNCTION(layout_row_template_end)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(layout_space_begin)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_layout_format fmt = (nk_layout_format)luaL_checkinteger(L, 2);
+  nk_layout_format fmt = luaL_checknklayoutformat(L, 2);
   float height = luaL_checknumber(L, 3);
   int widgetCount = luaL_checkinteger(L, 4);
 
@@ -138,11 +137,7 @@ static int NKWRAP_FUNCTION(layout_space_begin)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(layout_space_push)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_rect bounds;
-  bounds.x = luaL_checknumber(L, 2);
-  bounds.y = luaL_checknumber(L, 3);
-  bounds.w = luaL_checknumber(L, 4);
-  bounds.h = luaL_checknumber(L, 5);
+  nk_rect bounds = luaL_checknkrect(L, 2);
 
   nk_layout_space_push(ctx, bounds);
   return 0;
@@ -157,63 +152,40 @@ static int NKWRAP_FUNCTION(layout_space_bounds)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_rect rect = nk_layout_space_bounds(ctx);
-  lua_pushnumber(L, rect.x);
-  lua_pushnumber(L, rect.y);
-  lua_pushnumber(L, rect.w);
-  lua_pushnumber(L, rect.h);
-  return 4;
+  luaL_pushnkrect(L, rect);
+  return 1;
 }
 static int NKWRAP_FUNCTION(layout_space_to_screen)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_vec2 value;
-  value.x = luaL_checknumber(L, 2);
-  value.y = luaL_checknumber(L, 3);
+  nk_vec2 value = luaL_checknkvec2(L, 2);
 
   value = nk_layout_space_to_screen(ctx, value);
-  lua_pushnumber(L, value.x);
-  lua_pushnumber(L, value.y);
-  return 2;
+  luaL_pushnkvec2(L, value);
+  return 1;
 }
 static int NKWRAP_FUNCTION(layout_space_to_local)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_vec2 value;
-  value.x = luaL_checknumber(L, 2);
-  value.y = luaL_checknumber(L, 3);
+  nk_vec2 value = luaL_checknkvec2(L, 2);
 
   value = nk_layout_space_to_local(ctx, value);
-  lua_pushnumber(L, value.x);
-  lua_pushnumber(L, value.y);
-  return 2;
+  luaL_pushnkvec2(L, value);
+  return 1;
 }
 static int NKWRAP_FUNCTION(layout_space_rect_to_screen)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_rect rect;
-  rect.x = luaL_checknumber(L, 2);
-  rect.y = luaL_checknumber(L, 3);
-  rect.w = luaL_checknumber(L, 4);
-  rect.h = luaL_checknumber(L, 5);
+  nk_rect rect = luaL_checknkrect(L, 2);
 
   rect = nk_layout_space_rect_to_screen(ctx, rect);
-  lua_pushnumber(L, rect.x);
-  lua_pushnumber(L, rect.y);
-  lua_pushnumber(L, rect.w);
-  lua_pushnumber(L, rect.h);
-  return 4;
+  luaL_pushnkrect(L, rect);
+  return 1;
 }
 static int NKWRAP_FUNCTION(layout_space_rect_to_local)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_rect rect;
-  rect.x = luaL_checknumber(L, 2);
-  rect.y = luaL_checknumber(L, 3);
-  rect.w = luaL_checknumber(L, 4);
-  rect.h = luaL_checknumber(L, 5);
+  nk_rect rect = luaL_checknkrect(L, 2);
 
   rect = nk_layout_space_rect_to_local(ctx, rect);
-  lua_pushnumber(L, rect.x);
-  lua_pushnumber(L, rect.y);
-  lua_pushnumber(L, rect.w);
-  lua_pushnumber(L, rect.h);
-  return 4;
+  luaL_pushnkrect(L, rect);
+  return 1;
 }
 static int NKWRAP_FUNCTION(spacer)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
@@ -254,6 +226,14 @@ static const luaL_Reg wrap_funcs[] = {
     {NULL, NULL},
 };
 
+static const luaL_Enum NKWRAP_ENUM(layout_format)[] = {
+    {"NK_DYNAMIC", NK_DYNAMIC},
+    {"NK_STATIC", NK_STATIC},
+    {NULL, 0},
+};
+
 void NKWRAP_FUNCTION(init_layout)(lua_State* L) {
   luaL_setfuncs(L, wrap_funcs, 0);
+
+  REGISTE_ENUM(layout_format);
 }

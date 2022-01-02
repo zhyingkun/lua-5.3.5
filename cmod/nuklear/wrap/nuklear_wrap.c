@@ -36,7 +36,7 @@ static int NKWRAP_FUNCTION(convert)(lua_State* L) {
   nk_buffer* cmds = luaL_checkbuffer(L, 2);
   nk_buffer* vertices = luaL_checkbuffer(L, 3);
   nk_buffer* elements = luaL_checkbuffer(L, 4);
-  nk_draw_null_texture* nullTex = (nk_draw_null_texture*)lua_topointer(L, 5);
+  nk_draw_null_texture* nullTex = luaL_checknkdrawnulltexture(L, 5);
 
   typedef struct {
     float position[2];
@@ -134,49 +134,8 @@ static int NKWRAP_FUNCTION(drawForEach)(lua_State* L) {
     }
   }
   POST_CALL_LUA(L);
+#undef CALLBACK_IDX
   return 0;
-}
-
-/* }====================================================== */
-
-/*
-** {======================================================
-** Nuklear Color
-** =======================================================
-*/
-
-typedef union {
-  uint32_t rgba;
-  nk_color color;
-} UnionColor;
-nk_color luaL_checkcolor(lua_State* L, int idx) {
-  UnionColor uc;
-  uc.rgba = luaL_checkinteger(L, idx);
-  return uc.color;
-}
-void luaL_pushcolor(lua_State* L, nk_color color) {
-  UnionColor uc;
-  uc.color = color;
-  lua_pushinteger(L, uc.rgba);
-}
-
-nk_colorf luaL_checkcolorf(lua_State* L, int idx) {
-  UnionColor uc;
-  uc.rgba = luaL_checkinteger(L, idx);
-  nk_colorf cf;
-  cf.r = (float)uc.color.r;
-  cf.g = (float)uc.color.g;
-  cf.b = (float)uc.color.b;
-  cf.a = (float)uc.color.a;
-  return cf;
-}
-void luaL_pushcolorf(lua_State* L, nk_colorf cf) {
-  UnionColor uc;
-  uc.color.r = (uint8_t)(cf.r * 255);
-  uc.color.g = (uint8_t)(cf.g * 255);
-  uc.color.b = (uint8_t)(cf.b * 255);
-  uc.color.a = (uint8_t)(cf.a * 255);
-  lua_pushinteger(L, uc.rgba);
 }
 
 /* }====================================================== */
@@ -228,7 +187,7 @@ static int NKWRAP_FUNCTION(text_colored)(lua_State* L) {
   size_t len;
   const char* str = luaL_checklstring(L, 2, &len);
   nk_flags alignment = luaL_checknkflags(L, 3);
-  nk_color color = luaL_checkcolor(L, 4);
+  nk_color color = luaL_checknkcolor(L, 4);
 
   nk_text_colored(ctx, str, len, alignment, color);
   return 0;
@@ -245,22 +204,22 @@ static int NKWRAP_FUNCTION(text_wrap_colored)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   size_t len;
   const char* str = luaL_checklstring(L, 2, &len);
-  nk_color color = luaL_checkcolor(L, 3);
+  nk_color color = luaL_checknkcolor(L, 3);
 
   nk_text_wrap_colored(ctx, str, len, color);
   return 0;
 }
 static int NKWRAP_FUNCTION(image_widget)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_image* img = luaL_checkimage(L, 2);
+  nk_image* img = luaL_checknkimage(L, 2);
 
   nk_image_widget(ctx, *img);
   return 0;
 }
 static int NKWRAP_FUNCTION(image_color)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_image* img = luaL_checkimage(L, 2);
-  nk_color color = luaL_checkcolor(L, 3);
+  nk_image* img = luaL_checknkimage(L, 2);
+  nk_color color = luaL_checknkcolor(L, 3);
 
   nk_image_color(ctx, *img, color);
   return 0;
@@ -300,7 +259,7 @@ static int NKWRAP_FUNCTION(value_float)(lua_State* L) {
 static int NKWRAP_FUNCTION(value_color_byte)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   const char* prefix = luaL_checkstring(L, 2);
-  nk_color color = luaL_checkcolor(L, 3);
+  nk_color color = luaL_checknkcolor(L, 3);
 
   nk_value_color_byte(ctx, prefix, color);
   return 0;
@@ -308,7 +267,7 @@ static int NKWRAP_FUNCTION(value_color_byte)(lua_State* L) {
 static int NKWRAP_FUNCTION(value_color_float)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   const char* prefix = luaL_checkstring(L, 2);
-  nk_color color = luaL_checkcolor(L, 3);
+  nk_color color = luaL_checknkcolor(L, 3);
 
   nk_value_color_float(ctx, prefix, color);
   return 0;
@@ -316,11 +275,27 @@ static int NKWRAP_FUNCTION(value_color_float)(lua_State* L) {
 static int NKWRAP_FUNCTION(value_color_hex)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   const char* prefix = luaL_checkstring(L, 2);
-  nk_color color = luaL_checkcolor(L, 3);
+  nk_color color = luaL_checknkcolor(L, 3);
 
   nk_value_color_hex(ctx, prefix, color);
   return 0;
 }
+
+static const luaL_Enum NKWRAP_ENUM(text_align)[] = {
+    {"NK_TEXT_ALIGN_LEFT", NK_TEXT_ALIGN_LEFT},
+    {"NK_TEXT_ALIGN_CENTERED", NK_TEXT_ALIGN_CENTERED},
+    {"NK_TEXT_ALIGN_RIGHT", NK_TEXT_ALIGN_RIGHT},
+    {"NK_TEXT_ALIGN_TOP", NK_TEXT_ALIGN_TOP},
+    {"NK_TEXT_ALIGN_MIDDLE", NK_TEXT_ALIGN_MIDDLE},
+    {"NK_TEXT_ALIGN_BOTTOM", NK_TEXT_ALIGN_BOTTOM},
+    {NULL, 0},
+};
+static const luaL_Enum NKWRAP_ENUM(text_alignment)[] = {
+    {"LEFT", NK_TEXT_LEFT},
+    {"CENTERED", NK_TEXT_CENTERED},
+    {"RIGHT", NK_TEXT_RIGHT},
+    {NULL, 0},
+};
 
 /* }====================================================== */
 
@@ -341,7 +316,7 @@ static int NKWRAP_FUNCTION(button_text)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(button_color)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_color color = luaL_checkcolor(L, 2);
+  nk_color color = luaL_checknkcolor(L, 2);
 
   nk_bool ret = nk_button_color(ctx, color);
   lua_pushboolean(L, ret);
@@ -349,7 +324,7 @@ static int NKWRAP_FUNCTION(button_color)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(button_symbol)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_symbol_type symbol = (nk_symbol_type)luaL_checkinteger(L, 2);
+  nk_symbol_type symbol = luaL_checknksymboltype(L, 2);
 
   nk_bool ret = nk_button_symbol(ctx, symbol);
   lua_pushboolean(L, ret);
@@ -357,7 +332,7 @@ static int NKWRAP_FUNCTION(button_symbol)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(button_image)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_image* img = luaL_checkimage(L, 2);
+  nk_image* img = luaL_checknkimage(L, 2);
 
   nk_bool ret = nk_button_image(ctx, *img);
   lua_pushboolean(L, ret);
@@ -365,7 +340,7 @@ static int NKWRAP_FUNCTION(button_image)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(button_symbol_text)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_symbol_type symbol = (nk_symbol_type)luaL_checkinteger(L, 2);
+  nk_symbol_type symbol = luaL_checknksymboltype(L, 2);
   size_t len;
   const char* str = luaL_checklstring(L, 3, &len);
   nk_flags textAlignment = luaL_checknkflags(L, 4);
@@ -376,7 +351,7 @@ static int NKWRAP_FUNCTION(button_symbol_text)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(button_image_text)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_image* img = luaL_checkimage(L, 2);
+  nk_image* img = luaL_checknkimage(L, 2);
   size_t len;
   const char* str = luaL_checklstring(L, 3, &len);
   nk_flags align = luaL_checknkflags(L, 4);
@@ -398,7 +373,7 @@ static int NKWRAP_FUNCTION(button_text_styled)(lua_State* L) {
 static int NKWRAP_FUNCTION(button_symbol_styled)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   const nk_style_button* styleButton = luaL_checkstylebutton(L, 2);
-  nk_symbol_type symbol = (nk_symbol_type)luaL_checkinteger(L, 3);
+  nk_symbol_type symbol = luaL_checknksymboltype(L, 3);
 
   nk_bool ret = nk_button_symbol_styled(ctx, styleButton, symbol);
   lua_pushboolean(L, ret);
@@ -407,7 +382,7 @@ static int NKWRAP_FUNCTION(button_symbol_styled)(lua_State* L) {
 static int NKWRAP_FUNCTION(button_image_styled)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   const nk_style_button* styleButton = luaL_checkstylebutton(L, 2);
-  nk_image* img = luaL_checkimage(L, 3);
+  nk_image* img = luaL_checknkimage(L, 3);
 
   nk_bool ret = nk_button_image_styled(ctx, styleButton, *img);
   lua_pushboolean(L, ret);
@@ -416,7 +391,7 @@ static int NKWRAP_FUNCTION(button_image_styled)(lua_State* L) {
 static int NKWRAP_FUNCTION(button_symbol_text_styled)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   const nk_style_button* styleButton = luaL_checkstylebutton(L, 2);
-  nk_symbol_type symbol = (nk_symbol_type)luaL_checkinteger(L, 3);
+  nk_symbol_type symbol = luaL_checknksymboltype(L, 3);
   size_t len;
   const char* str = luaL_checklstring(L, 4, &len);
   nk_flags textAlignment = luaL_checknkflags(L, 5);
@@ -428,7 +403,7 @@ static int NKWRAP_FUNCTION(button_symbol_text_styled)(lua_State* L) {
 static int NKWRAP_FUNCTION(button_image_text_styled)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   const nk_style_button* styleButton = luaL_checkstylebutton(L, 2);
-  nk_image* img = luaL_checkimage(L, 3);
+  nk_image* img = luaL_checknkimage(L, 3);
   size_t len;
   const char* str = luaL_checklstring(L, 4, &len);
   nk_flags align = luaL_checknkflags(L, 5);
@@ -439,14 +414,14 @@ static int NKWRAP_FUNCTION(button_image_text_styled)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(button_set_behavior)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_button_behavior behavior = (nk_button_behavior)luaL_checkinteger(L, 2);
+  nk_button_behavior behavior = luaL_checknkbuttonbehavior(L, 2);
 
   nk_button_set_behavior(ctx, behavior);
   return 0;
 }
 static int NKWRAP_FUNCTION(button_push_behavior)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_button_behavior behavior = (nk_button_behavior)luaL_checkinteger(L, 2);
+  nk_button_behavior behavior = luaL_checknkbuttonbehavior(L, 2);
 
   nk_bool ret = nk_button_push_behavior(ctx, behavior);
   lua_pushboolean(L, ret);
@@ -460,6 +435,29 @@ static int NKWRAP_FUNCTION(button_pop_behavior)(lua_State* L) {
   return 1;
 }
 
+static const luaL_Enum NKWRAP_ENUM(symbol_type)[] = {
+    {"NONE", NK_SYMBOL_NONE},
+    {"X", NK_SYMBOL_X},
+    {"UNDERSCORE", NK_SYMBOL_UNDERSCORE},
+    {"CIRCLE_SOLID", NK_SYMBOL_CIRCLE_SOLID},
+    {"CIRCLE_OUTLINE", NK_SYMBOL_CIRCLE_OUTLINE},
+    {"RECT_SOLID", NK_SYMBOL_RECT_SOLID},
+    {"RECT_OUTLINE", NK_SYMBOL_RECT_OUTLINE},
+    {"TRIANGLE_UP", NK_SYMBOL_TRIANGLE_UP},
+    {"TRIANGLE_DOWN", NK_SYMBOL_TRIANGLE_DOWN},
+    {"TRIANGLE_LEFT", NK_SYMBOL_TRIANGLE_LEFT},
+    {"TRIANGLE_RIGHT", NK_SYMBOL_TRIANGLE_RIGHT},
+    {"PLUS", NK_SYMBOL_PLUS},
+    {"MINUS", NK_SYMBOL_MINUS},
+    {"MAX", NK_SYMBOL_MAX},
+    {NULL, 0},
+};
+static const luaL_Enum NKWRAP_ENUM(button_behavior)[] = {
+    {"DEFAULT", NK_BUTTON_DEFAULT},
+    {"REPEATER", NK_BUTTON_REPEATER},
+    {NULL, 0},
+};
+
 /* }====================================================== */
 
 /*
@@ -471,21 +469,21 @@ static int NKWRAP_FUNCTION(button_pop_behavior)(lua_State* L) {
 static int NKWRAP_FUNCTION(check_text)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   size_t len;
-  const char* label = luaL_checklstring(L, 2, &len);
-  nk_bool active = (nk_bool)luaL_checkboolean(L, 3);
+  const char* text = luaL_checklstring(L, 2, &len);
+  nk_bool active = luaL_checknkbool(L, 3);
 
-  nk_bool ret = nk_check_text(ctx, label, len, active);
+  nk_bool ret = nk_check_text(ctx, text, len, active);
   lua_pushboolean(L, (int)ret);
   return 1;
 }
 static int NKWRAP_FUNCTION(check_flags_text)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   size_t len;
-  const char* label = luaL_checklstring(L, 2, &len);
+  const char* text = luaL_checklstring(L, 2, &len);
   unsigned int flags = luaL_checkinteger(L, 3);
   unsigned int value = luaL_checkinteger(L, 4);
 
-  unsigned ret = nk_check_flags_text(ctx, label, len, flags, value);
+  unsigned ret = nk_check_flags_text(ctx, text, len, flags, value);
   lua_pushinteger(L, ret);
   return 1;
 }
@@ -501,10 +499,10 @@ static int NKWRAP_FUNCTION(check_flags_text)(lua_State* L) {
 static int NKWRAP_FUNCTION(option_text)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   size_t len;
-  const char* label = luaL_checklstring(L, 2, &len);
-  nk_bool active = (nk_bool)luaL_checkboolean(L, 3);
+  const char* text = luaL_checklstring(L, 2, &len);
+  nk_bool active = luaL_checknkbool(L, 3);
 
-  nk_bool ret = nk_option_text(ctx, label, len, active);
+  nk_bool ret = nk_option_text(ctx, text, len, active);
   lua_pushboolean(L, (int)ret);
   return 1;
 }
@@ -520,35 +518,35 @@ static int NKWRAP_FUNCTION(option_text)(lua_State* L) {
 static int NKWRAP_FUNCTION(select_text)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   size_t len;
-  const char* label = luaL_checklstring(L, 2, &len);
+  const char* text = luaL_checklstring(L, 2, &len);
   nk_flags align = luaL_checknkflags(L, 3);
-  nk_bool value = (nk_bool)luaL_checkboolean(L, 4);
+  nk_bool value = luaL_checknkbool(L, 4);
 
-  nk_bool ret = nk_select_text(ctx, label, len, align, value);
+  nk_bool ret = nk_select_text(ctx, text, len, align, value);
   lua_pushboolean(L, (int)ret);
   return 1;
 }
 static int NKWRAP_FUNCTION(select_image_text)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_image* img = luaL_checkimage(L, 2);
+  nk_image* img = luaL_checknkimage(L, 2);
   size_t len;
-  const char* label = luaL_checklstring(L, 3, &len);
+  const char* text = luaL_checklstring(L, 3, &len);
   nk_flags align = luaL_checknkflags(L, 4);
-  nk_bool value = (nk_bool)luaL_checkboolean(L, 5);
+  nk_bool value = luaL_checknkbool(L, 5);
 
-  nk_bool ret = nk_select_image_text(ctx, *img, label, len, align, value);
+  nk_bool ret = nk_select_image_text(ctx, *img, text, len, align, value);
   lua_pushboolean(L, (int)ret);
   return 1;
 }
 static int NKWRAP_FUNCTION(select_symbol_text)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_symbol_type symbol = (nk_symbol_type)luaL_checkinteger(L, 2);
+  nk_symbol_type symbol = luaL_checknksymboltype(L, 2);
   size_t len;
-  const char* label = luaL_checklstring(L, 3, &len);
+  const char* text = luaL_checklstring(L, 3, &len);
   nk_flags align = luaL_checknkflags(L, 4);
-  nk_bool value = (nk_bool)luaL_checkboolean(L, 5);
+  nk_bool value = luaL_checknkbool(L, 5);
 
-  nk_bool ret = nk_select_symbol_text(ctx, symbol, label, len, align, value);
+  nk_bool ret = nk_select_symbol_text(ctx, symbol, text, len, align, value);
   lua_pushboolean(L, (int)ret);
   return 1;
 }
@@ -613,13 +611,19 @@ static int NKWRAP_FUNCTION(prog)(lua_State* L) {
 
 static int NKWRAP_FUNCTION(color_picker)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_colorf color = luaL_checkcolorf(L, 2);
-  nk_color_format format = (nk_color_format)luaL_checkinteger(L, 3);
+  nk_colorf color = luaL_checknkcolorf(L, 2);
+  nk_color_format format = luaL_checknkcolorformat(L, 3);
 
   color = nk_color_picker(ctx, color, format);
-  luaL_pushcolorf(L, color);
+  luaL_pushnkcolorf(L, color);
   return 1;
 }
+
+static const luaL_Enum NKWRAP_ENUM(color_format)[] = {
+    {"RGB", NK_RGB},
+    {"RGBA", NK_RGBA},
+    {NULL, 0},
+};
 
 /* }====================================================== */
 
@@ -679,6 +683,7 @@ static int NKWRAP_FUNCTION(edit_string)(lua_State* L) {
 static int NKWRAP_FUNCTION(edit_buffer)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   nk_flags flag = luaL_checknkflags(L, 2);
+  // nk_text_edit* textEdit
 
   nk_flags ret = nk_edit_buffer(ctx, flag, NULL, NULL);
   lua_pushinteger(L, (int)ret);
@@ -698,6 +703,38 @@ static int NKWRAP_FUNCTION(edit_unfocus)(lua_State* L) {
   return 0;
 }
 
+static const luaL_Enum NKWRAP_ENUM(edit_flag)[] = {
+    {"DEFAULT", NK_EDIT_DEFAULT},
+    {"READ_ONLY", NK_EDIT_READ_ONLY},
+    {"AUTO_SELECT", NK_EDIT_AUTO_SELECT},
+    {"SIG_ENTER", NK_EDIT_SIG_ENTER},
+    {"ALLOW_TAB", NK_EDIT_ALLOW_TAB},
+    {"NO_CURSOR", NK_EDIT_NO_CURSOR},
+    {"SELECTABLE", NK_EDIT_SELECTABLE},
+    {"CLIPBOARD", NK_EDIT_CLIPBOARD},
+    {"CTRL_ENTER_NEWLINE", NK_EDIT_CTRL_ENTER_NEWLINE},
+    {"NO_HORIZONTAL_SCROLL", NK_EDIT_NO_HORIZONTAL_SCROLL},
+    {"ALWAYS_INSERT_MODE", NK_EDIT_ALWAYS_INSERT_MODE},
+    {"MULTILINE", NK_EDIT_MULTILINE},
+    {"GOTO_END_ON_ACTIVATE", NK_EDIT_GOTO_END_ON_ACTIVATE},
+    {NULL, 0},
+};
+static const luaL_Enum NKWRAP_ENUM(edit_type)[] = {
+    {"SIMPLE", NK_EDIT_SIMPLE},
+    {"FIELD", NK_EDIT_FIELD},
+    {"BOX", NK_EDIT_BOX},
+    {"EDITOR", NK_EDIT_EDITOR},
+    {NULL, 0},
+};
+static const luaL_Enum NKWRAP_ENUM(edit_event)[] = {
+    {"ACTIVE", NK_EDIT_ACTIVE},
+    {"INACTIVE", NK_EDIT_INACTIVE},
+    {"ACTIVATED", NK_EDIT_ACTIVATED},
+    {"DEACTIVATED", NK_EDIT_DEACTIVATED},
+    {"COMMITED", NK_EDIT_COMMITED},
+    {NULL, 0},
+};
+
 /* }====================================================== */
 
 /*
@@ -708,7 +745,7 @@ static int NKWRAP_FUNCTION(edit_unfocus)(lua_State* L) {
 
 static int NKWRAP_FUNCTION(chart_begin)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_chart_type type = (nk_chart_type)luaL_checkinteger(L, 2);
+  nk_chart_type type = luaL_checknkcharttype(L, 2);
   int num = luaL_checkinteger(L, 3);
   float min = luaL_checknumber(L, 4);
   float max = luaL_checknumber(L, 5);
@@ -719,9 +756,9 @@ static int NKWRAP_FUNCTION(chart_begin)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(chart_begin_colored)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_chart_type type = (nk_chart_type)luaL_checkinteger(L, 2);
-  nk_color color = luaL_checkcolor(L, 3);
-  nk_color highlight = luaL_checkcolor(L, 4);
+  nk_chart_type type = luaL_checknkcharttype(L, 2);
+  nk_color color = luaL_checknkcolor(L, 3);
+  nk_color highlight = luaL_checknkcolor(L, 4);
   int num = luaL_checkinteger(L, 5);
   float min = luaL_checknumber(L, 6);
   float max = luaL_checknumber(L, 7);
@@ -732,7 +769,7 @@ static int NKWRAP_FUNCTION(chart_begin_colored)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(chart_add_slot)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_chart_type type = (nk_chart_type)luaL_checkinteger(L, 2);
+  nk_chart_type type = luaL_checknkcharttype(L, 2);
   int count = luaL_checkinteger(L, 3);
   float minValue = luaL_checknumber(L, 4);
   float maxValue = luaL_checknumber(L, 5);
@@ -742,9 +779,9 @@ static int NKWRAP_FUNCTION(chart_add_slot)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(chart_add_slot_colored)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_chart_type type = (nk_chart_type)luaL_checkinteger(L, 2);
-  nk_color color = luaL_checkcolor(L, 3);
-  nk_color highlight = luaL_checkcolor(L, 4);
+  nk_chart_type type = luaL_checknkcharttype(L, 2);
+  nk_color color = luaL_checknkcolor(L, 3);
+  nk_color highlight = luaL_checknkcolor(L, 4);
   int count = luaL_checkinteger(L, 5);
   float minValue = luaL_checknumber(L, 6);
   float maxValue = luaL_checknumber(L, 7);
@@ -777,24 +814,56 @@ static int NKWRAP_FUNCTION(chart_end)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(plot)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_chart_type type = (nk_chart_type)luaL_checkinteger(L, 2);
-  float* values = (float*)luaL_checklightuserdata(L, 3);
-  int count = luaL_checkinteger(L, 4);
-  int offset = luaL_checkinteger(L, 5);
+  nk_chart_type type = luaL_checknkcharttype(L, 2);
+#define TABLE_IDX 3
+  luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
+  int offset = luaL_optinteger(L, 4, 0);
+
+  int count = luaL_len(L, TABLE_IDX);
+  float* values = (float*)alloca(sizeof(float) * count);
+  for (int i = 0; i < count; i++) {
+    lua_geti(L, TABLE_IDX, i + 1);
+    values[i] = lua_tonumber(L, -1);
+    lua_pop(L, 1);
+  }
+#undef TABLE_IDX
 
   nk_plot(ctx, type, values, count, offset);
   return 0;
 }
+
+static float _valueGetter(void* user, int index) {
+  lua_State* L = (lua_State*)user;
+  int cbIdx = lua_gettop(L);
+  PREPARE_CALL_LUA(L);
+  lua_pushvalue(L, cbIdx);
+  lua_pushinteger(L, index + 1);
+  CALL_LUA(L, 1, 1);
+  float value = lua_tonumber(L, -1);
+  lua_pop(L, 1);
+  POST_CALL_LUA(L);
+  return value;
+}
 static int NKWRAP_FUNCTION(plot_function)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_chart_type type = (nk_chart_type)luaL_checkinteger(L, 2);
-  luaL_checktype(L, 3, LUA_TFUNCTION);
+  nk_chart_type type = luaL_checknkcharttype(L, 2);
+#define CALLBACK_IDX 3
+  luaL_checktype(L, CALLBACK_IDX, LUA_TFUNCTION);
   int count = luaL_checkinteger(L, 4);
   int offset = luaL_checkinteger(L, 5);
 
-  nk_plot_function(ctx, type, NULL, NULL, count, offset);
+  lua_settop(L, CALLBACK_IDX);
+#undef CALLBACK_IDX
+  nk_plot_function(ctx, type, (void*)L, _valueGetter, count, offset);
   return 0;
 }
+
+static const luaL_Enum NKWRAP_ENUM(chart_type)[] = {
+    {"LINES", NK_CHART_LINES},
+    {"COLUMN", NK_CHART_COLUMN},
+    {"MAX", NK_CHART_MAX},
+    {NULL, 0},
+};
 
 /* }====================================================== */
 
@@ -806,14 +875,10 @@ static int NKWRAP_FUNCTION(plot_function)(lua_State* L) {
 
 static int NKWRAP_FUNCTION(popup_begin)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_popup_type type = luaL_checkinteger(L, 2);
+  nk_popup_type type = luaL_checknkpopuptype(L, 2);
   const char* title = luaL_checkstring(L, 3);
-  nk_flags flags = luaL_checkinteger(L, 4);
-  nk_rect rect;
-  rect.x = luaL_checknumber(L, 5);
-  rect.y = luaL_checknumber(L, 6);
-  rect.w = luaL_checknumber(L, 7);
-  rect.h = luaL_checknumber(L, 8);
+  nk_flags flags = luaL_checknkflags(L, 4);
+  nk_rect rect = luaL_checknkrect(L, 5);
 
   nk_bool ret = nk_popup_begin(ctx, type, title, flags, rect);
   lua_pushboolean(L, ret);
@@ -849,6 +914,12 @@ static int NKWRAP_FUNCTION(popup_set_scroll)(lua_State* L) {
   return 0;
 }
 
+static const luaL_Enum NKWRAP_ENUM(popup_type)[] = {
+    {"STATIC", NK_POPUP_STATIC},
+    {"DYNAMIC", NK_POPUP_DYNAMIC},
+    {NULL, 0},
+};
+
 /* }====================================================== */
 
 /*
@@ -859,12 +930,22 @@ static int NKWRAP_FUNCTION(popup_set_scroll)(lua_State* L) {
 
 static int NKWRAP_FUNCTION(combo)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  luaL_checktype(L, 2, LUA_TTABLE);
+#define TABLE_IDX 2
+  luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
   int selected = luaL_checkinteger(L, 3);
   int itemHeight = luaL_checkinteger(L, 4);
+  nk_vec2 size = luaL_checknkvec2(L, 5);
 
-  nk_vec2 size;
-  int ret = nk_combo(ctx, NULL, 0, selected, itemHeight, size);
+  int count = luaL_len(L, TABLE_IDX);
+  const char** items = (const char**)alloca(sizeof(const char*) * count);
+  for (int i = 0; i < count; i++) {
+    lua_geti(L, TABLE_IDX, i + 1);
+    items[i] = lua_tostring(L, -1);
+    lua_pop(L, 1);
+  }
+#undef TABLE_IDX
+
+  int ret = nk_combo(ctx, items, count, selected, itemHeight, size);
   lua_pushinteger(L, ret);
   return 1;
 }
@@ -875,9 +956,36 @@ static int NKWRAP_FUNCTION(combo_separator)(lua_State* L) {
   int selected = luaL_checkinteger(L, 4);
   int count = luaL_checkinteger(L, 5);
   int itemHeight = luaL_checkinteger(L, 6);
+  nk_vec2 size = luaL_checknkvec2(L, 7);
 
-  nk_vec2 size;
   int ret = nk_combo_separator(ctx, items, separator, selected, count, itemHeight, size);
+  lua_pushinteger(L, ret);
+  return 1;
+}
+
+static void _itemGetter(void* ud, int selected, const char** item) {
+  lua_State* L = (lua_State*)ud;
+  int cbIdx = lua_gettop(L);
+  PREPARE_CALL_LUA(L);
+  lua_pushvalue(L, cbIdx);
+  lua_pushinteger(L, selected + 1);
+  CALL_LUA(L, 1, 1);
+  *item = lua_tostring(L, -1);
+  lua_pop(L, 1);
+  POST_CALL_LUA(L);
+}
+static int NKWRAP_FUNCTION(combo_callback)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+#define CALLBACK_IDX 2
+  luaL_checktype(L, CALLBACK_IDX, LUA_TFUNCTION);
+  int selected = luaL_checkinteger(L, 3);
+  int count = luaL_checkinteger(L, 4);
+  int itemHeight = luaL_checkinteger(L, 5);
+  nk_vec2 size = luaL_checknkvec2(L, 6);
+
+  lua_settop(L, CALLBACK_IDX);
+#undef CALLBACK_IDX
+  int ret = nk_combo_callback(ctx, _itemGetter, (void*)L, selected, count, itemHeight, size);
   lua_pushinteger(L, ret);
   return 1;
 }
@@ -890,6 +998,110 @@ static int NKWRAP_FUNCTION(combo_separator)(lua_State* L) {
 ** =======================================================
 */
 
+static int NKWRAP_FUNCTION(combo_begin_text)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  size_t len;
+  const char* selected = luaL_checklstring(L, 2, &len);
+  nk_vec2 size = luaL_checknkvec2(L, 3);
+
+  nk_bool ret = nk_combo_begin_text(ctx, selected, len, size);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(combo_begin_color)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_color color = luaL_checknkcolor(L, 2);
+  nk_vec2 size = luaL_checknkvec2(L, 3);
+
+  nk_bool ret = nk_combo_begin_color(ctx, color, size);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(combo_begin_symbol)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_symbol_type symbol = luaL_checknksymboltype(L, 2);
+  nk_vec2 size = luaL_checknkvec2(L, 3);
+
+  nk_bool ret = nk_combo_begin_symbol(ctx, symbol, size);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(combo_begin_symbol_text)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  size_t len;
+  const char* selected = luaL_checklstring(L, 2, &len);
+  nk_symbol_type symbol = luaL_checknksymboltype(L, 3);
+  nk_vec2 size = luaL_checknkvec2(L, 4);
+
+  nk_bool ret = nk_combo_begin_symbol_text(ctx, selected, len, symbol, size);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(combo_begin_image)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_image* img = luaL_checknkimage(L, 2);
+  nk_vec2 size = luaL_checknkvec2(L, 3);
+
+  nk_bool ret = nk_combo_begin_image(ctx, *img, size);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(combo_begin_image_text)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  size_t len;
+  const char* selected = luaL_checklstring(L, 2, &len);
+  nk_image* img = luaL_checknkimage(L, 3);
+  nk_vec2 size = luaL_checknkvec2(L, 4);
+
+  nk_bool ret = nk_combo_begin_image_text(ctx, selected, len, *img, size);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(combo_item_text)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  size_t len;
+  const char* text = luaL_checklstring(L, 2, &len);
+  nk_flags alignment = luaL_checknkflags(L, 3);
+
+  nk_bool ret = nk_combo_item_text(ctx, text, len, alignment);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(combo_item_image_text)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_image* img = luaL_checknkimage(L, 2);
+  size_t len;
+  const char* text = luaL_checklstring(L, 3, &len);
+  nk_flags alignment = luaL_checknkflags(L, 4);
+
+  nk_bool ret = nk_combo_item_image_text(ctx, *img, text, len, alignment);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(combo_item_symbol_text)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_symbol_type symbol = luaL_checknksymboltype(L, 2);
+  size_t len;
+  const char* text = luaL_checklstring(L, 3, &len);
+  nk_flags alignment = luaL_checknkflags(L, 4);
+
+  nk_bool ret = nk_combo_item_symbol_text(ctx, symbol, text, len, alignment);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(combo_close)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+
+  nk_combo_close(ctx);
+  return 0;
+}
+static int NKWRAP_FUNCTION(combo_end)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+
+  nk_combo_end(ctx);
+  return 0;
+}
+
 /* }====================================================== */
 
 /*
@@ -898,6 +1110,62 @@ static int NKWRAP_FUNCTION(combo_separator)(lua_State* L) {
 ** =======================================================
 */
 
+static int
+NKWRAP_FUNCTION(contextual_begin)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_flags flags = luaL_checknkflags(L, 2);
+  nk_vec2 size = luaL_checknkvec2(L, 3);
+  nk_rect triggerBounds = luaL_checknkrect(L, 4);
+
+  nk_bool ret = nk_contextual_begin(ctx, flags, size, triggerBounds);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(contextual_item_text)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  size_t len;
+  const char* text = luaL_checklstring(L, 2, &len);
+  nk_flags alignment = luaL_checknkflags(L, 3);
+
+  nk_bool ret = nk_contextual_item_text(ctx, text, len, alignment);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(contextual_item_image_text)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_image* img = luaL_checknkimage(L, 2);
+  size_t len;
+  const char* text = luaL_checklstring(L, 3, &len);
+  nk_flags alignment = luaL_checknkflags(L, 4);
+
+  nk_bool ret = nk_contextual_item_image_text(ctx, *img, text, len, alignment);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(contextual_item_symbol_text)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_symbol_type symbol = luaL_checknksymboltype(L, 2);
+  size_t len;
+  const char* text = luaL_checklstring(L, 3, &len);
+  nk_flags alignment = luaL_checknkflags(L, 4);
+
+  nk_bool ret = nk_contextual_item_symbol_text(ctx, symbol, text, len, alignment);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(contextual_close)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+
+  nk_contextual_close(ctx);
+  return 0;
+}
+static int NKWRAP_FUNCTION(contextual_end)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+
+  nk_contextual_end(ctx);
+  return 0;
+}
+
 /* }====================================================== */
 
 /*
@@ -905,6 +1173,28 @@ static int NKWRAP_FUNCTION(combo_separator)(lua_State* L) {
 ** Nuklear ToolTip
 ** =======================================================
 */
+
+static int NKWRAP_FUNCTION(tooltip)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  const char* text = luaL_checkstring(L, 2);
+
+  nk_tooltip(ctx, text);
+  return 0;
+}
+static int NKWRAP_FUNCTION(tooltip_begin)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  float width = luaL_checknumber(L, 2);
+
+  nk_bool ret = nk_tooltip_begin(ctx, width);
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int NKWRAP_FUNCTION(tooltip_end)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+
+  nk_tooltip_end(ctx);
+  return 0;
+}
 
 /* }====================================================== */
 
@@ -931,9 +1221,7 @@ static int NKWRAP_FUNCTION(menu_begin_text)(lua_State* L) {
   size_t len;
   const char* title = luaL_checklstring(L, 2, &len);
   nk_flags align = luaL_checknkflags(L, 3);
-  nk_vec2 size;
-  size.x = luaL_checknumber(L, 4);
-  size.y = luaL_checknumber(L, 5);
+  nk_vec2 size = luaL_checknkvec2(L, 4);
 
   nk_bool ret = nk_menu_begin_text(ctx, title, len, align, size);
   lua_pushboolean(L, (int)ret);
@@ -942,10 +1230,8 @@ static int NKWRAP_FUNCTION(menu_begin_text)(lua_State* L) {
 static int NKWRAP_FUNCTION(menu_begin_image)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   const char* id = luaL_checkstring(L, 2);
-  nk_image* img = luaL_checkimage(L, 3);
-  nk_vec2 size;
-  size.x = luaL_checknumber(L, 4);
-  size.y = luaL_checknumber(L, 5);
+  nk_image* img = luaL_checknkimage(L, 3);
+  nk_vec2 size = luaL_checknkvec2(L, 4);
 
   nk_bool ret = nk_menu_begin_image(ctx, id, *img, size);
   lua_pushboolean(L, (int)ret);
@@ -956,10 +1242,8 @@ static int NKWRAP_FUNCTION(menu_begin_image_text)(lua_State* L) {
   size_t len;
   const char* title = luaL_checklstring(L, 2, &len);
   nk_flags align = luaL_checknkflags(L, 3);
-  nk_image* img = luaL_checkimage(L, 4);
-  nk_vec2 size;
-  size.x = luaL_checknumber(L, 5);
-  size.y = luaL_checknumber(L, 6);
+  nk_image* img = luaL_checknkimage(L, 4);
+  nk_vec2 size = luaL_checknkvec2(L, 5);
 
   nk_bool ret = nk_menu_begin_image_text(ctx, title, len, align, *img, size);
   lua_pushboolean(L, (int)ret);
@@ -968,10 +1252,8 @@ static int NKWRAP_FUNCTION(menu_begin_image_text)(lua_State* L) {
 static int NKWRAP_FUNCTION(menu_begin_symbol)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   const char* id = luaL_checkstring(L, 2);
-  nk_symbol_type symbol = (nk_symbol_type)luaL_checkinteger(L, 3);
-  nk_vec2 size;
-  size.x = luaL_checknumber(L, 4);
-  size.y = luaL_checknumber(L, 5);
+  nk_symbol_type symbol = luaL_checknksymboltype(L, 3);
+  nk_vec2 size = luaL_checknkvec2(L, 4);
 
   nk_bool ret = nk_menu_begin_symbol(ctx, id, symbol, size);
   lua_pushboolean(L, (int)ret);
@@ -982,10 +1264,8 @@ static int NKWRAP_FUNCTION(menu_begin_symbol_text)(lua_State* L) {
   size_t len;
   const char* title = luaL_checklstring(L, 2, &len);
   nk_flags align = luaL_checknkflags(L, 3);
-  nk_symbol_type symbol = (nk_symbol_type)luaL_checkinteger(L, 3);
-  nk_vec2 size;
-  size.x = luaL_checknumber(L, 5);
-  size.y = luaL_checknumber(L, 6);
+  nk_symbol_type symbol = luaL_checknksymboltype(L, 4);
+  nk_vec2 size = luaL_checknkvec2(L, 5);
 
   nk_bool ret = nk_menu_begin_symbol_text(ctx, title, len, align, symbol, size);
   lua_pushboolean(L, (int)ret);
@@ -1003,7 +1283,7 @@ static int NKWRAP_FUNCTION(menu_item_text)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(menu_item_image_text)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_image* img = luaL_checkimage(L, 2);
+  nk_image* img = luaL_checknkimage(L, 2);
   size_t len;
   const char* title = luaL_checklstring(L, 3, &len);
   nk_flags align = luaL_checknkflags(L, 4);
@@ -1014,7 +1294,7 @@ static int NKWRAP_FUNCTION(menu_item_image_text)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(menu_item_symbol_text)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_symbol_type symbol = (nk_symbol_type)luaL_checkinteger(L, 2);
+  nk_symbol_type symbol = luaL_checknksymboltype(L, 2);
   size_t len;
   const char* title = luaL_checklstring(L, 3, &len);
   nk_flags align = luaL_checknkflags(L, 4);
@@ -1125,9 +1405,30 @@ static const luaL_Reg wrap_funcs[] = {
     /* ComboBox */
     EMPLACE_NKWRAP_FUNCTION(combo),
     EMPLACE_NKWRAP_FUNCTION(combo_separator),
+    EMPLACE_NKWRAP_FUNCTION(combo_callback),
     /* AbstractComboBox */
+    EMPLACE_NKWRAP_FUNCTION(combo_begin_text),
+    EMPLACE_NKWRAP_FUNCTION(combo_begin_color),
+    EMPLACE_NKWRAP_FUNCTION(combo_begin_symbol),
+    EMPLACE_NKWRAP_FUNCTION(combo_begin_symbol_text),
+    EMPLACE_NKWRAP_FUNCTION(combo_begin_image),
+    EMPLACE_NKWRAP_FUNCTION(combo_begin_image_text),
+    EMPLACE_NKWRAP_FUNCTION(combo_item_text),
+    EMPLACE_NKWRAP_FUNCTION(combo_item_image_text),
+    EMPLACE_NKWRAP_FUNCTION(combo_item_symbol_text),
+    EMPLACE_NKWRAP_FUNCTION(combo_close),
+    EMPLACE_NKWRAP_FUNCTION(combo_end),
     /* Contextual */
+    EMPLACE_NKWRAP_FUNCTION(contextual_begin),
+    EMPLACE_NKWRAP_FUNCTION(contextual_item_text),
+    EMPLACE_NKWRAP_FUNCTION(contextual_item_image_text),
+    EMPLACE_NKWRAP_FUNCTION(contextual_item_symbol_text),
+    EMPLACE_NKWRAP_FUNCTION(contextual_close),
+    EMPLACE_NKWRAP_FUNCTION(contextual_end),
     /* ToolTip */
+    EMPLACE_NKWRAP_FUNCTION(tooltip),
+    EMPLACE_NKWRAP_FUNCTION(tooltip_begin),
+    EMPLACE_NKWRAP_FUNCTION(tooltip_end),
     /* Menu */
     EMPLACE_NKWRAP_FUNCTION(menubar_begin),
     EMPLACE_NKWRAP_FUNCTION(menubar_end),
@@ -1147,68 +1448,28 @@ static const luaL_Reg wrap_funcs[] = {
 
 /* }====================================================== */
 
-/*
-** {======================================================
-** Enums and Constants
-** =======================================================
-*/
-
-static const luaL_Enum NKWRAP_ENUM(panel_flag)[] = {
-    {"BORDER", NK_WINDOW_BORDER},
-    {"MOVABLE", NK_WINDOW_MOVABLE},
-    {"SCALABLE", NK_WINDOW_SCALABLE},
-    {"CLOSABLE", NK_WINDOW_CLOSABLE},
-    {"MINIMIZABLE", NK_WINDOW_MINIMIZABLE},
-    {"NO_SCROLLBAR", NK_WINDOW_NO_SCROLLBAR},
-    {"TITLE", NK_WINDOW_TITLE},
-    {"SCROLL_AUTO_HIDE", NK_WINDOW_SCROLL_AUTO_HIDE},
-    {"BACKGROUND", NK_WINDOW_BACKGROUND},
-    {"SCALE_LEFT", NK_WINDOW_SCALE_LEFT},
-    {"NO_INPUT", NK_WINDOW_NO_INPUT},
-    {NULL, 0},
-};
-static const luaL_Enum NKWRAP_ENUM(text_align)[] = {
-    {"NK_TEXT_ALIGN_LEFT", NK_TEXT_ALIGN_LEFT},
-    {"NK_TEXT_ALIGN_CENTERED", NK_TEXT_ALIGN_CENTERED},
-    {"NK_TEXT_ALIGN_RIGHT", NK_TEXT_ALIGN_RIGHT},
-    {"NK_TEXT_ALIGN_TOP", NK_TEXT_ALIGN_TOP},
-    {"NK_TEXT_ALIGN_MIDDLE", NK_TEXT_ALIGN_MIDDLE},
-    {"NK_TEXT_ALIGN_BOTTOM", NK_TEXT_ALIGN_BOTTOM},
-    {NULL, 0},
-};
-static const luaL_Enum NKWRAP_ENUM(text_alignment)[] = {
-    {"LEFT", NK_TEXT_LEFT},
-    {"CENTERED", NK_TEXT_CENTERED},
-    {"RIGHT", NK_TEXT_RIGHT},
-    {NULL, 0},
-};
-static const luaL_Enum NKWRAP_ENUM(symbol_type)[] = {
-    {"SYMBOL_NONE", NK_SYMBOL_NONE},
-    {"SYMBOL_X", NK_SYMBOL_X},
-    {"SYMBOL_UNDERSCORE", NK_SYMBOL_UNDERSCORE},
-    {"SYMBOL_CIRCLE_SOLID", NK_SYMBOL_CIRCLE_SOLID},
-    {"SYMBOL_CIRCLE_OUTLINE", NK_SYMBOL_CIRCLE_OUTLINE},
-    {"SYMBOL_RECT_SOLID", NK_SYMBOL_RECT_SOLID},
-    {"SYMBOL_RECT_OUTLINE", NK_SYMBOL_RECT_OUTLINE},
-    {"SYMBOL_TRIANGLE_UP", NK_SYMBOL_TRIANGLE_UP},
-    {"SYMBOL_TRIANGLE_DOWN", NK_SYMBOL_TRIANGLE_DOWN},
-    {"SYMBOL_TRIANGLE_LEFT", NK_SYMBOL_TRIANGLE_LEFT},
-    {"SYMBOL_TRIANGLE_RIGHT", NK_SYMBOL_TRIANGLE_RIGHT},
-    {"SYMBOL_PLUS", NK_SYMBOL_PLUS},
-    {"SYMBOL_MINUS", NK_SYMBOL_MINUS},
-    {"SYMBOL_MAX", NK_SYMBOL_MAX},
-    {NULL, 0},
-};
-
-/* }====================================================== */
+lua_State* staticL;
 
 LUAMOD_API int luaopen_libnuklear(lua_State* L) {
+  int isMain = lua_pushthread(L);
+  if (!isMain) {
+    return luaL_error(L, "libuvwrap must be required in lua main thread");
+  }
+  lua_pop(L, 1);
+  staticL = L;
+
   luaL_newlib(L, wrap_funcs);
 
-  REGISTE_ENUM(panel_flag);
   REGISTE_ENUM(text_align);
   REGISTE_ENUM(text_alignment);
   REGISTE_ENUM(symbol_type);
+  REGISTE_ENUM(button_behavior);
+  REGISTE_ENUM(color_format);
+  REGISTE_ENUM(chart_type);
+  REGISTE_ENUM(edit_flag);
+  REGISTE_ENUM(edit_type);
+  REGISTE_ENUM(edit_event);
+  REGISTE_ENUM(popup_type);
 
   (void)NKFONTATLAS_FUNCTION(init)(L);
   (void)NKFONTCFG_FUNCTION(init)(L);
@@ -1225,6 +1486,10 @@ LUAMOD_API int luaopen_libnuklear(lua_State* L) {
   (void)NKWRAP_FUNCTION(init_tree)(L);
   (void)NKWRAP_FUNCTION(init_widget)(L);
   (void)NKWRAP_FUNCTION(init_window)(L);
+  (void)NKWRAP_FUNCTION(init_drawing)(L);
+  (void)NKWRAP_FUNCTION(init_drawlist)(L);
+
+  (void)NKWRAP_FUNCTION(init_utils)(L);
 
   return 1;
 }

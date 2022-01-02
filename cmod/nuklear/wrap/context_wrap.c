@@ -30,7 +30,7 @@ static const luaL_Reg metafuncs[] = {
 };
 
 static int NKCONTEXT_FUNCTION(Context)(lua_State* L) {
-  nk_font* font = luaL_checkfont(L, 1);
+  nk_font* font = luaL_checknkfont(L, 1);
 
   nk_context* ctx = (nk_context*)lua_newuserdata(L, sizeof(nk_context));
   luaL_setmetatable(L, NUKLEAR_CONTEXT_TYPE);
@@ -56,13 +56,7 @@ static const luaL_Reg funcs[] = {
 void NKCONTEXT_FUNCTION(init)(lua_State* L) {
   luaL_setfuncs(L, funcs, 0);
 
-  luaL_newmetatable(L, NUKLEAR_CONTEXT_TYPE);
-  luaL_setfuncs(L, metafuncs, 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  lua_pop(L, 1); // pop the metatable
+  REGISTE_METATABLE(NUKLEAR_CONTEXT_TYPE, metafuncs);
 }
 
 /* }====================================================== */

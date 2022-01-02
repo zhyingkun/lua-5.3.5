@@ -9,7 +9,7 @@
 
 static int NKFONTCFG_FUNCTION(__newindex)(lua_State* L) {
   (void)L;
-  //  nk_font_config* cfg = luaL_checkfontconfig(L, 1);
+  //  nk_font_config* cfg = luaL_checknkfontconfig(L, 1);
 
   return 0;
 }
@@ -37,13 +37,7 @@ static const luaL_Reg funcs[] = {
 void NKFONTCFG_FUNCTION(init)(lua_State* L) {
   luaL_setfuncs(L, funcs, 0);
 
-  luaL_newmetatable(L, NUKLEAR_FONTCFG_TYPE);
-  luaL_setfuncs(L, metafuncs, 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  lua_pop(L, 1); // pop the metatable
+  REGISTE_METATABLE(NUKLEAR_FONTCFG_TYPE, metafuncs);
 }
 
 /* }====================================================== */

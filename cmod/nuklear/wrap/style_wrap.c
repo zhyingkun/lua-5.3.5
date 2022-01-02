@@ -7,16 +7,30 @@
 ** =======================================================
 */
 
-static int NKWRAP_FUNCTION(nk_style_default)(lua_State* L) {
+static int NKWRAP_FUNCTION(style_default)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_style_default(ctx);
   return 0;
 }
-// nk_style_from_table
+static int NKWRAP_FUNCTION(style_from_table)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+#define TABLE_IDX 2
+  luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
+
+  nk_color table[NK_COLOR_COUNT];
+  for (int i = 0; i < NK_COLOR_COUNT; i++) {
+    lua_geti(L, TABLE_IDX, i);
+    table[i] = luaL_checknkcolor(L, -1);
+    lua_pop(L, 1);
+  }
+#undef TABLE_IDX
+  nk_style_from_table(ctx, table);
+  return 0;
+}
 // nk_style_load_cursor
 // nk_style_load_all_cursors
-static int NKWRAP_FUNCTION(nk_style_get_color_name)(lua_State* L) {
+static int NKWRAP_FUNCTION(style_get_color_name)(lua_State* L) {
   nk_style_colors styleColor = (nk_style_colors)luaL_checkinteger(L, 1);
   const char* name = nk_style_get_color_name(styleColor);
   lua_pushstring(L, name);
@@ -24,12 +38,12 @@ static int NKWRAP_FUNCTION(nk_style_get_color_name)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(style_set_font)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_font* font = luaL_checkfont(L, 2);
+  nk_font* font = luaL_checknkfont(L, 2);
 
   nk_style_set_font(ctx, &font->handle);
   return 0;
 }
-static int NKWRAP_FUNCTION(nk_style_set_cursor)(lua_State* L) {
+static int NKWRAP_FUNCTION(style_set_cursor)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   nk_style_cursor styleCursor = (nk_style_cursor)luaL_checkinteger(L, 2);
 
@@ -37,21 +51,21 @@ static int NKWRAP_FUNCTION(nk_style_set_cursor)(lua_State* L) {
   lua_pushboolean(L, (int)ret);
   return 1;
 }
-static int NKWRAP_FUNCTION(nk_style_show_cursor)(lua_State* L) {
+static int NKWRAP_FUNCTION(style_show_cursor)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_style_show_cursor(ctx);
   return 0;
 }
-static int NKWRAP_FUNCTION(nk_style_hide_cursor)(lua_State* L) {
+static int NKWRAP_FUNCTION(style_hide_cursor)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_style_hide_cursor(ctx);
   return 0;
 }
-static int NKWRAP_FUNCTION(nk_style_push_font)(lua_State* L) {
+static int NKWRAP_FUNCTION(style_push_font)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_font* font = luaL_checkfont(L, 2);
+  nk_font* font = luaL_checknkfont(L, 2);
 
   nk_bool ret = nk_style_push_font(ctx, &font->handle);
   lua_pushboolean(L, (int)ret);
@@ -62,42 +76,42 @@ static int NKWRAP_FUNCTION(nk_style_push_font)(lua_State* L) {
 // nk_style_push_style_item
 // nk_style_push_flags
 // nk_style_push_color
-static int NKWRAP_FUNCTION(nk_style_pop_font)(lua_State* L) {
+static int NKWRAP_FUNCTION(style_pop_font)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_bool ret = nk_style_pop_font(ctx);
   lua_pushboolean(L, (int)ret);
   return 1;
 }
-static int NKWRAP_FUNCTION(nk_style_pop_float)(lua_State* L) {
+static int NKWRAP_FUNCTION(style_pop_float)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_bool ret = nk_style_pop_float(ctx);
   lua_pushboolean(L, (int)ret);
   return 1;
 }
-static int NKWRAP_FUNCTION(nk_style_pop_vec2)(lua_State* L) {
+static int NKWRAP_FUNCTION(style_pop_vec2)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_bool ret = nk_style_pop_vec2(ctx);
   lua_pushboolean(L, (int)ret);
   return 1;
 }
-static int NKWRAP_FUNCTION(nk_style_pop_style_item)(lua_State* L) {
+static int NKWRAP_FUNCTION(style_pop_style_item)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_bool ret = nk_style_pop_style_item(ctx);
   lua_pushboolean(L, (int)ret);
   return 1;
 }
-static int NKWRAP_FUNCTION(nk_style_pop_flags)(lua_State* L) {
+static int NKWRAP_FUNCTION(style_pop_flags)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_bool ret = nk_style_pop_flags(ctx);
   lua_pushboolean(L, (int)ret);
   return 1;
 }
-static int NKWRAP_FUNCTION(nk_style_pop_color)(lua_State* L) {
+static int NKWRAP_FUNCTION(style_pop_color)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_bool ret = nk_style_pop_color(ctx);
@@ -107,24 +121,40 @@ static int NKWRAP_FUNCTION(nk_style_pop_color)(lua_State* L) {
 
 /* }====================================================== */
 
+/*
+** {======================================================
+** Nuklear StyleItem
+** =======================================================
+*/
+
+/* }====================================================== */
+
 #define EMPLACE_NKWRAP_FUNCTION(name) \
   { #name, NKWRAP_FUNCTION(name) }
 static const luaL_Reg wrap_funcs[] = {
-    EMPLACE_NKWRAP_FUNCTION(nk_style_default),
+    /* Style */
+    EMPLACE_NKWRAP_FUNCTION(style_default),
+    EMPLACE_NKWRAP_FUNCTION(style_from_table),
 
-    EMPLACE_NKWRAP_FUNCTION(nk_style_get_color_name),
+    EMPLACE_NKWRAP_FUNCTION(style_get_color_name),
     EMPLACE_NKWRAP_FUNCTION(style_set_font),
-    EMPLACE_NKWRAP_FUNCTION(nk_style_set_cursor),
-    EMPLACE_NKWRAP_FUNCTION(nk_style_show_cursor),
-    EMPLACE_NKWRAP_FUNCTION(nk_style_hide_cursor),
-    EMPLACE_NKWRAP_FUNCTION(nk_style_push_font),
+    EMPLACE_NKWRAP_FUNCTION(style_set_cursor),
+    EMPLACE_NKWRAP_FUNCTION(style_show_cursor),
+    EMPLACE_NKWRAP_FUNCTION(style_hide_cursor),
+    EMPLACE_NKWRAP_FUNCTION(style_push_font),
 
-    EMPLACE_NKWRAP_FUNCTION(nk_style_pop_font),
-    EMPLACE_NKWRAP_FUNCTION(nk_style_pop_float),
-    EMPLACE_NKWRAP_FUNCTION(nk_style_pop_vec2),
-    EMPLACE_NKWRAP_FUNCTION(nk_style_pop_style_item),
-    EMPLACE_NKWRAP_FUNCTION(nk_style_pop_flags),
-    EMPLACE_NKWRAP_FUNCTION(nk_style_pop_color),
+    EMPLACE_NKWRAP_FUNCTION(style_pop_font),
+    EMPLACE_NKWRAP_FUNCTION(style_pop_float),
+    EMPLACE_NKWRAP_FUNCTION(style_pop_vec2),
+    EMPLACE_NKWRAP_FUNCTION(style_pop_style_item),
+    EMPLACE_NKWRAP_FUNCTION(style_pop_flags),
+    EMPLACE_NKWRAP_FUNCTION(style_pop_color),
+    /* StyleItem */
+    EMPLACE_NKWRAP_FUNCTION(style_pop_color),
+    EMPLACE_NKWRAP_FUNCTION(style_pop_color),
+    EMPLACE_NKWRAP_FUNCTION(style_pop_color),
+    EMPLACE_NKWRAP_FUNCTION(style_pop_color),
+
     {NULL, NULL},
 };
 

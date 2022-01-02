@@ -10,46 +10,42 @@
 static int NKWRAP_FUNCTION(widget)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
-  nk_rect bounds[1];
-  nk_widget_layout_states state = nk_widget(bounds, ctx);
+  nk_rect bounds;
+  nk_widget_layout_states state = nk_widget(&bounds, ctx);
   lua_pushinteger(L, (int)state);
   luaL_pushnkrect(L, bounds);
-  return 5;
+  return 2;
 }
 static int NKWRAP_FUNCTION(widget_fitting)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_vec2 itemPadding;
-  itemPadding.x = luaL_checknumber(L, 2);
-  itemPadding.y = luaL_checknumber(L, 3);
+  nk_vec2 itemPadding = luaL_checknkvec2(L, 2);
 
-  nk_rect bounds[1];
-  nk_widget_layout_states state = nk_widget_fitting(bounds, ctx, itemPadding);
+  nk_rect bounds;
+  nk_widget_layout_states state = nk_widget_fitting(&bounds, ctx, itemPadding);
   lua_pushinteger(L, (int)state);
   luaL_pushnkrect(L, bounds);
-  return 5;
+  return 2;
 }
 static int NKWRAP_FUNCTION(widget_bounds)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_rect bounds = nk_widget_bounds(ctx);
-  luaL_pushnkrect(L, &bounds);
-  return 4;
+  luaL_pushnkrect(L, bounds);
+  return 1;
 }
 static int NKWRAP_FUNCTION(widget_position)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_vec2 pos = nk_widget_position(ctx);
-  lua_pushnumber(L, pos.x);
-  lua_pushnumber(L, pos.y);
-  return 2;
+  luaL_pushnkvec2(L, pos);
+  return 1;
 }
 static int NKWRAP_FUNCTION(widget_size)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   nk_vec2 size = nk_widget_size(ctx);
-  lua_pushnumber(L, size.x);
-  lua_pushnumber(L, size.y);
-  return 2;
+  luaL_pushnkvec2(L, size);
+  return 1;
 }
 static int NKWRAP_FUNCTION(widget_width)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
@@ -83,7 +79,7 @@ static int NKWRAP_FUNCTION(widget_is_mouse_clicked)(lua_State* L) {
 static int NKWRAP_FUNCTION(widget_has_mouse_click_down)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   nk_buttons button = (nk_buttons)luaL_checkinteger(L, 2);
-  nk_bool down = (nk_bool)luaL_checkboolean(L, 3);
+  nk_bool down = luaL_checknkbool(L, 3);
 
   nk_bool ret = nk_widget_has_mouse_click_down(ctx, button, down);
   lua_pushboolean(L, (int)ret);
@@ -116,7 +112,7 @@ static const luaL_Reg wrap_funcs[] = {
     {NULL, NULL},
 };
 
-static const luaL_Enum NKWRAP_ENUM(widget_layout_states)[] = {
+static const luaL_Enum NKWRAP_ENUM(widget_layout_state)[] = {
     {"INVALID", NK_WIDGET_INVALID},
     {"VALID", NK_WIDGET_VALID},
     {"ROM", NK_WIDGET_ROM},
@@ -126,5 +122,5 @@ static const luaL_Enum NKWRAP_ENUM(widget_layout_states)[] = {
 void NKWRAP_FUNCTION(init_widget)(lua_State* L) {
   luaL_setfuncs(L, wrap_funcs, 0);
 
-  REGISTE_ENUM(widget_layout_states);
+  REGISTE_ENUM(widget_layout_state);
 }
