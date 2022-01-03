@@ -514,7 +514,7 @@ function nk.buttonSymbolStyled(styleButton, symbol)
 	return libnk.button_symbol_styled(curCtx, styleButton, symbol)
 end
 function nk.buttonImageStyled(styleButton, image)
-	return libnk.button_image_styled(curCtx, )
+	return libnk.button_image_styled(curCtx, styleButton, image)
 end
 function nk.buttonSymbolTextStyled(styleButton, symbol, str, textAlignment)
 	return libnk.button_symbol_text_styled(curCtx, styleButton, symbol, str, textAlignment)
@@ -649,7 +649,7 @@ function nk.editString(flag, buffer)
 	return libnk.edit_string(curCtx, flag, buffer)
 end
 function nk.editBuffer()
-	return libnk.edit_buffer(curCtx, )
+	return libnk.edit_buffer(curCtx)
 end
 function nk.editFocus(flag)
 	libnk.edit_focus(curCtx, flag)
