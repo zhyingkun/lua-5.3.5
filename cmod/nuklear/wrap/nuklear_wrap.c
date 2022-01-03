@@ -76,16 +76,6 @@ static int NKWRAP_FUNCTION(convert)(lua_State* L) {
   return 0;
 }
 
-static void nk_rect_intersect(const nk_rect* src1, const nk_rect* src2, nk_rect* dst) {
-  float sx = MAX(src1->x, src2->x); // start
-  float sy = MAX(src1->y, src2->y);
-  float ex = MIN(src1->x + src1->w, src2->x + src2->w); // end
-  float ey = MIN(src1->y + src1->h, src2->y + src2->h);
-  dst->x = sx;
-  dst->y = sy;
-  dst->w = ex > sx ? ex - sx : 0;
-  dst->h = ey > sy ? ey - sy : 0;
-}
 static void nk_rect_scale(nk_rect* rect, float xScale, float yScale) {
   rect->x *= xScale;
   rect->y *= yScale;

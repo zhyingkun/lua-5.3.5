@@ -38,7 +38,11 @@ static int NKBUFFER_FUNCTION(clear)(lua_State* L) {
 static int NKBUFFER_FUNCTION(__gc)(lua_State* L) {
   nk_buffer* buffer = luaL_checkbuffer(L, 1);
 
-  nk_buffer_free(buffer);
+  if (buffer->type == NK_BUFFER_FIXED) {
+    (void)NKWRAP_FUNCTION(free)(nk_buffer_memory(buffer));
+  } else {
+    nk_buffer_free(buffer);
+  }
   return 0;
 }
 
@@ -56,7 +60,15 @@ static const luaL_Reg metafuncs[] = {
 static int NKBUFFER_FUNCTION(Buffer)(lua_State* L) {
   nk_buffer* buf = (nk_buffer*)lua_newuserdata(L, sizeof(nk_buffer));
   luaL_setmetatable(L, NUKLEAR_BUFFER_TYPE);
-  nk_buffer_init_default(buf);
+
+  if (lua_isinteger(L, 1)) {
+    nk_size size = lua_tointeger(L, 1);
+    size = MAX(size, 64);
+    void* memory = NKWRAP_FUNCTION(malloc)(size);
+    nk_buffer_init_fixed(buf, memory, size);
+  } else {
+    nk_buffer_init_default(buf);
+  }
   return 1;
 }
 

@@ -35,7 +35,6 @@ static int NKWRAP_FUNCTION(layout_ratio_from_pixel)(lua_State* L) {
   lua_pushnumber(L, ratio);
   return 1;
 }
-
 static int NKWRAP_FUNCTION(layout_row_dynamic)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   float height = luaL_checknumber(L, 2);

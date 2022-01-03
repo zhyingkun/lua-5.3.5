@@ -85,6 +85,7 @@ nk_recti luaL_checknkrecti(lua_State* L, int idx);
 void luaL_pushnkrecti(lua_State* L, nk_recti recti);
 nk_rect luaL_checknkrect(lua_State* L, int idx);
 #define luaL_optnkrect(L, idx, d) luaL_opt(L, luaL_checknkrect, idx, d)
+void nk_rect_intersect(const nk_rect* src1, const nk_rect* src2, nk_rect* dst);
 void luaL_pushnkrect(lua_State* L, nk_rect rect);
 
 #define luaL_checknkfont(L, idx) (nk_font*)luaL_checklightuserdata(L, idx)
@@ -107,6 +108,9 @@ void luaL_pushnkrect(lua_State* L, nk_rect rect);
 
 #define luaL_checknkbool(L, idx) ((nk_bool)luaL_checkboolean(L, idx))
 #define luaL_checknkcollapsestates(L, idx) ((nk_collapse_states)luaL_checkboolean(L, idx))
+
+void* NKWRAP_FUNCTION(malloc)(size_t sz);
+void NKWRAP_FUNCTION(free)(void* ptr);
 
 #define NUKLEAR_FONTATLAS_TYPE "nk_font_atlas*"
 #define NKFONTATLAS_FUNCTION(name) nuklear_font_atlas_wrap_##name

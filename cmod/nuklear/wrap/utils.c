@@ -1,6 +1,23 @@
 #define _utils_c_
 #include <nuklear_wrap.h>
 
+#include <stdlib.h>
+
+/*
+** {======================================================
+** Nuklear MemoryAllocation
+** =======================================================
+*/
+
+void* NKWRAP_FUNCTION(malloc)(size_t sz) {
+  return malloc(sz);
+}
+void NKWRAP_FUNCTION(free)(void* ptr) {
+  free(ptr);
+}
+
+/* }====================================================== */
+
 /*
 ** {======================================================
 ** Nuklear Color
@@ -248,7 +265,19 @@ nk_rect luaL_checknkrect(lua_State* L, int idx) {
   uri.value = luaL_checkinteger(L, idx);
   return nk_make_rect((float)uri.recti.x, (float)uri.recti.y, (float)uri.recti.w, (float)uri.recti.h);
 }
+void nk_rect_intersect(const nk_rect* src1, const nk_rect* src2, nk_rect* dst) {
+  float sx = MAX(src1->x, src2->x); // start
+  float sy = MAX(src1->y, src2->y);
+  float ex = MIN(src1->x + src1->w, src2->x + src2->w); // end
+  float ey = MIN(src1->y + src1->h, src2->y + src2->h);
+  dst->x = sx;
+  dst->y = sy;
+  dst->w = ex > sx ? ex - sx : 0;
+  dst->h = ey > sy ? ey - sy : 0;
+}
+static nk_rect nullRect = {0.0, 0.0, 65535.0, 65535.0};
 void luaL_pushnkrect(lua_State* L, nk_rect rect) {
+  nk_rect_intersect(&rect, &nullRect, &rect);
   UnionRectInteger uri;
   uri.recti.x = (short)rect.x;
   uri.recti.y = (short)rect.y;
