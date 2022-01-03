@@ -31,7 +31,7 @@ function input.ImGUIInit(mainWin)
 	 end)
 	 glfw.SetScrollCallback(mainWin, function(window, xoffset, yoffset)
 		if bImGUI then
-		   nk.inputScroll(xoffset, yoffset)
+		   nk.inputScroll(nk.packVec2(xoffset, yoffset))
 		end
 	 end)
 	 glfw.SetCharCallback(mainWin, function(window, codepoint)

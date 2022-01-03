@@ -123,9 +123,12 @@ function imgui.setup(mainWin_)
 	_img_ = nk.Image(_imgRT_)
 end
 
+local prog = 40
+local slider = 10
+
 function imgui.tick(delta)
 	nk.styleSetFont(font)
-	if nk.begin("Basic Demo", 0, 0, 400, 300, 
+	if nk.begin("Basic Demo", nk.packRect(0, 0, 400, 300), 
 		panel_flag.BORDER  |panel_flag.MOVABLE |panel_flag.TITLE|
 		panel_flag.SCALABLE|panel_flag.CLOSABLE|panel_flag.MINIMIZABLE)
 	then
@@ -139,7 +142,7 @@ function imgui.tick(delta)
 			_OpenPopup_ = not _OpenPopup_
 		end
 		if _OpenPopup_ then
-			if nk.popupBegin(0, "Image Popup", 0, 265, 0, 280, 220) then
+			if nk.popupBegin(nk.popup_type.STATIC, "Image Popup", 0, nk.packRect(265, 0, 280, 220)) then
 				nk.layoutRowStatic(82, 82, 3);
 				-- nk.textWidget("ABCDEFGHIJKLMNOPQRSTUVWXYZ", text_alignment.LEFT)
 				for i = 1, 9 do
@@ -166,6 +169,34 @@ function imgui.tick(delta)
 		end
 		nk.layoutRowStatic(120, 120, 1)
 		nk.imageWidget(_img_)
+
+		nk.layoutRowStatic(30, 160, 1)
+		local bounds = nk.widgetBounds()
+		nk.textWidget("Right click me for menu", text_alignment.LEFT)
+
+		if nk.contextualBegin(0, nk.packVec2(200, 600), bounds) then
+			nk.layoutRowDynamic(25, 1)
+			-- nk.checkboxText("Menu", &show_menu)
+			-- nk_progress(ctx, &prog, 100, NK_MODIFIABLE);
+			-- nk_slider_int(ctx, 0, &slider, 16, 1);
+			nk.textWidget("Contextual", text_alignment.LEFT)
+
+			if nk.contextualItemText("About", text_alignment.CENTERED) then
+				show_app_about = true
+			end
+			-- nk.selectable_label(ctx, select[0]?"Unselect":"Select", NK_TEXT_LEFT, &select[0]);
+			-- nk_selectable_label(ctx, select[1]?"Unselect":"Select", NK_TEXT_LEFT, &select[1]);
+			-- nk_selectable_label(ctx, select[2]?"Unselect":"Select", NK_TEXT_LEFT, &select[2]);
+			-- nk_selectable_label(ctx, select[3]?"Unselect":"Select", NK_TEXT_LEFT, &select[3]);
+			nk.contextualEnd();
+		end
+
+		nk.layoutRowStatic(30, 300, 1);
+		local bounds = nk.widgetBounds()
+		nk.textWidget("Hover me for tooltip", text_alignment.LEFT);
+		if nk.inputIsMouseHoveringRect(bounds) then
+			nk.tooltip("This is a tooltip")
+		end
 	end
 	nk.endWindow()
 
