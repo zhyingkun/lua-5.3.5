@@ -12,3 +12,6 @@ UserInterface.xcuserstate
 
 luawithlib/Android/libs
 luawithlib/Android/obj
+
+*.iml
+.idea
