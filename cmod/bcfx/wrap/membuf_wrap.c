@@ -160,7 +160,7 @@ static int MEMBUF_FUNCTION(makeMemBuffer)(lua_State* L) {
   }
   bcfx_MemBuffer* mb = luaL_newmembuffer(L);
   if (num == 2 && lua_istable(L, 2)) {
-    bcfx_EDataType type = (bcfx_EDataType)luaL_checkinteger(L, 1);
+    bcfx_EDataType type = luaL_checkdatatype(L, 1);
     size_t count = luaL_len(L, 2);
     mb->sz = sizeof_DataType[type] * count;
     mb->ptr = malloc(mb->sz);
@@ -178,7 +178,7 @@ static int MEMBUF_FUNCTION(makeMemBuffer)(lua_State* L) {
     bcfx_EDataType* dts = (bcfx_EDataType*)(counts + cnt);
     for (int i = 0; i < cnt; i++) {
       counts[i] = -1;
-      dts[i] = (bcfx_EDataType)luaL_checkinteger(L, i * 2 + 1);
+      dts[i] = luaL_checkdatatype(L, i * 2 + 1);
     }
     while (true) {
       for (int i = 0; i < cnt; i++) {

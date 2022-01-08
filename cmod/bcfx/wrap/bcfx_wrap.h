@@ -69,6 +69,16 @@ Mat* luaL_newmatrix(lua_State* L, uint8_t row, uint8_t col);
 #define luaL_newmat4x4(L) (Mat4x4*)luaL_newmatrix(L, 4, 4)
 
 #define luaL_checkshadertype(L, idx) ((bcfx_EShaderType)luaL_checkinteger(L, idx))
+#define luaL_checkindextype(L, idx) ((bcfx_EIndexType)luaL_checkinteger(L, idx))
+#define luaL_checkhandle(L, idx) ((Handle)luaL_checkinteger(L, idx))
+#define luaL_checkuniformtype(L, idx) ((bcfx_UniformType)luaL_checkinteger(L, idx))
+#define luaL_checktextureformat(L, idx) ((bcfx_ETextureFormat)luaL_checkinteger(L, idx))
+#define luaL_checkviewid(L, idx) ((ViewId)luaL_checkinteger(L, idx))
+#define luaL_checkviewmode(L, idx) ((ViewMode)luaL_checkinteger(L, idx))
+#define luaL_checkdatatype(L, idx) ((bcfx_EDataType)luaL_checkinteger(L, idx))
+#define luaL_checkvertexattrib(L, idx) ((bcfx_EVertexAttrib)luaL_checkinteger(L, idx))
+#define luaL_checkattribtype(L, idx) ((bcfx_EAttribType)luaL_checkinteger(L, idx))
+#define luaL_checkimagetype(L, idx) ((ImageType)luaL_checkinteger(L, idx))
 
 void MATRIX_FUNCTION(init)(lua_State* L);
 

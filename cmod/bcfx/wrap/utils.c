@@ -13,7 +13,7 @@
   lua_pop(L, 1)
 static int UTILS_FUNCTION(packSamplerFlags)(lua_State* L) {
   luaL_checktype(L, 1, LUA_TTABLE);
-  bcfx_SamplerFlags flags = {0};
+  bcfx_SamplerFlag flags = {0};
   SET_FLAGS_FIELD(wrapU, integer);
   SET_FLAGS_FIELD(wrapV, integer);
   SET_FLAGS_FIELD(filterMin, integer);

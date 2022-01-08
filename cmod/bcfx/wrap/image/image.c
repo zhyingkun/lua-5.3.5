@@ -34,7 +34,7 @@ typedef struct {
 
 static int IMAGE_FUNCTION(packImageDecodeParam)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  bcfx_ETextureFormat format = (bcfx_ETextureFormat)luaL_checkinteger(L, 2);
+  bcfx_ETextureFormat format = luaL_checktextureformat(L, 2);
 
   ImageDecodeParam* param = (ImageDecodeParam*)malloc(sizeof(ImageDecodeParam));
   MEMBUFFER_MOVE(mb, &param->mb);
@@ -78,7 +78,7 @@ static int IMAGE_FUNCTION(unpackImageDecodeResult)(lua_State* L) {
 
 static int IMAGE_FUNCTION(imageDecode)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  bcfx_ETextureFormat format = (bcfx_ETextureFormat)luaL_checkinteger(L, 2);
+  bcfx_ETextureFormat format = luaL_checktextureformat(L, 2);
 
   int width, height, nrChannels;
   int wantChannels = textureFormat_channels[format];
@@ -191,7 +191,7 @@ static int IMAGE_FUNCTION(packImageEncodeParam)(lua_State* L) {
   int width = luaL_checkinteger(L, 2);
   int height = luaL_checkinteger(L, 3);
   int components = luaL_checkinteger(L, 4);
-  ImageType type = (ImageType)luaL_checkinteger(L, 5);
+  ImageType type = luaL_checkimagetype(L, 5);
   int stride = type == IT_PNG ? luaL_checkinteger(L, 6) : 0;
   int quality = type == IT_JPG ? luaL_checkinteger(L, 6) : 0;
 
@@ -235,7 +235,7 @@ static int IMAGE_FUNCTION(imageEncode)(lua_State* L) {
   int width = luaL_checkinteger(L, 2);
   int height = luaL_checkinteger(L, 3);
   int components = luaL_checkinteger(L, 4);
-  ImageType type = (ImageType)luaL_checkinteger(L, 5);
+  ImageType type = luaL_checkimagetype(L, 5);
   int stride = type == IT_PNG ? luaL_checkinteger(L, 6) : 0;
   int quality = type == IT_JPG ? luaL_checkinteger(L, 6) : 0;
 

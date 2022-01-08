@@ -197,7 +197,7 @@ static int BCWRAP_FUNCTION(createDynamicVertexBuffer)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(createIndexBuffer)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  bcfx_EIndexType type = (bcfx_EIndexType)luaL_checkinteger(L, 2);
+  bcfx_EIndexType type = luaL_checkindextype(L, 2);
 
   Handle handle = bcfx_createIndexBuffer(mb, type);
   MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
@@ -206,7 +206,7 @@ static int BCWRAP_FUNCTION(createIndexBuffer)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(createDynamicIndexBuffer)(lua_State* L) {
   size_t size = luaL_checkinteger(L, 1);
-  bcfx_EIndexType type = (bcfx_EIndexType)luaL_checkinteger(L, 2);
+  bcfx_EIndexType type = luaL_checkindextype(L, 2);
 
   Handle handle = bcfx_createDynamicIndexBuffer(size, type);
   lua_pushinteger(L, handle);
@@ -230,8 +230,8 @@ static int BCWRAP_FUNCTION(createShader)(lua_State* L) {
   return 1;
 }
 static int BCWRAP_FUNCTION(createProgram)(lua_State* L) {
-  Handle vs = (Handle)luaL_checkinteger(L, 1);
-  Handle fs = (Handle)luaL_checkinteger(L, 2);
+  Handle vs = luaL_checkhandle(L, 1);
+  Handle fs = luaL_checkhandle(L, 2);
 
   Handle handle = bcfx_createProgram(vs, fs);
   lua_pushinteger(L, handle);
@@ -239,7 +239,7 @@ static int BCWRAP_FUNCTION(createProgram)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(createUniform)(lua_State* L) {
   const char* name = luaL_checkstring(L, 1);
-  bcfx_UniformType type = (bcfx_UniformType)luaL_checkinteger(L, 2);
+  bcfx_UniformType type = luaL_checkuniformtype(L, 2);
   uint16_t num = luaL_optinteger(L, 3, 1);
 
   Handle handle = bcfx_createUniform(name, type, num);
@@ -250,7 +250,7 @@ static int BCWRAP_FUNCTION(createTexture)(lua_State* L) {
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   uint16_t width = luaL_checkinteger(L, 2);
   uint16_t height = luaL_checkinteger(L, 3);
-  bcfx_ETextureFormat format = (bcfx_ETextureFormat)luaL_checkinteger(L, 4);
+  bcfx_ETextureFormat format = luaL_checktextureformat(L, 4);
 
   Handle handle = bcfx_createTexture(mb, width, height, format);
   MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
@@ -261,7 +261,7 @@ static int BCWRAP_FUNCTION(createTexture)(lua_State* L) {
 static int BCWRAP_FUNCTION(createRenderTexture)(lua_State* L) {
   uint16_t width = luaL_checkinteger(L, 1);
   uint16_t height = luaL_checkinteger(L, 2);
-  bcfx_ETextureFormat format = (bcfx_ETextureFormat)luaL_checkinteger(L, 3);
+  bcfx_ETextureFormat format = luaL_checktextureformat(L, 3);
 
   Handle handle = bcfx_createRenderTexture(width, height, format);
 
@@ -275,7 +275,7 @@ static int BCWRAP_FUNCTION(createFrameBuffer)(lua_State* L) {
   }
   Handle* handles = (Handle*)alloca(sizeof(Handle) * num);
   for (int i = 0; i < num; i++) {
-    handles[i] = (Handle)luaL_checkinteger(L, i + 1);
+    handles[i] = luaL_checkhandle(L, i + 1);
   }
 
   Handle handle = bcfx_createFrameBuffer((uint8_t)num, handles);
@@ -293,14 +293,14 @@ static int BCWRAP_FUNCTION(createFrameBuffer)(lua_State* L) {
 */
 
 static int BCWRAP_FUNCTION(updateProgram)(lua_State* L) {
-  Handle handle = (Handle)luaL_checkinteger(L, 1);
-  Handle vs = (Handle)luaL_checkinteger(L, 2);
-  Handle fs = (Handle)luaL_checkinteger(L, 3);
+  Handle handle = luaL_checkhandle(L, 1);
+  Handle vs = luaL_checkhandle(L, 2);
+  Handle fs = luaL_checkhandle(L, 3);
   bcfx_updateProgram(handle, vs, fs);
   return 0;
 }
 static int BCWRAP_FUNCTION(updateDynamicVertexBuffer)(lua_State* L) {
-  Handle handle = (Handle)luaL_checkinteger(L, 1);
+  Handle handle = luaL_checkhandle(L, 1);
   size_t offset = luaL_checkinteger(L, 2);
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 3);
 
@@ -309,7 +309,7 @@ static int BCWRAP_FUNCTION(updateDynamicVertexBuffer)(lua_State* L) {
   return 0;
 }
 static int BCWRAP_FUNCTION(updateDynamicIndexBuffer)(lua_State* L) {
-  Handle handle = (Handle)luaL_checkinteger(L, 1);
+  Handle handle = luaL_checkhandle(L, 1);
   size_t offset = luaL_checkinteger(L, 2);
   bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 3);
 
@@ -329,7 +329,7 @@ static int BCWRAP_FUNCTION(updateDynamicIndexBuffer)(lua_State* L) {
 static int BCWRAP_FUNCTION(destroy)(lua_State* L) {
   int top = lua_gettop(L);
   for (int idx = 1; idx <= top; idx++) {
-    Handle handle = (Handle)luaL_checkinteger(L, idx);
+    Handle handle = luaL_checkhandle(L, idx);
     bcfx_destroy(handle);
   }
   return 0;
@@ -344,19 +344,19 @@ static int BCWRAP_FUNCTION(destroy)(lua_State* L) {
 */
 
 static int BCWRAP_FUNCTION(setViewWindow)(lua_State* L) {
-  ViewId id = (ViewId)luaL_checkinteger(L, 1);
+  ViewId id = luaL_checkviewid(L, 1);
   Window win = (Window)luaL_checklightuserdata(L, 2);
   bcfx_setViewWindow(id, win);
   return 0;
 }
 static int BCWRAP_FUNCTION(setViewFrameBuffer)(lua_State* L) {
-  ViewId id = (ViewId)luaL_checkinteger(L, 1);
-  Handle handle = (Handle)luaL_checkinteger(L, 2);
+  ViewId id = luaL_checkviewid(L, 1);
+  Handle handle = luaL_checkhandle(L, 2);
   bcfx_setViewFrameBuffer(id, handle);
   return 0;
 }
 static int BCWRAP_FUNCTION(setViewClear)(lua_State* L) {
-  ViewId id = (ViewId)luaL_checkinteger(L, 1);
+  ViewId id = luaL_checkviewid(L, 1);
   uint16_t flags = (uint16_t)luaL_checkinteger(L, 2);
   uint32_t rgba = (uint32_t)luaL_checkinteger(L, 3);
   float depth = (float)luaL_checknumber(L, 4);
@@ -365,7 +365,7 @@ static int BCWRAP_FUNCTION(setViewClear)(lua_State* L) {
   return 0;
 }
 static int BCWRAP_FUNCTION(setViewRect)(lua_State* L) {
-  ViewId id = (ViewId)luaL_checkinteger(L, 1);
+  ViewId id = luaL_checkviewid(L, 1);
   uint16_t x = (uint16_t)luaL_checkinteger(L, 2);
   uint16_t y = (uint16_t)luaL_checkinteger(L, 3);
   uint16_t width = (uint16_t)luaL_checkinteger(L, 4);
@@ -374,7 +374,7 @@ static int BCWRAP_FUNCTION(setViewRect)(lua_State* L) {
   return 0;
 }
 static int BCWRAP_FUNCTION(setViewScissor)(lua_State* L) {
-  ViewId id = (ViewId)luaL_checkinteger(L, 1);
+  ViewId id = luaL_checkviewid(L, 1);
   uint16_t x = (uint16_t)luaL_checkinteger(L, 2);
   uint16_t y = (uint16_t)luaL_checkinteger(L, 3);
   uint16_t width = (uint16_t)luaL_checkinteger(L, 4);
@@ -383,26 +383,26 @@ static int BCWRAP_FUNCTION(setViewScissor)(lua_State* L) {
   return 0;
 }
 static int BCWRAP_FUNCTION(setViewTransform)(lua_State* L) {
-  ViewId id = (ViewId)luaL_checkinteger(L, 1);
+  ViewId id = luaL_checkviewid(L, 1);
   Mat4x4* viewMat = luaL_optmat4x4(L, 2, NULL);
   Mat4x4* projMat = luaL_optmat4x4(L, 3, NULL);
   bcfx_setViewTransform(id, viewMat, projMat);
   return 0;
 }
 static int BCWRAP_FUNCTION(setViewMode)(lua_State* L) {
-  ViewId id = (ViewId)luaL_checkinteger(L, 1);
-  ViewMode mode = (ViewMode)luaL_checkinteger(L, 2);
+  ViewId id = luaL_checkviewid(L, 1);
+  ViewMode mode = luaL_checkviewmode(L, 2);
   bcfx_setViewMode(id, mode);
   return 0;
 }
 static int BCWRAP_FUNCTION(setViewDebug)(lua_State* L) {
-  ViewId id = (ViewId)luaL_checkinteger(L, 1);
+  ViewId id = luaL_checkviewid(L, 1);
   uint32_t debug = (uint32_t)luaL_checkinteger(L, 2);
   bcfx_setViewDebug(id, debug);
   return 0;
 }
 static int BCWRAP_FUNCTION(resetView)(lua_State* L) {
-  ViewId id = (ViewId)luaL_checkinteger(L, 1);
+  ViewId id = luaL_checkviewid(L, 1);
   bcfx_resetView(id);
   return 0;
 }
@@ -439,7 +439,7 @@ static int BCWRAP_FUNCTION(setFrameViewCaptureCallback)(lua_State* L) {
   return 0;
 }
 static int BCWRAP_FUNCTION(requestCurrentFrameViewCapture)(lua_State* L) {
-  ViewId id = (ViewId)luaL_checkinteger(L, 1);
+  ViewId id = luaL_checkviewid(L, 1);
   bcfx_requestCurrentFrameViewCapture(id);
   return 0;
 }
@@ -453,7 +453,7 @@ static int BCWRAP_FUNCTION(requestCurrentFrameViewCapture)(lua_State* L) {
 */
 
 static int BCWRAP_FUNCTION(setUniform)(lua_State* L) {
-  Handle handle = (Handle)luaL_checkinteger(L, 1);
+  Handle handle = luaL_checkhandle(L, 1);
   uint16_t num;
   bcfx_UniformType type = bcfx_uniformInfo(handle, &num);
   uint16_t got = lua_gettop(L) - 1;
@@ -481,7 +481,7 @@ static int BCWRAP_FUNCTION(setUniform)(lua_State* L) {
   return 0;
 }
 static int BCWRAP_FUNCTION(touch)(lua_State* L) {
-  ViewId id = (ViewId)luaL_checkinteger(L, 1);
+  ViewId id = luaL_checkviewid(L, 1);
 
   bcfx_touch(id);
   return 0;
@@ -489,13 +489,13 @@ static int BCWRAP_FUNCTION(touch)(lua_State* L) {
 
 static int BCWRAP_FUNCTION(setVertexBuffer)(lua_State* L) {
   uint8_t stream = luaL_checkinteger(L, 1);
-  Handle handle = (Handle)luaL_checkinteger(L, 2);
+  Handle handle = luaL_checkhandle(L, 2);
 
   bcfx_setVertexBuffer(stream, handle);
   return 0;
 }
 static int BCWRAP_FUNCTION(setIndexBuffer)(lua_State* L) {
-  Handle handle = (Handle)luaL_checkinteger(L, 1);
+  Handle handle = luaL_checkhandle(L, 1);
   uint32_t start = luaL_optinteger(L, 2, 0);
   uint32_t count = luaL_optinteger(L, 3, 0);
   bcfx_setIndexBuffer(handle, start, count);
@@ -509,9 +509,9 @@ static int BCWRAP_FUNCTION(setTransform)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(setTexture)(lua_State* L) {
   uint8_t stage = luaL_checkinteger(L, 1);
-  Handle sampler = (Handle)luaL_checkinteger(L, 2);
-  Handle texture = (Handle)luaL_checkinteger(L, 3);
-  bcfx_USamplerFlags flags;
+  Handle sampler = luaL_checkhandle(L, 2);
+  Handle texture = luaL_checkhandle(L, 3);
+  bcfx_USamplerFlag flags;
   flags.flagsUINT32 = luaL_checkinteger(L, 4);
 
   bcfx_setTexture(stage, sampler, texture, flags.flagsStruct);
@@ -560,8 +560,8 @@ static int BCWRAP_FUNCTION(setInstanceDataBuffer)(lua_State* L) {
   return 0;
 }
 static int BCWRAP_FUNCTION(submit)(lua_State* L) {
-  ViewId id = (ViewId)luaL_checkinteger(L, 1);
-  Handle handle = (Handle)luaL_checkinteger(L, 2);
+  ViewId id = luaL_checkviewid(L, 1);
+  Handle handle = luaL_checkhandle(L, 2);
   uint32_t flags = luaL_optinteger(L, 3, BCFX_DISCARD_NONE);
   uint32_t depth = luaL_optinteger(L, 4, 0);
 
