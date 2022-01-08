@@ -13,6 +13,7 @@ local blend_equation = bcfx.blend_equation
 local blend_func = bcfx.blend_func
 
 local nk = require("nuklear")
+local font = nk.font
 local panel_flag = nk.panel_flag
 local text_alignment = nk.text_alignment
 local index_type = bcfx.index_type
@@ -20,7 +21,7 @@ local clear_flag = bcfx.clear_flag
 
 local imgui = {}
 
-local font
+local myFont
 local nullTex
 
 local vbuf1
@@ -43,10 +44,10 @@ local mainWin
 
 function imgui.setup(mainWin_)
 	mainWin = mainWin_
-	local atlas = nk.FontAtlas()
+	local atlas = font.Atlas()
 	atlas:begin()
-	local cfg = nk.FontConfig()
-	font = atlas:add_default(22, cfg)
+	local cfg = font.Config()
+	myFont = atlas:add_default(22, cfg)
 	local image, release, ud, width, height = atlas:bake(1)
 	-- bcfx.utils.imageWrite("zykTest.png", width, height, 4, image)
 	local mb = bcfx.membuf.MemBuffer(image, width * height * 4, release, ud)
@@ -54,7 +55,7 @@ function imgui.setup(mainWin_)
 	local imageHandle = bcfx.createTexture(mb, width, height, bcfx.texture_format.RGBA8)
 	nullTex = atlas:endatlas(imageHandle)
 
-	local ctx = nk.Context(font)
+	local ctx = nk.Context(myFont)
 	nk.setContext(ctx)
 
 	cmds = nk.Buffer()
@@ -127,7 +128,7 @@ local prog = 40
 local slider = 10
 
 function imgui.tick(delta)
-	nk.styleSetFont(font)
+	nk.styleSetFont(myFont)
 	if nk.begin("Basic Demo", nk.packRect(0, 0, 400, 300), 
 		panel_flag.BORDER  |panel_flag.MOVABLE |panel_flag.TITLE|
 		panel_flag.SCALABLE|panel_flag.CLOSABLE|panel_flag.MINIMIZABLE)
