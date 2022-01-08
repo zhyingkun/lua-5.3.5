@@ -69,7 +69,7 @@ static const luaL_Reg metafuncs[] = {
     {NULL, NULL},
 };
 
-static int NKFONTATLAS_FUNCTION(FontAtlas)(lua_State* L) {
+static int NKFONTATLAS_FUNCTION(Atlas)(lua_State* L) {
   nk_font_atlas* atlas = (nk_font_atlas*)lua_newuserdata(L, sizeof(nk_font_atlas));
   luaL_setmetatable(L, NUKLEAR_FONTATLAS_TYPE);
   nk_font_atlas_init_default(atlas);
@@ -99,7 +99,7 @@ static const luaL_Reg draw_null_texture_metafuncs[] = {
 /* }====================================================== */
 
 static const luaL_Reg funcs[] = {
-    EMPLACE_NKFONTATLAS_FUNCTION(FontAtlas),
+    EMPLACE_NKFONTATLAS_FUNCTION(Atlas),
     {NULL, NULL},
 };
 

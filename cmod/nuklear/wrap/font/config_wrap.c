@@ -21,7 +21,7 @@ static const luaL_Reg metafuncs[] = {
     {NULL, NULL},
 };
 
-static int NKFONTCFG_FUNCTION(FontConfig)(lua_State* L) {
+static int NKFONTCFG_FUNCTION(Config)(lua_State* L) {
   nk_font_config* cfg = (nk_font_config*)lua_newuserdata(L, sizeof(nk_font_config));
   luaL_setmetatable(L, NUKLEAR_FONTCFG_TYPE);
   *cfg = nk_make_font_config(0);
@@ -29,37 +29,37 @@ static int NKFONTCFG_FUNCTION(FontConfig)(lua_State* L) {
   return 1;
 }
 
-static int NKFONTCFG_FUNCTION(font_default_glyph_ranges)(lua_State* L) {
+static int NKFONTCFG_FUNCTION(default_glyph_ranges)(lua_State* L) {
   const nk_rune* ranges = nk_font_default_glyph_ranges();
   lua_pushlightuserdata(L, (void*)ranges);
   return 1;
 }
-static int NKFONTCFG_FUNCTION(font_chinese_glyph_ranges)(lua_State* L) {
+static int NKFONTCFG_FUNCTION(chinese_glyph_ranges)(lua_State* L) {
   const nk_rune* ranges = nk_font_chinese_glyph_ranges();
   lua_pushlightuserdata(L, (void*)ranges);
   return 1;
 }
-static int NKFONTCFG_FUNCTION(font_cyrillic_glyph_ranges)(lua_State* L) {
+static int NKFONTCFG_FUNCTION(cyrillic_glyph_ranges)(lua_State* L) {
   const nk_rune* ranges = nk_font_cyrillic_glyph_ranges();
   lua_pushlightuserdata(L, (void*)ranges);
   return 1;
 }
-static int NKFONTCFG_FUNCTION(font_korean_glyph_ranges)(lua_State* L) {
+static int NKFONTCFG_FUNCTION(korean_glyph_ranges)(lua_State* L) {
   const nk_rune* ranges = nk_font_korean_glyph_ranges();
   lua_pushlightuserdata(L, (void*)ranges);
   return 1;
 }
 
 static const luaL_Reg funcs[] = {
-    EMPLACE_NKFONTCFG_FUNCTION(FontConfig),
-    EMPLACE_NKFONTCFG_FUNCTION(font_default_glyph_ranges),
-    EMPLACE_NKFONTCFG_FUNCTION(font_chinese_glyph_ranges),
-    EMPLACE_NKFONTCFG_FUNCTION(font_cyrillic_glyph_ranges),
-    EMPLACE_NKFONTCFG_FUNCTION(font_korean_glyph_ranges),
+    EMPLACE_NKFONTCFG_FUNCTION(Config),
+    EMPLACE_NKFONTCFG_FUNCTION(default_glyph_ranges),
+    EMPLACE_NKFONTCFG_FUNCTION(chinese_glyph_ranges),
+    EMPLACE_NKFONTCFG_FUNCTION(cyrillic_glyph_ranges),
+    EMPLACE_NKFONTCFG_FUNCTION(korean_glyph_ranges),
     {NULL, NULL},
 };
 
-static const luaL_Enum NKWRAP_ENUM(font_coord_type)[] = {
+static const luaL_Enum NKWRAP_ENUM(coord_type)[] = {
     {"UV", NK_COORD_UV},
     {"PIXEL", NK_COORD_PIXEL},
     {NULL, 0},
@@ -68,7 +68,7 @@ static const luaL_Enum NKWRAP_ENUM(font_coord_type)[] = {
 void NKFONTCFG_FUNCTION(init)(lua_State* L) {
   luaL_setfuncs(L, funcs, 0);
 
-  REGISTE_ENUM(font_coord_type);
+  REGISTE_ENUM(coord_type);
 
   REGISTE_METATABLE(NUKLEAR_FONTCFG_TYPE, metafuncs);
 }

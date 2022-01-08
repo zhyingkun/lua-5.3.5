@@ -1461,8 +1461,11 @@ LUAMOD_API int luaopen_libnuklear(lua_State* L) {
   REGISTE_ENUM(edit_event);
   REGISTE_ENUM(popup_type);
 
+  lua_createtable(L, 0, 2);
   (void)NKFONTATLAS_FUNCTION(init)(L);
   (void)NKFONTCFG_FUNCTION(init)(L);
+  lua_setfield(L, -2, "font");
+
   (void)NKBUFFER_FUNCTION(init)(L);
   (void)NKCONTEXT_FUNCTION(init)(L);
   (void)NKIMAGE_FUNCTION(init)(L);
