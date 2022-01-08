@@ -22,7 +22,7 @@ static int NKFONTATLAS_FUNCTION(add)(lua_State* L) {
   lua_pushlightuserdata(L, (void*)font);
   return 1;
 }
-static int NKFONTATLAS_FUNCTION(add_default)(lua_State* L) {
+static int NKFONTATLAS_FUNCTION(addDefault)(lua_State* L) {
   nk_font_atlas* atlas = luaL_checknkfontatlas(L, 1);
   float height = luaL_checknumber(L, 2);
   nk_font_config* cfg = luaL_checknkfontconfig(L, 3);
@@ -43,7 +43,7 @@ static int NKFONTATLAS_FUNCTION(bake)(lua_State* L) {
   lua_pushinteger(L, height);
   return 5;
 }
-static int NKFONTATLAS_FUNCTION(endatlas)(lua_State* L) {
+static int NKFONTATLAS_FUNCTION(endAtlas)(lua_State* L) {
   nk_font_atlas* atlas = luaL_checknkfontatlas(L, 1);
   int handleId = (int)luaL_checkinteger(L, 2);
   nk_draw_null_texture* nullTex = (nk_draw_null_texture*)lua_newuserdata(L, sizeof(nk_draw_null_texture));
@@ -51,7 +51,12 @@ static int NKFONTATLAS_FUNCTION(endatlas)(lua_State* L) {
   nk_font_atlas_end(atlas, nk_handle_id(handleId), nullTex);
   return 1;
 }
-static int NKFONTATLAS_FUNCTION(clear)(lua_State* L) {
+static int NKFONTATLAS_FUNCTION(cleanup)(lua_State* L) {
+  nk_font_atlas* atlas = luaL_checknkfontatlas(L, 1);
+  nk_font_atlas_cleanup(atlas);
+  return 0;
+}
+static int NKFONTATLAS_FUNCTION(__gc)(lua_State* L) {
   nk_font_atlas* atlas = luaL_checknkfontatlas(L, 1);
   nk_font_atlas_clear(atlas);
   return 0;
@@ -62,10 +67,11 @@ static int NKFONTATLAS_FUNCTION(clear)(lua_State* L) {
 static const luaL_Reg metafuncs[] = {
     EMPLACE_NKFONTATLAS_FUNCTION(begin),
     EMPLACE_NKFONTATLAS_FUNCTION(add),
-    EMPLACE_NKFONTATLAS_FUNCTION(add_default),
+    EMPLACE_NKFONTATLAS_FUNCTION(addDefault),
     EMPLACE_NKFONTATLAS_FUNCTION(bake),
-    EMPLACE_NKFONTATLAS_FUNCTION(endatlas),
-    EMPLACE_NKFONTATLAS_FUNCTION(clear),
+    EMPLACE_NKFONTATLAS_FUNCTION(endAtlas),
+    EMPLACE_NKFONTATLAS_FUNCTION(cleanup),
+    EMPLACE_NKFONTATLAS_FUNCTION(__gc),
     {NULL, NULL},
 };
 
