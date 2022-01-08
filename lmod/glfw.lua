@@ -9,7 +9,7 @@ local glfw = {}
 ** =======================================================
 --]]
 
----@class GLFWwindow
+---@class GLFWwindow:lightuserdata
 
 ---@param window GLFWwindow
 function glfw.makeContextCurrent(window)
@@ -19,7 +19,7 @@ end
 function glfw.getCurrentContext()
 	return libglfw.GetCurrentContext()
 end
----@param interval number
+---@param interval integer
 function glfw.swapInterval(interval)
 	libglfw.SwapInterval(interval)
 end
@@ -29,7 +29,7 @@ function glfw.extensionSupported(extension)
 	return libglfw.ExtensionSupported(extension)
 end
 ---@param window GLFWwindow
----@return userdata
+---@return lightuserdata
 function glfw.getProcAddress(procname)
 	return libglfw.GetProcAddress(procname)
 end
@@ -66,7 +66,7 @@ end
 function glfw.initHint(hint, value)
 	libglfw.InitHint(hint, value)
 end
----@return number, number, number
+---@return integer, integer, integer @major, minor, rev
 function glfw.getVersion()
 	return libglfw.GetVersion()
 end
@@ -74,7 +74,7 @@ end
 function glfw.getVersionString()
 	return libglfw.GetVersionString()
 end
----@return number, string
+---@return integer, string
 function glfw.getError()
 	return libglfw.GetError()
 end
@@ -83,25 +83,25 @@ function glfw.setErrorCallback()
 end
 
 ---@class glfw_err_code
----@field public NO_ERROR number
----@field public NOT_INITIALIZED number
----@field public NO_CURRENT_CONTEXT number
----@field public INVALID_ENUM number
----@field public INVALID_VALUE number
----@field public OUT_OF_MEMORY number
----@field public API_UNAVAILABLE number
----@field public VERSION_UNAVAILABLE number
----@field public PLATFORM_ERROR number
----@field public FORMAT_UNAVAILABLE number
----@field public NO_WINDOW_CONTEXT number
+---@field public NO_ERROR integer
+---@field public NOT_INITIALIZED integer
+---@field public NO_CURRENT_CONTEXT integer
+---@field public INVALID_ENUM integer
+---@field public INVALID_VALUE integer
+---@field public OUT_OF_MEMORY integer
+---@field public API_UNAVAILABLE integer
+---@field public VERSION_UNAVAILABLE integer
+---@field public PLATFORM_ERROR integer
+---@field public FORMAT_UNAVAILABLE integer
+---@field public NO_WINDOW_CONTEXT integer
 
 ---@type glfw_err_code
 glfw.err_code = libglfw.err_code
 
 ---@class glfw_init_hint
----@field public JOYSTICK_HAT_BUTTONS number
----@field public COCOA_CHDIR_RESOURCES number
----@field public COCOA_MENUBAR number
+---@field public JOYSTICK_HAT_BUTTONS integer
+---@field public COCOA_CHDIR_RESOURCES integer
+---@field public COCOA_MENUBAR integer
 
 ---@type glfw_init_hint
 glfw.init_hint = glfw.init_hint
@@ -133,13 +133,13 @@ end
 
 ---@param window GLFWwindow
 ---@param mode glfw_input_mode
----@return number
+---@return integer
 function glfw.getInputMode(window, mode)
 	return libglfw.GetInputMode(window, mode)
 end
 ---@param window GLFWwindow
 ---@param mode glfw_input_mode
----@param value number
+---@param value integer
 function glfw.setInputMode(window, mode, value)
 	libglfw.SetInputMode(window, mode, value)
 end
@@ -148,13 +148,13 @@ function glfw.rawMouseMotionSupported()
 	return libglfw.RawMouseMotionSupported()
 end
 ---@param key glfw_keyboard
----@param scancode number
+---@param scancode integer
 ---@return string
 function glfw.getKeyName(key, scancode)
 	return libglfw.GetKeyName(key, scancode)
 end
 ---@param key glfw_keyboard
----@return number
+---@return integer
 function glfw.getKeyScancode(key)
 	return libglfw.GetKeyScancode(key)
 end
@@ -182,17 +182,15 @@ function glfw.setCursorPos(window, xpos, ypos)
 	libglfw.SetCursorPos(window, xpos, ypos)
 end
 
----@class GLFWimage
-
 ---@param image GLFWimage
----@param xhot number
----@param yhot number
+---@param xhot integer
+---@param yhot integer
 ---@return boolean
 function glfw.createCursor(image, xhot, yhot)
 	return libglfw.CreateCursor(image, xhot, yhot)
 end
 
----@class GLFWcursor
+---@class GLFWcursor:lightuserdata
 
 ---@param shape glfw_standard_cursor_shape
 ---@return GLFWcursor
@@ -209,17 +207,17 @@ function glfw.setCursor(window, cursor)
 	libglfw.SetCursor(window, cursor)
 end
 ---@param window GLFWwindow
----@param callback fun(window:GLFWwindow, key:glfw_keyboard, scancode:number, action:glfw_input_state, mods:glfw_modifier_key):void
+---@param callback fun(window:GLFWwindow, key:glfw_keyboard, scancode:integer, action:glfw_input_state, mods:glfw_modifier_key):void
 function glfw.setKeyCallback(window, callback)
 	libglfw.SetKeyCallback(window, callback)
 end
 ---@param window GLFWwindow
----@param callback fun(window:GLFWwindow, codepoint:number):void
+---@param callback fun(window:GLFWwindow, codepoint:integer):void
 function glfw.setCharCallback(window, callback)
 	libglfw.SetCharCallback(window, callback)
 end
 ---@param window GLFWwindow
----@param callback fun(window:GLFWwindow, codepoint:number, mods:glfw_modifier_key):void
+---@param callback fun(window:GLFWwindow, codepoint:integer, mods:glfw_modifier_key):void
 function glfw.setCharModsCallback(window, callback)
 	libglfw.SetCharModsCallback(window, callback)
 end
@@ -234,7 +232,7 @@ function glfw.setCursorPosCallback(window, callback)
 	libglfw.SetCursorPosCallback(window, callback)
 end
 ---@param window GLFWwindow
----@param callback fun(window:GLFWwindow, entered:boolean, yscale:number):void
+---@param callback fun(window:GLFWwindow, entered:boolean):void
 function glfw.setCursorEnterCallback(window, callback)
 	libglfw.SetCursorEnterCallback(window, callback)
 end
@@ -325,276 +323,276 @@ end
 function glfw.setTime(time)
 	libglfw.SetTime(time)
 end
----@return number
+---@return integer
 function glfw.getTimerValue()
 	return libglfw.GetTimerValue()
 end
----@return number
+---@return integer
 function glfw.getTimerFrequency()
 	return libglfw.GetTimerFrequency()
 end
 
 ---@class glfw_gamepad_axis
----@field public LEFT_X number
----@field public LEFT_Y number
----@field public RIGHT_X number
----@field public RIGHT_Y number
----@field public LEFT_TRIGGER number
----@field public RIGHT_TRIGGER number
----@field public LAST number
+---@field public LEFT_X integer
+---@field public LEFT_Y integer
+---@field public RIGHT_X integer
+---@field public RIGHT_Y integer
+---@field public LEFT_TRIGGER integer
+---@field public RIGHT_TRIGGER integer
+---@field public LAST integer
 
 ---@type glfw_gamepad_axis
 glfw.gamepad_axis = libglfw.gamepad_axis
 
 ---@class glfw_gamepad_button
----@field public A number
----@field public B number
----@field public X number
----@field public Y number
----@field public LEFT_BUMPER number
----@field public RIGHT_BUMPER number
----@field public BACK number
----@field public START number
----@field public GUIDE number
----@field public LEFT_THUMB number
----@field public RIGHT_THUMB number
----@field public DPAD_UP number
----@field public DPAD_RIGHT number
----@field public DPAD_DOWN number
----@field public DPAD_LEFT number
----@field public LAST number
----@field public CROSS number
----@field public CIRCLE number
----@field public SQUARE number
----@field public TRIANGLE number
+---@field public A integer
+---@field public B integer
+---@field public X integer
+---@field public Y integer
+---@field public LEFT_BUMPER integer
+---@field public RIGHT_BUMPER integer
+---@field public BACK integer
+---@field public START integer
+---@field public GUIDE integer
+---@field public LEFT_THUMB integer
+---@field public RIGHT_THUMB integer
+---@field public DPAD_UP integer
+---@field public DPAD_RIGHT integer
+---@field public DPAD_DOWN integer
+---@field public DPAD_LEFT integer
+---@field public LAST integer
+---@field public CROSS integer
+---@field public CIRCLE integer
+---@field public SQUARE integer
+---@field public TRIANGLE integer
 
 ---@type glfw_gamepad_button
 glfw.gamepad_button = libglfw.gamepad_button
 
 ---@class glfw_joystick_hat
----@field public CENTERED number
----@field public UP number
----@field public RIGHT number
----@field public DOWN number
----@field public LEFT number
----@field public RIGHT_UP number
----@field public RIGHT_DOWN number
----@field public LEFT_UP number
----@field public LEFT_DOWN number
+---@field public CENTERED integer
+---@field public UP integer
+---@field public RIGHT integer
+---@field public DOWN integer
+---@field public LEFT integer
+---@field public RIGHT_UP integer
+---@field public RIGHT_DOWN integer
+---@field public LEFT_UP integer
+---@field public LEFT_DOWN integer
 
 ---@type glfw_joystick_hat
 glfw.joystick_hat = libglfw.joystick_hat
 
 ---@class glfw_joystick
----@field public _1 number
----@field public _2 number
----@field public _3 number
----@field public _4 number
----@field public _5 number
----@field public _6 number
----@field public _7 number
----@field public _8 number
----@field public _9 number
----@field public _10 number
----@field public _11 number
----@field public _12 number
----@field public _13 number
----@field public _14 number
----@field public _15 number
----@field public _16 number
----@field public LAST number
+---@field public _1 integer
+---@field public _2 integer
+---@field public _3 integer
+---@field public _4 integer
+---@field public _5 integer
+---@field public _6 integer
+---@field public _7 integer
+---@field public _8 integer
+---@field public _9 integer
+---@field public _10 integer
+---@field public _11 integer
+---@field public _12 integer
+---@field public _13 integer
+---@field public _14 integer
+---@field public _15 integer
+---@field public _16 integer
+---@field public LAST integer
 
 ---@type glfw_joystick
 glfw.joystick = libglfw.joystick
 
 ---@class glfw_keyboard
----@field public UNKNOWN number
----@field public SPACE number
----@field public APOSTROPHE number
----@field public COMMA number
----@field public MINUS number
----@field public PERIOD number
----@field public SLASH number
----@field public _0 number
----@field public _1 number
----@field public _2 number
----@field public _3 number
----@field public _4 number
----@field public _5 number
----@field public _6 number
----@field public _7 number
----@field public _8 number
----@field public _9 number
----@field public SEMICOLON number
----@field public EQUAL number
----@field public A number
----@field public B number
----@field public C number
----@field public D number
----@field public E number
----@field public F number
----@field public G number
----@field public H number
----@field public I number
----@field public J number
----@field public K number
----@field public L number
----@field public M number
----@field public N number
----@field public O number
----@field public P number
----@field public Q number
----@field public R number
----@field public S number
----@field public T number
----@field public U number
----@field public V number
----@field public W number
----@field public X number
----@field public Y number
----@field public Z number
----@field public LEFT_BRACKET number
----@field public BACKSLASH number
----@field public RIGHT_BRACKET number
----@field public GRAVE_ACCENT number
----@field public WORLD_1 number
----@field public WORLD_2 number
----@field public ESCAPE number
----@field public ENTER number
----@field public TAB number
----@field public BACKSPACE number
----@field public INSERT number
----@field public DELETE number
----@field public RIGHT number
----@field public LEFT number
----@field public DOWN number
----@field public UP number
----@field public PAGE_UP number
----@field public PAGE_DOWN number
----@field public HOME number
----@field public END number
----@field public CAPS_LOCK number
----@field public SCROLL_LOCK number
----@field public NUM_LOCK number
----@field public PRINT_SCREEN number
----@field public PAUSE number
----@field public F1 number
----@field public F2 number
----@field public F3 number
----@field public F4 number
----@field public F5 number
----@field public F6 number
----@field public F7 number
----@field public F8 number
----@field public F9 number
----@field public F10 number
----@field public F11 number
----@field public F12 number
----@field public F13 number
----@field public F14 number
----@field public F15 number
----@field public F16 number
----@field public F17 number
----@field public F18 number
----@field public F19 number
----@field public F20 number
----@field public F21 number
----@field public F22 number
----@field public F23 number
----@field public F24 number
----@field public F25 number
----@field public KP_0 number
----@field public KP_1 number
----@field public KP_2 number
----@field public KP_3 number
----@field public KP_4 number
----@field public KP_5 number
----@field public KP_6 number
----@field public KP_7 number
----@field public KP_8 number
----@field public KP_9 number
----@field public KP_DECIMAL number
----@field public KP_DIVIDE number
----@field public KP_MULTIPLY number
----@field public KP_SUBTRACT number
----@field public KP_ADD number
----@field public KP_ENTER number
----@field public KP_EQUAL number
----@field public LEFT_SHIFT number
----@field public LEFT_CONTROL number
----@field public LEFT_ALT number
----@field public LEFT_SUPER number
----@field public RIGHT_SHIFT number
----@field public RIGHT_CONTROL number
----@field public RIGHT_ALT number
----@field public RIGHT_SUPER number
----@field public MENU number
----@field public LAST number
+---@field public UNKNOWN integer
+---@field public SPACE integer
+---@field public APOSTROPHE integer
+---@field public COMMA integer
+---@field public MINUS integer
+---@field public PERIOD integer
+---@field public SLASH integer
+---@field public _0 integer
+---@field public _1 integer
+---@field public _2 integer
+---@field public _3 integer
+---@field public _4 integer
+---@field public _5 integer
+---@field public _6 integer
+---@field public _7 integer
+---@field public _8 integer
+---@field public _9 integer
+---@field public SEMICOLON integer
+---@field public EQUAL integer
+---@field public A integer
+---@field public B integer
+---@field public C integer
+---@field public D integer
+---@field public E integer
+---@field public F integer
+---@field public G integer
+---@field public H integer
+---@field public I integer
+---@field public J integer
+---@field public K integer
+---@field public L integer
+---@field public M integer
+---@field public N integer
+---@field public O integer
+---@field public P integer
+---@field public Q integer
+---@field public R integer
+---@field public S integer
+---@field public T integer
+---@field public U integer
+---@field public V integer
+---@field public W integer
+---@field public X integer
+---@field public Y integer
+---@field public Z integer
+---@field public LEFT_BRACKET integer
+---@field public BACKSLASH integer
+---@field public RIGHT_BRACKET integer
+---@field public GRAVE_ACCENT integer
+---@field public WORLD_1 integer
+---@field public WORLD_2 integer
+---@field public ESCAPE integer
+---@field public ENTER integer
+---@field public TAB integer
+---@field public BACKSPACE integer
+---@field public INSERT integer
+---@field public DELETE integer
+---@field public RIGHT integer
+---@field public LEFT integer
+---@field public DOWN integer
+---@field public UP integer
+---@field public PAGE_UP integer
+---@field public PAGE_DOWN integer
+---@field public HOME integer
+---@field public END integer
+---@field public CAPS_LOCK integer
+---@field public SCROLL_LOCK integer
+---@field public NUM_LOCK integer
+---@field public PRINT_SCREEN integer
+---@field public PAUSE integer
+---@field public F1 integer
+---@field public F2 integer
+---@field public F3 integer
+---@field public F4 integer
+---@field public F5 integer
+---@field public F6 integer
+---@field public F7 integer
+---@field public F8 integer
+---@field public F9 integer
+---@field public F10 integer
+---@field public F11 integer
+---@field public F12 integer
+---@field public F13 integer
+---@field public F14 integer
+---@field public F15 integer
+---@field public F16 integer
+---@field public F17 integer
+---@field public F18 integer
+---@field public F19 integer
+---@field public F20 integer
+---@field public F21 integer
+---@field public F22 integer
+---@field public F23 integer
+---@field public F24 integer
+---@field public F25 integer
+---@field public KP_0 integer
+---@field public KP_1 integer
+---@field public KP_2 integer
+---@field public KP_3 integer
+---@field public KP_4 integer
+---@field public KP_5 integer
+---@field public KP_6 integer
+---@field public KP_7 integer
+---@field public KP_8 integer
+---@field public KP_9 integer
+---@field public KP_DECIMAL integer
+---@field public KP_DIVIDE integer
+---@field public KP_MULTIPLY integer
+---@field public KP_SUBTRACT integer
+---@field public KP_ADD integer
+---@field public KP_ENTER integer
+---@field public KP_EQUAL integer
+---@field public LEFT_SHIFT integer
+---@field public LEFT_CONTROL integer
+---@field public LEFT_ALT integer
+---@field public LEFT_SUPER integer
+---@field public RIGHT_SHIFT integer
+---@field public RIGHT_CONTROL integer
+---@field public RIGHT_ALT integer
+---@field public RIGHT_SUPER integer
+---@field public MENU integer
+---@field public LAST integer
 
 ---@type glfw_keyboard
 glfw.keyboard = libglfw.keyboard
 
 ---@class glfw_modifier_key
----@field public SHIFT number
----@field public CONTROL number
----@field public ALT number
----@field public SUPER number
----@field public CAPS_LOCK number
----@field public NUM_LOCK number
+---@field public SHIFT integer
+---@field public CONTROL integer
+---@field public ALT integer
+---@field public SUPER integer
+---@field public CAPS_LOCK integer
+---@field public NUM_LOCK integer
 
 ---@type glfw_modifier_key
 glfw.modifier_key = libglfw.modifier_key
 
 ---@class glfw_mouse_button
----@field public _1 number
----@field public _2 number
----@field public _3 number
----@field public _4 number
----@field public _5 number
----@field public _6 number
----@field public _7 number
----@field public _8 number
----@field public LAST number
----@field public LEFT number
----@field public RIGHT number
----@field public MIDDLE number
+---@field public _1 integer
+---@field public _2 integer
+---@field public _3 integer
+---@field public _4 integer
+---@field public _5 integer
+---@field public _6 integer
+---@field public _7 integer
+---@field public _8 integer
+---@field public LAST integer
+---@field public LEFT integer
+---@field public RIGHT integer
+---@field public MIDDLE integer
 
 ---@type glfw_mouse_button
 glfw.mouse_button = libglfw.mouse_button
 
 ---@class glfw_standard_cursor_shape
----@field public ARROW number
----@field public IBEAM number
----@field public CROSSHAIR number
----@field public HAND number
----@field public HRESIZE number
----@field public VRESIZE number
+---@field public ARROW integer
+---@field public IBEAM integer
+---@field public CROSSHAIR integer
+---@field public HAND integer
+---@field public HRESIZE integer
+---@field public VRESIZE integer
 
 ---@type glfw_standard_cursor_shape
 glfw.standard_cursor_shape = libglfw.standard_cursor_shape
 
 ---@class glfw_input_mode
----@field public CURSOR number
----@field public STICKY_KEYS number
----@field public STICKY_MOUSE_BUTTONS number
----@field public LOCK_KEY_MODS number
----@field public RAW_MOUSE_MOTION number
+---@field public CURSOR integer
+---@field public STICKY_KEYS integer
+---@field public STICKY_MOUSE_BUTTONS integer
+---@field public LOCK_KEY_MODS integer
+---@field public RAW_MOUSE_MOTION integer
 
 ---@type glfw_input_mode
 glfw.input_mode = libglfw.input_mode
 
 ---@class glfw_cursor_mode
----@field public NORMAL number
----@field public HIDDEN number
----@field public DISABLED number
+---@field public NORMAL integer
+---@field public HIDDEN integer
+---@field public DISABLED integer
 
 ---@type glfw_cursor_mode
 glfw.cursor_mode = libglfw.cursor_mode
 
 ---@class glfw_input_state
----@field public PRESS number
----@field public RELEASE number
----@field public REPEAT number
+---@field public PRESS integer
+---@field public RELEASE integer
+---@field public REPEAT integer
 
 ---@type glfw_input_state
 glfw.input_state = libglfw.input_state
@@ -607,7 +605,7 @@ glfw.input_state = libglfw.input_state
 ** =======================================================
 --]]
 
----@class GLFWmonitor
+---@class GLFWmonitor:lightuserdata
 
 ---@return nil | GLFWmonitor[]
 function glfw.getMonitors()
@@ -618,17 +616,17 @@ function glfw.getPrimaryMonitor()
 	return libglfw.GetPrimaryMonitor()
 end
 ---@param monitor GLFWmonitor
----@return number, number
+---@return integer, integer @xpos, ypos
 function glfw.getMonitorPos(monitor)
 	return libglfw.GetMonitorPos(monitor)
 end
 ---@param monitor GLFWmonitor
----@return number, number, number, number
+---@return integer, integer, integer, integer @x, y, w, h
 function glfw.getMonitorWorkarea(monitor)
 	return libglfw.GetMonitorWorkarea(monitor)
 end
 ---@param monitor GLFWmonitor
----@return number, number
+---@return integer, integer @w, h
 function glfw.getMonitorPhysicalSize(monitor)
 	return libglfw.GetMonitorPhysicalSize(monitor)
 end
@@ -647,13 +645,13 @@ function glfw.setMonitorCallback(callback)
 	libglfw.SetMonitorCallback(callback)
 end
 
----@class GLFWvidmode
----@field width fun():number
----@field height fun():number
----@field redBits fun():number
----@field greenBits fun():number
----@field blueBits fun():number
----@field refreshRate fun():number
+---@class GLFWvidmode:userdata
+---@field width fun():integer
+---@field height fun():integer
+---@field redBits fun():integer
+---@field greenBits fun():integer
+---@field blueBits fun():integer
+---@field refreshRate fun():integer
 
 ---@param monitor GLFWmonitor
 ---@return GLFWvidmode[]
@@ -671,7 +669,7 @@ function glfw.setGamma(monitor, gamma)
 	libglfw.SetGamma(monitor, gamma)
 end
 
----@class GLFWgammaramp
+---@class GLFWgammaramp:lightuserdata
 
 ---@param monitor GLFWmonitor
 ---@return GLFWgammaramp
@@ -685,8 +683,8 @@ function glfw.setGammaRamp(monitor, ramp)
 end
 
 ---@class glfw_device_event
----@field public CONNECTED number
----@field public DISCONNECTED number
+---@field public CONNECTED integer
+---@field public DISCONNECTED integer
 
 ---@type glfw_device_event
 glfw.device_event = libglfw.device_event
@@ -699,11 +697,11 @@ glfw.device_event = libglfw.device_event
 ** =======================================================
 --]]
 
----@class GLFWimage
----@field getValue fun(self:GLFWimage):number, number, string
+---@class GLFWimage:userdata
+---@field getValue fun(self:GLFWimage):integer, integer, string
 
----@param width number
----@param height number
+---@param width integer
+---@param height integer
 ---@param pixels string
 ---@return GLFWimage
 function glfw.GLFWimage(width, height, pixels)
@@ -731,8 +729,8 @@ end
 function glfw.windowHintString(hint, value)
 	libglfw.WindowHintString(hint, value)
 end
----@param width number
----@param height number
+---@param width integer
+---@param height integer
 ---@param title string
 ---@param monitor GLFWmonitor
 ---@param shared GLFWwindow
@@ -765,48 +763,48 @@ function glfw.setWindowIcon(window, image)
 	libglfw.SetWindowIcon(window, image)
 end
 ---@param window GLFWwindow
----@return number, number
+---@return integer, integer @xpos, ypos
 function glfw.getWindowPos(window)
 	return libglfw.GetWindowPos(window)
 end
 ---@param window GLFWwindow
----@param xpos number
----@param ypos number
+---@param xpos integer
+---@param ypos integer
 function glfw.setWindowPos(window, xpos, ypos)
 	libglfw.SetWindowPos(window, xpos, ypos)
 end
 ---@param window GLFWwindow
----@return number, number
+---@return integer, integer
 function glfw.getWindowSize(window)
 	return libglfw.GetWindowSize(window)
 end
 ---@param window GLFWwindow
----@param minWidth number
----@param minHeight number
----@param maxWidth number
----@param maxHeight number
+---@param minWidth integer
+---@param minHeight integer
+---@param maxWidth integer
+---@param maxHeight integer
 function glfw.setWindowSizeLimits(window, minWidth, minHeight, maxWidth, maxHeight)
 	libglfw.SetWindowSizeLimits(window, minWidth, minHeight, maxWidth, maxHeight)
 end
 ---@param window GLFWwindow
----@param numer number
----@param denom number
+---@param numer integer
+---@param denom integer
 function glfw.setWindowAspectRatio(window, numer, denom)
 	libglfw.SetWindowAspectRatio(window, numer, denom)
 end
 ---@param window GLFWwindow
----@param width number
----@param height number
+---@param width integer
+---@param height integer
 function glfw.setWindowSize(window, width, height)
 	libglfw.SetWindowSize(window, width, height)
 end
 ---@param window GLFWwindow
----@return number, number
+---@return integer, integer @w, h
 function glfw.getFramebufferSize(window)
 	return libglfw.GetFramebufferSize(window)
 end
 ---@param window GLFWwindow
----@return number, number, number, number
+---@return integer, integer, integer, integer @left, top, right, bottom
 function glfw.getWindowFrameSize(window)
 	return libglfw.GetWindowFrameSize(window)
 end
@@ -860,33 +858,33 @@ function glfw.getWindowMonitor(window)
 end
 ---@param window GLFWwindow
 ---@param monitor GLFWmonitor
----@param xpos number
----@param ypos number
----@param width number
----@param height number
----@param refreshRate number
+---@param xpos integer
+---@param ypos integer
+---@param width integer
+---@param height integer
+---@param refreshRate integer
 function glfw.setWindowMonitor(window, monitor, xpos, ypos, width, height, refreshRate)
 	libglfw.SetWindowMonitor(window, monitor, xpos, ypos, width, height, refreshRate)
 end
 ---@param window GLFWwindow
 ---@param attrib glfw_window_attribute
----@return number
+---@return integer
 function glfw.getWindowAttrib(window, attrib)
 	return libglfw.GetWindowAttrib(window, attrib)
 end
 ---@param window GLFWwindow
 ---@param attrib glfw_window_attribute
----@param value number
+---@param value integer
 function glfw.setWindowAttrib(window, attrib, value)
 	libglfw.SetWindowAttrib(window, attrib, value)
 end
 ---@param window GLFWwindow
----@param callback fun(window:GLFWwindow, xpos:number, ypos:number):void
+---@param callback fun(window:GLFWwindow, xpos:integer, ypos:integer):void
 function glfw.setWindowPosCallback(window, callback)
 	libglfw.SetWindowPosCallback(window, callback)
 end
 ---@param window GLFWwindow
----@param callback fun(window:GLFWwindow, width:number, height:number):void
+---@param callback fun(window:GLFWwindow, width:integer, height:integer):void
 function glfw.setWindowSizeCallback(window, callback)
 	libglfw.SetWindowSizeCallback(window, callback)
 end
@@ -916,7 +914,7 @@ function glfw.setWindowMaximizeCallback(window, callback)
 	libglfw.SetWindowMaximizeCallback(window, callback)
 end
 ---@param window GLFWwindow
----@param callback fun(window:GLFWwindow, width:number, height:number):void
+---@param callback fun(window:GLFWwindow, width:integer, height:integer):void
 function glfw.setFramebufferSizeCallback(window, callback)
 	libglfw.SetFramebufferSizeCallback(window, callback)
 end
@@ -944,97 +942,97 @@ function glfw.swapBuffers(window)
 end
 
 ---@class glfw_window_hint
----@field public RESIZABLE number
----@field public VISIBLE number
----@field public DECORATED number
----@field public FOCUSED number
----@field public AUTO_ICONIFY number
----@field public FLOATING number
----@field public MAXIMIZED number
----@field public CENTER_CURSOR number
----@field public TRANSPARENT_FRAMEBUFFER number
----@field public FOCUS_ON_SHOW number
----@field public SCALE_TO_MONITOR number
----@field public RED_BITS number
----@field public GREEN_BITS number
----@field public BLUE_BITS number
----@field public ALPHA_BITS number
----@field public DEPTH_BITS number
----@field public STENCIL_BITS number
----@field public ACCUM_RED_BITS number
----@field public ACCUM_GREEN_BITS number
----@field public ACCUM_BLUE_BITS number
----@field public ACCUM_ALPHA_BITS number
----@field public AUX_BUFFERS number
----@field public SAMPLES number
----@field public REFRESH_RATE number
----@field public STEREO number
----@field public SRGB_CAPABLE number
----@field public DOUBLEBUFFER number
----@field public CLIENT_API number
----@field public CONTEXT_CREATION_API number
----@field public CONTEXT_VERSION_MAJOR number
----@field public CONTEXT_VERSION_MINOR number
----@field public CONTEXT_ROBUSTNESS number
----@field public CONTEXT_RELEASE_BEHAVIOR number
----@field public OPENGL_FORWARD_COMPAT number
----@field public OPENGL_DEBUG_CONTEXT number
----@field public OPENGL_PROFILE number
----@field public COCOA_RETINA_FRAMEBUFFER number
----@field public COCOA_FRAME_NAME number
----@field public COCOA_GRAPHICS_SWITCHING number
----@field public X11_CLASS_NAME number
----@field public X11_INSTANCE_NAME number
+---@field public RESIZABLE integer
+---@field public VISIBLE integer
+---@field public DECORATED integer
+---@field public FOCUSED integer
+---@field public AUTO_ICONIFY integer
+---@field public FLOATING integer
+---@field public MAXIMIZED integer
+---@field public CENTER_CURSOR integer
+---@field public TRANSPARENT_FRAMEBUFFER integer
+---@field public FOCUS_ON_SHOW integer
+---@field public SCALE_TO_MONITOR integer
+---@field public RED_BITS integer
+---@field public GREEN_BITS integer
+---@field public BLUE_BITS integer
+---@field public ALPHA_BITS integer
+---@field public DEPTH_BITS integer
+---@field public STENCIL_BITS integer
+---@field public ACCUM_RED_BITS integer
+---@field public ACCUM_GREEN_BITS integer
+---@field public ACCUM_BLUE_BITS integer
+---@field public ACCUM_ALPHA_BITS integer
+---@field public AUX_BUFFERS integer
+---@field public SAMPLES integer
+---@field public REFRESH_RATE integer
+---@field public STEREO integer
+---@field public SRGB_CAPABLE integer
+---@field public DOUBLEBUFFER integer
+---@field public CLIENT_API integer
+---@field public CONTEXT_CREATION_API integer
+---@field public CONTEXT_VERSION_MAJOR integer
+---@field public CONTEXT_VERSION_MINOR integer
+---@field public CONTEXT_ROBUSTNESS integer
+---@field public CONTEXT_RELEASE_BEHAVIOR integer
+---@field public OPENGL_FORWARD_COMPAT integer
+---@field public OPENGL_DEBUG_CONTEXT integer
+---@field public OPENGL_PROFILE integer
+---@field public COCOA_RETINA_FRAMEBUFFER integer
+---@field public COCOA_FRAME_NAME integer
+---@field public COCOA_GRAPHICS_SWITCHING integer
+---@field public X11_CLASS_NAME integer
+---@field public X11_INSTANCE_NAME integer
 
 ---@type glfw_window_hint
 glfw.window_hint = libglfw.window_hint
 
 ---@class glfw_window_attribute
----@field public FOCUSED number
----@field public ICONIFIED number
----@field public MAXIMIZED number
----@field public HOVERED number
----@field public VISIBLE number
----@field public RESIZABLE number
----@field public DECORATED number
----@field public AUTO_ICONIFY number
----@field public FLOATING number
----@field public TRANSPARENT_FRAMEBUFFER number
----@field public FOCUS_ON_SHOW number
----@field public CLIENT_API number
----@field public CONTEXT_CREATION_API number
----@field public CONTEXT_VERSION_MAJOR number
----@field public CONTEXT_VERSION_MINOR number
----@field public CONTEXT_REVISION number
----@field public OPENGL_FORWARD_COMPAT number
----@field public OPENGL_DEBUG_CONTEXT number
----@field public OPENGL_PROFILE number
----@field public CONTEXT_RELEASE_BEHAVIOR number
----@field public CONTEXT_NO_ERROR number
----@field public CONTEXT_ROBUSTNESS number
+---@field public FOCUSED integer
+---@field public ICONIFIED integer
+---@field public MAXIMIZED integer
+---@field public HOVERED integer
+---@field public VISIBLE integer
+---@field public RESIZABLE integer
+---@field public DECORATED integer
+---@field public AUTO_ICONIFY integer
+---@field public FLOATING integer
+---@field public TRANSPARENT_FRAMEBUFFER integer
+---@field public FOCUS_ON_SHOW integer
+---@field public CLIENT_API integer
+---@field public CONTEXT_CREATION_API integer
+---@field public CONTEXT_VERSION_MAJOR integer
+---@field public CONTEXT_VERSION_MINOR integer
+---@field public CONTEXT_REVISION integer
+---@field public OPENGL_FORWARD_COMPAT integer
+---@field public OPENGL_DEBUG_CONTEXT integer
+---@field public OPENGL_PROFILE integer
+---@field public CONTEXT_RELEASE_BEHAVIOR integer
+---@field public CONTEXT_NO_ERROR integer
+---@field public CONTEXT_ROBUSTNESS integer
 
 ---@type glfw_window_attribute
 glfw.window_attribute = libglfw.window_attribute
 
 ---@class glfw_hint_value
----@field public TRUE number
----@field public FALSE number
----@field public DONT_CARE number
----@field public OPENGL_API number
----@field public OPENGL_ES_API number
----@field public NO_API number
----@field public NATIVE_CONTEXT_API number
----@field public EGL_CONTEXT_API number
----@field public OSMESA_CONTEXT_API number
----@field public NO_ROBUSTNESS number
----@field public NO_RESET_NOTIFICATION number
----@field public LOSE_CONTEXT_ON_RESET number
----@field public ANY_RELEASE_BEHAVIOR number
----@field public RELEASE_BEHAVIOR_FLUSH number
----@field public RELEASE_BEHAVIOR_NONE number
----@field public OPENGL_ANY_PROFILE number
----@field public OPENGL_COMPAT_PROFILE number
----@field public OPENGL_CORE_PROFILE number
+---@field public TRUE integer
+---@field public FALSE integer
+---@field public DONT_CARE integer
+---@field public OPENGL_API integer
+---@field public OPENGL_ES_API integer
+---@field public NO_API integer
+---@field public NATIVE_CONTEXT_API integer
+---@field public EGL_CONTEXT_API integer
+---@field public OSMESA_CONTEXT_API integer
+---@field public NO_ROBUSTNESS integer
+---@field public NO_RESET_NOTIFICATION integer
+---@field public LOSE_CONTEXT_ON_RESET integer
+---@field public ANY_RELEASE_BEHAVIOR integer
+---@field public RELEASE_BEHAVIOR_FLUSH integer
+---@field public RELEASE_BEHAVIOR_NONE integer
+---@field public OPENGL_ANY_PROFILE integer
+---@field public OPENGL_COMPAT_PROFILE integer
+---@field public OPENGL_CORE_PROFILE integer
 
 ---@type glfw_hint_value
 glfw.hint_value = libglfw.hint_value
@@ -1048,12 +1046,12 @@ glfw.hint_value = libglfw.hint_value
 --]]
 
 ---@class glfw_func_ptr
----@field public MakeContextCurrent userdata
----@field public SwapBuffers userdata
----@field public SwapInterval userdata
----@field public GetProcAddress userdata
----@field public GetFramebufferSize userdata
----@field public GetTime userdata
+---@field public MakeContextCurrent lightuserdata
+---@field public SwapBuffers lightuserdata
+---@field public SwapInterval lightuserdata
+---@field public GetProcAddress lightuserdata
+---@field public GetFramebufferSize lightuserdata
+---@field public GetTime lightuserdata
 
 ---@type glfw_func_ptr
 glfw.func_ptr = libglfw.func_ptr
