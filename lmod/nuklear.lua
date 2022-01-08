@@ -274,6 +274,8 @@ end
 ** =======================================================
 --]]
 
+nk.INPUT_MAX = libnk.INPUT_MAX
+
 function nk.inputBegin()
 	libnk.input_begin(curCtx)
 end
