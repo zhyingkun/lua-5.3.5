@@ -670,12 +670,34 @@ static int NKWRAP_FUNCTION(edit_string)(lua_State* L) {
   lua_pushinteger(L, (int)ret);
   return 1;
 }
+
+static nk_bool _textEditPluginFilter(const nk_text_edit* editor, nk_rune unicode) {
+  lua_State* L = GET_MAIN_LUA_STATE();
+  PREPARE_CALL_LUA(L);
+  PUSH_HOLD_OBJECT(L, _textEditPluginFilter, 0);
+  PUSH_HOLD_OBJECT(L, editor, 0);
+  lua_pushinteger(L, unicode);
+  CALL_LUA(L, 2, 1);
+  nk_bool ret = (nk_bool)lua_toboolean(L, -1);
+  lua_pop(L, 1);
+  POST_CALL_LUA(L);
+  return ret;
+}
 static int NKWRAP_FUNCTION(edit_buffer)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   nk_flags flag = luaL_checknkflags(L, 2);
-  // nk_text_edit* textEdit
+  nk_text_edit* editor = luaL_checktextedit(L, 3);
+  nk_plugin_filter filter;
+#define FILTER_IDX 4
+  if (lua_islightuserdata(L, FILTER_IDX)) {
+    filter = (nk_plugin_filter)luaL_checklightuserdata(L, FILTER_IDX);
+  } else {
+    filter = _textEditPluginFilter;
+    HOLD_LUA_OBJECT(L, _textEditPluginFilter, 0, FILTER_IDX);
+    HOLD_LUA_OBJECT(L, editor, 0, 3);
+  }
 
-  nk_flags ret = nk_edit_buffer(ctx, flag, NULL, NULL);
+  nk_flags ret = nk_edit_buffer(ctx, flag, editor, filter);
   lua_pushinteger(L, (int)ret);
   return 1;
 }

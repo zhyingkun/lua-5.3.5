@@ -94,7 +94,7 @@ static const luaL_Reg metafuncs[] = {
     {NULL, NULL},
 };
 
-static int NKTEXTEDIT_FUNCTION(TextEdit)(lua_State* L) {
+static int NKTEXTEDIT_FUNCTION(TextEditor)(lua_State* L) {
   nk_text_edit* editor = (nk_text_edit*)lua_newuserdata(L, sizeof(nk_text_edit));
   luaL_setmetatable(L, NUKLEAR_TEXTEDIT_TYPE);
 
@@ -103,7 +103,7 @@ static int NKTEXTEDIT_FUNCTION(TextEdit)(lua_State* L) {
 }
 
 static const luaL_Reg funcs[] = {
-    EMPLACE_NKTEXTEDIT_FUNCTION(TextEdit),
+    EMPLACE_NKTEXTEDIT_FUNCTION(TextEditor),
     {NULL, NULL},
 };
 

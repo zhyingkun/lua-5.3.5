@@ -21,11 +21,27 @@ static const luaL_Reg metafuncs[] = {
     {NULL, NULL},
 };
 
+#define SET_CONFIG_FIELD(field_, key_, cast_, type_) \
+  lua_getfield(L, 1, #key_); \
+  if (!lua_isnil(L, -1)) { \
+    cfg->field_ = (cast_)luaL_check##type_(L, -1); \
+  } \
+  lua_pop(L, 1)
 static int NKFONTCFG_FUNCTION(Config)(lua_State* L) {
   nk_font_config* cfg = (nk_font_config*)lua_newuserdata(L, sizeof(nk_font_config));
   luaL_setmetatable(L, NUKLEAR_FONTCFG_TYPE);
   *cfg = nk_make_font_config(0);
-  cfg->range = nk_font_chinese_glyph_ranges();
+  if (lua_istable(L, 1)) {
+    SET_CONFIG_FIELD(merge_mode, mergeMode, unsigned char, boolean);
+    SET_CONFIG_FIELD(pixel_snap, pixelSnap, unsigned char, boolean);
+    SET_CONFIG_FIELD(oversample_v, overSampleV, unsigned char, integer);
+    SET_CONFIG_FIELD(oversample_h, overSampleH, unsigned char, integer);
+    SET_CONFIG_FIELD(size, pixelHeight, float, number);
+    SET_CONFIG_FIELD(coord_type, coordType, nk_font_coord_type, fontcoordtype);
+    SET_CONFIG_FIELD(spacing, spacing, nk_vec2, nkvec2);
+    SET_CONFIG_FIELD(range, range, const nk_rune*, lightuserdata);
+    SET_CONFIG_FIELD(fallback_glyph, fallbackGlyph, nk_rune, nkrune);
+  }
   return 1;
 }
 

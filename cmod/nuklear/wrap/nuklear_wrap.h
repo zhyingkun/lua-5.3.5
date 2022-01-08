@@ -106,6 +106,7 @@ void luaL_pushnkrect(lua_State* L, nk_rect rect);
 #define luaL_checknkcharttype(L, idx) ((nk_chart_type)luaL_checkinteger(L, idx))
 #define luaL_checknkpopuptype(L, idx) ((nk_popup_type)luaL_checkinteger(L, idx))
 #define luaL_checknkheading(L, idx) ((nk_heading)luaL_checkinteger(L, idx))
+#define luaL_checkfontcoordtype(L, idx) ((nk_font_coord_type)luaL_checkinteger(L, idx))
 
 #define luaL_checknkbool(L, idx) ((nk_bool)luaL_checkboolean(L, idx))
 #define luaL_checknkcollapsestates(L, idx) ((nk_collapse_states)luaL_checkboolean(L, idx))

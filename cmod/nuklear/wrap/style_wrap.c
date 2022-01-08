@@ -29,7 +29,7 @@ static int NKWRAP_FUNCTION(style_from_table)(lua_State* L) {
   return 0;
 }
 // nk_style_load_cursor
-static int NKWRAP_FUNCTION(nk_style_load_all_cursors)(lua_State* L) {
+static int NKWRAP_FUNCTION(style_load_all_cursors)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   nk_font_atlas* atlas = luaL_checknkfontatlas(L, 2);
   lua_settop(L, 2);
@@ -142,7 +142,7 @@ static const luaL_Reg wrap_funcs[] = {
     /* Style */
     EMPLACE_NKWRAP_FUNCTION(style_default),
     EMPLACE_NKWRAP_FUNCTION(style_from_table),
-
+    EMPLACE_NKWRAP_FUNCTION(style_load_all_cursors),
     EMPLACE_NKWRAP_FUNCTION(style_get_color_name),
     EMPLACE_NKWRAP_FUNCTION(style_set_font),
     EMPLACE_NKWRAP_FUNCTION(style_set_cursor),
