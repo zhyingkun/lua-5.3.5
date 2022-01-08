@@ -1007,8 +1007,8 @@ end
 ** =======================================================
 --]]
 
-function nk.TextEdit()
-	return libnk.TextEdit(curCtx)
+function nk.TextEditor()
+	return libnk.TextEditor(curCtx)
 end
 
 -- }======================================================
