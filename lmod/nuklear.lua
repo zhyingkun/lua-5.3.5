@@ -1,5 +1,6 @@
 local libnk = require("libnuklear")
 
+---@class nuklear
 local nk = {}
 
 --[[
@@ -478,7 +479,23 @@ function nk.valueColorHex(prefix, color)
 	libnk.value_color_hex(curCtx, prefix, color)
 end
 
+---@class nk_text_align
+---@field public LEFT number @
+---@field public CENTERED number
+---@field public RIGHT number
+---@field public TOP number
+---@field public MIDDLE number
+---@field public BOTTOM number
+local nk_text_align
+---@type nk_text_align
 nk.text_align = libnk.text_align
+
+---@class nk_text_alignment
+---@field public LEFT number
+---@field public CENTERED number
+---@field public RIGHT number
+local nk_text_alignment
+---@type nk_text_alignment
 nk.text_alignment = libnk.text_alignment
 
 -- }======================================================
