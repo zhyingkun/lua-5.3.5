@@ -42,18 +42,20 @@ local state
 
 local mainWin
 
+local atlas
+
 function imgui.setup(mainWin_)
 	mainWin = mainWin_
-	local atlas = font.Atlas()
+	atlas = font.Atlas()
 	atlas:begin()
 	local cfg = font.Config()
-	myFont = atlas:add_default(22, cfg)
+	myFont = atlas:addDefault(22, cfg)
 	local image, release, ud, width, height = atlas:bake(1)
 	-- bcfx.utils.imageWrite("zykTest.png", width, height, 4, image)
 	local mb = bcfx.membuf.MemBuffer(image, width * height * 4, release, ud)
 	mb = bcfx.image.imageFlipVertical(mb, width, height)
 	local imageHandle = bcfx.createTexture(mb, width, height, bcfx.texture_format.RGBA8)
-	nullTex = atlas:endatlas(imageHandle)
+	nullTex = atlas:endAtlas(imageHandle)
 
 	local ctx = nk.Context(myFont)
 	nk.setContext(ctx)
