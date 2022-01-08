@@ -76,7 +76,7 @@ UniformData* encoder_addUniformData(Encoder* encoder, Handle handle) {
   frame->numUniformDatas++;
   return &frame->uniformDatas[index];
 }
-void encoder_setTexture(Encoder* encoder, uint8_t stage, Handle handle, bcfx_SamplerFlags flags) {
+void encoder_setTexture(Encoder* encoder, uint8_t stage, Handle handle, bcfx_SamplerFlag flags) {
   Binding* bind = &encoder->bind.binds[stage];
   bind->handle = handle;
   bind->samplerFlags = flags;

@@ -63,8 +63,8 @@ BCFX_API void bcfx_init(Window mainWin) {
   ctx_init(s_ctx, mainWin);
   // PRINT_SIZEOF_TYPE(bcfx_Color);
   // PRINT_SIZEOF_TYPE(bcfx_UColor);
-  // PRINT_SIZEOF_TYPE(bcfx_SamplerFlags);
-  // PRINT_SIZEOF_TYPE(bcfx_USamplerFlags);
+  // PRINT_SIZEOF_TYPE(bcfx_SamplerFlag);
+  // PRINT_SIZEOF_TYPE(bcfx_USamplerFlag);
   // PRINT_SIZEOF_TYPE(bcfx_RenderState);
   // PRINT_SIZEOF_TYPE(bcfx_URenderState);
   // PRINT_SIZEOF_TYPE(bcfx_StencilState);
@@ -246,7 +246,7 @@ BCFX_API void bcfx_setIndexBuffer(Handle handle, uint32_t start, uint32_t count)
 BCFX_API void bcfx_setTransform(Mat4x4* mat) {
   ctx_setTransform(s_ctx, mat);
 }
-BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlags flags) {
+BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlag flags) {
   ctx_setTexture(s_ctx, stage, sampler, texture, flags);
 }
 BCFX_API void bcfx_setScissor(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {

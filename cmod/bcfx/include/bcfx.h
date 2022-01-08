@@ -374,12 +374,12 @@ typedef struct {
   uint8_t filterMag : 1;
   uint8_t reserved1 : 4;
   uint8_t reserved2[3];
-} bcfx_SamplerFlags;
+} bcfx_SamplerFlag;
 typedef union {
   uint32_t flagsUINT32;
-  bcfx_SamplerFlags flagsStruct;
-} bcfx_USamplerFlags;
-#define SAMPLERFLAGS_UINT32(flags) (((bcfx_USamplerFlags*)&flags)->flagsUINT32)
+  bcfx_SamplerFlag flagsStruct;
+} bcfx_USamplerFlag;
+#define SAMPLERFLAGS_UINT32(flags) (((bcfx_USamplerFlag*)&flags)->flagsUINT32)
 
 // WARNING: Change bcfx_EFrontFace must Update frontFace_glType
 typedef enum {
@@ -544,7 +544,7 @@ BCFX_API void bcfx_setVertexBuffer(uint8_t stream, Handle handle);
 // start and count calculate in indexes，not byte
 BCFX_API void bcfx_setIndexBuffer(Handle handle, uint32_t start, uint32_t count);
 BCFX_API void bcfx_setTransform(Mat4x4* mat);
-BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlags flags);
+BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlag flags);
 BCFX_API void bcfx_setScissor(uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor);
 BCFX_API void bcfx_setStencil(bool enable, bcfx_StencilState front, bcfx_StencilState back);

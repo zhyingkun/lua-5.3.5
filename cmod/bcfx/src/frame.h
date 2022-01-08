@@ -51,7 +51,7 @@ typedef union {
 
 typedef struct {
   Handle handle;
-  bcfx_SamplerFlags samplerFlags;
+  bcfx_SamplerFlag samplerFlags;
 } Binding;
 
 typedef struct {

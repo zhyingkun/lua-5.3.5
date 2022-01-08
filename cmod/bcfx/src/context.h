@@ -100,7 +100,7 @@ void ctx_touch(Context* ctx, ViewId id);
 void ctx_setVertexBuffer(Context* ctx, uint8_t stream, Handle handle);
 void ctx_setIndexBuffer(Context* ctx, Handle handle, uint32_t start, uint32_t count);
 void ctx_setTransform(Context* ctx, Mat4x4* mat);
-void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlags flags);
+void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlag flags);
 void ctx_setScissor(Context* ctx, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 void ctx_setState(Context* ctx, bcfx_RenderState state, uint32_t blendColor);
 void ctx_setStencil(Context* ctx, bool enable, bcfx_StencilState front, bcfx_StencilState back);
