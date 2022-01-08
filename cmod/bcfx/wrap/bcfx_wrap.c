@@ -5,6 +5,30 @@
 
 /*
 ** {======================================================
+** Error handler
+** =======================================================
+*/
+
+int BCWRAP_FUNCTION(msgh)(lua_State* L) {
+  if (lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)BCWRAP_FUNCTION(msgh)) == LUA_TFUNCTION) {
+    lua_insert(L, -2);
+    lua_pcall(L, 1, 1, 0); // if error with longjmp, just left the result msg in the stack
+  } else {
+    lua_pop(L, 1);
+    luaL_traceback(L, L, lua_tostring(L, -1), 1);
+  }
+  return 1;
+}
+static int BCWRAP_FUNCTION(SetErrorMessageHandler)(lua_State* L) {
+  lua_settop(L, 1);
+  lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)BCWRAP_FUNCTION(msgh));
+  return 0;
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** BCFX Resource Manage
 ** =======================================================
 */
@@ -556,7 +580,9 @@ static int BCWRAP_FUNCTION(submit)(lua_State* L) {
 #define EMPLACE_BCWRAP_FUNCTION(name) \
   { #name, BCWRAP_FUNCTION(name) }
 static const luaL_Reg wrap_funcs[] = {
-    /* Static function features */
+    /* Error Handler */
+    EMPLACE_BCWRAP_FUNCTION(SetErrorMessageHandler),
+    /* Static Function Features */
     EMPLACE_BCWRAP_FUNCTION(setThreadFuncs),
     EMPLACE_BCWRAP_FUNCTION(setSemFuncs),
     EMPLACE_BCWRAP_FUNCTION(setWinCtxFuncs),

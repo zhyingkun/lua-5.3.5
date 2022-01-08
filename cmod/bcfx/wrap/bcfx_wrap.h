@@ -89,12 +89,11 @@ void IMAGE_FUNCTION(init)(lua_State* L);
 #define MESH_FUNCTION(name) bcfx_wrap_mesh_##name
 void MESH_FUNCTION(init)(lua_State* L);
 
-#define ERROR_FUNCTION(name) bcfx_wrap_error_##name
-int ERROR_FUNCTION(msgh)(lua_State* L);
+int BCWRAP_FUNCTION(msgh)(lua_State* L);
 
 #define PREPARE_CALL_LUA(L) \
   lua_checkstack(L, LUA_MINSTACK); \
-  lua_pushcfunction(L, ERROR_FUNCTION(msgh))
+  lua_pushcfunction(L, BCWRAP_FUNCTION(msgh))
 #define CALL_LUA_FUNCTION(L, nargs, nresult) /* must be pcall */ \
   int msgh = lua_gettop(L) - (nargs + 1); \
   if (lua_pcall(L, nargs, 0, msgh) != LUA_OK) { \
