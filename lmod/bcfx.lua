@@ -32,13 +32,13 @@ bcfx.image = image
 
 ---@param mb MemBuffer
 ---@param format bcfx_texture_format
----@return MemBuffer, number, number, number, number
+---@return MemBuffer, integer, integer, integer, integer @data, w, h, nrChannels, wantChannels
 function image.imageDecode(mb, format)
 	return libimage.imageDecode(mb, format)
 end
 ---@param mb MemBuffer
 ---@param format bcfx_texture_format
----@param callback fun(mb:MemBuffer, width:number, height:number, nrChannels:number, wantChannels:number):void
+---@param callback fun(mb:MemBuffer, width:integer, height:integer, nrChannels:integer, wantChannels:integer):void
 local function imageDecodeAsync(mb, format, callback)
 	local ptr = libimage.packImageDecodeParam(mb, format)
 	libuv.queue_work(libimage.imageDecodePtr, ptr, function(status, result)
@@ -48,7 +48,7 @@ end
 image.imageDecodeAsync = imageDecodeAsync
 ---@param mb MemBuffer
 ---@param format bcfx_texture_format
----@return MemBuffer, number, number, number, number
+---@return MemBuffer, integer, integer, integer, integer @data, w, h, nrChannels, wantChannels
 function image.imageDecodeAsyncWait(mb, format)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
@@ -67,21 +67,21 @@ end
 --]]
 
 ---@param mb MemBuffer
----@param x number
----@param y number
----@param comp number
+---@param x integer
+---@param y integer
+---@param comp integer
 ---@param type bcfx_image_type
----@param sorq number @strider or quality
+---@param sorq integer @strider or quality
 ---@return MemBuffer
 function image.imageEncode(mb, x, y, comp, type, sorq)
 	return libimage.imageEncode(mb, x, y, comp, type, sorq)
 end
 ---@param mb MemBuffer
----@param x number
----@param y number
----@param comp number
+---@param x integer
+---@param y integer
+---@param comp integer
 ---@param type bcfx_image_type
----@param sorq number @strider or quality
+---@param sorq integer @strider or quality
 ---@param callback fun(mb:MemBuffer):void
 local function imageEncodeAsync(mb, x, y, comp, type, sorq, callback) -- stride or quality
 	local ptr = libimage.packImageEncodeParam(mb, x, y, comp, type, sorq);
@@ -92,11 +92,11 @@ local function imageEncodeAsync(mb, x, y, comp, type, sorq, callback) -- stride 
 end
 image.imageEncodeAsync = imageEncodeAsync
 ---@param mb MemBuffer
----@param x number
----@param y number
----@param comp number
+---@param x integer
+---@param y integer
+---@param comp integer
 ---@param type bcfx_image_type
----@param sorq number @strider or quality
+---@param sorq integer @strider or quality
 ---@return MemBuffer
 function image.imageEncodeAsyncWait(mb, x, y, comp, type, sorq)
 	local co, main = running()
@@ -116,15 +116,15 @@ end
 --]]
 
 ---@param mb MemBuffer
----@param width number
----@param height number
+---@param width integer
+---@param height integer
 ---@return MemBuffer
 function image.imageFlipVertical(mb, width, height)
 	return libimage.imageFlipVertical(mb, width, height)
 end
 ---@param mb MemBuffer
----@param width number
----@param height number
+---@param width integer
+---@param height integer
 ---@param callback fun(mb:MemBuffer):void
 local function imageFlipVerticalAsync(mb, width, height, callback)
 	local ptr = libimage.packImageFlipVerticalParam(mb, width, height);
@@ -134,8 +134,8 @@ local function imageFlipVerticalAsync(mb, width, height, callback)
 end
 image.imageFlipVerticalAsync = imageFlipVerticalAsync
 ---@param mb MemBuffer
----@param width number
----@param height number
+---@param width integer
+---@param height integer
 ---@return MemBuffer
 function image.imageFlipVerticalAsyncWait(mb, width, height)
 	local co, main = running()
@@ -149,10 +149,10 @@ end
 -- }======================================================
 
 ---@class bcfx_image_type
----@field public PNG number
----@field public BMP number
----@field public TGA number
----@field public JPG number
+---@field public PNG integer
+---@field public BMP integer
+---@field public TGA integer
+---@field public JPG integer
 
 ---@type bcfx_image_type
 image.image_type = libimage.image_type
@@ -229,8 +229,8 @@ math.matrix = matrix
 ---@alias Matrix1Src1DstSignature fun(src:Mat):Mat
 
 ---@class Mat
----@field public set fun(self:Mat, row:number, col:number, value:number):void
----@field public get fun(self:Mat, row:number, col:number):number
+---@field public set fun(self:Mat, row:integer, col:integer, value:number):void
+---@field public get fun(self:Mat, row:integer, col:integer):number
 ---@field public add Matrix2Src1DstSignature
 ---@field public subtract Matrix2Src1DstSignature
 ---@field public componentWiseProduct Matrix2Src1DstSignature
@@ -389,13 +389,13 @@ end
 
 ---@class Material
 ---@field name string
----@field ka number
----@field kd number
----@field ks number
+---@field ka Vec3
+---@field kd Vec3
+---@field ks Vec3
 ---@field ns number
 ---@field ni number
 ---@field d number
----@field illum number
+---@field illum integer
 ---@field mapKa string
 ---@field mapKd string
 ---@field mapKs string
@@ -449,31 +449,31 @@ end
 ** =======================================================
 --]]
 
----@param create userdata
----@param self userdata
----@param invalid userdata
----@param join userdata
----@param equal userdata
+---@param create lightuserdata
+---@param self lightuserdata
+---@param invalid lightuserdata
+---@param join lightuserdata
+---@param equal lightuserdata
 function bcfx.setThreadFuncs(create, self, invalid, join, equal)
 	libbcfx.setThreadFuncs(create, self, invalid, join, equal)
 end
----@param init userdata
----@param destroy userdata
----@param post userdata
----@param wait userdata
----@param tryWait userdata
+---@param init lightuserdata
+---@param destroy lightuserdata
+---@param post lightuserdata
+---@param wait lightuserdata
+---@param tryWait lightuserdata
 function bcfx.setSemFuncs(init, destroy, post, wait, tryWait)
 	libbcfx.setSemFuncs(init, destroy, post, wait, tryWait)
 end
----@param makeCurrent userdata
----@param swapBuffers userdata
----@param swapInterval userdata
----@param getProcAddress userdata
----@param getFramebufferSize userdata
+---@param makeCurrent lightuserdata
+---@param swapBuffers lightuserdata
+---@param swapInterval lightuserdata
+---@param getProcAddress lightuserdata
+---@param getFramebufferSize lightuserdata
 function bcfx.setWinCtxFuncs(makeCurrent, swapBuffers, swapInterval, getProcAddress, getFramebufferSize)
 	libbcfx.setWinCtxFuncs(makeCurrent, swapBuffers, swapInterval, getProcAddress, getFramebufferSize)
 end
----@param getTime userdata
+---@param getTime lightuserdata
 function bcfx.setMiscFuncs(getTime)
 	libbcfx.setMiscFuncs(getTime)
 end
@@ -489,19 +489,22 @@ end
 function bcfx.frameId()
 	return libbcfx.frameId()
 end
+
+---@alias FrameCompletedSignature fun(frameId:integer):void
+
 ---@overload fun():void
----@overload fun(callback:)
----@param callback fun(frameId:number):void
+---@overload fun(callback:FrameCompletedSignature):void
+---@param callback FrameCompletedSignature
 function bcfx.setFrameCompletedCallback(callback)
 	libbcfx.setFrameCompletedCallback(callback)
 end
----@param mainWin userdata
+---@param mainWin lightuserdata
 function bcfx.init(mainWin)
 	libbcfx.init(mainWin)
 end
 ---@overload fun():void
----@overload fun(renderCount:number):void
----@param renderCount number
+---@overload fun(renderCount:integer):void
+---@param renderCount integer
 function bcfx.apiFrame(renderCount)
 	libbcfx.apiFrame(renderCount)
 end
@@ -517,7 +520,7 @@ end
 ** =======================================================
 --]]
 
----@class Handle:number
+---@class Handle:integer
 
 ---@param layout bcfx_VertexLayout
 ---@return Handle
@@ -530,7 +533,7 @@ end
 function bcfx.createVertexBuffer(mb, layoutHandle)
 	return libbcfx.createVertexBuffer(mb, layoutHandle)
 end
----@param size number
+---@param size integer
 ---@param layoutHandle Handle
 ---@return Handle
 function bcfx.createDynamicVertexBuffer(size, layoutHandle)
@@ -542,7 +545,7 @@ end
 function bcfx.createIndexBuffer(mb, type)
 	return libbcfx.createIndexBuffer(mb, type)
 end
----@param size number
+---@param size integer
 ---@param type bcfx_index_type
 ---@return Handle
 function bcfx.createDynamicIndexBuffer(size, type)
@@ -561,24 +564,24 @@ function bcfx.createProgram(vs, fs)
 	return libbcfx.createProgram(vs, fs)
 end
 ---@overload fun(name:string, type:bcfx_uniform_type):Handle
----@overload fun(name:string, type:bcfx_uniform_type, num:number):Handle
+---@overload fun(name:string, type:bcfx_uniform_type, num:integer):Handle
 ---@param name string
 ---@param type bcfx_uniform_type
----@param num number
+---@param num integer
 ---@return Handle
 function bcfx.createUniform(name, type, num)
 	return libbcfx.createUniform(name, type, num)
 end
 ---@param mb MemBuffer
----@param width number
----@param height number
+---@param width integer
+---@param height integer
 ---@param format bcfx_texture_format
 ---@return Handle
 function bcfx.createTexture(mb, width, height, format)
 	return libbcfx.createTexture(mb, width, height, format)
 end
----@param width number
----@param height number
+---@param width integer
+---@param height integer
 ---@param format bcfx_texture_format
 ---@return Handle
 function bcfx.createRenderTexture(width, height, format)
@@ -638,10 +641,10 @@ end
 ** =======================================================
 --]]
 
----@class ViewId:number
+---@class ViewId:integer
 
 ---@param id ViewId
----@param win userdata
+---@param win lightuserdata
 function bcfx.setViewWindow(id, win)
 	libbcfx.setViewWindow(id, win)
 end
@@ -659,18 +662,18 @@ function bcfx.setViewClear(id, flags, rgba, depth, stencil)
 	libbcfx.setViewClear(id, flags, rgba, depth, stencil)
 end
 ---@param id ViewId
----@param x number
----@param y number
----@param width number
----@param height number
+---@param x integer
+---@param y integer
+---@param width integer
+---@param height integer
 function bcfx.setViewRect(id, x, y, width, height)
 	libbcfx.setViewRect(id, x, y, width, height)
 end
 ---@param id ViewId
----@param x number
----@param y number
----@param width number
----@param height number
+---@param x integer
+---@param y integer
+---@param width integer
+---@param height integer
 function bcfx.setViewScissor(id, x, y, width, height)
 	libbcfx.setViewScissor(id, x, y, width, height)
 end
@@ -694,7 +697,7 @@ end
 function bcfx.resetView(id)
 	libbcfx.resetView(id)
 end
----@param callback fun(frameId:number, id:ViewId, width:number, height:number, mb:MemBuffer):void
+---@param callback fun(frameId:integer, id:ViewId, width:integer, height:integer, mb:MemBuffer):void
 function bcfx.setFrameViewCaptureCallback(callback)
 	libbcfx.setFrameViewCaptureCallback(callback)
 end
@@ -712,7 +715,7 @@ end
 --]]
 
 ---@param handle Handle
----@vararg any
+---@vararg Vec4 | Mat3x3 | Mat4x4
 function bcfx.setUniform(handle, ...)
 	libbcfx.setUniform(handle, ...)
 end
@@ -720,14 +723,14 @@ end
 function bcfx.touch(id)
 	libbcfx.touch(id)
 end
----@param stream number
+---@param stream integer
 ---@param handle Handle
 function bcfx.setVertexBuffer(stream, handle)
 	libbcfx.setVertexBuffer(stream, handle)
 end
 ---@param handle Handle
----@param start number
----@param count number
+---@param start integer
+---@param count integer
 function bcfx.setIndexBuffer(handle, start, count)
 	libbcfx.setIndexBuffer(handle, start, count)
 end
@@ -735,17 +738,17 @@ end
 function bcfx.setTransform(mat)
 	libbcfx.setTransform(mat)
 end
----@param stage number
+---@param stage integer
 ---@param sampler Handle
 ---@param texture Handle
 ---@param flags bcfx_sampler_flag
 function bcfx.setTexture(stage, sampler, texture, flags)
 	libbcfx.setTexture(stage, sampler, texture, flags)
 end
----@param x number
----@param y number
----@param width number
----@param height number
+---@param x integer
+---@param y integer
+---@param width integer
+---@param height integer
 function bcfx.setScissor(x, y, width, height)
 	libbcfx.setScissor(x, y, width, height)
 end
@@ -763,225 +766,234 @@ end
 
 ---@class bcfx_InstanceDataBuffer
 ---@field handle Handle
----@field bufferOffset number
----@field numAttrib number
----@field numInstance number
+---@field bufferOffset integer
+---@field numAttrib integer
+---@field numInstance integer
 
 ---@param data bcfx_InstanceDataBuffer
----@param start number
----@param count number
+---@param start integer
+---@param count integer
 function bcfx.setInstanceDataBuffer(data, start, count)
 	libbcfx.setInstanceDataBuffer(data, start, count)
 end
 ---@param id ViewId
 ---@param handle Handle
----@param flags number
----@param depth number
+---@param flags integer
+---@param depth integer
 function bcfx.submit(id, handle, flags, depth)
 	libbcfx.submit(id, handle, flags, depth)
 end
 
 ---@class bcfx_clear_flag
----@field public NONE number
----@field public COLOR number
----@field public DEPTH number
----@field public STENCIL number
+---@field public NONE integer
+---@field public COLOR integer
+---@field public DEPTH integer
+---@field public STENCIL integer
 
 ---@type bcfx_clear_flag
 bcfx.clear_flag = libbcfx.clear_flag
 
 ---@class bcfx_vertex_attrib
----@field public Position number
----@field public Normal number
----@field public Tangent number
----@field public Bitangent number
----@field public Color0 number
----@field public Color1 number
----@field public Color2 number
----@field public Color3 number
----@field public Indices number
----@field public Weight number
----@field public TexCoord0 number
----@field public TexCoord1 number
----@field public TexCoord2 number
----@field public TexCoord3 number
----@field public TexCoord4 number
----@field public TexCoord5 number
----@field public TexCoord6 number
----@field public TexCoord7 number
----@field public Count number
+---@field public Position integer
+---@field public Normal integer
+---@field public Tangent integer
+---@field public Bitangent integer
+---@field public Color0 integer
+---@field public Color1 integer
+---@field public Color2 integer
+---@field public Color3 integer
+---@field public Indices integer
+---@field public Weight integer
+---@field public TexCoord0 integer
+---@field public TexCoord1 integer
+---@field public TexCoord2 integer
+---@field public TexCoord3 integer
+---@field public TexCoord4 integer
+---@field public TexCoord5 integer
+---@field public TexCoord6 integer
+---@field public TexCoord7 integer
+---@field public Count integer
 
 ---@type bcfx_vertex_attrib
 bcfx.vertex_attrib = libbcfx.vertex_attrib
 
 ---@class bcfx_attrib_type
----@field public Uint8 number
----@field public Uint10 number
----@field public Int16 number
----@field public Half number
----@field public Float number
+---@field public Uint8 integer
+---@field public Uint10 integer
+---@field public Int16 integer
+---@field public Half integer
+---@field public Float integer
 
 ---@type bcfx_attrib_type
 bcfx.attrib_type = libbcfx.attrib_type
 
 ---@class bcfx_index_type
----@field public Uint8 number
----@field public Uint16 number
----@field public Uint32 number
+---@field public Uint8 integer
+---@field public Uint16 integer
+---@field public Uint32 integer
 
 ---@type bcfx_index_type
 bcfx.index_type = libbcfx.index_type
 
 ---@class bcfx_shader_type
----@field public Vertex number
----@field public Fragment number
+---@field public Vertex integer
+---@field public Fragment integer
 
 ---@type bcfx_shader_type
 bcfx.shader_type = libbcfx.shader_type
 
 ---@class bcfx_texture_wrap
----@field public Repeat number
----@field public Clamp number
+---@field public Repeat integer
+---@field public Clamp integer
 
 ---@type bcfx_texture_wrap
 bcfx.texture_wrap = libbcfx.texture_wrap
 
 ---@class bcfx_texture_filter
----@field public Linear number
----@field public Nearest number
+---@field public Linear integer
+---@field public Nearest integer
 
 ---@type bcfx_texture_filter
 bcfx.texture_filter = libbcfx.texture_filter
 
 ---@class bcfx_front_face
----@field public CounterClockWise number
----@field public ClockWise number
+---@field public CounterClockWise integer
+---@field public ClockWise integer
 
 ---@type bcfx_front_face
 bcfx.front_face = libbcfx.front_face
 
 ---@class bcfx_cull_face
----@field public Back number
----@field public Front number
----@field public FrontAndBack number
+---@field public Back integer
+---@field public Front integer
+---@field public FrontAndBack integer
 
 ---@type bcfx_cull_face
 bcfx.cull_face = libbcfx.cull_face
 
 ---@class bcfx_compare_func
----@field public Less number
----@field public LEqual number
----@field public Equal number
----@field public GEqual number
----@field public Greater number
----@field public NotEqual number
----@field public Never number
----@field public Always number
+---@field public Less integer
+---@field public LEqual integer
+---@field public Equal integer
+---@field public GEqual integer
+---@field public Greater integer
+---@field public NotEqual integer
+---@field public Never integer
+---@field public Always integer
 
 ---@type bcfx_compare_func
 bcfx.compare_func = libbcfx.compare_func
 
 ---@class bcfx_blend_func
----@field public Zero number
----@field public One number
----@field public SrcColor number
----@field public OneMinusSrcColor number
----@field public DstColor number
----@field public OneMinusDstColor number
----@field public SrcAlpha number
----@field public OneMinusSrcAlpha number
----@field public DstAlpha number
----@field public OneMinusDstAlpha number
----@field public ConstantColor number
----@field public OneMinusConstantColor number
----@field public ConstantAlpha number
----@field public OneMinusConstantAlpha number
----@field public SrcAlphaSaturate number
+---@field public Zero integer
+---@field public One integer
+---@field public SrcColor integer
+---@field public OneMinusSrcColor integer
+---@field public DstColor integer
+---@field public OneMinusDstColor integer
+---@field public SrcAlpha integer
+---@field public OneMinusSrcAlpha integer
+---@field public DstAlpha integer
+---@field public OneMinusDstAlpha integer
+---@field public ConstantColor integer
+---@field public OneMinusConstantColor integer
+---@field public ConstantAlpha integer
+---@field public OneMinusConstantAlpha integer
+---@field public SrcAlphaSaturate integer
 
 ---@type bcfx_blend_func
 bcfx.blend_func = libbcfx.blend_func
 
 ---@class bcfx_blend_equation
----@field public FuncAdd number
----@field public FuncSubtract number
----@field public FuncReverseSubtract number
----@field public Min number
----@field public Max number
+---@field public FuncAdd integer
+---@field public FuncSubtract integer
+---@field public FuncReverseSubtract integer
+---@field public Min integer
+---@field public Max integer
 
 ---@type bcfx_blend_equation
 bcfx.blend_equation = libbcfx.blend_equation
 
 ---@class bcfx_logic_operate
----@field public Copy number
----@field public CopyInverted number
----@field public Clear number
----@field public Set number
----@field public Noop number
----@field public Invert number
----@field public And number
----@field public NAnd number
----@field public Or number
----@field public NOr number
----@field public Xor number
----@field public Equiv number
----@field public AndReverse number
----@field public AndInverted number
----@field public OrReverse number
----@field public OrInverted number
+---@field public Copy integer
+---@field public CopyInverted integer
+---@field public Clear integer
+---@field public Set integer
+---@field public Noop integer
+---@field public Invert integer
+---@field public And integer
+---@field public NAnd integer
+---@field public Or integer
+---@field public NOr integer
+---@field public Xor integer
+---@field public Equiv integer
+---@field public AndReverse integer
+---@field public AndInverted integer
+---@field public OrReverse integer
+---@field public OrInverted integer
 
 ---@type bcfx_logic_operate
 bcfx.logic_operate = libbcfx.logic_operate
 
 ---@class bcfx_stencil_action
----@field public Keep number
----@field public Zero number
----@field public Replace number
----@field public Incr number
----@field public IncrWrap number
----@field public Decr number
----@field public DecrWrap number
----@field public Invert number
+---@field public Keep integer
+---@field public Zero integer
+---@field public Replace integer
+---@field public Incr integer
+---@field public IncrWrap integer
+---@field public Decr integer
+---@field public DecrWrap integer
+---@field public Invert integer
 
 ---@type bcfx_stencil_action
 bcfx.stencil_action = libbcfx.stencil_action
 
 ---@class bcfx_view_mode
----@field public Default number
----@field public Sequential number
----@field public DepthAscending number
----@field public DepthDescending number
----@field public Count number
+---@field public Default integer
+---@field public Sequential integer
+---@field public DepthAscending integer
+---@field public DepthDescending integer
+---@field public Count integer
 
 ---@type bcfx_view_mode
 bcfx.view_mode = libbcfx.view_mode
 
 ---@class bcfx_debug
----@field public NONE number
----@field public WIREFRAME number
+---@field public NONE integer
+---@field public WIREFRAME integer
 
 ---@type bcfx_debug
 bcfx.debug = libbcfx.debug
 
 ---@class bcfx_discard
----@field public NONE number
----@field public VERTEX_STREAMS number
----@field public INDEX_BUFFER number
----@field public TRANSFORM number
----@field public BINDINGS number
----@field public STATE number
----@field public INSTANCE_DATA number
----@field public ALL number
+---@field public NONE integer
+---@field public VERTEX_STREAMS integer
+---@field public INDEX_BUFFER integer
+---@field public TRANSFORM integer
+---@field public BINDINGS integer
+---@field public STATE integer
+---@field public INSTANCE_DATA integer
+---@field public ALL integer
 
 ---@type bcfx_discard
 bcfx.discard = libbcfx.discard
 
 ---@class bcfx_texture_format
----@field public RGB8 number
----@field public RGBA8 number
----@field public D24S8 number
+---@field public RGB8 integer
+---@field public RGBA8 integer
+---@field public D24S8 integer
 
 ---@type bcfx_texture_format
 bcfx.texture_format = libbcfx.texture_format
+
+---@class bcfx_uniform_type
+---@field public Sampler2D integer
+---@field public Vec4 integer
+---@field public Mat3x3 integer
+---@field public Mat4x4 integer
+
+---@type bcfx_uniform_type
+bcfx.uniform_type = libbcfx.uniform_type
 
 -- }======================================================
 
@@ -991,7 +1003,7 @@ bcfx.texture_format = libbcfx.texture_format
 ** =======================================================
 --]]
 
----@class Color:number
+---@class Color:integer
 
 ---@class bcfx_color
 local color = {}
@@ -1037,12 +1049,12 @@ function color.pack(r, g, b, a)
 	return libcolor.pack(r, g, b, a)
 end
 ---@param rgba Color
----@return number, number, number, number
+---@return integer, integer, integer, integer @r, g, b, a
 function color.unpack(rgba)
 	return libcolor.unpack(rgba)
 end
 ---@param rgba Color
----@return number, number, number, number
+---@return number, number, number, number @r, g, b, a
 function color.unpackf(rgba)
 	return libcolor.unpackf(rgba)
 end
@@ -1060,12 +1072,12 @@ bcfx.mbio = mbio
 --]]
 
 ---@param fileName string
----@return MemBuffer
+---@return MemBuffer | nil, nil | integer, nil | string
 function mbio.readFile(fileName)
 	return libmbio.readFile(fileName)
 end
 ---@param fileName string
----@param callback fun(mb:MemBuffer | nil, errCode:nil | number, errStr:nil | string):void
+---@param callback fun(mb:MemBuffer | nil, errCode:nil | integer, errStr:nil | string):void
 local function readFileAsync(fileName, callback)
 	local ptr = libmbio.packReadFileParam(fileName)
 	libuv.queue_work(libmbio.readFilePtr, ptr, function(status, result)
@@ -1074,7 +1086,7 @@ local function readFileAsync(fileName, callback)
 end
 mbio.readFileAsync = readFileAsync
 ---@param fileName string
----@return MemBuffer
+---@return MemBuffer | nil, nil | integer, nil | string
 function mbio.readFileAsyncWait(fileName)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
@@ -1094,12 +1106,13 @@ end
 
 ---@param fileName string
 ---@param mb MemBuffer
+---@return boolean, nil | integer, nil | string
 function mbio.writeFile(fileName, mb)
 	libmbio.writeFile(fileName, mb)
 end
 ---@param fileName string
 ---@param mb MemBuffer
----@param callback fun(ret:number):void
+---@param callback fun(ret:boolean, errCode:nil | integer, errStr:nil | string):void
 local function writeFileAsync(fileName, mb, callback)
 	local ptr = libmbio.packWriteFileParam(fileName, mb)
 	libuv.queue_work(libmbio.writeFilePtr, ptr, function(status, result)
@@ -1110,6 +1123,7 @@ end
 mbio.writeFileAsync = writeFileAsync
 ---@param fileName string
 ---@param mb MemBuffer
+---@return boolean, nil | integer, nil | string
 function mbio.writeFileAsyncWait(fileName, mb)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
@@ -1132,42 +1146,43 @@ bcfx.membuf = membuf
 --]]
 
 ---@class MemBuffer
----@field public getClear fun(self:MemBuffer):userdata, number, userdata, userdata
----@field public setReplace fun(self:MemBuffer, ptr:userdata, sz:number, release:userdata, ud:userdata):void
+---@field public getClear fun(self:MemBuffer):lightuserdata, integer, lightuserdata, lightuserdata
+---@field public setReplace fun(self:MemBuffer, ptr:lightuserdata, sz:integer, release:lightuserdata, ud:lightuserdata):void
 
 ---@overload fun():MemBuffer
----@overload fun(ptr:userdata, sz:number):MemBuffer
----@overload fun(ptr:userdata, sz:number, release:userdata):MemBuffer
----@overload fun(ptr:userdata, sz:number, release:userdata, ud:userdata):MemBuffer
----@param ptr userdata
----@param sz number
----@param release userdata
----@param ud userdata
+---@overload fun(ptr:lightuserdata, sz:integer):MemBuffer
+---@overload fun(ptr:lightuserdata, sz:integer, release:lightuserdata):MemBuffer
+---@overload fun(ptr:lightuserdata, sz:integer, release:lightuserdata, ud:lightuserdata):MemBuffer
+---@param ptr lightuserdata
+---@param sz integer
+---@param release lightuserdata
+---@param ud lightuserdata
 ---@return MemBuffer
 function membuf.MemBuffer(ptr, sz, release, ud)
 	return libmembuf.MemBuffer(ptr, sz, release, ud)
 end
 
+---@alias DataGetterSignature fun():number, ...
+
 ---@overload fun(type:bcfx_data_type, data:number[]):MemBuffer
----@overload fun(type:bcfx_data_type, dataGetter:fun():number, ..., ...):MemBuffer
----@param ptr userdata
----@param sz number
----@param release userdata
----@param ud userdata
+---@overload fun(type:bcfx_data_type, dataGetter:DataGetterSignature, ...):MemBuffer
+---@param type bcfx_data_type
+---@param data number[]
+---@param dataGetter DataGetterSignature
 ---@return MemBuffer
 function membuf.makeMemBuffer(...)
 	return libmembuf.makeMemBuffer(...)
 end
 
 ---@class bcfx_data_type
----@field public Uint8 number
----@field public Uint16 number
----@field public Uint32 number
----@field public Int8 number
----@field public Int16 number
----@field public Int32 number
----@field public Half number
----@field public Float number
+---@field public Uint8 integer
+---@field public Uint16 integer
+---@field public Uint32 integer
+---@field public Int8 integer
+---@field public Int16 integer
+---@field public Int32 integer
+---@field public Half integer
+---@field public Float integer
 
 ---@type bcfx_data_type
 membuf.data_type = libmembuf.data_type
@@ -1202,8 +1217,8 @@ end
 ---@field public cullFace bcfx_cull_face
 ---@field public enableDepth boolean
 ---@field public depthFunc bcfx_compare_func
----@field public alphaRef number
----@field public pointSize number
+---@field public alphaRef integer
+---@field public pointSize integer
 ---@field public noWriteR boolean
 ---@field public noWriteG boolean
 ---@field public noWriteB boolean
@@ -1230,9 +1245,9 @@ end
 ---@field public sfail bcfx_stencil_action
 ---@field public dpfail bcfx_stencil_action
 ---@field public dppass bcfx_stencil_action
----@field public ref number
----@field public mask number
----@field public writeMask number
+---@field public ref integer
+---@field public mask integer
+---@field public writeMask integer
 
 ---@param flags bcfx_StencilState
 ---@return bcfx_stencil_state
@@ -1249,8 +1264,8 @@ end
 --]]
 
 ---@class bcfx_VertexLayout
----@field public add fun(self:bcfx_VertexLayout, attrib:bcfx_vertex_attrib, num:number, type:bcfx_attrib_type, normalized:boolean):void
----@field public skip fun(self:bcfx_VertexLayout, numbyte:number):void
+---@field public add fun(self:bcfx_VertexLayout, attrib:bcfx_vertex_attrib, num:integer, type:bcfx_attrib_type, normalized:boolean):void
+---@field public skip fun(self:bcfx_VertexLayout, numbyte:integer):void
 ---@field public clear fun(self:bcfx_VertexLayout):void
 
 ---@return bcfx_VertexLayout
