@@ -222,9 +222,9 @@ static int BCWRAP_FUNCTION(createShader)(lua_State* L) {
   } else {
     mb = luaL_checkmembuffer(L, 1);
   }
-  uint8_t type = (uint8_t)luaL_checkinteger(L, 2);
+  bcfx_EShaderType type = luaL_checkshadertype(L, 2);
 
-  Handle handle = bcfx_createShader(mb, (ShaderType)type);
+  Handle handle = bcfx_createShader(mb, type);
   MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
   lua_pushinteger(L, handle);
   return 1;

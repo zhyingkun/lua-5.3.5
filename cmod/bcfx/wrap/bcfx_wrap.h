@@ -68,6 +68,8 @@ Mat4x4* luaL_checkmat4x4(lua_State* L, int idx);
 Mat* luaL_newmatrix(lua_State* L, uint8_t row, uint8_t col);
 #define luaL_newmat4x4(L) (Mat4x4*)luaL_newmatrix(L, 4, 4)
 
+#define luaL_checkshadertype(L, idx) ((bcfx_EShaderType)luaL_checkinteger(L, idx))
+
 void MATRIX_FUNCTION(init)(lua_State* L);
 
 #define G3D_FUNCTION(name) bcfx_wrap_graphics3d_##name
