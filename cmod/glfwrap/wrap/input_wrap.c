@@ -117,7 +117,7 @@ static void GLFWRAP_CALLBACK(SetKeyCallback)(GLFWwindow* window, int key, int sc
   lua_pushinteger(L, scancode);
   lua_pushinteger(L, action);
   lua_pushinteger(L, mods);
-  CALL_LUA_FUNCTION(L, 5, 0);
+  CALL_LUA_FUNCTION(L, 5);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetKeyCallback)(lua_State* L) {
@@ -129,7 +129,7 @@ static void GLFWRAP_CALLBACK(SetCharCallback)(GLFWwindow* window, unsigned int c
   WINDOW_CALLBACK_BEGIN(SetCharCallback, char)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushinteger(L, codepoint);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetCharCallback)(lua_State* L) {
@@ -142,7 +142,7 @@ static void GLFWRAP_CALLBACK(SetCharModsCallback)(GLFWwindow* window, unsigned i
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushinteger(L, codepoint);
   lua_pushinteger(L, mods);
-  CALL_LUA_FUNCTION(L, 3, 0);
+  CALL_LUA_FUNCTION(L, 3);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetCharModsCallback)(lua_State* L) {
@@ -156,7 +156,7 @@ static void GLFWRAP_CALLBACK(SetMouseButtonCallback)(GLFWwindow* window, int but
   lua_pushinteger(L, button);
   lua_pushinteger(L, action);
   lua_pushinteger(L, mods);
-  CALL_LUA_FUNCTION(L, 4, 0);
+  CALL_LUA_FUNCTION(L, 4);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetMouseButtonCallback)(lua_State* L) {
@@ -169,7 +169,7 @@ static void GLFWRAP_CALLBACK(SetCursorPosCallback)(GLFWwindow* window, double xp
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushnumber(L, xpos);
   lua_pushnumber(L, ypos);
-  CALL_LUA_FUNCTION(L, 3, 0);
+  CALL_LUA_FUNCTION(L, 3);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetCursorPosCallback)(lua_State* L) {
@@ -181,7 +181,7 @@ static void GLFWRAP_CALLBACK(SetCursorEnterCallback)(GLFWwindow* window, int ent
   WINDOW_CALLBACK_BEGIN(SetCursorEnterCallback, cursorenter)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushboolean(L, entered);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetCursorEnterCallback)(lua_State* L) {
@@ -194,7 +194,7 @@ static void GLFWRAP_CALLBACK(SetScrollCallback)(GLFWwindow* window, double xoffs
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushnumber(L, xoffset);
   lua_pushnumber(L, yoffset);
-  CALL_LUA_FUNCTION(L, 3, 0);
+  CALL_LUA_FUNCTION(L, 3);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetScrollCallback)(lua_State* L) {
@@ -210,7 +210,7 @@ static void GLFWRAP_CALLBACK(SetDropCallback)(GLFWwindow* window, int path_count
     lua_pushstring(L, paths[i]);
     lua_rawseti(L, -2, i + 1);
   }
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetDropCallback)(lua_State* L) {
@@ -300,7 +300,7 @@ static void GLFWRAP_CALLBACK(SetJoystickCallback)(int jid, int event) {
   GLFWRAP_CALLBACK_BEGIN(SetJoystickCallback)
   lua_pushinteger(L, jid);
   lua_pushinteger(L, event);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
   GLFWRAP_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetJoystickCallback)(lua_State* L) {

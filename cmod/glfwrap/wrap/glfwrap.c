@@ -20,7 +20,7 @@ int GLFWRAP_CALLBACK(msgh)(lua_State* L) {
   }
   return 1;
 }
-static int GLFWRAP_FUNCTION(set_msgh)(lua_State* L) {
+static int GLFWRAP_FUNCTION(SetErrorMessageHandler)(lua_State* L) {
   lua_settop(L, 1);
   lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)GLFWRAP_CALLBACK(msgh));
   return 0;
@@ -117,7 +117,7 @@ static int GLFWRAP_FUNCTION(GetRequiredInstanceExtensions)(lua_State* L) {
 /* }====================================================== */
 
 static const luaL_Reg GLFWRAP_FUNCTION(funcs)[] = {
-    EMPLACE_GLFWRAP_FUNCTION(set_msgh),
+    EMPLACE_GLFWRAP_FUNCTION(SetErrorMessageHandler),
     /* Initialization, version and error */
     EMPLACE_GLFWRAP_FUNCTION(Init),
     EMPLACE_GLFWRAP_FUNCTION(Terminate),
@@ -173,7 +173,16 @@ void registe_function_pointer(lua_State* L) {
   lua_setfield(L, -2, "func_ptr");
 }
 
+lua_State* staticL;
+
 LUAMOD_API int luaopen_libglfwrap(lua_State* L) {
+  int isMain = lua_pushthread(L);
+  if (!isMain) {
+    return luaL_error(L, "libuvwrap must be required in lua main thread");
+  }
+  lua_pop(L, 1);
+  staticL = L;
+
   luaL_newlib(L, glfwrap_funcs);
 
   REGISTE_FUNCTIONS(context);

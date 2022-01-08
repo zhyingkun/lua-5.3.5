@@ -149,7 +149,7 @@ static void GLFWRAP_CALLBACK(SetMonitorCallback)(GLFWmonitor* monitor, int event
   GLFWRAP_CALLBACK_BEGIN(SetMonitorCallback)
   PUSH_LIGHTUSERDATA(L, monitor);
   lua_pushinteger(L, event);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
   GLFWRAP_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetMonitorCallback)(lua_State* L) {
@@ -219,13 +219,13 @@ static const luaL_Reg GLFWRAP_FUNCTION(monitor_funcs)[] = {
     {NULL, NULL},
 };
 
-static const luaL_Enum GLFWRAP_ENUM(monitor_event)[] = {
+static const luaL_Enum GLFWRAP_ENUM(device_event)[] = {
     {"CONNECTED", GLFW_CONNECTED},
     {"DISCONNECTED", GLFW_DISCONNECTED},
     {NULL, 0},
 };
 
 DEFINE_REGISTE_FUNC_BEGIN(monitor)
-REGISTE_ENUM(monitor_event);
+REGISTE_ENUM(device_event);
 init_vidmode_metatable(L);
 DEFINE_REGISTE_FUNC_END()

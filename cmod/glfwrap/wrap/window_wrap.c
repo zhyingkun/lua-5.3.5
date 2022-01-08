@@ -33,7 +33,7 @@ static void init_image_metatable(lua_State* L) {
   lua_pop(L, 1);
 }
 
-static int GLFWRAP_FUNCTION(CreateGLFWimage)(lua_State* L) {
+static int GLFWRAP_FUNCTION(GLFWimage)(lua_State* L) {
   int width = luaL_checkinteger(L, 1);
   int height = luaL_checkinteger(L, 2);
   unsigned char* pixels = (unsigned char*)luaL_checkstring(L, 3);
@@ -161,8 +161,8 @@ static int GLFWRAP_FUNCTION(SetWindowSizeLimits)(lua_State* L) {
   GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
   int minwidth = luaL_checkinteger(L, 2);
   int minheight = luaL_checkinteger(L, 3);
-  int maxwidth = luaL_checkinteger(L, 2);
-  int maxheight = luaL_checkinteger(L, 3);
+  int maxwidth = luaL_checkinteger(L, 4);
+  int maxheight = luaL_checkinteger(L, 5);
   glfwSetWindowSizeLimits(window, minwidth, minheight, maxwidth, maxheight);
   return 0;
 }
@@ -313,7 +313,7 @@ static void GLFWRAP_CALLBACK(SetWindowPosCallback)(GLFWwindow* window, int xpos,
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushinteger(L, xpos);
   lua_pushinteger(L, ypos);
-  CALL_LUA_FUNCTION(L, 3, 0);
+  CALL_LUA_FUNCTION(L, 3);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetWindowPosCallback)(lua_State* L) {
@@ -326,7 +326,7 @@ static void GLFWRAP_CALLBACK(SetWindowSizeCallback)(GLFWwindow* window, int widt
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushinteger(L, width);
   lua_pushinteger(L, height);
-  CALL_LUA_FUNCTION(L, 3, 0);
+  CALL_LUA_FUNCTION(L, 3);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetWindowSizeCallback)(lua_State* L) {
@@ -337,7 +337,7 @@ static int GLFWRAP_FUNCTION(SetWindowSizeCallback)(lua_State* L) {
 static void GLFWRAP_CALLBACK(SetWindowCloseCallback)(GLFWwindow* window) {
   WINDOW_CALLBACK_BEGIN(SetWindowCloseCallback, windowclose)
   PUSH_LIGHTUSERDATA(L, window);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALL_LUA_FUNCTION(L, 1);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetWindowCloseCallback)(lua_State* L) {
@@ -348,7 +348,7 @@ static int GLFWRAP_FUNCTION(SetWindowCloseCallback)(lua_State* L) {
 static void GLFWRAP_CALLBACK(SetWindowRefreshCallback)(GLFWwindow* window) {
   WINDOW_CALLBACK_BEGIN(SetWindowRefreshCallback, windowrefresh)
   PUSH_LIGHTUSERDATA(L, window);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALL_LUA_FUNCTION(L, 1);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetWindowRefreshCallback)(lua_State* L) {
@@ -360,7 +360,7 @@ static void GLFWRAP_CALLBACK(SetWindowFocusCallback)(GLFWwindow* window, int foc
   WINDOW_CALLBACK_BEGIN(SetWindowFocusCallback, windowfocus)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushboolean(L, focused);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetWindowFocusCallback)(lua_State* L) {
@@ -372,7 +372,7 @@ static void GLFWRAP_CALLBACK(SetWindowIconifyCallback)(GLFWwindow* window, int i
   WINDOW_CALLBACK_BEGIN(SetWindowIconifyCallback, windowiconify)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushboolean(L, iconified);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetWindowIconifyCallback)(lua_State* L) {
@@ -384,7 +384,7 @@ static void GLFWRAP_CALLBACK(SetWindowMaximizeCallback)(GLFWwindow* window, int 
   WINDOW_CALLBACK_BEGIN(SetWindowMaximizeCallback, windowmaximize)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushboolean(L, maximized);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetWindowMaximizeCallback)(lua_State* L) {
@@ -397,7 +397,7 @@ static void GLFWRAP_CALLBACK(SetFramebufferSizeCallback)(GLFWwindow* window, int
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushinteger(L, width);
   lua_pushinteger(L, height);
-  CALL_LUA_FUNCTION(L, 3, 0);
+  CALL_LUA_FUNCTION(L, 3);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetFramebufferSizeCallback)(lua_State* L) {
@@ -410,7 +410,7 @@ static void GLFWRAP_CALLBACK(SetWindowContentScaleCallback)(GLFWwindow* window, 
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushnumber(L, xscale);
   lua_pushnumber(L, yscale);
-  CALL_LUA_FUNCTION(L, 3, 0);
+  CALL_LUA_FUNCTION(L, 3);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetWindowContentScaleCallback)(lua_State* L) {
@@ -448,7 +448,7 @@ static int GLFWRAP_FUNCTION(SwapBuffers)(lua_State* L) {
 /* }====================================================== */
 
 static const luaL_Reg GLFWRAP_FUNCTION(window_funcs)[] = {
-    EMPLACE_GLFWRAP_FUNCTION(CreateGLFWimage),
+    EMPLACE_GLFWRAP_FUNCTION(GLFWimage),
     /* Window */
     EMPLACE_GLFWRAP_FUNCTION(DefaultWindowHints),
     EMPLACE_GLFWRAP_FUNCTION(WindowHint),

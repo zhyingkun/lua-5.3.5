@@ -58,18 +58,28 @@ DECLARE_REGISTE_FUNC(window)
 
 int GLFWRAP_CALLBACK(msgh)(lua_State* L);
 
+extern lua_State* staticL;
+#define GET_MAIN_LUA_STATE() staticL
+
 #define PREPARE_CALL_LUA(L) \
   lua_checkstack(L, LUA_MINSTACK); \
   lua_pushcfunction(L, GLFWRAP_CALLBACK(msgh))
-#define CALL_LUA_FUNCTION(L, nargs, nresult) /* must be pcall */ \
+#define CALL_LUA(L, nargs, nresult) /* must be pcall */ \
   int msgh = lua_gettop(L) - (nargs + 1); \
-  if (lua_pcall(L, nargs, 0, msgh) != LUA_OK) { \
+  if (lua_pcall(L, nargs, nresult, msgh) != LUA_OK) { \
     if (!lua_isnil(L, -1)) { \
-      printf("Error: %s\n", lua_tostring(L, -1)); \
+      fprintf(stderr, "Error: %s\n", lua_tostring(L, -1)); \
     } \
     lua_pop(L, 1); \
-  } \
+    for (int i = 0; i < nresult; i++) { \
+      lua_pushnil(L); \
+    } \
+  }
+#define POST_CALL_LUA(L) \
   lua_pop(L, 1)
+#define CALL_LUA_FUNCTION(L, nargs) \
+  CALL_LUA(L, nargs, 0) \
+  POST_CALL_LUA(L)
 
 #define GLFWRAP_CALLBACK_BEGIN(name) \
   int t = lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)GLFWRAP_CALLBACK(name)); \
@@ -92,23 +102,9 @@ int GLFWRAP_CALLBACK(msgh)(lua_State* L);
   } \
   lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)GLFWRAP_CALLBACK(name))
 
-typedef struct {
-  lua_State* L;
-  char reserved[16];
-} GLFWwindowcallback;
-
-#define GENERATE_WINDOW_CALLBACK(window, cb) \
-  cb = (GLFWwindowcallback*)glfwGetWindowUserPointer(window); \
-  if (cb == NULL) { \
-    cb = (GLFWwindowcallback*)malloc(sizeof(GLFWwindowcallback)); \
-    glfwSetWindowUserPointer(window, (void*)cb); \
-  }
-
 #define WINDOW_CALLBACK_BEGIN(name, cbtype) \
-  GLFWwindowcallback* cb = NULL; \
-  GENERATE_WINDOW_CALLBACK(window, cb); \
-  lua_State* L = cb->L; \
-  int t = lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)(((char*)cb) + IDX_WINDOW_##cbtype)); \
+  lua_State* L = GET_MAIN_LUA_STATE(); \
+  int t = lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)(((char*)window) + IDX_WINDOW_##cbtype)); \
   if (t == LUA_TFUNCTION) { \
     int idx = lua_gettop(L); \
     PREPARE_CALL_LUA(L); \
@@ -122,9 +118,6 @@ typedef struct {
 
 #define SET_WINDOW_CALLBACK(name, cbtype) \
   GLFWwindow* window = luaL_checkGLFWwindow(L, 1); \
-  GLFWwindowcallback* cb = NULL; \
-  GENERATE_WINDOW_CALLBACK(window, cb); \
-  cb->L = L; \
   GLFW##cbtype##fun callback = NULL; \
   if (lua_isfunction(L, 2)) { \
     callback = GLFWRAP_CALLBACK(name); \
@@ -132,7 +125,7 @@ typedef struct {
   } else { \
     lua_pushnil(L); \
   } \
-  lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)(((char*)cb) + IDX_WINDOW_##cbtype)); \
+  lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)(((char*)window) + IDX_WINDOW_##cbtype)); \
   glfw##name(window, callback)
 
 #define IDX_WINDOW_key 0
