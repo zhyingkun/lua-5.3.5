@@ -12,29 +12,29 @@ function input.ImGUIInit(mainWin)
 	mainWin_ = mainWin
 	ButtonInputs = {}
 
-	glfw.SetCursorPosCallback(mainWin, function(window, xpos, ypos)
+	glfw.setCursorPosCallback(mainWin, function(window, xpos, ypos)
 		if bImGUI then
 			-- print("motion:", xpos, ypos)
 		   nk.inputMotion(math.floor(xpos), math.floor(ypos))
 		end
 	 end)
-	 glfw.SetKeyCallback(mainWin, function(window, key, scancode, action, mods)
+	 glfw.setKeyCallback(mainWin, function(window, key, scancode, action, mods)
 		if bImGUI then
 		   nk.inputKey(KeyToNKKey(key), ActionToDown(action))
 		end
 	 end)
-	 glfw.SetMouseButtonCallback(mainWin, function(window, button, action, mods)
+	 glfw.setMouseButtonCallback(mainWin, function(window, button, action, mods)
 		if bImGUI then
 			print("MouseButton:", button, action, mods)
 		   ButtonInputs[button] = action
 		end
 	 end)
-	 glfw.SetScrollCallback(mainWin, function(window, xoffset, yoffset)
+	 glfw.setScrollCallback(mainWin, function(window, xoffset, yoffset)
 		if bImGUI then
 		   nk.inputScroll(nk.packVec2(xoffset, yoffset))
 		end
 	 end)
-	 glfw.SetCharCallback(mainWin, function(window, codepoint)
+	 glfw.setCharCallback(mainWin, function(window, codepoint)
 		if bImGUI then
 		   if codepoint < 128 then
 			  nk.inputChar(codepoint)
@@ -61,7 +61,7 @@ local function ToNKButton(btn)
 end
 function input.ImGUIPostPollEvent()
    bImGUI = false
-   local x, y = glfw.GetCursorPos(mainWin_)
+   local x, y = glfw.getCursorPos(mainWin_)
    if ButtonInputs[left] and ButtonInputs[right] then
       nk.inputButton(ToNKButton(leftAndRight), math.floor(x), math.floor(y), ButtonInputs[left] == 1)
    elseif ButtonInputs[left] then

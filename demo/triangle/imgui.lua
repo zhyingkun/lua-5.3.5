@@ -79,8 +79,8 @@ function imgui.setup(mainWin_)
 		vector.Vec3(0.0, 0.0, 0.0), -- center
 		vector.Vec3(0.0, 1.0, 0.0) -- up
 	)
-	local w, h = glfw.GetFramebufferSize(mainWin)
-	local w, h = glfw.GetWindowSize(mainWin)
+	local w, h = glfw.getFramebufferSize(mainWin)
+	local w, h = glfw.getWindowSize(mainWin)
 	projMat = graphics3d.orthogonal(
 		-w/2, w/2,-- left, right
 		-h/2, h/2,-- bottom, top
@@ -221,7 +221,7 @@ function imgui.tick(delta)
 	bcfx.setVertexBuffer(0, vertexHandle)
 	bcfx.setState(state, bcfx.color.black)
 	bcfx.setViewTransform(255, viewMat, projMat)
-	local pixelWidth, pixelHeight = glfw.GetFramebufferSize(mainWin)
+	local pixelWidth, pixelHeight = glfw.getFramebufferSize(mainWin)
 	bcfx.setViewRect(255, 0, 0, pixelWidth, pixelHeight)
 
 	local flags = bcfx.utils.packSamplerFlags({
@@ -231,7 +231,7 @@ function imgui.tick(delta)
 		filterMag = texture_filter.Linear,
 	})
 
-	local screenWidth, screenHeight = glfw.GetWindowSize(mainWin)
+	local screenWidth, screenHeight = glfw.getWindowSize(mainWin)
 
 	nk.drawForEach(cmds, screenWidth, screenHeight, pixelWidth, pixelHeight, function(offset, count, texture, x, y, w, h)
 		bcfx.setIndexBuffer(indexHandle, offset, count)

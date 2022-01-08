@@ -256,16 +256,16 @@ local function SetupViewHalf(viewID, win, width, height)
 	-- bcfx.setViewScissor(viewID, 0, 0, width // 2, height // 2)
 end
 local function SetupAnotherView(viewID, mainWin)
-	local win = glfw.CreateWindow(800, 600, "Another", nil, mainWin)
+	local win = glfw.createWindow(800, 600, "Another", nil, mainWin)
 	if not win then
-		print_err("GLFW CreateWindow Error:", glfw.GetError())
-		glfw.Terminate()
+		print_err("GLFW CreateWindow Error:", glfw.getError())
+		glfw.terminate()
 		return
 	end
 
 	bcfx.setViewWindow(viewID, win)
-	bcfx.setViewRect(viewID, 0, 0, glfw.GetFramebufferSize(win))
-	glfw.SetFramebufferSizeCallback(win, function(window, width, height)
+	bcfx.setViewRect(viewID, 0, 0, glfw.getFramebufferSize(win))
+	glfw.setFramebufferSizeCallback(win, function(window, width, height)
 		bcfx.setViewRect(viewID, 0, 0, width, height)
 	end)
 end
@@ -287,12 +287,12 @@ local function setup(mainWin)
 	cube = CreateCubeBuffer()
 	spot = CreateSpotBuffer()
 
-	glfw.SetFramebufferSizeCallback(mainWin, function(window, width, height)
+	glfw.setFramebufferSizeCallback(mainWin, function(window, width, height)
 		bcfx.setViewRect(255, 0, 0, width, height)
 		bcfx.setViewRect(0, 0, 0, width, height)
 		bcfx.setViewRect(2, 0, 0, width // 2, height // 2)
 	end)
-	local pixelw, pixelh = glfw.GetFramebufferSize(mainWin)
+	local pixelw, pixelh = glfw.getFramebufferSize(mainWin)
 	SetupViewFull(0, mainWin, pixelw, pixelh)
 
 	local fbWidth = pixelw // 2

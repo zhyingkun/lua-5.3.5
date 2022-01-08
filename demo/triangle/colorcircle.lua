@@ -88,17 +88,17 @@ local viewID = 5
 local function setup(mainWin)
 	vertexHandle, idxHandle, shaderProgramHandle = GenerateColorCircle(0.7)
 
-	local win = glfw.CreateWindow(600, 600, "ColorCircle", nil, mainWin)
+	local win = glfw.createWindow(600, 600, "ColorCircle", nil, mainWin)
 	if not win then
-		print("GLFW CreateWindow Error:", glfw.GetError())
-		glfw.Terminate()
+		print("GLFW CreateWindow Error:", glfw.getError())
+		glfw.terminate()
 		return
 	end
 
 	bcfx.setViewWindow(viewID, win)
-	bcfx.setViewRect(viewID, 0, 0, glfw.GetFramebufferSize(win))
+	bcfx.setViewRect(viewID, 0, 0, glfw.getFramebufferSize(win))
 	bcfx.setViewClear(viewID, clear_flag.COLOR | clear_flag.DEPTH, color.white, 1.0, 0)
-	glfw.SetFramebufferSizeCallback(win, function(window, width, height)
+	glfw.setFramebufferSizeCallback(win, function(window, width, height)
 		bcfx.setViewRect(viewID, 0, 0, width, height)
 	end)
 end

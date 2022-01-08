@@ -12,22 +12,28 @@ local func_ptr = glfw.func_ptr
 
 local bcfx = require("bcfx")
 
-glfw.set_msgh(function(msg)
+--[[
+package.cpath = package.cpath .. ';/Users/zyk/Library/Application Support/JetBrains/IdeaIC2021.1/plugins/EmmyLua/classes/debugger/emmy/mac/?.dylib'
+local dbg = require('emmy_core')
+dbg.tcpConnect('localhost', 9966)
+--]]
+
+glfw.setErrorMessageHandler(function(msg)
 	print("GLFW pcall error: ", msg, debug.traceback())
 end)
-glfw.SetErrorCallback()
+glfw.setErrorCallback()
 
-glfw.Init()
+glfw.init()
 
-glfw.WindowHint(window_hint.CONTEXT_VERSION_MAJOR, 4)
-glfw.WindowHint(window_hint.CONTEXT_VERSION_MINOR, 1)
-glfw.WindowHint(window_hint.OPENGL_PROFILE, hint_value.OPENGL_CORE_PROFILE)
-glfw.WindowHint(window_hint.OPENGL_FORWARD_COMPAT, hint_value.TRUE)
+glfw.windowHint(window_hint.CONTEXT_VERSION_MAJOR, 4)
+glfw.windowHint(window_hint.CONTEXT_VERSION_MINOR, 1)
+glfw.windowHint(window_hint.OPENGL_PROFILE, hint_value.OPENGL_CORE_PROFILE)
+glfw.windowHint(window_hint.OPENGL_FORWARD_COMPAT, hint_value.TRUE)
 
-local window = glfw.CreateWindow(800, 600, "Triangle")
+local window = glfw.createWindow(800, 600, "Triangle")
 if not window then
-	print("GLFW CreateWindow Error:", glfw.GetError())
-	glfw.Terminate()
+	print("GLFW CreateWindow Error:", glfw.getError())
+	glfw.terminate()
 	return
 end
 
@@ -118,14 +124,14 @@ bcfx.setFrameViewCaptureCallback(function(frameId, viewId, width, height, mb)
 end)
 
 local lastTime = 0.0
-while not glfw.WindowShouldClose(window) do
+while not glfw.windowShouldClose(window) do
 	libuv.run_nowait()
 
 	input.ImGUIPrePollEvent()
-	glfw.PollEvents() -- will fire user input, keyboard or mouse
+	glfw.pollEvents() -- will fire user input, keyboard or mouse
 	input.ImGUIPostPollEvent()
 
-	local time = glfw.GetTime()
+	local time = glfw.getTime()
 	local delta = time - lastTime
 	lastTime = time
 
@@ -147,5 +153,5 @@ end
 -- libuv.repl_stop()
 
 bcfx.shutdown()
-glfw.Terminate()
+glfw.terminate()
 libuv.close()
