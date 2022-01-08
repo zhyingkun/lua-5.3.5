@@ -48,7 +48,7 @@ typedef struct {
 } CmdIndexBuffer;
 typedef struct {
   bcfx_MemBuffer mem;
-  ShaderType type;
+  bcfx_EShaderType type;
 } CmdShader;
 typedef struct {
   Handle vsHandle;

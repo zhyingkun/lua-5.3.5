@@ -107,7 +107,7 @@ BCFX_API Handle bcfx_createDynamicIndexBuffer(size_t size, bcfx_EIndexType type)
   return ctx_createDynamicIndexBuffer(s_ctx, size, type);
 }
 
-BCFX_API Handle bcfx_createShader(bcfx_MemBuffer* mem, ShaderType type) {
+BCFX_API Handle bcfx_createShader(bcfx_MemBuffer* mem, bcfx_EShaderType type) {
   return ctx_createShader(s_ctx, mem, type);
 }
 

@@ -325,7 +325,7 @@ Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size, bcfx_EIndexType t
   return handle;
 }
 
-Handle ctx_createShader(Context* ctx, bcfx_MemBuffer* mem, ShaderType type) {
+Handle ctx_createShader(Context* ctx, bcfx_MemBuffer* mem, bcfx_EShaderType type) {
   ADD_CMD_ALLOC_HANDLE(ctx, Shader)
   param->cs.mem = *mem;
   param->cs.type = type;

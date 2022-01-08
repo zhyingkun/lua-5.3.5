@@ -61,7 +61,7 @@ Handle ctx_createVertexBuffer(Context* ctx, bcfx_MemBuffer* mem, Handle layoutHa
 Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size, Handle layoutHandle);
 Handle ctx_createIndexBuffer(Context* ctx, bcfx_MemBuffer* mem, bcfx_EIndexType type);
 Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size, bcfx_EIndexType type);
-Handle ctx_createShader(Context* ctx, bcfx_MemBuffer* mem, ShaderType type);
+Handle ctx_createShader(Context* ctx, bcfx_MemBuffer* mem, bcfx_EShaderType type);
 Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs);
 Handle ctx_createUniform(Context* ctx, const char* name, bcfx_UniformType type, uint16_t num);
 Handle ctx_createTexture(Context* ctx, bcfx_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format);

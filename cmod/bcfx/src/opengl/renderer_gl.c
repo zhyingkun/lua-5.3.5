@@ -158,6 +158,11 @@ const TextureFormatInfo textureFormat_glType[] = {
     {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE},
     {GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8},
 };
+// According to bcfx_EShaderType
+const GLenum shader_glType[] = {
+    GL_VERTEX_SHADER,
+    GL_FRAGMENT_SHADER,
+};
 
 /* }====================================================== */
 
@@ -324,15 +329,10 @@ static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, bcfx_MemBu
   GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
   MEMBUFFER_RELEASE(mem);
 }
-static void gl_createShader(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, ShaderType type) {
+static void gl_createShader(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, bcfx_EShaderType type) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   ShaderGL* shader = &glCtx->shaders[handle_index(handle)];
-  if (type == ST_Vertex) {
-    shader->type = GL_VERTEX_SHADER;
-  } else if (type == ST_Fragment) {
-    shader->type = GL_FRAGMENT_SHADER;
-  } else {
-  }
+  shader->type = shader_glType[type];
   GL_CHECK(shader->id = glCreateShader(shader->type));
   const GLint length = mem->sz;
   GL_CHECK(glShaderSource(shader->id, 1, (const GLchar* const*)&mem->ptr, &length));

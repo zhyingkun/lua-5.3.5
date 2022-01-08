@@ -242,9 +242,9 @@ BCFX_API Handle bcfx_createDynamicIndexBuffer(size_t size, bcfx_EIndexType type)
 typedef enum {
   ST_Vertex,
   ST_Fragment,
-} ShaderType;
+} bcfx_EShaderType;
 
-BCFX_API Handle bcfx_createShader(bcfx_MemBuffer* mem, ShaderType type);
+BCFX_API Handle bcfx_createShader(bcfx_MemBuffer* mem, bcfx_EShaderType type);
 BCFX_API Handle bcfx_createProgram(Handle vs, Handle fs);
 
 // WARNING: Change bcfx_UniformType must Update uniform_glType
