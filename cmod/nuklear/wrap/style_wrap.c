@@ -29,7 +29,14 @@ static int NKWRAP_FUNCTION(style_from_table)(lua_State* L) {
   return 0;
 }
 // nk_style_load_cursor
-// nk_style_load_all_cursors
+static int NKWRAP_FUNCTION(nk_style_load_all_cursors)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_font_atlas* atlas = luaL_checknkfontatlas(L, 2);
+  lua_settop(L, 2);
+  lua_setuservalue(L, 1); // save atlas as uservalue of context
+  nk_style_load_all_cursors(ctx, atlas->cursors);
+  return 0;
+}
 static int NKWRAP_FUNCTION(style_get_color_name)(lua_State* L) {
   nk_style_colors styleColor = (nk_style_colors)luaL_checkinteger(L, 1);
   const char* name = nk_style_get_color_name(styleColor);

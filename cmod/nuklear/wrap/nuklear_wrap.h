@@ -41,6 +41,7 @@ int ERROR_FUNCTION(msgh)(lua_State* L);
 
 extern lua_State* staticL;
 #define GET_MAIN_LUA_STATE() staticL
+
 #define HOLD_LUA_OBJECT(L, ptr, num, idx) \
   do { \
     lua_pushvalue(L, idx); \
@@ -69,8 +70,8 @@ extern lua_State* staticL;
   }
 #define POST_CALL_LUA(L) \
   lua_pop(L, 1)
-#define CALL_LUA_FUNCTION(L, nargs, nresult) \
-  CALL_LUA(L, nargs, nresult) \
+#define CALL_LUA_FUNCTION(L, nargs) \
+  CALL_LUA(L, nargs, 0) \
   POST_CALL_LUA(L)
 
 nk_color luaL_checknkcolor(lua_State* L, int idx);
