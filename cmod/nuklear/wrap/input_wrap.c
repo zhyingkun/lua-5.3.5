@@ -283,6 +283,9 @@ static const luaL_Enum NKWRAP_ENUM(mouse_button)[] = {
 void NKWRAP_FUNCTION(init_input)(lua_State* L) {
   luaL_setfuncs(L, wrap_funcs, 0);
 
+  lua_pushinteger(L, NK_INPUT_MAX);
+  lua_setfield(L, -2, "INPUT_MAX");
+
   REGISTE_ENUM(keyboard);
   REGISTE_ENUM(mouse_button);
 }
