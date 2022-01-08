@@ -3,20 +3,20 @@ local input_state = glfw.input_state
 local keyboard = glfw.keyboard
 local modifier_key = glfw.modifier_key
 
-glfw.set_msgh(function(msg)
+glfw.setErrorMessageHandler(function(msg)
 	print("GLFW pcall error: ", msg, debug.traceback())
 end)
 
-glfw.SetErrorCallback()
-if not glfw.Init() then
+glfw.setErrorCallback()
+if not glfw.init() then
 	print("Failed to initialize GLFW")
-	glfw.Terminate()
+	glfw.terminate()
 	return
 end
-local window = glfw.CreateWindow(200, 200, "Clipboard Test")
+local window = glfw.createWindow(200, 200, "Clipboard Test")
 if not window then
 	print("Failed to open GLFW window")
-	glfw.Terminate()
+	glfw.terminate()
 	return
 end
 
@@ -27,26 +27,26 @@ else
 	MODIFIER = modifier_key.CONTROL
 end
 
-glfw.SetKeyCallback(window, function(window, key, scancode, action, mods)
+glfw.setKeyCallback(window, function(window, key, scancode, action, mods)
 	if action ~= input_state.PRESS then return end
 	if key == keyboard.ESCAPE then
-		glfw.SetWindowShouldClose(window, true)
+		glfw.setWindowShouldClose(window, true)
 	elseif key == keyboard.V then
 		if mods == MODIFIER then
-			local string = glfw.GetClipboardString(NULL)
+			local string = glfw.getClipboardString(NULL)
 			print("Clipboard contains", string)
 		end
 	elseif key == keyboard.C then
 		if mods == MODIFIER then
 			local string = "Hello GLFW World!"
-			glfw.SetClipboardString(NULL, string)
+			glfw.setClipboardString(NULL, string)
 			print("Setting clipboard to", string)
 		end
 	end
 end)
 
-while not glfw.WindowShouldClose(window) do
-	glfw.PollEvents()
+while not glfw.windowShouldClose(window) do
+	glfw.pollEvents()
 end
 
-glfw.Terminate()
+glfw.terminate()
