@@ -813,6 +813,13 @@ static const luaL_Enum BCWRAP_ENUM(texture_format)[] = {
     {"D24S8", TF_D24S8},
     {NULL, 0},
 };
+static const luaL_Enum BCWRAP_ENUM(uniform_type)[] = {
+    {"Sampler2D", UT_Sampler2D},
+    {"Vec4", UT_Vec4},
+    {"Mat3x3", UT_Mat3x3},
+    {"Mat4x4", UT_Mat4x4},
+    {NULL, 0},
+};
 
 /* }====================================================== */
 
@@ -837,6 +844,7 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   REGISTE_ENUM(debug);
   REGISTE_ENUM(discard);
   REGISTE_ENUM(texture_format);
+  REGISTE_ENUM(uniform_type);
 
   (void)VL_FUNCTION(init_metatable)(L);
   (void)COLOR_FUNCTION(init)(L);
