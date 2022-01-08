@@ -94,14 +94,21 @@ int BCWRAP_FUNCTION(msgh)(lua_State* L);
 #define PREPARE_CALL_LUA(L) \
   lua_checkstack(L, LUA_MINSTACK); \
   lua_pushcfunction(L, BCWRAP_FUNCTION(msgh))
-#define CALL_LUA_FUNCTION(L, nargs, nresult) /* must be pcall */ \
+#define CALL_LUA(L, nargs, nresult) /* must be pcall */ \
   int msgh = lua_gettop(L) - (nargs + 1); \
-  if (lua_pcall(L, nargs, 0, msgh) != LUA_OK) { \
+  if (lua_pcall(L, nargs, nresult, msgh) != LUA_OK) { \
     if (!lua_isnil(L, -1)) { \
       fprintf(stderr, "Error: %s\n", lua_tostring(L, -1)); \
     } \
     lua_pop(L, 1); \
-  } \
+    for (int i = 0; i < nresult; i++) { \
+      lua_pushnil(L); \
+    } \
+  }
+#define POST_CALL_LUA(L) \
   lua_pop(L, 1)
+#define CALL_LUA_FUNCTION(L, nargs) \
+  CALL_LUA(L, nargs, 0) \
+  POST_CALL_LUA(L)
 
 #endif /* _BCFX_WRAP_H_ */

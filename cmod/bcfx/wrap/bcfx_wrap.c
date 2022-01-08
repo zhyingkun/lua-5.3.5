@@ -46,7 +46,7 @@ static void on_frame_completed(void* ud, uint32_t frameId) {
     PREPARE_CALL_LUA(L);
     lua_pushvalue(L, func);
     lua_pushinteger(L, frameId);
-    CALL_LUA_FUNCTION(L, 1, 0);
+    CALL_LUA_FUNCTION(L, 1);
   } else {
     lua_pop(L, 1);
   }
@@ -421,7 +421,7 @@ static void _onFrameViewCapture(void* ud, uint32_t frameId, bcfx_FrameViewCaptur
     lua_pushinteger(L, result->height);
     bcfx_MemBuffer* mb = luaL_newmembuffer(L);
     MEMBUFFER_MOVE(&result->mb, mb);
-    CALL_LUA_FUNCTION(L, 5, 0);
+    CALL_LUA_FUNCTION(L, 5);
   } else {
     lua_pop(L, 1);
   }
