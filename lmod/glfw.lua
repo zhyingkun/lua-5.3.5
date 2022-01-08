@@ -645,13 +645,13 @@ function glfw.setMonitorCallback(callback)
 	libglfw.SetMonitorCallback(callback)
 end
 
----@class GLFWvidmode:userdata
----@field width fun():integer
----@field height fun():integer
----@field redBits fun():integer
----@field greenBits fun():integer
----@field blueBits fun():integer
----@field refreshRate fun():integer
+---@class GLFWvidmode
+---@field width integer
+---@field height integer
+---@field redBits integer
+---@field greenBits integer
+---@field blueBits integer
+---@field refreshRate integer
 
 ---@param monitor GLFWmonitor
 ---@return GLFWvidmode[]

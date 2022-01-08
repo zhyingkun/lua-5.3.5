@@ -10,57 +10,18 @@
 ** =======================================================
 */
 
-#define GLFW_VIDMODE_TYPE "GLFWvidmode*"
-
-#define luaL_checkvidmode(L, idx) (GLFWvidmode*)luaL_checkudata(L, idx, GLFW_VIDMODE_TYPE)
-
-#define DEFINE_VIDMODE_GET_FIELD(name) \
-  static int vidmode_get_##name(lua_State* L) { \
-    GLFWvidmode* vidmode = luaL_checkvidmode(L, 1); \
-    lua_pushinteger(L, vidmode->name); \
-    return 1; \
-  }
-#define EMPLACE_VIDMODE_FUNCTION(name) \
-  { #name, vidmode_get_##name }
-
-DEFINE_VIDMODE_GET_FIELD(width)
-DEFINE_VIDMODE_GET_FIELD(height)
-DEFINE_VIDMODE_GET_FIELD(redBits)
-DEFINE_VIDMODE_GET_FIELD(greenBits)
-DEFINE_VIDMODE_GET_FIELD(blueBits)
-DEFINE_VIDMODE_GET_FIELD(refreshRate)
-
-static int vidmode_tostring(lua_State* L) {
-  GLFWvidmode* v = luaL_checkvidmode(L, 1);
-  lua_pushfstring(L, "videomode: %d x %d (%d, %d, %d) %dHz", v->width, v->height, v->redBits, v->greenBits, v->blueBits, v->refreshRate);
-  return 1;
-}
-
-static const luaL_Reg vidmode_metafuncs[] = {
-    EMPLACE_VIDMODE_FUNCTION(width),
-    EMPLACE_VIDMODE_FUNCTION(height),
-    EMPLACE_VIDMODE_FUNCTION(redBits),
-    EMPLACE_VIDMODE_FUNCTION(greenBits),
-    EMPLACE_VIDMODE_FUNCTION(blueBits),
-    EMPLACE_VIDMODE_FUNCTION(refreshRate),
-    {"__tostring", vidmode_tostring},
-    {NULL, NULL},
-};
-
-static void init_vidmode_metatable(lua_State* L) {
-  luaL_newmetatable(L, GLFW_VIDMODE_TYPE);
-  luaL_setfuncs(L, vidmode_metafuncs, 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  lua_pop(L, 1);
-}
-
+#define VIDMODE_SET_FIELD(field_) \
+  lua_pushinteger(L, vidmode->field_); \
+  lua_setfield(L, -2, #field_)
 static void lua_pushvidmode(lua_State* L, const GLFWvidmode* vidmode) {
-  GLFWvidmode* mode = lua_newuserdata(L, sizeof(GLFWvidmode));
-  luaL_setmetatable(L, GLFW_VIDMODE_TYPE);
-  *mode = *vidmode;
+  lua_createtable(L, 0, 6);
+
+  VIDMODE_SET_FIELD(width);
+  VIDMODE_SET_FIELD(height);
+  VIDMODE_SET_FIELD(redBits);
+  VIDMODE_SET_FIELD(greenBits);
+  VIDMODE_SET_FIELD(blueBits);
+  VIDMODE_SET_FIELD(refreshRate);
 }
 
 /* }====================================================== */
