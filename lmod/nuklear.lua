@@ -1,19 +1,47 @@
 local libnk = require("libnuklear")
+local libfont = libnk.font
 
 ---@class nuklear
 local nk = {}
 
 --[[
 ** {======================================================
-** Buffer
+** Font
 ** =======================================================
 --]]
 
-function nk.FontConfig()
-	return libnk.FontConfig()
+---@class nuklear_font
+local font = {}
+nk.font = font
+
+---@class nk_font_atlas:userdata
+---@field begin fun():void
+
+---@return nk_font_atlas
+function font.Atlas()
+	return libfont.Atlas()
 end
-function nk.FontAtlas()
-	return libnk.FontAtlas()
+function font.Config()
+	return libfont.Config()
+end
+
+---@class nk_rune_ptr:lightuserdata
+
+---@return nk_rune_ptr
+function font.defaultGlyphRanges()
+	return libfont.default_glyph_ranges()
+end
+---@return nk_rune_ptr
+function font.chineseGlyphRanges()
+	return libfont.chinese_glyph_ranges()
+end
+---@return nk_rune_ptr
+function font.cyrillicGlyphRanges()
+	return libfont.cyrillic_glyph_ranges()
+end
+---@return nk_rune_ptr
+function font.koreanGlyphRanges()
+	return libfont.korean_glyph_ranges()
 end
 
 -- }======================================================
