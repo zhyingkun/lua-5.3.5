@@ -27,6 +27,10 @@
   luaL_newenum(L, NKWRAP_ENUM(name)); \
   lua_setfield(L, -2, #name)
 
+#define REGISTE_LIGHTUSERDATA(name, lightuserdata) \
+  lua_pushlightuserdata(L, (void*)(lightuserdata)); \
+  lua_setfield(L, -2, #name)
+
 #define REGISTE_METATABLE(name_, metafuncs_) \
   do { \
     luaL_newmetatable(L, name_); \

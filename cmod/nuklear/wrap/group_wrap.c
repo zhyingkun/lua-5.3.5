@@ -44,18 +44,6 @@ static int NKWRAP_FUNCTION(group_scrolled_offset_begin)(lua_State* L) {
   lua_pushinteger(L, yOffset);
   return 3;
 }
-static int NKWRAP_FUNCTION(group_scrolled_begin)(lua_State* L) {
-  nk_context* ctx = luaL_checkcontext(L, 1);
-  const char* title = luaL_checkstring(L, 2);
-  nk_flags flags = luaL_checknkflags(L, 3);
-
-  nk_scroll off;
-  nk_bool ret = nk_group_scrolled_begin(ctx, &off, title, flags);
-  lua_pushboolean(L, (int)ret);
-  lua_pushinteger(L, off.x);
-  lua_pushinteger(L, off.y);
-  return 3;
-}
 static int NKWRAP_FUNCTION(group_scrolled_end)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
@@ -91,7 +79,6 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_NKWRAP_FUNCTION(group_begin_titled),
     EMPLACE_NKWRAP_FUNCTION(group_end),
     EMPLACE_NKWRAP_FUNCTION(group_scrolled_offset_begin),
-    EMPLACE_NKWRAP_FUNCTION(group_scrolled_begin),
     EMPLACE_NKWRAP_FUNCTION(group_scrolled_end),
     EMPLACE_NKWRAP_FUNCTION(group_get_scroll),
     EMPLACE_NKWRAP_FUNCTION(group_set_scroll),

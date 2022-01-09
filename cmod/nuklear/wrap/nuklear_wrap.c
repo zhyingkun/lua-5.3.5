@@ -662,11 +662,16 @@ static int NKWRAP_FUNCTION(edit_string)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   nk_flags flag = luaL_checknkflags(L, 2);
   nk_buffer* buffer = luaL_checkbuffer(L, 3);
-
+  nk_plugin_filter filter = NULL;
+#define FILTER_IDX 4
+  if (lua_islightuserdata(L, FILTER_IDX)) {
+    filter = (nk_plugin_filter)luaL_checklightuserdata(L, FILTER_IDX);
+  }
+#undef FILTER_IDX
   char* ptr = (char*)nk_buffer_memory(buffer);
   int len;
   int max = nk_buffer_total(buffer);
-  nk_flags ret = nk_edit_string(ctx, flag, ptr, &len, max, NULL);
+  nk_flags ret = nk_edit_string(ctx, flag, ptr, &len, max, filter);
   lua_pushinteger(L, (int)ret);
   return 1;
 }
@@ -691,12 +696,14 @@ static int NKWRAP_FUNCTION(edit_buffer)(lua_State* L) {
 #define FILTER_IDX 4
   if (lua_islightuserdata(L, FILTER_IDX)) {
     filter = (nk_plugin_filter)luaL_checklightuserdata(L, FILTER_IDX);
-  } else {
+  } else if (lua_isfunction(L, FILTER_IDX)) {
     filter = _textEditPluginFilter;
     HOLD_LUA_OBJECT(L, _textEditPluginFilter, 0, FILTER_IDX);
     HOLD_LUA_OBJECT(L, editor, 0, 3);
+  } else {
+    filter = NULL;
   }
-
+#undef FILTER_IDX
   nk_flags ret = nk_edit_buffer(ctx, flag, editor, filter);
   lua_pushinteger(L, (int)ret);
   return 1;
@@ -801,18 +808,10 @@ static int NKWRAP_FUNCTION(chart_add_slot_colored)(lua_State* L) {
   nk_chart_add_slot_colored(ctx, type, color, highlight, count, minValue, maxValue);
   return 0;
 }
-static int NKWRAP_FUNCTION(chart_push)(lua_State* L) {
-  nk_context* ctx = luaL_checkcontext(L, 1);
-  float value = luaL_checknumber(L, 2);
-
-  nk_flags ret = nk_chart_push(ctx, value);
-  lua_pushinteger(L, ret);
-  return 1;
-}
 static int NKWRAP_FUNCTION(chart_push_slot)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   float value = luaL_checknumber(L, 2);
-  int slot = luaL_checkinteger(L, 3);
+  int slot = luaL_optinteger(L, 3, 0);
 
   nk_flags ret = nk_chart_push_slot(ctx, value, slot);
   lua_pushinteger(L, ret);
@@ -957,8 +956,8 @@ static int NKWRAP_FUNCTION(combo)(lua_State* L) {
   }
 #undef TABLE_IDX
 
-  int ret = nk_combo(ctx, items, count, selected, itemHeight, size);
-  lua_pushinteger(L, ret);
+  int ret = nk_combo(ctx, items, count, selected - 1, itemHeight, size);
+  lua_pushinteger(L, ret + 1);
   return 1;
 }
 static int NKWRAP_FUNCTION(combo_separator)(lua_State* L) {
@@ -970,8 +969,8 @@ static int NKWRAP_FUNCTION(combo_separator)(lua_State* L) {
   int itemHeight = luaL_checkinteger(L, 6);
   nk_vec2 size = luaL_checknkvec2(L, 7);
 
-  int ret = nk_combo_separator(ctx, items, separator, selected, count, itemHeight, size);
-  lua_pushinteger(L, ret);
+  int ret = nk_combo_separator(ctx, items, separator, selected - 1, count, itemHeight, size);
+  lua_pushinteger(L, ret + 1);
   return 1;
 }
 
@@ -997,8 +996,8 @@ static int NKWRAP_FUNCTION(combo_callback)(lua_State* L) {
 
   lua_settop(L, CALLBACK_IDX);
 #undef CALLBACK_IDX
-  int ret = nk_combo_callback(ctx, _itemGetter, (void*)L, selected, count, itemHeight, size);
-  lua_pushinteger(L, ret);
+  int ret = nk_combo_callback(ctx, _itemGetter, (void*)L, selected - 1, count, itemHeight, size);
+  lua_pushinteger(L, ret + 1);
   return 1;
 }
 
@@ -1122,8 +1121,7 @@ static int NKWRAP_FUNCTION(combo_end)(lua_State* L) {
 ** =======================================================
 */
 
-static int
-NKWRAP_FUNCTION(contextual_begin)(lua_State* L) {
+static int NKWRAP_FUNCTION(contextual_begin)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   nk_flags flags = luaL_checknkflags(L, 2);
   nk_vec2 size = luaL_checknkvec2(L, 3);
@@ -1403,7 +1401,6 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_NKWRAP_FUNCTION(chart_begin_colored),
     EMPLACE_NKWRAP_FUNCTION(chart_add_slot),
     EMPLACE_NKWRAP_FUNCTION(chart_add_slot_colored),
-    EMPLACE_NKWRAP_FUNCTION(chart_push),
     EMPLACE_NKWRAP_FUNCTION(chart_push_slot),
     EMPLACE_NKWRAP_FUNCTION(chart_end),
     EMPLACE_NKWRAP_FUNCTION(plot),

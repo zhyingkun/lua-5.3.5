@@ -25,14 +25,14 @@ static int NKTEXTEDIT_FUNCTION(delete)(lua_State* L) {
   nk_textedit_delete(editor, where, len);
   return 0;
 }
-static int NKTEXTEDIT_FUNCTION(delete_selection)(lua_State* L) {
+static int NKTEXTEDIT_FUNCTION(deleteSelection)(lua_State* L) {
   (void)L;
   nk_text_edit* editor = luaL_checktextedit(L, 1);
 
   nk_textedit_delete_selection(editor);
   return 0;
 }
-static int NKTEXTEDIT_FUNCTION(select_all)(lua_State* L) {
+static int NKTEXTEDIT_FUNCTION(selectAll)(lua_State* L) {
   (void)L;
   nk_text_edit* editor = luaL_checktextedit(L, 1);
 
@@ -84,8 +84,8 @@ static int NKTEXTEDIT_FUNCTION(__gc)(lua_State* L) {
 static const luaL_Reg metafuncs[] = {
     EMPLACE_NKTEXTEDIT_FUNCTION(text),
     EMPLACE_NKTEXTEDIT_FUNCTION(delete),
-    EMPLACE_NKTEXTEDIT_FUNCTION(delete_selection),
-    EMPLACE_NKTEXTEDIT_FUNCTION(select_all),
+    EMPLACE_NKTEXTEDIT_FUNCTION(deleteSelection),
+    EMPLACE_NKTEXTEDIT_FUNCTION(selectAll),
     EMPLACE_NKTEXTEDIT_FUNCTION(cut),
     EMPLACE_NKTEXTEDIT_FUNCTION(paste),
     EMPLACE_NKTEXTEDIT_FUNCTION(undo),
@@ -109,6 +109,14 @@ static const luaL_Reg funcs[] = {
 
 void NKTEXTEDIT_FUNCTION(init)(lua_State* L) {
   luaL_setfuncs(L, funcs, 0);
+
+  REGISTE_LIGHTUSERDATA(filterDefaultPtr, nk_filter_default);
+  REGISTE_LIGHTUSERDATA(filterAsciiPtr, nk_filter_ascii);
+  REGISTE_LIGHTUSERDATA(filterFloatPtr, nk_filter_float);
+  REGISTE_LIGHTUSERDATA(filterDecimalPtr, nk_filter_decimal);
+  REGISTE_LIGHTUSERDATA(filterHexPtr, nk_filter_hex);
+  REGISTE_LIGHTUSERDATA(filterOctPtr, nk_filter_oct);
+  REGISTE_LIGHTUSERDATA(filterBinaryPtr, nk_filter_binary);
 
   REGISTE_METATABLE(NUKLEAR_TEXTEDIT_TYPE, metafuncs);
 }
