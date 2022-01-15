@@ -269,15 +269,20 @@ static int auxlocalnext(lua_State* L) {
 }
 
 static int db_locals(lua_State* L) {
-  int arg;
-  lua_State* L1 = getthread(L, &arg);
-
+  int arg = 0;
+  if (lua_isthread(L, 1)) {
+    arg = 1;
+  }
   int t = lua_type(L, arg + 1);
   if (t != LUA_TFUNCTION && t != LUA_TNUMBER) {
     luaL_error(L, "traversal locals need function or number");
   }
 
-  lua_pushlightuserdata(L, L1);
+  if (arg == 1) {
+    lua_pushvalue(L, 1);
+  } else {
+    lua_pushthread(L);
+  }
   lua_pushcclosure(L, auxlocalnext, 1);
   lua_pushvalue(L, arg + 1);
   lua_pushinteger(L, 0);

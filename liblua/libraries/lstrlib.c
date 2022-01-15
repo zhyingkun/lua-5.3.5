@@ -23,6 +23,13 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
+#ifdef _WIN32
+#include <malloc.h>
+#define alloca _alloca
+#else
+#include <alloca.h>
+#endif
+
 /*
 ** maximum number of captures that a pattern can do during
 ** pattern-matching. This limit is arbitrary, but must fit in
@@ -1648,7 +1655,7 @@ static int str_unpack(lua_State* L) {
 static int str_escape(lua_State* L) {
   size_t len;
   const char* str = luaL_checklstring(L, 1, &len);
-  char* dst = (char*)lua_newuserdata(L, len * 4);
+  char* dst = (char*)alloca(len * 4);
   size_t dstlen = luaL_escape(dst, str, len);
   lua_pushlstring(L, dst, dstlen);
   return 1;
