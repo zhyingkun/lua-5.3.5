@@ -90,15 +90,19 @@ function CJsonToLuaValue(item)
 	return func(item)
 end
 
-
-local M = {}
+---@class json
+local json = {}
 
 --[[
 function convertFunc(value)
 	return nil/bool/number/string/table -- nil for drop it
 end
 --]]
-function M.tostring(value, convertFunc, fmt)
+---@param value any
+---@param convertFunc fun(value:any):nil | bool | number | string | table
+---@param fmt boolean
+---@return string
+function json.tostring(value, convertFunc, fmt)
 	ConvertFunc = type(convertFunc) == "function" and convertFunc or nil
 	TableUnique = {}
 	local item = LuaValueToCJson(value)
@@ -109,6 +113,8 @@ function M.tostring(value, convertFunc, fmt)
 	return str
 end
 
+---@param str string
+---@return any
 function M.parse(str)
 	local item = c.parse(str)
 	if not item then return end
@@ -117,12 +123,15 @@ function M.parse(str)
 	return value
 end
 
+---@param str string
+---@return string
 function M.minify(str)
 	return c.minify(str)
 end
 
-function M.memcb(func)
-	c.set_realloc_cb(func)
+---@param callback MemAllocCallback | "function(oldPtr, newPtr, newSize) end"
+function M.setMemoryAllocatedCallback(callback)
+	c.set_realloc_cb(callback)
 end
 
 return M
