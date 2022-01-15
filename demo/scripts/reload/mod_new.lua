@@ -41,7 +41,7 @@ function meta.new_logic() -- added
 	local tbl = {hello = "nice"}
 	insert(tbl, "good")
 	insert(tbl, MAX_OBJECT_COUNT)
-	print(tablesrc.TableToLuaSource(tbl))
+	print(tablesrc.tableToLuaSource(tbl))
 	print("new_logic", tostring(tbl, 1))
 end
 function M.new(...)

@@ -227,5 +227,5 @@ local str = FieldTableToProtoSrc(fieldTbl)
 print(str)
 
 -- local tablesrc = require("common.tablesrc")
--- local src = tablesrc.TableToLuaSource(fieldTbl, "\t")
+-- local src = tablesrc.tableToLuaSource(fieldTbl, "\t")
 -- print("TableSrc:\n", src)
