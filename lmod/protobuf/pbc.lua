@@ -162,8 +162,6 @@ function pbc.decodePure(typeName, buffer)
 	return c.decode_pure(P, typeName, buffer)
 end
 
----@alias MemAllocCallback fun(oldPtr:lightuserdata, newPtr:lightuserdata, newSize:integer):void
-
 ---@param callback MemAllocCallback | "function(oldPtr, newPtr, newSize) end"
 function pbc.setMemoryAllocatedCallback(callback)
 	c.set_realloc_cb(callback)
