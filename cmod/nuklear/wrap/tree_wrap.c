@@ -11,7 +11,7 @@
 // nk_tree_push_id
 static int NKWRAP_FUNCTION(tree_push_hashed)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_tree_type type = (nk_tree_type)luaL_checkinteger(L, 2);
+  nk_tree_type type = luaL_checknktreetype(L, 2);
   const char* title = luaL_checkstring(L, 3);
   nk_collapse_states initialState = luaL_checknkcollapsestates(L, 4);
   size_t sz;
@@ -26,7 +26,7 @@ static int NKWRAP_FUNCTION(tree_push_hashed)(lua_State* L) {
 // nk_tree_image_push_id
 static int NKWRAP_FUNCTION(tree_image_push_hashed)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_tree_type type = (nk_tree_type)luaL_checkinteger(L, 2);
+  nk_tree_type type = luaL_checknktreetype(L, 2);
   nk_image* img = luaL_checknkimage(L, 3);
   const char* title = luaL_checkstring(L, 4);
   nk_collapse_states initialState = luaL_checknkcollapsestates(L, 5);
@@ -46,7 +46,7 @@ static int NKWRAP_FUNCTION(tree_pop)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(tree_state_push)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_tree_type type = (nk_tree_type)luaL_checkinteger(L, 2);
+  nk_tree_type type = luaL_checknktreetype(L, 2);
   const char* title = luaL_checkstring(L, 3);
   nk_collapse_states state = luaL_checknkcollapsestates(L, 4);
 
@@ -57,7 +57,7 @@ static int NKWRAP_FUNCTION(tree_state_push)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(tree_state_image_push)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_tree_type type = (nk_tree_type)luaL_checkinteger(L, 2);
+  nk_tree_type type = luaL_checknktreetype(L, 2);
   nk_image* img = luaL_checknkimage(L, 3);
   const char* title = luaL_checkstring(L, 4);
   nk_collapse_states state = luaL_checknkcollapsestates(L, 5);
@@ -75,7 +75,7 @@ static int NKWRAP_FUNCTION(tree_state_pop)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(tree_element_push_hashed)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_tree_type type = (nk_tree_type)luaL_checkinteger(L, 2);
+  nk_tree_type type = luaL_checknktreetype(L, 2);
   const char* title = luaL_checkstring(L, 3);
   nk_collapse_states initialState = luaL_checknkcollapsestates(L, 4);
   nk_bool selected = luaL_checknkbool(L, 5);
@@ -90,7 +90,7 @@ static int NKWRAP_FUNCTION(tree_element_push_hashed)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(tree_element_image_push_hashed)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_tree_type type = (nk_tree_type)luaL_checkinteger(L, 2);
+  nk_tree_type type = luaL_checknktreetype(L, 2);
   nk_image* img = luaL_checknkimage(L, 3);
   const char* title = luaL_checkstring(L, 4);
   nk_collapse_states initialState = luaL_checknkcollapsestates(L, 5);
@@ -128,6 +128,14 @@ static const luaL_Reg wrap_funcs[] = {
     {NULL, NULL},
 };
 
+static const luaL_Enum NKWRAP_ENUM(tree_type)[] = {
+    {"NODE", NK_TREE_NODE},
+    {"TAB", NK_TREE_TAB},
+    {NULL, 0},
+};
+
 void NKWRAP_FUNCTION(init_tree)(lua_State* L) {
   luaL_setfuncs(L, wrap_funcs, 0);
+
+  REGISTE_ENUM(tree_type);
 }

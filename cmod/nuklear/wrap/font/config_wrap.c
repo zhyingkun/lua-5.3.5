@@ -27,7 +27,7 @@ static int NKFONTCFG_FUNCTION(__index)(lua_State* L) {
   PUSH_VALUE_IF_MATCH(oversample_v, overSampleV, integer)
   PUSH_VALUE_IF_MATCH(oversample_h, overSampleH, integer)
   PUSH_VALUE_IF_MATCH(size, pixelHeight, number)
-  PUSH_VALUE_IF_MATCH(coord_type, coordType, fontcoordtype)
+  PUSH_VALUE_IF_MATCH(coord_type, coordType, nkfontcoordtype)
   PUSH_VALUE_IF_MATCH(spacing, spacing, nkvec2)
   PUSH_VALUE_IF_MATCH_CAST(range, range, lightuserdata, void*)
   PUSH_VALUE_IF_MATCH(fallback_glyph, fallbackGlyph, nkrune)
@@ -52,7 +52,7 @@ static int NKFONTCFG_FUNCTION(__newindex)(lua_State* L) {
   SET_VALUE_IF_MATCH_CAST(oversample_v, overSampleV, integer, unsigned char);
   SET_VALUE_IF_MATCH_CAST(oversample_h, overSampleH, integer, unsigned char);
   SET_VALUE_IF_MATCH_CAST(size, pixelHeight, number, float);
-  SET_VALUE_IF_MATCH(coord_type, coordType, fontcoordtype);
+  SET_VALUE_IF_MATCH(coord_type, coordType, nkfontcoordtype);
   SET_VALUE_IF_MATCH(spacing, spacing, nkvec2);
   SET_VALUE_IF_MATCH_CAST(range, range, lightuserdata, const nk_rune*);
   SET_VALUE_IF_MATCH(fallback_glyph, fallbackGlyph, nkrune);
@@ -89,7 +89,7 @@ static int NKFONTCFG_FUNCTION(Config)(lua_State* L) {
     SET_CONFIG_FIELD_CAST(oversample_v, overSampleV, integer, unsigned char);
     SET_CONFIG_FIELD_CAST(oversample_h, overSampleH, integer, unsigned char);
     SET_CONFIG_FIELD_CAST(size, pixelHeight, number, float);
-    SET_CONFIG_FIELD(coord_type, coordType, fontcoordtype);
+    SET_CONFIG_FIELD(coord_type, coordType, nkfontcoordtype);
     SET_CONFIG_FIELD(spacing, spacing, nkvec2);
     SET_CONFIG_FIELD_CAST(range, range, lightuserdata, const nk_rune*);
     SET_CONFIG_FIELD(fallback_glyph, fallbackGlyph, nkrune);

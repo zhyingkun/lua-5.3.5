@@ -70,7 +70,7 @@ static int NKWRAP_FUNCTION(widget_is_hovered)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(widget_is_mouse_clicked)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_buttons button = (nk_buttons)luaL_checkinteger(L, 2);
+  nk_buttons button = luaL_checknkbuttons(L, 2);
 
   nk_bool ret = nk_widget_is_mouse_clicked(ctx, button);
   lua_pushboolean(L, (int)ret);
@@ -78,7 +78,7 @@ static int NKWRAP_FUNCTION(widget_is_mouse_clicked)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(widget_has_mouse_click_down)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_buttons button = (nk_buttons)luaL_checkinteger(L, 2);
+  nk_buttons button = luaL_checknkbuttons(L, 2);
   nk_bool down = luaL_checknkbool(L, 3);
 
   nk_bool ret = nk_widget_has_mouse_click_down(ctx, button, down);

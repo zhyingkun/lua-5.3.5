@@ -32,7 +32,7 @@ static int NKFONTATLAS_FUNCTION(addDefault)(lua_State* L) {
 }
 static int NKFONTATLAS_FUNCTION(bake)(lua_State* L) {
   nk_font_atlas* atlas = luaL_checknkfontatlas(L, 1);
-  nk_font_atlas_format format = (nk_font_atlas_format)luaL_checkinteger(L, 2);
+  nk_font_atlas_format format = luaL_checknkfontatlasformat(L, 2);
   int width, height;
   const void* image = nk_font_atlas_bake(atlas, &width, &height, format);
   nk_allocator allocator = nk_font_atlas_move_pixel(atlas, NULL);

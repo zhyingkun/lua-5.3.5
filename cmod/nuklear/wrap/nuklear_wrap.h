@@ -110,12 +110,16 @@ void luaL_pushnkrect(lua_State* L, nk_rect rect);
 #define luaL_checknkcharttype(L, idx) ((nk_chart_type)luaL_checkinteger(L, idx))
 #define luaL_checknkpopuptype(L, idx) ((nk_popup_type)luaL_checkinteger(L, idx))
 #define luaL_checknkheading(L, idx) ((nk_heading)luaL_checkinteger(L, idx))
-#define luaL_checkfontcoordtype(L, idx) ((nk_font_coord_type)luaL_checkinteger(L, idx))
+#define luaL_checknkfontcoordtype(L, idx) ((nk_font_coord_type)luaL_checkinteger(L, idx))
+#define luaL_checknkstylecursor(L, idx) ((nk_style_cursor)luaL_checkinteger(L, idx))
+#define luaL_checknkstylecolors(L, idx) ((nk_style_colors)luaL_checkinteger(L, idx))
+#define luaL_checknktreetype(L, idx) ((nk_tree_type)luaL_checkinteger(L, idx))
+#define luaL_checknkfontatlasformat(L, idx) ((nk_font_atlas_format)luaL_checkinteger(L, idx))
 
 #define luaL_checknkbool(L, idx) ((nk_bool)luaL_checkboolean(L, idx))
 #define luaL_checknkcollapsestates(L, idx) ((nk_collapse_states)luaL_checkboolean(L, idx))
 
-#define lua_pushfontcoordtype lua_pushinteger
+#define lua_pushnkfontcoordtype lua_pushinteger
 #define lua_pushnkvec2 luaL_pushnkvec2
 #define lua_pushnkrune lua_pushinteger
 #define lua_pushnkcolor luaL_pushnkcolor

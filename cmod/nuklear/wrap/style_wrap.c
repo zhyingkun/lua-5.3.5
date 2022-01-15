@@ -636,7 +636,7 @@ static int NKWRAP_FUNCTION(style_load_all_cursors)(lua_State* L) {
   return 0;
 }
 static int NKWRAP_FUNCTION(style_get_color_name)(lua_State* L) {
-  nk_style_colors styleColor = (nk_style_colors)luaL_checkinteger(L, 1);
+  nk_style_colors styleColor = luaL_checknkstylecolors(L, 1);
   const char* name = nk_style_get_color_name(styleColor);
   lua_pushstring(L, name);
   return 1;
@@ -650,7 +650,7 @@ static int NKWRAP_FUNCTION(style_set_font)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(style_set_cursor)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_style_cursor styleCursor = (nk_style_cursor)luaL_checkinteger(L, 2);
+  nk_style_cursor styleCursor = luaL_checknkstylecursor(L, 2);
 
   nk_bool ret = nk_style_set_cursor(ctx, styleCursor);
   lua_pushboolean(L, (int)ret);
