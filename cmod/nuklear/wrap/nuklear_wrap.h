@@ -115,6 +115,12 @@ void luaL_pushnkrect(lua_State* L, nk_rect rect);
 #define luaL_checknkbool(L, idx) ((nk_bool)luaL_checkboolean(L, idx))
 #define luaL_checknkcollapsestates(L, idx) ((nk_collapse_states)luaL_checkboolean(L, idx))
 
+#define lua_pushfontcoordtype lua_pushinteger
+#define lua_pushnkvec2 luaL_pushnkvec2
+#define lua_pushnkrune lua_pushinteger
+#define lua_pushnkcolor luaL_pushnkcolor
+#define lua_pushnkflags lua_pushinteger
+
 void* NKWRAP_FUNCTION(malloc)(size_t sz);
 void NKWRAP_FUNCTION(free)(void* ptr);
 
@@ -144,10 +150,19 @@ void NKCONTEXT_FUNCTION(init)(lua_State* L);
 #define NUKLEAR_IMAGE_TYPE "nk_image*"
 #define NKIMAGE_FUNCTION(name) nuklear_image_wrap_##name
 #define luaL_checknkimage(L, idx) (nk_image*)luaL_checkudata(L, idx, NUKLEAR_IMAGE_TYPE)
+#define lua_isnkimage(L, idx) (luaL_testudata(L, idx, NUKLEAR_IMAGE_TYPE) != NULL)
 void NKIMAGE_FUNCTION(init)(lua_State* L);
 
 #define NUKLEAR_NINESLICE_TYPE "nk_nine_slice*"
 #define luaL_checknknineslice(L, idx) (nk_nine_slice*)luaL_checkudata(L, idx, NUKLEAR_NINESLICE_TYPE)
+#define lua_isnknineslice(L, idx) (luaL_testudata(L, idx, NUKLEAR_NINESLICE_TYPE) != NULL)
+
+#define NUKLEAR_STYLEITEM_TYPE "nk_style_item*"
+#define NKSTYLEITEM_FUNCTION(name) nuklear_styleitem_wrap_##name
+#define luaL_checknkstyleitem(L, idx) (nk_style_item*)luaL_checkudata(L, idx, NUKLEAR_STYLEITEM_TYPE)
+void NKSTYLEITEM_FUNCTION(init)(lua_State* L);
+
+void lua_pushnkstyleitem(lua_State* L, nk_style_item* item);
 
 #define NUKLEAR_STYLEBUTTON_TYPE "nk_style_button*"
 #define NKSTYLEBUTTON_FUNCTION(name) nuklear_stylebutton_wrap_##name

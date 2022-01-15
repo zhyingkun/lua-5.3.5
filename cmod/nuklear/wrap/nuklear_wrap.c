@@ -1488,6 +1488,7 @@ LUAMOD_API int luaopen_libnuklear(lua_State* L) {
   (void)NKBUFFER_FUNCTION(init)(L);
   (void)NKCONTEXT_FUNCTION(init)(L);
   (void)NKIMAGE_FUNCTION(init)(L);
+  (void)NKSTYLEITEM_FUNCTION(init)(L);
   (void)NKSTYLEBUTTON_FUNCTION(init)(L);
   (void)NKTEXTEDIT_FUNCTION(init)(L);
 

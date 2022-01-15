@@ -9,9 +9,6 @@
 ** =======================================================
 */
 
-#define lua_pushfontcoordtype lua_pushinteger
-#define lua_pushnkvec2 luaL_pushnkvec2
-#define lua_pushnkrune lua_pushinteger
 #define PUSH_VALUE_IF_MATCH(field_, key_, type_) \
   if (strcmp(key, #key_) == 0) { \
     lua_push##type_(L, cfg->field_); \
