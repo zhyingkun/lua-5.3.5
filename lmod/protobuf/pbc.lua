@@ -99,32 +99,47 @@ _writer[128+10] = _writer[128+7]
 _writer[128+11] = _writer[128+7]
 --[[ Encode by wmessage end ]]----------------
 
-local M = {}
+---@type pbc
+local pbc = {}
 
-function M.register(buffer)
+---@param buffer string
+function pbc.register(buffer)
 	c._env_register(P, buffer)
 end
 
-function M.register_file(filename)
-	local f = assert(io.open(filename , "rb"))
+---@param fileName string
+function pbc.registerFile(fileName)
+	local f = assert(io.open(fileName , "rb"))
 	local buffer = f:read("a")
 	f:close()
 	c._env_register(P, buffer)
 end
 
-function M.lasterror()
+---@return string
+function pbc.lastError()
 	return c._last_error(P)
 end
 
-function M.check(typename, field)
-	return c._env_type(P, typename, field) ~= 0
+---@overload fun(typeName:string):boolean
+---@overload fun(typeName:string, field:string):boolean
+---@param typeName string
+---@param field string | nil
+---@return boolean
+function pbc.check(typeName, field)
+	return c._env_type(P, typeName, field) ~= 0
 end
 
-function M.enum_id(enum_type, enum_name)
-	return c._env_enum_id(P, enum_type, enum_name)
+---@param enumType string
+---@param enumName string
+---@return integer | nil
+function pbc.enumId(enumType, enumName)
+	return c._env_enum_id(P, enumType, enumName)
 end
 
-function M.encode(message, tbl)
+---@param message string
+---@param tbl table
+---@return string
+function pbc.encode(message, tbl)
 	local wmsg = c._wmessage_new(P, message)
 	assert(wmsg, message)
 	encode_message(wmsg, message, tbl)
@@ -133,17 +148,25 @@ function M.encode(message, tbl)
 	return s
 end
 
-function M.decode(typename, buffer)
-	return c.decode(P, typename, buffer)
+---@param typeName string
+---@param buffer string
+---@return table
+function pbc.decode(typeName, buffer)
+	return c.decode(P, typeName, buffer)
 end
 
-function M.decode_pure(typename, buffer)
-	return c.decode_pure(P, typename, buffer)
+---@param typeName string
+---@param buffer string
+---@return table
+function pbc.decodePure(typeName, buffer)
+	return c.decode_pure(P, typeName, buffer)
 end
 
--- func: function(old_ptr, new_ptr, new_size) end
-function M.memcb(func)
-	c.set_realloc_cb(func)
+---@alias MemAllocCallback fun(oldPtr:lightuserdata, newPtr:lightuserdata, newSize:integer):void
+
+---@param callback MemAllocCallback | "function(oldPtr, newPtr, newSize) end"
+function pbc.setMemoryAllocatedCallback(callback)
+	c.set_realloc_cb(callback)
 end
 
-return M
+return pbc

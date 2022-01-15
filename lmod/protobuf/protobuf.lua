@@ -30,7 +30,7 @@ end
 
 M.GC = GC
 
-function M.lasterror()
+function M.lastError()
 	return c._last_error(P)
 end
 
@@ -504,14 +504,14 @@ function M.register(buffer)
 	c._env_register(P, buffer)
 end
 
-function M.register_file(filename)
+function M.registerFile(filename)
 	local f = assert(io.open(filename , "rb"))
 	local buffer = f:read "*a"
 	c._env_register(P, buffer)
 	f:close()
 end
 
-function M.enum_id(enum_type, enum_name)
+function M.enumId(enum_type, enum_name)
 	return c._env_enum_id(P, enum_type, enum_name)
 end
 

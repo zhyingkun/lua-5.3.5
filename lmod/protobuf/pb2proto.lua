@@ -352,7 +352,7 @@ local fieldTbl = ParseVarint(msg, FileDescriptorSetConfig)
 --]]
 --[[
 local protobuf = require("protobuf")
-protobuf.register_file("_descriptor.pb")
+protobuf.registerFile("_descriptor.pb")
 local fieldTbl = protobuf.decode("google._protobuf.FileDescriptorSet", msg)
 protobuf.extract(fieldTbl)
 --]]
