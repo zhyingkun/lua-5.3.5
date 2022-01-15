@@ -12,7 +12,6 @@
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
-#include <stdlib.h> // for realloc
 #include <sys/stat.h> // for mkdir
 
 #include <lauxlib.h>
@@ -161,29 +160,12 @@ static int l_rmdir(lua_State* L) {
 }
 
 static int l_cwd(lua_State* L) {
-  char* path = NULL;
-  size_t size = PATH_MAX;
-  int result;
-  while (1) {
-    char* path2 = realloc(path, size);
-    if (!path2) {
-      result = luaL_fileresult(L, 0, NULL);
-      break;
-    }
-    path = path2;
-    if (getcwd(path, size) != NULL) {
-      lua_pushstring(L, path);
-      result = 1;
-      break;
-    }
-    if (errno != ERANGE) {
-      result = luaL_fileresult(L, 0, NULL);
-      break;
-    }
-    size *= 2;
+  char path[PATH_MAX];
+  if (getcwd(path, PATH_MAX) == NULL) {
+    return luaL_fileresult(L, 0, NULL);
   }
-  free(path);
-  return result;
+  lua_pushstring(L, path);
+  return 1;
 }
 
 #ifdef _WIN32
