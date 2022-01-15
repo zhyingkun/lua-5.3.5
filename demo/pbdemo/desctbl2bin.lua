@@ -600,6 +600,6 @@ local descriptor = {
 }
 
 local protobuf = require("protobuf.protobuf")
-protobuf.register_file("pb/pbc.pb")
+protobuf.registerFile("pb/pbc.pb")
 local pbcbin = protobuf.encode("pbc.file", descriptor)
 io.open("pb/desc.pbcbin", "wb"):write(pbcbin):close()

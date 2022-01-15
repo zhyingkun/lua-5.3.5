@@ -14,7 +14,7 @@ local function RegisterAllPB(pbModule)
 	for name, isdir in require("libdir").dirs("./pb") do
 		if not isdir and name:find(".pb$") and not ShouldEscape(name) then
 			-- print("zykTest:", name)
-			pbModule.register_file("./pb/" .. name)
+			pbModule.registerFile("./pb/" .. name)
 		end
 	end
 end
