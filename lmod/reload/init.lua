@@ -649,14 +649,17 @@ local function reload_one(mod_name)
 	replace_all_function(newFunc2oldFunc)
 end
 
-local function reload(mod_name)
-	assert(require(mod_name), "reload module must be require succeed first: " .. mod_name)
+---@class reload
+local reload = {}
+
+---@param modName string
+---@return boolean, any
+function reload.reload(modName)
+	assert(require(modName), "reload module must be require succeed first: " .. modName)
 	sandbox.init()
-	local ok, result = xpcall(reload_one, debug.traceback, mod_name)
+	local ok, result = xpcall(reload_one, debug.traceback, modName)
 	sandbox.clear()
 	return ok, result
 end
 
-return {
-	reload = reload,
-}
+return reload
