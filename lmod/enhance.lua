@@ -4,6 +4,8 @@
 
 ---@class lightuserdata
 
+---@alias MemAllocCallback fun(oldPtr:lightuserdata, newPtr:lightuserdata, newSize:integer):void
+
 ---@overload fun(value:any):string
 ---@overload fun(value:any, level:integer):string
 ---@param value any
