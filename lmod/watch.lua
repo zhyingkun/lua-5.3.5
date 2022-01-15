@@ -8,6 +8,7 @@ local sys = libuv.sys
 
 local reload = require("reload").reload
 
+---@class watch
 local watch = {}
 
 local function error_msg(...)
@@ -49,6 +50,9 @@ local function onFileChangedInternal(filePath, callback, onError)
 	end, filePath, RECURSIVE)
 	return handle
 end
+
+---@param filePath string
+---@param callback fun(filePath:string):void
 local function onFileChanged(filePath, callback)
 	if FilePath2Handle[filePath] then return end
 	FilePath2Handle[filePath] = onFileChangedInternal(filePath, callback, function(filePath)
@@ -62,6 +66,7 @@ end
 
 watch.onFileChanged = onFileChanged
 
+---@param modName string
 function watch.autoReload(modName)
 	local filePath = package.searchpath(modName, package.path)
 	if not filePath then
