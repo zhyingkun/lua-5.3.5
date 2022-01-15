@@ -4,7 +4,7 @@ print("json module:", tostring(json, 16))
 
 local AllocCount = 0
 local AllocMem = {}
-json.memcb(function(old, new, sz)
+json.setMemoryAllocatedCallback(function(old, new, sz)
 	-- print(old, new, sz)
 	if old == NULL then -- malloc
 		AllocCount = AllocCount + 1
