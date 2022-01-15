@@ -99,7 +99,7 @@ _writer[128+10] = _writer[128+7]
 _writer[128+11] = _writer[128+7]
 --[[ Encode by wmessage end ]]----------------
 
----@type pbc
+---@class pbc
 local pbc = {}
 
 ---@param buffer string
