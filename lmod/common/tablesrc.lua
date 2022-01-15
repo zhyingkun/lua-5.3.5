@@ -114,7 +114,15 @@ local function TTLSRecursive(tbl, prefix)
 	return str
 end
 
-local function TableToLuaSource(tbl, indent)
+---@type tablesrc
+local tablesrc = {}
+
+---@overload fun(tbl:table):string
+---@overload fun(tbl:table, indent:string):string
+---@param tbl table
+---@param indent string | nil
+---@return string
+function tablesrc.tableToLuaSource(tbl, indent)
 	assert(type(tbl) == "table", "First parament should be a table")
 	prefixIndent = indent or "  "
 	return "return " .. TTLSRecursive(tbl, "")
@@ -129,11 +137,9 @@ local tbl = {
 	[23] = false,
 	["we"] = 43,
 }
-local str = TableToLuaSource(tbl)
+local str = tablesrc.tableToLuaSource(tbl)
 print(str)
 -- print(tostring(tbl, 1))
 --]]
 
-return {
-	TableToLuaSource = TableToLuaSource,
-}
+return tablesrc
