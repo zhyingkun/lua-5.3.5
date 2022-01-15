@@ -188,5 +188,4 @@ static const luaL_Enum GLFWRAP_ENUM(device_event)[] = {
 
 DEFINE_REGISTE_FUNC_BEGIN(monitor)
 REGISTE_ENUM(device_event);
-init_vidmode_metatable(L);
 DEFINE_REGISTE_FUNC_END()
