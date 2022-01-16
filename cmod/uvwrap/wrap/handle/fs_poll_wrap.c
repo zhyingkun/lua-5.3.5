@@ -4,19 +4,6 @@
 #define FS_POLL_FUNCTION(name) UVWRAP_FUNCTION(fs_poll, name)
 #define FS_POLL_CALLBACK(name) UVWRAP_CALLBACK(fs_poll, name)
 
-int FS_POLL_FUNCTION(new)(lua_State* L) {
-  uv_loop_t* loop = luaL_checkuvloop(L, 1);
-
-  uv_fs_poll_t* handle = (uv_fs_poll_t*)lua_newuserdata(L, sizeof(uv_fs_poll_t));
-
-  int err = uv_fs_poll_init(loop, handle);
-  CHECK_ERROR(L, err);
-
-  luaL_setmetatable(L, UVWRAP_FS_POLL_TYPE);
-  (void)HANDLE_FUNCTION(ctor)(L, (uv_handle_t*)handle);
-  return 1;
-}
-
 static void FS_POLL_CALLBACK(start)(uv_fs_poll_t* handle, int status, const uv_stat_t* prev, const uv_stat_t* curr) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK(L, handle, IDX_FS_POLL_START);
@@ -44,7 +31,7 @@ static int FS_POLL_FUNCTION(stop)(lua_State* L) {
   return 0;
 }
 
-static int FS_POLL_FUNCTION(getpath)(lua_State* L) {
+static int FS_POLL_FUNCTION(getPath)(lua_State* L) {
   uv_fs_poll_t* handle = luaL_checkfs_poll(L, 1);
   char buffer[PATH_MAX];
   size_t size = PATH_MAX;
@@ -81,7 +68,7 @@ static int FS_POLL_FUNCTION(__gc)(lua_State* L) {
 static const luaL_Reg FS_POLL_FUNCTION(metafuncs)[] = {
     EMPLACE_FS_POLL_FUNCTION(start),
     EMPLACE_FS_POLL_FUNCTION(stop),
-    EMPLACE_FS_POLL_FUNCTION(getpath),
+    EMPLACE_FS_POLL_FUNCTION(getPath),
     EMPLACE_FS_POLL_FUNCTION(__gc),
     {NULL, NULL},
 };
@@ -98,8 +85,21 @@ static void FS_POLL_FUNCTION(init_metatable)(lua_State* L) {
   lua_pop(L, 1);
 }
 
+int FS_POLL_FUNCTION(FsPoll)(lua_State* L) {
+  uv_loop_t* loop = luaL_checkuvloop(L, 1);
+
+  uv_fs_poll_t* handle = (uv_fs_poll_t*)lua_newuserdata(L, sizeof(uv_fs_poll_t));
+
+  int err = uv_fs_poll_init(loop, handle);
+  CHECK_ERROR(L, err);
+
+  luaL_setmetatable(L, UVWRAP_FS_POLL_TYPE);
+  (void)HANDLE_FUNCTION(ctor)(L, (uv_handle_t*)handle);
+  return 1;
+}
+
 static const luaL_Reg FS_POLL_FUNCTION(funcs)[] = {
-    EMPLACE_FS_POLL_FUNCTION(new),
+    EMPLACE_FS_POLL_FUNCTION(FsPoll),
     {NULL, NULL},
 };
 

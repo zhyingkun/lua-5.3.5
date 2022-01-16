@@ -3,21 +3,7 @@
 
 #define TTY_FUNCTION(name) UVWRAP_FUNCTION(tty, name)
 
-int TTY_FUNCTION(new)(lua_State* L) {
-  uv_loop_t* loop = luaL_checkuvloop(L, 1);
-  uv_file fd = luaL_checkinteger(L, 2);
-
-  uv_tty_t* handle = (uv_tty_t*)lua_newuserdata(L, sizeof(uv_tty_t));
-
-  int err = uv_tty_init(loop, handle, fd, 0);
-  CHECK_ERROR(L, err);
-
-  luaL_setmetatable(L, UVWRAP_TTY_TYPE);
-  (void)STREAM_FUNCTION(ctor)(L, (uv_stream_t*)handle);
-  return 1;
-}
-
-static int TTY_FUNCTION(set_mode)(lua_State* L) {
+static int TTY_FUNCTION(setMode)(lua_State* L) {
   uv_tty_t* handle = luaL_checktty(L, 1);
   uv_tty_mode_t mode = luaL_checkinteger(L, 2);
   int err = uv_tty_set_mode(handle, mode);
@@ -25,7 +11,7 @@ static int TTY_FUNCTION(set_mode)(lua_State* L) {
   return 0;
 }
 
-static int TTY_FUNCTION(get_winsize)(lua_State* L) {
+static int TTY_FUNCTION(getWinSize)(lua_State* L) {
   uv_tty_t* handle = luaL_checktty(L, 1);
   int width, height;
   int err = uv_tty_get_winsize(handle, &width, &height);
@@ -43,8 +29,8 @@ static int TTY_FUNCTION(__gc)(lua_State* L) {
   { #name, TTY_FUNCTION(name) }
 
 static const luaL_Reg TTY_FUNCTION(metafuncs)[] = {
-    EMPLACE_TTY_FUNCTION(set_mode),
-    EMPLACE_TTY_FUNCTION(get_winsize),
+    EMPLACE_TTY_FUNCTION(setMode),
+    EMPLACE_TTY_FUNCTION(getWinSize),
     EMPLACE_TTY_FUNCTION(__gc),
     {NULL, NULL},
 };
@@ -61,15 +47,29 @@ static void TTY_FUNCTION(init_metatable)(lua_State* L) {
   lua_pop(L, 1);
 }
 
-static int TTY_FUNCTION(reset_mode)(lua_State* L) {
+int TTY_FUNCTION(Tty)(lua_State* L) {
+  uv_loop_t* loop = luaL_checkuvloop(L, 1);
+  uv_file fd = luaL_checkinteger(L, 2);
+
+  uv_tty_t* handle = (uv_tty_t*)lua_newuserdata(L, sizeof(uv_tty_t));
+
+  int err = uv_tty_init(loop, handle, fd, 0);
+  CHECK_ERROR(L, err);
+
+  luaL_setmetatable(L, UVWRAP_TTY_TYPE);
+  (void)STREAM_FUNCTION(ctor)(L, (uv_stream_t*)handle);
+  return 1;
+}
+
+static int TTY_FUNCTION(resetMode)(lua_State* L) {
   int err = uv_tty_reset_mode();
   CHECK_ERROR(L, err);
   return 0;
 }
 
 static const luaL_Reg TTY_FUNCTION(funcs)[] = {
-    EMPLACE_TTY_FUNCTION(new),
-    EMPLACE_TTY_FUNCTION(reset_mode),
+    EMPLACE_TTY_FUNCTION(Tty),
+    EMPLACE_TTY_FUNCTION(resetMode),
     {NULL, NULL},
 };
 

@@ -60,7 +60,7 @@ static void STDIOCONT_FUNCTION(init_metatable)(lua_State* L) {
   lua_pop(L, 1);
 }
 
-static void PROCESS_CALLBACK(new)(uv_process_t* handle, int64_t exit_status, int term_signal) {
+static void PROCESS_CALLBACK(Process)(uv_process_t* handle, int64_t exit_status, int term_signal) {
   lua_State* L;
   GET_HANDLE_LUA_STATE(L, handle);
   PUSH_HANDLE_CALLBACK(L, handle, IDX_PROCESS_SPAWN);
@@ -140,7 +140,7 @@ static void parse_spawn_options(lua_State* L, uv_process_t* handle, uv_process_o
       luaL_error(L, "spawn process exit_cb must be a function");
     }
     SET_HANDLE_CALLBACK(L, handle, IDX_PROCESS_SPAWN, -1);
-    options->exit_cb = PROCESS_CALLBACK(new);
+    options->exit_cb = PROCESS_CALLBACK(Process);
   }
   lua_pop(L, 1);
   if (lua_getfield(L, optidx, "cwd") != LUA_TNIL) {
@@ -154,7 +154,7 @@ static void parse_spawn_options(lua_State* L, uv_process_t* handle, uv_process_o
   PARSE_OPTIONS_ID(L, options, uid, uv_uid_t);
   PARSE_OPTIONS_ID(L, options, gid, uv_gid_t);
 }
-int PROCESS_FUNCTION(new)(lua_State* L) {
+int PROCESS_FUNCTION(Process)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
   luaL_checktype(L, 2, LUA_TTABLE);
   lua_settop(L, 2);
@@ -185,7 +185,7 @@ static int PROCESS_FUNCTION(pkill)(lua_State* L) {
   return 0;
 }
 
-static int PROCESS_FUNCTION(get_pid)(lua_State* L) {
+static int PROCESS_FUNCTION(getPid)(lua_State* L) {
   uv_process_t* handle = luaL_checkprocess(L, 1);
   lua_pushinteger(L, uv_process_get_pid(handle));
   return 1;
@@ -196,7 +196,7 @@ static int PROCESS_FUNCTION(get_pid)(lua_State* L) {
 
 static const luaL_Reg PROCESS_FUNCTION(metafuncs)[] = {
     {"kill", PROCESS_FUNCTION(pkill)},
-    EMPLACE_PROCESS_FUNCTION(get_pid),
+    EMPLACE_PROCESS_FUNCTION(getPid),
     {NULL, NULL},
 };
 
@@ -288,7 +288,7 @@ static int PROCESS_FUNCTION(chdir)(lua_State* L) {
 }
 
 static const luaL_Reg PROCESS_FUNCTION(funcs)[] = {
-    EMPLACE_PROCESS_FUNCTION(new),
+    EMPLACE_PROCESS_FUNCTION(Process),
     EMPLACE_PROCESS_FUNCTION(disable_stdio_inheritance),
     EMPLACE_PROCESS_FUNCTION(kill),
     EMPLACE_PROCESS_FUNCTION(setup_args),

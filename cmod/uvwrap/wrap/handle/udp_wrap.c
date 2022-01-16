@@ -4,20 +4,6 @@
 #define UDP_FUNCTION(name) UVWRAP_FUNCTION(udp, name)
 #define UDP_CALLBACK(name) UVWRAP_CALLBACK(udp, name)
 
-int UDP_FUNCTION(new)(lua_State* L) {
-  uv_loop_t* loop = luaL_checkuvloop(L, 1);
-  lua_Integer flags = luaL_optinteger(L, 2, AF_UNSPEC);
-
-  uv_udp_t* handle = (uv_udp_t*)lua_newuserdata(L, sizeof(uv_udp_t));
-
-  int err = uv_udp_init_ex(loop, handle, flags); // return 0 when success
-  CHECK_ERROR(L, err);
-
-  luaL_setmetatable(L, UVWRAP_UDP_TYPE);
-  (void)HANDLE_FUNCTION(ctor)(L, (uv_handle_t*)handle);
-  return 1;
-}
-
 static int UDP_FUNCTION(bind)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   struct sockaddr* addr = luaL_checksockaddr(L, 2);
@@ -36,7 +22,7 @@ static int UDP_FUNCTION(connect)(lua_State* L) {
   return 1;
 }
 
-static int UDP_FUNCTION(getsockname)(lua_State* L) {
+static int UDP_FUNCTION(getSockName)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   struct sockaddr_storage* addr = (struct sockaddr_storage*)SOCKADDR_FUNCTION(create)(L);
   int len = sizeof(struct sockaddr_storage);
@@ -45,7 +31,7 @@ static int UDP_FUNCTION(getsockname)(lua_State* L) {
   return 1;
 }
 
-static int UDP_FUNCTION(getpeername)(lua_State* L) {
+static int UDP_FUNCTION(getPeerName)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   struct sockaddr_storage* addr = (struct sockaddr_storage*)SOCKADDR_FUNCTION(create)(L);
   int len = sizeof(struct sockaddr_storage);
@@ -54,7 +40,7 @@ static int UDP_FUNCTION(getpeername)(lua_State* L) {
   return 1;
 }
 
-static int UDP_FUNCTION(set_membership)(lua_State* L) {
+static int UDP_FUNCTION(setMembership)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   const char* multicast_addr = luaL_checkstring(L, 2);
   const char* interface_addr = luaL_checkstring(L, 3);
@@ -64,7 +50,7 @@ static int UDP_FUNCTION(set_membership)(lua_State* L) {
   return 0;
 }
 
-static int UDP_FUNCTION(set_multicast_loop)(lua_State* L) {
+static int UDP_FUNCTION(setMulticastLoop)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   luaL_checktype(L, 2, LUA_TBOOLEAN);
   int on = lua_toboolean(L, 2);
@@ -73,7 +59,7 @@ static int UDP_FUNCTION(set_multicast_loop)(lua_State* L) {
   return 0;
 }
 
-static int UDP_FUNCTION(set_multicast_ttl)(lua_State* L) {
+static int UDP_FUNCTION(setMulticastTtl)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   int ttl = luaL_checkinteger(L, 2); // [1, 255]
   int err = uv_udp_set_multicast_ttl(handle, ttl);
@@ -81,7 +67,7 @@ static int UDP_FUNCTION(set_multicast_ttl)(lua_State* L) {
   return 0;
 }
 
-static int UDP_FUNCTION(set_multicast_interface)(lua_State* L) {
+static int UDP_FUNCTION(setMulticastInterface)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   const char* interface_addr = luaL_checkstring(L, 2);
   int err = uv_udp_set_multicast_interface(handle, interface_addr);
@@ -89,7 +75,7 @@ static int UDP_FUNCTION(set_multicast_interface)(lua_State* L) {
   return 0;
 }
 
-static int UDP_FUNCTION(set_broadcast)(lua_State* L) {
+static int UDP_FUNCTION(setBroadcast)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   luaL_checktype(L, 2, LUA_TBOOLEAN);
   int on = lua_toboolean(L, 2);
@@ -98,7 +84,7 @@ static int UDP_FUNCTION(set_broadcast)(lua_State* L) {
   return 0;
 }
 
-static int UDP_FUNCTION(set_ttl)(lua_State* L) {
+static int UDP_FUNCTION(setTtl)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   int ttl = luaL_checkinteger(L, 2); // [1, 255]
   int err = uv_udp_set_ttl(handle, ttl);
@@ -130,7 +116,7 @@ static int UDP_FUNCTION(send)(lua_State* L) {
   return 0;
 }
 
-static int UDP_FUNCTION(try_send)(lua_State* L) {
+static int UDP_FUNCTION(trySend)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   size_t len;
   const char* data = luaL_checklstring(L, 2, &len);
@@ -145,8 +131,8 @@ static int UDP_FUNCTION(try_send)(lua_State* L) {
 // The flags parameter may be UV_UDP_PARTIAL if the buffer provided
 // by your allocator was not large enough to hold the data. In this
 // case the OS will discard the data that could not fit (That’s UDP for you!).
-static void UDP_CALLBACK(recv_start)(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const struct sockaddr* addr,
-                                     unsigned flags) {
+static void UDP_CALLBACK(recvStart)(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const struct sockaddr* addr,
+                                    unsigned flags) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK(L, handle, IDX_UDP_RECV_START);
   lua_pushinteger(L, nread);
@@ -164,31 +150,31 @@ static void UDP_CALLBACK(recv_start)(uv_udp_t* handle, ssize_t nread, const uv_b
   lua_pushinteger(L, flags);
   CALL_LUA_FUNCTION(L, 4, 0);
 }
-static int UDP_FUNCTION(recv_start)(lua_State* L) {
+static int UDP_FUNCTION(recvStart)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   luaL_checktype(L, 2, LUA_TFUNCTION);
 
-  int err = uv_udp_recv_start(handle, MEMORY_FUNCTION(buf_alloc), UDP_CALLBACK(recv_start));
+  int err = uv_udp_recv_start(handle, MEMORY_FUNCTION(buf_alloc), UDP_CALLBACK(recvStart));
   CHECK_ERROR(L, err);
   SET_HANDLE_CALLBACK(L, handle, IDX_UDP_RECV_START, 2);
   return 0;
 }
 
-static int UDP_FUNCTION(recv_stop)(lua_State* L) {
+static int UDP_FUNCTION(recvStop)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   int err = uv_udp_recv_stop(handle);
   CHECK_ERROR(L, err);
   return 0;
 }
 
-static int UDP_FUNCTION(get_send_queue_size)(lua_State* L) {
+static int UDP_FUNCTION(getSendQueueSize)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   size_t sz = uv_udp_get_send_queue_size(handle);
   lua_pushinteger(L, sz);
   return 1;
 }
 
-static int UDP_FUNCTION(get_send_queue_count)(lua_State* L) {
+static int UDP_FUNCTION(getSendQueueCount)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   size_t sz = uv_udp_get_send_queue_count(handle);
   lua_pushinteger(L, sz);
@@ -205,20 +191,20 @@ static int UDP_FUNCTION(__gc)(lua_State* L) {
 const luaL_Reg UDP_FUNCTION(metafuncs)[] = {
     EMPLACE_UDP_FUNCTION(bind),
     EMPLACE_UDP_FUNCTION(connect),
-    EMPLACE_UDP_FUNCTION(getsockname),
-    EMPLACE_UDP_FUNCTION(getpeername),
-    EMPLACE_UDP_FUNCTION(set_membership),
-    EMPLACE_UDP_FUNCTION(set_multicast_loop),
-    EMPLACE_UDP_FUNCTION(set_multicast_ttl),
-    EMPLACE_UDP_FUNCTION(set_multicast_interface),
-    EMPLACE_UDP_FUNCTION(set_broadcast),
-    EMPLACE_UDP_FUNCTION(set_ttl),
+    EMPLACE_UDP_FUNCTION(getSockName),
+    EMPLACE_UDP_FUNCTION(getPeerName),
+    EMPLACE_UDP_FUNCTION(setMembership),
+    EMPLACE_UDP_FUNCTION(setMulticastLoop),
+    EMPLACE_UDP_FUNCTION(setMulticastTtl),
+    EMPLACE_UDP_FUNCTION(setMulticastInterface),
+    EMPLACE_UDP_FUNCTION(setBroadcast),
+    EMPLACE_UDP_FUNCTION(setTtl),
     EMPLACE_UDP_FUNCTION(send),
-    EMPLACE_UDP_FUNCTION(try_send),
-    EMPLACE_UDP_FUNCTION(recv_start),
-    EMPLACE_UDP_FUNCTION(recv_stop),
-    EMPLACE_UDP_FUNCTION(get_send_queue_size),
-    EMPLACE_UDP_FUNCTION(get_send_queue_count),
+    EMPLACE_UDP_FUNCTION(trySend),
+    EMPLACE_UDP_FUNCTION(recvStart),
+    EMPLACE_UDP_FUNCTION(recvStop),
+    EMPLACE_UDP_FUNCTION(getSendQueueSize),
+    EMPLACE_UDP_FUNCTION(getSendQueueCount),
     EMPLACE_UDP_FUNCTION(__gc),
     {NULL, NULL},
 };
@@ -235,8 +221,22 @@ static void UDP_FUNCTION(init_metatable)(lua_State* L) {
   lua_pop(L, 1);
 }
 
+int UDP_FUNCTION(Udp)(lua_State* L) {
+  uv_loop_t* loop = luaL_checkuvloop(L, 1);
+  lua_Integer flags = luaL_optinteger(L, 2, AF_UNSPEC);
+
+  uv_udp_t* handle = (uv_udp_t*)lua_newuserdata(L, sizeof(uv_udp_t));
+
+  int err = uv_udp_init_ex(loop, handle, flags); // return 0 when success
+  CHECK_ERROR(L, err);
+
+  luaL_setmetatable(L, UVWRAP_UDP_TYPE);
+  (void)HANDLE_FUNCTION(ctor)(L, (uv_handle_t*)handle);
+  return 1;
+}
+
 static const luaL_Reg UDP_FUNCTION(funcs)[] = {
-    EMPLACE_UDP_FUNCTION(new),
+    EMPLACE_UDP_FUNCTION(Udp),
     {NULL, NULL},
 };
 

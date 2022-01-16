@@ -7,9 +7,9 @@
 ** =======================================================
 */
 
-#define UVWRAP_MISC_HANDLE_DEFINE(name, NAME) \
+#define UVWRAP_MISC_HANDLE_DEFINE(name, NAME, Name) \
 \
-  static int UVWRAP_FUNCTION(name, new)(lua_State * L) { \
+  static int UVWRAP_FUNCTION(name, Name)(lua_State * L) { \
     uv_loop_t* loop = luaL_checkuvloop(L, 1); \
 \
     uv_##name##_t* handle = (uv_##name##_t*)lua_newuserdata(L, sizeof(uv_##name##_t)); \
@@ -69,7 +69,7 @@
   } \
 \
   static const luaL_Reg UVWRAP_FUNCTION(name, funcs)[] = { \
-      {"new", UVWRAP_FUNCTION(name, new)}, \
+      {#Name, UVWRAP_FUNCTION(name, Name)}, \
       {NULL, NULL}, \
   };
 
@@ -82,9 +82,9 @@
 
 /* }====================================================== */
 
-UVWRAP_MISC_HANDLE_DEFINE(prepare, PREPARE)
-UVWRAP_MISC_HANDLE_DEFINE(check, CHECK)
-UVWRAP_MISC_HANDLE_DEFINE(idle, IDLE)
+UVWRAP_MISC_HANDLE_DEFINE(prepare, PREPARE, Prepare)
+UVWRAP_MISC_HANDLE_DEFINE(check, CHECK, Check)
+UVWRAP_MISC_HANDLE_DEFINE(idle, IDLE, Idle)
 
 void uvwrap_misc_init(lua_State* L) {
   REGISTE_MISC_HANDLE(prepare);

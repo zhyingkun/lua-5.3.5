@@ -51,7 +51,7 @@ static int STREAM_FUNCTION(accept)(lua_State* L) {
   return 1;
 }
 
-static void STREAM_CALLBACK(read_start)(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
+static void STREAM_CALLBACK(readStart)(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK(L, handle, IDX_STREAM_READ_START);
   lua_pushinteger(L, nread); // nread == 0 means No data in buffer, nread == UV_EOF means EOF
@@ -63,17 +63,17 @@ static void STREAM_CALLBACK(read_start)(uv_stream_t* handle, ssize_t nread, cons
   (void)MEMORY_FUNCTION(buf_free)(buf);
   CALL_LUA_FUNCTION(L, 2, 0);
 }
-static int STREAM_FUNCTION(read_start)(lua_State* L) {
+static int STREAM_FUNCTION(readStart)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
   luaL_checktype(L, 2, LUA_TFUNCTION);
 
-  int err = uv_read_start(handle, MEMORY_FUNCTION(buf_alloc), STREAM_CALLBACK(read_start));
+  int err = uv_read_start(handle, MEMORY_FUNCTION(buf_alloc), STREAM_CALLBACK(readStart));
   CHECK_ERROR(L, err);
   SET_HANDLE_CALLBACK(L, handle, IDX_STREAM_READ_START, 2);
   return 0;
 }
 
-static int STREAM_FUNCTION(read_stop)(lua_State* L) {
+static int STREAM_FUNCTION(readStop)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
   int err = uv_read_stop(handle);
   CHECK_ERROR(L, err);
@@ -127,7 +127,7 @@ static int STREAM_FUNCTION(write2)(lua_State* L) {
   return 0;
 }
 
-static int STREAM_FUNCTION(try_write)(lua_State* L) {
+static int STREAM_FUNCTION(tryWrite)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
   size_t len;
   const char* data = luaL_checklstring(L, 2, &len);
@@ -138,26 +138,26 @@ static int STREAM_FUNCTION(try_write)(lua_State* L) {
   return 1;
 }
 
-static int STREAM_FUNCTION(is_readable)(lua_State* L) {
+static int STREAM_FUNCTION(isReadable)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
   lua_pushboolean(L, uv_is_readable(handle));
   return 1;
 }
 
-static int STREAM_FUNCTION(is_writable)(lua_State* L) {
+static int STREAM_FUNCTION(isWritable)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
   lua_pushboolean(L, uv_is_writable(handle));
   return 1;
 }
 
-static int STREAM_FUNCTION(set_blocking)(lua_State* L) {
+static int STREAM_FUNCTION(setBlocking)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
   int err = uv_stream_set_blocking(handle, lua_toboolean(L, 2));
   CHECK_ERROR(L, err);
   return 1;
 }
 
-static int STREAM_FUNCTION(get_write_queue_size)(lua_State* L) {
+static int STREAM_FUNCTION(getWriteQueueSize)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
   lua_pushinteger(L, uv_stream_get_write_queue_size(handle));
   return 1;
@@ -174,15 +174,15 @@ static const luaL_Reg uvwrap_stream_metafuncs[] = {
     EMPLACE_STREAM_FUNCTION(shutdown),
     EMPLACE_STREAM_FUNCTION(listen),
     EMPLACE_STREAM_FUNCTION(accept),
-    EMPLACE_STREAM_FUNCTION(read_start),
-    EMPLACE_STREAM_FUNCTION(read_stop),
+    EMPLACE_STREAM_FUNCTION(readStart),
+    EMPLACE_STREAM_FUNCTION(readStop),
     EMPLACE_STREAM_FUNCTION(write),
     EMPLACE_STREAM_FUNCTION(write2),
-    EMPLACE_STREAM_FUNCTION(try_write),
-    EMPLACE_STREAM_FUNCTION(is_readable),
-    EMPLACE_STREAM_FUNCTION(is_writable),
-    EMPLACE_STREAM_FUNCTION(set_blocking),
-    EMPLACE_STREAM_FUNCTION(get_write_queue_size),
+    EMPLACE_STREAM_FUNCTION(tryWrite),
+    EMPLACE_STREAM_FUNCTION(isReadable),
+    EMPLACE_STREAM_FUNCTION(isWritable),
+    EMPLACE_STREAM_FUNCTION(setBlocking),
+    EMPLACE_STREAM_FUNCTION(getWriteQueueSize),
     {NULL, NULL},
 };
 

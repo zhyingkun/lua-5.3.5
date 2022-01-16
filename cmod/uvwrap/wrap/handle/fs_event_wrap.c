@@ -6,19 +6,6 @@
 #define FS_EVENT_FUNCTION(name) UVWRAP_FUNCTION(fs_event, name)
 #define FS_EVENT_CALLBACK(name) UVWRAP_CALLBACK(fs_event, name)
 
-int FS_EVENT_FUNCTION(new)(lua_State* L) {
-  uv_loop_t* loop = luaL_checkuvloop(L, 1);
-
-  uv_fs_event_t* handle = (uv_fs_event_t*)lua_newuserdata(L, sizeof(uv_fs_event_t));
-
-  int err = uv_fs_event_init(loop, handle);
-  CHECK_ERROR(L, err);
-
-  luaL_setmetatable(L, UVWRAP_FS_EVENT_TYPE);
-  (void)HANDLE_FUNCTION(ctor)(L, (uv_handle_t*)handle);
-  return 1;
-}
-
 void FS_EVENT_CALLBACK(start)(uv_fs_event_t* handle, const char* filename, int events, int status) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK(L, handle, IDX_FS_EVENT_START);
@@ -46,7 +33,7 @@ static int FS_EVENT_FUNCTION(stop)(lua_State* L) {
   return 0;
 }
 
-static int FS_EVENT_FUNCTION(getpath)(lua_State* L) {
+static int FS_EVENT_FUNCTION(getPath)(lua_State* L) {
   uv_fs_event_t* handle = luaL_checkfs_event(L, 1);
   char buffer[PATH_MAX];
   size_t size = PATH_MAX;
@@ -83,7 +70,7 @@ static int FS_EVENT_FUNCTION(__gc)(lua_State* L) {
 const luaL_Reg FS_EVENT_FUNCTION(metafuncs)[] = {
     EMPLACE_FS_EVENT_FUNCTION(start),
     EMPLACE_FS_EVENT_FUNCTION(stop),
-    EMPLACE_FS_EVENT_FUNCTION(getpath),
+    EMPLACE_FS_EVENT_FUNCTION(getPath),
     EMPLACE_FS_EVENT_FUNCTION(__gc),
     {NULL, NULL},
 };
@@ -100,8 +87,21 @@ static void FS_EVENT_FUNCTION(init_metatable)(lua_State* L) {
   lua_pop(L, 1);
 }
 
+int FS_EVENT_FUNCTION(FsEvent)(lua_State* L) {
+  uv_loop_t* loop = luaL_checkuvloop(L, 1);
+
+  uv_fs_event_t* handle = (uv_fs_event_t*)lua_newuserdata(L, sizeof(uv_fs_event_t));
+
+  int err = uv_fs_event_init(loop, handle);
+  CHECK_ERROR(L, err);
+
+  luaL_setmetatable(L, UVWRAP_FS_EVENT_TYPE);
+  (void)HANDLE_FUNCTION(ctor)(L, (uv_handle_t*)handle);
+  return 1;
+}
+
 static const luaL_Reg FS_EVENT_FUNCTION(funcs)[] = {
-    EMPLACE_FS_EVENT_FUNCTION(new),
+    EMPLACE_FS_EVENT_FUNCTION(FsEvent),
     {NULL, NULL},
 };
 

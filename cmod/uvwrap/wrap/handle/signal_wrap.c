@@ -4,19 +4,6 @@
 #define SIGNAL_FUNCTION(name) UVWRAP_FUNCTION(signal, name)
 #define SIGNAL_CALLBACK(name) UVWRAP_CALLBACK(signal, name)
 
-int SIGNAL_FUNCTION(new)(lua_State* L) {
-  uv_loop_t* loop = luaL_checkuvloop(L, 1);
-
-  uv_signal_t* handle = (uv_signal_t*)lua_newuserdata(L, sizeof(uv_signal_t));
-
-  int err = uv_signal_init(loop, handle);
-  CHECK_ERROR(L, err);
-
-  luaL_setmetatable(L, UVWRAP_SIGNAL_TYPE);
-  (void)HANDLE_FUNCTION(ctor)(L, (uv_handle_t*)handle);
-  return 1;
-}
-
 static void SIGNAL_CALLBACK(start)(uv_signal_t* handle, int signum) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START); /* make sure one handle only push one callback */
@@ -34,19 +21,19 @@ static int SIGNAL_FUNCTION(start)(lua_State* L) {
   return 0;
 }
 
-static void SIGNAL_CALLBACK(start_oneshot)(uv_signal_t* handle, int signum) {
+static void SIGNAL_CALLBACK(startOneShot)(uv_signal_t* handle, int signum) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START); /* make sure one handle only push one callback */
   CLEAR_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START);
   lua_pushinteger(L, signum);
   CALL_LUA_FUNCTION(L, 1, 0);
 }
-static int SIGNAL_FUNCTION(start_oneshot)(lua_State* L) {
+static int SIGNAL_FUNCTION(startOneShot)(lua_State* L) {
   uv_signal_t* handle = luaL_checksignal(L, 1);
   luaL_checktype(L, 2, LUA_TFUNCTION);
   int signum = luaL_checkinteger(L, 3);
 
-  int err = uv_signal_start_oneshot(handle, SIGNAL_CALLBACK(start_oneshot), signum);
+  int err = uv_signal_start_oneshot(handle, SIGNAL_CALLBACK(startOneShot), signum);
   CHECK_ERROR(L, err);
   SET_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START, 2);
   return 0;
@@ -70,7 +57,7 @@ static int SIGNAL_FUNCTION(__gc)(lua_State* L) {
 
 static const luaL_Reg SIGNAL_FUNCTION(metafuncs)[] = {
     EMPLACE_SIGNAL_FUNCTION(start),
-    EMPLACE_SIGNAL_FUNCTION(start_oneshot),
+    EMPLACE_SIGNAL_FUNCTION(startOneShot),
     EMPLACE_SIGNAL_FUNCTION(stop),
     EMPLACE_SIGNAL_FUNCTION(__gc),
     {NULL, NULL},
@@ -88,8 +75,21 @@ static void SIGNAL_FUNCTION(init_metatable)(lua_State* L) {
   lua_pop(L, 1);
 }
 
+int SIGNAL_FUNCTION(Signal)(lua_State* L) {
+  uv_loop_t* loop = luaL_checkuvloop(L, 1);
+
+  uv_signal_t* handle = (uv_signal_t*)lua_newuserdata(L, sizeof(uv_signal_t));
+
+  int err = uv_signal_init(loop, handle);
+  CHECK_ERROR(L, err);
+
+  luaL_setmetatable(L, UVWRAP_SIGNAL_TYPE);
+  (void)HANDLE_FUNCTION(ctor)(L, (uv_handle_t*)handle);
+  return 1;
+}
+
 static const luaL_Reg SIGNAL_FUNCTION(funcs)[] = {
-    EMPLACE_SIGNAL_FUNCTION(new),
+    EMPLACE_SIGNAL_FUNCTION(Signal),
     {NULL, NULL},
 };
 

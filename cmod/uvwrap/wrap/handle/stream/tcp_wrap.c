@@ -4,20 +4,6 @@
 #define TCP_FUNCTION(name) UVWRAP_FUNCTION(tcp, name)
 #define TCP_CALLBACK(name) UVWRAP_CALLBACK(tcp, name)
 
-static int TCP_FUNCTION(new)(lua_State* L) {
-  uv_loop_t* loop = luaL_checkuvloop(L, 1);
-  unsigned int flags = luaL_optinteger(L, 2, AF_UNSPEC);
-
-  uv_tcp_t* handle = (uv_tcp_t*)lua_newuserdata(L, sizeof(uv_tcp_t));
-
-  int err = uv_tcp_init_ex(loop, handle, flags); // return 0 when success
-  CHECK_ERROR(L, err);
-
-  luaL_setmetatable(L, UVWRAP_TCP_TYPE);
-  (void)STREAM_FUNCTION(ctor)(L, (uv_stream_t*)handle);
-  return 1;
-}
-
 static int TCP_FUNCTION(bind)(lua_State* L) {
   uv_tcp_t* handle = luaL_checktcp(L, 1);
   struct sockaddr* addr = luaL_checksockaddr(L, 2);
@@ -50,7 +36,7 @@ static int TCP_FUNCTION(connect)(lua_State* L) {
   return 1;
 }
 
-static int TCP_FUNCTION(nodelay)(lua_State* L) {
+static int TCP_FUNCTION(noDelay)(lua_State* L) {
   uv_tcp_t* handle = luaL_checktcp(L, 1);
   luaL_checktype(L, 2, LUA_TBOOLEAN);
   int enable = lua_toboolean(L, 2);
@@ -59,7 +45,7 @@ static int TCP_FUNCTION(nodelay)(lua_State* L) {
   return 0;
 }
 
-static int TCP_FUNCTION(keepalive)(lua_State* L) {
+static int TCP_FUNCTION(keepAlive)(lua_State* L) {
   uv_tcp_t* handle = luaL_checktcp(L, 1);
   luaL_checktype(L, 2, LUA_TBOOLEAN);
   int enable = lua_toboolean(L, 2);
@@ -69,7 +55,7 @@ static int TCP_FUNCTION(keepalive)(lua_State* L) {
   return 0;
 }
 
-static int TCP_FUNCTION(simultaneous_accepts)(lua_State* L) {
+static int TCP_FUNCTION(simultaneousAccepts)(lua_State* L) {
   uv_tcp_t* handle = luaL_checktcp(L, 1);
   luaL_checktype(L, 2, LUA_TBOOLEAN);
   int enable = lua_toboolean(L, 2);
@@ -78,7 +64,7 @@ static int TCP_FUNCTION(simultaneous_accepts)(lua_State* L) {
   return 0;
 }
 
-static int TCP_FUNCTION(getsockname)(lua_State* L) {
+static int TCP_FUNCTION(getSockName)(lua_State* L) {
   uv_tcp_t* handle = luaL_checktcp(L, 1);
   struct sockaddr_storage* addr = (struct sockaddr_storage*)SOCKADDR_FUNCTION(create)(L);
   int len = sizeof(struct sockaddr_storage);
@@ -87,7 +73,7 @@ static int TCP_FUNCTION(getsockname)(lua_State* L) {
   return 1;
 }
 
-static int TCP_FUNCTION(getpeername)(lua_State* L) {
+static int TCP_FUNCTION(getPeerName)(lua_State* L) {
   uv_tcp_t* handle = luaL_checktcp(L, 1);
   struct sockaddr_storage* addr = (struct sockaddr_storage*)SOCKADDR_FUNCTION(create)(L);
   int len = sizeof(struct sockaddr_storage);
@@ -106,11 +92,11 @@ static int TCP_FUNCTION(__gc)(lua_State* L) {
 const luaL_Reg TCP_FUNCTION(metafuncs)[] = {
     EMPLACE_TCP_FUNCTION(bind),
     EMPLACE_TCP_FUNCTION(connect),
-    EMPLACE_TCP_FUNCTION(nodelay),
-    EMPLACE_TCP_FUNCTION(keepalive),
-    EMPLACE_TCP_FUNCTION(simultaneous_accepts),
-    EMPLACE_TCP_FUNCTION(getsockname),
-    EMPLACE_TCP_FUNCTION(getpeername),
+    EMPLACE_TCP_FUNCTION(noDelay),
+    EMPLACE_TCP_FUNCTION(keepAlive),
+    EMPLACE_TCP_FUNCTION(simultaneousAccepts),
+    EMPLACE_TCP_FUNCTION(getSockName),
+    EMPLACE_TCP_FUNCTION(getPeerName),
     EMPLACE_TCP_FUNCTION(__gc),
     {NULL, NULL},
 };
@@ -127,8 +113,22 @@ static void TCP_FUNCTION(init_metatable)(lua_State* L) {
   lua_pop(L, 1);
 }
 
+static int TCP_FUNCTION(Tcp)(lua_State* L) {
+  uv_loop_t* loop = luaL_checkuvloop(L, 1);
+  unsigned int flags = luaL_optinteger(L, 2, AF_UNSPEC);
+
+  uv_tcp_t* handle = (uv_tcp_t*)lua_newuserdata(L, sizeof(uv_tcp_t));
+
+  int err = uv_tcp_init_ex(loop, handle, flags); // return 0 when success
+  CHECK_ERROR(L, err);
+
+  luaL_setmetatable(L, UVWRAP_TCP_TYPE);
+  (void)STREAM_FUNCTION(ctor)(L, (uv_stream_t*)handle);
+  return 1;
+}
+
 static const luaL_Reg TCP_FUNCTION(funcs)[] = {
-    EMPLACE_TCP_FUNCTION(new),
+    EMPLACE_TCP_FUNCTION(Tcp),
     {NULL, NULL},
 };
 

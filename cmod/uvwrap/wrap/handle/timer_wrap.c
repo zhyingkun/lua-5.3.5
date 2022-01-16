@@ -4,19 +4,6 @@
 #define TIMER_FUNCTION(name) UVWRAP_FUNCTION(timer, name)
 #define TIMER_CALLBACK(name) UVWRAP_CALLBACK(timer, name)
 
-int TIMER_FUNCTION(new)(lua_State* L) {
-  uv_loop_t* loop = luaL_checkuvloop(L, 1);
-
-  uv_timer_t* handle = (uv_timer_t*)lua_newuserdata(L, sizeof(uv_timer_t));
-
-  int err = uv_timer_init(loop, handle);
-  CHECK_ERROR(L, err);
-
-  luaL_setmetatable(L, UVWRAP_TIMER_TYPE);
-  (void)HANDLE_FUNCTION(ctor)(L, (uv_handle_t*)handle);
-  return 1;
-}
-
 static void TIMER_CALLBACK(start)(uv_timer_t* handle) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK(L, handle, IDX_TIMER_START);
@@ -50,7 +37,7 @@ static int TIMER_FUNCTION(again)(lua_State* L) {
   return 0;
 }
 
-static int TIMER_FUNCTION(set_repeat)(lua_State* L) {
+static int TIMER_FUNCTION(setRepeat)(lua_State* L) {
   uv_timer_t* handle = luaL_checktimer(L, 1);
   uint64_t repeat = luaL_checkinteger(L, 2);
 
@@ -58,7 +45,7 @@ static int TIMER_FUNCTION(set_repeat)(lua_State* L) {
   return 0;
 }
 
-static int TIMER_FUNCTION(get_repeat)(lua_State* L) {
+static int TIMER_FUNCTION(getRepeat)(lua_State* L) {
   uv_timer_t* handle = luaL_checktimer(L, 1);
   lua_pushinteger(L, uv_timer_get_repeat(handle));
   return 1;
@@ -77,8 +64,8 @@ static const luaL_Reg TIMER_FUNCTION(metafuncs)[] = {
     EMPLACE_TIMER_FUNCTION(start),
     EMPLACE_TIMER_FUNCTION(stop),
     EMPLACE_TIMER_FUNCTION(again),
-    EMPLACE_TIMER_FUNCTION(set_repeat),
-    EMPLACE_TIMER_FUNCTION(get_repeat),
+    EMPLACE_TIMER_FUNCTION(setRepeat),
+    EMPLACE_TIMER_FUNCTION(getRepeat),
     EMPLACE_TIMER_FUNCTION(__gc),
     {NULL, NULL},
 };
@@ -95,8 +82,21 @@ static void TIMER_FUNCTION(init_metatable)(lua_State* L) {
   lua_pop(L, 1);
 }
 
+int TIMER_FUNCTION(Timer)(lua_State* L) {
+  uv_loop_t* loop = luaL_checkuvloop(L, 1);
+
+  uv_timer_t* handle = (uv_timer_t*)lua_newuserdata(L, sizeof(uv_timer_t));
+
+  int err = uv_timer_init(loop, handle);
+  CHECK_ERROR(L, err);
+
+  luaL_setmetatable(L, UVWRAP_TIMER_TYPE);
+  (void)HANDLE_FUNCTION(ctor)(L, (uv_handle_t*)handle);
+  return 1;
+}
+
 static const luaL_Reg TIMER_FUNCTION(funcs)[] = {
-    EMPLACE_TIMER_FUNCTION(new),
+    EMPLACE_TIMER_FUNCTION(Timer),
     {NULL, NULL},
 };
 

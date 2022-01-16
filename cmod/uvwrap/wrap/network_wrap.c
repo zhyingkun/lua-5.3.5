@@ -35,7 +35,7 @@ static int SOCKADDR_FUNCTION(family)(lua_State* L) {
   return 1;
 }
 
-static int SOCKADDR_FUNCTION(ip4_addr)(lua_State* L) {
+static int SOCKADDR_FUNCTION(ip4Addr)(lua_State* L) {
   struct sockaddr_in* addr = (struct sockaddr_in*)luaL_checksockaddr(L, 1);
   const char* ip = luaL_checklstring(L, 2, NULL);
   int port = luaL_checkinteger(L, 3);
@@ -44,7 +44,7 @@ static int SOCKADDR_FUNCTION(ip4_addr)(lua_State* L) {
   return 0;
 }
 
-static int SOCKADDR_FUNCTION(ip6_addr)(lua_State* L) {
+static int SOCKADDR_FUNCTION(ip6Addr)(lua_State* L) {
   struct sockaddr_in6* addr = (struct sockaddr_in6*)luaL_checksockaddr(L, 1);
   const char* ip = luaL_checklstring(L, 2, NULL);
   int port = luaL_checkinteger(L, 3);
@@ -87,7 +87,7 @@ static int SOCKADDR_FUNCTION(port)(lua_State* L) {
   return 1;
 }
 
-static int SOCKADDR_FUNCTION(ip6_scope_id)(lua_State* L) {
+static int SOCKADDR_FUNCTION(ip6ScopeId)(lua_State* L) {
   struct sockaddr_in6* addr = (struct sockaddr_in6*)luaL_checksockaddr(L, 1);
   if (addr->sin6_family != AF_INET6) {
     luaL_error(L, "Error sockaddr family: %d", addr->sin6_family);
@@ -96,7 +96,7 @@ static int SOCKADDR_FUNCTION(ip6_scope_id)(lua_State* L) {
   return 1;
 }
 
-static int SOCKADDR_FUNCTION(ip6_flowinfo)(lua_State* L) {
+static int SOCKADDR_FUNCTION(ip6Flowinfo)(lua_State* L) {
   struct sockaddr_in6* addr = (struct sockaddr_in6*)luaL_checksockaddr(L, 1);
   if (addr->sin6_family != AF_INET6) {
     luaL_error(L, "Error sockaddr family: %d", addr->sin6_family);
@@ -163,12 +163,12 @@ static int SOCKADDR_FUNCTION(__eq)(lua_State* L) {
 const luaL_Reg SOCKADDR_FUNCTION(metafuncs)[] = {
     EMPLACE_SOCKADDR_FUNCTION(len),
     EMPLACE_SOCKADDR_FUNCTION(family),
-    EMPLACE_SOCKADDR_FUNCTION(ip4_addr),
-    EMPLACE_SOCKADDR_FUNCTION(ip6_addr),
+    EMPLACE_SOCKADDR_FUNCTION(ip4Addr),
+    EMPLACE_SOCKADDR_FUNCTION(ip6Addr),
     EMPLACE_SOCKADDR_FUNCTION(name),
     EMPLACE_SOCKADDR_FUNCTION(port),
-    EMPLACE_SOCKADDR_FUNCTION(ip6_scope_id),
-    EMPLACE_SOCKADDR_FUNCTION(ip6_flowinfo),
+    EMPLACE_SOCKADDR_FUNCTION(ip6ScopeId),
+    EMPLACE_SOCKADDR_FUNCTION(ip6Flowinfo),
     EMPLACE_SOCKADDR_FUNCTION(__tostring),
     EMPLACE_SOCKADDR_FUNCTION(__eq),
     /* placeholders */
@@ -367,7 +367,7 @@ static int NETWORK_FUNCTION(if_indextoiid)(lua_State* L) {
   { #name, NETWORK_FUNCTION(name) }
 
 static const luaL_Reg NETWORK_FUNCTION(funcs)[] = {
-    {"sockaddr", SOCKADDR_FUNCTION(new)},
+    {"SockAddr", SOCKADDR_FUNCTION(new)},
     EMPLACE_NETWORK_FUNCTION(getaddrinfo),
     EMPLACE_NETWORK_FUNCTION(getnameinfo),
     EMPLACE_NETWORK_FUNCTION(interface_addresses),

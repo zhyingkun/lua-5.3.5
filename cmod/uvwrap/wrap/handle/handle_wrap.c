@@ -11,13 +11,13 @@ void HANDLE_FUNCTION(ctor)(lua_State* L, uv_handle_t* handle) {
   lua_pop(L, 1);
 }
 
-static int HANDLE_FUNCTION(is_active)(lua_State* L) {
+static int HANDLE_FUNCTION(isActive)(lua_State* L) {
   uv_handle_t* handle = luaL_checkhandle(L, 1);
   lua_pushboolean(L, uv_is_active(handle));
   return 1;
 }
 
-static int HANDLE_FUNCTION(is_closing)(lua_State* L) {
+static int HANDLE_FUNCTION(isClosing)(lua_State* L) {
   uv_handle_t* handle = luaL_checkhandle(L, 1);
   lua_pushboolean(L, uv_is_closing(handle));
   return 1;
@@ -77,20 +77,20 @@ static int HANDLE_FUNCTION(unref)(lua_State* L) {
   return 0;
 }
 
-static int HANDLE_FUNCTION(has_ref)(lua_State* L) {
+static int HANDLE_FUNCTION(hasRef)(lua_State* L) {
   uv_handle_t* handle = luaL_checkhandle(L, 1);
   lua_pushboolean(L, uv_has_ref(handle));
   return 1;
 }
 
-static int HANDLE_FUNCTION(send_buffer_size)(lua_State* L) {
+static int HANDLE_FUNCTION(sendBufferSize)(lua_State* L) {
   uv_handle_t* handle = luaL_checkhandle(L, 1);
   int value = luaL_optinteger(L, 2, 0);
   lua_pushinteger(L, uv_send_buffer_size(handle, &value));
   return 1;
 }
 
-static int HANDLE_FUNCTION(recv_buffer_size)(lua_State* L) {
+static int HANDLE_FUNCTION(recvBufferSize)(lua_State* L) {
   uv_handle_t* handle = luaL_checkhandle(L, 1);
   int value = luaL_optinteger(L, 2, 0);
   lua_pushinteger(L, uv_recv_buffer_size(handle, &value));
@@ -111,13 +111,13 @@ static int HANDLE_FUNCTION(fileno)(lua_State* L) {
   }
 }
 
-static int HANDLE_FUNCTION(get_loop)(lua_State* L) {
+static int HANDLE_FUNCTION(getLoop)(lua_State* L) {
   uv_handle_t* handle = luaL_checkhandle(L, 1);
   lua_pushlightuserdata(L, uv_handle_get_loop(handle));
   return 1;
 }
 
-static int HANDLE_FUNCTION(get_type)(lua_State* L) {
+static int HANDLE_FUNCTION(getType)(lua_State* L) {
   uv_handle_t* handle = luaL_checkhandle(L, 1);
   lua_pushinteger(L, uv_handle_get_type(handle));
   return 1;
@@ -127,17 +127,17 @@ static int HANDLE_FUNCTION(get_type)(lua_State* L) {
   { #name, HANDLE_FUNCTION(name) }
 
 static const luaL_Reg HANDLE_FUNCTION(metafuncs)[] = {
-    EMPLACE_HANDLE_FUNCTION(is_active),
-    EMPLACE_HANDLE_FUNCTION(is_closing),
+    EMPLACE_HANDLE_FUNCTION(isActive),
+    EMPLACE_HANDLE_FUNCTION(isClosing),
     EMPLACE_HANDLE_FUNCTION(close),
     EMPLACE_HANDLE_FUNCTION(ref),
     EMPLACE_HANDLE_FUNCTION(unref),
-    EMPLACE_HANDLE_FUNCTION(has_ref),
-    EMPLACE_HANDLE_FUNCTION(send_buffer_size),
-    EMPLACE_HANDLE_FUNCTION(recv_buffer_size),
+    EMPLACE_HANDLE_FUNCTION(hasRef),
+    EMPLACE_HANDLE_FUNCTION(sendBufferSize),
+    EMPLACE_HANDLE_FUNCTION(recvBufferSize),
     EMPLACE_HANDLE_FUNCTION(fileno),
-    EMPLACE_HANDLE_FUNCTION(get_loop),
-    EMPLACE_HANDLE_FUNCTION(get_type),
+    EMPLACE_HANDLE_FUNCTION(getLoop),
+    EMPLACE_HANDLE_FUNCTION(getType),
     {NULL, NULL},
 };
 
