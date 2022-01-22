@@ -130,6 +130,7 @@ static const luaL_Reg HANDLE_FUNCTION(metafuncs)[] = {
     EMPLACE_HANDLE_FUNCTION(isActive),
     EMPLACE_HANDLE_FUNCTION(isClosing),
     EMPLACE_HANDLE_FUNCTION(close),
+    {"closeAsync", HANDLE_FUNCTION(close)},
     EMPLACE_HANDLE_FUNCTION(ref),
     EMPLACE_HANDLE_FUNCTION(unref),
     EMPLACE_HANDLE_FUNCTION(hasRef),

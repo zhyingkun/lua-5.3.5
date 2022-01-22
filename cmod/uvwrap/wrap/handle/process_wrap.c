@@ -135,9 +135,9 @@ static void parse_spawn_options(lua_State* L, uv_process_t* handle, uv_process_o
   }
   lua_pop(L, 1);
 
-  if (lua_getfield(L, optidx, "exit_cb") != LUA_TNIL) {
+  if (lua_getfield(L, optidx, "exitCallback") != LUA_TNIL) {
     if (!lua_isfunction(L, -1)) {
-      luaL_error(L, "spawn process exit_cb must be a function");
+      luaL_error(L, "spawn process exitCallback must be a function");
     }
     SET_HANDLE_CALLBACK(L, handle, IDX_PROCESS_SPAWN, -1);
     options->exit_cb = PROCESS_CALLBACK(Process);

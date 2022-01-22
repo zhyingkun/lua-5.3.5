@@ -7,12 +7,6 @@
 ** =======================================================
 */
 
-static int SOCKADDR_FUNCTION(new)(lua_State* L) {
-  lua_newuserdata(L, sizeof(struct sockaddr_storage)); // support ipv4, ipv6, UNIX
-  luaL_setmetatable(L, UVWRAP_SOCKADDR_TYPE);
-  return 1;
-}
-
 static int SOCKADDR_FUNCTION(len)(lua_State* L) {
   struct sockaddr* addr = luaL_checksockaddr(L, 1);
 #if defined(__APPLE__)
@@ -184,6 +178,12 @@ static void SOCKADDR_FUNCTION(init_metatable)(lua_State* L) {
   lua_setfield(L, -2, "__index");
 
   lua_pop(L, 1);
+}
+
+static int SOCKADDR_FUNCTION(new)(lua_State* L) {
+  lua_newuserdata(L, sizeof(struct sockaddr_storage)); // support ipv4, ipv6, UNIX
+  luaL_setmetatable(L, UVWRAP_SOCKADDR_TYPE);
+  return 1;
 }
 
 struct sockaddr_storage* SOCKADDR_FUNCTION(create)(lua_State* L) {

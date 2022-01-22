@@ -4,7 +4,7 @@
 #define FS_POLL_FUNCTION(name) UVWRAP_FUNCTION(fs_poll, name)
 #define FS_POLL_CALLBACK(name) UVWRAP_CALLBACK(fs_poll, name)
 
-static void FS_POLL_CALLBACK(start)(uv_fs_poll_t* handle, int status, const uv_stat_t* prev, const uv_stat_t* curr) {
+static void FS_POLL_CALLBACK(startAsync)(uv_fs_poll_t* handle, int status, const uv_stat_t* prev, const uv_stat_t* curr) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK(L, handle, IDX_FS_POLL_START);
   lua_pushinteger(L, status);
@@ -12,13 +12,13 @@ static void FS_POLL_CALLBACK(start)(uv_fs_poll_t* handle, int status, const uv_s
   lua_pushuv_stat_t(L, curr);
   CALL_LUA_FUNCTION(L, 3, 0);
 }
-static int FS_POLL_FUNCTION(start)(lua_State* L) {
+static int FS_POLL_FUNCTION(startAsync)(lua_State* L) {
   uv_fs_poll_t* handle = luaL_checkfs_poll(L, 1);
   luaL_checktype(L, 2, LUA_TFUNCTION);
   const char* path = luaL_checkstring(L, 3);
   unsigned int interval = luaL_checkinteger(L, 4);
 
-  int err = uv_fs_poll_start(handle, FS_POLL_CALLBACK(start), path, interval);
+  int err = uv_fs_poll_start(handle, FS_POLL_CALLBACK(startAsync), path, interval);
   CHECK_ERROR(L, err);
   SET_HANDLE_CALLBACK(L, handle, IDX_FS_POLL_START, 2);
   return 0;
@@ -66,7 +66,7 @@ static int FS_POLL_FUNCTION(__gc)(lua_State* L) {
   { #name, FS_POLL_FUNCTION(name) }
 
 static const luaL_Reg FS_POLL_FUNCTION(metafuncs)[] = {
-    EMPLACE_FS_POLL_FUNCTION(start),
+    EMPLACE_FS_POLL_FUNCTION(startAsync),
     EMPLACE_FS_POLL_FUNCTION(stop),
     EMPLACE_FS_POLL_FUNCTION(getPath),
     EMPLACE_FS_POLL_FUNCTION(__gc),

@@ -329,6 +329,28 @@ extern lua_State* staticL;
   } \
   lua_pop(L, 1)
 
+#define ASYNC_WAIT_MSG "AsyncWait api must running in coroutine"
+#define CHECK_COROUTINE(co) \
+  if (lua_pushthread(co)) { \
+    return luaL_error(co, ASYNC_WAIT_MSG); \
+  }
+#define HOLD_COROUTINE(co) \
+  uv_req_set_data((uv_req_t*)req, (void*)co); \
+  HOLD_REQ_PARAM(co, req, 0, -1); /* hold the coroutine */ \
+  HOLD_REQ_PARAM(co, req, 1, 1)
+#define REQ_ASYNC_WAIT_RESUME(name) \
+  lua_State* L; \
+  GET_REQ_LUA_STATE(L, req); \
+  lua_State* co = (lua_State*)uv_req_get_data((const uv_req_t*)req); \
+  lua_pushinteger(co, status); \
+  int ret = lua_resume(co, L, 1); \
+  if (ret != LUA_OK && ret != LUA_YIELD) { \
+    fprintf(stderr, #name " resume coroutine error: %s", lua_tostring(co, -1)); \
+  } \
+  (void)MEMORY_FUNCTION(free_req)(req); \
+  UNHOLD_REQ_PARAM(co, req, 0); \
+  UNHOLD_REQ_PARAM(co, req, 1)
+
 /* }====================================================== */
 
 /*

@@ -51,7 +51,7 @@
   } \
 \
   static const luaL_Reg UVWRAP_FUNCTION(name, metafuncs)[] = { \
-      {"start", UVWRAP_FUNCTION(name, start)}, \
+      {"startAsync", UVWRAP_FUNCTION(name, start)}, \
       {"stop", UVWRAP_FUNCTION(name, stop)}, \
       {"__gc", UVWRAP_FUNCTION(name, __gc)}, \
       {NULL, NULL}, \

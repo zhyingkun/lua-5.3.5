@@ -14,25 +14,46 @@ static int TCP_FUNCTION(bind)(lua_State* L) {
   return 0;
 }
 
-static void TCP_CALLBACK(connect)(uv_connect_t* req, int status) {
+static void TCP_CALLBACK(connectAsync)(uv_connect_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   (void)MEMORY_FUNCTION(free_req)(req);
   lua_pushinteger(L, status);
   CALL_LUA_FUNCTION(L, 1, 0);
 }
-static int TCP_FUNCTION(connect)(lua_State* L) {
+static int TCP_FUNCTION(connectAsync)(lua_State* L) {
   uv_tcp_t* handle = luaL_checktcp(L, 1);
   struct sockaddr* addr = luaL_checksockaddr(L, 2);
   luaL_checktype(L, 3, LUA_TFUNCTION);
 
   uv_connect_t* req = (uv_connect_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_connect_t));
 
-  int err = uv_tcp_connect(req, handle, addr, TCP_CALLBACK(connect));
+  int err = uv_tcp_connect(req, handle, addr, TCP_CALLBACK(connectAsync));
   if (err == UVWRAP_OK) {
     SET_REQ_CALLBACK(L, 3, req);
   }
   lua_pushinteger(L, err);
+  return 1;
+}
+
+static void TCP_CALLBACK(connectAsyncWait)(uv_connect_t* req, int status) {
+  REQ_ASYNC_WAIT_RESUME(connectAsyncWait);
+  UNHOLD_REQ_PARAM(co, req, 2);
+}
+static int TCP_FUNCTION(connectAsyncWait)(lua_State* co) {
+  CHECK_COROUTINE(co);
+  uv_tcp_t* handle = luaL_checktcp(co, 1);
+  struct sockaddr* addr = luaL_checksockaddr(co, 2);
+
+  uv_connect_t* req = (uv_connect_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_connect_t));
+
+  int err = uv_tcp_connect(req, handle, addr, TCP_CALLBACK(connectAsyncWait));
+  if (err == UVWRAP_OK) {
+    HOLD_COROUTINE(co);
+    HOLD_REQ_PARAM(co, req, 2, 2);
+    return lua_yield(co, 0);
+  }
+  lua_pushinteger(co, err);
   return 1;
 }
 
@@ -91,7 +112,8 @@ static int TCP_FUNCTION(__gc)(lua_State* L) {
 
 const luaL_Reg TCP_FUNCTION(metafuncs)[] = {
     EMPLACE_TCP_FUNCTION(bind),
-    EMPLACE_TCP_FUNCTION(connect),
+    EMPLACE_TCP_FUNCTION(connectAsync),
+    EMPLACE_TCP_FUNCTION(connectAsyncWait),
     EMPLACE_TCP_FUNCTION(noDelay),
     EMPLACE_TCP_FUNCTION(keepAlive),
     EMPLACE_TCP_FUNCTION(simultaneousAccepts),
