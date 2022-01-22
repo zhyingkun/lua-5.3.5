@@ -507,6 +507,7 @@ libuv.timer = timer
 
 ---@class uv_timer_t:uv_handle_t
 ---@field public startAsync fun(self:uv_timer_t, callback:fun():void, timeOut:integer, repeat:integer):void
+---@field public startAsyncWait fun(self:uv_timer_t, timeOut:integer):void
 ---@field public stop fun(self:uv_timer_t):void
 ---@field public again fun(self:uv_timer_t):void
 ---@field public setRepeat fun(self:uv_timer_t, repeat:integer):void
