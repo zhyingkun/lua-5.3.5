@@ -33,6 +33,11 @@ function libuv.setLoop(ctx)
 	loopCtx = ctx or libloop.default()
 end
 
+---@return integer
+function libuv.close()
+	return libloop.close(loopCtx)
+end
+
 ---@alias StatusCallbackSignature fun(status:integer):void
 
 --[[
