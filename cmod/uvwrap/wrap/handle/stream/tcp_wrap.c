@@ -37,8 +37,9 @@ static int TCP_FUNCTION(connectAsync)(lua_State* L) {
 }
 
 static void TCP_CALLBACK(connectAsyncWait)(uv_connect_t* req, int status) {
-  REQ_ASYNC_WAIT_RESUME(connectAsyncWait);
+  REQ_ASYNC_WAIT_PREPARE();
   UNHOLD_REQ_PARAM(co, req, 2);
+  REQ_ASYNC_WAIT_RESUME(connectAsyncWait);
 }
 static int TCP_FUNCTION(connectAsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);

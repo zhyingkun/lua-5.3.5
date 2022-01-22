@@ -338,18 +338,20 @@ extern lua_State* staticL;
   uv_req_set_data((uv_req_t*)req, (void*)co); \
   HOLD_REQ_PARAM(co, req, 0, -1); /* hold the coroutine */ \
   HOLD_REQ_PARAM(co, req, 1, 1)
-#define REQ_ASYNC_WAIT_RESUME(name) \
+#define REQ_ASYNC_WAIT_PREPARE() \
   lua_State* L; \
   GET_REQ_LUA_STATE(L, req); \
+  lua_checkstack(L, LUA_MINSTACK); \
   lua_State* co = (lua_State*)uv_req_get_data((const uv_req_t*)req); \
+  UNHOLD_REQ_PARAM(co, req, 0); /* must unhold before resume */ \
+  UNHOLD_REQ_PARAM(co, req, 1)
+#define REQ_ASYNC_WAIT_RESUME(name) \
   lua_pushinteger(co, status); \
   int ret = lua_resume(co, L, 1); \
   if (ret != LUA_OK && ret != LUA_YIELD) { \
     fprintf(stderr, #name " resume coroutine error: %s", lua_tostring(co, -1)); \
   } \
-  (void)MEMORY_FUNCTION(free_req)(req); \
-  UNHOLD_REQ_PARAM(co, req, 0); \
-  UNHOLD_REQ_PARAM(co, req, 1)
+  (void)MEMORY_FUNCTION(free_req)(req)
 
 /* }====================================================== */
 

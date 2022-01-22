@@ -4,36 +4,36 @@
 #define SIGNAL_FUNCTION(name) UVWRAP_FUNCTION(signal, name)
 #define SIGNAL_CALLBACK(name) UVWRAP_CALLBACK(signal, name)
 
-static void SIGNAL_CALLBACK(start)(uv_signal_t* handle, int signum) {
+static void SIGNAL_CALLBACK(startAsync)(uv_signal_t* handle, int signum) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START); /* make sure one handle only push one callback */
   lua_pushinteger(L, signum);
   CALL_LUA_FUNCTION(L, 1, 0);
 }
-static int SIGNAL_FUNCTION(start)(lua_State* L) {
+static int SIGNAL_FUNCTION(startAsync)(lua_State* L) {
   uv_signal_t* handle = luaL_checksignal(L, 1);
   luaL_checktype(L, 2, LUA_TFUNCTION);
   int signum = luaL_checkinteger(L, 3);
 
-  int err = uv_signal_start(handle, SIGNAL_CALLBACK(start), signum);
+  int err = uv_signal_start(handle, SIGNAL_CALLBACK(startAsync), signum);
   CHECK_ERROR(L, err);
   SET_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START, 2);
   return 0;
 }
 
-static void SIGNAL_CALLBACK(startOneShot)(uv_signal_t* handle, int signum) {
+static void SIGNAL_CALLBACK(startOneShotAsync)(uv_signal_t* handle, int signum) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START); /* make sure one handle only push one callback */
   CLEAR_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START);
   lua_pushinteger(L, signum);
   CALL_LUA_FUNCTION(L, 1, 0);
 }
-static int SIGNAL_FUNCTION(startOneShot)(lua_State* L) {
+static int SIGNAL_FUNCTION(startOneShotAsync)(lua_State* L) {
   uv_signal_t* handle = luaL_checksignal(L, 1);
   luaL_checktype(L, 2, LUA_TFUNCTION);
   int signum = luaL_checkinteger(L, 3);
 
-  int err = uv_signal_start_oneshot(handle, SIGNAL_CALLBACK(startOneShot), signum);
+  int err = uv_signal_start_oneshot(handle, SIGNAL_CALLBACK(startOneShotAsync), signum);
   CHECK_ERROR(L, err);
   SET_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START, 2);
   return 0;
@@ -56,8 +56,8 @@ static int SIGNAL_FUNCTION(__gc)(lua_State* L) {
   { #name, SIGNAL_FUNCTION(name) }
 
 static const luaL_Reg SIGNAL_FUNCTION(metafuncs)[] = {
-    EMPLACE_SIGNAL_FUNCTION(start),
-    EMPLACE_SIGNAL_FUNCTION(startOneShot),
+    EMPLACE_SIGNAL_FUNCTION(startAsync),
+    EMPLACE_SIGNAL_FUNCTION(startOneShotAsync),
     EMPLACE_SIGNAL_FUNCTION(stop),
     EMPLACE_SIGNAL_FUNCTION(__gc),
     {NULL, NULL},

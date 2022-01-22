@@ -27,6 +27,7 @@ static int STREAM_FUNCTION(shutdownAsync)(lua_State* L) {
 }
 
 static void STREAM_CALLBACK(shutdownAsyncWait)(uv_shutdown_t* req, int status) {
+  REQ_ASYNC_WAIT_PREPARE();
   REQ_ASYNC_WAIT_RESUME(shutdownAsyncWait);
 }
 static int STREAM_FUNCTION(shutdownAsyncWait)(lua_State* co) {
@@ -118,8 +119,9 @@ static int STREAM_FUNCTION(writeAsync)(lua_State* L) {
 }
 
 static void STREAM_CALLBACK(writeAsyncWait)(uv_write_t* req, int status) {
-  REQ_ASYNC_WAIT_RESUME(writeAsyncWait);
+  REQ_ASYNC_WAIT_PREPARE();
   UNHOLD_REQ_PARAM(co, req, 2);
+  REQ_ASYNC_WAIT_RESUME(writeAsyncWait);
 }
 static int STREAM_FUNCTION(writeAsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);
@@ -163,9 +165,10 @@ static int STREAM_FUNCTION(write2Async)(lua_State* L) {
 }
 
 static void STREAM_CALLBACK(write2AsyncWait)(uv_write_t* req, int status) {
-  REQ_ASYNC_WAIT_RESUME(write2AsyncWait);
+  REQ_ASYNC_WAIT_PREPARE();
   UNHOLD_REQ_PARAM(co, req, 2);
   UNHOLD_REQ_PARAM(co, req, 3);
+  REQ_ASYNC_WAIT_RESUME(write2AsyncWait);
 }
 static int STREAM_FUNCTION(write2AsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);

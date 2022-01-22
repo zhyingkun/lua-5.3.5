@@ -4,21 +4,45 @@
 #define TIMER_FUNCTION(name) UVWRAP_FUNCTION(timer, name)
 #define TIMER_CALLBACK(name) UVWRAP_CALLBACK(timer, name)
 
-static void TIMER_CALLBACK(start)(uv_timer_t* handle) {
+static void TIMER_CALLBACK(startAsync)(uv_timer_t* handle) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK(L, handle, IDX_TIMER_START);
   CALL_LUA_FUNCTION(L, 0, 0);
 }
-static int TIMER_FUNCTION(start)(lua_State* L) {
+static int TIMER_FUNCTION(startAsync)(lua_State* L) {
   uv_timer_t* handle = luaL_checktimer(L, 1);
   luaL_checktype(L, 2, LUA_TFUNCTION);
   uint64_t timeout = luaL_checkinteger(L, 3);
   uint64_t repeat = luaL_checkinteger(L, 4);
 
-  int err = uv_timer_start(handle, TIMER_CALLBACK(start), timeout, repeat);
+  int err = uv_timer_start(handle, TIMER_CALLBACK(startAsync), timeout, repeat);
   CHECK_ERROR(L, err);
   SET_HANDLE_CALLBACK(L, handle, IDX_TIMER_START, 2);
   return 0;
+}
+
+static void TIMER_CALLBACK(startAsyncWait)(uv_timer_t* handle) {
+  lua_State* L;
+  GET_REQ_LUA_STATE(L, req);
+  lua_State* co = (lua_State*)uv_handle_get_data((const uv_handle_t*)handle);
+  UNHOLD_LUA_OBJECT(co, handle, 0);
+  UNHOLD_LUA_OBJECT(co, handle, 1);
+  int ret = lua_resume(co, L, 0);
+  if (ret != LUA_OK && ret != LUA_YIELD) {
+    fprintf(stderr, "Timer startAsyncWait resume coroutine error: %s", lua_tostring(co, -1));
+  }
+}
+static int TIMER_FUNCTION(startAsyncWait)(lua_State* co) {
+  CHECK_COROUTINE(co);
+  uv_timer_t* handle = luaL_checktimer(co, 1);
+  uint64_t timeout = luaL_checkinteger(co, 2);
+
+  int err = uv_timer_start(handle, TIMER_CALLBACK(startAsyncWait), timeout, 0);
+  CHECK_ERROR(co, err);
+  uv_handle_set_data((uv_handle_t*)handle, (void*)co);
+  HOLD_LUA_OBJECT(co, handle, 0, -1); /* hold the coroutine */
+  HOLD_LUA_OBJECT(co, handle, 1, 1);
+  return lua_yield(co, 0);
 }
 
 static int TIMER_FUNCTION(stop)(lua_State* L) {
@@ -61,7 +85,8 @@ static int TIMER_FUNCTION(__gc)(lua_State* L) {
   { #name, TIMER_FUNCTION(name) }
 
 static const luaL_Reg TIMER_FUNCTION(metafuncs)[] = {
-    EMPLACE_TIMER_FUNCTION(start),
+    EMPLACE_TIMER_FUNCTION(startAsync),
+    EMPLACE_TIMER_FUNCTION(startAsyncWait),
     EMPLACE_TIMER_FUNCTION(stop),
     EMPLACE_TIMER_FUNCTION(again),
     EMPLACE_TIMER_FUNCTION(setRepeat),
