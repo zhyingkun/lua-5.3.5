@@ -1,9 +1,9 @@
 local libuv = require("libuv")
-local fs_event = libuv.fs_event
+local fsevent = libuv.fsevent
 local OK = libuv.err_code.OK
-local CHANGE = fs_event.event_type.CHANGE
-local RENAME = fs_event.event_type.RENAME
-local RECURSIVE = fs_event.event_flag.RECURSIVE
+local CHANGE = fsevent.event_type.CHANGE
+local RENAME = fsevent.event_type.RENAME
+local RECURSIVE = fsevent.event_flag.RECURSIVE
 local sys = libuv.sys
 
 local reload = require("reload").reload
@@ -17,17 +17,17 @@ end
 
 local FilePath2Handle = {}
 local function onFileChangedInternal(filePath, callback, onError)
-	local lastTime = sys.hrtime()
+	local lastTime = sys.hrTime()
 	local function skip()
-		local now = sys.hrtime()
+		local now = sys.hrTime()
 		if now > lastTime and now - lastTime < 100000000 then
 			return true
 		end
 		lastTime = now
 		return false
 	end
-	local handle = fs_event.new()
-	handle:start(function(fileName, events, status)
+	local handle = fsevent.FsEvent()
+	handle:startAsync(function(fileName, events, status)
 		if status == OK then
 			if events & CHANGE ~= 0 then
 				if not skip() then
