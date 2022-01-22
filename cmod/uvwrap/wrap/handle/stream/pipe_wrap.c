@@ -45,7 +45,6 @@ static void PIPE_CALLBACK(connectAsyncWait)(uv_connect_t* req, int status) {
   lua_State* L;
   GET_REQ_LUA_STATE(L, req);
   lua_State* co = (lua_State*)uv_req_get_data((const uv_req_t*)req);
-  (void)MEMORY_FUNCTION(free_req)(req);
   lua_pushinteger(co, status);
   int ret = lua_resume(co, L, 1);
   if (ret != LUA_OK && ret != LUA_YIELD) {
@@ -54,6 +53,7 @@ static void PIPE_CALLBACK(connectAsyncWait)(uv_connect_t* req, int status) {
   UNHOLD_REQ_PARAM(co, req, 0);
   UNHOLD_REQ_PARAM(co, req, 1);
   UNHOLD_REQ_PARAM(co, req, 2);
+  (void)MEMORY_FUNCTION(free_req)(req);
 }
 #define ASYNC_WAIT_MSG "AsyncWait api must running in coroutine"
 static int PIPE_FUNCTION(connectAsyncWait)(lua_State* co) {
@@ -66,7 +66,7 @@ static int PIPE_FUNCTION(connectAsyncWait)(lua_State* co) {
   uv_connect_t* req = (uv_connect_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_connect_t));
   uv_req_set_data((uv_req_t*)req, (void*)co);
   uv_pipe_connect(req, handle, name, PIPE_CALLBACK(connectAsyncWait));
-  HOLD_REQ_PARAM(co, req, 0, -1);
+  HOLD_REQ_PARAM(co, req, 0, -1); // hold the coroutine
   HOLD_REQ_PARAM(co, req, 1, 1);
   HOLD_REQ_PARAM(co, req, 2, 2);
   return lua_yield(co, 0);
