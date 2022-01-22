@@ -401,6 +401,13 @@ static int sort(lua_State* L) {
   return 0;
 }
 
+static int create(lua_State* L) {
+  int narr = luaL_optinteger(L, 1, 0);
+  int nrec = luaL_optinteger(L, 2, 0);
+  lua_createtable(L, narr, nrec);
+  return 1;
+}
+
 /* }====================================================== */
 
 static const luaL_Reg tab_funcs[] = {
@@ -414,6 +421,7 @@ static const luaL_Reg tab_funcs[] = {
     {"remove", tremove},
     {"move", tmove},
     {"sort", sort},
+    {"create", create},
     {NULL, NULL},
 };
 
