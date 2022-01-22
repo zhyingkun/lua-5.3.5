@@ -6,6 +6,8 @@
 
 ---@alias MemAllocCallback fun(oldPtr:lightuserdata, newPtr:lightuserdata, newSize:integer):void
 
+---@alias ErrorMessageHandler fun(msg:string):string | nil
+
 ---@overload fun(value:any):string
 ---@overload fun(value:any, level:integer):string
 ---@param value any
@@ -157,3 +159,11 @@ function io.readfile(fileName) end
 ---@param data string
 ---@return boolean | nil, nil | string, nil | integer @data, errStr, errCode
 function io.writefile(fileName, data) end
+
+---@overload fun():table
+---@overload fun(narr:integer):table
+---@overload fun(narr:integer, nrec:integer):table
+---@param narr integer
+---@param nrec integer
+---@return table
+function table.create(narr, nrec) end
