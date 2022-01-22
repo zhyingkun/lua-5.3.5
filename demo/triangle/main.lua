@@ -64,7 +64,8 @@ bcfx.setMiscFuncs(
 
 bcfx.init(window)
 
-libuv.repl_start()
+libuv.setLoop()
+libuv.replStart()
 
 local loader = require("loader")
 loader.SetPathPrefix(require("libdir").dirname(arg[0]) .. "/")
@@ -125,7 +126,7 @@ end)
 
 local lastTime = 0.0
 while not glfw.windowShouldClose(window) do
-	libuv.run_nowait()
+	libuv.runNoWait()
 
 	input.ImGUIPrePollEvent()
 	glfw.pollEvents() -- will fire user input, keyboard or mouse
