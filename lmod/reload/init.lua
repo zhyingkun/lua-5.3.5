@@ -2,7 +2,6 @@
 For modules or for values in Global table, We have three concept:
 1. The real one => _LOADED
 2. The dummy one => _LOADED_DUMMY (Associate to any type of real value)
-3. The reload one => _LOADED_REF_DUMMY_LOADER (Has reference to dummies)
 In sandbox.require, we find/compile/run(loader), and we get the reload one.
 During the require, the reload one maybe request for GlobalField or OtherModule,
 The sandbox will give it a dummy one of that.
@@ -12,7 +11,6 @@ local sandbox = (function()
 	local dummy_module_cache -- cache all dummy module
 	local dummy_global_cache -- dummies for global field
 	local _LOADED_DUMMY
-	local _LOADED_REF_DUMMY_LOADER -- mod_name => { module = mod_ref_dummy, loader = loader }
 
 	local _init = (function()
 		local weak = { __mode = "kv" }
@@ -20,14 +18,12 @@ local sandbox = (function()
 			dummy_global_cache = setmetatable({}, weak)
 			dummy_module_cache = setmetatable({}, weak)
 			_LOADED_DUMMY = {}
-			_LOADED_REF_DUMMY_LOADER = {}
 		end
 	end)()
 	local function _clear()
 		dummy_global_cache = nil
 		dummy_module_cache = nil
 		_LOADED_DUMMY = nil
-		_LOADED_REF_DUMMY_LOADER = nil
 	end
 
 	local get_dummy_module = (function()
@@ -135,30 +131,20 @@ local sandbox = (function()
 			end
 			error(string.format("module '%s' not found:%s", mod_name, table.concat(msg)))
 		end
-		local function load_with_sandbox(mod_name)
+		return function(mod_name) -- load with sandbox
+			assert(type(mod_name) == "string")
 			local loader, absPath = find_loader(mod_name)
 			local env, uv = debug.getupvalue(loader, 1)
 			if env == "_ENV" then
 				-- this '_ENV' upvalue will be shared with functions in the module
 				debug.setupvalue(loader, 1, make_sandbox()) -- every loaded module has a unique sandbox
 			end
-			local ret = loader(mod_name, absPath)
-			assert(ret, "reload module must return something")
-			local ref_dummy_loader = {
-				module = ret, -- ret is mod_ref_dummy
-			}
+			local mod_ref_dummy = loader(mod_name, absPath)
+			assert(mod_ref_dummy, "reload module must return something")
 			if env == "_ENV" then
 				debug.setupvalue(loader, 1, nil) -- must set to nil, prevent for enum object
-				ref_dummy_loader.loader = loader
 			end
-			return ref_dummy_loader
-		end
-		return function(mod_name) -- must return a dummy module for reference from another module
-			assert(type(mod_name) == "string")
-			if not _LOADED_REF_DUMMY_LOADER[mod_name] then
-				_LOADED_REF_DUMMY_LOADER[mod_name] = load_with_sandbox(mod_name)
-			end
-			return internal_require(mod_name)
+			return mod_ref_dummy, loader
 		end
 	end)()
 
@@ -215,16 +201,10 @@ local sandbox = (function()
 		return getmetatable(v) ~= nil
 	end
 
-	local function _module_ref_dummy_loader(name)
-		local module = _LOADED_REF_DUMMY_LOADER[name]
-		return module.module, module.loader
-	end
-
 	return {
 		require = _require,
 		value = _value,
 		is_dummy = _is_dummy,
-		module_ref_dummy_loader = _module_ref_dummy_loader,
 		init = _init,
 		clear = _clear,
 	}
@@ -622,18 +602,23 @@ local function replace_all_function(newFunc2oldFunc)
 end
 
 local function reload_one(mod_name)
-	sandbox.require(mod_name) -- will return a dummy object
-	local mod_ref_dummy, loader = sandbox.module_ref_dummy_loader(mod_name)
+	local old_real_mod = require(mod_name)
+	assert(old_real_mod, "reload module must be require succeed first: " .. mod_name)
+
+	local mod_ref_dummy, loader = sandbox.require(mod_name)
+
 	-- all dummy table/function in mod_ref_dummy
 	local dummy_path_list, obj_path_list = enum_tbl_func_dummy(mod_ref_dummy)
-	local old_real_mod = package.loaded[mod_name]
+
 	-- find all match objects and addition objects
 	local newTbl2oldTbl, newFunc2oldFunc = match_objects(obj_path_list, old_real_mod)
+
 	-- according to the match function, find all match upvalues
 	local newID2oldUV = match_upvalues(newFunc2oldFunc)
 
 	-- first: make new function join to the old upvalue, and update the upvalue's value
 	patch_funcs_upvalue(newID2oldUV, newFunc2oldFunc) -- must before patch table
+
 	-- second: update new table's value to the old table, contains the mod_ref_dummy itself and old_real_mod itself
 	patch_tables(newTbl2oldTbl)
 
@@ -655,7 +640,6 @@ local reload = {}
 ---@param modName string
 ---@return boolean, any
 function reload.reload(modName)
-	assert(require(modName), "reload module must be require succeed first: " .. modName)
 	sandbox.init()
 	local ok, result = xpcall(reload_one, debug.traceback, modName)
 	sandbox.clear()
