@@ -1030,7 +1030,7 @@ static void releaseMonitor(_GLFWwindow* window) {
 // Process the specified X event
 //
 static void processEvent(XEvent* event) {
-  int keycode = 0;
+  unsigned int keycode = 0;
   Bool filtered = False;
 
   // HACK: Save scancode as some IMs clear the field in XFilterEvent
@@ -1129,7 +1129,7 @@ static void processEvent(XEvent* event) {
         //       (the server never sends a timestamp of zero)
         // NOTE: Timestamp difference is compared to handle wrap-around
         Time diff = event->xkey.time - window->x11.keyPressTimes[keycode];
-        if (diff == event->xkey.time || (diff > 0 && diff < (1 << 31))) {
+        if (diff == event->xkey.time || (diff > 0 && diff < (Time)(1 << 31))) {
           if (keycode)
             _glfwInputKey(window, key, keycode, GLFW_PRESS, mods);
 

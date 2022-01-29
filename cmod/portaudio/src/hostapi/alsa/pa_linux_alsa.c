@@ -249,10 +249,13 @@ _PA_DEFINE_FUNC(snd_output_stdio_attach);
 #ifndef PA_ALSA_PATHNAME
 #define PA_ALSA_PATHNAME "libasound.so"
 #endif
+
+#ifdef PA_ALSA_DYNAMIC
 static const char* g_AlsaLibName = PA_ALSA_PATHNAME;
 
 /* Handle to dynamically loaded library. */
 static void* g_AlsaLib = NULL;
+#endif
 
 #ifdef PA_ALSA_DYNAMIC
 
@@ -347,7 +350,7 @@ int _PA_LOCAL_IMPL(snd_pcm_hw_params_get_rate_max)(const snd_pcm_hw_params_t* pa
 /* Trying to load Alsa library dynamically if 'PA_ALSA_DYNAMIC' is defined, othervise
    will link during compilation.
 */
-static int PaAlsa_LoadLibrary() {
+static int PaAlsa_LoadLibrary(void) {
 #ifdef PA_ALSA_DYNAMIC
 
   PA_DEBUG(("%s: loading ALSA library file - %s\n", __FUNCTION__, g_AlsaLibName));
@@ -546,7 +549,7 @@ void PaAlsa_SetLibraryPathName(const char* pathName) {
 }
 
 /* Close handle to Alsa library. */
-static void PaAlsa_CloseLibrary() {
+static void PaAlsa_CloseLibrary(void) {
 #ifdef PA_ALSA_DYNAMIC
   dlclose(g_AlsaLib);
   g_AlsaLib = NULL;
@@ -570,12 +573,16 @@ static void PaAlsa_CloseLibrary() {
     } \
   } while (0)
 
+#ifdef NDEBUG
+#define ASSERT_CALL_(expr, success)
+#else
 #define ASSERT_CALL_(expr, success) \
   do { \
     int __pa_assert_error_id; \
     __pa_assert_error_id = (expr); \
     assert(success == __pa_assert_error_id); \
   } while (0)
+#endif
 
 static int numPeriods_ = 4;
 static int busyRetries_ = 100;
@@ -1386,7 +1393,7 @@ static PaError BuildDeviceList(PaAlsaHostApiRepresentation* alsaApi) {
 
     PA_ENSURE(FillInDevInfo(alsaApi, hwInfo, blocking, devInfo, &devIdx));
   }
-  assert(devIdx <= numDeviceNames);
+  assert((size_t)devIdx <= numDeviceNames);
   /* Now inspect 'dmix' and 'default' plugins */
   for (i = 0; i < numDeviceNames; ++i) {
     PaAlsaDeviceInfo* devInfo = &deviceInfoArray[i];
@@ -1482,7 +1489,7 @@ static PaSampleFormat GetAvailableFormats(snd_pcm_t* pcm) {
 
 /* Output to console all formats supported by device */
 static void LogAllAvailableFormats(snd_pcm_t* pcm) {
-  PaSampleFormat available = 0;
+  // PaSampleFormat available = 0;
   snd_pcm_hw_params_t* hwParams;
   alsa_snd_pcm_hw_params_alloca(&hwParams);
 
@@ -1735,21 +1742,21 @@ static PaError IsFormatSupported(struct PaUtilHostApiRepresentation* hostApi,
                                  const PaStreamParameters* outputParameters,
                                  double sampleRate) {
   int inputChannelCount = 0, outputChannelCount = 0;
-  PaSampleFormat inputSampleFormat, outputSampleFormat;
+  // PaSampleFormat inputSampleFormat, outputSampleFormat;
   PaError result = paFormatIsSupported;
 
   if (inputParameters) {
     PA_ENSURE(ValidateParameters(inputParameters, hostApi, StreamDirection_In));
 
     inputChannelCount = inputParameters->channelCount;
-    inputSampleFormat = inputParameters->sampleFormat;
+    // inputSampleFormat = inputParameters->sampleFormat;
   }
 
   if (outputParameters) {
     PA_ENSURE(ValidateParameters(outputParameters, hostApi, StreamDirection_Out));
 
     outputChannelCount = outputParameters->channelCount;
-    outputSampleFormat = outputParameters->sampleFormat;
+    // outputSampleFormat = outputParameters->sampleFormat;
   }
 
   if (inputChannelCount) {
@@ -1816,7 +1823,7 @@ static PaError PaAlsaStreamComponent_Initialize(PaAlsaStreamComponent* self, PaA
 error:
 
   /* Log all available formats. */
-  if (hostSampleFormat == paSampleFormatNotSupported) {
+  if ((enum PaErrorCode)hostSampleFormat == paSampleFormatNotSupported) {
     LogAllAvailableFormats(self->pcm);
     PA_DEBUG(("%s: Please provide the log output to PortAudio developers, your hardware does not have any sample format implemented yet.\n", __FUNCTION__));
   }
@@ -2091,9 +2098,11 @@ static int CalculatePollTimeout(const PaAlsaStream* stream, unsigned long frames
  * @param v: Value to align.
  * @param align: Alignment.
  */
+/*
 static unsigned long PaAlsa_AlignBackward(unsigned long v, unsigned long align) {
   return (v - (align ? v % align : 0));
 }
+*/
 
 /** Align value in forward direction.
  *
@@ -3064,15 +3073,15 @@ static PaError ContinuePoll(const PaAlsaStream* stream, StreamDirection streamDi
   PaError result = paNoError;
   snd_pcm_sframes_t delay, margin;
   int err;
-  const PaAlsaStreamComponent *component = NULL, *otherComponent = NULL;
+  const PaAlsaStreamComponent* otherComponent = NULL; // *component = NULL,
 
   *continuePoll = 1;
 
   if (StreamDirection_In == streamDir) {
-    component = &stream->capture;
+    // component = &stream->capture;
     otherComponent = &stream->playback;
   } else {
-    component = &stream->playback;
+    // component = &stream->playback;
     otherComponent = &stream->capture;
   }
 
@@ -3096,7 +3105,7 @@ static PaError ContinuePoll(const PaAlsaStream* stream, StreamDirection streamDi
   if (margin < 0) {
     PA_DEBUG(("%s: Stopping poll for %s\n", __FUNCTION__, StreamDirection_In == streamDir ? "capture" : "playback"));
     *continuePoll = 0;
-  } else if (margin < otherComponent->framesPerPeriod) {
+  } else if (margin < (snd_pcm_sframes_t)otherComponent->framesPerPeriod) {
     *pollTimeout = CalculatePollTimeout(stream, margin);
     PA_DEBUG(("%s: Trying to poll again for %s frames, pollTimeout: %d\n",
               __FUNCTION__,
@@ -3332,7 +3341,7 @@ error:
 static PaError PaAlsaStreamComponent_BeginPolling(PaAlsaStreamComponent* self, struct pollfd* pfds) {
   int nfds = alsa_snd_pcm_poll_descriptors(self->pcm, pfds, self->nfds);
   /* If alsa returns anything else, like -EPIPE return */
-  if (nfds != self->nfds) {
+  if (nfds != (int)self->nfds) {
     return paUnanticipatedHostError;
   }
   self->ready = 0;
@@ -3797,13 +3806,15 @@ error:
  * happen in several iterations until we have consumed the known number of available frames (or an xrun is detected).
  */
 static void* CallbackThreadFunc(void* userData) {
-  PaError result = paNoError;
+  volatile PaError result = paNoError;
   PaAlsaStream* stream = (PaAlsaStream*)userData;
   PaStreamCallbackTimeInfo timeInfo = {0, 0, 0};
+#ifndef NDEBUG
   snd_pcm_sframes_t startThreshold = 0;
+#endif
   int callbackResult = paContinue;
-  PaStreamCallbackFlags cbFlags = 0; /* We might want to keep state across iterations */
-  int streamStarted = 0;
+  volatile PaStreamCallbackFlags cbFlags = 0; /* We might want to keep state across iterations */
+  // int streamStarted = 0;
 
   assert(stream);
   /* Not implemented */
@@ -3823,25 +3834,26 @@ static void* CallbackThreadFunc(void* userData) {
      * stream is started immediately. The latter involves signaling the waiting main thread.
      */
   if (stream->primeBuffers) {
-    snd_pcm_sframes_t avail;
-
     if (stream->playback.pcm)
       ENSURE_(alsa_snd_pcm_prepare(stream->playback.pcm), paUnanticipatedHostError);
     if (stream->capture.pcm && !stream->pcmsSynced)
       ENSURE_(alsa_snd_pcm_prepare(stream->capture.pcm), paUnanticipatedHostError);
 
+#ifndef NDEBUG
+    snd_pcm_sframes_t avail;
     /* We can't be certain that the whole ring buffer is available for priming, but there should be
          * at least one period */
     avail = alsa_snd_pcm_avail_update(stream->playback.pcm);
     startThreshold = avail - (avail % stream->playback.framesPerPeriod);
-    assert(startThreshold >= stream->playback.framesPerPeriod);
+    assert(startThreshold >= (snd_pcm_sframes_t)stream->playback.framesPerPeriod);
+#endif
   } else {
     PA_ENSURE(PaUnixThread_PrepareNotify(&stream->thread));
     /* Buffer will be zeroed */
     PA_ENSURE(AlsaStart(stream, 0));
     PA_ENSURE(PaUnixThread_NotifyParent(&stream->thread));
 
-    streamStarted = 1;
+    // streamStarted = 1;
   }
 
   while (1) {
@@ -4166,7 +4178,7 @@ static PaError GetAlsaStreamPointer(PaStream* s, PaAlsaStream** stream) {
 
   *stream = (PaAlsaStream*)s;
 error:
-  return paNoError;
+  return result;
 }
 
 PaError PaAlsa_GetStreamInputCard(PaStream* s, int* card) {

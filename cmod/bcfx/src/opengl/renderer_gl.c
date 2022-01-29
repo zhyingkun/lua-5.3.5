@@ -588,7 +588,7 @@ static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw
     // Vertex Count
     GLint total = glCtx->curVertexCount;
     GLint start = draw->indexStart;
-    GLsizei count = draw->indexCount == 0 ? total : draw->indexCount;
+    GLsizei count = draw->indexCount == 0 ? (GLsizei)total : (GLsizei)draw->indexCount;
     CLAMP_OFFSET_COUNT(total, start, count);
     if (draw->numInstance == 0) {
       GL_CHECK(glDrawArrays(GL_TRIANGLES, start, count));
@@ -602,7 +602,7 @@ static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw
     // Index Count
     GLsizei total = ib->count;
     GLsizei start = draw->indexStart; // count in indices
-    GLsizei count = draw->indexCount == 0 ? total : draw->indexCount;
+    GLsizei count = draw->indexCount == 0 ? total : (GLsizei)draw->indexCount;
     CLAMP_OFFSET_COUNT(total, start, count);
     const void* indices = (const void*)((uint64_t)start * sizeof_IndexType[ib->type]); // offset in byte
     if (draw->numInstance == 0) {

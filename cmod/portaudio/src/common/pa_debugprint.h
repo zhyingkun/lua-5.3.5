@@ -88,9 +88,10 @@ void PaUtil_DebugPrint(const char* format, ...);
 */
 
 #ifdef PA_ENABLE_DEBUG_OUTPUT
-#define PA_DEBUG(x) PaUtil_DebugPrint x;
+#define PA_DEBUG(x) {PaUtil_DebugPrint x};
 #else
-#define PA_DEBUG(x)
+#define PA_DEBUG(x) \
+  {}
 #endif
 
 #ifdef PA_LOG_API_CALLS

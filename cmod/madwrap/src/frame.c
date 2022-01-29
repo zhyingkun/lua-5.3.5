@@ -334,7 +334,7 @@ int mad_header_decode(struct mad_header* header, struct mad_stream* stream) {
     if (!stream->sync)
       ptr = stream->this_frame;
 
-    if (end - ptr < stream->skiplen) {
+    if (end - ptr < (int)stream->skiplen) {
       stream->skiplen -= end - ptr;
       stream->next_frame = end;
 

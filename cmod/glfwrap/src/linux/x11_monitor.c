@@ -158,8 +158,8 @@ void _glfwPollMonitorsX11(void) {
       for (j = 0; j < screenCount; j++) {
         if (screens[j].x_org == ci->x &&
             screens[j].y_org == ci->y &&
-            screens[j].width == ci->width &&
-            screens[j].height == ci->height) {
+            ((unsigned int)screens[j].width) == ci->width &&
+            ((unsigned int)screens[j].height) == ci->height) {
           monitor->x11.index = j;
           break;
         }
@@ -501,7 +501,7 @@ GLFWbool _glfwPlatformGetGammaRamp(_GLFWmonitor* monitor, GLFWgammaramp* ramp) {
 
 void _glfwPlatformSetGammaRamp(_GLFWmonitor* monitor, const GLFWgammaramp* ramp) {
   if (_glfw.x11.randr.available && !_glfw.x11.randr.gammaBroken) {
-    if (XRRGetCrtcGammaSize(_glfw.x11.display, monitor->x11.crtc) != ramp->size) {
+    if (((unsigned int)XRRGetCrtcGammaSize(_glfw.x11.display, monitor->x11.crtc)) != ramp->size) {
       _glfwInputError(GLFW_PLATFORM_ERROR,
                       "X11: Gamma ramp size must match current ramp size");
       return;
