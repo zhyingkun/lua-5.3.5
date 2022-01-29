@@ -286,12 +286,13 @@ void luaL_pushnkrect(lua_State* L, nk_rect rect) {
   lua_pushinteger(L, uri.value);
 }
 
+#define GET_SHORT(L, idx) ((short)(lua_isinteger(L, idx) ? (short)lua_tointeger(L, idx) : (short)lua_tonumber(L, idx)))
 static int NKWRAP_FUNCTION(packRect)(lua_State* L) {
   UnionRectInteger uri;
-  uri.recti.x = luaL_checkinteger(L, 1);
-  uri.recti.y = luaL_checkinteger(L, 2);
-  uri.recti.w = luaL_checkinteger(L, 3);
-  uri.recti.h = luaL_checkinteger(L, 4);
+  uri.recti.x = GET_SHORT(L, 1);
+  uri.recti.y = GET_SHORT(L, 2);
+  uri.recti.w = GET_SHORT(L, 3);
+  uri.recti.h = GET_SHORT(L, 4);
 
   lua_pushinteger(L, uri.value);
   return 1;
