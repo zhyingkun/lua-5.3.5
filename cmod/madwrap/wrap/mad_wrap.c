@@ -6,6 +6,7 @@
 
 #include <lua.h>
 #include <lauxlib.h>
+#include <luautil.h>
 
 #include <stdlib.h>
 
@@ -104,35 +105,92 @@ static enum mad_flow error(void* data, struct mad_stream* stream, struct mad_fra
   return MAD_FLOW_CONTINUE;
 }
 
-static int MADWRAP_FUNCTION(decode)(lua_State* L) {
-  size_t len;
-  const char* str = luaL_checklstring(L, 1, &len);
+typedef struct {
+  luaL_MemBuffer mb;
+} MadDecodeParam;
+typedef struct {
+  luaL_MemBuffer mb;
+  int err;
+} MadDecodeResult;
 
+static void _releaseBuffer(void* ud, void* ptr) {
+  (void)ud;
+  free(ptr);
+}
+static int _madDecodeToBuffer(luaL_MemBuffer* in, luaL_MemBuffer* out) {
   buffer buf[1];
-  BUFFER_INIT(buf, str, len);
+  BUFFER_INIT(buf, in->ptr, in->sz);
   struct mad_decoder decoder[1];
   mad_decoder_init(decoder, &buf, input, 0 /* header */, 0 /* filter */, output, error, 0 /* message */);
-  int result = mad_decoder_run(decoder, MAD_DECODER_MODE_SYNC);
+  int err = mad_decoder_run(decoder, MAD_DECODER_MODE_SYNC);
   mad_decoder_finish(decoder);
-  if (result == 0) {
-    lua_pushlstring(L, (const char*)buf->raw, buf->cnt);
-    lua_pushnil(L);
+  if (err == 0) {
+    MEMBUFFER_SET(out, (void*)buf->raw, buf->cnt, _releaseBuffer, NULL);
+    buf->raw = NULL;
   } else {
-    lua_pushnil(L);
-    lua_pushinteger(L, result);
+    MEMBUFFER_CLEAR(out);
   }
   BUFFER_FREE_RESULT(buf);
+  MEMBUFFER_RELEASE(in);
+  return err;
+}
+
+static int MADWRAP_FUNCTION(packMadDecodeParam)(lua_State* L) {
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  MadDecodeParam* param = (MadDecodeParam*)malloc(sizeof(MadDecodeParam));
+  MEMBUFFER_MOVE(mb, &param->mb);
+
+  lua_pushlightuserdata(L, (void*)param);
+  return 1;
+}
+static void* MADWRAP_FUNCTION(madDecodePtr)(void* arg) {
+  MadDecodeParam* param = (MadDecodeParam*)arg;
+  MadDecodeResult* result = (MadDecodeResult*)malloc(sizeof(MadDecodeResult));
+  result->err = _madDecodeToBuffer(&param->mb, &result->mb);
+  free((void*)param);
+  return (void*)result;
+}
+static int _dealMadDecodeResult(lua_State* L, int err, luaL_MemBuffer* mb) {
+  if (err != 0) {
+    luaL_MemBuffer* newMB = luaL_newmembuffer(L);
+    MEMBUFFER_MOVE(mb, newMB);
+  } else {
+    lua_pushnil(L);
+  }
+  lua_pushinteger(L, err);
   return 2;
+}
+static int MADWRAP_FUNCTION(unpackReadFileResult)(lua_State* L) {
+  MadDecodeResult* result = (MadDecodeResult*)luaL_checklightuserdata(L, 1);
+  int ret = _dealMadDecodeResult(L, result->err, &result->mb);
+  free((void*)result);
+  return ret;
+}
+
+static int MADWRAP_FUNCTION(madDecode)(lua_State* L) {
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+
+  luaL_MemBuffer targetMB[1];
+  int err = _madDecodeToBuffer(mb, targetMB);
+  return _dealMadDecodeResult(L, err, targetMB);
 }
 
 #define EMPLACE_MADWRAP_FUNCTION(name) \
   { #name, MADWRAP_FUNCTION(name) }
 static const luaL_Reg wrap_funcs[] = {
-    EMPLACE_MADWRAP_FUNCTION(decode),
+    EMPLACE_MADWRAP_FUNCTION(madDecode),
+    EMPLACE_MADWRAP_FUNCTION(packMadDecodeParam),
+    EMPLACE_MADWRAP_FUNCTION(unpackReadFileResult),
     {NULL, NULL},
 };
 
+#define REGISTE_FUNC_MADWRAP(name) \
+  REGISTE_LIGHTUSERDATA(name, MADWRAP_FUNCTION(name))
+
 LUAMOD_API int luaopen_libmadwrap(lua_State* L) {
   luaL_newlib(L, wrap_funcs);
+
+  REGISTE_FUNC_MADWRAP(madDecodePtr);
+
   return 1;
 }
