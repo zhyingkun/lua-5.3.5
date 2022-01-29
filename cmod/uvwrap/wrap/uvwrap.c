@@ -214,6 +214,7 @@ LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
   CALL_MODULE_INIT(tcp);
   CALL_MODULE_INIT(tty);
 
+  CALL_MODULE_INIT(async);
   CALL_MODULE_INIT(fs_event);
   CALL_MODULE_INIT(fs_poll);
   CALL_MODULE_INIT(misc);
