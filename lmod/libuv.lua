@@ -21,6 +21,8 @@ local libsys = uvwrap.sys
 local libthread = uvwrap.thread
 
 local ASYNC_WAIT_MSG = "AsyncWait api must running in coroutine"
+local queueWork = uvwrap.queue_work
+local OK = uvwrap.err_code.OK
 
 ---@class libuv:table
 local libuv = {}
@@ -76,12 +78,14 @@ end
 ** =======================================================
 --]]
 
+---@alias ReadCallbackSignature fun(nread:integer, str:string | nil):void
+
 ---@class uv_stream_t:uv_handle_t
 ---@field shutdownAsync fun(self:uv_stream_t, callback:StatusCallbackSignature):void
 ---@field shutdownAsyncWait fun(self:uv_stream_t):integer
 ---@field listenAsync fun(self:uv_stream_t, backlog:integer, callback:StatusCallbackSignature):void
 ---@field accept fun(self:uv_stream_t, client:uv_stream_t):integer
----@field readStartAsync fun(self:uv_stream_t, callback:fun(nread:integer, str:string | nil):void):void
+---@field readStartAsync fun(self:uv_stream_t, callback:ReadCallbackSignature):void
 ---@field readStop fun(self:uv_stream_t):void
 ---@field writeAsync fun(self:uv_stream_t, data:string, callback:StatusCallbackSignature):void
 ---@field writeAsyncWait fun(self:uv_stream_t, data:string):integer
@@ -106,7 +110,7 @@ local tcp = {}
 libuv.tcp = tcp
 
 ---@class uv_tcp_t:uv_stream_t
----@field bind fun(self:uv_tcp_t, addr:sockaddr, flags:libuv_tcp_flags):void
+---@field bind fun(self:uv_tcp_t, addr:sockaddr, flags:libuv_tcp_flag):void
 ---@field connectAsync fun(self:uv_tcp_t, addr:sockaddr, callback:StatusCallbackSignature):void
 ---@field connectAsyncWait fun(self:uv_tcp_t, addr:sockaddr):integer
 ---@field noDelay fun(self:uv_tcp_t, enable:boolean):void
@@ -123,11 +127,11 @@ function tcp.Tcp(flags)
 	return libtcp.Tcp(loopCtx, flags)
 end
 
----@class libuv_tcp_flags
+---@class libuv_tcp_flag
 ---@field public IPV6ONLY integer
 
----@type libuv_tcp_flags
-tcp.tcp_flags = libtcp.tcp_flags
+---@type libuv_tcp_flag
+tcp.tcp_flag = libtcp.tcp_flag
 
 -- }======================================================
 
@@ -255,11 +259,13 @@ end
 ** =======================================================
 --]]
 
+---@alias CloseCallbackSignature fun():void
+
 ---@class uv_handle_t:userdata
 ---@field isActive fun(self:uv_handle_t):boolean
 ---@field isClosing fun(self:uv_handle_t):boolean
 ---@field close fun(self:uv_handle_t):void
----@field closeAsync fun(self:uv_handle_t, callback:fun():void):void
+---@field closeAsync fun(self:uv_handle_t, callback:CloseCallbackSignature):void
 ---@field closeAsyncWait fun(self:uv_handle_t):void
 ---@field ref fun(self:uv_handle_t):void
 ---@field unref fun(self:uv_handle_t):void
@@ -505,8 +511,10 @@ signal.sig_name = libsignal.sig_name
 local timer = {}
 libuv.timer = timer
 
+---@alias TimerCallbackSignature fun():void
+
 ---@class uv_timer_t:uv_handle_t
----@field public startAsync fun(self:uv_timer_t, callback:fun():void, timeOut:integer, repeat:integer):void
+---@field public startAsync fun(self:uv_timer_t, callback:TimerCallbackSignature, timeOut:integer, repeat:integer):void
 ---@field public startAsyncWait fun(self:uv_timer_t, timeOut:integer):void
 ---@field public stop fun(self:uv_timer_t):void
 ---@field public again fun(self:uv_timer_t):void
@@ -530,6 +538,9 @@ end
 local udp = {}
 libuv.udp = udp
 
+---@alias SendCallbackSignature fun(status:integer):void
+---@alias RecvCallbackSignature fun(nread:integer, data:string | nil, addr:sockaddr | nil, flags:libuv_udp_flag):void
+
 ---@class uv_udp_t:uv_handle_t
 ---@field public bind fun(self:uv_udp_t, addr:sockaddr, flags:libuv_udp_flag):void
 ---@field public connect fun(self:uv_udp_t, addr:sockaddr):integer
@@ -541,10 +552,10 @@ libuv.udp = udp
 ---@field public setMulticastInterface fun(self:uv_udp_t, interfaceAddr:string):void
 ---@field public setBroadcast fun(self:uv_udp_t, on:boolean):void
 ---@field public setTtl fun(self:uv_udp_t, ttl:integer):void
----@field public sendAsync fun(self:uv_udp_t, data:string, addr:sockaddr, callback:fun(status:integer):void):void
+---@field public sendAsync fun(self:uv_udp_t, data:string, addr:sockaddr, callback:SendCallbackSignature):void
 ---@field public sendAsyncWait fun(self:uv_udp_t, data:string, addr:sockaddr):integer
 ---@field public trySend fun(self:uv_udp_t, data:string, addr:sockaddr):void
----@field public recvStartAsync fun(self:uv_udp_t, callback:fun(nread:integer, data:string | nil, addr:sockaddr | nil, flags:):void):void
+---@field public recvStartAsync fun(self:uv_udp_t, callback:RecvCallbackSignature):void
 ---@field public recvStop fun(self:uv_udp_t):void
 ---@field public getSendQueueSize fun(self:uv_udp_t):integer
 ---@field public getSendQueueCount fun(self:uv_udp_t):integer
@@ -601,13 +612,17 @@ end
 ** =======================================================
 --]]
 
----@class libuv_fs
+---@class libuv_fs:table
 local fs = {}
 libuv.fs = fs
 
 local running = coroutine.running
 local yield = coroutine.yield
-local resume = coroutine.resume
+local resumeOrigin = coroutine.resume
+local function resume(...)
+	local status, msg = resumeOrigin(...)
+	if not status then printerr("libuv lua module resume coroutine error: ", msg) end
+end
 
 ---@alias StatusCallbackSignature fun(ret:integer):void
 
@@ -1500,7 +1515,7 @@ fs.symlink_flag = libfs.symlink_flag
 ** =======================================================
 --]]
 
----@class libuv_loop
+---@class libuv_loop:table
 local loop = {}
 libuv.loop = loop
 
@@ -1582,7 +1597,7 @@ loop.loop_size = libloop.loop_size
 ** =======================================================
 --]]
 
----@class libuv_network
+---@class libuv_network:table
 local network = {}
 libuv.network = network
 
@@ -1684,13 +1699,37 @@ end
 ---@class physaddr:userdata
 
 ---@class libuv_addrinfo_flag
----@field public
+---@field public ADDRCONFIG integer
+---@field public ALL integer
+---@field public CANONNAME integer
+---@field public NUMERICHOST integer
+---@field public PASSIVE integer
+---@field public V4MAPPED integer
+---@field public NUMERICSERV integer @for MacOSX and Linux only
+---@field public V4MAPPED_CFG integer @for MacOSX only
+---@field public DEFAULT integer @for MacOSX only
+---@field public IDN integer @for Linux only
+---@field public CANONIDN integer @for Linux only
+---@field public IDN_ALLOW_UNASSIGNED integer @for Linux only
+---@field public IDN_USE_STD3_ASCII_RULES integer @for Linux only
+---@field public NON_AUTHORITATIVE integer @for Windows only
+---@field public SECURE integer @for Windows only
+---@field public RETURN_PREFERRED_NAMES integer @for Windows only
+---@field public FQDN integer @for Windows only
+---@field public FILESERVER integer @for Windows only
 
 ---@type libuv_addrinfo_flag
 network.addrinfo_flag = libnetwork.addrinfo_flag
 
 ---@class libuv_nameinfo_flag
----@field public
+---@field public NOFQDN integer
+---@field public NUMERICHOST integer
+---@field public NAMEREQD integer
+---@field public NUMERICSERV integer
+---@field public DGRAM integer
+---@field public IDN integer @for Linux only
+---@field public IDN_ALLOW_UNASSIGNED integer @for Linux only
+---@field public IDN_USE_STD3_ASCII_RULES integer @for Linux only
 
 ---@type libuv_nameinfo_flag
 network.nameinfo_flag = libnetwork.nameinfo_flag
@@ -1732,7 +1771,7 @@ network.socktype = libnetwork.socktype
 ** =======================================================
 --]]
 
----@class libuv_os
+---@class libuv_os:table
 local os = {}
 libuv.os = os
 
@@ -1886,7 +1925,7 @@ end
 ** =======================================================
 --]]
 
----@class libuv_thread
+---@class libuv_thread:table
 local thread = {}
 libuv.thread = thread
 
@@ -1901,22 +1940,15 @@ thread.thread_join = libthread.thread_join
 ---@type lightuserdata
 thread.thread_equal = libthread.thread_equal
 
----@class libuv_thread_sem
-local sem = {}
-thread.sem = sem
+---@class libuv_thread_sem:table
+---@field public sem_init lightuserdata
+---@field public sem_destroy lightuserdata
+---@field public sem_post lightuserdata
+---@field public sem_wait lightuserdata
+---@field public sem_trywait lightuserdata
 
-local libsem = libthread.sem
-
----@type lightuserdata
-sem.sem_init = libsem.sem_init
----@type lightuserdata
-sem.sem_destroy = libsem.sem_destroy
----@type lightuserdata
-sem.sem_post = libsem.sem_post
----@type lightuserdata
-sem.sem_wait = libsem.sem_wait
----@type lightuserdata
-sem.sem_trywait = libsem.sem_trywait
+---@type libuv_thread_sem
+thread.sem = libthread.sem
 
 -- }======================================================
 
@@ -1954,13 +1986,14 @@ end
 function libuv.guessHandle(fd)
 	uvwrap.guess_handle(fd)
 end
-local queueWork = uvwrap.queue_work
-local OK = uvwrap.err_code.OK
 ---@param worker lightuserdata
 ---@param arg nil | boolean | integer | lightuserdata
----@param callback fun(status:integer, result:lightuserdata):void
+---@param callback fun(result:lightuserdata, status:integer):void
 function libuv.queueWorkAsync(worker, arg, callback)
-	queueWork(loopCtx, worker, arg, callback)
+	queueWork(loopCtx, worker, arg, function(result, status)
+		if status ~= OK then printerr("queueWorkAsync callback error: ", status) end
+		callback(result, status)
+	end)
 end
 ---@param worker lightuserdata
 ---@param arg nil | boolean | integer | lightuserdata
@@ -1968,15 +2001,18 @@ end
 function libuv.queueWorkAsyncWait(worker, arg)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	queueWork(loopCtx, worker, arg, function(status, result)
-		if status ~= OK then printError("queueWorkAsyncWait callback error: ", status) end
-		resume(co, result)
+	queueWork(loopCtx, worker, arg, function(result, status)
+		if status ~= OK then printerr("queueWorkAsyncWait callback error: ", status) end
+		resume(co, result, status)
 	end)
 	return yield()
 end
+
+---@alias REPLCallbackSignature fun():void
+
 ---@overload fun():void
----@overload fun(callback:fun():void):void
----@callback fun():void
+---@overload fun(callback:REPLCallbackSignature):void
+---@param callback REPLCallbackSignature
 function libuv.replStart(callback)
 	uvwrap.repl_start(loopCtx, callback)
 end
