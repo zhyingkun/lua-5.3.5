@@ -38,7 +38,7 @@ static void stylePtr_buttonStyleItem(lua_State* L, const char* fieldName, nk_sty
   STYLE_REGISTE_PTR(normal);
   STYLE_REGISTE_PTR(hover);
   STYLE_REGISTE_PTR(active);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_buttonColor(lua_State* L, const char* fieldName, nk_style_button* style) {
   lua_createtable(L, 0, 5);
@@ -47,25 +47,25 @@ static void stylePtr_buttonColor(lua_State* L, const char* fieldName, nk_style_b
   STYLE_REGISTE_PTR(text_normal);
   STYLE_REGISTE_PTR(text_hover);
   STYLE_REGISTE_PTR(text_active);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_buttonFlags(lua_State* L, const char* fieldName, nk_style_button* style) {
   lua_createtable(L, 0, 1);
   STYLE_REGISTE_PTR(text_alignment);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_buttonFloat(lua_State* L, const char* fieldName, nk_style_button* style) {
   lua_createtable(L, 0, 2);
   STYLE_REGISTE_PTR(border);
   STYLE_REGISTE_PTR(rounding);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_buttonVec2(lua_State* L, const char* fieldName, nk_style_button* style) {
   lua_createtable(L, 0, 3);
   STYLE_REGISTE_PTR(padding);
   STYLE_REGISTE_PTR(image_padding);
   STYLE_REGISTE_PTR(touch_padding);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_button(lua_State* L, const char* instanceName, nk_style_button* style) {
   stylePtr_findTable(L, "style_item");
@@ -220,7 +220,7 @@ static void stylePtr_scrollbarStyleItem(lua_State* L, const char* fieldName, nk_
   STYLE_REGISTE_PTR(cursor_active);
   STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(inc_button);
   STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(dec_button);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_scrollbarColor(lua_State* L, const char* fieldName, nk_style_scrollbar* style) {
   lua_createtable(L, 0, 4);
@@ -228,13 +228,13 @@ static void stylePtr_scrollbarColor(lua_State* L, const char* fieldName, nk_styl
   STYLE_REGISTE_PTR(cursor_border_color);
   STYLE_REGISTE_PTR_BUTTON_COLOR(inc_button);
   STYLE_REGISTE_PTR_BUTTON_COLOR(dec_button);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_scrollbarFlags(lua_State* L, const char* fieldName, nk_style_scrollbar* style) {
   lua_createtable(L, 0, 2);
   STYLE_REGISTE_PTR_BUTTON_FLAGS(inc_button);
   STYLE_REGISTE_PTR_BUTTON_FLAGS(dec_button);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_scrollbarFloat(lua_State* L, const char* fieldName, nk_style_scrollbar* style) {
   lua_createtable(L, 0, 6);
@@ -244,14 +244,14 @@ static void stylePtr_scrollbarFloat(lua_State* L, const char* fieldName, nk_styl
   STYLE_REGISTE_PTR(rounding_cursor);
   STYLE_REGISTE_PTR_BUTTON_FLOAT(inc_button);
   STYLE_REGISTE_PTR_BUTTON_FLOAT(dec_button);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_scrollbarVec2(lua_State* L, const char* fieldName, nk_style_scrollbar* style) {
   lua_createtable(L, 0, 3);
   STYLE_REGISTE_PTR(padding);
   STYLE_REGISTE_PTR_BUTTON_VEC2(inc_button);
   STYLE_REGISTE_PTR_BUTTON_VEC2(dec_button);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_scrollbar(lua_State* L, const char* instanceName, nk_style_scrollbar* style) {
   stylePtr_findTable(L, "style_item");
@@ -282,7 +282,7 @@ static void stylePtr_editStyleItem(lua_State* L, const char* fieldName, nk_style
   STYLE_REGISTE_PTR(hover);
   STYLE_REGISTE_PTR(active);
   STYLE_REGISTE_PTR_SCROLLBAR_STYLE_ITEM(scrollbar);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_editColor(lua_State* L, const char* fieldName, nk_style_edit* style) {
   lua_createtable(L, 0, 13);
@@ -299,12 +299,12 @@ static void stylePtr_editColor(lua_State* L, const char* fieldName, nk_style_edi
   STYLE_REGISTE_PTR(selected_text_normal);
   STYLE_REGISTE_PTR(selected_text_hover);
   STYLE_REGISTE_PTR_SCROLLBAR_COLOR(scrollbar);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_editFlags(lua_State* L, const char* fieldName, nk_style_edit* style) {
   lua_createtable(L, 0, 1);
   STYLE_REGISTE_PTR_SCROLLBAR_FLAGS(scrollbar);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_editFloat(lua_State* L, const char* fieldName, nk_style_edit* style) {
   lua_createtable(L, 0, 5);
@@ -313,14 +313,14 @@ static void stylePtr_editFloat(lua_State* L, const char* fieldName, nk_style_edi
   STYLE_REGISTE_PTR(cursor_size);
   STYLE_REGISTE_PTR(row_padding);
   STYLE_REGISTE_PTR_SCROLLBAR_FLOAT(scrollbar);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_editVec2(lua_State* L, const char* fieldName, nk_style_edit* style) {
   lua_createtable(L, 0, 3);
   STYLE_REGISTE_PTR(scrollbar_size);
   STYLE_REGISTE_PTR(padding);
   STYLE_REGISTE_PTR_SCROLLBAR_VEC2(scrollbar);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_edit(lua_State* L, const char* instanceName, nk_style_edit* style) {
   stylePtr_findTable(L, "style_item");
@@ -479,7 +479,7 @@ static void stylePtr_windowHeaderStyleItem(lua_State* L, const char* fieldName, 
   STYLE_REGISTE_PTR(active);
   STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(close_button);
   STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(minimize_button);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_windowHeaderColor(lua_State* L, const char* fieldName, nk_style_window_header* style) {
   lua_createtable(L, 0, 5);
@@ -488,19 +488,19 @@ static void stylePtr_windowHeaderColor(lua_State* L, const char* fieldName, nk_s
   STYLE_REGISTE_PTR(label_active);
   STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(close_button);
   STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(minimize_button);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_windowHeaderFlags(lua_State* L, const char* fieldName, nk_style_window_header* style) {
   lua_createtable(L, 0, 2);
   STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(close_button);
   STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(minimize_button);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_windowHeaderFloat(lua_State* L, const char* fieldName, nk_style_window_header* style) {
   lua_createtable(L, 0, 2);
   STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(close_button);
   STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(minimize_button);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_windowHeaderVec2(lua_State* L, const char* fieldName, nk_style_window_header* style) {
   lua_createtable(L, 0, 5);
@@ -509,7 +509,7 @@ static void stylePtr_windowHeaderVec2(lua_State* L, const char* fieldName, nk_st
   STYLE_REGISTE_PTR(spacing);
   STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(close_button);
   STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(minimize_button);
-  lua_setfield(L, -3, fieldName);
+  lua_setfield(L, -2, fieldName);
 }
 #define STYLE_REGISTE_PTR_WINDOW_HEADER_STYLE_ITEM(field_) stylePtr_windowHeaderStyleItem(L, #field_, &style->field_)
 #define STYLE_REGISTE_PTR_WINDOW_HEADER_COLOR(field_) stylePtr_windowHeaderColor(L, #field_, &style->field_)
@@ -586,7 +586,7 @@ static void stylePtr_generateTable(lua_State* L, nk_style* style) {
   STYLE_GENERATE(window, window);
 }
 
-static int NKWRAP_FUNCTION(GetStylePtrTable)(lua_State* L) {
+static int NKWRAP_FUNCTION(getStylePtrTable)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
 
   if (lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)ctx) != LUA_TTABLE) {
@@ -831,7 +831,7 @@ void NKSTYLEITEM_FUNCTION(init)(lua_State* L) {
 #define EMPLACE_NKWRAP_FUNCTION(name) \
   { #name, NKWRAP_FUNCTION(name) }
 static const luaL_Reg wrap_funcs[] = {
-    EMPLACE_NKWRAP_FUNCTION(GetStylePtrTable),
+    EMPLACE_NKWRAP_FUNCTION(getStylePtrTable),
     /* Style */
     EMPLACE_NKWRAP_FUNCTION(style_default),
     EMPLACE_NKWRAP_FUNCTION(style_from_table),
