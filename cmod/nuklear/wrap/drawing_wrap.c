@@ -248,20 +248,20 @@ static int NKWRAP_FUNCTION(push_scissor)(lua_State* L) {
 
 static void _commandCustomCallback(void* canvas, short x, short y, unsigned short w, unsigned short h, nk_handle callback_data) {
   lua_State* L = GET_MAIN_LUA_STATE();
-  PREPARE_CALL_LUA(L);
   PUSH_HOLD_OBJECT(L, _commandCustomCallback, 0);
   if (lua_isfunction(L, -1)) {
+    int idx = lua_gettop(L);
+    PREPARE_CALL_LUA(L);
+    lua_pushvalue(L, idx);
     nk_draw_list* drawList = (nk_draw_list*)canvas;
     lua_pushlightuserdata(L, (void*)drawList);
     lua_pushinteger(L, x);
     lua_pushinteger(L, y);
     lua_pushinteger(L, w);
     lua_pushinteger(L, h);
-    CALL_LUA(L, 5, 0);
-  } else {
-    lua_pop(L, 1);
+    CALL_LUA_FUNCTION(L, 5);
   }
-  POST_CALL_LUA(L);
+  lua_pop(L, 1);
 }
 static int NKWRAP_FUNCTION(push_custom)(lua_State* L) {
   nk_command_buffer* canvas = luaL_checknkcommandbuffer(L, 1);

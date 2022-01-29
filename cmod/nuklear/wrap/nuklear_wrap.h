@@ -64,15 +64,12 @@ extern lua_State* staticL;
 #define CALL_LUA(L, nargs, nresult) /* must be pcall */ \
   int msgh = lua_gettop(L) - (nargs + 1); \
   if (lua_pcall(L, nargs, nresult, msgh) != LUA_OK) { \
-    if (!lua_isnil(L, -1)) { \
-      fprintf(stderr, "Error: %s\n", lua_tostring(L, -1)); \
-    } \
+    const char* msg = lua_tostring(L, -1); \
+    fprintf(stderr, "Error: %s\n", msg == NULL ? "NULL" : msg); \
     lua_pop(L, 1); \
-    for (int i = 0; i < nresult; i++) { \
-      lua_pushnil(L); \
-    } \
-  }
+  } else {
 #define POST_CALL_LUA(L) \
+  } \
   lua_pop(L, 1)
 #define CALL_LUA_FUNCTION(L, nargs) \
   CALL_LUA(L, nargs, 0) \

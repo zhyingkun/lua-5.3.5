@@ -22,6 +22,11 @@ int ERROR_FUNCTION(msgh)(lua_State* L) {
   }
   return 1;
 }
+static int NKWRAP_FUNCTION(setErrorMessageHandler)(lua_State* L) {
+  lua_settop(L, 1);
+  lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)ERROR_FUNCTION(msgh));
+  return 0;
+}
 
 /* }====================================================== */
 
@@ -97,7 +102,10 @@ static int NKWRAP_FUNCTION(drawForEach)(lua_State* L) {
   float xScale = pixelWidth / screenWidth;
   float yScale = pixelHeight / screenHeight;
 
-  PREPARE_CALL_LUA(L);
+  lua_checkstack(L, LUA_MINSTACK);
+  lua_pushcfunction(L, ERROR_FUNCTION(msgh));
+  int msgh = lua_gettop(L);
+
   const nk_draw_command* cmd;
   unsigned int offset = 0;
   nk_draw_foreach(cmd, ctx, cmds) {
@@ -118,12 +126,18 @@ static int NKWRAP_FUNCTION(drawForEach)(lua_State* L) {
       lua_pushinteger(L, (uint16_t)rect.y);
       lua_pushinteger(L, (uint16_t)rect.w);
       lua_pushinteger(L, (uint16_t)rect.h);
-      CALL_LUA(L, 7, 0);
+
+      if (lua_pcall(L, 7, 0, msgh) != LUA_OK) {
+        const char* msg = lua_tostring(L, -1);
+        fprintf(stderr, "Error: %s\n", msg == NULL ? "NULL" : msg);
+        lua_pop(L, 1);
+      }
 
       offset += cmd->elem_count;
     }
   }
-  POST_CALL_LUA(L);
+
+  lua_pop(L, 1); // pop the msgh
 #undef CALLBACK_IDX
   return 0;
 }
@@ -677,13 +691,14 @@ static int NKWRAP_FUNCTION(edit_string)(lua_State* L) {
 }
 
 static nk_bool _textEditPluginFilter(const nk_text_edit* editor, nk_rune unicode) {
+  nk_bool ret = 0;
   lua_State* L = GET_MAIN_LUA_STATE();
   PREPARE_CALL_LUA(L);
   PUSH_HOLD_OBJECT(L, _textEditPluginFilter, 0);
   PUSH_HOLD_OBJECT(L, editor, 0);
   lua_pushinteger(L, unicode);
   CALL_LUA(L, 2, 1);
-  nk_bool ret = (nk_bool)lua_toboolean(L, -1);
+  ret = (nk_bool)lua_toboolean(L, -1);
   lua_pop(L, 1);
   POST_CALL_LUA(L);
   return ret;
@@ -844,13 +859,14 @@ static int NKWRAP_FUNCTION(plot)(lua_State* L) {
 }
 
 static float _valueGetter(void* user, int index) {
+  float value = 0.0;
   lua_State* L = (lua_State*)user;
   int cbIdx = lua_gettop(L);
   PREPARE_CALL_LUA(L);
   lua_pushvalue(L, cbIdx);
   lua_pushinteger(L, index + 1);
   CALL_LUA(L, 1, 1);
-  float value = lua_tonumber(L, -1);
+  value = lua_tonumber(L, -1);
   lua_pop(L, 1);
   POST_CALL_LUA(L);
   return value;
@@ -1337,6 +1353,7 @@ static int NKWRAP_FUNCTION(menu_end)(lua_State* L) {
 #define EMPLACE_NKWRAP_FUNCTION(name) \
   { #name, NKWRAP_FUNCTION(name) }
 static const luaL_Reg wrap_funcs[] = {
+    EMPLACE_NKWRAP_FUNCTION(setErrorMessageHandler),
     /* Drawing */
     EMPLACE_NKWRAP_FUNCTION(convert),
     EMPLACE_NKWRAP_FUNCTION(drawForEach),
