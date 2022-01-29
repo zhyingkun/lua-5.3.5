@@ -24,7 +24,9 @@
 extern "C" {
 #endif
 
+#ifndef __APPLE__
 #define FPM_INTEL
+#endif
 
 #define SIZEOF_INT 4
 #define SIZEOF_LONG 8
