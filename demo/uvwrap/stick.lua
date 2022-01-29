@@ -4,40 +4,40 @@ local udp = libuv.udp
 local network = libuv.network
 local timer = libuv.timer
 
-local err_name = libuv.err_name
-local strerror = libuv.strerror
+local errName = libuv.errName
+local strError = libuv.strError
 local err_code = libuv.err_code
 local OK = err_code.OK
 local EOF = err_code.EOF
 
-
-libuv.set_msgh(function(msg)
-	print("In custom msg handler:", msg, debug.traceback())
+util.setErrorMessageHandler(function(msg)
+	return "In custom msg handler:" .. msg .. "\n traceback:" .. debug.traceback()
 end)
 
-libuv.defer_run_loop()
+libuv.setLoop()
+libuv.runDeferred()
 
 local function TcpServer()
-	local tcpSocket = tcp.new()
-	local sockAddr = network.sockaddr()
-	sockAddr:ip4_addr("0.0.0.0", 1024)
+	local tcpSocket = tcp.Tcp()
+	local sockAddr = network.SockAddr()
+	sockAddr:ip4Addr("0.0.0.0", 1024)
 	tcpSocket:bind(sockAddr)
-	tcpSocket:listen(128, function(status)
+	tcpSocket:listenAsync(128, function(status)
 		if status ~= OK then
-			print("TCP listen error:", status, err_name(status), strerror(status))
+			print("TCP listen error:", status, errName(status), strError(status))
 			return
 		end
-		local tcpConnection = tcp.new()
+		local tcpConnection = tcp.Tcp()
 		if tcpSocket:accept(tcpConnection) == OK then
 			print("TCP receive a connection: fd is", tcpConnection:fileno())
-			tcpConnection:read_start(function(nread, str)
+			tcpConnection:readStartAsync(function(nread, str)
 				if nread < 0 then
 					if nread == EOF then
 						print("TCP Connection Read EOF")
 					else
-						print("TCP read error:", nread, err_name(nread), strerror(nread))
+						print("TCP read error:", nread, errName(nread), strError(nread))
 					end
-					tcpConnection:close(function()
+					tcpConnection:closeAsync(function()
 						print("TCP on connection close")
 					end)
 					return
@@ -49,14 +49,14 @@ local function TcpServer()
 end
 
 local function UdpServer()
-	local udpSocket = udp.new()
-	local sockAddr = network.sockaddr()
-	sockAddr:ip4_addr("0.0.0.0", 1025)
+	local udpSocket = udp.Udp()
+	local sockAddr = network.SockAddr()
+	sockAddr:ip4Addr("0.0.0.0", 1025)
 	udpSocket:bind(sockAddr)
-	udpSocket:recv_start(function(nread, str, addr, flags)
+	udpSocket:recvStartAsync(function(nread, str, addr, flags)
 		if nread < 0 then
-			print("UDP recv error:", nread, err_name(nread), strerror(nread))
-			print(udpSocket:getsockname())
+			print("UDP recv error:", nread, errName(nread), strError(nread))
+			print(udpSocket:getSockName())
 			return
 		end
 		if nread == 0 then
@@ -76,58 +76,132 @@ local function Server()
 	UdpServer()
 end
 
+local function runInCoroutine(func)
+	coroutine.wrap(func)()
+end
+
 local function TcpClient()
-	local tcpClient = tcp.new()
-	local sockAddr = network.sockaddr()
-	sockAddr:ip4_addr("0.0.0.0", 1024)
-	tcpClient:connect(sockAddr, function(status)
+	local tcpClient = tcp.Tcp()
+	local sockAddr = network.SockAddr()
+	sockAddr:ip4Addr("0.0.0.0", 1024)
+	--[[
+	tcpClient:connectAsync(sockAddr, function(status)
 		if status < 0 then
-			print("TCP Connect error:", status, err_name(status), strerror(status))
+			print("TCP Connect error:", status, errName(status), strError(status))
 			return
 		end
 		print("Connect succeed: fd is", tcpClient:fileno())
 		local function WriteHello(idx)
 			local hello = "Good Good Study Day Day Up!"
-			tcpClient:write(hello, function(status)
+			tcpClient:writeAsync(hello, function(status)
 				if status == OK then
 					print("Write Complete:", #hello, idx)
 				else
-					print(idx, err_name(status), strerror(status))
+					print(idx, errName(status), strError(status))
 				end
 			end)
 		end
 		for i = 1, 3, 1 do
 			WriteHello(i)
 		end
-		local delay = timer.new()
-		delay:start(function()
+		local delay = timer.Timer()
+		delay:startAsync(function()
 			delay:stop()
 			local str = "="
 			local len = 128
 			local buffer = str:rep(len * 1024)
-			tcpClient:write(buffer, function(status)
+			tcpClient:writeAsync(buffer, function(status)
 				if status == OK then
 					print("Write Complete:", len .. "K")
 				else
-					print(err_name(status), strerror(status))
+					print(errName(status), strError(status))
 				end
 			end)
 		end, 1000, 0)
 	end)
+	--]]
+	runInCoroutine(function()
+		local status = tcpClient:connectAsyncWait(sockAddr)
+		if status < 0 then
+			print("TCP Connect error:", status, errName(status), strError(status))
+			return
+		end
+		print("Connect succeed: fd is", tcpClient:fileno())
+		local function WriteHello(idx)
+			local hello = "Good Good Study Day Day Up!"
+			--[[
+			tcpClient:writeAsync(hello, function(status)
+				if status == OK then
+					print("Write Complete:", #hello, idx)
+				else
+					print(idx, errName(status), strError(status))
+				end
+			end)
+			--]]
+			runInCoroutine(function()
+				local status = tcpClient:writeAsyncWait(hello)
+				if status == OK then
+					print("Write Complete:", #hello, idx)
+				else
+					print(idx, errName(status), strError(status))
+				end
+			end)
+		end
+		for i = 1, 3, 1 do
+			WriteHello(i)
+		end
+		local delay = timer.Timer()
+		--[[
+		delay:startAsync(function()
+			delay:stop()
+			local str = "="
+			local len = 128
+			local buffer = str:rep(len * 1024)
+			tcpClient:writeAsync(buffer, function(status)
+				if status == OK then
+					print("Write Complete:", len .. "K")
+				else
+					print(errName(status), strError(status))
+				end
+			end)
+		end, 1000, 0)
+		--]]
+		delay:startAsyncWait(1000)
+		delay:stop()
+		local str = "="
+		local len = 128
+		local buffer = str:rep(len * 1024)
+		local status = tcpClient:writeAsyncWait(buffer)
+		if status == OK then
+			print("Write Complete:", len .. "K")
+		else
+			print(errName(status), strError(status))
+		end
+	end)
 end
 
 local function UdpClient()
-	local udpClient = libuv.udp.new()
-	local sockAddr = network.sockaddr()
-	sockAddr:ip4_addr("127.0.0.1", 1025)
+	local udpClient = udp.Udp()
+	local sockAddr = network.SockAddr()
+	sockAddr:ip4Addr("127.0.0.1", 1025)
 
 	local function WriteHello(idx)
 		local hello = "Hello World!"
-		udpClient:send(hello, sockAddr, function(status)
+		--[[
+		udpClient:sendAsync(hello, sockAddr, function(status)
 			if status == OK then
-				print("UDP Send Complete:", #hello, udpClient:getsockname(), idx)
+				print("UDP Send Complete:", #hello, udpClient:getSockName(), idx)
 			else
-				print(idx, err_name(status), strerror(status))
+				print(idx, errName(status), strError(status))
+			end
+		end)
+		--]]
+		runInCoroutine(function()
+			local status = udpClient:sendAsyncWait(hello, sockAddr)
+			if status == OK then
+				print("UDP Send Complete:", #hello, udpClient:getSockName(), idx)
+			else
+				print(idx, errName(status), strError(status))
 			end
 		end)
 	end
@@ -137,7 +211,7 @@ local function UdpClient()
 
 	local str = "="
 
-	udpClient:send_buffer_size(65536)
+	udpClient:sendBufferSize(65536)
 	local len = 65507
 	-- local len = 65508
 
@@ -145,11 +219,21 @@ local function UdpClient()
 	-- local len = 9217
 
 	local buffer = str:rep(len)
-	udpClient:send(buffer, sockAddr, function(status)
+	--[[
+	udpClient:sendAsync(buffer, sockAddr, function(status)
 		if status == OK then
-			print("UDP Send Complete:", len, udpClient:getsockname())
+			print("UDP Send Complete:", len, udpClient:getSockName())
 		else
-			print(err_name(status), strerror(status))
+			print(errName(status), strError(status))
+		end
+	end)
+	--]]
+	runInCoroutine(function()
+		local status = udpClient:sendAsyncWait(buffer, sockAddr)
+		if status == OK then
+			print("UDP Send Complete:", len, udpClient:getSockName())
+		else
+			print(errName(status), strError(status))
 		end
 	end)
 end
