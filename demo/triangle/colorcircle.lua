@@ -8,8 +8,7 @@ local attrib_type = bcfx.attrib_type
 local index_type = bcfx.index_type
 local shader_type = bcfx.shader_type
 local color = bcfx.color
-local membuf = bcfx.membuf
-local data_type = membuf.data_type
+local data_type = bcfx.data_type
 local discard = bcfx.discard
 
 local vsStr = [[
@@ -48,7 +47,7 @@ local function GenerateColorCircle(radius)
 	layout:add(vertex_attrib.Color0, 3, attrib_type.Float, false)
 	local layoutHandle = bcfx.createVertexLayout(layout)
 
-	local mem = membuf.makeMemBuffer(data_type.Float, coroutine.wrap(function()
+	local mem = bcfx.makeMemBuffer(data_type.Float, coroutine.wrap(function()
 		coroutine.yield(0.0, 0.0)
 		for i = 1, 12, 1 do
 			local theta = math.rad((i - 1) * 30)
@@ -65,7 +64,7 @@ local function GenerateColorCircle(radius)
 	end))
 	local vertexHandle = bcfx.createVertexBuffer(mem, layoutHandle)
 
-	local mem = membuf.makeMemBuffer(data_type.Uint8, coroutine.wrap(function()
+	local mem = bcfx.makeMemBuffer(data_type.Uint8, coroutine.wrap(function()
 		for i = 1, 12, 1 do
 			coroutine.yield(0, i, i % 12 + 1)
 		end

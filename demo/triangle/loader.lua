@@ -1,8 +1,10 @@
 local bcfx = require("bcfx")
 local shader_type = bcfx.shader_type
 local texture_format = bcfx.texture_format
-local mbio = bcfx.mbio
 local image = bcfx.image
+
+local libuv = require("libuv")
+local mbio = libuv.mbio
 
 local watch = require("watch")
 

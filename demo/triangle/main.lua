@@ -1,14 +1,12 @@
 package.path = "demo/triangle/?.lua;" .. package.path
 
 local libuv = require("libuv")
-local thread = libuv.thread
-local sem = thread.sem
+local mbio = libuv.mbio
 
 local glfw = require("glfw")
 local window_hint = glfw.window_hint
 local hint_value = glfw.hint_value
 local input_state = glfw.input_state
-local func_ptr = glfw.func_ptr
 
 local bcfx = require("bcfx")
 
@@ -18,9 +16,10 @@ local dbg = require('emmy_core')
 dbg.tcpConnect('localhost', 9966)
 --]]
 
-glfw.setErrorMessageHandler(function(msg)
-	print("GLFW pcall error: ", msg, debug.traceback())
+util.setErrorMessageHandler(function(msg)
+	return "callback to lua pcall error: " .. msg .. debug.traceback()
 end)
+
 glfw.setErrorCallback()
 
 glfw.init()
@@ -36,31 +35,6 @@ if not window then
 	glfw.terminate()
 	return
 end
-
-bcfx.setThreadFuncs(
-	thread.thread_create,
-	thread.thread_self,
-	thread.thread_invalid,
-	thread.thread_join,
-	thread.thread_equal
-)
-bcfx.setSemFuncs(
-	sem.sem_init,
-	sem.sem_destroy,
-	sem.sem_post,
-	sem.sem_wait,
-	sem.sem_trywait
-)
-bcfx.setWinCtxFuncs(
-	func_ptr.MakeContextCurrent,
-	func_ptr.SwapBuffers,
-	func_ptr.SwapInterval,
-	func_ptr.GetProcAddress,
-	func_ptr.GetFramebufferSize
-)
-bcfx.setMiscFuncs(
-	func_ptr.GetTime
-)
 
 bcfx.init(window)
 
@@ -111,15 +85,15 @@ bcfx.setFrameViewCaptureCallback(function(frameId, viewId, width, height, mb)
 	print("setFrameViewCaptureCallback Lua", frameId, viewId, width, height, mb)
 	local fileName = tostring(frameId) .. "_" .. tostring(viewId) .. "FrameViewCapture.png";
 	-- local mb = bcfx.image.imageEncode(mb, width, height, 4, bcfx.image.image_type.PNG, width * 4)
-	-- bcfx.mbio.writeFile(fileName, mb)
+	-- mbio.writeFile(fileName, mb)
 	-- bcfx.image.imageEncodeAsync(mb, width, height, 4, bcfx.image.image_type.PNG, width * 4, function(mb)
-	-- 	bcfx.mbio.writeFileAsync(fileName, mb, function(ret)
+	-- 	mbio.writeFileAsync(fileName, mb, function(ret)
 	-- 		print("setFrameViewCaptureCallback Async WriteFile End:", ret)
 	-- 	end)
 	-- end)
 	runInCoroutine(function()
 		local mb = bcfx.image.imageEncodeAsyncWait(mb, width, height, 4, bcfx.image.image_type.PNG, width * 4)
-		local ret = bcfx.mbio.writeFileAsyncWait(fileName, mb)
+		local ret = mbio.writeFileAsyncWait(fileName, mb)
 		print("setFrameViewCaptureCallback Async WriteFile End:", ret)
 	end)
 end)
