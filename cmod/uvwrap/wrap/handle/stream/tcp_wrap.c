@@ -162,6 +162,6 @@ static const luaL_Enum UVWRAP_ENUM(tcp_flag)[] = {
 
 DEFINE_INIT_API_BEGIN(tcp)
 PUSH_LIB_TABLE(tcp);
-REGISTE_ENUM(tcp_flag);
+REGISTE_ENUM_UVWRAP(tcp_flag);
 INVOKE_INIT_METATABLE(tcp);
 DEFINE_INIT_API_END(tcp)

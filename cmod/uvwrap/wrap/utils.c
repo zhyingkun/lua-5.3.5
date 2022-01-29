@@ -149,17 +149,6 @@ int ERROR_FUNCTION(check)(lua_State* L, int err) {
   return luaL_error(L, "Error:[%s] %s", uv_err_name(err), uv_strerror(err));
 }
 
-int ERROR_FUNCTION(msgh)(lua_State* L) {
-  if (lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)ERROR_FUNCTION(msgh)) == LUA_TFUNCTION) {
-    lua_insert(L, -2);
-    lua_pcall(L, 1, 1, 0); // if error with longjmp, just left the result msg in the stack
-  } else {
-    lua_pop(L, 1);
-    luaL_traceback(L, L, lua_tostring(L, -1), 1);
-  }
-  return 1;
-}
-
 /* }====================================================== */
 
 /*

@@ -82,6 +82,6 @@ static const luaL_Enum UVWRAP_ENUM(tty_mode)[] = {
 
 DEFINE_INIT_API_BEGIN(tty)
 PUSH_LIB_TABLE(tty);
-REGISTE_ENUM(tty_mode);
+REGISTE_ENUM_UVWRAP(tty_mode);
 INVOKE_INIT_METATABLE(tty);
 DEFINE_INIT_API_END(tty)

@@ -278,7 +278,7 @@ static const luaL_Enum UVWRAP_ENUM(udp_flag)[] = {
 
 DEFINE_INIT_API_BEGIN(udp)
 PUSH_LIB_TABLE(udp);
-REGISTE_ENUM(membership);
-REGISTE_ENUM(udp_flag);
+REGISTE_ENUM_UVWRAP(membership);
+REGISTE_ENUM_UVWRAP(udp_flag);
 INVOKE_INIT_METATABLE(udp);
 DEFINE_INIT_API_END(udp)

@@ -192,7 +192,7 @@ static const luaL_Enum UVWRAP_ENUM(run_mode)[] = {
 void LOOP_FUNCTION(init)(lua_State* L) {
   luaL_newlib(L, LOOP_FUNCTION(funcs));
 
-  REGISTE_ENUM(run_mode);
+  REGISTE_ENUM_UVWRAP(run_mode);
 
   lua_pushinteger(L, uv_loop_size());
   lua_setfield(L, -2, "loop_size");

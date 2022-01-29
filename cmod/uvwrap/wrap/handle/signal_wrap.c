@@ -152,7 +152,7 @@ static const luaL_Enum UVWRAP_ENUM(sig_num)[] = {
 
 DEFINE_INIT_API_BEGIN(signal)
 PUSH_LIB_TABLE(signal);
-REGISTE_ENUM(sig_num);
+REGISTE_ENUM_UVWRAP(sig_num);
 REGISTE_ENUM_R(sig_num, sig_name);
 INVOKE_INIT_METATABLE(signal);
 DEFINE_INIT_API_END(signal)

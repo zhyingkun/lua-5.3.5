@@ -119,7 +119,7 @@ static const luaL_Enum UVWRAP_ENUM(event_flag)[] = {
 
 DEFINE_INIT_API_BEGIN(fs_event)
 PUSH_LIB_TABLE(fs_event);
-REGISTE_ENUM(event_type);
-REGISTE_ENUM(event_flag);
+REGISTE_ENUM_UVWRAP(event_type);
+REGISTE_ENUM_UVWRAP(event_flag);
 INVOKE_INIT_METATABLE(fs_event);
 DEFINE_INIT_API_END(fs_event)

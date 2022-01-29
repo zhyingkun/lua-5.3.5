@@ -443,11 +443,11 @@ static const luaL_Enum UVWRAP_ENUM(nameinfo_flag)[] = {
 void NETWORK_FUNCTION(init)(lua_State* L) {
   luaL_newlib(L, NETWORK_FUNCTION(funcs));
 
-  REGISTE_ENUM(address_family);
-  REGISTE_ENUM(protocol);
-  REGISTE_ENUM(socktype);
-  REGISTE_ENUM(addrinfo_flag);
-  REGISTE_ENUM(nameinfo_flag);
+    REGISTE_ENUM_UVWRAP(address_family);
+    REGISTE_ENUM_UVWRAP(protocol);
+    REGISTE_ENUM_UVWRAP(socktype);
+    REGISTE_ENUM_UVWRAP(addrinfo_flag);
+    REGISTE_ENUM_UVWRAP(nameinfo_flag);
 
   lua_setfield(L, -2, "network");
 

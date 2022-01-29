@@ -326,8 +326,8 @@ static const luaL_Enum UVWRAP_ENUM(stdio_flag)[] = {
 
 DEFINE_INIT_API_BEGIN(process)
 PUSH_LIB_TABLE(process);
-REGISTE_ENUM(process_flag);
-REGISTE_ENUM(stdio_flag);
+REGISTE_ENUM_UVWRAP(process_flag);
+REGISTE_ENUM_UVWRAP(stdio_flag);
 INVOKE_INIT_METATABLE(process);
 INVOKE_INIT_METATABLE(stdiocont);
 DEFINE_INIT_API_END(process)

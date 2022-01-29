@@ -7,6 +7,7 @@
 
 #include <lua.h>
 #include <lauxlib.h>
+#include <luautil.h>
 
 #include <uv.h>
 
@@ -54,9 +55,7 @@
   lua_setfield(L, -2, "__call"); \
   lua_setmetatable(L, -2)
 
-#define REGISTE_ENUM(name) \
-  luaL_newenum(L, UVWRAP_ENUM(name)); \
-  lua_setfield(L, -2, #name)
+#define REGISTE_ENUM_UVWRAP(name) REGISTE_ENUM(name, UVWRAP_ENUM(name))
 
 #define REGISTE_ENUM_R(name, name_r) \
   luaL_newenum_r(L, UVWRAP_ENUM(name)); \
@@ -178,11 +177,21 @@ void UTILS_PUSH_FUNCTION(uv_statfs_t)(lua_State* L, const uv_statfs_t* statfs);
 #define ERROR_FUNCTION(name) UVWRAP_FUNCTION(error, name)
 
 int ERROR_FUNCTION(check)(lua_State* L, int err);
-int ERROR_FUNCTION(msgh)(lua_State* L);
 
 #define CHECK_ERROR(L, err) \
   if (err != UVWRAP_OK) \
   return ERROR_FUNCTION(check)(L, err)
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** MemBuffer I/O
+** =======================================================
+*/
+
+#define MBIO_FUNCTION(name) bcfx_wrap_mbio_##name
+void MBIO_FUNCTION(init)(lua_State* L);
 
 /* }====================================================== */
 
@@ -239,18 +248,6 @@ extern lua_State* staticL;
 
 #define CHECK_IS_ASYNC(L, idx) (lua_type(L, idx) == LUA_TFUNCTION)
 
-#define HOLD_LUA_OBJECT(L, ptr, num, idx) \
-  do { \
-    lua_pushvalue(L, idx); \
-    lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)(((char*)ptr) + num)); \
-  } while (0)
-#define PUSH_HOLD_OBJECT(L, ptr, num) lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)(((char*)ptr) + num))
-#define UNHOLD_LUA_OBJECT(L, ptr, num) \
-  do { \
-    lua_pushnil(L); \
-    lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)(((char*)ptr) + num)); \
-  } while (0)
-
 #define SET_REQ_CALLBACK(L, idx, req) \
   do { \
     /* uv_req_set_data((uv_req_t*)req, (void*)L); */ \
@@ -264,6 +261,7 @@ extern lua_State* staticL;
     PUSH_HOLD_OBJECT(L, req, 0); \
     UNHOLD_LUA_OBJECT(L, req, 0); \
   } while (0)
+
 #define REQ_BASE_INDEX 0
 #define HOLD_REQ_PARAM(L, req, num, idx) HOLD_LUA_OBJECT(L, req, REQ_BASE_INDEX + num, idx)
 #define UNHOLD_REQ_PARAM(L, req, num) UNHOLD_LUA_OBJECT(L, req, REQ_BASE_INDEX + num)
@@ -315,23 +313,6 @@ extern lua_State* staticL;
     PUSH_HOLD_OBJECT(L, handle, IDX_HANDLE_CLOSE); \
     UNHOLD_LUA_OBJECT(L, handle, IDX_HANDLE_CLOSE); \
   } while (0)
-
-#define PREPARE_CALL_LUA(L) \
-  lua_checkstack(L, LUA_MINSTACK); \
-  lua_pushcfunction(L, ERROR_FUNCTION(msgh))
-#define CALL_LUA(L, nargs, nresult) /* must be pcall */ \
-  int msgh = lua_gettop(L) - (nargs + 1); \
-  if (lua_pcall(L, nargs, nresult, msgh) != LUA_OK) { \
-    const char* msg = lua_tostring(L, -1); \
-    fprintf(stderr, "Error: %s\n", msg == NULL ? "NULL" : msg); \
-    lua_pop(L, 1); \
-  } else {
-#define POST_CALL_LUA(L) \
-  } \
-  lua_pop(L, 1)
-#define CALL_LUA_FUNCTION(L, nargs) \
-  CALL_LUA(L, nargs, 0) \
-  POST_CALL_LUA(L)
 
 #define ASYNC_WAIT_MSG "AsyncWait api must running in coroutine"
 #define CHECK_COROUTINE(co) \

@@ -35,10 +35,6 @@ static void wrap_sem_destroy(void* sem) {
   (void)MEMORY_FUNCTION(free)((void*)sem);
 }
 
-#define REGISTE_LIGHTUSERDATA(name, lightuserdata) \
-  lua_pushlightuserdata(L, (void*)(lightuserdata)); \
-  lua_setfield(L, -2, #name)
-
 #define REGISTE_FUNC_WRAP(name) \
   REGISTE_LIGHTUSERDATA(name, wrap_##name)
 
