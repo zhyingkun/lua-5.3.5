@@ -4,11 +4,6 @@ local libfont = libnk.font
 ---@class nuklear:table
 local nk = {}
 
----@param callback ErrorMessageHandler
-function nk.setErrorMessageHandler(callback)
-	libnk.setErrorMessageHandler(callback)
-end
-
 --[[
 ** {======================================================
 ** Font
