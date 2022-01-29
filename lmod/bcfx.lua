@@ -1142,4 +1142,35 @@ end
 
 -- }======================================================
 
+local thread = libuv.thread
+local sem = thread.sem
+
+local glfw = require("glfw")
+local func_ptr = glfw.func_ptr
+
+bcfx.setThreadFuncs(
+	thread.thread_create,
+	thread.thread_self,
+	thread.thread_invalid,
+	thread.thread_join,
+	thread.thread_equal
+)
+bcfx.setSemFuncs(
+	sem.sem_init,
+	sem.sem_destroy,
+	sem.sem_post,
+	sem.sem_wait,
+	sem.sem_trywait
+)
+bcfx.setWinCtxFuncs(
+	func_ptr.MakeContextCurrent,
+	func_ptr.SwapBuffers,
+	func_ptr.SwapInterval,
+	func_ptr.GetProcAddress,
+	func_ptr.GetFramebufferSize
+)
+bcfx.setMiscFuncs(
+	func_ptr.GetTime
+)
+
 return bcfx
