@@ -2,8 +2,8 @@ print("Start...")
 local glfw = require("libglfwrap")
 local input_state = glfw.input_state
 
-glfw.setErrorMessageHandler(function(msg)
-	print("GLFW pcall error: ", msg, debug.traceback())
+util.setErrorMessageHandler(function(msg)
+	return "callback to lua pcall error: " .. msg .. debug.traceback()
 end)
 
 glfw.setErrorCallback()

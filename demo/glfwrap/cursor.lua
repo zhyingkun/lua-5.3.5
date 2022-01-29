@@ -7,8 +7,8 @@ local window_hint = glfw.window_hint
 local input_mode = glfw.input_mode
 local cursor_mode = glfw.cursor_mode
 
-glfw.setErrorMessageHandler(function(msg)
-	print("GLFW pcall error: ", msg, debug.traceback())
+util.setErrorMessageHandler(function(msg)
+	return "callback to lua pcall error: " .. msg .. debug.traceback()
 end)
 
 glfw.setErrorCallback()
