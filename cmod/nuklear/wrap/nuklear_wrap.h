@@ -187,4 +187,9 @@ void NKWRAP_FUNCTION(init_drawlist)(lua_State* L);
 
 void NKWRAP_FUNCTION(init_utils)(lua_State* L);
 
+#define CUSTOM_FUNCTION(name) nuklear_custom_wrap_##name
+void CUSTOM_FUNCTION(init)(lua_State* L);
+
+int nk_piemenu(nk_context* ctx, nk_vec2 pos, float radius, nk_image** icons, int item_count);
+
 #endif /* _NUKLEAR_WRAP_H_ */

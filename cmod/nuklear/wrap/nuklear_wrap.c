@@ -1521,5 +1521,7 @@ LUAMOD_API int luaopen_libnuklear(lua_State* L) {
 
   (void)NKWRAP_FUNCTION(init_utils)(L);
 
+  (void)CUSTOM_FUNCTION(init)(L);
+
   return 1;
 }

@@ -38,6 +38,7 @@ set(
 	src/basic
 	src/stb
 	wrap
+	wrap/custom
 	wrap/font
 )
 set(
