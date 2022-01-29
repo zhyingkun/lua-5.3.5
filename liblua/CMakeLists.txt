@@ -36,16 +36,19 @@ include_directories(./core)
 
 aux_source_directory(./core LUA_CORE_SRC)
 aux_source_directory(./libraries LUA_LIBRARIES_SRC)
+aux_source_directory(./util LUA_UTIL_SRC)
 file(GLOB LUA_HEADERS "./include/*.h")
 file(GLOB LUA_CORE_HEADERS "./core/*.h")
 
 source_group(core FILES ${LUA_CORE_SRC} ${LUA_CORE_HEADERS})
 source_group(libraries FILES ${LUA_LIBRARIES_SRC})
+source_group(util FILES ${LUA_UTIL_SRC})
 source_group(include FILES ${LUA_HEADERS})
 
 set(LIB_LUA_ALL_SRC
 	${LUA_CORE_SRC}
 	${LUA_LIBRARIES_SRC}
+	${LUA_UTIL_SRC}
 	${LUA_HEADERS}
 	${LUA_CORE_HEADERS}
 )
