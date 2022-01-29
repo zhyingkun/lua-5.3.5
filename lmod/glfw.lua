@@ -38,19 +38,6 @@ end
 
 --[[
 ** {======================================================
-** Error Handler
-** =======================================================
---]]
-
----@param callback ErrorMessageHandler
-function glfw.setErrorMessageHandler(callback)
-	libglfw.SetErrorMessageHandler(callback)
-end
-
--- }======================================================
-
---[[
-** {======================================================
 ** Initialization, version and error
 ** =======================================================
 --]]
