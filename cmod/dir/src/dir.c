@@ -5,6 +5,7 @@
 #define _DARWIN_C_SOURCE
 #elif defined(__linux__)
 #define _DEFAULT_SOURCE
+#define _BSD_SOURCE
 #endif
 
 #include <lprefix.h> // must include first
