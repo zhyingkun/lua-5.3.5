@@ -7,6 +7,7 @@
 
 #include <lua.h>
 #include <lauxlib.h>
+#include <luautil.h>
 
 #ifdef _WIN32
 #include <malloc.h>
@@ -23,13 +24,8 @@
 #define NKWRAP_FUNCTION(name) nuklear_wrap_##name
 #define NKWRAP_ENUM(name) nuklear_enum_##name
 
-#define REGISTE_ENUM(name) \
-  luaL_newenum(L, NKWRAP_ENUM(name)); \
-  lua_setfield(L, -2, #name)
-
-#define REGISTE_LIGHTUSERDATA(name, lightuserdata) \
-  lua_pushlightuserdata(L, (void*)(lightuserdata)); \
-  lua_setfield(L, -2, #name)
+#define REGISTE_ENUM_NKWRAP(name) \
+  REGISTE_ENUM(name, NKWRAP_ENUM(name))
 
 #define REGISTE_METATABLE(name_, metafuncs_) \
   do { \
@@ -39,9 +35,6 @@
     lua_setfield(L, -2, "__index"); \
     lua_pop(L, 1); /* pop the metatable */ \
   } while (0)
-
-#define ERROR_FUNCTION(name) nuklear_wrap_error_##name
-int ERROR_FUNCTION(msgh)(lua_State* L);
 
 extern lua_State* staticL;
 #define GET_MAIN_LUA_STATE() staticL
@@ -57,23 +50,6 @@ extern lua_State* staticL;
     lua_pushnil(L); \
     lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)(((char*)ptr) + num)); \
   } while (0)
-
-#define PREPARE_CALL_LUA(L) \
-  lua_checkstack(L, LUA_MINSTACK); \
-  lua_pushcfunction(L, ERROR_FUNCTION(msgh))
-#define CALL_LUA(L, nargs, nresult) /* must be pcall */ \
-  int msgh = lua_gettop(L) - (nargs + 1); \
-  if (lua_pcall(L, nargs, nresult, msgh) != LUA_OK) { \
-    const char* msg = lua_tostring(L, -1); \
-    fprintf(stderr, "Error: %s\n", msg == NULL ? "NULL" : msg); \
-    lua_pop(L, 1); \
-  } else {
-#define POST_CALL_LUA(L) \
-  } \
-  lua_pop(L, 1)
-#define CALL_LUA_FUNCTION(L, nargs) \
-  CALL_LUA(L, nargs, 0) \
-  POST_CALL_LUA(L)
 
 nk_color luaL_checknkcolor(lua_State* L, int idx);
 void luaL_pushnkcolor(lua_State* L, nk_color color);

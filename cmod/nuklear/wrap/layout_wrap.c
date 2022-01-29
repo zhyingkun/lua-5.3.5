@@ -234,5 +234,5 @@ static const luaL_Enum NKWRAP_ENUM(layout_format)[] = {
 void NKWRAP_FUNCTION(init_layout)(lua_State* L) {
   luaL_setfuncs(L, wrap_funcs, 0);
 
-  REGISTE_ENUM(layout_format);
+  REGISTE_ENUM_NKWRAP(layout_format);
 }

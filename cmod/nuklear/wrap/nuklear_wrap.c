@@ -8,30 +8,6 @@
 
 /*
 ** {======================================================
-** Error handler
-** =======================================================
-*/
-
-int ERROR_FUNCTION(msgh)(lua_State* L) {
-  if (lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)ERROR_FUNCTION(msgh)) == LUA_TFUNCTION) {
-    lua_insert(L, -2);
-    lua_pcall(L, 1, 1, 0); // if error with longjmp, just left the result msg in the stack
-  } else {
-    lua_pop(L, 1);
-    luaL_traceback(L, L, lua_tostring(L, -1), 1);
-  }
-  return 1;
-}
-static int NKWRAP_FUNCTION(setErrorMessageHandler)(lua_State* L) {
-  lua_settop(L, 1);
-  lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)ERROR_FUNCTION(msgh));
-  return 0;
-}
-
-/* }====================================================== */
-
-/*
-** {======================================================
 ** Nuklear Drawing
 ** =======================================================
 */
@@ -103,7 +79,7 @@ static int NKWRAP_FUNCTION(drawForEach)(lua_State* L) {
   float yScale = pixelHeight / screenHeight;
 
   lua_checkstack(L, LUA_MINSTACK);
-  lua_pushcfunction(L, ERROR_FUNCTION(msgh));
+  lua_pushcfunction(L, luaL_msgh);
   int msgh = lua_gettop(L);
 
   const nk_draw_command* cmd;
@@ -1353,7 +1329,6 @@ static int NKWRAP_FUNCTION(menu_end)(lua_State* L) {
 #define EMPLACE_NKWRAP_FUNCTION(name) \
   { #name, NKWRAP_FUNCTION(name) }
 static const luaL_Reg wrap_funcs[] = {
-    EMPLACE_NKWRAP_FUNCTION(setErrorMessageHandler),
     /* Drawing */
     EMPLACE_NKWRAP_FUNCTION(convert),
     EMPLACE_NKWRAP_FUNCTION(drawForEach),
@@ -1486,16 +1461,16 @@ LUAMOD_API int luaopen_libnuklear(lua_State* L) {
 
   luaL_newlib(L, wrap_funcs);
 
-  REGISTE_ENUM(text_align);
-  REGISTE_ENUM(text_alignment);
-  REGISTE_ENUM(symbol_type);
-  REGISTE_ENUM(button_behavior);
-  REGISTE_ENUM(color_format);
-  REGISTE_ENUM(chart_type);
-  REGISTE_ENUM(edit_flag);
-  REGISTE_ENUM(edit_type);
-  REGISTE_ENUM(edit_event);
-  REGISTE_ENUM(popup_type);
+  REGISTE_ENUM_NKWRAP(text_align);
+  REGISTE_ENUM_NKWRAP(text_alignment);
+  REGISTE_ENUM_NKWRAP(symbol_type);
+  REGISTE_ENUM_NKWRAP(button_behavior);
+  REGISTE_ENUM_NKWRAP(color_format);
+  REGISTE_ENUM_NKWRAP(chart_type);
+  REGISTE_ENUM_NKWRAP(edit_flag);
+  REGISTE_ENUM_NKWRAP(edit_type);
+  REGISTE_ENUM_NKWRAP(edit_event);
+  REGISTE_ENUM_NKWRAP(popup_type);
 
   lua_createtable(L, 0, 2);
   (void)NKFONTATLAS_FUNCTION(init)(L);

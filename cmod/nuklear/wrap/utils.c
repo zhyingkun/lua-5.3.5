@@ -341,7 +341,7 @@ static const luaL_Reg wrap_funcs[] = {
 void NKWRAP_FUNCTION(init_utils)(lua_State* L) {
   luaL_setfuncs(L, wrap_funcs, 0);
 
-  REGISTE_ENUM(heading);
+  REGISTE_ENUM_NKWRAP(heading);
 
   // PRINT_SIZEOF_TYPE(nk_color);
   // PRINT_SIZEOF_TYPE(UnionColor);

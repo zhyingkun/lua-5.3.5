@@ -908,6 +908,6 @@ static const luaL_Enum NKWRAP_ENUM(style_cursor)[] = {
 void NKWRAP_FUNCTION(init_style)(lua_State* L) {
   luaL_setfuncs(L, wrap_funcs, 0);
 
-  REGISTE_ENUM(style_color);
-  REGISTE_ENUM(style_cursor);
+  REGISTE_ENUM_NKWRAP(style_color);
+  REGISTE_ENUM_NKWRAP(style_cursor);
 }
