@@ -151,6 +151,7 @@ static const luaL_Reg metafuncs[] = {
 static int NKSTYLEBUTTON_FUNCTION(StyleButton)(lua_State* L) {
   nk_style_button* styleButton = (nk_style_button*)lua_newuserdata(L, sizeof(nk_style_button));
   luaL_setmetatable(L, NUKLEAR_STYLEBUTTON_TYPE);
+  memset((void*)styleButton, 0, sizeof(nk_style_button));
   if (lua_istable(L, 1)) {
     SET_STYLEBUTTON_FIELD_BY_PTR(normal, normal, nkstyleitem);
     SET_STYLEBUTTON_FIELD_BY_PTR(hover, hover, nkstyleitem);
