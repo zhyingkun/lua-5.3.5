@@ -5,8 +5,6 @@ local libmatrix = libbcfx.math.matrix
 local libvector = libbcfx.math.vector
 local libmesh = libbcfx.mesh
 local libcolor = libbcfx.color
-local libmbio = libbcfx.mbio
-local libmembuf = libbcfx.membuf
 local libutils = libbcfx.utils
 
 local libuv = require("libuv")
@@ -28,24 +26,24 @@ bcfx.image = image
 ** =======================================================
 --]]
 
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@param format bcfx_texture_format
----@return MemBuffer, integer, integer, integer, integer @data, w, h, nrChannels, wantChannels
+---@return luaL_MemBuffer, integer, integer, integer, integer @data, w, h, nrChannels, wantChannels
 function image.imageDecode(mb, format)
 	return libimage.imageDecode(mb, format)
 end
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@param format bcfx_texture_format
----@param callback fun(mb:MemBuffer, width:integer, height:integer, nrChannels:integer, wantChannels:integer):void
+---@param callback fun(mb:luaL_MemBuffer, width:integer, height:integer, nrChannels:integer, wantChannels:integer):void
 function image.imageDecodeAsync(mb, format, callback)
 	local ptr = libimage.packImageDecodeParam(mb, format)
 	queueWorkAsync(libimage.imageDecodePtr, ptr, function(result, status)
 		callback(libimage.unpackImageDecodeResult(result))
 	end)
 end
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@param format bcfx_texture_format
----@return MemBuffer, integer, integer, integer, integer @data, w, h, nrChannels, wantChannels
+---@return luaL_MemBuffer, integer, integer, integer, integer @data, w, h, nrChannels, wantChannels
 function image.imageDecodeAsyncWait(mb, format)
 	local ptr = libimage.packImageDecodeParam(mb, format)
 	local result = queueWorkAsyncWait(libimage.imageDecodePtr, ptr)
@@ -60,36 +58,36 @@ end
 ** =======================================================
 --]]
 
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@param x integer
 ---@param y integer
 ---@param comp integer
 ---@param type bcfx_image_type
 ---@param sorq integer @strider or quality
----@return MemBuffer
+---@return luaL_MemBuffer
 function image.imageEncode(mb, x, y, comp, type, sorq)
 	return libimage.imageEncode(mb, x, y, comp, type, sorq)
 end
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@param x integer
 ---@param y integer
 ---@param comp integer
 ---@param type bcfx_image_type
 ---@param sorq integer @strider or quality
----@param callback fun(mb:MemBuffer):void
+---@param callback fun(mb:luaL_MemBuffer):void
 function image.imageEncodeAsync(mb, x, y, comp, type, sorq, callback) -- stride or quality
 	local ptr = libimage.packImageEncodeParam(mb, x, y, comp, type, sorq);
 	queueWorkAsync(libimage.imageEncodePtr, ptr, function(result, status)
 		callback(libimage.unpackImageEncodeResult(result))
 	end)
 end
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@param x integer
 ---@param y integer
 ---@param comp integer
 ---@param type bcfx_image_type
 ---@param sorq integer @strider or quality
----@return MemBuffer
+---@return luaL_MemBuffer
 function image.imageEncodeAsyncWait(mb, x, y, comp, type, sorq)
 	local ptr = libimage.packImageEncodeParam(mb, x, y, comp, type, sorq);
 	local result = queueWorkAsyncWait(libimage.imageEncodePtr, ptr)
@@ -104,27 +102,27 @@ end
 ** =======================================================
 --]]
 
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@param width integer
 ---@param height integer
----@return MemBuffer
+---@return luaL_MemBuffer
 function image.imageFlipVertical(mb, width, height)
 	return libimage.imageFlipVertical(mb, width, height)
 end
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@param width integer
 ---@param height integer
----@param callback fun(mb:MemBuffer):void
+---@param callback fun(mb:luaL_MemBuffer):void
 function image.imageFlipVerticalAsync(mb, width, height, callback)
 	local ptr = libimage.packImageFlipVerticalParam(mb, width, height);
 	queueWorkAsync(libimage.imageFlipVerticalPtr, ptr, function(result, status)
 		callback(libimage.unpackImageFlipVerticalResult(result))
 	end)
 end
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@param width integer
 ---@param height integer
----@return MemBuffer
+---@return luaL_MemBuffer
 function image.imageFlipVerticalAsyncWait(mb, width, height)
 	local ptr = libimage.packImageFlipVerticalParam(mb, width, height);
 	local result = queueWorkAsyncWait(libimage.imageFlipVerticalPtr, ptr)
@@ -336,15 +334,15 @@ bcfx.mesh = mesh
 --]]
 
 ---@class Mesh:table
----@field vertex MemBuffer
----@field index MemBuffer
+---@field vertex luaL_MemBuffer
+---@field index luaL_MemBuffer
 
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@return Mesh[], string[]
 function mesh.meshParse(mb)
 	return libmesh.meshParse(mb)
 end
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@param callback fun(meshs:Mesh[], materialNames:string[]):void
 function mesh.meshParseAsync(mb, callback)
 	local ptr = libmesh.packMeshParseParam(mb);
@@ -352,7 +350,7 @@ function mesh.meshParseAsync(mb, callback)
 		callback(libmesh.unpackMeshParseResult(result))
 	end)
 end
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@return Mesh[], string[]
 function mesh.meshParseAsyncWait(mb)
 	local ptr = libmesh.packMeshParseParam(mb);
@@ -384,12 +382,12 @@ end
 ---@field mapD string
 ---@field mapBump string
 
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@return Material[]
 function mesh.materialParse(mb)
 	return libmesh.materialParse(mb)
 end
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@param callback fun(materials:Material[]):void
 function mesh.materialParseAsync(mb, callback)
 	local ptr = libmesh.packMaterialParseParam(mb);
@@ -397,25 +395,12 @@ function mesh.materialParseAsync(mb, callback)
 		callback(libmesh.unpackMaterialParseResult(result))
 	end)
 end
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@return Material[]
 function mesh.materialParseAsyncWait(mb)
 	local ptr = libmesh.packMaterialParseParam(mb);
 	local result = queueWorkAsyncWait(libmesh.materialParsePtr, ptr)
 	return libmesh.unpackMaterialParseResult(result)
-end
-
--- }======================================================
-
---[[
-** {======================================================
-** Error handler
-** =======================================================
---]]
-
----@param callback ErrorMessageHandler
-function bcfx.setErrorMessageHandler(callback)
-	libbcfx.setErrorMessageHandler(callback)
 end
 
 -- }======================================================
@@ -504,7 +489,7 @@ end
 function bcfx.createVertexLayout(layout)
 	return libbcfx.createVertexLayout(layout)
 end
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@param layoutHandle Handle
 ---@return Handle
 function bcfx.createVertexBuffer(mb, layoutHandle)
@@ -516,7 +501,7 @@ end
 function bcfx.createDynamicVertexBuffer(size, layoutHandle)
 	return libbcfx.createDynamicVertexBuffer(size, layoutHandle)
 end
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@param type bcfx_index_type
 ---@return Handle
 function bcfx.createIndexBuffer(mb, type)
@@ -528,7 +513,7 @@ end
 function bcfx.createDynamicIndexBuffer(size, type)
 	return libbcfx.createDynamicIndexBuffer(size, type)
 end
----@param mb string | MemBuffer
+---@param mb string | luaL_MemBuffer
 ---@param type bcfx_shader_type
 ---@return Handle
 function bcfx.createShader(mb, type)
@@ -549,7 +534,7 @@ end
 function bcfx.createUniform(name, type, num)
 	return libbcfx.createUniform(name, type, num)
 end
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 ---@param width integer
 ---@param height integer
 ---@param format bcfx_texture_format
@@ -586,13 +571,13 @@ function bcfx.updateProgram(handle, vs, fs)
 end
 ---@param handle Handle
 ---@param offset number
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 function bcfx.updateDynamicVertexBuffer(handle, offset, mb)
 	libbcfx.updateDynamicVertexBuffer(handle, offset, mb)
 end
 ---@param handle Handle
 ---@param offset number
----@param mb MemBuffer
+---@param mb luaL_MemBuffer
 function bcfx.updateDynamicIndexBuffer(handle, offset, mb)
 	libbcfx.updateDynamicIndexBuffer(handle, offset, mb)
 end
@@ -674,7 +659,7 @@ end
 function bcfx.resetView(id)
 	libbcfx.resetView(id)
 end
----@param callback fun(frameId:integer, id:ViewId, width:integer, height:integer, mb:MemBuffer):void
+---@param callback fun(frameId:integer, id:ViewId, width:integer, height:integer, mb:luaL_MemBuffer):void
 function bcfx.setFrameViewCaptureCallback(callback)
 	libbcfx.setFrameViewCaptureCallback(callback)
 end
@@ -1038,108 +1023,22 @@ end
 
 -- }======================================================
 
----@class bcfx_mbio:table
-local mbio = {}
-bcfx.mbio = mbio
-
 --[[
 ** {======================================================
-** ReadFile
+** Pack data to MemBuffer
 ** =======================================================
 --]]
-
----@param fileName string
----@return MemBuffer | nil, nil | integer, nil | string
-function mbio.readFile(fileName)
-	return libmbio.readFile(fileName)
-end
----@param fileName string
----@param callback fun(mb:MemBuffer | nil, errCode:nil | integer, errStr:nil | string):void
-function mbio.readFileAsync(fileName, callback)
-	local ptr = libmbio.packReadFileParam(fileName)
-	queueWorkAsync(libmbio.readFilePtr, ptr, function(result, status)
-		callback(libmbio.unpackReadFileResult(result))
-	end)
-end
----@param fileName string
----@return MemBuffer | nil, nil | integer, nil | string
-function mbio.readFileAsyncWait(fileName)
-	local ptr = libmbio.packReadFileParam(fileName)
-	local result = queueWorkAsyncWait(libmbio.readFilePtr, ptr)
-	return libmbio.unpackReadFileResult(result)
-end
-
--- }======================================================
-
---[[
-** {======================================================
-** WriteFile
-** =======================================================
---]]
-
----@param fileName string
----@param mb MemBuffer
----@return boolean, nil | integer, nil | string
-function mbio.writeFile(fileName, mb)
-	libmbio.writeFile(fileName, mb)
-end
----@param fileName string
----@param mb MemBuffer
----@param callback fun(ret:boolean, errCode:nil | integer, errStr:nil | string):void
-function mbio.writeFileAsync(fileName, mb, callback)
-	local ptr = libmbio.packWriteFileParam(fileName, mb)
-	queueWorkAsync(libmbio.writeFilePtr, ptr, function(result, status)
-		callback(libmbio.unpackWriteFileResult(result))
-	end)
-end
----@param fileName string
----@param mb MemBuffer
----@return boolean, nil | integer, nil | string
-function mbio.writeFileAsyncWait(fileName, mb)
-	local ptr = libmbio.packWriteFileParam(fileName, mb)
-	local result = queueWorkAsyncWait(libmbio.writeFilePtr, ptr)
-	return libmbio.unpackWriteFileResult(result)
-end
-
--- }======================================================
-
----@class bcfx_membuf:table
-local membuf = {}
-bcfx.membuf = membuf
-
---[[
-** {======================================================
-** MemBuffer
-** =======================================================
---]]
-
----@class MemBuffer:userdata
----@field public getClear fun(self:MemBuffer):lightuserdata, integer, lightuserdata, lightuserdata
----@field public setReplace fun(self:MemBuffer, ptr:lightuserdata, sz:integer, release:lightuserdata, ud:lightuserdata):void
-
----@overload fun():MemBuffer
----@overload fun(ptr:lightuserdata, sz:integer):MemBuffer
----@overload fun(ptr:lightuserdata, sz:integer, release:lightuserdata):MemBuffer
----@overload fun(ptr:lightuserdata, sz:integer, release:lightuserdata, ud:lightuserdata):MemBuffer
----@param ptr lightuserdata
----@param sz integer
----@param release lightuserdata
----@param ud lightuserdata
----@return MemBuffer
-function membuf.MemBuffer(ptr, sz, release, ud)
-	return libmembuf.MemBuffer(ptr, sz, release, ud)
-end
 
 ---@alias DataGetterSignature fun():number, ...
 
----@overload fun(type:bcfx_data_type, data:number[]):MemBuffer
----@overload fun(type:bcfx_data_type, dataGetter:DataGetterSignature, ...):MemBuffer
+---@overload fun(type:bcfx_data_type, data:number[]):luaL_MemBuffer
+---@overload fun(type:bcfx_data_type, dataGetter:DataGetterSignature, ...):luaL_MemBuffer
 ---@param type bcfx_data_type
 ---@param data number[]
 ---@param dataGetter DataGetterSignature
----@return MemBuffer
-function membuf.makeMemBuffer(...)
-	return libmembuf.makeMemBuffer(...)
+---@return luaL_MemBuffer
+function bcfx.makeMemBuffer(...)
+	return libbcfx.makeMemBuffer(...)
 end
 
 ---@class bcfx_data_type
@@ -1153,7 +1052,7 @@ end
 ---@field public Float integer
 
 ---@type bcfx_data_type
-membuf.data_type = libmembuf.data_type
+bcfx.data_type = libbcfx.data_type
 
 -- }======================================================
 
