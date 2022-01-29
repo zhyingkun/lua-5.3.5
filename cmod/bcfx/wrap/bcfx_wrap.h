@@ -7,6 +7,7 @@
 
 #include <lua.h>
 #include <lauxlib.h>
+#include <luautil.h>
 
 #ifdef _WIN32
 #include <malloc.h>
@@ -20,13 +21,7 @@
 #define BCWRAP_FUNCTION(name) bcfx_wrap_##name
 #define BCWRAP_ENUM(name) bcfx_enum_##name
 
-#define REGISTE_ENUM(name) \
-  luaL_newenum(L, BCWRAP_ENUM(name)); \
-  lua_setfield(L, -2, #name)
-
-#define REGISTE_LIGHTUSERDATA(name, lightuserdata) \
-  lua_pushlightuserdata(L, (void*)(lightuserdata)); \
-  lua_setfield(L, -2, #name)
+#define REGISTE_ENUM_BCWRAP(name) REGISTE_ENUM(name, BCWRAP_ENUM(name))
 
 #define VL_FUNCTION(name) bcfx_wrap_vl_##name
 
@@ -36,15 +31,9 @@
 void VL_FUNCTION(init_metatable)(lua_State* L);
 
 #define COLOR_FUNCTION(name) bcfx_wrap_color_##name
-
 void COLOR_FUNCTION(init)(lua_State* L);
 
 #define MEMBUF_FUNCTION(name) bcfx_wrap_membuf_##name
-
-#define BCFX_MEMBUFFER_TYPE "bcfx_MemBuffer*"
-#define luaL_checkmembuffer(L, idx) (bcfx_MemBuffer*)luaL_checkudata(L, idx, BCFX_MEMBUFFER_TYPE)
-
-bcfx_MemBuffer* luaL_newmembuffer(lua_State* L);
 void MEMBUF_FUNCTION(init)(lua_State* L);
 
 #define VECTOR_FUNCTION(name) bcfx_wrap_vector_##name
@@ -92,32 +81,10 @@ void G3D_FUNCTION(init)(lua_State* L);
 #define UTILS_FUNCTION(name) bcfx_wrap_utils_##name
 void UTILS_FUNCTION(init)(lua_State* L);
 
-#define MBIO_FUNCTION(name) bcfx_wrap_mbio_##name
-void MBIO_FUNCTION(init)(lua_State* L);
-
 #define IMAGE_FUNCTION(name) bcfx_wrap_membuf_io_##name
 void IMAGE_FUNCTION(init)(lua_State* L);
 
 #define MESH_FUNCTION(name) bcfx_wrap_mesh_##name
 void MESH_FUNCTION(init)(lua_State* L);
-
-int BCWRAP_FUNCTION(msgh)(lua_State* L);
-
-#define PREPARE_CALL_LUA(L) \
-  lua_checkstack(L, LUA_MINSTACK); \
-  lua_pushcfunction(L, BCWRAP_FUNCTION(msgh))
-#define CALL_LUA(L, nargs, nresult) /* must be pcall */ \
-  int msgh = lua_gettop(L) - (nargs + 1); \
-  if (lua_pcall(L, nargs, nresult, msgh) != LUA_OK) { \
-    const char* msg = lua_tostring(L, -1); \
-    fprintf(stderr, "Error: %s\n", msg == NULL ? "NULL" : msg); \
-    lua_pop(L, 1); \
-  } else {
-#define POST_CALL_LUA(L) \
-  } \
-  lua_pop(L, 1)
-#define CALL_LUA_FUNCTION(L, nargs) \
-  CALL_LUA(L, nargs, 0) \
-  POST_CALL_LUA(L)
 
 #endif /* _BCFX_WRAP_H_ */

@@ -5,30 +5,6 @@
 
 /*
 ** {======================================================
-** Error handler
-** =======================================================
-*/
-
-int BCWRAP_FUNCTION(msgh)(lua_State* L) {
-  if (lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)BCWRAP_FUNCTION(msgh)) == LUA_TFUNCTION) {
-    lua_insert(L, -2);
-    lua_pcall(L, 1, 1, 0); // if error with longjmp, just left the result msg in the stack
-  } else {
-    lua_pop(L, 1);
-    luaL_traceback(L, L, lua_tostring(L, -1), 1);
-  }
-  return 1;
-}
-static int BCWRAP_FUNCTION(setErrorMessageHandler)(lua_State* L) {
-  lua_settop(L, 1);
-  lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)BCWRAP_FUNCTION(msgh));
-  return 0;
-}
-
-/* }====================================================== */
-
-/*
-** {======================================================
 ** BCFX Resource Manage
 ** =======================================================
 */
@@ -180,11 +156,11 @@ static int BCWRAP_FUNCTION(createVertexLayout)(lua_State* L) {
   return 1;
 }
 static int BCWRAP_FUNCTION(createVertexBuffer)(lua_State* L) {
-  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   Handle layoutHandle = luaL_checkinteger(L, 2);
 
   Handle handle = bcfx_createVertexBuffer(mb, layoutHandle);
-  MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
+  MEMBUFFER_CLEAR(mb); // because pass luaL_MemBuffer to bcfx as Value, not Reference
   lua_pushinteger(L, handle);
   return 1;
 }
@@ -197,11 +173,11 @@ static int BCWRAP_FUNCTION(createDynamicVertexBuffer)(lua_State* L) {
   return 1;
 }
 static int BCWRAP_FUNCTION(createIndexBuffer)(lua_State* L) {
-  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   bcfx_EIndexType type = luaL_checkindextype(L, 2);
 
   Handle handle = bcfx_createIndexBuffer(mb, type);
-  MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
+  MEMBUFFER_CLEAR(mb); // because pass luaL_MemBuffer to bcfx as Value, not Reference
   lua_pushinteger(L, handle);
   return 1;
 }
@@ -214,8 +190,8 @@ static int BCWRAP_FUNCTION(createDynamicIndexBuffer)(lua_State* L) {
   return 1;
 }
 static int BCWRAP_FUNCTION(createShader)(lua_State* L) {
-  bcfx_MemBuffer buffer;
-  bcfx_MemBuffer* mb = &buffer;
+  luaL_MemBuffer buffer;
+  luaL_MemBuffer* mb = &buffer;
   if (lua_isstring(L, 1)) {
     MEMBUFFER_CLEAR(mb);
     mb->ptr = (void*)lua_tolstring(L, 1, &mb->sz);
@@ -226,7 +202,7 @@ static int BCWRAP_FUNCTION(createShader)(lua_State* L) {
   bcfx_EShaderType type = luaL_checkshadertype(L, 2);
 
   Handle handle = bcfx_createShader(mb, type);
-  MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
+  MEMBUFFER_CLEAR(mb); // because pass luaL_MemBuffer to bcfx as Value, not Reference
   lua_pushinteger(L, handle);
   return 1;
 }
@@ -248,13 +224,13 @@ static int BCWRAP_FUNCTION(createUniform)(lua_State* L) {
   return 1;
 }
 static int BCWRAP_FUNCTION(createTexture)(lua_State* L) {
-  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   uint16_t width = luaL_checkinteger(L, 2);
   uint16_t height = luaL_checkinteger(L, 3);
   bcfx_ETextureFormat format = luaL_checktextureformat(L, 4);
 
   Handle handle = bcfx_createTexture(mb, width, height, format);
-  MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
+  MEMBUFFER_CLEAR(mb); // because pass luaL_MemBuffer to bcfx as Value, not Reference
 
   lua_pushinteger(L, handle);
   return 1;
@@ -303,19 +279,19 @@ static int BCWRAP_FUNCTION(updateProgram)(lua_State* L) {
 static int BCWRAP_FUNCTION(updateDynamicVertexBuffer)(lua_State* L) {
   Handle handle = luaL_checkhandle(L, 1);
   size_t offset = luaL_checkinteger(L, 2);
-  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 3);
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 3);
 
   bcfx_updateDynamicVertexBuffer(handle, offset, mb);
-  MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
+  MEMBUFFER_CLEAR(mb); // because pass luaL_MemBuffer to bcfx as Value, not Reference
   return 0;
 }
 static int BCWRAP_FUNCTION(updateDynamicIndexBuffer)(lua_State* L) {
   Handle handle = luaL_checkhandle(L, 1);
   size_t offset = luaL_checkinteger(L, 2);
-  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 3);
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 3);
 
   bcfx_updateDynamicIndexBuffer(handle, offset, mb);
-  MEMBUFFER_CLEAR(mb); // because pass bcfx_MemBuffer to bcfx as Value, not Reference
+  MEMBUFFER_CLEAR(mb); // because pass luaL_MemBuffer to bcfx as Value, not Reference
   return 0;
 }
 
@@ -420,7 +396,7 @@ static void _onFrameViewCapture(void* ud, uint32_t frameId, bcfx_FrameViewCaptur
     lua_pushinteger(L, result->id);
     lua_pushinteger(L, result->width);
     lua_pushinteger(L, result->height);
-    bcfx_MemBuffer* mb = luaL_newmembuffer(L);
+    luaL_MemBuffer* mb = luaL_newmembuffer(L);
     MEMBUFFER_MOVE(&result->mb, mb);
     CALL_LUA_FUNCTION(L, 5);
   }
@@ -580,8 +556,6 @@ static int BCWRAP_FUNCTION(submit)(lua_State* L) {
 #define EMPLACE_BCWRAP_FUNCTION(name) \
   { #name, BCWRAP_FUNCTION(name) }
 static const luaL_Reg wrap_funcs[] = {
-    /* Error Handler */
-    EMPLACE_BCWRAP_FUNCTION(setErrorMessageHandler),
     /* Static Function Features */
     EMPLACE_BCWRAP_FUNCTION(setThreadFuncs),
     EMPLACE_BCWRAP_FUNCTION(setSemFuncs),
@@ -826,30 +800,30 @@ static const luaL_Enum BCWRAP_ENUM(uniform_type)[] = {
 LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   luaL_newlib(L, wrap_funcs);
 
-  REGISTE_ENUM(clear_flag);
-  REGISTE_ENUM(vertex_attrib);
-  REGISTE_ENUM(attrib_type);
-  REGISTE_ENUM(index_type);
-  REGISTE_ENUM(shader_type);
-  REGISTE_ENUM(texture_wrap);
-  REGISTE_ENUM(texture_filter);
-  REGISTE_ENUM(front_face);
-  REGISTE_ENUM(cull_face);
-  REGISTE_ENUM(compare_func);
-  REGISTE_ENUM(blend_func);
-  REGISTE_ENUM(blend_equation);
-  REGISTE_ENUM(logic_operate);
-  REGISTE_ENUM(stencil_action);
-  REGISTE_ENUM(view_mode);
-  REGISTE_ENUM(debug);
-  REGISTE_ENUM(discard);
-  REGISTE_ENUM(texture_format);
-  REGISTE_ENUM(uniform_type);
+  REGISTE_ENUM_BCWRAP(clear_flag);
+  REGISTE_ENUM_BCWRAP(vertex_attrib);
+  REGISTE_ENUM_BCWRAP(attrib_type);
+  REGISTE_ENUM_BCWRAP(index_type);
+  REGISTE_ENUM_BCWRAP(shader_type);
+  REGISTE_ENUM_BCWRAP(texture_wrap);
+  REGISTE_ENUM_BCWRAP(texture_filter);
+  REGISTE_ENUM_BCWRAP(front_face);
+  REGISTE_ENUM_BCWRAP(cull_face);
+  REGISTE_ENUM_BCWRAP(compare_func);
+  REGISTE_ENUM_BCWRAP(blend_func);
+  REGISTE_ENUM_BCWRAP(blend_equation);
+  REGISTE_ENUM_BCWRAP(logic_operate);
+  REGISTE_ENUM_BCWRAP(stencil_action);
+  REGISTE_ENUM_BCWRAP(view_mode);
+  REGISTE_ENUM_BCWRAP(debug);
+  REGISTE_ENUM_BCWRAP(discard);
+  REGISTE_ENUM_BCWRAP(texture_format);
+  REGISTE_ENUM_BCWRAP(uniform_type);
 
   (void)VL_FUNCTION(init_metatable)(L);
   (void)COLOR_FUNCTION(init)(L);
   (void)MEMBUF_FUNCTION(init)(L);
-  (void)MBIO_FUNCTION(init)(L);
+
   (void)IMAGE_FUNCTION(init)(L);
   (void)MESH_FUNCTION(init)(L);
 

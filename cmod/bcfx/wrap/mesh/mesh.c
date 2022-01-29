@@ -23,25 +23,25 @@ static void luaL_pushmesh(lua_State* L, Mesh* mesh) {
   size_t indexSize = mesh->indexArray.num * sizeof(uint32_t);
 
   lua_createtable(L, 0, 2);
-  bcfx_MemBuffer* vmb = luaL_newmembuffer(L);
+  luaL_MemBuffer* vmb = luaL_newmembuffer(L);
   MEMBUFFER_SET(vmb, vertexPtr, vertexSize, _freeMeshMemory, NULL);
   lua_setfield(L, -2, "vertex");
-  bcfx_MemBuffer* imb = luaL_newmembuffer(L);
+  luaL_MemBuffer* imb = luaL_newmembuffer(L);
   MEMBUFFER_SET(imb, indexPtr, indexSize, _freeMeshMemory, NULL);
   lua_setfield(L, -2, "index");
 }
 
 static int MESH_FUNCTION(packMeshParseParam)(lua_State* L) {
-  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
 
-  bcfx_MemBuffer* membuf = (bcfx_MemBuffer*)malloc(sizeof(bcfx_MemBuffer));
+  luaL_MemBuffer* membuf = (luaL_MemBuffer*)malloc(sizeof(luaL_MemBuffer));
   MEMBUFFER_MOVE(mb, membuf);
 
   lua_pushlightuserdata(L, (void*)membuf);
   return 1;
 }
 static void* MESH_FUNCTION(meshParsePtr)(void* arg) {
-  bcfx_MemBuffer* mb = (bcfx_MemBuffer*)arg;
+  luaL_MemBuffer* mb = (luaL_MemBuffer*)arg;
 
   MeshLoaded* loaded = (MeshLoaded*)malloc(sizeof(MeshLoaded));
   *loaded = objloader_loadMesh(mb->ptr, mb->sz);
@@ -75,7 +75,7 @@ static int MESH_FUNCTION(unpackMeshParseResult)(lua_State* L) {
   return ret;
 }
 static int MESH_FUNCTION(meshParse)(lua_State* L) {
-  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
 
   MeshLoaded meshLoaded = objloader_loadMesh(mb->ptr, mb->sz);
   MEMBUFFER_RELEASE(mb);
@@ -127,16 +127,16 @@ static void luaL_pushmaterial(lua_State* L, Material* mtl) {
 }
 
 static int MESH_FUNCTION(packMaterialParseParam)(lua_State* L) {
-  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
 
-  bcfx_MemBuffer* membuf = (bcfx_MemBuffer*)malloc(sizeof(bcfx_MemBuffer));
+  luaL_MemBuffer* membuf = (luaL_MemBuffer*)malloc(sizeof(luaL_MemBuffer));
   MEMBUFFER_MOVE(mb, membuf);
 
   lua_pushlightuserdata(L, (void*)membuf);
   return 1;
 }
 static void* MESH_FUNCTION(materialParsePtr)(void* arg) {
-  bcfx_MemBuffer* mb = (bcfx_MemBuffer*)arg;
+  luaL_MemBuffer* mb = (luaL_MemBuffer*)arg;
 
   MaterialArray* mtla = (MaterialArray*)malloc(sizeof(MaterialArray));
   *mtla = objloader_loadMaterial(mb->ptr, mb->sz);
@@ -161,7 +161,7 @@ static int MESH_FUNCTION(unpackMaterialParseResult)(lua_State* L) {
   return ret;
 }
 static int MESH_FUNCTION(materialParse)(lua_State* L) {
-  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
 
   MaterialArray materialArray = objloader_loadMaterial(mb->ptr, mb->sz);
   MEMBUFFER_RELEASE(mb);

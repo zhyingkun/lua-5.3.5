@@ -89,10 +89,6 @@ static const luaL_Reg utils_funcs[] = {
     {NULL, NULL},
 };
 
-#define REGISTE_LIGHTUSERDATA(name, lightuserdata) \
-  lua_pushlightuserdata(L, (void*)(lightuserdata)); \
-  lua_setfield(L, -2, #name)
-
 #define REGISTE_FUNC_UTILS(name) \
   REGISTE_LIGHTUSERDATA(name, utils_##name)
 

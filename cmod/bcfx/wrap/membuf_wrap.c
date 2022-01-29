@@ -5,7 +5,7 @@
 
 /*
 ** {======================================================
-** MemoryBuffer
+** Pack lua data to MemBuffer
 ** =======================================================
 */
 
@@ -38,70 +38,6 @@ uint8_t sizeof_DataType[] = {
     sizeof(float),
 };
 // clang-format on
-
-static int MEMBUF_FUNCTION(getClear)(lua_State* L) {
-  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  lua_pushlightuserdata(L, mb->ptr);
-  lua_pushinteger(L, mb->sz);
-  lua_pushlightuserdata(L, mb->release);
-  lua_pushlightuserdata(L, mb->ud);
-  MEMBUFFER_CLEAR(mb);
-  return 4;
-}
-
-#define CHECK_AND_SET(idx, field, type, check) \
-  if (!lua_isnoneornil(L, idx)) \
-  mb->field = (type)luaL_check##check(L, idx)
-static int MEMBUF_FUNCTION(setReplace)(lua_State* L) {
-  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  MEMBUFFER_RELEASE(mb);
-  CHECK_AND_SET(2, ptr, void*, lightuserdata);
-  CHECK_AND_SET(3, sz, size_t, integer);
-  CHECK_AND_SET(4, release, bcfx_MemRelease, lightuserdata);
-  CHECK_AND_SET(5, ud, void*, lightuserdata);
-  return 0;
-}
-
-static int MEMBUF_FUNCTION(__gc)(lua_State* L) {
-  bcfx_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  MEMBUFFER_RELEASE(mb);
-  return 0;
-}
-
-#define EMPLACE_MEMBUF_FUNCTION(name) \
-  { #name, MEMBUF_FUNCTION(name) }
-static const luaL_Reg membuf_metafuncs[] = {
-    EMPLACE_MEMBUF_FUNCTION(getClear),
-    EMPLACE_MEMBUF_FUNCTION(setReplace),
-    EMPLACE_MEMBUF_FUNCTION(__gc),
-    {NULL, NULL},
-};
-
-bcfx_MemBuffer* luaL_newmembuffer(lua_State* L) {
-  bcfx_MemBuffer* mb = (bcfx_MemBuffer*)lua_newuserdata(L, sizeof(bcfx_MemBuffer));
-  luaL_setmetatable(L, BCFX_MEMBUFFER_TYPE);
-  MEMBUFFER_CLEAR(mb);
-  return mb;
-}
-
-/* }====================================================== */
-
-/*
-** {======================================================
-** MemoryBuffer Utilities
-** =======================================================
-*/
-
-static int MEMBUF_FUNCTION(MemBuffer)(lua_State* L) {
-  void* ptr = luaL_optlightuserdata(L, 1, NULL);
-  size_t sz = luaL_optinteger(L, 2, 0);
-  bcfx_MemRelease release = (bcfx_MemRelease)luaL_optlightuserdata(L, 3, NULL);
-  void* ud = luaL_optlightuserdata(L, 4, NULL);
-
-  bcfx_MemBuffer* mb = luaL_newmembuffer(L);
-  MEMBUFFER_SET(mb, ptr, sz, release, ud);
-  return 1;
-}
 
 #define FILL_DATA_ARRAY_TABLE(count, idx, type, totype) \
   for (size_t i = 0; i < count; i++) { \
@@ -158,7 +94,7 @@ static int MEMBUF_FUNCTION(makeMemBuffer)(lua_State* L) {
   if (num < 2 || num % 2 != 0) {
     luaL_error(L, "must passing paraments in pair with type and data");
   }
-  bcfx_MemBuffer* mb = luaL_newmembuffer(L);
+  luaL_MemBuffer* mb = luaL_newmembuffer(L);
   if (num == 2 && lua_istable(L, 2)) {
     bcfx_EDataType type = luaL_checkdatatype(L, 1);
     size_t count = luaL_len(L, 2);
@@ -184,10 +120,10 @@ static int MEMBUF_FUNCTION(makeMemBuffer)(lua_State* L) {
       for (int i = 0; i < cnt; i++) {
         lua_pushvalue(L, i * 2 + 2);
         lua_call(L, 0, LUA_MULTRET);
-        if (i == 0 && lua_isnoneornil(L, num + 1 + 1)) { // one more for bcfx_MemBuffer
+        if (i == 0 && lua_isnoneornil(L, num + 1 + 1)) { // one more for luaL_MemBuffer
           goto _READ_END_;
         }
-        int count = lua_gettop(L) - num - 1; // one more for bcfx_MemBuffer
+        int count = lua_gettop(L) - num - 1; // one more for luaL_MemBuffer
         if (counts[i] < 0) {
           if (count == 0) {
             luaL_error(L, "should not be empty frame");
@@ -214,8 +150,9 @@ _READ_END_:
 
 /* }====================================================== */
 
+#define EMPLACE_MEMBUF_FUNCTION(name) \
+  { #name, MEMBUF_FUNCTION(name) }
 static const luaL_Reg membuf_funcs[] = {
-    EMPLACE_MEMBUF_FUNCTION(MemBuffer),
     EMPLACE_MEMBUF_FUNCTION(makeMemBuffer),
     {NULL, NULL},
 };
@@ -232,15 +169,6 @@ static const luaL_Enum BCWRAP_ENUM(data_type)[] = {
 // clang-format on
 
 void MEMBUF_FUNCTION(init)(lua_State* L) {
-  luaL_newmetatable(L, BCFX_MEMBUFFER_TYPE);
-  luaL_setfuncs(L, membuf_metafuncs, 0);
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-  lua_pop(L, 1);
-
-  luaL_newlib(L, membuf_funcs);
-
-  REGISTE_ENUM(data_type);
-
-  lua_setfield(L, -2, "membuf");
+  luaL_setfuncs(L, membuf_funcs, 0);
+  REGISTE_ENUM_BCWRAP(data_type);
 }
