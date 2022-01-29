@@ -167,3 +167,22 @@ function io.writefile(fileName, data) end
 ---@param nrec integer
 ---@return table
 function table.create(narr, nrec) end
+
+---@param callback ErrorMessageHandler
+function util.setErrorMessageHandler(callback) end
+
+---@class luaL_MemBuffer:userdata
+---@field public getClear fun(self:luaL_MemBuffer):lightuserdata, integer, lightuserdata, lightuserdata
+---@field public setReplace fun(self:luaL_MemBuffer, ptr:lightuserdata, sz:integer, release:lightuserdata, ud:lightuserdata):void
+---@field public release fun(self:luaL_MemBuffer):void
+
+---@overload fun():luaL_MemBuffer
+---@overload fun(ptr:lightuserdata, sz:integer):luaL_MemBuffer
+---@overload fun(ptr:lightuserdata, sz:integer, release:lightuserdata):luaL_MemBuffer
+---@overload fun(ptr:lightuserdata, sz:integer, release:lightuserdata, ud:lightuserdata):luaL_MemBuffer
+---@param ptr lightuserdata
+---@param sz integer
+---@param release lightuserdata
+---@param ud lightuserdata
+---@return luaL_MemBuffer
+function util.luaL_MemBuffer(ptr, sz, release, ud) end
