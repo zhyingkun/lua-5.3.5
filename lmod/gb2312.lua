@@ -1,6 +1,6 @@
 local libgb2312 = require("libgb2312")
 
----@class gb2312
+---@class gb2312:table
 local gb2312 = {}
 
 ---@overload fun(str:string, nth:integer):integer | nil

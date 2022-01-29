@@ -1,6 +1,6 @@
 local libglfw = require("libglfwrap")
 
----@class glfw
+---@class glfw:table
 local glfw = {}
 
 --[[
@@ -42,7 +42,7 @@ end
 ** =======================================================
 --]]
 
----@param callback fun(msg:string):string
+---@param callback ErrorMessageHandler
 function glfw.setErrorMessageHandler(callback)
 	libglfw.SetErrorMessageHandler(callback)
 end
@@ -296,7 +296,7 @@ function glfw.getGamepadName(jid)
 	return libglfw.GetGamepadName(jid)
 end
 
----@class GLFWgamepadstate
+---@class GLFWgamepadstate:table
 ---@field buttons glfw_input_state[]
 ---@field axes number[]
 
@@ -645,7 +645,7 @@ function glfw.setMonitorCallback(callback)
 	libglfw.SetMonitorCallback(callback)
 end
 
----@class GLFWvidmode
+---@class GLFWvidmode:table
 ---@field width integer
 ---@field height integer
 ---@field redBits integer
@@ -1045,7 +1045,7 @@ glfw.hint_value = libglfw.hint_value
 ** =======================================================
 --]]
 
----@class glfw_func_ptr
+---@class glfw_func_ptr:table
 ---@field public MakeContextCurrent lightuserdata
 ---@field public SwapBuffers lightuserdata
 ---@field public SwapInterval lightuserdata

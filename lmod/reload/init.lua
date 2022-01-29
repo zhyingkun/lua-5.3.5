@@ -98,7 +98,7 @@ local sandbox = (function()
 		ipairs = ipairs,
 		next = next,
 		print = print, -- for debug
-		print_err = print_err, -- for debug
+		printerr = printerr, -- for debug
 	}
 
 	local _require = (function()
@@ -634,7 +634,7 @@ local function reload_one(mod_name)
 	replace_all_function(newFunc2oldFunc)
 end
 
----@class reload
+---@class reload:table
 local reload = {}
 
 ---@param modName string

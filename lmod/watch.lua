@@ -8,7 +8,7 @@ local sys = libuv.sys
 
 local reload = require("reload").reload
 
----@class watch
+---@class watch:table
 local watch = {}
 
 local function error_msg(...)
@@ -75,9 +75,9 @@ function watch.autoReload(modName)
 	onFileChanged(filePath, function(filePath)
 		local ok, msg = reload(modName)
 		if ok then
-			print_err("reload succeed:", modName)
+			printerr("reload succeed:", modName)
 		else
-			print_err("reload failed:", modName, msg)
+			printerr("reload failed:", modName, msg)
 		end
 	end)
 end

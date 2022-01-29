@@ -90,7 +90,7 @@ function CJsonToLuaValue(item)
 	return func(item)
 end
 
----@class json
+---@class json:table
 local json = {}
 
 --[[
