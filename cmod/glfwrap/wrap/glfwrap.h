@@ -67,15 +67,12 @@ extern lua_State* staticL;
 #define CALL_LUA(L, nargs, nresult) /* must be pcall */ \
   int msgh = lua_gettop(L) - (nargs + 1); \
   if (lua_pcall(L, nargs, nresult, msgh) != LUA_OK) { \
-    if (!lua_isnil(L, -1)) { \
-      fprintf(stderr, "Error: %s\n", lua_tostring(L, -1)); \
-    } \
+    const char* msg = lua_tostring(L, -1); \
+    fprintf(stderr, "Error: %s\n", msg == NULL ? "NULL" : msg); \
     lua_pop(L, 1); \
-    for (int i = 0; i < nresult; i++) { \
-      lua_pushnil(L); \
-    } \
-  }
+  } else {
 #define POST_CALL_LUA(L) \
+  } \
   lua_pop(L, 1)
 #define CALL_LUA_FUNCTION(L, nargs) \
   CALL_LUA(L, nargs, 0) \
@@ -89,9 +86,8 @@ extern lua_State* staticL;
     lua_pushvalue(L, idx);
 #define GLFWRAP_CALLBACK_END() \
   } \
-  else { \
-    lua_pop(L, 1); \
-  }
+  lua_pop(L, 1);
+
 #define SET_GLFWRAP_CALLBACK(name, cbtype, idx) \
   GLFW##cbtype##fun callback = NULL; \
   if (lua_isfunction(L, idx)) { \
@@ -109,12 +105,9 @@ extern lua_State* staticL;
     int idx = lua_gettop(L); \
     PREPARE_CALL_LUA(L); \
     lua_pushvalue(L, idx);
-
 #define WINDOW_CALLBACK_END() \
   } \
-  else { \
-    lua_pop(L, 1); \
-  }
+  lua_pop(L, 1);
 
 #define SET_WINDOW_CALLBACK(name, cbtype) \
   GLFWwindow* window = luaL_checkGLFWwindow(L, 1); \
