@@ -155,7 +155,7 @@ void mla_destroy(MaterialLibraryArray* mla) {
 
 void material_init(Material* mtl) {
   mtl->name = NULL;
-  Float3 f3Zero = {0};
+  Float3 f3Zero = {0.0, 0.0, 0.0};
   mtl->ka = f3Zero;
   mtl->kd = f3Zero;
   mtl->ks = f3Zero;

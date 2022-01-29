@@ -728,6 +728,6 @@ NK_LIB void nk_layout_peek(nk_rect* bounds, nk_context* ctx) {
   layout->row.index = index;
 }
 NK_API void nk_spacer(nk_context* ctx) {
-  nk_rect dummy_rect = {0};
+  nk_rect dummy_rect = {0.0, 0.0, 0.0, 0.0};
   nk_panel_alloc_space(&dummy_rect, ctx);
 }
