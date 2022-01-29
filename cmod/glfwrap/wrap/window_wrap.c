@@ -590,8 +590,8 @@ static const luaL_Enum GLFWRAP_ENUM(hint_value)[] = {
 };
 
 DEFINE_REGISTE_FUNC_BEGIN(window)
-REGISTE_ENUM(window_hint);
-REGISTE_ENUM(window_attribute);
-REGISTE_ENUM(hint_value);
+REGISTE_ENUM_GLFWRAP(window_hint);
+REGISTE_ENUM_GLFWRAP(window_attribute);
+REGISTE_ENUM_GLFWRAP(hint_value);
 init_image_metatable(L);
 DEFINE_REGISTE_FUNC_END()

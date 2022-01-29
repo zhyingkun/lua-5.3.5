@@ -6,30 +6,6 @@
 
 /*
 ** {======================================================
-** GLFW calling lua
-** =======================================================
-*/
-
-int GLFWRAP_CALLBACK(msgh)(lua_State* L) {
-  if (lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)GLFWRAP_CALLBACK(msgh)) == LUA_TFUNCTION) {
-    lua_insert(L, -2);
-    lua_pcall(L, 1, 1, 0); // if error with longjmp, just left the result msg in the stack
-  } else {
-    lua_pop(L, 1);
-    luaL_traceback(L, L, lua_tostring(L, -1), 1);
-  }
-  return 1;
-}
-static int GLFWRAP_FUNCTION(SetErrorMessageHandler)(lua_State* L) {
-  lua_settop(L, 1);
-  lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)GLFWRAP_CALLBACK(msgh));
-  return 0;
-}
-
-/* }====================================================== */
-
-/*
-** {======================================================
 ** Initialization, version and error
 ** =======================================================
 */
@@ -117,7 +93,6 @@ static int GLFWRAP_FUNCTION(GetRequiredInstanceExtensions)(lua_State* L) {
 /* }====================================================== */
 
 static const luaL_Reg GLFWRAP_FUNCTION(funcs)[] = {
-    EMPLACE_GLFWRAP_FUNCTION(SetErrorMessageHandler),
     /* Initialization, version and error */
     EMPLACE_GLFWRAP_FUNCTION(Init),
     EMPLACE_GLFWRAP_FUNCTION(Terminate),
@@ -154,9 +129,6 @@ static const luaL_Enum GLFWRAP_ENUM(init_hint)[] = {
     {NULL, 0},
 };
 
-#define REGISTE_LIGHTUSERDATA(name, lightuserdata) \
-  lua_pushlightuserdata(L, (void*)(lightuserdata)); \
-  lua_setfield(L, -2, #name)
 #define REGISTE_FUNC_GLFW(name) REGISTE_LIGHTUSERDATA(name, glfw##name)
 
 void registe_function_pointer(lua_State* L) {
@@ -190,8 +162,8 @@ LUAMOD_API int luaopen_libglfwrap(lua_State* L) {
   REGISTE_FUNCTIONS(monitor);
   REGISTE_FUNCTIONS(window);
 
-  REGISTE_ENUM(err_code);
-  REGISTE_ENUM(init_hint);
+  REGISTE_ENUM_GLFWRAP(err_code);
+  REGISTE_ENUM_GLFWRAP(init_hint);
 
   registe_function_pointer(L);
 

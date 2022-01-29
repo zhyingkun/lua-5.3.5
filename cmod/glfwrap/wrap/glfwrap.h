@@ -7,6 +7,7 @@
 
 #include <lua.h>
 #include <lauxlib.h>
+#include <luautil.h>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -39,9 +40,7 @@ DECLARE_REGISTE_FUNC(input)
 DECLARE_REGISTE_FUNC(monitor)
 DECLARE_REGISTE_FUNC(window)
 
-#define REGISTE_ENUM(name) \
-  luaL_newenum(L, GLFWRAP_ENUM(name)); \
-  lua_setfield(L, -2, #name)
+#define REGISTE_ENUM_GLFWRAP(name) REGISTE_ENUM(name, GLFWRAP_ENUM(name))
 
 #define luaL_checkGLFWwindow(L, idx) (GLFWwindow*)luaL_checklightuserdata(L, idx)
 #define luaL_checkGLFWmonitor(L, idx) (GLFWmonitor*)luaL_checklightuserdata(L, idx)
@@ -50,33 +49,8 @@ DECLARE_REGISTE_FUNC(window)
 #define GLFW_IMAGE_TYPE "GLFWimage*"
 #define luaL_checkGLFWimage(L, idx) (GLFWimage*)luaL_checkudata(L, idx, GLFW_IMAGE_TYPE)
 
-#define PUSH_LIGHTUSERDATA(L, ud) \
-  if ((ud) == NULL) { \
-    lua_pushnil(L); \
-  } else \
-    lua_pushlightuserdata(L, (void*)(ud))
-
-int GLFWRAP_CALLBACK(msgh)(lua_State* L);
-
 extern lua_State* staticL;
 #define GET_MAIN_LUA_STATE() staticL
-
-#define PREPARE_CALL_LUA(L) \
-  lua_checkstack(L, LUA_MINSTACK); \
-  lua_pushcfunction(L, GLFWRAP_CALLBACK(msgh))
-#define CALL_LUA(L, nargs, nresult) /* must be pcall */ \
-  int msgh = lua_gettop(L) - (nargs + 1); \
-  if (lua_pcall(L, nargs, nresult, msgh) != LUA_OK) { \
-    const char* msg = lua_tostring(L, -1); \
-    fprintf(stderr, "Error: %s\n", msg == NULL ? "NULL" : msg); \
-    lua_pop(L, 1); \
-  } else {
-#define POST_CALL_LUA(L) \
-  } \
-  lua_pop(L, 1)
-#define CALL_LUA_FUNCTION(L, nargs) \
-  CALL_LUA(L, nargs, 0) \
-  POST_CALL_LUA(L)
 
 #define GLFWRAP_CALLBACK_BEGIN(name) \
   int t = lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)GLFWRAP_CALLBACK(name)); \
