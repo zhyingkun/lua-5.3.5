@@ -66,7 +66,7 @@ static void PROCESS_CALLBACK(Process)(uv_process_t* handle, int64_t exit_status,
   PUSH_HANDLE_CALLBACK(L, handle, IDX_PROCESS_SPAWN);
   lua_pushinteger(L, exit_status);
   lua_pushinteger(L, term_signal);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
 }
 #define GET_SIZE_OF(name) \
   int idx_##name = 0; \

@@ -23,7 +23,7 @@
   PUSH_REQ_CALLBACK_CLEAN(L, req); \
   lua_pushinteger(L, uv_fs_get_result(req)); \
   FREE_REQ(req); \
-  CALL_LUA_FUNCTION(L, 1, 0)
+  CALL_LUA_FUNCTION(L, 1)
 #define RETURN_ONLY_ERR(req, cb_idx) \
   if (async && err == UVWRAP_OK) { \
     SET_REQ_CALLBACK(L, cb_idx, req); \
@@ -68,17 +68,17 @@ static int FS_FUNCTION(open)(lua_State* L) {
 static void FS_CALLBACK(read)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
-  lua_pushinteger(L, uv_fs_get_result(req)); // result == 0 means EOF
 
   PUSH_REQ_PARAM(L, req, 1);
   UNHOLD_REQ_PARAM(L, req, 1);
   char* buffer = (char*)lua_touserdata(L, -1);
+  lua_pop(L, 1); // pop the lightuserdata
   PUSH_READ_STRING(L, req, buffer);
   (void)MEMORY_FUNCTION(free_buf)(buffer);
-  lua_remove(L, -2);
 
+  lua_pushinteger(L, uv_fs_get_result(req)); // result == 0 means EOF
   FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int FS_FUNCTION(read)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -123,7 +123,7 @@ static void FS_CALLBACK(write)(uv_fs_t* req) {
 
   lua_pushinteger(L, uv_fs_get_result(req));
   FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALL_LUA_FUNCTION(L, 1);
 }
 static int FS_FUNCTION(write)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -167,11 +167,13 @@ static int FS_FUNCTION(mkdir)(lua_State* L) {
 static void FS_CALLBACK(mkdtemp)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
+
   int err = uv_fs_get_result(req);
-  lua_pushinteger(L, err);
   PUSH_TEMP_PATH(L, err, req);
+
+  lua_pushinteger(L, err);
   FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int FS_FUNCTION(mkdtemp)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -213,11 +215,13 @@ static int FS_FUNCTION(rmdir)(lua_State* L) {
 static void FS_CALLBACK(opendir)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
+
   int err = uv_fs_get_result(req);
-  lua_pushinteger(L, err);
   PUSH_DIR_POINTER(L, err, req);
+
+  lua_pushinteger(L, err);
   FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int FS_FUNCTION(opendir)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -260,18 +264,18 @@ static int FS_FUNCTION(closedir)(lua_State* L) {
 static void FS_CALLBACK(readdir)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int err = uv_fs_get_result(req);
-  lua_pushinteger(L, err);
 
   PUSH_REQ_PARAM(L, req, 1);
   UNHOLD_REQ_PARAM(L, req, 1);
   uv_dirent_t* dirents = (uv_dirent_t*)lua_touserdata(L, -1);
+  int err = uv_fs_get_result(req);
   PUSH_DIR_NAME_TYPE(L, err, dirents);
   (void)MEMORY_FUNCTION(free_buf)(dirents);
   lua_remove(L, -3);
 
+  lua_pushinteger(L, err);
   FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 3, 0);
+  CALL_LUA_FUNCTION(L, 3);
 }
 static int FS_FUNCTION(readdir)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -313,11 +317,12 @@ static void push_ents_in_table(lua_State* L, uv_fs_t* req) {
 static void FS_CALLBACK(scandir)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
-  int result = uv_fs_get_result(req);
-  lua_pushinteger(L, result);
+
   push_ents_in_table(L, req);
+
+  lua_pushinteger(L, uv_fs_get_result(req));
   FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int FS_FUNCTION(scandir)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -346,11 +351,13 @@ static int FS_FUNCTION(scandir)(lua_State* L) {
 static void FS_CALLBACK(stat)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
+
   int err = uv_fs_get_result(req);
-  lua_pushinteger(L, err);
   PUSH_STAT_STRUCT(L, err, req);
+
+  lua_pushinteger(L, err);
   FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int FS_FUNCTION(stat)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -372,11 +379,13 @@ static int FS_FUNCTION(stat)(lua_State* L) {
 static void FS_CALLBACK(fstat)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
+
   int err = uv_fs_get_result(req);
-  lua_pushinteger(L, err);
   PUSH_STAT_STRUCT(L, err, req);
+
+  lua_pushinteger(L, err);
   FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int FS_FUNCTION(fstat)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -398,11 +407,13 @@ static int FS_FUNCTION(fstat)(lua_State* L) {
 static void FS_CALLBACK(lstat)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
+
   int err = uv_fs_get_result(req);
-  lua_pushinteger(L, err);
   PUSH_STAT_STRUCT(L, err, req);
+
+  lua_pushinteger(L, err);
   FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int FS_FUNCTION(lstat)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -430,11 +441,13 @@ static int FS_FUNCTION(lstat)(lua_State* L) {
 static void FS_CALLBACK(statfs)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
+
   int err = uv_fs_get_result(req);
-  lua_pushinteger(L, err);
   PUSH_STATFS_STRUCT(L, err, req);
+
+  lua_pushinteger(L, err);
   FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int FS_FUNCTION(statfs)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -648,11 +661,13 @@ static int FS_FUNCTION(symlink)(lua_State* L) {
 static void FS_CALLBACK(readlink)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
+
   int err = uv_fs_get_result(req);
-  lua_pushinteger(L, err);
   PUSH_PTR_STRING(L, err, req);
+
+  lua_pushinteger(L, err);
   FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int FS_FUNCTION(readlink)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -674,11 +689,13 @@ static int FS_FUNCTION(readlink)(lua_State* L) {
 static void FS_CALLBACK(realpath)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
+
   int err = uv_fs_get_result(req);
-  lua_pushinteger(L, err);
   PUSH_PTR_STRING(L, err, req);
+
+  lua_pushinteger(L, err);
   FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int FS_FUNCTION(realpath)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -789,17 +806,17 @@ static void FS_CALLBACK(readfile)(uv_fs_t* req) {
   if (result == UVWRAP_OK) {
     result = uv_fs_get_result(req);
   }
-  lua_pushinteger(L, result);
 
   PUSH_REQ_PARAM(L, req, 1);
   UNHOLD_REQ_PARAM(L, req, 1);
   char* buffer = lua_touserdata(L, -1);
+  lua_pop(L, 1); // pop the lightuserdata
   PUSH_READ_STRING(L, req, buffer);
   (void)MEMORY_FUNCTION(free_buf)(buffer);
-  lua_remove(L, -2);
 
+  lua_pushinteger(L, result);
   FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int FS_FUNCTION(readfile)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -864,7 +881,7 @@ static void FS_CALLBACK(writefile)(uv_fs_t* req) {
   lua_pushinteger(L, result);
 
   FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALL_LUA_FUNCTION(L, 1);
 }
 static int FS_FUNCTION(writefile)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);

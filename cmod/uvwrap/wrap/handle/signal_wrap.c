@@ -8,7 +8,7 @@ static void SIGNAL_CALLBACK(startAsync)(uv_signal_t* handle, int signum) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START); /* make sure one handle only push one callback */
   lua_pushinteger(L, signum);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALL_LUA_FUNCTION(L, 1);
 }
 static int SIGNAL_FUNCTION(startAsync)(lua_State* L) {
   uv_signal_t* handle = luaL_checksignal(L, 1);
@@ -26,7 +26,7 @@ static void SIGNAL_CALLBACK(startOneShotAsync)(uv_signal_t* handle, int signum) 
   PUSH_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START); /* make sure one handle only push one callback */
   CLEAR_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START);
   lua_pushinteger(L, signum);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALL_LUA_FUNCTION(L, 1);
 }
 static int SIGNAL_FUNCTION(startOneShotAsync)(lua_State* L) {
   uv_signal_t* handle = luaL_checksignal(L, 1);

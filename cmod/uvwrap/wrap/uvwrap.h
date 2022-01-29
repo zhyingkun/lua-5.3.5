@@ -319,15 +319,19 @@ extern lua_State* staticL;
 #define PREPARE_CALL_LUA(L) \
   lua_checkstack(L, LUA_MINSTACK); \
   lua_pushcfunction(L, ERROR_FUNCTION(msgh))
-#define CALL_LUA_FUNCTION(L, nargs, nresult) /* must be pcall */ \
+#define CALL_LUA(L, nargs, nresult) /* must be pcall */ \
   int msgh = lua_gettop(L) - (nargs + 1); \
-  if (lua_pcall(L, nargs, 0, msgh) != LUA_OK) { \
-    if (!lua_isnil(L, -1)) { \
-      fprintf(stderr, "Error: %s\n", lua_tostring(L, -1)); \
-    } \
+  if (lua_pcall(L, nargs, nresult, msgh) != LUA_OK) { \
+    const char* msg = lua_tostring(L, -1); \
+    fprintf(stderr, "Error: %s\n", msg == NULL ? "NULL" : msg); \
     lua_pop(L, 1); \
+  } else {
+#define POST_CALL_LUA(L) \
   } \
   lua_pop(L, 1)
+#define CALL_LUA_FUNCTION(L, nargs) \
+  CALL_LUA(L, nargs, 0) \
+  POST_CALL_LUA(L)
 
 #define ASYNC_WAIT_MSG "AsyncWait api must running in coroutine"
 #define CHECK_COROUTINE(co) \
@@ -343,6 +347,7 @@ extern lua_State* staticL;
   GET_REQ_LUA_STATE(L, req); \
   lua_checkstack(L, LUA_MINSTACK); \
   lua_State* co = (lua_State*)uv_req_get_data((const uv_req_t*)req); \
+  (void)MEMORY_FUNCTION(free_req)(req); \
   UNHOLD_REQ_PARAM(co, req, 0); /* must unhold before resume */ \
   UNHOLD_REQ_PARAM(co, req, 1)
 #define REQ_ASYNC_WAIT_RESUME(name) \
@@ -350,8 +355,7 @@ extern lua_State* staticL;
   int ret = lua_resume(co, L, 1); \
   if (ret != LUA_OK && ret != LUA_YIELD) { \
     fprintf(stderr, #name " resume coroutine error: %s", lua_tostring(co, -1)); \
-  } \
-  (void)MEMORY_FUNCTION(free_req)(req)
+  }
 
 /* }====================================================== */
 

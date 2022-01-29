@@ -29,7 +29,7 @@ static void HANDLE_CALLBACK(close)(uv_handle_t* handle) {
   UNHOLD_HANDLE_ITSELF(L, handle);
   CLEAR_HANDLE_CALLBACK(L, handle, IDX_HANDLE_CALLBACK);
   if (lua_isfunction(L, -1)) {
-    CALL_LUA_FUNCTION(L, 0, 0);
+    CALL_LUA_FUNCTION(L, 0);
   } else {
     lua_pop(L, 2); // pop the value and msgh
   }

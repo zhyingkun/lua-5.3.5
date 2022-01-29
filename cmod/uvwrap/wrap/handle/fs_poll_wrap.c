@@ -10,7 +10,7 @@ static void FS_POLL_CALLBACK(startAsync)(uv_fs_poll_t* handle, int status, const
   lua_pushinteger(L, status);
   lua_pushuv_stat_t(L, prev);
   lua_pushuv_stat_t(L, curr);
-  CALL_LUA_FUNCTION(L, 3, 0);
+  CALL_LUA_FUNCTION(L, 3);
 }
 static int FS_POLL_FUNCTION(startAsync)(lua_State* L) {
   uv_fs_poll_t* handle = luaL_checkfs_poll(L, 1);

@@ -19,7 +19,7 @@ static void TCP_CALLBACK(connectAsync)(uv_connect_t* req, int status) {
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   (void)MEMORY_FUNCTION(free_req)(req);
   lua_pushinteger(L, status);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALL_LUA_FUNCTION(L, 1);
 }
 static int TCP_FUNCTION(connectAsync)(lua_State* L) {
   uv_tcp_t* handle = luaL_checktcp(L, 1);
@@ -155,7 +155,13 @@ static const luaL_Reg TCP_FUNCTION(funcs)[] = {
     {NULL, NULL},
 };
 
+static const luaL_Enum UVWRAP_ENUM(tcp_flag)[] = {
+    {"IPV6ONLY", UV_TCP_IPV6ONLY},
+    {NULL, 0},
+};
+
 DEFINE_INIT_API_BEGIN(tcp)
 PUSH_LIB_TABLE(tcp);
+REGISTE_ENUM(tcp_flag);
 INVOKE_INIT_METATABLE(tcp);
 DEFINE_INIT_API_END(tcp)

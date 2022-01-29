@@ -25,7 +25,7 @@
   static void UVWRAP_CALLBACK(name, start)(uv_##name##_t * handle) { \
     lua_State* L; \
     PUSH_HANDLE_CALLBACK(L, handle, IDX_##NAME##_START); /* make sure one handle only push one callback */ \
-    CALL_LUA_FUNCTION(L, 0, 0); \
+    CALL_LUA_FUNCTION(L, 0); \
   } \
   static int UVWRAP_FUNCTION(name, start)(lua_State * L) { \
     uv_##name##_t* handle = luaL_check##name(L, 1); \

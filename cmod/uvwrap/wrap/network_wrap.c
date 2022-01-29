@@ -258,15 +258,15 @@ char* PHYSADDR_FUNCTION(create)(lua_State* L) {
 static void NETWORK_CALLBACK(getaddrinfo)(uv_getaddrinfo_t* req, int status, struct addrinfo* res) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
-  lua_pushinteger(L, status);
   PUSH_GETADDRINFO_RESULT(L, res);
+  lua_pushinteger(L, status);
   (void)MEMORY_FUNCTION(free_req)(req);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int NETWORK_FUNCTION(getaddrinfo)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
-  const char* node = lua_tostring(L, 2);
-  const char* service = lua_tostring(L, 3);
+  const char* node = luaL_optstring(L, 2, NULL);
+  const char* service = luaL_optstring(L, 3, NULL);
   if (node == NULL && service == NULL) {
     return luaL_error(L, "At least one of hostname and servname must be non-nil");
   }
@@ -298,11 +298,11 @@ static int NETWORK_FUNCTION(getaddrinfo)(lua_State* L) {
 static void NETWORK_CALLBACK(getnameinfo)(uv_getnameinfo_t* req, int status, const char* hostname, const char* service) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
-  lua_pushinteger(L, status);
   lua_pushstring(L, hostname); // hostname and service store in req
   lua_pushstring(L, service);
+  lua_pushinteger(L, status);
   (void)MEMORY_FUNCTION(free_req)(req);
-  CALL_LUA_FUNCTION(L, 3, 0);
+  CALL_LUA_FUNCTION(L, 3);
 }
 static int NETWORK_FUNCTION(getnameinfo)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
@@ -400,12 +400,54 @@ static const luaL_Enum UVWRAP_ENUM(socktype)[] = {
     {NULL, 0},
 };
 
+static const luaL_Enum UVWRAP_ENUM(addrinfo_flag)[] = {
+    {"ADDRCONFIG", AI_ADDRCONFIG},
+    {"ALL", AI_ALL},
+    {"CANONNAME", AI_CANONNAME},
+    {"NUMERICHOST", AI_NUMERICHOST},
+    {"PASSIVE", AI_PASSIVE},
+    {"V4MAPPED", AI_V4MAPPED},
+#if !defined(_WIN32)
+    {"NUMERICSERV", AI_NUMERICSERV},
+#endif
+#if defined(__linux__)
+    {"IDN", AI_IDN},
+    {"CANONIDN", AI_CANONIDN},
+    {"IDN_ALLOW_UNASSIGNED", AI_IDN_ALLOW_UNASSIGNED},
+    {"IDN_USE_STD3_ASCII_RULES", AI_IDN_USE_STD3_ASCII_RULES},
+#endif
+#if defined(_WIN32)
+    {"NON_AUTHORITATIVE", AI_NON_AUTHORITATIVE},
+    {"SECURE", AI_SECURE},
+    {"RETURN_PREFERRED_NAMES", AI_RETURN_PREFERRED_NAMES},
+    {"FQDN", AI_FQDN},
+    {"FILESERVER", AI_FILESERVER},
+#endif
+    {NULL, 0},
+};
+
+static const luaL_Enum UVWRAP_ENUM(nameinfo_flag)[] = {
+    {"NOFQDN", NI_NOFQDN},
+    {"NUMERICHOST", NI_NUMERICHOST},
+    {"NAMEREQD", NI_NAMEREQD},
+    {"NUMERICSERV", NI_NUMERICSERV},
+    {"DGRAM", NI_DGRAM},
+#if defined(__linux__)
+    {"IDN", NI_IDN},
+    {"IDN_ALLOW_UNASSIGNED", NI_IDN_ALLOW_UNASSIGNED},
+    {"IDN_USE_STD3_ASCII_RULES", NI_IDN_USE_STD3_ASCII_RULES},
+#endif
+    {NULL, 0},
+};
+
 void NETWORK_FUNCTION(init)(lua_State* L) {
   luaL_newlib(L, NETWORK_FUNCTION(funcs));
 
   REGISTE_ENUM(address_family);
   REGISTE_ENUM(protocol);
   REGISTE_ENUM(socktype);
+  REGISTE_ENUM(addrinfo_flag);
+  REGISTE_ENUM(nameinfo_flag);
 
   lua_setfield(L, -2, "network");
 

@@ -17,7 +17,7 @@ static void alloc_callback(void* ud, void* old_ptr, void* new_ptr, size_t new_si
   lua_pushlightuserdata(L, new_ptr);
   lua_pushinteger(L, new_size);
   lua_pushinteger(L, at);
-  CALL_LUA_FUNCTION(L, 4, 0);
+  CALL_LUA_FUNCTION(L, 4);
 }
 
 static int uvwrap_set_realloc_cb(lua_State* L) {
@@ -107,10 +107,10 @@ static void callback_queue_work(uv_work_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   UNHOLD_LUA_OBJECT(L, req, 1);
-  (void)MEMORY_FUNCTION(free_req)(req);
-  lua_pushinteger(L, status);
   lua_pushlightuserdata(L, result);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  lua_pushinteger(L, status);
+  (void)MEMORY_FUNCTION(free_req)(req);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int uvwrap_queue_work(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);

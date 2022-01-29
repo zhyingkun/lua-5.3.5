@@ -7,7 +7,7 @@
 static void TIMER_CALLBACK(startAsync)(uv_timer_t* handle) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK(L, handle, IDX_TIMER_START);
-  CALL_LUA_FUNCTION(L, 0, 0);
+  CALL_LUA_FUNCTION(L, 0);
 }
 static int TIMER_FUNCTION(startAsync)(lua_State* L) {
   uv_timer_t* handle = luaL_checktimer(L, 1);

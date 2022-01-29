@@ -129,7 +129,7 @@ static void LOOP_CALLBACK(walk)(uv_handle_t* handle, void* arg) {
   lua_pushvalue(L, IDX_WALK_CALLBACK);
   lua_rawgetp(L, IDX_TABLE_TRACE, (void*)handle);
   lua_pushlightuserdata(L, (void*)handle);
-  CALL_LUA_FUNCTION(L, 2, 0);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int LOOP_FUNCTION(walk)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);

@@ -92,15 +92,15 @@ static int UDP_FUNCTION(setTtl)(lua_State* L) {
   return 0;
 }
 
-static void UDP_CALLBACK(send)(uv_udp_send_t* req, int status) {
+static void UDP_CALLBACK(sendAsync)(uv_udp_send_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN(L, req);
   UNHOLD_LUA_OBJECT(L, req, 1);
   (void)MEMORY_FUNCTION(free_req)(req);
   lua_pushinteger(L, status);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALL_LUA_FUNCTION(L, 1);
 }
-static int UDP_FUNCTION(send)(lua_State* L) {
+static int UDP_FUNCTION(sendAsync)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   size_t len;
   const char* data = luaL_checklstring(L, 2, &len);
@@ -109,11 +109,34 @@ static int UDP_FUNCTION(send)(lua_State* L) {
 
   uv_udp_send_t* req = (uv_udp_send_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_udp_send_t));
   BUFS_INIT(data, len);
-  int err = uv_udp_send(req, handle, BUFS, NBUFS, addr, UDP_CALLBACK(send)); // bufs and addr are passed by value
+  int err = uv_udp_send(req, handle, BUFS, NBUFS, addr, UDP_CALLBACK(sendAsync)); // bufs and addr are passed by value
   CHECK_ERROR(L, err);
   SET_REQ_CALLBACK(L, 4, req);
   HOLD_LUA_OBJECT(L, req, 1, 2);
   return 0;
+}
+
+static void UDP_CALLBACK(sendAsyncWait)(uv_udp_send_t* req, int status) {
+  REQ_ASYNC_WAIT_PREPARE();
+  UNHOLD_REQ_PARAM(co, req, 2);
+  UNHOLD_REQ_PARAM(co, req, 3);
+  REQ_ASYNC_WAIT_RESUME(sendAsyncWait);
+}
+static int UDP_FUNCTION(sendAsyncWait)(lua_State* co) {
+  CHECK_COROUTINE(co);
+  uv_udp_t* handle = luaL_checkudp(co, 1);
+  size_t len;
+  const char* data = luaL_checklstring(co, 2, &len);
+  struct sockaddr* addr = luaL_checksockaddr(co, 3);
+
+  uv_udp_send_t* req = (uv_udp_send_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_udp_send_t));
+  BUFS_INIT(data, len);
+  int err = uv_udp_send(req, handle, BUFS, NBUFS, addr, UDP_CALLBACK(sendAsyncWait)); // bufs and addr are passed by value
+  CHECK_ERROR(co, err);
+  HOLD_COROUTINE(co);
+  HOLD_REQ_PARAM(co, req, 2, 2);
+  HOLD_REQ_PARAM(co, req, 3, 3);
+  return lua_yield(co, 0);
 }
 
 static int UDP_FUNCTION(trySend)(lua_State* L) {
@@ -131,8 +154,8 @@ static int UDP_FUNCTION(trySend)(lua_State* L) {
 // The flags parameter may be UV_UDP_PARTIAL if the buffer provided
 // by your allocator was not large enough to hold the data. In this
 // case the OS will discard the data that could not fit (That’s UDP for you!).
-static void UDP_CALLBACK(recvStart)(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const struct sockaddr* addr,
-                                    unsigned flags) {
+static void UDP_CALLBACK(recvStartAsync)(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const struct sockaddr* addr,
+                                         unsigned flags) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK(L, handle, IDX_UDP_RECV_START);
   lua_pushinteger(L, nread);
@@ -148,13 +171,13 @@ static void UDP_CALLBACK(recvStart)(uv_udp_t* handle, ssize_t nread, const uv_bu
     lua_pushnil(L);
   }
   lua_pushinteger(L, flags);
-  CALL_LUA_FUNCTION(L, 4, 0);
+  CALL_LUA_FUNCTION(L, 4);
 }
-static int UDP_FUNCTION(recvStart)(lua_State* L) {
+static int UDP_FUNCTION(recvStartAsync)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   luaL_checktype(L, 2, LUA_TFUNCTION);
 
-  int err = uv_udp_recv_start(handle, MEMORY_FUNCTION(buf_alloc), UDP_CALLBACK(recvStart));
+  int err = uv_udp_recv_start(handle, MEMORY_FUNCTION(buf_alloc), UDP_CALLBACK(recvStartAsync));
   CHECK_ERROR(L, err);
   SET_HANDLE_CALLBACK(L, handle, IDX_UDP_RECV_START, 2);
   return 0;
@@ -199,9 +222,10 @@ const luaL_Reg UDP_FUNCTION(metafuncs)[] = {
     EMPLACE_UDP_FUNCTION(setMulticastInterface),
     EMPLACE_UDP_FUNCTION(setBroadcast),
     EMPLACE_UDP_FUNCTION(setTtl),
-    EMPLACE_UDP_FUNCTION(send),
+    EMPLACE_UDP_FUNCTION(sendAsync),
+    EMPLACE_UDP_FUNCTION(sendAsyncWait),
     EMPLACE_UDP_FUNCTION(trySend),
-    EMPLACE_UDP_FUNCTION(recvStart),
+    EMPLACE_UDP_FUNCTION(recvStartAsync),
     EMPLACE_UDP_FUNCTION(recvStop),
     EMPLACE_UDP_FUNCTION(getSendQueueSize),
     EMPLACE_UDP_FUNCTION(getSendQueueCount),

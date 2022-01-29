@@ -27,7 +27,7 @@ static void PIPE_CALLBACK(connectAsync)(uv_connect_t* req, int status) {
   UNHOLD_REQ_PARAM(L, req, 1);
   (void)MEMORY_FUNCTION(free_req)(req);
   lua_pushinteger(L, status);
-  CALL_LUA_FUNCTION(L, 1, 0);
+  CALL_LUA_FUNCTION(L, 1);
 }
 static int PIPE_FUNCTION(connectAsync)(lua_State* L) {
   uv_pipe_t* handle = luaL_checkpipe(L, 1);

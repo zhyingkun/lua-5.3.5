@@ -12,7 +12,7 @@ void FS_EVENT_CALLBACK(startAsync)(uv_fs_event_t* handle, const char* filename, 
   lua_pushstring(L, filename);
   lua_pushinteger(L, events);
   lua_pushinteger(L, status);
-  CALL_LUA_FUNCTION(L, 3, 0);
+  CALL_LUA_FUNCTION(L, 3);
 }
 static int FS_EVENT_FUNCTION(startAsync)(lua_State* L) {
   uv_fs_event_t* handle = luaL_checkfs_event(L, 1);
