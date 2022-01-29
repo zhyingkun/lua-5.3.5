@@ -3,6 +3,7 @@ local libloop = uvwrap.loop
 local libpipe = uvwrap.pipe
 local libtcp = uvwrap.tcp
 local libtty = uvwrap.tty
+local libasync = uvwrap.async
 local libfsevent = uvwrap.fs_event
 local libfspoll = uvwrap.fs_poll
 local libprepare = uvwrap.prepare
@@ -166,6 +167,29 @@ end
 
 ---@type libuv_tty_mode
 tty.tty_mode = libtty.tty_mode
+
+-- }======================================================
+
+--[[
+** {======================================================
+** Async
+** =======================================================
+--]]
+
+---@class libuv_async
+local async = {}
+libuv.async = async
+
+---@class uv_async_t:uv_handle_t
+
+---@callback fun():void
+---@return uv_async_t
+function async.AsyncEvent(callback)
+	return libasync.AsyncEvent(loopCtx, callback)
+end
+
+---@type lightuserdata
+async.fireAsyncPtr = libasync.fireAsyncPtr
 
 -- }======================================================
 
