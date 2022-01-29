@@ -19,6 +19,7 @@ local libnetwork = uvwrap.network
 local libos = uvwrap.os
 local libsys = uvwrap.sys
 local libthread = uvwrap.thread
+local libmbio = uvwrap.mbio
 
 local ASYNC_WAIT_MSG = "AsyncWait api must running in coroutine"
 local queueWork = uvwrap.queue_work
@@ -1958,10 +1959,6 @@ thread.sem = libthread.sem
 ** =======================================================
 --]]
 
----@param callback ErrorMessageHandler
-function libuv.setErrorMessageHandler(callback)
-	uvwrap.set_msgh(callback)
-end
 ---@param callback MemAllocCallback | "function(oldPtr, newPtr, newSize) end"
 function libuv.setMemoryAllocatedCallback(callback)
 	uvwrap.set_realloc_cb(callback)
@@ -2144,6 +2141,72 @@ libuv.handle_type = uvwrap.handle_type
 
 ---@type libuv_alloc_type
 libuv.alloc_type = uvwrap.alloc_type
+
+-- }======================================================
+
+
+---@class libuv_mbio:table
+local mbio = {}
+libuv.mbio = mbio
+
+--[[
+** {======================================================
+** ReadFile
+** =======================================================
+--]]
+
+---@param fileName string
+---@return luaL_MemBuffer | nil, nil | integer, nil | string
+function mbio.readFile(fileName)
+	return libmbio.readFile(fileName)
+end
+---@param fileName string
+---@param callback fun(mb:luaL_MemBuffer | nil, errCode:nil | integer, errStr:nil | string):void
+function mbio.readFileAsync(fileName, callback)
+	local ptr = libmbio.packReadFileParam(fileName)
+	queueWorkAsync(libmbio.readFilePtr, ptr, function(result, status)
+		callback(libmbio.unpackReadFileResult(result))
+	end)
+end
+---@param fileName string
+---@return luaL_MemBuffer | nil, nil | integer, nil | string
+function mbio.readFileAsyncWait(fileName)
+	local ptr = libmbio.packReadFileParam(fileName)
+	local result = queueWorkAsyncWait(libmbio.readFilePtr, ptr)
+	return libmbio.unpackReadFileResult(result)
+end
+
+-- }======================================================
+
+--[[
+** {======================================================
+** WriteFile
+** =======================================================
+--]]
+
+---@param fileName string
+---@param mb luaL_MemBuffer
+---@return boolean, nil | integer, nil | string
+function mbio.writeFile(fileName, mb)
+	libmbio.writeFile(fileName, mb)
+end
+---@param fileName string
+---@param mb luaL_MemBuffer
+---@param callback fun(ret:boolean, errCode:nil | integer, errStr:nil | string):void
+function mbio.writeFileAsync(fileName, mb, callback)
+	local ptr = libmbio.packWriteFileParam(fileName, mb)
+	queueWorkAsync(libmbio.writeFilePtr, ptr, function(result, status)
+		callback(libmbio.unpackWriteFileResult(result))
+	end)
+end
+---@param fileName string
+---@param mb luaL_MemBuffer
+---@return boolean, nil | integer, nil | string
+function mbio.writeFileAsyncWait(fileName, mb)
+	local ptr = libmbio.packWriteFileParam(fileName, mb)
+	local result = queueWorkAsyncWait(libmbio.writeFilePtr, ptr)
+	return libmbio.unpackWriteFileResult(result)
+end
 
 -- }======================================================
 
