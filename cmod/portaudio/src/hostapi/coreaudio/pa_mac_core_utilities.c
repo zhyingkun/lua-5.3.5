@@ -379,7 +379,7 @@ long computeRingBufferSize(const PaStreamParameters* inputParameters,
 
   /* round up to the next power of 2 */
   index = -1;
-  for (i = 0; i < sizeof(long) * 8; ++i)
+  for (i = 0; i < (int)(sizeof(long) * 8); ++i)
     if (ringSize >> i & 0x01)
       index = i;
   assert(index > 0);
@@ -553,7 +553,7 @@ PaError setBestSampleRateForDevice(const AudioDeviceID device,
   VDBUG(("-----\n"));
 
   /* -- now pick the best available sample rate -- */
-  for (i = 0; i < propsize / sizeof(AudioValueRange); ++i) {
+  for (i = 0; i < (int)(propsize / sizeof(AudioValueRange)); ++i) {
     if (ranges[i].mMaximum > max)
       max = ranges[i].mMaximum;
     if (ranges[i].mMinimum > desiredSrate) {

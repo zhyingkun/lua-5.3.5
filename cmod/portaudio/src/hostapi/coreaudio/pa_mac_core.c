@@ -2285,7 +2285,7 @@ static OSStatus AudioIOProc(void* inRefCon,
                                                                             &size1,
                                                                             &data2,
                                                                             &size2);
-        if (size1 == frames) {
+        if (size1 == (ring_buffer_size_t)frames) {
           /* simplest case: all in first buffer */
           PaUtil_SetInputFrameCount(&(stream->bufferProcessor), frames);
           PaUtil_SetInterleavedInputChannels(&(stream->bufferProcessor),
@@ -2296,7 +2296,7 @@ static OSStatus AudioIOProc(void* inRefCon,
               PaUtil_EndBufferProcessing(&(stream->bufferProcessor),
                                          &callbackResult);
           PaUtil_AdvanceRingBufferReadIndex(&stream->inputRingBuffer, size1);
-        } else if (framesReadable < frames) {
+        } else if (framesReadable < (ring_buffer_size_t)frames) {
 
           long sizeBytes1 = size1 * bytesPerFrame;
           long sizeBytes2 = size2 * bytesPerFrame;
@@ -2377,7 +2377,7 @@ static OSStatus AudioIOProc(void* inRefCon,
       ring_buffer_size_t framesWritten = PaUtil_WriteRingBuffer(&stream->inputRingBuffer,
                                                                 stream->inputAudioBufferList.mBuffers[0].mData,
                                                                 inNumberFrames);
-      if (framesWritten != inNumberFrames) {
+      if (framesWritten != (ring_buffer_size_t)inNumberFrames) {
         stream->xrunFlags |= paInputOverflow;
       }
     } else {

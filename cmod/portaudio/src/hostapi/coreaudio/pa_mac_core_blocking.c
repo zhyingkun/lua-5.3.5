@@ -363,7 +363,7 @@ int BlioCallback(const void* input, void* output, unsigned long frameCount,
     framesAvailable = PaUtil_GetRingBufferWriteAvailable(&blio->inputRingBuffer);
 
     /* check for underflow */
-    if (framesAvailable < frameCount) {
+    if (framesAvailable < (ring_buffer_size_t)frameCount) {
       OSAtomicOr32(paInputOverflow, &blio->statusFlags);
       framesToTransfer = framesAvailable;
     } else {
@@ -385,7 +385,7 @@ int BlioCallback(const void* input, void* output, unsigned long frameCount,
     framesAvailable = PaUtil_GetRingBufferReadAvailable(&blio->outputRingBuffer);
 
     /* check for underflow */
-    if (framesAvailable < frameCount) {
+    if (framesAvailable < (ring_buffer_size_t)frameCount) {
       /* zero out the end of the output buffer that we do not have data for */
       framesToTransfer = framesAvailable;
 
@@ -454,7 +454,7 @@ PaError ReadStream(PaStream* stream,
 #endif
       }
     } while (framesAvailable == 0);
-    framesToTransfer = (ring_buffer_size_t)MIN(framesAvailable, framesRequested);
+    framesToTransfer = (ring_buffer_size_t)MIN(framesAvailable, (ring_buffer_size_t)framesRequested);
     framesTransferred = PaUtil_ReadRingBuffer(&blio->inputRingBuffer, (void*)cbuf, framesToTransfer);
     cbuf += framesTransferred * blio->inputSampleSizeActual * blio->inChan;
     framesRequested -= framesTransferred;
@@ -538,7 +538,7 @@ PaError WriteStream(PaStream* stream,
       break;
     }
 
-    framesToTransfer = MIN(framesAvailable, framesRequested);
+    framesToTransfer = MIN(framesAvailable, (ring_buffer_size_t)framesRequested);
     framesTransferred = PaUtil_WriteRingBuffer(&blio->outputRingBuffer, (void*)cbuf, framesToTransfer);
     cbuf += framesTransferred * blio->outputSampleSizeActual * blio->outChan;
     framesRequested -= framesTransferred;
