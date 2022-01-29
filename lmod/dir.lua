@@ -1,6 +1,6 @@
 local libdir = require("libdir")
 
----@class dir
+---@class dir:table
 local dir = {}
 
 ---@alias DirIterSignature fun():string, boolean
