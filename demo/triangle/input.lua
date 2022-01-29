@@ -40,7 +40,7 @@ function input.ImGUIInit(mainWin)
 		if bImGUI then
 			unicodeCount = unicodeCount + 1
 			if unicodeCount >= nk.INPUT_MAX then
-				print_err("Error: too many input unicode in one frame, maybe low fps")
+				printerr("Error: too many input unicode in one frame, maybe low fps")
 			else
 				if codepoint < 128 then
 					nk.inputChar(codepoint)

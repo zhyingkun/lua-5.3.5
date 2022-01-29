@@ -19,6 +19,103 @@ local text_alignment = nk.text_alignment
 local index_type = bcfx.index_type
 local clear_flag = bcfx.clear_flag
 
+
+---@param nk nuklear
+---@param pos NuklearVec2
+---@param radius number
+---@param icons nk_image[]
+local function piemenuInternal(pos, radius, icons)
+	local ret = -1
+	local activeItem = 1
+
+	local hide = nk.StyleItem()
+	local ptr = nk.getStylePtrTable()
+	nk.stylePushStyleItem(ptr.style_item.window.fixed_background, hide)
+	nk.stylePushColor(ptr.color.window.border_color, nk.rgbaToColor(0, 0, 0, 0))
+	nk.stylePushVec2(ptr.vec2.window.spacing, nk.packVec2(0, 0))
+	nk.stylePushVec2(ptr.vec2.window.padding, nk.packVec2(0, 0))
+
+	local tx, ty, tw, th = nk.unpackRect(nk.windowGetContentRegion())
+	local x, y = nk.unpackVec2(pos)
+	local bounds = nk.packRect(x - tx - radius, y - radius - ty, 2*radius, 2*radius)
+	if nk.popupBegin(nk.popup_type.STATIC, "piemenu", nk.panel_flag.NO_SCROLLBAR, bounds) then
+		nk.stylePushVec2(ptr.vec2.window.spacing, nk.packVec2(4, 4))
+		nk.stylePushVec2(ptr.vec2.window.padding, nk.packVec2(8, 8))
+
+		local canvas = nk.windowGetCanvas()
+		local tx, ty, tw, th = nk.unpackRect(nk.windowGetContentRegion())
+		nk.layoutRowDynamic(th, 1)
+		local status, bounds = nk.widget()
+		local bx, by, bw, bh = nk.unpackRect(bounds)
+		nk.fillCircle(canvas, bounds, nk.rgbaToColor(50, 50, 50));
+		local step = 2 * math.pi / math.max(1, #icons)
+		local aMin = 0.0
+		local aMax = step
+		local centerX = bx + bw / 2.0
+		local centerY = by + bh / 2.0
+		local mx, my = nk.unpackVec2(nk.inputGetMousePos())
+		local dragX = mx - centerX
+		local dragY = my - centerY
+		local angle = math.atan(dragY, dragX)
+		if angle < 0.0 then angle = angle + 2 * math.pi end
+		activeItem = math.tointeger(angle // step) + 1
+
+		for idx, img in ipairs(icons) do
+			nk.fillArc(canvas, centerX, centerY, bw / 2.0, aMin, aMax, activeItem == idx and nk.rgbaToColor(45, 100, 255) or nk.rgbaToColor(60, 60, 60))
+			local rx = bw / 2.0
+			local ry = 0
+			local dx = rx * math.cos(aMin) - ry * math.sin(aMin)
+			local dy = rx * math.sin(aMin) + ry * math.cos(aMin)
+			nk.strokeLine(canvas, centerX, centerY, centerX + dx, centerY + dy, 1.0, nk.rgbaToColor(50, 50, 50))
+
+			local a = aMin + (aMax - aMin) / 2.0
+			rx = bw / 2.5
+			ry = 0
+			local w = 30
+			local h = 30
+			local x = centerX + rx * math.cos(a) - ry * math.sin(a) - w / 2.0
+			local y = centerY + rx * math.sin(a) + ry * math.cos(a) - h / 2.0
+			local content = nk.packRect(x, y, w, h)
+			nk.drawImage(canvas, content, img, nk.rgbaToColor(255, 255, 255))
+
+			aMin = aMax
+			aMax = aMax + step
+		end
+
+		-- inner circle
+		local x = bx + bw / 2.0 - bw / 4.0
+		local y = by + bh / 2.0 - bh / 4.0
+		local w = bw / 2.0
+		local h = bh / 2.0
+		local inner = nk.packRect(x, y ,w, h)
+		nk.fillCircle(canvas, inner, nk.rgbaToColor(45, 45, 45))
+
+		-- active icon content
+		local boundsW = w / 2.0
+		local boundsH = h / 2.0
+		local boundsX = x + w / 2.0 - boundsW / 2.0
+		local boundsY = y + h / 2.0 - boundsH / 2.0
+		local bounds = nk.packRect(boundsX, boundsY, boundsW, boundsH)
+		nk.drawImage(canvas, bounds, icons[activeItem], nk.rgbaToColor(255, 255, 255))
+
+		nk.layoutSpaceEnd()
+		if not nk.inputIsMouseDown(nk.mouse_button.RIGHT) then
+			nk.popupClose()
+			ret = activeItem
+		end
+		nk.stylePopVec2()
+		nk.stylePopVec2()
+	end
+	nk.popupEnd()
+
+	nk.stylePopVec2()
+	nk.stylePopVec2()
+	nk.stylePopColor()
+	nk.stylePopStyleItem()
+
+	return ret
+end
+
 local imgui = {}
 
 local myFont
@@ -202,7 +299,29 @@ function imgui.tick(delta)
 		end
 	end
 	nk.endWindow()
-
+	if nk.begin("Second Demo", nk.packRect(0, 0, 400, 300), 
+		panel_flag.BORDER  |panel_flag.MOVABLE |panel_flag.TITLE|
+		panel_flag.SCALABLE|panel_flag.CLOSABLE|panel_flag.MINIMIZABLE)
+	then
+		if nk.inputIsMouseClickDownInRect(nk.mouse_button.RIGHT, nk.windowGetBounds(), true) then
+			piemenuPos = nk.inputGetMousePos()
+			piemenuActive = true
+		end
+		if piemenuActive then
+			--local ret = nk.piemenu(piemenuPos, 140, {
+			--	_img_, _img_, _img_, _img_, _img_, _img_,
+			--})
+			local ret = piemenuInternal(piemenuPos, 140, {
+				_img_, _img_, _img_, _img_, _img_, _img_,
+			})
+			if ret == -2 then piemenuActive = false end
+			if ret > 0 then
+				print("piemenu selected:", ret)
+				piemenuActive = false;
+			end
+		end
+	end
+	nk.endWindow()
 	local vbuf, ebuf
 	if bcfx.frameId() % 2 == 0 then
 		vbuf = vbuf1
@@ -250,6 +369,26 @@ function imgui.tick(delta)
 
 	nk.clear()
 	cmds:clear()
+end
+
+
+local piemenuPos
+local piemenuActive
+---@param nk nuklear
+---@param radius number
+---@param icons nk_image[]
+local function piemenu(nk, radius, icons)
+	if nk.inputIsMouseDown(nk.mouse_button.RIGHT) then
+		piemenuPos = 0 -- TODO: Get Mouse Position
+		piemenuActive = true
+	end
+	local ret = 1
+	if piemenuActive then
+		local ret = piemenuInternal(nk. piemenuPos, radius, icons)
+		if ret ~= -1 then piemenuActive = false end
+		if ret <= 0 then ret = 1 end
+	end
+	return ret
 end
 
 return imgui

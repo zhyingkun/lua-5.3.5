@@ -258,7 +258,7 @@ end
 local function SetupAnotherView(viewID, mainWin)
 	local win = glfw.createWindow(800, 600, "Another", nil, mainWin)
 	if not win then
-		print_err("GLFW CreateWindow Error:", glfw.getError())
+		printerr("GLFW CreateWindow Error:", glfw.getError())
 		glfw.terminate()
 		return
 	end
@@ -311,8 +311,20 @@ local function setup(mainWin)
 
 	-- timer = libuv.timer.new()
 	-- timer:start(function()
-	-- 	print_err("FrameRate:", string.format("%.2f", GetFrameRate()))
+	-- 	printerr("FrameRate:", string.format("%.2f", GetFrameRate()))
 	-- end, 1000, 1000)
+
+	local function runInCoroutine(func)
+		coroutine.wrap(func)()
+	end
+	runInCoroutine(function()
+		local timer = libuv.timer.Timer()
+		for i = 1, 10, 1 do
+			timer:startAsyncWait(1000)
+			print("Hello Timer:", i)
+		end
+		timer:close()
+	end)
 
 	instanceBuffer = bcfx.createDynamicVertexBuffer(4 * 4 * 1 * 3, 0)
 	local instanceOffset = {
