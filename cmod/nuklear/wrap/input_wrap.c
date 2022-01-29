@@ -206,6 +206,21 @@ static int NKWRAP_FUNCTION(input_is_key_down)(lua_State* L) {
 
 /* }====================================================== */
 
+/*
+** {======================================================
+** Nuklear Input Data
+** =======================================================
+*/
+
+static int NKWRAP_FUNCTION(input_get_mouse_pos)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+
+  luaL_pushnkvec2(L, ctx->input.mouse.pos);
+  return 1;
+}
+
+/* }====================================================== */
+
 #define EMPLACE_NKWRAP_FUNCTION(name) \
   { #name, NKWRAP_FUNCTION(name) }
 static const luaL_Reg wrap_funcs[] = {
@@ -234,6 +249,8 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_NKWRAP_FUNCTION(input_is_key_pressed),
     EMPLACE_NKWRAP_FUNCTION(input_is_key_released),
     EMPLACE_NKWRAP_FUNCTION(input_is_key_down),
+    /*  Input Data */
+    EMPLACE_NKWRAP_FUNCTION(input_get_mouse_pos),
     {NULL, NULL},
 };
 
