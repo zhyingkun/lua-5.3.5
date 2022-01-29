@@ -291,7 +291,7 @@ Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout) {
   return handle;
 }
 
-Handle ctx_createVertexBuffer(Context* ctx, bcfx_MemBuffer* mem, Handle layoutHandle) {
+Handle ctx_createVertexBuffer(Context* ctx, luaL_MemBuffer* mem, Handle layoutHandle) {
   CHECK_HANDLE(layoutHandle, HT_VertexLayout);
   ADD_CMD_ALLOC_HANDLE(ctx, VertexBuffer)
   param->cvb.mem = *mem;
@@ -302,14 +302,14 @@ Handle ctx_createVertexBuffer(Context* ctx, bcfx_MemBuffer* mem, Handle layoutHa
 Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size, Handle layoutHandle) {
   CHECK_HANDLE_IF_VALID(layoutHandle, HT_VertexLayout);
   ADD_CMD_ALLOC_HANDLE(ctx, VertexBuffer)
-  bcfx_MemBuffer mb = {0};
+  luaL_MemBuffer mb = {0};
   mb.sz = size;
   param->cvb.mem = mb;
   param->cvb.layoutHandle = layoutHandle;
   return handle;
 }
 
-Handle ctx_createIndexBuffer(Context* ctx, bcfx_MemBuffer* mem, bcfx_EIndexType type) {
+Handle ctx_createIndexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_EIndexType type) {
   ADD_CMD_ALLOC_HANDLE(ctx, IndexBuffer)
   param->cib.mem = *mem;
   param->cib.type = type;
@@ -318,14 +318,14 @@ Handle ctx_createIndexBuffer(Context* ctx, bcfx_MemBuffer* mem, bcfx_EIndexType 
 
 Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size, bcfx_EIndexType type) {
   ADD_CMD_ALLOC_HANDLE(ctx, IndexBuffer)
-  bcfx_MemBuffer mb = {0};
+  luaL_MemBuffer mb = {0};
   mb.sz = size;
   param->cib.mem = mb;
   param->cib.type = type;
   return handle;
 }
 
-Handle ctx_createShader(Context* ctx, bcfx_MemBuffer* mem, bcfx_EShaderType type) {
+Handle ctx_createShader(Context* ctx, luaL_MemBuffer* mem, bcfx_EShaderType type) {
   ADD_CMD_ALLOC_HANDLE(ctx, Shader)
   param->cs.mem = *mem;
   param->cs.type = type;
@@ -355,7 +355,7 @@ Handle ctx_createUniform(Context* ctx, const char* name, bcfx_UniformType type, 
   return handle;
 }
 
-Handle ctx_createTexture(Context* ctx, bcfx_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
+Handle ctx_createTexture(Context* ctx, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   param->ct.mem = *mem;
   param->ct.width = width;
@@ -405,14 +405,14 @@ void ctx_updateProgram(Context* ctx, Handle handle, Handle vs, Handle fs) {
   param->cp.fsHandle = fs;
 }
 
-void ctx_updateDynamicVertexBuffer(Context* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem) {
+void ctx_updateDynamicVertexBuffer(Context* ctx, Handle handle, size_t offset, luaL_MemBuffer* mem) {
   CHECK_HANDLE(handle, HT_VertexBuffer);
   CommandParam* param = ctx_addCommand(ctx, CT_UpdateVertexBuffer, handle);
   param->cuvb.offset = offset;
   param->cuvb.mem = *mem;
 }
 
-void ctx_updateDynamicIndexBuffer(Context* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem) {
+void ctx_updateDynamicIndexBuffer(Context* ctx, Handle handle, size_t offset, luaL_MemBuffer* mem) {
   CHECK_HANDLE(handle, HT_IndexBuffer);
   CommandParam* param = ctx_addCommand(ctx, CT_UpdateIndexBuffer, handle);
   param->cuib.offset = offset;

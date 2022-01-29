@@ -91,7 +91,7 @@ BCFX_API Handle bcfx_createVertexLayout(bcfx_VertexLayout* layout) {
   return ctx_createVertexLayout(s_ctx, layout);
 }
 
-BCFX_API Handle bcfx_createVertexBuffer(bcfx_MemBuffer* mem, Handle layoutHandle) {
+BCFX_API Handle bcfx_createVertexBuffer(luaL_MemBuffer* mem, Handle layoutHandle) {
   return ctx_createVertexBuffer(s_ctx, mem, layoutHandle);
 }
 
@@ -99,7 +99,7 @@ BCFX_API Handle bcfx_createDynamicVertexBuffer(size_t size, Handle layoutHandle)
   return ctx_createDynamicVertexBuffer(s_ctx, size, layoutHandle);
 }
 
-BCFX_API Handle bcfx_createIndexBuffer(bcfx_MemBuffer* mem, bcfx_EIndexType type) {
+BCFX_API Handle bcfx_createIndexBuffer(luaL_MemBuffer* mem, bcfx_EIndexType type) {
   return ctx_createIndexBuffer(s_ctx, mem, type);
 }
 
@@ -107,7 +107,7 @@ BCFX_API Handle bcfx_createDynamicIndexBuffer(size_t size, bcfx_EIndexType type)
   return ctx_createDynamicIndexBuffer(s_ctx, size, type);
 }
 
-BCFX_API Handle bcfx_createShader(bcfx_MemBuffer* mem, bcfx_EShaderType type) {
+BCFX_API Handle bcfx_createShader(luaL_MemBuffer* mem, bcfx_EShaderType type) {
   return ctx_createShader(s_ctx, mem, type);
 }
 
@@ -119,7 +119,7 @@ BCFX_API Handle bcfx_createUniform(const char* name, bcfx_UniformType type, uint
   return ctx_createUniform(s_ctx, name, type, num);
 }
 
-BCFX_API Handle bcfx_createTexture(bcfx_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
+BCFX_API Handle bcfx_createTexture(luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
   return ctx_createTexture(s_ctx, mem, width, height, format);
 }
 
@@ -143,11 +143,11 @@ BCFX_API void bcfx_updateProgram(Handle handle, Handle vs, Handle fs) {
   ctx_updateProgram(s_ctx, handle, vs, fs);
 }
 
-BCFX_API void bcfx_updateDynamicVertexBuffer(Handle handle, size_t offset, bcfx_MemBuffer* mem) {
+BCFX_API void bcfx_updateDynamicVertexBuffer(Handle handle, size_t offset, luaL_MemBuffer* mem) {
   ctx_updateDynamicVertexBuffer(s_ctx, handle, offset, mem);
 }
 
-BCFX_API void bcfx_updateDynamicIndexBuffer(Handle handle, size_t offset, bcfx_MemBuffer* mem) {
+BCFX_API void bcfx_updateDynamicIndexBuffer(Handle handle, size_t offset, luaL_MemBuffer* mem) {
   ctx_updateDynamicIndexBuffer(s_ctx, handle, offset, mem);
 }
 

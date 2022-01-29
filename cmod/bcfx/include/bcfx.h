@@ -8,6 +8,8 @@
 #include <bcfx_misc.h>
 #include <bcfx_math.h>
 
+#include <luautil.h>
+
 /*
 ** {======================================================
 ** Color
@@ -24,41 +26,6 @@ typedef union {
 
 BCFX_API uint32_t bcfx_packColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 BCFX_API void bcfx_unpackColor(uint32_t rgba, uint8_t* r, uint8_t* g, uint8_t* b, uint8_t* a);
-
-/* }====================================================== */
-
-/*
-** {======================================================
-** Memory Buffer, Using as value, not reference
-** =======================================================
-*/
-
-typedef void (*bcfx_MemRelease)(void* ud, void* ptr);
-
-typedef struct {
-  void* ptr;
-  size_t sz;
-  bcfx_MemRelease release;
-  void* ud;
-} bcfx_MemBuffer;
-
-#define MEMBUFFER_SET(mb, ptr_, sz_, release_, ud_) \
-  (mb)->ptr = ptr_; \
-  (mb)->sz = sz_; \
-  (mb)->release = release_; \
-  (mb)->ud = ud_
-
-#define MEMBUFFER_CLEAR(mb) \
-  MEMBUFFER_SET(mb, NULL, 0, NULL, NULL)
-
-#define MEMBUFFER_MOVE(src, dst) \
-  *(dst) = *(src); \
-  MEMBUFFER_CLEAR(src)
-
-#define MEMBUFFER_RELEASE(mb) \
-  if ((mb)->release != NULL && (mb)->ptr != NULL) \
-    (mb)->release((mb)->ud, (mb)->ptr); \
-  MEMBUFFER_CLEAR(mb)
 
 /* }====================================================== */
 
@@ -226,7 +193,7 @@ typedef uint16_t Handle;
 #define kInvalidHandle 0
 
 BCFX_API Handle bcfx_createVertexLayout(bcfx_VertexLayout* layout);
-BCFX_API Handle bcfx_createVertexBuffer(bcfx_MemBuffer* mem, Handle layoutHandle);
+BCFX_API Handle bcfx_createVertexBuffer(luaL_MemBuffer* mem, Handle layoutHandle);
 BCFX_API Handle bcfx_createDynamicVertexBuffer(size_t size, Handle layoutHandle);
 
 // WARNING: Change bcfx_EIndexType must Update sizeof_IndexType and index_glType
@@ -236,7 +203,7 @@ typedef enum {
   IT_Uint32,
 } bcfx_EIndexType;
 
-BCFX_API Handle bcfx_createIndexBuffer(bcfx_MemBuffer* mem, bcfx_EIndexType type);
+BCFX_API Handle bcfx_createIndexBuffer(luaL_MemBuffer* mem, bcfx_EIndexType type);
 BCFX_API Handle bcfx_createDynamicIndexBuffer(size_t size, bcfx_EIndexType type);
 
 typedef enum {
@@ -244,7 +211,7 @@ typedef enum {
   ST_Fragment,
 } bcfx_EShaderType;
 
-BCFX_API Handle bcfx_createShader(bcfx_MemBuffer* mem, bcfx_EShaderType type);
+BCFX_API Handle bcfx_createShader(luaL_MemBuffer* mem, bcfx_EShaderType type);
 BCFX_API Handle bcfx_createProgram(Handle vs, Handle fs);
 
 // WARNING: Change bcfx_UniformType must Update uniform_glType
@@ -264,7 +231,7 @@ typedef enum {
   TF_D24S8,
 } bcfx_ETextureFormat;
 
-BCFX_API Handle bcfx_createTexture(bcfx_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format);
+BCFX_API Handle bcfx_createTexture(luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format);
 BCFX_API Handle bcfx_createRenderTexture(uint16_t width, uint16_t height, bcfx_ETextureFormat format);
 
 BCFX_API Handle bcfx_createFrameBuffer(uint8_t num, Handle* handles);
@@ -279,8 +246,8 @@ BCFX_API Handle bcfx_createFrameBuffer(uint8_t num, Handle* handles);
 
 BCFX_API void bcfx_updateProgram(Handle handle, Handle vs, Handle fs);
 // offset measured in bytes, the same as the size of mem
-BCFX_API void bcfx_updateDynamicVertexBuffer(Handle handle, size_t offset, bcfx_MemBuffer* mem);
-BCFX_API void bcfx_updateDynamicIndexBuffer(Handle handle, size_t offset, bcfx_MemBuffer* mem);
+BCFX_API void bcfx_updateDynamicVertexBuffer(Handle handle, size_t offset, luaL_MemBuffer* mem);
+BCFX_API void bcfx_updateDynamicIndexBuffer(Handle handle, size_t offset, luaL_MemBuffer* mem);
 
 /* }====================================================== */
 
@@ -341,7 +308,7 @@ typedef struct {
   ViewId id;
   uint16_t width;
   uint16_t height;
-  bcfx_MemBuffer mb;
+  luaL_MemBuffer mb;
 } bcfx_FrameViewCaptureResult;
 
 typedef void (*bcfx_OnFrameViewCapture)(void* ud, uint32_t frameId, bcfx_FrameViewCaptureResult* result);

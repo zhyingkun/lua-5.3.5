@@ -302,7 +302,7 @@ static void gl_createVertexLayout(RendererContext* ctx, Handle handle, const bcf
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   glCtx->vertexLayouts[handle_index(handle)] = *layout;
 }
-static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, Handle layoutHandle) {
+static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, luaL_MemBuffer* mem, Handle layoutHandle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
   // bcfx_VertexLayout* layout = &glCtx->vertexLayouts[handle_index(layoutHandle)];
@@ -316,7 +316,7 @@ static void gl_createVertexBuffer(RendererContext* ctx, Handle handle, bcfx_MemB
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
   MEMBUFFER_RELEASE(mem);
 }
-static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, bcfx_EIndexType type) {
+static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, luaL_MemBuffer* mem, bcfx_EIndexType type) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
   ib->count = mem->sz / sizeof_IndexType[type];
@@ -329,7 +329,7 @@ static void gl_createIndexBuffer(RendererContext* ctx, Handle handle, bcfx_MemBu
   GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
   MEMBUFFER_RELEASE(mem);
 }
-static void gl_createShader(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, bcfx_EShaderType type) {
+static void gl_createShader(RendererContext* ctx, Handle handle, luaL_MemBuffer* mem, bcfx_EShaderType type) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   ShaderGL* shader = &glCtx->shaders[handle_index(handle)];
   shader->type = shader_glType[type];
@@ -394,7 +394,7 @@ static void gl_createUniform(RendererContext* ctx, Handle handle, const char* na
   uniform->num = num;
   glCtx->uniformCount++;
 }
-static void gl_createTexture(RendererContext* ctx, Handle handle, bcfx_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
+static void gl_createTexture(RendererContext* ctx, Handle handle, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   TextureGL* texture = &glCtx->textures[handle_index(handle)];
   texture->format = format;
@@ -443,7 +443,7 @@ static void gl_createFrameBuffer(RendererContext* ctx, Handle handle, uint8_t nu
   GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
-static void gl_updateVertexBuffer(RendererContext* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem) {
+static void gl_updateVertexBuffer(RendererContext* ctx, Handle handle, size_t offset, luaL_MemBuffer* mem) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
   CHECK_DYNAMIC_BUFFER(vb);
@@ -455,7 +455,7 @@ static void gl_updateVertexBuffer(RendererContext* ctx, Handle handle, size_t of
   MEMBUFFER_RELEASE(mem);
 }
 
-static void gl_updateIndexBuffer(RendererContext* ctx, Handle handle, size_t offset, bcfx_MemBuffer* mem) {
+static void gl_updateIndexBuffer(RendererContext* ctx, Handle handle, size_t offset, luaL_MemBuffer* mem) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
   CHECK_DYNAMIC_BUFFER(ib);

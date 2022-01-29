@@ -39,15 +39,15 @@ typedef struct {
   void* ud;
 } CmdVertexLayout;
 typedef struct {
-  bcfx_MemBuffer mem;
+  luaL_MemBuffer mem;
   Handle layoutHandle;
 } CmdVertexBuffer;
 typedef struct {
-  bcfx_MemBuffer mem;
+  luaL_MemBuffer mem;
   bcfx_EIndexType type;
 } CmdIndexBuffer;
 typedef struct {
-  bcfx_MemBuffer mem;
+  luaL_MemBuffer mem;
   bcfx_EShaderType type;
 } CmdShader;
 typedef struct {
@@ -60,7 +60,7 @@ typedef struct {
   uint16_t num;
 } CmdUniform;
 typedef struct {
-  bcfx_MemBuffer mem;
+  luaL_MemBuffer mem;
   uint16_t width;
   uint16_t height;
   bcfx_ETextureFormat format;
@@ -72,11 +72,11 @@ typedef struct {
 
 typedef struct {
   size_t offset;
-  bcfx_MemBuffer mem;
+  luaL_MemBuffer mem;
 } CmdUpdateVertexBuffer;
 typedef struct {
   size_t offset;
-  bcfx_MemBuffer mem;
+  luaL_MemBuffer mem;
 } CmdUpdateIndexBuffer;
 
 typedef union {
