@@ -1,8 +1,13 @@
 local libnk = require("libnuklear")
 local libfont = libnk.font
 
----@class nuklear
+---@class nuklear:table
 local nk = {}
+
+---@param callback ErrorMessageHandler
+function nk.setErrorMessageHandler(callback)
+	libnk.setErrorMessageHandler(callback)
+end
 
 --[[
 ** {======================================================
@@ -10,7 +15,7 @@ local nk = {}
 ** =======================================================
 --]]
 
----@class nuklear_font
+---@class nuklear_font:table
 local font = {}
 nk.font = font
 
@@ -38,9 +43,18 @@ end
 ---@type nuklear_atlas_format
 font.atlas_format = libfont.atlas_format
 
----@class nk_font_config
+---@class nk_font_config:userdata
+---@field public mergeMode boolean
+---@field public pixelSnap boolean
+---@field public overSampleV integer
+---@field public overSampleH integer
+---@field public pixelHeight number
+---@field public coordType nuklear_coord_type
+---@field public spacing NuklearVec2
+---@field public range nk_rune_ptr
+---@field public fallbackGlyph integer
 
----@class nk_font_config_table
+---@class nk_font_config_table:table
 ---@field public mergeMode boolean
 ---@field public pixelSnap boolean
 ---@field public overSampleV integer
@@ -84,7 +98,7 @@ end
 ** =======================================================
 --]]
 
----@class nk_buffer
+---@class nk_buffer:userdata
 ---@field public frontBufferPtr fun(self:nk_buffer):lightuserdata
 ---@field public frontBufferAllocated fun(self:nk_buffer):integer
 ---@field public getTotal fun(self:nk_buffer):integer
@@ -105,7 +119,9 @@ end
 ** =======================================================
 --]]
 
----@class nk_context
+---@class nk_context:userdata
+---@field public free fun(self:nk_context):void
+---@field public setUserData fun(self:nk_context, ptr:lightuserdata):void
 
 ---@param font nk_font
 ---@return nk_context
@@ -566,7 +582,7 @@ end
 ** =======================================================
 --]]
 
----@class nk_image
+---@class nk_image:userdata
 ---@field isSubImage(self:isSubImage):boolean
 
 ---@param handle integer | lightuserdata
@@ -578,7 +594,7 @@ function nk.Image(handle, w, h, subRegion)
 	return libnk.Image(handle, w, h, subRegion)
 end
 
----@class nk_nine_slice
+---@class nk_nine_slice:userdata
 ---@field isSubNineSlice(self:isSubImage):boolean
 
 ---@param handle integer | lightuserdata
@@ -730,6 +746,19 @@ end
 ---@return boolean
 function nk.inputIsKeyDown(key)
 	return libnk.input_is_key_down(curCtx, key)
+end
+
+-- }======================================================
+
+--[[
+** {======================================================
+** Input Data
+** =======================================================
+--]]
+
+---@return NuklearVec2
+function nk.inputGetMousePos()
+	return libnk.input_get_mouse_pos(curCtx)
 end
 
 ---@class nuklear_keyboard
@@ -1765,6 +1794,523 @@ end
 ** =======================================================
 --]]
 
+---@class nk_style_text_color:table
+---@field public color lightuserdata
+
+---@class nk_style_text_vec2:table
+---@field public padding lightuserdata
+
+
+---@class nk_style_button_style_item:table
+---@field public normal lightuserdata
+---@field public hover lightuserdata
+---@field public active lightuserdata
+
+---@class nk_style_button_color:table
+---@field public border_color lightuserdata
+---@field public text_background lightuserdata
+---@field public text_normal lightuserdata
+---@field public text_hover lightuserdata
+---@field public text_active lightuserdata
+
+---@class nk_style_button_flags:table
+---@field public text_alignment lightuserdata
+
+---@class nk_style_button_float:table
+---@field public border lightuserdata
+---@field public rounding lightuserdata
+
+---@class nk_style_button_vec2:table
+---@field public padding lightuserdata
+---@field public image_padding lightuserdata
+---@field public touch_padding lightuserdata
+
+
+---@class nk_style_toggle_style_item:table
+---@field public normal lightuserdata
+---@field public hover lightuserdata
+---@field public active lightuserdata
+---@field public cursor_normal lightuserdata
+---@field public cursor_hover lightuserdata
+
+---@class nk_style_toggle_color:table
+---@field public border_color lightuserdata
+---@field public text_normal lightuserdata
+---@field public text_hover lightuserdata
+---@field public text_active lightuserdata
+---@field public text_background lightuserdata
+
+---@class nk_style_toggle_flags:table
+---@field public text_alignment lightuserdata
+
+---@class nk_style_toggle_float:table
+---@field public spacing lightuserdata
+---@field public border lightuserdata
+
+---@class nk_style_toggle_vec2:table
+---@field public padding lightuserdata
+---@field public touch_padding lightuserdata
+
+
+---@class nk_style_selectable_style_item:table
+---@field public normal lightuserdata
+---@field public hover lightuserdata
+---@field public pressed lightuserdata
+---@field public normal_active lightuserdata
+---@field public hover_active lightuserdata
+---@field public pressed_active lightuserdata
+
+---@class nk_style_selectable_color:table
+---@field public text_normal lightuserdata
+---@field public text_hover lightuserdata
+---@field public text_pressed lightuserdata
+---@field public text_normal_active lightuserdata
+---@field public text_hover_active lightuserdata
+---@field public text_pressed_active lightuserdata
+---@field public text_background lightuserdata
+
+---@class nk_style_selectable_flags:table
+---@field public text_alignment lightuserdata
+
+---@class nk_style_selectable_float:table
+---@field public rounding lightuserdata
+
+---@class nk_style_selectable_vec2:table
+---@field public padding lightuserdata
+---@field public touch_padding lightuserdata
+---@field public image_padding lightuserdata
+
+
+---@class nk_style_slider_style_item:table
+---@field public normal lightuserdata
+---@field public hover lightuserdata
+---@field public active lightuserdata
+---@field public cursor_normal lightuserdata
+---@field public cursor_hover lightuserdata
+---@field public cursor_active lightuserdata
+---@field public inc_button nk_style_button_style_item
+---@field public dec_button nk_style_button_style_item
+
+---@class nk_style_slider_color:table
+---@field public border_color lightuserdata
+---@field public bar_normal lightuserdata
+---@field public bar_hover lightuserdata
+---@field public bar_active lightuserdata
+---@field public bar_filled lightuserdata
+---@field public inc_button nk_style_button_color
+---@field public dec_button nk_style_button_color
+
+---@class nk_style_slider_flags:table
+---@field public inc_button nk_style_button_flags
+---@field public dec_button nk_style_button_flags
+
+---@class nk_style_slider_float:table
+---@field public border lightuserdata
+---@field public rounding lightuserdata
+---@field public bar_height lightuserdata
+---@field public inc_button nk_style_button_float
+---@field public dec_button nk_style_button_float
+
+---@class nk_style_slider_vec2:table
+---@field public padding lightuserdata
+---@field public spacing lightuserdata
+---@field public cursor_size lightuserdata
+---@field public inc_button nk_style_button_vec2
+---@field public dec_button nk_style_button_vec2
+
+
+---@class nk_style_progress_style_item:table
+---@field public normal lightuserdata
+---@field public hover lightuserdata
+---@field public active lightuserdata
+---@field public cursor_normal lightuserdata
+---@field public cursor_hover lightuserdata
+---@field public cursor_active lightuserdata
+
+---@class nk_style_progress_color:table
+---@field public border_color lightuserdata
+---@field public cursor_border_color lightuserdata
+
+---@class nk_style_progress_float:table
+---@field public rounding lightuserdata
+---@field public border lightuserdata
+---@field public cursor_border lightuserdata
+---@field public cursor_rounding lightuserdata
+
+---@class nk_style_progress_vec2:table
+---@field public padding lightuserdata
+
+
+---@class nk_style_scrollbar_style_item:table
+---@field public normal lightuserdata
+---@field public hover lightuserdata
+---@field public active lightuserdata
+---@field public cursor_normal lightuserdata
+---@field public cursor_hover lightuserdata
+---@field public cursor_active lightuserdata
+---@field public inc_button nk_style_button_style_item
+---@field public dec_button nk_style_button_style_item
+
+---@class nk_style_scrollbar_color:table
+---@field public border_color lightuserdata
+---@field public cursor_border_color lightuserdata
+---@field public inc_button nk_style_button_color
+---@field public dec_button nk_style_button_color
+
+---@class nk_style_scrollbar_flags:table
+---@field public inc_button nk_style_button_flags
+---@field public dec_button nk_style_button_flags
+
+---@class nk_style_scrollbar_float:table
+---@field public border lightuserdata
+---@field public rounding lightuserdata
+---@field public border_cursor lightuserdata
+---@field public rounding_cursor lightuserdata
+---@field public inc_button nk_style_button_float
+---@field public dec_button nk_style_button_float
+
+---@class nk_style_scrollbar_vec2:table
+---@field public padding lightuserdata
+---@field public inc_button nk_style_button_vec2
+---@field public dec_button nk_style_button_vec2
+
+
+---@class nk_style_edit_style_item:table
+---@field public normal lightuserdata
+---@field public hover lightuserdata
+---@field public active lightuserdata
+---@field public scrollbar nk_style_scrollbar_style_item
+
+---@class nk_style_edit_color:table
+---@field public border_color lightuserdata
+---@field public cursor_normal lightuserdata
+---@field public cursor_hover lightuserdata
+---@field public cursor_text_normal lightuserdata
+---@field public cursor_text_hover lightuserdata
+---@field public text_normal lightuserdata
+---@field public text_hover lightuserdata
+---@field public text_active lightuserdata
+---@field public selected_normal lightuserdata
+---@field public selected_hover lightuserdata
+---@field public selected_text_normal lightuserdata
+---@field public selected_text_hover lightuserdata
+---@field public scrollbar nk_style_scrollbar_color
+
+---@class nk_style_edit_flags:table
+---@field public scrollbar nk_style_scrollbar_flags
+
+---@class nk_style_edit_float:table
+---@field public border lightuserdata
+---@field public rounding lightuserdata
+---@field public cursor_size lightuserdata
+---@field public row_padding lightuserdata
+---@field public scrollbar nk_style_scrollbar_float
+
+---@class nk_style_edit_vec2:table
+---@field public scrollbar_size lightuserdata
+---@field public padding lightuserdata
+---@field public scrollbar nk_style_scrollbar_vec2
+
+
+---@class nk_style_property_style_item:table
+---@field public normal lightuserdata
+---@field public hover lightuserdata
+---@field public active lightuserdata
+---@field public edit nk_style_edit_style_item
+---@field public inc_button nk_style_button_style_item
+---@field public dec_button nk_style_button_style_item
+
+---@class nk_style_property_color:table
+---@field public border_color lightuserdata
+---@field public label_normal lightuserdata
+---@field public label_hover lightuserdata
+---@field public label_active lightuserdata
+---@field public edit nk_style_edit_color
+---@field public inc_button nk_style_button_color
+---@field public dec_button nk_style_button_color
+
+---@class nk_style_property_flags:table
+---@field public edit nk_style_edit_flags
+---@field public inc_button nk_style_button_flags
+---@field public dec_button nk_style_button_flags
+
+---@class nk_style_property_float:table
+---@field public border lightuserdata
+---@field public rounding lightuserdata
+---@field public edit nk_style_edit_float
+---@field public inc_button nk_style_button_float
+---@field public dec_button nk_style_button_float
+
+---@class nk_style_property_vec2:table
+---@field public padding lightuserdata
+---@field public edit nk_style_edit_vec2
+---@field public inc_button nk_style_button_vec2
+---@field public dec_button nk_style_button_vec2
+
+
+---@class nk_style_chart_style_item:table
+---@field public background lightuserdata
+
+---@class nk_style_chart_color:table
+---@field public border_color lightuserdata
+---@field public selected_color lightuserdata
+---@field public color lightuserdata
+
+---@class nk_style_chart_float:table
+---@field public border lightuserdata
+---@field public rounding lightuserdata
+
+---@class nk_style_chart_vec2:table
+---@field public padding lightuserdata
+
+
+---@class nk_style_combo_style_item:table
+---@field public normal lightuserdata
+---@field public hover lightuserdata
+---@field public active lightuserdata
+---@field public button nk_style_button_style_item
+
+---@class nk_style_combo_color:table
+---@field public border_color lightuserdata
+---@field public label_normal lightuserdata
+---@field public label_hover lightuserdata
+---@field public label_active lightuserdata
+---@field public symbol_normal lightuserdata
+---@field public symbol_hover lightuserdata
+---@field public symbol_active lightuserdata
+---@field public button nk_style_button_color
+
+---@class nk_style_combo_flags:table
+---@field public button nk_style_button_flags
+
+---@class nk_style_combo_float:table
+---@field public border lightuserdata
+---@field public rounding lightuserdata
+---@field public button nk_style_button_float
+
+---@class nk_style_combo_vec2:table
+---@field public content_padding lightuserdata
+---@field public button_padding lightuserdata
+---@field public spacing lightuserdata
+---@field public button nk_style_button_vec2
+
+
+---@class nk_style_tab_style_item:table
+---@field public background lightuserdata
+---@field public tab_maximize_button nk_style_button_style_item
+---@field public tab_minimize_button nk_style_button_style_item
+---@field public node_maximize_button nk_style_button_style_item
+---@field public node_minimize_button nk_style_button_style_item
+
+---@class nk_style_tab_color:table
+---@field public border_color lightuserdata
+---@field public text lightuserdata
+---@field public tab_maximize_button nk_style_button_color
+---@field public tab_minimize_button nk_style_button_color
+---@field public node_maximize_button nk_style_button_color
+---@field public node_minimize_button nk_style_button_color
+
+---@class nk_style_tab_flags:table
+---@field public tab_maximize_button nk_style_button_flags
+---@field public tab_minimize_button nk_style_button_flags
+---@field public node_maximize_button nk_style_button_flags
+---@field public node_minimize_button nk_style_button_flags
+
+---@class nk_style_tab_float:table
+---@field public border lightuserdata
+---@field public rounding lightuserdata
+---@field public indent lightuserdata
+---@field public tab_maximize_button nk_style_button_float
+---@field public tab_minimize_button nk_style_button_float
+---@field public node_maximize_button nk_style_button_float
+---@field public node_minimize_button nk_style_button_float
+
+---@class nk_style_tab_vec2:table
+---@field public padding lightuserdata
+---@field public spacing lightuserdata
+---@field public tab_maximize_button nk_style_button_vec2
+---@field public tab_minimize_button nk_style_button_vec2
+---@field public node_maximize_button nk_style_button_vec2
+---@field public node_minimize_button nk_style_button_vec2
+
+
+---@class nk_style_windowHeader_style_item:table
+---@field public normal lightuserdata
+---@field public hover lightuserdata
+---@field public active lightuserdata
+---@field public close_button nk_style_button_style_item
+---@field public minimize_button nk_style_button_style_item
+
+---@class nk_style_windowHeader_color:table
+---@field public label_normal lightuserdata
+---@field public label_hover lightuserdata
+---@field public label_active lightuserdata
+---@field public close_button nk_style_button_color
+---@field public minimize_button nk_style_button_color
+
+---@class nk_style_windowHeader_flags:table
+---@field public close_button nk_style_button_flags
+---@field public minimize_button nk_style_button_flags
+
+---@class nk_style_windowHeader_float:table
+---@field public close_button nk_style_button_float
+---@field public minimize_button nk_style_button_float
+
+---@class nk_style_windowHeader_vec2:table
+---@field public padding lightuserdata
+---@field public label_padding lightuserdata
+---@field public spacing lightuserdata
+---@field public close_button nk_style_button_vec2
+---@field public minimize_button nk_style_button_vec2
+
+
+---@class nk_style_window_style_item:table
+---@field public fixed_background lightuserdata
+---@field public scaler lightuserdata
+---@field public header nk_style_windowHeader_style_item
+
+---@class nk_style_window_color:table
+---@field public background lightuserdata
+---@field public border_color lightuserdata
+---@field public popup_border_color lightuserdata
+---@field public combo_border_color lightuserdata
+---@field public contextual_border_color lightuserdata
+---@field public menu_border_color lightuserdata
+---@field public group_border_color lightuserdata
+---@field public tooltip_border_color lightuserdata
+---@field public header nk_style_windowHeader_color
+
+---@class nk_style_window_flags:table
+---@field public header nk_style_windowHeader_flags
+
+---@class nk_style_window_float:table
+---@field public border lightuserdata
+---@field public combo_border lightuserdata
+---@field public contextual_border lightuserdata
+---@field public menu_border lightuserdata
+---@field public group_border lightuserdata
+---@field public tooltip_border lightuserdata
+---@field public popup_border lightuserdata
+---@field public min_row_height_padding lightuserdata
+---@field public rounding lightuserdata
+---@field public header nk_style_windowHeader_float
+
+---@class nk_style_window_vec2:table
+---@field public spacing lightuserdata
+---@field public scrollbar_size lightuserdata
+---@field public min_size lightuserdata
+---@field public padding lightuserdata
+---@field public group_padding lightuserdata
+---@field public popup_padding lightuserdata
+---@field public combo_padding lightuserdata
+---@field public contextual_padding lightuserdata
+---@field public menu_padding lightuserdata
+---@field public tooltip_padding lightuserdata
+---@field public header nk_style_windowHeader_vec2
+
+
+---@class ptr_table_style_item:table
+---@field public button nk_style_button_style_item
+---@field public contextual_button nk_style_button_style_item
+---@field public menu_button nk_style_button_style_item
+---@field public option nk_style_toggle_style_item
+---@field public checkbox nk_style_toggle_style_item
+---@field public selectable nk_style_selectable_style_item
+---@field public slider nk_style_slider_style_item
+---@field public progress nk_style_progress_style_item
+---@field public property nk_style_property_style_item
+---@field public edit nk_style_edit_style_item
+---@field public chart nk_style_chart_style_item
+---@field public scrollh nk_style_scrollbar_style_item
+---@field public scrollv nk_style_scrollbar_style_item
+---@field public tab nk_style_tab_style_item
+---@field public combo nk_style_combo_style_item
+---@field public window nk_style_window_style_item
+
+---@class ptr_table_color:table
+---@field public text nk_style_text_color
+---@field public button nk_style_button_color
+---@field public contextual_button nk_style_button_color
+---@field public menu_button nk_style_button_color
+---@field public option nk_style_toggle_color
+---@field public checkbox nk_style_toggle_color
+---@field public selectable nk_style_selectable_color
+---@field public slider nk_style_slider_color
+---@field public progress nk_style_progress_color
+---@field public property nk_style_property_color
+---@field public edit nk_style_edit_color
+---@field public chart nk_style_chart_color
+---@field public scrollh nk_style_scrollbar_color
+---@field public scrollv nk_style_scrollbar_color
+---@field public tab nk_style_tab_color
+---@field public combo nk_style_combo_color
+---@field public window nk_style_window_color
+
+---@class ptr_table_flags:table
+---@field public button nk_style_button_flags
+---@field public contextual_button nk_style_button_flags
+---@field public menu_button nk_style_button_flags
+---@field public option nk_style_toggle_flags
+---@field public checkbox nk_style_toggle_flags
+---@field public selectable nk_style_selectable_flags
+---@field public slider nk_style_slider_flags
+---@field public property nk_style_property_flags
+---@field public edit nk_style_edit_flags
+---@field public scrollh nk_style_scrollbar_flags
+---@field public scrollv nk_style_scrollbar_flags
+---@field public tab nk_style_tab_flags
+---@field public combo nk_style_combo_flags
+---@field public window nk_style_window_flags
+
+---@class ptr_table_float:table
+---@field public button nk_style_button_float
+---@field public contextual_button nk_style_button_float
+---@field public menu_button nk_style_button_float
+---@field public option nk_style_toggle_float
+---@field public checkbox nk_style_toggle_float
+---@field public selectable nk_style_selectable_float
+---@field public slider nk_style_slider_float
+---@field public progress nk_style_progress_float
+---@field public property nk_style_property_float
+---@field public edit nk_style_edit_float
+---@field public chart nk_style_chart_float
+---@field public scrollh nk_style_scrollbar_float
+---@field public scrollv nk_style_scrollbar_float
+---@field public tab nk_style_tab_float
+---@field public combo nk_style_combo_float
+---@field public window nk_style_window_float
+
+---@class ptr_table_vec2:table
+---@field public text nk_style_text_vec2
+---@field public button nk_style_button_vec2
+---@field public contextual_button nk_style_button_vec2
+---@field public menu_button nk_style_button_vec2
+---@field public option nk_style_toggle_vec2
+---@field public checkbox nk_style_toggle_vec2
+---@field public selectable nk_style_selectable_vec2
+---@field public slider nk_style_slider_vec2
+---@field public progress nk_style_progress_vec2
+---@field public property nk_style_property_vec2
+---@field public edit nk_style_edit_vec2
+---@field public chart nk_style_chart_vec2
+---@field public scrollh nk_style_scrollbar_vec2
+---@field public scrollv nk_style_scrollbar_vec2
+---@field public tab nk_style_tab_vec2
+---@field public combo nk_style_combo_vec2
+---@field public window nk_style_window_vec2
+
+
+---@class nuklear_style_ptr_table:table
+---@field public style_item ptr_table_style_item
+---@field public color ptr_table_color
+---@field public flags ptr_table_flags
+---@field public float ptr_table_float
+---@field public vec2 ptr_table_vec2
+
+---@return nuklear_style_ptr_table
+function nk.getStylePtrTable()
+	return libnk.getStylePtrTable(curCtx)
+end
 function nk.styleDefault()
 	libnk.style_default(curCtx)
 end
@@ -1911,7 +2457,7 @@ nk.style_cursor = libnk.style_cursor
 ** =======================================================
 --]]
 
----@class nk_style_item
+---@class nk_style_item:userdata
 
 ---@overload fun():nk_style_item
 ---@overload fun(value:NuklearColor | nk_image | nk_nine_slice):nk_style_item
@@ -1931,7 +2477,7 @@ end
 
 ---@alias DrawEventSignature fun(cmds:nk_command_buffer):void
 
----@class nk_style_button
+---@class nk_style_button:userdata
 ---@field public normal nk_style_item
 ---@field public hover nk_style_item
 ---@field public active nk_style_item
@@ -1949,7 +2495,25 @@ end
 ---@field public drawBegin DrawEventSignature
 ---@field public drawEnd DrawEventSignature
 
----@param field nk_style_button @table<string, value>
+---@class nk_style_button_table:table
+---@field public normal nk_style_item
+---@field public hover nk_style_item
+---@field public active nk_style_item
+---@field public borderColor NuklearColor
+---@field public textBackground NuklearColor
+---@field public textNormal NuklearColor
+---@field public textHover NuklearColor
+---@field public textActive NuklearColor
+---@field public textAlignment nuklear_text_align
+---@field public border number
+---@field public rounding number
+---@field public padding NuklearVec2
+---@field public imagePadding NuklearVec2
+---@field public touchPadding NuklearVec2
+---@field public drawBegin DrawEventSignature
+---@field public drawEnd DrawEventSignature
+
+---@param fields nk_style_button_table @table<string, value>
 ---@return nk_style_button
 function nk.StyleButton(fields)
 	return libnk.StyleButton(fields)
@@ -1963,7 +2527,7 @@ end
 ** =======================================================
 --]]
 
----@class nk_text_edit
+---@class nk_text_edit:userdata
 ---@field public text fun(self:nk_text_edit, str:string):void
 ---@field public delete fun(self:nk_text_edit, where:integer, len:integer):void
 ---@field public deleteSelection fun(self:nk_text_edit):void
@@ -2347,7 +2911,7 @@ function nk.windowGetContentRegionSize()
 	return libnk.window_get_content_region_size(curCtx)
 end
 
----@class nk_command_buffer
+---@class nk_command_buffer:lightuserdata
 
 ---@return nk_command_buffer
 function nk.windowGetCanvas()
@@ -2462,6 +3026,22 @@ end
 
 ---@type nuklear_panel_flag
 nk.panel_flag = libnk.panel_flag
+
+-- }======================================================
+
+--[[
+** {======================================================
+** Custom Widget
+** =======================================================
+--]]
+
+---@param pos NuklearVec2
+---@param radius number
+---@param icons nk_image[]
+---@return integer
+function nk.piemenu(pos, radius, icons)
+	return libnk.piemenu(curCtx, pos, radius, icons)
+end
 
 -- }======================================================
 
