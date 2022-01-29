@@ -19,7 +19,7 @@ int BCWRAP_FUNCTION(msgh)(lua_State* L) {
   }
   return 1;
 }
-static int BCWRAP_FUNCTION(SetErrorMessageHandler)(lua_State* L) {
+static int BCWRAP_FUNCTION(setErrorMessageHandler)(lua_State* L) {
   lua_settop(L, 1);
   lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)BCWRAP_FUNCTION(msgh));
   return 0;
@@ -36,10 +36,12 @@ static int BCWRAP_FUNCTION(SetErrorMessageHandler)(lua_State* L) {
 static void on_frame_completed(void* ud, uint32_t frameId) {
   lua_State* L = (lua_State*)ud;
   lua_checkstack(L, 2);
+
   lua_rawgetp(L, LUA_REGISTRYINDEX, (const void*)on_frame_completed);
   lua_pushnil(L);
   lua_rawseti(L, -2, frameId);
   lua_pop(L, 1);
+
   lua_rawgetp(L, LUA_REGISTRYINDEX, (const void*)(((char*)on_frame_completed) + 1));
   if (lua_isfunction(L, -1)) {
     int func = lua_gettop(L);
@@ -47,9 +49,8 @@ static void on_frame_completed(void* ud, uint32_t frameId) {
     lua_pushvalue(L, func);
     lua_pushinteger(L, frameId);
     CALL_LUA_FUNCTION(L, 1);
-  } else {
-    lua_pop(L, 1);
   }
+  lua_pop(L, 1);
 }
 
 static void init_resource_manage(lua_State* L) {
@@ -422,9 +423,8 @@ static void _onFrameViewCapture(void* ud, uint32_t frameId, bcfx_FrameViewCaptur
     bcfx_MemBuffer* mb = luaL_newmembuffer(L);
     MEMBUFFER_MOVE(&result->mb, mb);
     CALL_LUA_FUNCTION(L, 5);
-  } else {
-    lua_pop(L, 1);
   }
+  lua_pop(L, 1);
 }
 static int BCWRAP_FUNCTION(setFrameViewCaptureCallback)(lua_State* L) {
   lua_settop(L, 1);
@@ -581,7 +581,7 @@ static int BCWRAP_FUNCTION(submit)(lua_State* L) {
   { #name, BCWRAP_FUNCTION(name) }
 static const luaL_Reg wrap_funcs[] = {
     /* Error Handler */
-    EMPLACE_BCWRAP_FUNCTION(SetErrorMessageHandler),
+    EMPLACE_BCWRAP_FUNCTION(setErrorMessageHandler),
     /* Static Function Features */
     EMPLACE_BCWRAP_FUNCTION(setThreadFuncs),
     EMPLACE_BCWRAP_FUNCTION(setSemFuncs),
