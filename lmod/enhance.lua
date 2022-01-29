@@ -31,7 +31,7 @@ function atexit(callback) end
 function atrepl(callback) end
 
 ---@vararg any
-function print_err(...) end
+function printerr(...) end
 
 ---@type lightuserdata
 NULL = nil
@@ -41,14 +41,14 @@ NULL = nil
 ---@field argv lightuserdata
 arg = nil
 
----@class SpecialKeys
+---@class SpecialKeys:table
 ---@field CLIBS lightuserdata
 ---@field HOOKKEY lightuserdata
 
 ---@return SpecialKeys
 function debug.getspecialkeys() end
 
----@class SizeOfStruct
+---@class SizeOfStruct:table
 ---@field global_State integer
 ---@field lua_State integer
 ---@field Table integer
