@@ -9,18 +9,16 @@ local libmbio = libbcfx.mbio
 local libmembuf = libbcfx.membuf
 local libutils = libbcfx.utils
 
-local running = coroutine.running
-local yield = coroutine.yield
-local resume = coroutine.resume
-
 local libuv = require("libuv")
 
 local ASYNC_WAIT_MSG = "AsyncWait api must running in coroutine"
+local queueWorkAsync = libuv.queueWorkAsync
+local queueWorkAsyncWait = libuv.queueWorkAsyncWait
 
----@class bcfx
+---@class bcfx:table
 local bcfx = {}
 
----@class bcfx_image
+---@class bcfx_image:table
 local image = {}
 bcfx.image = image
 
@@ -39,23 +37,19 @@ end
 ---@param mb MemBuffer
 ---@param format bcfx_texture_format
 ---@param callback fun(mb:MemBuffer, width:integer, height:integer, nrChannels:integer, wantChannels:integer):void
-local function imageDecodeAsync(mb, format, callback)
+function image.imageDecodeAsync(mb, format, callback)
 	local ptr = libimage.packImageDecodeParam(mb, format)
-	libuv.queue_work(libimage.imageDecodePtr, ptr, function(status, result)
+	queueWorkAsync(libimage.imageDecodePtr, ptr, function(result, status)
 		callback(libimage.unpackImageDecodeResult(result))
 	end)
 end
-image.imageDecodeAsync = imageDecodeAsync
 ---@param mb MemBuffer
 ---@param format bcfx_texture_format
 ---@return MemBuffer, integer, integer, integer, integer @data, w, h, nrChannels, wantChannels
 function image.imageDecodeAsyncWait(mb, format)
-	local co, main = running()
-	if main then error(ASYNC_WAIT_MSG) end
-	imageDecodeAsync(mb, format, function(mb, width, height, nrChannels, wantChannels)
-		resume(co, mb, width, height, nrChannels, wantChannels)
-	end)
-	return yield()
+	local ptr = libimage.packImageDecodeParam(mb, format)
+	local result = queueWorkAsyncWait(libimage.imageDecodePtr, ptr)
+	return libimage.unpackImageDecodeResult(result)
 end
 
 -- }======================================================
@@ -83,14 +77,12 @@ end
 ---@param type bcfx_image_type
 ---@param sorq integer @strider or quality
 ---@param callback fun(mb:MemBuffer):void
-local function imageEncodeAsync(mb, x, y, comp, type, sorq, callback) -- stride or quality
+function image.imageEncodeAsync(mb, x, y, comp, type, sorq, callback) -- stride or quality
 	local ptr = libimage.packImageEncodeParam(mb, x, y, comp, type, sorq);
-	libuv.queue_work(libimage.imageEncodePtr, ptr, function(status, result)
-		local mb = libimage.unpackImageEncodeResult(result)
-		callback(mb)
+	queueWorkAsync(libimage.imageEncodePtr, ptr, function(result, status)
+		callback(libimage.unpackImageEncodeResult(result))
 	end)
 end
-image.imageEncodeAsync = imageEncodeAsync
 ---@param mb MemBuffer
 ---@param x integer
 ---@param y integer
@@ -99,12 +91,9 @@ image.imageEncodeAsync = imageEncodeAsync
 ---@param sorq integer @strider or quality
 ---@return MemBuffer
 function image.imageEncodeAsyncWait(mb, x, y, comp, type, sorq)
-	local co, main = running()
-	if main then error(ASYNC_WAIT_MSG) end
-	imageEncodeAsync(mb, x, y, comp, type, sorq, function(mb)
-		resume(co, mb)
-	end)
-	return yield()
+	local ptr = libimage.packImageEncodeParam(mb, x, y, comp, type, sorq);
+	local result = queueWorkAsyncWait(libimage.imageEncodePtr, ptr)
+	return libimage.unpackImageEncodeResult(result)
 end
 
 -- }======================================================
@@ -126,24 +115,20 @@ end
 ---@param width integer
 ---@param height integer
 ---@param callback fun(mb:MemBuffer):void
-local function imageFlipVerticalAsync(mb, width, height, callback)
+function image.imageFlipVerticalAsync(mb, width, height, callback)
 	local ptr = libimage.packImageFlipVerticalParam(mb, width, height);
-	libuv.queue_work(libimage.imageFlipVerticalPtr, ptr, function(status, result)
+	queueWorkAsync(libimage.imageFlipVerticalPtr, ptr, function(result, status)
 		callback(libimage.unpackImageFlipVerticalResult(result))
 	end)
 end
-image.imageFlipVerticalAsync = imageFlipVerticalAsync
 ---@param mb MemBuffer
 ---@param width integer
 ---@param height integer
 ---@return MemBuffer
 function image.imageFlipVerticalAsyncWait(mb, width, height)
-	local co, main = running()
-	if main then error(ASYNC_WAIT_MSG) end
-	imageFlipVerticalAsync(mb, width, height, function(mb)
-		resume(co, mb)
-	end)
-	return yield()
+	local ptr = libimage.packImageFlipVerticalParam(mb, width, height);
+	local result = queueWorkAsyncWait(libimage.imageFlipVerticalPtr, ptr)
+	return libimage.unpackImageFlipVerticalResult(result)
 end
 
 -- }======================================================
@@ -157,7 +142,7 @@ end
 ---@type bcfx_image_type
 image.image_type = libimage.image_type
 
----@class bcfx_math
+---@class bcfx_math:table
 local math = {}
 bcfx.math = math
 
@@ -167,7 +152,7 @@ bcfx.math = math
 ** =======================================================
 --]]
 
----@class bcfx_math_graphics3d
+---@class bcfx_math_graphics3d:table
 local graphics3d = {}
 math.graphics3d = graphics3d
 
@@ -221,14 +206,14 @@ end
 ** =======================================================
 --]]
 
----@class bcfx_math_matrix
+---@class bcfx_math_matrix:table
 local matrix = {}
 math.matrix = matrix
 
 ---@alias Matrix2Src1DstSignature fun(src1:Mat, src2:Mat):Mat
 ---@alias Matrix1Src1DstSignature fun(src:Mat):Mat
 
----@class Mat
+---@class Mat:userdata
 ---@field public set fun(self:Mat, row:integer, col:integer, value:number):void
 ---@field public get fun(self:Mat, row:integer, col:integer):number
 ---@field public add Matrix2Src1DstSignature
@@ -258,14 +243,14 @@ end
 ** =======================================================
 --]]
 
----@class bcfx_math_vector
+---@class bcfx_math_vector:table
 local vector = {}
 math.vector = vector
 
 ---@alias Vector2Src1DstSignature fun(src1:Vec, src2:Vec):Vec
 ---@alias Vector1Src1DstSignature fun(src:Vec):Vec
 
----@class Vec
+---@class Vec:userdata
 ---@field public add Vector2Src1DstSignature
 ---@field public subtract Vector2Src1DstSignature
 ---@field public componentWiseProduct Vector2Src1DstSignature
@@ -340,7 +325,7 @@ end
 
 -- }======================================================
 
----@class bcfx_mesh
+---@class bcfx_mesh:table
 local mesh = {}
 bcfx.mesh = mesh
 
@@ -350,7 +335,7 @@ bcfx.mesh = mesh
 ** =======================================================
 --]]
 
----@class Mesh
+---@class Mesh:table
 ---@field vertex MemBuffer
 ---@field index MemBuffer
 
@@ -361,22 +346,18 @@ function mesh.meshParse(mb)
 end
 ---@param mb MemBuffer
 ---@param callback fun(meshs:Mesh[], materialNames:string[]):void
-local function meshParseAsync(mb, callback)
+function mesh.meshParseAsync(mb, callback)
 	local ptr = libmesh.packMeshParseParam(mb);
-	libuv.queue_work(libmesh.meshParsePtr, ptr, function(status, result)
+	queueWorkAsync(libmesh.meshParsePtr, ptr, function(result, status)
 		callback(libmesh.unpackMeshParseResult(result))
 	end)
 end
-mesh.meshParseAsync = meshParseAsync
 ---@param mb MemBuffer
 ---@return Mesh[], string[]
 function mesh.meshParseAsyncWait(mb)
-	local co, main = running()
-	if main then error(ASYNC_WAIT_MSG) end
-	meshParseAsync(mb, function(meshs, materialNames)
-		resume(co, meshs, materialNames)
-	end)
-	return yield()
+	local ptr = libmesh.packMeshParseParam(mb);
+	local result = queueWorkAsyncWait(libmesh.meshParsePtr, ptr)
+	return libmesh.unpackMeshParseResult(result)
 end
 
 -- }======================================================
@@ -387,7 +368,7 @@ end
 ** =======================================================
 --]]
 
----@class Material
+---@class Material:table
 ---@field name string
 ---@field ka Vec3
 ---@field kd Vec3
@@ -410,22 +391,18 @@ function mesh.materialParse(mb)
 end
 ---@param mb MemBuffer
 ---@param callback fun(materials:Material[]):void
-local function materialParseAsync(mb, callback)
+function mesh.materialParseAsync(mb, callback)
 	local ptr = libmesh.packMaterialParseParam(mb);
-	libuv.queue_work(libmesh.materialParsePtr, ptr, function(status, result)
+	queueWorkAsync(libmesh.materialParsePtr, ptr, function(result, status)
 		callback(libmesh.unpackMaterialParseResult(result))
 	end)
 end
-mesh.materialParseAsync = materialParseAsync
 ---@param mb MemBuffer
 ---@return Material[]
 function mesh.materialParseAsyncWait(mb)
-	local co, main = running()
-	if main then error(ASYNC_WAIT_MSG) end
-	materialParseAsync(mb, function(materials)
-		resume(co, materials)
-	end)
-	return yield()
+	local ptr = libmesh.packMaterialParseParam(mb);
+	local result = queueWorkAsyncWait(libmesh.materialParsePtr, ptr)
+	return libmesh.unpackMaterialParseResult(result)
 end
 
 -- }======================================================
@@ -436,9 +413,9 @@ end
 ** =======================================================
 --]]
 
----@param callback fun(msg:string):string
+---@param callback ErrorMessageHandler
 function bcfx.setErrorMessageHandler(callback)
-	libbcfx.SetErrorMessageHandler(callback)
+	libbcfx.setErrorMessageHandler(callback)
 end
 
 -- }======================================================
@@ -764,7 +741,7 @@ function bcfx.setStencil(enable, front, back)
 	libbcfx.setStencil(enable, front, back)
 end
 
----@class bcfx_InstanceDataBuffer
+---@class bcfx_InstanceDataBuffer:table
 ---@field handle Handle
 ---@field bufferOffset integer
 ---@field numAttrib integer
@@ -1005,7 +982,7 @@ bcfx.uniform_type = libbcfx.uniform_type
 
 ---@class Color:integer
 
----@class bcfx_color
+---@class bcfx_color:table
 local color = {}
 bcfx.color = color
 
@@ -1061,7 +1038,7 @@ end
 
 -- }======================================================
 
----@class bcfx_mbio
+---@class bcfx_mbio:table
 local mbio = {}
 bcfx.mbio = mbio
 
@@ -1078,22 +1055,18 @@ function mbio.readFile(fileName)
 end
 ---@param fileName string
 ---@param callback fun(mb:MemBuffer | nil, errCode:nil | integer, errStr:nil | string):void
-local function readFileAsync(fileName, callback)
+function mbio.readFileAsync(fileName, callback)
 	local ptr = libmbio.packReadFileParam(fileName)
-	libuv.queue_work(libmbio.readFilePtr, ptr, function(status, result)
+	queueWorkAsync(libmbio.readFilePtr, ptr, function(result, status)
 		callback(libmbio.unpackReadFileResult(result))
 	end)
 end
-mbio.readFileAsync = readFileAsync
 ---@param fileName string
 ---@return MemBuffer | nil, nil | integer, nil | string
 function mbio.readFileAsyncWait(fileName)
-	local co, main = running()
-	if main then error(ASYNC_WAIT_MSG) end
-	readFileAsync(fileName, function(mb, errCode, errStr)
-		resume(co, mb, errCode, errStr)
-	end)
-	return yield()
+	local ptr = libmbio.packReadFileParam(fileName)
+	local result = queueWorkAsyncWait(libmbio.readFilePtr, ptr)
+	return libmbio.unpackReadFileResult(result)
 end
 
 -- }======================================================
@@ -1113,29 +1086,24 @@ end
 ---@param fileName string
 ---@param mb MemBuffer
 ---@param callback fun(ret:boolean, errCode:nil | integer, errStr:nil | string):void
-local function writeFileAsync(fileName, mb, callback)
+function mbio.writeFileAsync(fileName, mb, callback)
 	local ptr = libmbio.packWriteFileParam(fileName, mb)
-	libuv.queue_work(libmbio.writeFilePtr, ptr, function(status, result)
-		local ret = libmbio.unpackWriteFileResult(result)
-		callback(ret)
+	queueWorkAsync(libmbio.writeFilePtr, ptr, function(result, status)
+		callback(libmbio.unpackWriteFileResult(result))
 	end)
 end
-mbio.writeFileAsync = writeFileAsync
 ---@param fileName string
 ---@param mb MemBuffer
 ---@return boolean, nil | integer, nil | string
 function mbio.writeFileAsyncWait(fileName, mb)
-	local co, main = running()
-	if main then error(ASYNC_WAIT_MSG) end
-	writeFileAsync(fileName, mb, function(ret)
-		resume(co, ret)
-	end)
-	return yield()
+	local ptr = libmbio.packWriteFileParam(fileName, mb)
+	local result = queueWorkAsyncWait(libmbio.writeFilePtr, ptr)
+	return libmbio.unpackWriteFileResult(result)
 end
 
 -- }======================================================
 
----@class bcfx_membuf
+---@class bcfx_membuf:table
 local membuf = {}
 bcfx.membuf = membuf
 
@@ -1145,7 +1113,7 @@ bcfx.membuf = membuf
 ** =======================================================
 --]]
 
----@class MemBuffer
+---@class MemBuffer:userdata
 ---@field public getClear fun(self:MemBuffer):lightuserdata, integer, lightuserdata, lightuserdata
 ---@field public setReplace fun(self:MemBuffer, ptr:lightuserdata, sz:integer, release:lightuserdata, ud:lightuserdata):void
 
@@ -1195,7 +1163,7 @@ membuf.data_type = libmembuf.data_type
 ** =======================================================
 --]]
 
----@class bcfx_utils
+---@class bcfx_utils:table
 local utils = {}
 bcfx.utils = utils
 
@@ -1263,7 +1231,7 @@ end
 ** =======================================================
 --]]
 
----@class bcfx_VertexLayout
+---@class bcfx_VertexLayout:userdata
 ---@field public add fun(self:bcfx_VertexLayout, attrib:bcfx_vertex_attrib, num:integer, type:bcfx_attrib_type, normalized:boolean):void
 ---@field public skip fun(self:bcfx_VertexLayout, numbyte:integer):void
 ---@field public clear fun(self:bcfx_VertexLayout):void
