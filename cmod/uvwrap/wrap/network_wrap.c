@@ -180,16 +180,16 @@ static void SOCKADDR_FUNCTION(init_metatable)(lua_State* L) {
   lua_pop(L, 1);
 }
 
-static int SOCKADDR_FUNCTION(new)(lua_State* L) {
-  lua_newuserdata(L, sizeof(struct sockaddr_storage)); // support ipv4, ipv6, UNIX
+struct sockaddr_storage* SOCKADDR_FUNCTION(create)(lua_State* L) {
+  struct sockaddr_storage* addr_storage = (struct sockaddr_storage*)lua_newuserdata(L, sizeof(struct sockaddr_storage)); // support ipv4, ipv6, UNIX
   luaL_setmetatable(L, UVWRAP_SOCKADDR_TYPE);
-  return 1;
+  memset((void*)addr_storage, 0, sizeof(struct sockaddr_storage));
+  return addr_storage;
 }
 
-struct sockaddr_storage* SOCKADDR_FUNCTION(create)(lua_State* L) {
-  struct sockaddr_storage* addr_storage = (struct sockaddr_storage*)lua_newuserdata(L, sizeof(struct sockaddr_storage));
-  luaL_setmetatable(L, UVWRAP_SOCKADDR_TYPE);
-  return addr_storage;
+static int SOCKADDR_FUNCTION(SockAddr)(lua_State* L) {
+  (void)SOCKADDR_FUNCTION(create)(L);
+  return 1;
 }
 
 /* }====================================================== */
@@ -367,7 +367,7 @@ static int NETWORK_FUNCTION(if_indextoiid)(lua_State* L) {
   { #name, NETWORK_FUNCTION(name) }
 
 static const luaL_Reg NETWORK_FUNCTION(funcs)[] = {
-    {"SockAddr", SOCKADDR_FUNCTION(new)},
+    {"SockAddr", SOCKADDR_FUNCTION(SockAddr)},
     EMPLACE_NETWORK_FUNCTION(getaddrinfo),
     EMPLACE_NETWORK_FUNCTION(getnameinfo),
     EMPLACE_NETWORK_FUNCTION(interface_addresses),
