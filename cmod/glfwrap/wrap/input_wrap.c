@@ -326,7 +326,7 @@ static int GLFWRAP_FUNCTION(GetGamepadName)(lua_State* L) {
 
 static int GLFWRAP_FUNCTION(GetGamepadState)(lua_State* L) {
   int jid = luaL_checkinteger(L, 1);
-  GLFWgamepadstate state = {0};
+  GLFWgamepadstate state = {{0}, {0}};
   int ret = glfwGetGamepadState(jid, &state);
   if (ret == GLFW_FALSE) {
     lua_pushnil(L);
