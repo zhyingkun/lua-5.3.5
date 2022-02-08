@@ -2173,6 +2173,9 @@ libuv.alloc_type = uvwrap.alloc_type
 local mbio = {}
 libuv.mbio = mbio
 
+local queueWorkAsync = libuv.queueWorkAsync
+local queueWorkAsyncWait = libuv.queueWorkAsyncWait
+
 --[[
 ** {======================================================
 ** ReadFile
