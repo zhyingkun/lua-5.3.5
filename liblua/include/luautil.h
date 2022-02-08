@@ -41,7 +41,7 @@
   PUSH_HOLD_OBJECT(L, ptr, num); \
   UNHOLD_LUA_OBJECT(L, ptr, num)
 
-int luaL_msgh(lua_State* L);
+LUALIB_API int luaL_msgh(lua_State* L);
 
 #define PREPARE_CALL_LUA(L) \
   lua_checkstack(L, LUA_MINSTACK); \
