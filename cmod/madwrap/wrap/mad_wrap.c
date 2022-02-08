@@ -160,7 +160,7 @@ static int _dealMadDecodeResult(lua_State* L, int err, luaL_MemBuffer* mb) {
   lua_pushinteger(L, err);
   return 2;
 }
-static int MADWRAP_FUNCTION(unpackReadFileResult)(lua_State* L) {
+static int MADWRAP_FUNCTION(unpackMadDecodeResult)(lua_State* L) {
   MadDecodeResult* result = (MadDecodeResult*)luaL_checklightuserdata(L, 1);
   int ret = _dealMadDecodeResult(L, result->err, &result->mb);
   free((void*)result);
@@ -180,7 +180,7 @@ static int MADWRAP_FUNCTION(madDecode)(lua_State* L) {
 static const luaL_Reg wrap_funcs[] = {
     EMPLACE_MADWRAP_FUNCTION(madDecode),
     EMPLACE_MADWRAP_FUNCTION(packMadDecodeParam),
-    EMPLACE_MADWRAP_FUNCTION(unpackReadFileResult),
+    EMPLACE_MADWRAP_FUNCTION(unpackMadDecodeResult),
     {NULL, NULL},
 };
 
