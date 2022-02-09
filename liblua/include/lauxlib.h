@@ -120,7 +120,7 @@ LUALIB_API void(luaL_requiref)(lua_State* L, const char* modname, lua_CFunction 
 
 LUALIB_API const char*(luaL_protoinfo)(lua_State* L, int idx, int recursive, const char* options);
 
-LUALIB_API int(luaL_inject)(lua_State* L, const char* source, size_t len, int level);
+LUALIB_API int(luaL_inject)(lua_State* L, const char* source, int level);
 
 LUALIB_API lua_State*(luaL_newstate_z)(void);
 LUALIB_API void(luaL_close_z)(lua_State* L);
@@ -130,6 +130,10 @@ LUALIB_API void(luaL_atexit)(lua_State* L);
 
 #define LUA_ATREPL "_atrepl_"
 LUALIB_API void(luaL_atrepl)(lua_State* L);
+
+LUALIB_API void luaL_printbuffer(lua_State* L);
+
+LUALIB_API void luaL_printfinish(lua_State* L);
 
 /*
 ** ===============================================================

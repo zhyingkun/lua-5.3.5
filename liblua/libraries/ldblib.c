@@ -570,10 +570,9 @@ static int db_protoinfo(lua_State* L) {
 }
 
 static int db_inject(lua_State* L) {
-  size_t len;
-  const char* source = luaL_checklstring(L, 1, &len);
-  int level = luaL_optinteger(L, 2, 0);
-  return luaL_inject(L, source, len, level);
+  const char* source = luaL_checkstring(L, 1);
+  int level = luaL_optinteger(L, 2, 1);
+  return luaL_inject(L, source, level);
 }
 
 static const luaL_Reg dblib[] = {

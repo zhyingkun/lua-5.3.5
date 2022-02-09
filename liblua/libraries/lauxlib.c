@@ -321,10 +321,9 @@ LUALIB_API void luaL_pfuncinfo(lua_State* L, int level, int idx, int recursive) 
 static int pinject(lua_State* L) {
   luaL_pstack(L, -1);
   const char* source = (const char*)luaL_checklightuserdata(L, 1);
-  size_t len = luaL_checkinteger(L, 2);
-  int level = luaL_checkinteger(L, 3);
+  int level = luaL_checkinteger(L, 2);
   aux_checklevel(L, level, 0, 0);
-  luaL_inject(L, source, len, level);
+  luaL_inject(L, source, level);
   return 0;
 }
 LUALIB_API void luaL_pinject(lua_State* L, const char* source, int level) {
@@ -333,9 +332,8 @@ LUALIB_API void luaL_pinject(lua_State* L, const char* source, int level) {
   }
   lua_pushcfunction(L, pinject);
   lua_pushlightuserdata(L, (void*)source);
-  lua_pushinteger(L, strlen(source));
   lua_pushinteger(L, level + 1);
-  if (lua_pcall(L, 3, 0, 0) != LUA_OK) {
+  if (lua_pcall(L, 2, 0, 0) != LUA_OK) {
     if (!lua_isnil(L, -1)) {
       lua_printf_err("Error: %s\n", luaL_tolstring(L, -1, NULL));
     }
@@ -1137,44 +1135,36 @@ LUALIB_API int luaL_isvar(const char* str, size_t len) {
 
 #define DEFAULT_BUFFER_SIZE 4096
 
-// only need one stack slot in idx_buffer
 typedef struct {
   char* b;
   size_t size; /* buffer size */
   size_t n; /* number of characters in buffer */
-  lua_State* L;
-  int idx_buffer;
 } StringBuffer;
 
-static void strbuff_init(StringBuffer* b, lua_State* L, int idx, size_t size) {
-  b->L = L;
-  b->idx_buffer = lua_absindex(L, idx);
-  b->size = size;
-  // for simplicity, here use userdata to manager long string
-  // we can use luaL_Buffer and change the implemention of traversaling the table
-  b->b = (char*)lua_newuserdata(L, size);
-  lua_replace(L, b->idx_buffer);
+static void strbuff_init(StringBuffer* b, size_t size) {
+  b->size = DEFAULT_BUFFER_SIZE;
+  while (b->size < size) {
+    b->size *= 2;
+  }
+  b->b = (char*)malloc(b->size);
   b->n = 0;
 }
 
 static void strbuff_addlstringex(StringBuffer* b, const char* str, size_t len, int escape) {
   size_t mul = escape ? 4 : 1; // "\127" has 4 byte
   if (len > (l_castS2U(LUA_MAXINTEGER) - b->n) / mul) {
-    luaL_error(b->L, "string size of strbuff overflow");
+    // string size of strbuff overflow
+    return;
   }
   size_t minisize = b->n + len * mul;
   if (minisize > b->size) {
-    char* s = b->b;
-    if (b->size <= l_castS2U(LUA_MAXINTEGER) / 2) {
+    do {
       b->size *= 2;
-    }
+    } while (minisize > b->size && b->size <= l_castS2U(LUA_MAXINTEGER) / 2);
     if (minisize > b->size) {
       b->size = minisize;
     }
-    lua_State* L = b->L;
-    b->b = lua_newuserdata(L, b->size);
-    memcpy(b->b, s, b->n);
-    lua_replace(L, b->idx_buffer);
+    b->b = realloc(b->b, b->size);
   }
   char* dst = b->b + b->n;
   if (escape) {
@@ -1201,11 +1191,10 @@ static void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
 }
 
 static void strbuff_destroy(StringBuffer* b) {
+  free(b->b);
   b->b = NULL;
   b->size = 0;
   b->n = 0;
-  b->L = NULL;
-  b->idx_buffer = 0;
 }
 
 /* }====================================================== */
@@ -1309,7 +1298,7 @@ static void recursive_tostring(DetailStr* detail, int idx) {
   strbuff_addliteral(b, "}");
 }
 
-// [-0, +1], need 2 slot
+// [-0, +1], need 1 slot
 LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int level) {
   idx = lua_absindex(L, idx);
   if (lua_type(L, idx) != LUA_TTABLE || level <= 0) {
@@ -1321,8 +1310,7 @@ LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int 
   }
   DetailStr dStr[1];
   dStr->L = L;
-  lua_pushnil(L); // [-0, +1]
-  strbuff_init(dStr->buffer, L, -1, DEFAULT_BUFFER_SIZE);
+  strbuff_init(dStr->buffer, DEFAULT_BUFFER_SIZE);
   dStr->level = level;
   dStr->current_level = 0;
   // table for record which has been walk through
@@ -1337,7 +1325,6 @@ LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int 
   }
   const char* result = lua_pushlstring(L, dStr->buffer->b, length);
   strbuff_destroy(dStr->buffer);
-  lua_remove(L, -2); // [-1, +0]
   // now we have the string in the top of lua stack
   return result;
 }
@@ -2274,15 +2261,13 @@ LUALIB_API const char* luaL_protoinfo(lua_State* L, int idx, int recursive, cons
   int z = strchr(options, 'z') ? 1 : 0;
 
   StringBuffer b[1];
-  lua_pushnil(L); // [-0, +1]
-  strbuff_init(b, L, -1, DEFAULT_BUFFER_SIZE);
+  strbuff_init(b, DEFAULT_BUFFER_SIZE);
 
   const Proto* f = clLvalue(o)->p;
   proto_printprotos(f, b, recursive, options, z);
 
   const char* result = lua_pushlstring(L, b->b, b->n); // [-0, +1]
   strbuff_destroy(b);
-  lua_remove(L, -2); // [-1, +0]
   return result;
 }
 
@@ -2302,27 +2287,22 @@ LUALIB_API const char* luaL_protoinfo(lua_State* L, int idx, int recursive, cons
   "  return {%s}\n" \
   "end\n"
 
-LUALIB_API int luaL_inject(lua_State* L, const char* source, size_t len, int level) {
+LUALIB_API int luaL_inject(lua_State* L, const char* source, int level) {
   lua_checkstack(L, 9);
-  if (len == 0) {
-    len = strlen(source);
-  }
   lua_Debug ar;
   int targetlevel = level; // maybe level + 1 for outer scope?
   if (!lua_getstack(L, targetlevel, &ar)) {
     luaL_error(L, "Get stack with level %d failed!", level);
   }
-  lua_createtable(L, 8, 0); // upvalue name => index
+  lua_createtable(L, 8, 0); // upvalue name => index, [-0, +1]
   int upvalue_index = lua_gettop(L);
-  lua_createtable(L, 8, 0); // local name => value
+  lua_createtable(L, 8, 0); // local name => value, [-0, +1]
   int local_value = lua_gettop(L);
 
   StringBuffer args[1];
-  lua_pushnil(L);
-  strbuff_init(args, L, -1, 128);
+  strbuff_init(args, 128);
   StringBuffer locals[1];
-  lua_pushnil(L);
-  strbuff_init(locals, L, -1, 128);
+  strbuff_init(locals, 128);
   const char* name = NULL;
   for (int i = 1; (name = lua_getlocal(L, &ar, i)) != NULL; i++) {
     // "(*temporary)", "(for index)", "(for limit)", "(for step)", "(for generator)", "(for state)", "(for control)"
@@ -2334,7 +2314,7 @@ LUALIB_API int luaL_inject(lua_State* L, const char* source, size_t len, int lev
       lua_pop(L, 1); // pop the local value
     }
   }
-  lua_getinfo(L, "f", &ar); // push the target level function
+  lua_getinfo(L, "f", &ar); // push the target level function, [-0, +1]
   int levelfidx = lua_gettop(L);
   for (int i = 1; (name = lua_getupvalue(L, levelfidx, i)) != NULL; i++) {
     lua_pop(L, 1); // pop the upvalue
@@ -2347,11 +2327,12 @@ LUALIB_API int luaL_inject(lua_State* L, const char* source, size_t len, int lev
   strbuff_addlstring(locals, "\0", 1);
 
   StringBuffer fullsource[1];
-  lua_pushnil(L);
-  strbuff_init(fullsource, L, -1, 1024);
+  strbuff_init(fullsource, 1024);
   strbuff_addfstring(fullsource, FULL_SOURCE_TEMPLATE, args->b, source, locals->b);
 
-  int status = luaL_loadbuffer(L, fullsource->b, fullsource->n, "inject");
+  fullsource->b[fullsource->n] = '\0';
+  printf("%s", fullsource->b);
+  int status = luaL_loadbuffer(L, fullsource->b, fullsource->n, "inject"); // [-0, +1]
 
   strbuff_destroy(args);
   strbuff_destroy(locals);
@@ -2361,10 +2342,10 @@ LUALIB_API int luaL_inject(lua_State* L, const char* source, size_t len, int lev
     return lua_error(L);
   }
 
-  lua_call(L, 0, 2); // call the loader
+  lua_call(L, 0, 2); // call the loader, [-1, +2]
 
   int updateidx = lua_gettop(L);
-  lua_pushvalue(L, -2);
+  lua_pushvalue(L, -2); // [-0, +1]
   int funcidx = lua_gettop(L);
   for (int i = 1; (name = lua_getupvalue(L, funcidx, i)) != NULL; i++) {
     lua_pop(L, 1); // pop the upvalue
@@ -2396,6 +2377,58 @@ LUALIB_API int luaL_inject(lua_State* L, const char* source, size_t len, int lev
   lua_pop(L, 1);
 
   return nresults;
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Print To String Buffer
+** =======================================================
+*/
+
+static StringBuffer sb[1] = {{0}};
+static int _printbuffer(lua_State* L) {
+  int n = lua_gettop(L); /* number of arguments */
+  int i;
+  lua_getglobal(L, "tostring");
+  for (i = 1; i <= n; i++) {
+    const char* s;
+    size_t l;
+    lua_pushvalue(L, -1); /* function to be called */
+    lua_pushvalue(L, i); /* value to print */
+    lua_call(L, 1, 1);
+    s = lua_tolstring(L, -1, &l); /* get result */
+    if (s == NULL)
+      return luaL_error(L, "'tostring' must return a string to 'print'");
+    if (i > 1)
+      strbuff_addliteral(sb, "\t");
+    strbuff_addlstring(sb, s, l);
+    lua_pop(L, 1); /* pop result */
+  }
+  strbuff_addnewline(sb);
+  return 0;
+}
+
+#define PRINT_FUNC_NAME "print"
+#define DEFAULT_PRINT_SIZE 1024
+
+LUALIB_API void luaL_printbuffer(lua_State* L) {
+  strbuff_destroy(sb);
+  strbuff_init(sb, DEFAULT_PRINT_SIZE);
+
+  lua_getglobal(L, PRINT_FUNC_NAME);
+  lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)_printbuffer);
+  lua_pushcfunction(L, _printbuffer);
+  lua_setglobal(L, PRINT_FUNC_NAME);
+}
+
+LUALIB_API void luaL_printfinish(lua_State* L) {
+  lua_pushlstring(L, sb->b, sb->n);
+  strbuff_destroy(sb);
+
+  lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)_printbuffer);
+  lua_setglobal(L, PRINT_FUNC_NAME);
 }
 
 /* }====================================================== */

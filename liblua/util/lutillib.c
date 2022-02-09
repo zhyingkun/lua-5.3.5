@@ -54,9 +54,29 @@ static int util_MemBuffer(lua_State* L) {
 
 /* }====================================================== */
 
+/*
+** {======================================================
+** Print Buffer
+** =======================================================
+*/
+
+static int util_printBuffer(lua_State* L) {
+  luaL_printbuffer(L);
+  return 0;
+}
+
+static int util_printFinish(lua_State* L) {
+  luaL_printfinish(L);
+  return 1;
+}
+
+/* }====================================================== */
+
 static const luaL_Reg util_funcs[] = {
     {"setErrorMessageHandler", util_setErrorMessageHandler},
     {"MemBuffer", util_MemBuffer},
+    {"printBuffer", util_printBuffer},
+    {"printFinish", util_printFinish},
     {NULL, NULL},
 };
 
