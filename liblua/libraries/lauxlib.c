@@ -21,6 +21,8 @@
 #include "ldebug.h"
 #include "lctype.h"
 
+#include <luautil.h>
+
 /*
 ** This file uses only the official API of Lua.
 ** Any function declared here could be written as an application function.
@@ -1116,91 +1118,6 @@ LUALIB_API int luaL_isvar(const char* str, size_t len) {
 
 /*
 ** {======================================================
-** String Buffer for C
-** =======================================================
-*/
-
-#define strbuff_addlstring(b, s, l) strbuff_addlstringex(b, s, l, 0)
-#define strbuff_addstring(b, s) strbuff_addlstringex(b, s, strlen(s), 0)
-#define strbuff_addliteral(b, s) strbuff_addlstring(b, "" s, sizeof(s) - 1)
-#define strbuff_addnewline(b) strbuff_addliteral(b, "\n")
-
-#define TEMP_BUFF_SIZE 1024
-#define strbuff_addfstring(b, ...) \
-  do { \
-    char buff[TEMP_BUFF_SIZE]; \
-    snprintf(buff, TEMP_BUFF_SIZE, __VA_ARGS__); \
-    strbuff_addstring(b, buff); \
-  } while (0)
-
-#define DEFAULT_BUFFER_SIZE 4096
-
-typedef struct {
-  char* b;
-  size_t size; /* buffer size */
-  size_t n; /* number of characters in buffer */
-} StringBuffer;
-
-static void strbuff_init(StringBuffer* b, size_t size) {
-  b->size = DEFAULT_BUFFER_SIZE;
-  while (b->size < size) {
-    b->size *= 2;
-  }
-  b->b = (char*)malloc(b->size);
-  b->n = 0;
-}
-
-static void strbuff_addlstringex(StringBuffer* b, const char* str, size_t len, int escape) {
-  size_t mul = escape ? 4 : 1; // "\127" has 4 byte
-  if (len > (l_castS2U(LUA_MAXINTEGER) - b->n) / mul) {
-    // string size of strbuff overflow
-    return;
-  }
-  size_t minisize = b->n + len * mul;
-  if (minisize > b->size) {
-    do {
-      b->size *= 2;
-    } while (minisize > b->size && b->size <= l_castS2U(LUA_MAXINTEGER) / 2);
-    if (minisize > b->size) {
-      b->size = minisize;
-    }
-    b->b = realloc(b->b, b->size);
-  }
-  char* dst = b->b + b->n;
-  if (escape) {
-    len = luaL_escape(dst, str, len);
-  } else {
-    memcpy(dst, str, len);
-  }
-  b->n += len;
-}
-
-// [-0, +0], need 2 slot
-static void strbuff_addvalue(StringBuffer* b, lua_State* L, int idx) {
-  idx = lua_absindex(L, idx);
-  size_t length = 0;
-  const char* result = luaL_tolstring(L, idx, &length); // [-0, +1]
-  if (lua_type(L, idx) == LUA_TSTRING) {
-    strbuff_addliteral(b, "\"");
-    strbuff_addlstringex(b, result, length, 1);
-    strbuff_addliteral(b, "\"");
-  } else {
-    strbuff_addlstring(b, result, length);
-  }
-  lua_pop(L, 1); // [-1, +0]
-}
-
-static void strbuff_destroy(StringBuffer* b) {
-  free(b->b);
-  b->b = NULL;
-  b->size = 0;
-  b->n = 0;
-}
-
-/* }====================================================== */
-
-/*
-** {======================================================
 ** String Detail
 ** =======================================================
 */
@@ -1210,7 +1127,7 @@ typedef struct {
   int level;
   int current_level;
   int idx_tables;
-  StringBuffer buffer[1];
+  luaL_ByteBuffer buffer[1];
 } DetailStr;
 
 // [-0, +0], need 2 slot
@@ -1256,14 +1173,14 @@ static const char* tab_str = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
 // idx points to a table, detail->level > 0
 static void recursive_tostring(DetailStr* detail, int idx) {
   lua_State* L = detail->L;
-  StringBuffer* b = detail->buffer;
+  luaL_ByteBuffer* b = detail->buffer;
   idx = lua_absindex(L, idx);
   lua_checkstack(L, 4); // 4 is the needed max stack slot for ds_recordsubtable
 
   char buffer[TABLE_HEAD_SIZE];
   snprintf(buffer, TABLE_HEAD_SIZE, "table: %p {", lua_topointer(L, idx));
-  strbuff_addlstring(b, buffer, strlen(buffer));
-  strbuff_addnewline(b);
+  luaBB_addstring(b, buffer);
+  luaBB_addnewline(b);
 
   // record current table, 0 means do not recursive later
   ds_recordtable(detail, idx, 0);
@@ -1276,17 +1193,17 @@ static void recursive_tostring(DetailStr* detail, int idx) {
   // walk through the table
   lua_pushnil(L);
   while (lua_next(L, idx) != 0) {
-    strbuff_addlstring(b, tab_str, detail->current_level);
-    strbuff_addvalue(b, L, -2);
-    strbuff_addliteral(b, " => ");
+    luaBB_addlstring(b, tab_str, detail->current_level);
+    luaBB_addvalue(b, L, -2);
+    luaBB_addliteral(b, " => ");
     if (can_recursive && // check recursive depth
         lua_type(L, -1) == LUA_TTABLE && // must be a table
         ds_checktable(detail, -1) == 0) {
       recursive_tostring(detail, -1);
     } else {
-      strbuff_addvalue(b, L, -1);
+      luaBB_addvalue(b, L, -1);
     }
-    strbuff_addnewline(b);
+    luaBB_addnewline(b);
     lua_pop(L, 1);
   }
 
@@ -1294,9 +1211,11 @@ static void recursive_tostring(DetailStr* detail, int idx) {
   detail->current_level--;
 
   // tail parentheses
-  strbuff_addlstring(b, tab_str, detail->current_level);
-  strbuff_addliteral(b, "}");
+  luaBB_addlstring(b, tab_str, detail->current_level);
+  luaBB_addliteral(b, "}");
 }
+
+#define DEFAULT_BUFFER_SIZE 4096
 
 // [-0, +1], need 1 slot
 LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int level) {
@@ -1310,7 +1229,7 @@ LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int 
   }
   DetailStr dStr[1];
   dStr->L = L;
-  strbuff_init(dStr->buffer, DEFAULT_BUFFER_SIZE);
+  luaBB_init(dStr->buffer, DEFAULT_BUFFER_SIZE);
   dStr->level = level;
   dStr->current_level = 0;
   // table for record which has been walk through
@@ -1323,8 +1242,8 @@ LUALIB_API const char* luaL_tolstringex(lua_State* L, int idx, size_t* len, int 
   if (len != NULL) {
     *len = length;
   }
-  const char* result = lua_pushlstring(L, dStr->buffer->b, length);
-  strbuff_destroy(dStr->buffer);
+  const char* result = lua_pushlstring(L, (const char*)dStr->buffer->b, length);
+  luaBB_destroy(dStr->buffer);
   // now we have the string in the top of lua stack
   return result;
 }
@@ -1677,7 +1596,7 @@ LUALIB_API void(luaL_atrepl)(lua_State* L) {
 #define SS(x) ((x == 1) ? "" : "s")
 #define S(x) (int)(x), SS(x)
 
-static void proto_printheaders(const Proto* f, StringBuffer* b) {
+static void proto_printheaders(const Proto* f, luaL_ByteBuffer* b) {
   const char* s = f->source ? getstr(f->source) : "=?";
   if (*s == '@' || *s == '=')
     s++;
@@ -1685,22 +1604,22 @@ static void proto_printheaders(const Proto* f, StringBuffer* b) {
     s = "(bstring)";
   else
     s = "(string)";
-  strbuff_addfstring(b,
-                     "\n%s <%s:%d,%d> (%d instruction%s at %p)\n",
-                     (f->linedefined == 0) ? "main" : "function",
-                     s,
-                     f->linedefined,
-                     f->lastlinedefined,
-                     S(f->sizecode),
-                     f);
-  strbuff_addfstring(b,
-                     "%d%s param%s, %d slot%s, %d upvalue%s, ",
-                     (int)(f->numparams),
-                     f->is_vararg ? "+" : "",
-                     SS(f->numparams),
-                     S(f->maxstacksize),
-                     S(f->sizeupvalues));
-  strbuff_addfstring(b, "%d local%s, %d constant%s, %d function%s\n", S(f->sizelocvars), S(f->sizek), S(f->sizep));
+  luaBB_addfstring(b,
+                   "\n%s <%s:%d,%d> (%d instruction%s at %p)\n",
+                   (f->linedefined == 0) ? "main" : "function",
+                   s,
+                   f->linedefined,
+                   f->lastlinedefined,
+                   S(f->sizecode),
+                   f);
+  luaBB_addfstring(b,
+                   "%d%s param%s, %d slot%s, %d upvalue%s, ",
+                   (int)(f->numparams),
+                   f->is_vararg ? "+" : "",
+                   SS(f->numparams),
+                   S(f->maxstacksize),
+                   S(f->sizeupvalues));
+  luaBB_addfstring(b, "%d local%s, %d constant%s, %d function%s\n", S(f->sizelocvars), S(f->sizek), S(f->sizep));
 }
 
 // None, Value, Register, Constant, Prototype, Upvalue, Bool
@@ -1790,9 +1709,9 @@ static const char* luaP_prefix(OpCode op, int pos, int mask, int isk) {
 #define UPVALNAME(x) ((f->upvalues[x].name) ? getstr(f->upvalues[x].name) : "-")
 #define MYK(x) (-1 - (x))
 
-static void proto_printconstant(const Proto* f, StringBuffer* b, int i);
+static void proto_printconstant(const Proto* f, luaL_ByteBuffer* b, int i);
 
-static void proto_printinstructionmode_z(const Proto* f, StringBuffer* sb, Instruction i) {
+static void proto_printinstructionmode_z(const Proto* f, luaL_ByteBuffer* sb, Instruction i) {
   (void)f;
   OpCode o = GET_OPCODE(i);
   int a = GETARG_A(i);
@@ -1804,32 +1723,32 @@ static void proto_printinstructionmode_z(const Proto* f, StringBuffer* sb, Instr
 
   switch (getOpMode(o)) {
     case iABC:
-      strbuff_addfstring(sb, "%s%d", Prefix_A(o, 0), a);
+      luaBB_addfstring(sb, "%s%d", Prefix_A(o, 0), a);
       if (getBMode(o) != OpArgN)
-        strbuff_addfstring(sb, " %s%d", Prefix_B(o, ISK(b)), INDEXK(b));
+        luaBB_addfstring(sb, " %s%d", Prefix_B(o, ISK(b)), INDEXK(b));
       else
-        strbuff_addliteral(sb, "   ");
+        luaBB_addliteral(sb, "   ");
       if (getCMode(o) != OpArgN)
-        strbuff_addfstring(sb, " %s%d", Prefix_C(o, ISK(c)), INDEXK(c));
+        luaBB_addfstring(sb, " %s%d", Prefix_C(o, ISK(c)), INDEXK(c));
       break;
     case iABx:
-      strbuff_addfstring(sb, "%s%d", Prefix_A(o, 0), a);
+      luaBB_addfstring(sb, "%s%d", Prefix_A(o, 0), a);
       if (getBMode(o) == OpArgK)
-        strbuff_addfstring(sb, " %s%d", Prefix_B(o, 1), bx);
+        luaBB_addfstring(sb, " %s%d", Prefix_B(o, 1), bx);
       if (getBMode(o) == OpArgU)
-        strbuff_addfstring(sb, " %s%d", Prefix_B(o, 0), bx);
+        luaBB_addfstring(sb, " %s%d", Prefix_B(o, 0), bx);
       break;
     case iAsBx:
-      strbuff_addfstring(sb, "%s%d", Prefix_A(o, 0), a);
-      strbuff_addfstring(sb, " %s%d", Prefix_B(o, 0), sbx);
+      luaBB_addfstring(sb, "%s%d", Prefix_A(o, 0), a);
+      luaBB_addfstring(sb, " %s%d", Prefix_B(o, 0), sbx);
       break;
     case iAx:
-      strbuff_addfstring(sb, "%d", ax);
+      luaBB_addfstring(sb, "%d", ax);
       break;
   }
 }
 
-static void proto_printinstructionmode(const Proto* f, StringBuffer* sb, Instruction i) {
+static void proto_printinstructionmode(const Proto* f, luaL_ByteBuffer* sb, Instruction i) {
   (void)f;
   OpCode o = GET_OPCODE(i);
   int a = GETARG_A(i);
@@ -1841,29 +1760,29 @@ static void proto_printinstructionmode(const Proto* f, StringBuffer* sb, Instruc
 
   switch (getOpMode(o)) {
     case iABC:
-      strbuff_addfstring(sb, "%d", a);
+      luaBB_addfstring(sb, "%d", a);
       if (getBMode(o) != OpArgN)
-        strbuff_addfstring(sb, " %d", ISK(b) ? (MYK(INDEXK(b))) : b);
+        luaBB_addfstring(sb, " %d", ISK(b) ? (MYK(INDEXK(b))) : b);
       if (getCMode(o) != OpArgN)
-        strbuff_addfstring(sb, " %d", ISK(c) ? (MYK(INDEXK(c))) : c);
+        luaBB_addfstring(sb, " %d", ISK(c) ? (MYK(INDEXK(c))) : c);
       break;
     case iABx:
-      strbuff_addfstring(sb, "%d", a);
+      luaBB_addfstring(sb, "%d", a);
       if (getBMode(o) == OpArgK)
-        strbuff_addfstring(sb, " %d", MYK(bx));
+        luaBB_addfstring(sb, " %d", MYK(bx));
       if (getBMode(o) == OpArgU)
-        strbuff_addfstring(sb, " %d", bx);
+        luaBB_addfstring(sb, " %d", bx);
       break;
     case iAsBx:
-      strbuff_addfstring(sb, "%d %d", a, sbx);
+      luaBB_addfstring(sb, "%d %d", a, sbx);
       break;
     case iAx:
-      strbuff_addfstring(sb, "%d", MYK(ax));
+      luaBB_addfstring(sb, "%d", MYK(ax));
       break;
   }
 }
 
-static void proto_printinstructionadditions_z(const Proto* f, StringBuffer* sb, const Instruction* code, int pc) {
+static void proto_printinstructionadditions_z(const Proto* f, luaL_ByteBuffer* sb, const Instruction* code, int pc) {
   Instruction i = code[pc];
   OpCode o = GET_OPCODE(i);
   int a = GETARG_A(i);
@@ -1875,45 +1794,45 @@ static void proto_printinstructionadditions_z(const Proto* f, StringBuffer* sb, 
 
   switch (o) {
     case OP_LOADK:
-      strbuff_addliteral(sb, "\t; ");
+      luaBB_addliteral(sb, "\t; ");
       proto_printconstant(f, sb, bx);
       break;
     case OP_LOADKX:
-      strbuff_addliteral(sb, "\t; ");
+      luaBB_addliteral(sb, "\t; ");
       proto_printconstant(f, sb, GETARG_Ax((int)code[pc + 1]));
       break;
     case OP_LOADBOOL:
-      strbuff_addfstring(sb, "\t; to %d", pc + 1 + (c ? 1 : 0));
+      luaBB_addfstring(sb, "\t; to %d", pc + 1 + (c ? 1 : 0));
       break;
     case OP_LOADNIL:
-      strbuff_addfstring(sb, "\t; range: [%d, %d]", a, a + b);
+      luaBB_addfstring(sb, "\t; range: [%d, %d]", a, a + b);
       break;
     case OP_GETUPVAL:
     case OP_SETUPVAL:
-      strbuff_addfstring(sb, "\t; %s", UPVALNAME(b));
+      luaBB_addfstring(sb, "\t; %s", UPVALNAME(b));
       break;
     case OP_GETTABUP:
-      strbuff_addfstring(sb, "\t; %s", UPVALNAME(b));
+      luaBB_addfstring(sb, "\t; %s", UPVALNAME(b));
       if (ISK(c)) {
-        strbuff_addliteral(sb, " ");
+        luaBB_addliteral(sb, " ");
         proto_printconstant(f, sb, INDEXK(c));
       }
       break;
     case OP_SETTABUP:
-      strbuff_addfstring(sb, "\t; %s", UPVALNAME(a));
+      luaBB_addfstring(sb, "\t; %s", UPVALNAME(a));
       if (ISK(b)) {
-        strbuff_addliteral(sb, " ");
+        luaBB_addliteral(sb, " ");
         proto_printconstant(f, sb, INDEXK(b));
       }
       if (ISK(c)) {
-        strbuff_addliteral(sb, " ");
+        luaBB_addliteral(sb, " ");
         proto_printconstant(f, sb, INDEXK(c));
       }
       break;
     case OP_GETTABLE:
     case OP_SELF:
       if (ISK(c)) {
-        strbuff_addliteral(sb, "\t; ");
+        luaBB_addliteral(sb, "\t; ");
         proto_printconstant(f, sb, INDEXK(c));
       }
       break;
@@ -1934,91 +1853,91 @@ static void proto_printinstructionadditions_z(const Proto* f, StringBuffer* sb, 
     case OP_LT:
     case OP_LE:
       if (ISK(b) || ISK(c)) {
-        strbuff_addliteral(sb, "\t; ");
+        luaBB_addliteral(sb, "\t; ");
         if (ISK(b))
           proto_printconstant(f, sb, INDEXK(b));
         else
-          strbuff_addliteral(sb, "-");
-        strbuff_addliteral(sb, " ");
+          luaBB_addliteral(sb, "-");
+        luaBB_addliteral(sb, " ");
         if (ISK(c))
           proto_printconstant(f, sb, INDEXK(c));
         else
-          strbuff_addliteral(sb, "-");
+          luaBB_addliteral(sb, "-");
       }
       break;
     case OP_JMP:
-      strbuff_addfstring(sb, "\t; to %d", sbx + pc + 1 + 0);
+      luaBB_addfstring(sb, "\t; to %d", sbx + pc + 1 + 0);
       if (a) {
-        strbuff_addfstring(sb, ", close upvalues: [%d, ~)", a - 1);
+        luaBB_addfstring(sb, ", close upvalues: [%d, ~)", a - 1);
       }
       break;
     case OP_FORLOOP:
     case OP_FORPREP:
     case OP_TFORLOOP:
       // origin plus one for real pc
-      strbuff_addfstring(sb, "\t; to %d", sbx + pc + 1 + 0);
+      luaBB_addfstring(sb, "\t; to %d", sbx + pc + 1 + 0);
       break;
     case OP_CLOSURE:
-      strbuff_addfstring(sb, "\t; %p", f->p[bx]);
+      luaBB_addfstring(sb, "\t; %p", f->p[bx]);
       break;
     case OP_SETLIST:
       if (c == 0)
         c = GETARG_Ax((int)code[pc + 1]);
       int idx = (c - 1) * LFIELDS_PER_FLUSH;
       if (b == 0) {
-        strbuff_addfstring(sb, "\t; index: [%d, multi]", idx + 1);
-        strbuff_addfstring(sb, ", reg: [%d, multi]", a + 1);
+        luaBB_addfstring(sb, "\t; index: [%d, multi]", idx + 1);
+        luaBB_addfstring(sb, ", reg: [%d, multi]", a + 1);
       } else {
-        strbuff_addfstring(sb, "\t; index: [%d, %d]", idx + 1, idx + b);
-        strbuff_addfstring(sb, ", reg: [%d, %d]", a + 1, a + b);
+        luaBB_addfstring(sb, "\t; index: [%d, %d]", idx + 1, idx + b);
+        luaBB_addfstring(sb, ", reg: [%d, %d]", a + 1, a + b);
       }
       break;
     case OP_EXTRAARG:
-      strbuff_addliteral(sb, "\t; ");
+      luaBB_addliteral(sb, "\t; ");
       proto_printconstant(f, sb, ax);
       break;
     case OP_NEWTABLE:
 #define LUAO_FB2INT(x) (x < 8) ? x : ((x & 7) + 8) << ((x >> 3) - 1)
-      strbuff_addfstring(sb, "\t; size: %d %d", LUAO_FB2INT(b), LUAO_FB2INT(c));
+      luaBB_addfstring(sb, "\t; size: %d %d", LUAO_FB2INT(b), LUAO_FB2INT(c));
 #undef LUAO_FB2INT
       break;
     case OP_CONCAT:
-      strbuff_addfstring(sb, "\t; range: [%d, %d]", b, c);
+      luaBB_addfstring(sb, "\t; range: [%d, %d]", b, c);
       break;
     case OP_CALL:
       if (b == 0)
-        strbuff_addliteral(sb, "\t; args: multi");
+        luaBB_addliteral(sb, "\t; args: multi");
       else
-        strbuff_addfstring(sb, "\t; args: %d", b - 1);
+        luaBB_addfstring(sb, "\t; args: %d", b - 1);
       if (c == 0)
-        strbuff_addliteral(sb, ", ret: multi");
+        luaBB_addliteral(sb, ", ret: multi");
       else
-        strbuff_addfstring(sb, ", ret: %d", c - 1);
+        luaBB_addfstring(sb, ", ret: %d", c - 1);
       break;
     case OP_TAILCALL:
       if (b == 0)
-        strbuff_addliteral(sb, "\t; args: multi");
+        luaBB_addliteral(sb, "\t; args: multi");
       else
-        strbuff_addfstring(sb, "\t; args: %d", b - 1);
+        luaBB_addfstring(sb, "\t; args: %d", b - 1);
       break;
     case OP_RETURN:
       if (b == 0)
-        strbuff_addliteral(sb, ", ret: multi");
+        luaBB_addliteral(sb, ", ret: multi");
       else
-        strbuff_addfstring(sb, ", ret: %d", b - 1);
+        luaBB_addfstring(sb, ", ret: %d", b - 1);
       break;
     case OP_VARARG:
       if (b == 0)
-        strbuff_addfstring(sb, "\t; range: [%d, multi]", a);
+        luaBB_addfstring(sb, "\t; range: [%d, multi]", a);
       else
-        strbuff_addfstring(sb, "\t; range: [%d, %d]", a, a + b - 2);
+        luaBB_addfstring(sb, "\t; range: [%d, %d]", a, a + b - 2);
       break;
     default:
       break;
   }
 }
 
-static void proto_printinstructionadditions(const Proto* f, StringBuffer* sb, const Instruction* code, int pc) {
+static void proto_printinstructionadditions(const Proto* f, luaL_ByteBuffer* sb, const Instruction* code, int pc) {
   Instruction i = code[pc];
   OpCode o = GET_OPCODE(i);
   int a = GETARG_A(i);
@@ -2030,35 +1949,35 @@ static void proto_printinstructionadditions(const Proto* f, StringBuffer* sb, co
 
   switch (o) {
     case OP_LOADK:
-      strbuff_addliteral(sb, "\t; ");
+      luaBB_addliteral(sb, "\t; ");
       proto_printconstant(f, sb, bx);
       break;
     case OP_GETUPVAL:
     case OP_SETUPVAL:
-      strbuff_addfstring(sb, "\t; %s", UPVALNAME(b));
+      luaBB_addfstring(sb, "\t; %s", UPVALNAME(b));
       break;
     case OP_GETTABUP:
-      strbuff_addfstring(sb, "\t; %s", UPVALNAME(b));
+      luaBB_addfstring(sb, "\t; %s", UPVALNAME(b));
       if (ISK(c)) {
-        strbuff_addliteral(sb, " ");
+        luaBB_addliteral(sb, " ");
         proto_printconstant(f, sb, INDEXK(c));
       }
       break;
     case OP_SETTABUP:
-      strbuff_addfstring(sb, "\t; %s", UPVALNAME(a));
+      luaBB_addfstring(sb, "\t; %s", UPVALNAME(a));
       if (ISK(b)) {
-        strbuff_addliteral(sb, " ");
+        luaBB_addliteral(sb, " ");
         proto_printconstant(f, sb, INDEXK(b));
       }
       if (ISK(c)) {
-        strbuff_addliteral(sb, " ");
+        luaBB_addliteral(sb, " ");
         proto_printconstant(f, sb, INDEXK(c));
       }
       break;
     case OP_GETTABLE:
     case OP_SELF:
       if (ISK(c)) {
-        strbuff_addliteral(sb, "\t; ");
+        luaBB_addliteral(sb, "\t; ");
         proto_printconstant(f, sb, INDEXK(c));
       }
       break;
@@ -2079,16 +1998,16 @@ static void proto_printinstructionadditions(const Proto* f, StringBuffer* sb, co
     case OP_LT:
     case OP_LE:
       if (ISK(b) || ISK(c)) {
-        strbuff_addliteral(sb, "\t; ");
+        luaBB_addliteral(sb, "\t; ");
         if (ISK(b))
           proto_printconstant(f, sb, INDEXK(b));
         else
-          strbuff_addliteral(sb, "-");
-        strbuff_addliteral(sb, " ");
+          luaBB_addliteral(sb, "-");
+        luaBB_addliteral(sb, " ");
         if (ISK(c))
           proto_printconstant(f, sb, INDEXK(c));
         else
-          strbuff_addliteral(sb, "-");
+          luaBB_addliteral(sb, "-");
       }
       break;
     case OP_JMP:
@@ -2096,19 +2015,19 @@ static void proto_printinstructionadditions(const Proto* f, StringBuffer* sb, co
     case OP_FORPREP:
     case OP_TFORLOOP:
       // origin plus one for real pc
-      strbuff_addfstring(sb, "\t; to %d", sbx + pc + 1 + 1);
+      luaBB_addfstring(sb, "\t; to %d", sbx + pc + 1 + 1);
       break;
     case OP_CLOSURE:
-      strbuff_addfstring(sb, "\t; %p", f->p[bx]);
+      luaBB_addfstring(sb, "\t; %p", f->p[bx]);
       break;
     case OP_SETLIST:
       if (c == 0)
-        strbuff_addfstring(sb, "\t; %d", GETARG_Ax((int)code[pc + 1]));
+        luaBB_addfstring(sb, "\t; %d", GETARG_Ax((int)code[pc + 1]));
       else
-        strbuff_addfstring(sb, "\t; %d", c);
+        luaBB_addfstring(sb, "\t; %d", c);
       break;
     case OP_EXTRAARG:
-      strbuff_addliteral(sb, "\t; ");
+      luaBB_addliteral(sb, "\t; ");
       proto_printconstant(f, sb, ax);
       break;
     default:
@@ -2117,7 +2036,7 @@ static void proto_printinstructionadditions(const Proto* f, StringBuffer* sb, co
 }
 
 // mystyle: 1 for my style and 0 for luac original style
-static void proto_printcodes(const Proto* f, StringBuffer* sb, int mystyle) {
+static void proto_printcodes(const Proto* f, luaL_ByteBuffer* sb, int mystyle) {
   const Instruction* code = f->code;
   int pc, n = f->sizecode, z = mystyle ? 0 : 1;
   for (pc = 0; pc < n; pc++) {
@@ -2125,12 +2044,12 @@ static void proto_printcodes(const Proto* f, StringBuffer* sb, int mystyle) {
     OpCode o = GET_OPCODE(i);
 
     int line = getfuncline(f, pc);
-    strbuff_addfstring(sb, "\t%d\t", pc + z);
+    luaBB_addfstring(sb, "\t%d\t", pc + z);
     if (line > 0)
-      strbuff_addfstring(sb, "[%d]\t", line);
+      luaBB_addfstring(sb, "[%d]\t", line);
     else
-      strbuff_addfstring(sb, "[-]\t");
-    strbuff_addfstring(sb, "%-9s\t", luaP_opnames[o]);
+      luaBB_addfstring(sb, "[-]\t");
+    luaBB_addfstring(sb, "%-9s\t", luaP_opnames[o]);
 
     if (mystyle) {
       proto_printinstructionmode_z(f, sb, i);
@@ -2140,89 +2059,89 @@ static void proto_printcodes(const Proto* f, StringBuffer* sb, int mystyle) {
       proto_printinstructionadditions(f, sb, code, pc);
     }
 
-    strbuff_addfstring(sb, "\n");
+    luaBB_addfstring(sb, "\n");
   }
 }
 
-static void proto_printconstant(const Proto* f, StringBuffer* b, int i) {
+static void proto_printconstant(const Proto* f, luaL_ByteBuffer* b, int i) {
   const TValue* o = &f->k[i];
   switch (ttype(o)) {
     case LUA_TNIL:
-      strbuff_addliteral(b, "nil");
+      luaBB_addliteral(b, "nil");
       break;
     case LUA_TBOOLEAN:
       if (bvalue(o)) {
-        strbuff_addliteral(b, "true");
+        luaBB_addliteral(b, "true");
       } else {
-        strbuff_addliteral(b, "false");
+        luaBB_addliteral(b, "false");
       }
       break;
     case LUA_TNUMFLT: {
       char buff[100];
       sprintf(buff, LUA_NUMBER_FMT, fltvalue(o));
-      strbuff_addstring(b, buff);
+      luaBB_addstring(b, buff);
       if (buff[strspn(buff, "-0123456789")] == '\0')
-        strbuff_addliteral(b, ".0");
+        luaBB_addliteral(b, ".0");
       break;
     }
     case LUA_TNUMINT:
-      strbuff_addfstring(b, LUA_INTEGER_FMT, ivalue(o));
+      luaBB_addfstring(b, LUA_INTEGER_FMT, ivalue(o));
       break;
     case LUA_TSHRSTR:
     case LUA_TLNGSTR:
-      strbuff_addliteral(b, "\"");
-      strbuff_addlstringex(b, getstr(tsvalue(o)), tsslen(tsvalue(o)), 1);
-      strbuff_addliteral(b, "\"");
+      luaBB_addliteral(b, "\"");
+      luaBB_addlstringex(b, getstr(tsvalue(o)), tsslen(tsvalue(o)), 1);
+      luaBB_addliteral(b, "\"");
       break;
     default: /* cannot happen */
-      strbuff_addfstring(b, "? type=%d", ttype(o));
+      luaBB_addfstring(b, "? type=%d", ttype(o));
       break;
   }
 }
 
 // iszero: is constant start at zero
-static void proto_printconstants(const Proto* f, StringBuffer* b, int iszero) {
+static void proto_printconstants(const Proto* f, luaL_ByteBuffer* b, int iszero) {
   int i, n, z;
   n = f->sizek;
   z = iszero ? 0 : 1;
-  strbuff_addfstring(b, "constants (%d) for %p:\n", n, f);
+  luaBB_addfstring(b, "constants (%d) for %p:\n", n, f);
   for (i = 0; i < n; i++) {
-    strbuff_addfstring(b, "\t%d\t", i + z);
+    luaBB_addfstring(b, "\t%d\t", i + z);
     proto_printconstant(f, b, i);
-    strbuff_addnewline(b);
+    luaBB_addnewline(b);
   }
 }
 
-static void proto_printlocals(const Proto* f, StringBuffer* b, int iszero) {
+static void proto_printlocals(const Proto* f, luaL_ByteBuffer* b, int iszero) {
   int i, n, z;
   n = f->sizelocvars;
   z = iszero ? 0 : 1;
-  strbuff_addfstring(b, "locals (%d) for %p:\n", n, f);
+  luaBB_addfstring(b, "locals (%d) for %p:\n", n, f);
   for (i = 0; i < n; i++) {
-    strbuff_addfstring(b, "\t%d\t%s", i, getstr(f->locvars[i].varname));
-    strbuff_addfstring(b, "\t%d\t%d\n", f->locvars[i].startpc + z, f->locvars[i].endpc + z);
+    luaBB_addfstring(b, "\t%d\t%s", i, getstr(f->locvars[i].varname));
+    luaBB_addfstring(b, "\t%d\t%d\n", f->locvars[i].startpc + z, f->locvars[i].endpc + z);
   }
 }
 
-static void proto_printupvalues(const Proto* f, StringBuffer* b) {
+static void proto_printupvalues(const Proto* f, luaL_ByteBuffer* b) {
   int i, n;
   n = f->sizeupvalues;
-  strbuff_addfstring(b, "upvalues (%d) for %p:\n", n, f);
+  luaBB_addfstring(b, "upvalues (%d) for %p:\n", n, f);
   for (i = 0; i < n; i++) {
-    strbuff_addfstring(b, "\t%d\t%s\t%d\t%d\n", i, UPVALNAME(i), f->upvalues[i].instack, f->upvalues[i].idx);
+    luaBB_addfstring(b, "\t%d\t%s\t%d\t%d\n", i, UPVALNAME(i), f->upvalues[i].instack, f->upvalues[i].idx);
   }
 }
 
-static void proto_printsubprotos(const Proto* f, StringBuffer* b) {
+static void proto_printsubprotos(const Proto* f, luaL_ByteBuffer* b) {
   int i, n;
   n = f->sizep;
-  strbuff_addfstring(b, "sub protos (%d) for %p:\n", n, f);
+  luaBB_addfstring(b, "sub protos (%d) for %p:\n", n, f);
   for (i = 0; i < n; i++) {
-    strbuff_addfstring(b, "\t%d\t%p\n", i, f->p[i]);
+    luaBB_addfstring(b, "\t%d\t%p\n", i, f->p[i]);
   }
 }
 
-static void proto_printproto(const Proto* f, StringBuffer* b, const char* options, int z) {
+static void proto_printproto(const Proto* f, luaL_ByteBuffer* b, const char* options, int z) {
   if (strchr(options, 'h')) {
     proto_printheaders(f, b);
   }
@@ -2243,7 +2162,7 @@ static void proto_printproto(const Proto* f, StringBuffer* b, const char* option
   }
 }
 
-static void proto_printprotos(const Proto* f, StringBuffer* b, int recursive, const char* options, int z) {
+static void proto_printprotos(const Proto* f, luaL_ByteBuffer* b, int recursive, const char* options, int z) {
   proto_printproto(f, b, options, z);
   if (recursive) {
     for (int i = 0; i < f->sizep; i++) {
@@ -2260,14 +2179,14 @@ LUALIB_API const char* luaL_protoinfo(lua_State* L, int idx, int recursive, cons
   options = options != NULL ? options : "hcklupz";
   int z = strchr(options, 'z') ? 1 : 0;
 
-  StringBuffer b[1];
-  strbuff_init(b, DEFAULT_BUFFER_SIZE);
+  luaL_ByteBuffer b[1];
+  luaBB_init(b, DEFAULT_BUFFER_SIZE);
 
   const Proto* f = clLvalue(o)->p;
   proto_printprotos(f, b, recursive, options, z);
 
-  const char* result = lua_pushlstring(L, b->b, b->n); // [-0, +1]
-  strbuff_destroy(b);
+  const char* result = lua_pushlstring(L, (const char*)b->b, b->n); // [-0, +1]
+  luaBB_destroy(b);
   return result;
 }
 
@@ -2299,17 +2218,17 @@ LUALIB_API int luaL_inject(lua_State* L, const char* source, int level) {
   lua_createtable(L, 8, 0); // local name => value, [-0, +1]
   int local_value = lua_gettop(L);
 
-  StringBuffer args[1];
-  strbuff_init(args, 128);
-  StringBuffer locals[1];
-  strbuff_init(locals, 128);
+  luaL_ByteBuffer args[1];
+  luaBB_init(args, 128);
+  luaL_ByteBuffer locals[1];
+  luaBB_init(locals, 128);
   const char* name = NULL;
   for (int i = 1; (name = lua_getlocal(L, &ar, i)) != NULL; i++) {
     // "(*temporary)", "(for index)", "(for limit)", "(for step)", "(for generator)", "(for state)", "(for control)"
     if (*name != '(') {
       lua_setfield(L, local_value, name); // save the local value
-      strbuff_addfstring(args, "%s,", name);
-      strbuff_addfstring(locals, "[%d]=%s,", i, name);
+      luaBB_addfstring(args, "%s,", name);
+      luaBB_addfstring(locals, "[%d]=%s,", i, name);
     } else {
       lua_pop(L, 1); // pop the local value
     }
@@ -2320,23 +2239,22 @@ LUALIB_API int luaL_inject(lua_State* L, const char* source, int level) {
     lua_pop(L, 1); // pop the upvalue
     lua_pushinteger(L, i);
     lua_setfield(L, upvalue_index, name);
-    strbuff_addfstring(args, "%s,", name);
+    luaBB_addfstring(args, "%s,", name);
   }
-  strbuff_addliteral(args, "_");
-  strbuff_addlstring(args, "\0", 1);
-  strbuff_addlstring(locals, "\0", 1);
+  luaBB_addliteral(args, "_");
+  luaBB_addnullbyte(args);
+  luaBB_addnullbyte(locals);
 
-  StringBuffer fullsource[1];
-  strbuff_init(fullsource, 1024);
-  strbuff_addfstring(fullsource, FULL_SOURCE_TEMPLATE, args->b, source, locals->b);
+  luaL_ByteBuffer fullsource[1];
+  luaBB_init(fullsource, 1024);
+  luaBB_addfstring(fullsource, FULL_SOURCE_TEMPLATE, args->b, source, locals->b);
+  // luaBB_addnullbyte(fullsource); // we will call luaL_loadbuffer with buffer length
 
-  fullsource->b[fullsource->n] = '\0';
-  printf("%s", fullsource->b);
-  int status = luaL_loadbuffer(L, fullsource->b, fullsource->n, "inject"); // [-0, +1]
+  int status = luaL_loadbuffer(L, (const char*)fullsource->b, fullsource->n, "inject"); // [-0, +1]
 
-  strbuff_destroy(args);
-  strbuff_destroy(locals);
-  strbuff_destroy(fullsource);
+  luaBB_destroy(args);
+  luaBB_destroy(locals);
+  luaBB_destroy(fullsource);
 
   if (status != LUA_OK) {
     return lua_error(L);
@@ -2387,7 +2305,7 @@ LUALIB_API int luaL_inject(lua_State* L, const char* source, int level) {
 ** =======================================================
 */
 
-static StringBuffer sb[1] = {{0}};
+static luaL_ByteBuffer sb[1] = {{0}};
 static int _printbuffer(lua_State* L) {
   int n = lua_gettop(L); /* number of arguments */
   int i;
@@ -2402,11 +2320,11 @@ static int _printbuffer(lua_State* L) {
     if (s == NULL)
       return luaL_error(L, "'tostring' must return a string to 'print'");
     if (i > 1)
-      strbuff_addliteral(sb, "\t");
-    strbuff_addlstring(sb, s, l);
+      luaBB_addliteral(sb, "\t");
+    luaBB_addlstring(sb, s, l);
     lua_pop(L, 1); /* pop result */
   }
-  strbuff_addnewline(sb);
+  luaBB_addnewline(sb);
   return 0;
 }
 
@@ -2414,8 +2332,8 @@ static int _printbuffer(lua_State* L) {
 #define DEFAULT_PRINT_SIZE 1024
 
 LUALIB_API void luaL_printbuffer(lua_State* L) {
-  strbuff_destroy(sb);
-  strbuff_init(sb, DEFAULT_PRINT_SIZE);
+  luaBB_destroy(sb);
+  luaBB_init(sb, DEFAULT_PRINT_SIZE);
 
   lua_getglobal(L, PRINT_FUNC_NAME);
   lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)_printbuffer);
@@ -2424,8 +2342,8 @@ LUALIB_API void luaL_printbuffer(lua_State* L) {
 }
 
 LUALIB_API void luaL_printfinish(lua_State* L) {
-  lua_pushlstring(L, sb->b, sb->n);
-  strbuff_destroy(sb);
+  lua_pushlstring(L, (const char*)sb->b, sb->n);
+  luaBB_destroy(sb);
 
   lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)_printbuffer);
   lua_setglobal(L, PRINT_FUNC_NAME);
