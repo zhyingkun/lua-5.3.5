@@ -2029,16 +2029,18 @@ function libuv.queueWorkAsyncWait(worker, arg)
 	return yield()
 end
 
----@alias REPLCallbackSignature fun():void
+---@alias REPLEvalSignature fun(codeStr:string):string, string @prompt, output
 
 ---@overload fun():void
----@overload fun(callback:REPLCallbackSignature):void
----@param callback REPLCallbackSignature
-function libuv.replStart(callback)
+---@overload fun(callback:REPLEvalSignature):void
+---@param callback REPLEvalSignature
+function libuv.replStartAsync(callback)
 	uvwrap.repl_start(loopCtx, callback)
 end
-function libuv.replStop()
-	uvwrap.repl_stop()
+---@param prompt string
+---@return string
+function libuv.replRead(prompt)
+	return uvwrap.repl_start(prompt)
 end
 
 ---@type integer
@@ -2253,15 +2255,6 @@ function libuv.runDeferred()
 		loopCtx = nil
 		uvwrap.set_realloc_cb()
 	end)
-end
-
-function libuv.runREPL()
-	if not loopCtx then loopCtx = libloop.default() end
-	uvwrap.repl_start(loopCtx)
-	run(loopCtx)
-	close(loopCtx)
-	loopCtx = nil
-	uvwrap.set_realloc_cb()
 end
 
 return libuv
