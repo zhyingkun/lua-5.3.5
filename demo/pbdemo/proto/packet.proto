@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package _PacketManager_;
+
+message Packet {
+  string name = 1;
+  bytes data = 2;
+}

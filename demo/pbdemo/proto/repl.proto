@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package _REPL_;
+
+message Read {
+  string code = 1;
+}
+
+message Print {
+  string prompt = 1;
+  string output = 2;
+}
