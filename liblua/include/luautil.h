@@ -64,6 +64,54 @@ LUALIB_API int luaL_msgh(lua_State* L);
 
 /*
 ** {======================================================
+** Byte Buffer for C
+** =======================================================
+*/
+
+#define luaBB_isempty(b) ((b)->readed == (b)->n)
+#define luaBB_addbyte(b, u) \
+  do { \
+    uint8_t uc = (u); \
+    luaBB_addbytes(b, &uc, 1); \
+  } while (0)
+
+#define luaBB_addlstring(b, s, l) luaBB_addlstringex(b, s, l, 0)
+#define luaBB_addstring(b, s) luaBB_addlstring(b, s, strlen(s))
+#define luaBB_addliteral(b, s) luaBB_addlstring(b, "" s, sizeof(s) - 1)
+#define luaBB_addnewline(b) luaBB_addliteral(b, "\n")
+#define luaBB_addnullbyte(b) luaBB_addliteral(b, "\0")
+
+#define TEMP_BUFF_SIZE 1024
+#define luaBB_addfstring(b, ...) \
+  do { \
+    char buff[TEMP_BUFF_SIZE]; \
+    snprintf(buff, TEMP_BUFF_SIZE, __VA_ARGS__); \
+    luaBB_addstring(b, buff); \
+  } while (0)
+
+#define BASE_BUFFER_SIZE 1024
+
+typedef struct {
+  uint8_t* b;
+  size_t size; /* buffer size */
+  size_t n; /* number of characters in buffer */
+  size_t readed;
+} luaL_ByteBuffer;
+
+LUALIB_API void luaBB_init(luaL_ByteBuffer* b, size_t size);
+LUALIB_API void luaBB_destroy(luaL_ByteBuffer* b);
+LUALIB_API void luaBB_addbytes(luaL_ByteBuffer* b, const uint8_t* buf, size_t len);
+LUALIB_API const uint8_t* luaBB_getbytes(luaL_ByteBuffer* b, size_t len);
+LUALIB_API void luaBB_clear(luaL_ByteBuffer* b);
+LUALIB_API void luaBB_flush(luaL_ByteBuffer* b);
+LUALIB_API void luaBB_undoreaded(luaL_ByteBuffer* b);
+LUALIB_API void luaBB_addlstringex(luaL_ByteBuffer* b, const char* str, size_t len, int escape);
+LUALIB_API void luaBB_addvalue(luaL_ByteBuffer* b, lua_State* L, int idx);
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** Memory Buffer, Using as value, not reference
 ** =======================================================
 */
