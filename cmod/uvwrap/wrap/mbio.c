@@ -74,6 +74,8 @@ static int mbio_writeFile(const char* fileName, luaL_MemBuffer* mb) {
 
 /* }====================================================== */
 
+#define MBIO_FUNCTION(name) UVWRAP_FUNCTION(mbio, name)
+
 /*
 ** {======================================================
 ** ReadFile

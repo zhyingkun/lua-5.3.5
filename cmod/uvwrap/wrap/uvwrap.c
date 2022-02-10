@@ -137,7 +137,7 @@ static const luaL_Reg uvwrap_funcs[] = {
     {"guess_handle", uvwrap_guess_handle},
     {"queue_work", uvwrap_queue_work},
     {"repl_start", uvwrap_repl_start},
-    {"repl_stop", uvwrap_repl_stop},
+    {"repl_read", uvwrap_repl_read},
     /* placeholders */
     {"err_code", NULL},
     {"version", NULL},
@@ -191,7 +191,6 @@ LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
 
   luaL_newlib(L, uvwrap_funcs);
   (void)MEMORY_FUNCTION(init)();
-  (void)MBIO_FUNCTION(init)(L);
 
   REGISTE_ENUM_UVWRAP(err_code);
   REGISTE_ENUM_UVWRAP(handle_type);
@@ -206,6 +205,9 @@ LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
 
   lua_pushlightuserdata(L, (void*)worker_hello);
   lua_setfield(L, -2, "worker_hello");
+
+  CALL_MODULE_INIT(mbio);
+  CALL_MODULE_INIT(pm);
 
   CALL_MODULE_INIT(handle);
   CALL_MODULE_INIT(stream);

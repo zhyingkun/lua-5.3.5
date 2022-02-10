@@ -191,8 +191,18 @@ int ERROR_FUNCTION(check)(lua_State* L, int err);
 ** =======================================================
 */
 
-#define MBIO_FUNCTION(name) bcfx_wrap_mbio_##name
-void MBIO_FUNCTION(init)(lua_State* L);
+DECLARE_HANDLE_API(mbio)
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** PacketManager
+** =======================================================
+*/
+
+#define PACKET_MANATER_TYPE "PacketManager*"
+DECLARE_HANDLE_API(pm)
 
 /* }====================================================== */
 
@@ -413,7 +423,7 @@ extern lua_State* staticL;
 */
 
 int uvwrap_repl_start(lua_State* L);
-int uvwrap_repl_stop(lua_State* L);
+int uvwrap_repl_read(lua_State* L);
 
 /* }====================================================== */
 

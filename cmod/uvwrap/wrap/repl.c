@@ -10,6 +10,7 @@
 #define READLINE(p) readline(p)
 #define SAVELINE(line) add_history(line)
 #define FREELINE(b) free(b)
+#define RESTTERM() (void)rl_reset_terminal(NULL)
 
 #else /* }{ */
 
@@ -28,6 +29,7 @@
   { \
     (void)b; \
   }
+#define RESTTERM()
 
 #endif /* } */
 
@@ -180,7 +182,7 @@ static void keep_history(lua_State* L) {
 #define REPL_PROMPT "_REPL_PROMPT_"
 #define REPL_OBJECT "_REPL_OBJECT_"
 #define REPL_STRING "_REPL_STRING_"
-#define REPL_ONSTOP "_REPL_ONSTOP_"
+#define REPL_ONEVAL "_REPL_ONEVAL_"
 #define REPL_HOLDIT "_REPL_HOLDIT_"
 
 #define CLEAR_REGISTRY_FIELD(field) \
@@ -230,6 +232,7 @@ static void read_line_thread(void* arg) {
     FREELINE(repl->buffer);
   }
   lua_flushstring(MSG_STOP, sizeof(MSG_STOP));
+  RESTTERM();
 }
 
 // [-0, +0, -]
@@ -300,17 +303,10 @@ static void exit_repl(lua_State* L, lua_REPL* repl) {
   uv_sem_destroy(repl->sem);
   uv_close((uv_handle_t*)repl->async, NULL);
 
-  lua_getfield(L, LUA_REGISTRYINDEX, REPL_ONSTOP);
-  if (lua_isfunction(L, -1)) {
-    report(L, docall(L, 0, 0));
-  } else {
-    lua_pop(L, 1);
-  }
-
   CLEAR_REGISTRY_FIELD(REPL_PROMPT);
   CLEAR_REGISTRY_FIELD(REPL_OBJECT);
   CLEAR_REGISTRY_FIELD(REPL_STRING);
-  CLEAR_REGISTRY_FIELD(REPL_ONSTOP);
+  CLEAR_REGISTRY_FIELD(REPL_ONEVAL);
 }
 
 static int lua_doREPL(lua_State* L) {
@@ -355,7 +351,7 @@ static void async_doREPL(uv_async_t* handle) {
 int uvwrap_repl_start(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
   lua_settop(L, 2);
-  lua_setfield(L, LUA_REGISTRYINDEX, REPL_ONSTOP);
+  lua_setfield(L, LUA_REGISTRYINDEX, REPL_ONEVAL);
 
   lua_REPL* repl = (lua_REPL*)lua_newuserdata(L, sizeof(lua_REPL));
   uv_async_init(loop, repl->async, async_doREPL);
@@ -374,18 +370,11 @@ int uvwrap_repl_start(lua_State* L) {
   return 0;
 }
 
-#define EXIT_MESSAGE "Press Enter to exit multi thread REPL"
+int uvwrap_repl_read(lua_State* L) {
+  const char* prompt = luaL_checkstring(L, 1);
 
-int uvwrap_repl_stop(lua_State* L) {
-  lua_getfield(L, LUA_REGISTRYINDEX, REPL_OBJECT);
-  if (lua_isuserdata(L, -1)) {
-    lua_REPL* repl = (lua_REPL*)lua_touserdata(L, -1);
-    if (!repl->waiting) {
-      lua_writeline();
-      lua_writestring(EXIT_MESSAGE, sizeof(EXIT_MESSAGE));
-      fflush(stdout);
-    }
-    exit_repl(L, repl);
-  }
-  return 0;
+  char* buffer = READLINE(prompt);
+  lua_pushstring(L, buffer);
+  FREELINE(buffer);
+  return 1;
 }
