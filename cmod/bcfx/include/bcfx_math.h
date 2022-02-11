@@ -41,12 +41,10 @@ typedef struct {
 #define IS_MAT_DIMENSION(mat, row_, col_) (mat->row == row_ && mat->col == col_)
 #define ALLOCA_MAT(var, row, col) \
   Mat* var = (Mat*)alloca(MAT_SIZE(row, col)); \
-  MAT_INIT(var, row, col); \
-  MAT_ZERO(var)
+  MAT_INIT(var, row, col)
 #define NEW_MAT(var, row, col) \
   Mat* var = (Mat*)malloc(MAT_SIZE(row, col)); \
-  MAT_INIT(var, row, col); \
-  MAT_ZERO(var)
+  MAT_INIT(var, row, col)
 
 #define MAT_ZERO(mat) mat_zero((Mat*)mat)
 #define MAT_IDENTITY(mat) mat_identity((Mat*)mat)
@@ -91,12 +89,10 @@ typedef struct {
 #define IS_MAT3x3(mat) IS_MAT_DIMENSION(mat, 3, 3)
 #define ALLOCA_MAT3x3(var) \
   Mat3x3 var[1]; \
-  MAT3x3_INIT(var); \
-  MAT_ZERO(var)
+  MAT3x3_INIT(var)
 #define NEW_MAT3x3(var) \
   Mat3x3* var = (Mat3x3*)malloc(MAT_SIZE(3, 3)); \
-  MAT3x3_INIT(var); \
-  MAT_ZERO(var)
+  MAT3x3_INIT(var)
 
 BCFX_API void mat3x3_init(Mat3x3* mat);
 
@@ -111,12 +107,10 @@ typedef struct {
 #define MAT4x4_INIT_MAT3x3(mat, mat3x3) mat4x4_initMat3x3((Mat4x4*)mat, (Mat3x3*)mat3x3)
 #define ALLOCA_MAT4x4(var) \
   Mat4x4 var[1]; \
-  MAT4x4_INIT(var); \
-  MAT_ZERO(var)
+  MAT4x4_INIT(var)
 #define NEW_MAT4x4(var) \
   Mat4x4* var = (Mat4x4*)malloc(MAT_SIZE(4, 4)); \
-  MAT4x4_INIT(var); \
-  MAT_ZERO(var)
+  MAT4x4_INIT(var)
 
 BCFX_API void mat4x4_init(Mat4x4* mat);
 BCFX_API void mat4x4_initMat3x3(Mat4x4* mat, const Mat3x3* mat3x3);
@@ -204,8 +198,7 @@ BCFX_API void vec2_init(Vec2* vec);
 #define ALLOCA_VEC2(var) Vec2 var[1] = {VEC2_ZERO()}
 #define NEW_VEC2(var) \
   Vec2* var = (Vec2*)malloc(VEC_SIZE(2)); \
-  VEC2_INIT(var); \
-  VEC_ZERO(var)
+  VEC2_INIT(var)
 #define VEC2_X(vec) VEC_ELEMENT(vec, 0)
 #define VEC2_Y(vec) VEC_ELEMENT(vec, 1)
 
@@ -228,8 +221,7 @@ BCFX_API void vec3_init(Vec3* vec);
 #define ALLOCA_VEC3(var) Vec3 var[1] = {VEC3_ZERO()}
 #define NEW_VEC3(var) \
   Vec3* var = (Vec3*)malloc(VEC_SIZE(3)); \
-  VEC3_INIT(var); \
-  VEC_ZERO(var)
+  VEC3_INIT(var)
 #define VEC3_X(vec) VEC_ELEMENT(vec, 0)
 #define VEC3_Y(vec) VEC_ELEMENT(vec, 1)
 #define VEC3_Z(vec) VEC_ELEMENT(vec, 2)
@@ -257,8 +249,7 @@ BCFX_API void vec4_init(Vec4* vec);
 #define ALLOCA_VEC4(var) Vec4 var[1] = {VEC4_ZERO()}
 #define NEW_VEC4(var) \
   Vec4* var = (Vec4*)malloc(VEC_SIZE(4)); \
-  VEC4_INIT(var); \
-  VEC_ZERO(var)
+  VEC4_INIT(var)
 #define VEC4_X(vec) VEC_ELEMENT(vec, 0)
 #define VEC4_Y(vec) VEC_ELEMENT(vec, 1)
 #define VEC4_Z(vec) VEC_ELEMENT(vec, 2)
@@ -276,6 +267,7 @@ BCFX_API void g3d_translate(const Vec3* vec, Mat4x4* mat);
 BCFX_API void g3d_rotate(float angle, const Vec3* axis, Mat4x4* mat);
 BCFX_API void g3d_scale(const Vec3* vec, Mat4x4* mat);
 BCFX_API void g3d_perspective(float fovy, float aspect, float zNear, float zFar, Mat4x4* mat);
+BCFX_API void g3d_perspectiveInfinity(float fovy, float aspect, float zNear, Mat4x4* mat);
 BCFX_API void g3d_orthogonal(float left, float right, float bottom, float top, float zNear, float zFar, Mat4x4* mat);
 BCFX_API void g3d_lookAt(const Vec3* eye, const Vec3* center, const Vec3* up, Mat4x4* mat);
 

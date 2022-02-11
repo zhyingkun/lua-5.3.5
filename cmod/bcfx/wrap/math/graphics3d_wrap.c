@@ -33,9 +33,17 @@ static int G3D_FUNCTION(perspective)(lua_State* L) {
   float fovy = luaL_checknumber(L, 1);
   float aspect = luaL_checknumber(L, 2);
   float zNear = luaL_checknumber(L, 3);
-  float zFar = luaL_checknumber(L, 4);
+  float zFar;
+  bool bInfinity = lua_isnoneornil(L, 4);
+  if (!bInfinity) {
+    zFar = luaL_checknumber(L, 4);
+  }
   Mat4x4* mat = luaL_newmat4x4(L);
-  g3d_perspective(fovy, aspect, zNear, zFar, mat);
+  if (bInfinity) {
+    g3d_perspectiveInfinity(fovy, aspect, zNear, mat);
+  } else {
+    g3d_perspective(fovy, aspect, zNear, zFar, mat);
+  }
   return 1;
 }
 
