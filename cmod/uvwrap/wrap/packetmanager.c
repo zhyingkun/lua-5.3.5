@@ -131,7 +131,7 @@ static int PM_FUNCTION(addPackData)(lua_State* L) {
   pm_addPackData(pm, (uint8_t*)data, len);
   return 0;
 }
-static int PM_FUNCTION(nextPacket)(lua_State* L) {
+static int PM_FUNCTION(getPacket)(lua_State* L) {
   PacketManager* pm = luaL_checkpacketmanager(L, 1);
 
   const uint8_t* ptr;
@@ -179,7 +179,7 @@ static int PM_FUNCTION(__gc)(lua_State* L) {
 static const luaL_Reg PM_FUNCTION(metafuncs)[] = {
     EMPLACE_PM_FUNCTION(packPacket),
     EMPLACE_PM_FUNCTION(addPackData),
-    EMPLACE_PM_FUNCTION(nextPacket),
+    EMPLACE_PM_FUNCTION(getPacket),
     EMPLACE_PM_FUNCTION(eachPacket),
     EMPLACE_PM_FUNCTION(__gc),
     {NULL, NULL},
