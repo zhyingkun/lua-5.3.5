@@ -2239,6 +2239,35 @@ end
 
 -- }======================================================
 
+--[[
+** {======================================================
+** PacketManager
+** =======================================================
+--]]
+
+---@alias NextPacketSignature fun(self:PacketManager):string | nil
+
+---@class PacketManager:userdata
+---@field public packPacket fun(self:PacketManager, data:string):string
+---@field public addPackData fun(self:PacketManager, packData:string):void
+---@field public getPacket fun(self:PacketManager):libuv_packet_status, string
+---@field public eachPacket fun(self:PacketManager):NextPacketSignature, PacketManager
+
+---@type PacketManager
+function libuv.PacketManager()
+	return uvwrap.PacketManager()
+end
+
+---@class libuv_packet_status
+---@field public OK integer
+---@field public NeedMore integer
+---@field public ErrorLength integer
+
+---@type libuv_packet_status
+libuv.packet_status = uvwrap.packet_status
+
+-- }======================================================
+
 local run = libloop.run
 local NOWAIT = libloop.run_mode.NOWAIT
 local close = libloop.close
