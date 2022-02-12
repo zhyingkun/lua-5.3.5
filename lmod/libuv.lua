@@ -2042,6 +2042,16 @@ end
 function libuv.replRead(prompt)
 	return uvwrap.repl_start(prompt)
 end
+---@param history string
+function libuv.replHistory(history)
+	uvwrap.repl_history(history)
+end
+---@param codeStr string
+---@param eof boolean
+---@return boolean, string, string @running, prompt, history
+function libuv.replDefault(codeStr, eof)
+	return uvwrap.repl_default(codeStr, eof)
+end
 
 ---@type integer
 libuv.version = uvwrap.version
