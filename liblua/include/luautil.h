@@ -3,6 +3,8 @@
 
 #include <lua.h>
 
+#include <stdint.h>
+
 #define REGISTE_ENUM(name_, enum_) \
   luaL_newenum(L, enum_); \
   lua_setfield(L, -2, #name_)
