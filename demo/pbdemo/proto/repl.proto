@@ -4,9 +4,12 @@ package _REPL_;
 
 message Read {
   string code = 1;
+  bool eof = 2; // End of file, Ctrl-D in MacOSX/Linux, Ctrx-Z+Enter in Windows
 }
 
 message Print {
   string prompt = 1;
   string output = 2;
+  string history = 3; // history code for terminal
+  bool running = 4;
 }
