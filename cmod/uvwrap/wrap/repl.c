@@ -9,7 +9,7 @@
 #define RL_INIT()
 #define READLINE(p) readline(p)
 #define SAVELINE(line) add_history(line)
-#define FREELINE(b) free(b)
+#define FREELINE(b) free((void*)b)
 #define RESTTERM() (void)rl_reset_terminal(NULL)
 
 #else /* }{ */
@@ -98,8 +98,11 @@ static const char* get_prompt(lua_State* L, int firstline) {
   const char* p;
   lua_getglobal(L, firstline ? "_PROMPT" : "_PROMPT2");
   p = lua_tostring(L, -1);
-  if (p == NULL)
+  if (p == NULL) {
+    lua_pop(L, 1);
     p = (firstline ? LUA_PROMPT : LUA_PROMPT2);
+    lua_pushstring(L, p);
+  }
   return p;
 }
 
@@ -170,88 +173,81 @@ static int docall(lua_State* L, int narg, int nres) {
   return status;
 }
 
-// [-1, +0, -], need 0 slot
-static void keep_history(lua_State* L) {
-  const char* line = lua_tostring(L, -1);
-  if (line != NULL && line[0] != '\0') { /* non empty? */
-    SAVELINE(line); /* keep history */
-  }
-  lua_pop(L, 1);
-}
-
 #define REPL_PROMPT "_REPL_PROMPT_"
-#define REPL_OBJECT "_REPL_OBJECT_"
-#define REPL_STRING "_REPL_STRING_"
+#define REPL_HISTORY "_REPL_HISTORY_"
 #define REPL_ONEVAL "_REPL_ONEVAL_"
-#define REPL_HOLDIT "_REPL_HOLDIT_"
 
-#define CLEAR_REGISTRY_FIELD(field) \
+#define GET_REGISTRY_FIELD(field_) lua_getfield(L, LUA_REGISTRYINDEX, field_)
+#define SET_REGISTRY_FIELD(field_) lua_setfield(L, LUA_REGISTRYINDEX, field_)
+#define CLEAR_REGISTRY_FIELD(field_) \
   lua_pushnil(L); \
-  lua_setfield(L, LUA_REGISTRYINDEX, field)
-
-#define HOLD_REPL_OBJECT() \
-  lua_getfield(L, LUA_REGISTRYINDEX, REPL_OBJECT); \
-  lua_setfield(L, LUA_REGISTRYINDEX, REPL_HOLDIT)
-#define UNHOLD_REPL_OBJECT() CLEAR_REGISTRY_FIELD(REPL_HOLDIT)
+  lua_setfield(L, LUA_REGISTRYINDEX, field_)
 
 // [-0, +0, -]
 static const char* get_prompt_hold(lua_State* L, int firstline) {
   const char* prmt = get_prompt(L, firstline);
-  lua_setfield(L, LUA_REGISTRYINDEX, REPL_PROMPT);
+  SET_REGISTRY_FIELD(REPL_PROMPT);
   return prmt;
 }
 
 typedef struct {
+  /* Context */
   uv_thread_t tid[1];
+  /* Data Transmission */
   uv_async_t async[1];
   uv_sem_t sem[1];
-  const char* prmt;
-  char* buffer;
-  lua_State* L;
-  int firstline;
-  int running;
-  int waiting; // waiting for main thread process the script
+  /* Read */
+  const char* code;
+  bool eof;
+  /* Print */
+  const char* prompt;
+  const char* output;
+  const char* history;
+  bool running;
 } lua_REPL;
+static lua_REPL repl[1];
 
 #define MSG_START "Multi thread REPL starting...\n"
 #define MSG_STOP "Multi thread REPL end.\n"
 static void read_line_thread(void* arg) {
-  lua_REPL* repl = (lua_REPL*)arg;
+  (void)arg;
   RL_INIT();
   lua_flushstring(MSG_START, sizeof(MSG_START));
   while (repl->running) { // for Ctrl-D in Unix or Ctrl-Z in Windows
-    repl->buffer = READLINE(repl->prmt);
-    if (!repl->running) { // for exit repl manually
-      FREELINE(repl->buffer);
-      break;
-    }
-    repl->waiting = 1;
+    const char* buffer = READLINE(repl->prompt);
+
+    // Read Send code and Wait
+    repl->code = buffer;
+    repl->eof = buffer == NULL;
     uv_async_send(repl->async);
     uv_sem_wait(repl->sem);
-    repl->waiting = 0;
-    FREELINE(repl->buffer);
+
+    FREELINE(buffer);
+    const char* line = repl->history;
+    if (line != NULL && line[0] != '\0') { /* non empty? */
+      SAVELINE(line); /* keep history */
+    }
   }
   lua_flushstring(MSG_STOP, sizeof(MSG_STOP));
   RESTTERM();
 }
 
-// [-0, +0, -]
-void end_multi_line(lua_State* L, lua_REPL* repl) {
-  repl->firstline = 1;
-  lua_getfield(L, LUA_REGISTRYINDEX, REPL_STRING);
-  keep_history(L);
-  CLEAR_REGISTRY_FIELD(REPL_STRING);
-  lua_writeline();
-}
+/*
+** {======================================================
+** REPL Default Deal
+** =======================================================
+*/
 
+static bool firstline = true;
 // [-0, +2, -]
-int compile_source_code(lua_State* L, lua_REPL* repl) {
-  char* b = repl->buffer;
+int compile_source_code(lua_State* L, const char* code, const char** phistory) {
+  char* b = (char*)code;
   size_t l = strlen(b);
   if (l > 0 && b[l - 1] == '\n') { /* line ends with newline? */
     b[--l] = '\0'; /* remove it */
   }
-  if (repl->firstline) {
+  bool hasClosure = false;
+  if (firstline) {
     if (b[0] == '=') { /* for compatibility with 5.2, ... */
       lua_pushfstring(L, "return %s", b + 1); /* change '=' to 'return' */
     } else {
@@ -259,114 +255,180 @@ int compile_source_code(lua_State* L, lua_REPL* repl) {
       const char* retline = lua_pushfstring(L, "return %s;", b);
       if (luaL_loadbuffer(L, retline, strlen(retline), "=stdin") == LUA_OK) {
         lua_remove(L, -2); /* remove modified line */
-        return LUA_OK;
+        lua_insert(L, -2); // move the history string to top
+        hasClosure = true;
+      } else {
+        lua_pop(L, 2); /* pop result from 'luaL_loadbuffer' and modified line */
       }
-      lua_pop(L, 2); /* pop result from 'luaL_loadbuffer' and modified line */
     }
   } else {
-    lua_getfield(L, LUA_REGISTRYINDEX, REPL_STRING);
+    GET_REGISTRY_FIELD(REPL_HISTORY);
     lua_pushliteral(L, "\n"); /* add newline... */
     lua_pushlstring(L, b, l);
     lua_concat(L, 3); /* join them */
-    CLEAR_REGISTRY_FIELD(REPL_STRING);
   }
   size_t len = 0;
   const char* line = lua_tolstring(L, -1, &len);
+  if (phistory) {
+    *phistory = line;
+  }
+  SET_REGISTRY_FIELD(REPL_HISTORY);
+  if (hasClosure) {
+    return LUA_OK;
+  }
   return luaL_loadbuffer(L, line, len, "=stdin"); /* try it */
 }
 
-// [-0, +0, -]
-void deal_source_code(lua_State* L, lua_REPL* repl) {
-  int status = compile_source_code(L, repl);
-  if (incomplete(L, status)) { // incomplete will pop the error message
-    lua_setfield(L, LUA_REGISTRYINDEX, REPL_STRING);
-    repl->firstline = 0;
-    return;
-  }
-  repl->firstline = 1;
-  lua_insert(L, -2);
-  keep_history(L); // will pop the source string
-  if (status == LUA_OK) {
-    status = docall(L, 0, LUA_MULTRET);
-    if (status == LUA_OK) {
-      l_print(L);
+static bool deal_repl_default(lua_State* L, const char* code, bool eof, const char** phistory, const char** pprompt) {
+  bool running = true;
+  *phistory = NULL;
+  if (eof) { // Ctrl-D or Ctrl-Z+Enter
+    if (firstline) {
+      running = false;
+    } else {
+      firstline = true; // end multi line
+      GET_REGISTRY_FIELD(REPL_HISTORY);
+      *phistory = lua_tostring(L, -1);
+      lua_pop(L, 1);
+      lua_printf("%s\n", (char*)NULL); // just for output newline, print direct
+    }
+  } else {
+    const char* history;
+    int status = compile_source_code(L, code, &history);
+    if (incomplete(L, status)) {
+      // incomplete will pop the error message if return true
+      firstline = false;
+    } else {
+      firstline = true;
+      *phistory = history;
+      if (status == LUA_OK) {
+        lua_replace(L, 1);
+        lua_settop(L, 1); // Only left the closure
+        status = docall(L, 0, LUA_MULTRET);
+        if (status == LUA_OK) {
+          l_print(L); // print direct
+        }
+      }
+      report(L, status); // will pop the error message
+      call_registry_funcs(L, LUA_ATREPL, "Call atrepl failed: %s\n");
     }
   }
-  report(L, status); // will pop the error message
-  call_registry_funcs(L, LUA_ATREPL, "Call atrepl failed: %s\n");
+  *pprompt = get_prompt_hold(L, firstline);
+  return running;
 }
 
-static void exit_repl(lua_State* L, lua_REPL* repl) {
-  repl->running = 0;
-  uv_sem_post(repl->sem); // for Ctrl-D or run 'repl_stop' in terminal by type it
+/* }====================================================== */
+
+int uvwrap_repl_default(lua_State* L) {
+  const char* code = luaL_optstring(L, 1, NULL);
+  bool eof = luaL_checkboolean(L, 2);
+
+  const char* history;
+  const char* prompt;
+  bool running = deal_repl_default(L, code, eof, &history, &prompt);
+
+  lua_pushboolean(L, running);
+  GET_REGISTRY_FIELD(REPL_PROMPT);
+  if (history != NULL) { // for using REPL_HISTORY to cache multiline in default implementation
+    GET_REGISTRY_FIELD(REPL_HISTORY);
+  } else {
+    lua_pushnil(L);
+  }
+  return 3;
+}
+
+static void exit_repl(lua_State* L) {
   uv_thread_join(repl->tid);
   uv_sem_destroy(repl->sem);
   uv_close((uv_handle_t*)repl->async, NULL);
 
   CLEAR_REGISTRY_FIELD(REPL_PROMPT);
-  CLEAR_REGISTRY_FIELD(REPL_OBJECT);
-  CLEAR_REGISTRY_FIELD(REPL_STRING);
+  CLEAR_REGISTRY_FIELD(REPL_HISTORY);
   CLEAR_REGISTRY_FIELD(REPL_ONEVAL);
 }
 
 static int lua_doREPL(lua_State* L) {
-  lua_REPL* repl = (lua_REPL*)luaL_checklightuserdata(L, 1);
-  if (repl->buffer == NULL && repl->firstline) { // Ctrl-D
-    lua_writeline();
-    exit_repl(L, repl);
-    return 0;
-  }
-  lua_settop(L, 0);
-  HOLD_REPL_OBJECT();
-  if (repl->buffer == NULL) {
-    end_multi_line(L, repl);
+  repl->output = NULL; // for multi thread, just print to stdout
+  GET_REGISTRY_FIELD(REPL_ONEVAL);
+  if (lua_isfunction(L, -1)) {
+    lua_pushstring(L, repl->code);
+    lua_pushboolean(L, repl->eof);
+    int status = docall(L, 2, 3);
+    if (status == LUA_OK) {
+      repl->running = lua_toboolean(L, 1);
+      repl->prompt = lua_tostring(L, 2);
+      repl->history = lua_tostring(L, 3);
+      if (repl->history != NULL) { // for using REPL_HISTORY to cache multiline in default implementationÏ
+        SET_REGISTRY_FIELD(REPL_HISTORY);
+      } else {
+        lua_pop(L, 1);
+      }
+      SET_REGISTRY_FIELD(REPL_PROMPT);
+      lua_pop(L, 1);
+    } else {
+      repl->running = false;
+      repl->prompt = NULL;
+      repl->history = NULL;
+      report(L, status);
+    }
   } else {
-    deal_source_code(L, repl);
+    lua_pop(L, 1);
+    repl->running = deal_repl_default(L, repl->code, repl->eof, &repl->history, &repl->prompt);
   }
-  if (repl->running) { // maybe stop repl during run the script
-    repl->prmt = get_prompt_hold(L, repl->firstline);
-    uv_sem_post(repl->sem);
+
+  /* Print Send result */
+  uv_sem_post(repl->sem);
+
+  if (!repl->running) {
+    lua_writeline();
+    exit_repl(L);
   }
-  UNHOLD_REPL_OBJECT();
   lua_assert(0 == lua_gettop(L));
   return 0;
 }
 
 static void async_doREPL(uv_async_t* handle) {
-  lua_REPL* repl = (lua_REPL*)uv_handle_get_data((uv_handle_t*)handle);
-  lua_State* L = repl->L;
+  lua_State* L;
+  GET_HANDLE_LUA_STATE(L, handle);
 #ifndef NDEBUG
   int top = lua_gettop(L);
 #endif
   lua_checkstack(L, 3);
   lua_pushcfunction(L, msghandler);
-  int base = lua_gettop(L);
+  int msgh = lua_gettop(L);
   lua_pushcfunction(L, lua_doREPL);
-  lua_pushlightuserdata(L, (void*)repl);
-  report(L, lua_pcall(L, 1, 0, base));
+  report(L, lua_pcall(L, 0, 0, msgh));
   lua_pop(L, 1);
+#ifndef NDEBUG
   lua_assert(top == lua_gettop(L));
+#endif
 }
 
 int uvwrap_repl_start(lua_State* L) {
+  if (repl->running) {
+    return 0;
+  }
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
   lua_settop(L, 2);
-  lua_setfield(L, LUA_REGISTRYINDEX, REPL_ONEVAL);
+  SET_REGISTRY_FIELD(REPL_ONEVAL);
 
-  lua_REPL* repl = (lua_REPL*)lua_newuserdata(L, sizeof(lua_REPL));
+  firstline = true; // for default c implementation
+
+  /* Data Transmission */
   uv_async_init(loop, repl->async, async_doREPL);
   uv_sem_init(repl->sem, 0);
-  repl->buffer = NULL;
-  repl->L = L;
-  repl->firstline = 1;
+  /* Read */
+  repl->code = NULL;
+  repl->eof = false;
+  /* Print */
+  repl->prompt = get_prompt_hold(L, true);
+  repl->output = NULL;
+  repl->history = NULL;
   repl->running = 1;
-  repl->waiting = 0;
-  repl->prmt = get_prompt_hold(L, repl->firstline);
-  uv_handle_set_data((uv_handle_t*)repl->async, (void*)repl);
+  /* Context */
   signal(SIGINT, SIG_DFL); /* reset C-signal handler */
-  uv_thread_create(repl->tid, read_line_thread, (void*)repl);
+  uv_thread_create(repl->tid, read_line_thread, NULL);
 
-  lua_setfield(L, LUA_REGISTRYINDEX, REPL_OBJECT);
   return 0;
 }
 
@@ -377,4 +439,11 @@ int uvwrap_repl_read(lua_State* L) {
   lua_pushstring(L, buffer);
   FREELINE(buffer);
   return 1;
+}
+
+int uvwrap_repl_history(lua_State* L) {
+  const char* history = luaL_checkstring(L, 1);
+
+  SAVELINE(history);
+  return 0;
 }

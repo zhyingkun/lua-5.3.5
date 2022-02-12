@@ -13,6 +13,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define UVWRAP_OK 0
 #if defined(_WIN32)
@@ -424,6 +425,8 @@ extern lua_State* staticL;
 
 int uvwrap_repl_start(lua_State* L);
 int uvwrap_repl_read(lua_State* L);
+int uvwrap_repl_history(lua_State* L);
+int uvwrap_repl_default(lua_State* L);
 
 /* }====================================================== */
 

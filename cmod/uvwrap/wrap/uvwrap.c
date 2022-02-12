@@ -138,6 +138,8 @@ static const luaL_Reg uvwrap_funcs[] = {
     {"queue_work", uvwrap_queue_work},
     {"repl_start", uvwrap_repl_start},
     {"repl_read", uvwrap_repl_read},
+    {"repl_history", uvwrap_repl_history},
+    {"repl_default", uvwrap_repl_default},
     /* placeholders */
     {"err_code", NULL},
     {"version", NULL},
