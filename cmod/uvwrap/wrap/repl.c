@@ -15,12 +15,12 @@
 #else /* }{ */
 
 #define LUA_MAXINPUT 512
-#define RL_INIT() char buffer[LUA_MAXINPUT]
+#define RL_INIT() char __buffer__[LUA_MAXINPUT]
 
 #define READLINE(p) \
   (fputs(p, stdout), \
    fflush(stdout), /* show prompt */ \
-   fgets(buffer, LUA_MAXINPUT, stdin)) /* get line */
+   fgets(__buffer__, LUA_MAXINPUT, stdin)) /* get line */
 #define SAVELINE(line) \
   { \
     (void)line; \
@@ -468,6 +468,7 @@ int uvwrap_repl_start(lua_State* L) {
 int uvwrap_repl_read(lua_State* L) {
   const char* prompt = luaL_checkstring(L, 1);
 
+  RL_INIT();
   char* buffer = READLINE(prompt);
   lua_pushstring(L, buffer);
   FREELINE(buffer);
