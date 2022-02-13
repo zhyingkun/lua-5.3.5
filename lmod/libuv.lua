@@ -26,23 +26,112 @@ local ASYNC_WAIT_MSG = "AsyncWait api must running in coroutine"
 local queueWork = uvwrap.queue_work
 local OK = uvwrap.err_code.OK
 
+local running = coroutine.running
+local yield = coroutine.yield
+local resumeOrigin = coroutine.resume
+local function resume(...)
+	local status, msg = resumeOrigin(...)
+	if not status then printerr("libuv lua module resume coroutine error: ", msg) end
+end
+
+---@alias StatusCallbackSignature fun(status:integer):void
+
 ---@class libuv:table
 local libuv = {}
+
+--[[
+** {======================================================
+** Delay Multi Frames
+** =======================================================
+--]]
+
+local delayJob
+local currentJob
+local function delayFrameStart()
+	delayJob, currentJob = {}, {}
+end
+local function delayFrameTick()
+	delayJob, currentJob = currentJob, delayJob
+	for job, check in pairs(currentJob) do
+		currentJob[job] = nil
+		if check() then
+			job()
+		else
+			delayJob[job] = check
+		end
+	end
+end
+local function delayFrameEnd()
+	delayJob, currentJob = nil, nil
+end
+
+function libuv.delayFrameAsync(check, job)
+	local t = type(check)
+	if t ~= "function" then
+		local count = t == "number" and check or 1
+		check = function()
+			count = count - 1
+			return count <= 0
+		end
+	end
+	delayJob[job] = check
+end
+
+---@param check integer
+function libuv.delayFrameAsyncWait(check)
+	local co, main = running()
+	if main then error(ASYNC_WAIT_MSG) end
+	libuv.delayFrameAsync(check, function()
+		resume(co)
+	end)
+	return yield()
+end
+
+-- }======================================================
 
 ---@type uv_loop_t
 local loopCtx
 
 ---@param ctx uv_loop_t | nil
 function libuv.setLoop(ctx)
+	delayFrameStart()
 	loopCtx = ctx or libloop.default()
+end
+
+local libloop_run = libloop.run
+local libloop_close = libloop.close
+local NOWAIT = libloop.run_mode.NOWAIT
+local function run(loopCtx, mode)
+	delayFrameTick()
+	return libloop_run(loopCtx, mode)
+end
+local function close(loopCtx)
+	delayFrameEnd()
+	return libloop_close(loopCtx)
+end
+
+function libuv.run()
+	return run(loopCtx)
+end
+
+function libuv.runNoWait()
+	return run(loopCtx, NOWAIT)
+end
+
+function libuv.runDeferred()
+	atexit(function()
+		if not loopCtx then return end
+		run(loopCtx)
+		close(loopCtx)
+		loopCtx = nil
+		uvwrap.set_realloc_cb()
+	end)
 end
 
 ---@return integer
 function libuv.close()
-	return libloop.close(loopCtx)
+	return close(loopCtx)
 end
-
----@alias StatusCallbackSignature fun(status:integer):void
 
 --[[
 ** {======================================================
@@ -640,16 +729,6 @@ end
 ---@class libuv_fs:table
 local fs = {}
 libuv.fs = fs
-
-local running = coroutine.running
-local yield = coroutine.yield
-local resumeOrigin = coroutine.resume
-local function resume(...)
-	local status, msg = resumeOrigin(...)
-	if not status then printerr("libuv lua module resume coroutine error: ", msg) end
-end
-
----@alias StatusCallbackSignature fun(ret:integer):void
 
 ---@param fd integer
 ---@return integer
@@ -1556,7 +1635,7 @@ function loop.Loop()
 end
 ---@return integer
 function loop.close()
-	return libloop.close(loopCtx)
+	return close(loopCtx)
 end
 ---@return boolean
 function loop.alive()
@@ -1565,7 +1644,7 @@ end
 ---@param mode libuv_run_mode
 ---@return integer
 function loop.run(mode)
-	return libloop.run(loopCtx, mode)
+	return run(loopCtx, mode)
 end
 function loop.stop()
 	libloop.stop(loopCtx)
@@ -2278,27 +2357,5 @@ end
 libuv.packet_status = uvwrap.packet_status
 
 -- }======================================================
-
-local run = libloop.run
-local NOWAIT = libloop.run_mode.NOWAIT
-local close = libloop.close
-
-function libuv.run()
-	return run(loopCtx)
-end
-
-function libuv.runNoWait()
-	return run(loopCtx, NOWAIT)
-end
-
-function libuv.runDeferred()
-	atexit(function()
-		if not loopCtx then return end
-		run(loopCtx)
-		close(loopCtx)
-		loopCtx = nil
-		uvwrap.set_realloc_cb()
-	end)
-end
 
 return libuv
