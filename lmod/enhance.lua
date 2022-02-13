@@ -1,5 +1,11 @@
 -- Built-in Enhance Types
 
+--[[
+** {======================================================
+** Basic Class Type
+** =======================================================
+--]]
+
 ---@class integer:number
 
 ---@class lightuserdata
@@ -7,6 +13,14 @@
 ---@alias MemAllocCallback fun(oldPtr:lightuserdata, newPtr:lightuserdata, newSize:integer):void
 
 ---@alias ErrorMessageHandler fun(msg:string):string | nil
+
+-- }======================================================
+
+--[[
+** {======================================================
+** global
+** =======================================================
+--]]
 
 ---@overload fun(value:any):string
 ---@overload fun(value:any, level:integer):string
@@ -40,6 +54,14 @@ NULL = nil
 ---@field argc integer
 ---@field argv lightuserdata
 arg = nil
+
+-- }======================================================
+
+--[[
+** {======================================================
+** debug
+** =======================================================
+--]]
 
 ---@class SpecialKeys:table
 ---@field CLIBS lightuserdata
@@ -104,8 +126,24 @@ function debug.locals(t, forl) end
 ---@return any
 function debug.inject(src, level) end
 
+-- }======================================================
+
+--[[
+** {======================================================
+** os
+** =======================================================
+--]]
+
 ---@return string
 function os.sysname() end
+
+-- }======================================================
+
+--[[
+** {======================================================
+** utf8
+** =======================================================
+--]]
 
 ---@alias CharGetterSignature fun(idx:integer):integer
 
@@ -115,6 +153,14 @@ function os.sysname() end
 ---@param vararg integer
 ---@return string
 function utf8.char(func, ...) end
+
+-- }======================================================
+
+--[[
+** {======================================================
+** string
+** =======================================================
+--]]
 
 ---@type string
 local string
@@ -145,6 +191,14 @@ function string.escape(str) end
 ---@return boolean
 function string.isvar(str) end
 
+-- }======================================================
+
+--[[
+** {======================================================
+** io
+** =======================================================
+--]]
+
 ---@type file
 local file
 
@@ -160,6 +214,14 @@ function io.readfile(fileName) end
 ---@return boolean | nil, nil | string, nil | integer @data, errStr, errCode
 function io.writefile(fileName, data) end
 
+-- }======================================================
+
+--[[
+** {======================================================
+** table
+** =======================================================
+--]]
+
 ---@overload fun():table
 ---@overload fun(narr:integer):table
 ---@overload fun(narr:integer, nrec:integer):table
@@ -167,6 +229,14 @@ function io.writefile(fileName, data) end
 ---@param nrec integer
 ---@return table
 function table.create(narr, nrec) end
+
+-- }======================================================
+
+--[[
+** {======================================================
+** util
+** =======================================================
+--]]
 
 ---@param callback ErrorMessageHandler
 function util.setErrorMessageHandler(callback) end
@@ -186,3 +256,10 @@ function util.setErrorMessageHandler(callback) end
 ---@param ud lightuserdata
 ---@return luaL_MemBuffer
 function util.luaL_MemBuffer(ptr, sz, release, ud) end
+
+function util.printBuffer() end
+
+---@return string
+function util.printFinish() end
+
+-- }======================================================
