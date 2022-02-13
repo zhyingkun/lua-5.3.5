@@ -2029,7 +2029,7 @@ function libuv.queueWorkAsyncWait(worker, arg)
 	return yield()
 end
 
----@alias REPLEvalSignature fun(codeStr:string):string, string @prompt, output
+---@alias REPLEvalSignature fun(codeStr:string | nil, eof:boolean):boolean, string, string | nil @running, prompt, history
 
 ---@overload fun():void
 ---@overload fun(callback:REPLEvalSignature):void
@@ -2046,7 +2046,7 @@ end
 function libuv.replHistory(history)
 	uvwrap.repl_history(history)
 end
----@param codeStr string
+---@param codeStr string | nil
 ---@param eof boolean
 ---@return boolean, string, string @running, prompt, history
 function libuv.replDefault(codeStr, eof)
