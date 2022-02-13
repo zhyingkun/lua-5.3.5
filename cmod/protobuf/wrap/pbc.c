@@ -1110,7 +1110,7 @@ static void default_cb(void* ud, int type, const char* type_name, pbc_value* v, 
       lua_pushnumber(L, u.d);
     } break;
     case PBC_BOOL:
-      lua_pushinteger(L, v->i.low);
+      lua_pushboolean(L, v->i.low);
       break;
     case PBC_ENUM:
       lua_pushstring(L, v->e.name);
