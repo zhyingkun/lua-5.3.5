@@ -39,7 +39,12 @@ end
 bcfx.init(window)
 
 libuv.setLoop()
-libuv.replStart()
+
+local repl = require("repl")
+--repl.startAsync()
+--repl.startAsync(repl.evalDefault)
+--repl.startAsync(repl.evalDefaultLua)
+repl.serverStartAsync()
 
 local loader = require("loader")
 loader.SetPathPrefix(require("libdir").dirname(arg[0]) .. "/")

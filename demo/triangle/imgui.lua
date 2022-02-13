@@ -232,8 +232,11 @@ function imgui.tick(delta)
 		panel_flag.BORDER  |panel_flag.MOVABLE |panel_flag.TITLE|
 		panel_flag.SCALABLE|panel_flag.CLOSABLE|panel_flag.MINIMIZABLE)
 	then
+		local wStatus = glfw.getKey(mainWin, glfw.keyboard.W)
+		local upStatus = glfw.getKey(mainWin, glfw.keyboard.UP)
+		local str = "W: " .. tostring(wStatus) .. "    UP: " .. tostring(upStatus)
 		nk.layoutRowDynamic(50, 1)
-		nk.textWidget("ABCDEFGHIJKLMNOPQRSTUVWXYZ", text_alignment.LEFT)
+		nk.textWidget(str, text_alignment.LEFT)
 		nk.layoutRowDynamic(20, 1)
 		nk.textWidget("1234567890", text_alignment.RIGHT)
 		nk.layoutRowDynamic(50, 1)

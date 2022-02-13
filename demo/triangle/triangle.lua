@@ -318,7 +318,7 @@ local function setup(mainWin)
 	end
 	runInCoroutine(function()
 		local timer = libuv.timer.Timer()
-		for i = 1, 10, 1 do
+		for i = 1, 3, 1 do
 			timer:startAsyncWait(1000)
 			print("Hello Timer:", i)
 		end
