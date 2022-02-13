@@ -190,6 +190,12 @@ static const char* get_prompt_hold(lua_State* L, int firstline) {
   return prmt;
 }
 
+static void save_history(const char* line) {
+  if (line != NULL && line[0] != '\0') { /* non empty? */
+    SAVELINE(line); /* keep history */
+  }
+}
+
 typedef struct {
   /* Context */
   uv_thread_t tid[1];
@@ -223,10 +229,7 @@ static void read_line_thread(void* arg) {
     uv_sem_wait(repl->sem);
 
     FREELINE(buffer);
-    const char* line = repl->history;
-    if (line != NULL && line[0] != '\0') { /* non empty? */
-      SAVELINE(line); /* keep history */
-    }
+    save_history(repl->history);
   }
   lua_flushstring(MSG_STOP, sizeof(MSG_STOP));
   RESTTERM();
@@ -237,6 +240,25 @@ static void read_line_thread(void* arg) {
 ** REPL Default Deal
 ** =======================================================
 */
+
+// [-(0|1), +0, -], need 0 slot
+static int report_with_print(lua_State* L, int status) {
+  if (status != LUA_OK) {
+    lua_getglobal(L, "print");
+    if (progname) {
+      const char* msg = lua_tostring(L, -2);
+      lua_pushfstring(L, "%s: %s", progname, msg);
+    } else {
+      // lua_pushfstring(L, "%s", msg);
+      lua_pushvalue(L, -2);
+    }
+    if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
+      lua_pop(L, 1); // pop the error message
+    }
+    lua_pop(L, 1); /* remove message */
+  }
+  return status;
+}
 
 static bool firstline = true;
 // [-0, +2, -]
@@ -285,12 +307,22 @@ static bool deal_repl_default(lua_State* L, const char* code, bool eof, const ch
   if (eof) { // Ctrl-D or Ctrl-Z+Enter
     if (firstline) {
       running = false;
+      // lua_printf("\n"); // just for output newline, print direct
+      lua_getglobal(L, "print");
+      if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+        lua_pop(L, 1); // pop the error message
+      }
     } else {
       firstline = true; // end multi line
       GET_REGISTRY_FIELD(REPL_HISTORY);
       *phistory = lua_tostring(L, -1);
       lua_pop(L, 1);
-      lua_printf("%s\n", (char*)NULL); // just for output newline, print direct
+      // lua_printf("%s\n", (char*)NULL); // just for output newline, print direct
+      lua_getglobal(L, "print");
+      lua_pushfstring(L, "%s", (char*)NULL);
+      if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
+        lua_pop(L, 1); // pop the error message
+      }
     }
   } else {
     const char* history;
@@ -302,14 +334,16 @@ static bool deal_repl_default(lua_State* L, const char* code, bool eof, const ch
       firstline = true;
       *phistory = history;
       if (status == LUA_OK) {
-        lua_replace(L, 1);
-        lua_settop(L, 1); // Only left the closure
+        if (lua_gettop(L) != 1) {
+          lua_replace(L, 1);
+          lua_settop(L, 1); // Only left the closure
+        }
         status = docall(L, 0, LUA_MULTRET);
         if (status == LUA_OK) {
           l_print(L); // print direct
         }
       }
-      report(L, status); // will pop the error message
+      report_with_print(L, status); // will pop the error message
       call_registry_funcs(L, LUA_ATREPL, "Call atrepl failed: %s\n");
     }
   }
@@ -380,7 +414,6 @@ static int lua_doREPL(lua_State* L) {
   uv_sem_post(repl->sem);
 
   if (!repl->running) {
-    lua_writeline();
     exit_repl(L);
   }
   lua_assert(0 == lua_gettop(L));
@@ -442,8 +475,7 @@ int uvwrap_repl_read(lua_State* L) {
 }
 
 int uvwrap_repl_history(lua_State* L) {
-  const char* history = luaL_checkstring(L, 1);
-
-  SAVELINE(history);
+  const char* history = lua_tostring(L, 1);
+  save_history(history);
   return 0;
 }
