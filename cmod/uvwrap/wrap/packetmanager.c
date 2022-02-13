@@ -134,11 +134,15 @@ static int PM_FUNCTION(addPackData)(lua_State* L) {
 static int PM_FUNCTION(getPacket)(lua_State* L) {
   PacketManager* pm = luaL_checkpacketmanager(L, 1);
 
-  const uint8_t* ptr;
-  size_t sz;
+  const uint8_t* ptr = NULL;
+  size_t sz = 0;
   PacketStatus status = pm_nextPacket(pm, &ptr, &sz);
   lua_pushinteger(L, (int)status);
-  lua_pushlstring(L, (const char*)ptr, sz);
+  if (status == PS_OK) {
+    lua_pushlstring(L, (const char*)ptr, sz);
+  } else {
+    lua_pushnil(L);
+  }
   return 2;
 }
 static int _nextPacket(lua_State* L) {
