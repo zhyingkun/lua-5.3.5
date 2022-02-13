@@ -21,9 +21,8 @@
 
 ```bash
 cd lua-5.3.5/
-mkdir buildXcode && cd buildXcode
-cmake -DCMAKE_INSTALL_PREFIX=./install -G "Xcode" ..
-# cmake -DCMAKE_INSTALL_PREFIX=/usr/local/zyk/lua -G "Xcode" ..
+cmake -DCMAKE_INSTALL_PREFIX=./install -G "Xcode" -S . -B buildXcode
+# cmake -DCMAKE_INSTALL_PREFIX=/usr/local/zyk/lua -G "Xcode" -S . -B buildXcode
 # for some cmake version: -DCMAKE_OSX_ARCHITECTURES=x86_64
 ```
 
@@ -50,9 +49,8 @@ make 命令会自动编译好各个模块
 ```bash
 # In Cygwin
 cd lua-5.3.5/
-mkdir buildVS && cd buildVS
-cmake -DCMAKE_INSTALL_PREFIX=./install -G "Visual Studio 15 2017 Win64" ..
-# cmake -DCMAKE_INSTALL_PREFIX=D:/Applications/zyk/lua -G "Visual Studio 15 2017 Win64" ..
+cmake -DCMAKE_INSTALL_PREFIX=./install -G "Visual Studio 15 2017 Win64" -S . -B buildVS
+# cmake -DCMAKE_INSTALL_PREFIX=D:/Applications/zyk/lua -G "Visual Studio 15 2017 Win64" -S . -B buildVS
 ```
 
 非 Cygwin 可以使用 GUI 版本的 CMake 来生成 Visual Studio 工程
