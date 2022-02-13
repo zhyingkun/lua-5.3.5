@@ -21,8 +21,17 @@ LUALIB_API int luaL_msgh(lua_State* L) {
     lua_insert(L, -2);
     lua_pcall(L, 1, 1, 0); // if error with longjmp, just left the result msg in the stack
   } else {
-    lua_pop(L, 1);
-    luaL_traceback(L, L, lua_tostring(L, -1), 1);
+    lua_pop(L, 1); // pop the rawget value
+    const char* msg = lua_tostring(L, 1);
+    if (msg == NULL) { /* is error object not a string? */
+      if (luaL_callmeta(L, 1, "__tostring") && /* does it have a metamethod */
+          lua_type(L, -1) == LUA_TSTRING) { /* that produces a string? */
+        msg = lua_tostring(L, -1);
+      } else {
+        msg = lua_pushfstring(L, "(error object is a %s value)", luaL_typename(L, 1));
+      }
+    }
+    luaL_traceback(L, L, msg, 1); /* append a standard traceback */
   }
   return 1;
 }
