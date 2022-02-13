@@ -323,6 +323,15 @@ local function setup(mainWin)
 			print("Hello Timer:", i)
 		end
 		timer:close()
+		print("frame:", bcfx.frameId())
+		libuv.delayFrameAsyncWait(1)
+		print("frame:", bcfx.frameId())
+		libuv.delayFrameAsyncWait(2)
+		print("frame:", bcfx.frameId())
+		libuv.delayFrameAsyncWait(function()
+			return bcfx.frameId() >= 220
+		end)
+		print("frame:", bcfx.frameId())
 	end)
 
 	instanceBuffer = bcfx.createDynamicVertexBuffer(4 * 4 * 1 * 3, 0)
