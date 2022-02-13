@@ -2040,7 +2040,7 @@ end
 ---@param prompt string
 ---@return string
 function libuv.replRead(prompt)
-	return uvwrap.repl_start(prompt)
+	return uvwrap.repl_read(prompt)
 end
 ---@param history string
 function libuv.replHistory(history)
@@ -2048,8 +2048,9 @@ function libuv.replHistory(history)
 end
 ---@param codeStr string | nil
 ---@param eof boolean
----@return boolean, string, string @running, prompt, history
+---@return boolean, string, string | nil @running, prompt, history
 function libuv.replDefault(codeStr, eof)
+	-- warning: does not support multi instance
 	return uvwrap.repl_default(codeStr, eof)
 end
 
@@ -2281,6 +2282,10 @@ libuv.packet_status = uvwrap.packet_status
 local run = libloop.run
 local NOWAIT = libloop.run_mode.NOWAIT
 local close = libloop.close
+
+function libuv.run()
+	return run(loopCtx)
+end
 
 function libuv.runNoWait()
 	return run(loopCtx, NOWAIT)
