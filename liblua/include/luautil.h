@@ -118,12 +118,12 @@ LUALIB_API void luaBB_addvalue(luaL_ByteBuffer* b, lua_State* L, int idx);
 ** =======================================================
 */
 
-typedef void (*misc_MemRelease)(void* ud, void* ptr);
+typedef void (*luaL_MemRelease)(void* ud, void* ptr);
 
 typedef struct {
   void* ptr;
   size_t sz;
-  misc_MemRelease release;
+  luaL_MemRelease release;
   void* ud;
 } luaL_MemBuffer;
 

@@ -28,7 +28,7 @@ static int MEMBUF_FUNCTION(setReplace)(lua_State* L) {
   MEMBUFFER_RELEASE(mb);
   CHECK_AND_SET(2, ptr, void*, lightuserdata);
   CHECK_AND_SET(3, sz, size_t, integer);
-  CHECK_AND_SET(4, release, misc_MemRelease, lightuserdata);
+  CHECK_AND_SET(4, release, luaL_MemRelease, lightuserdata);
   CHECK_AND_SET(5, ud, void*, lightuserdata);
   return 0;
 }
