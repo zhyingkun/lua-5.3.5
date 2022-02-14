@@ -2069,22 +2069,22 @@ end
 ---@param errCode integer
 ---@return string
 function libuv.errName(errCode)
-	uvwrap.err_name(errCode)
+	return uvwrap.err_name(errCode)
 end
 ---@param errCode integer
 ---@return string
 function libuv.strError(errCode)
-	uvwrap.strerror(errCode)
+	return uvwrap.strerror(errCode)
 end
 ---@param errCode integer
 ---@return integer
 function libuv.translateSysError(errCode)
-	uvwrap.translate_sys_error(errCode)
+	return uvwrap.translate_sys_error(errCode)
 end
 ---@param fd integer
 ---@return libuv_handle_type
 function libuv.guessHandle(fd)
-	uvwrap.guess_handle(fd)
+	return uvwrap.guess_handle(fd)
 end
 ---@param worker lightuserdata
 ---@param arg nil | boolean | integer | lightuserdata
