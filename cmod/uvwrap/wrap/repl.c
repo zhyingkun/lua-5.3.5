@@ -307,22 +307,21 @@ static bool deal_repl_default(lua_State* L, const char* code, bool eof, const ch
   if (eof) { // Ctrl-D or Ctrl-Z+Enter
     if (firstline) {
       running = false;
-      // lua_printf("\n"); // just for output newline, print direct
-      lua_getglobal(L, "print");
-      if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
-        lua_pop(L, 1); // pop the error message
-      }
     } else {
       firstline = true; // end multi line
       GET_REGISTRY_FIELD(REPL_HISTORY);
       *phistory = lua_tostring(L, -1);
       lua_pop(L, 1);
-      // lua_printf("%s\n", (char*)NULL); // just for output newline, print direct
-      lua_getglobal(L, "print");
-      lua_pushfstring(L, "%s", (char*)NULL);
-      if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
-        lua_pop(L, 1); // pop the error message
-      }
+    }
+    lua_getglobal(L, "print");
+    if (!firstline) {
+      lua_getglobal(L, "_PROMPT2");
+      lua_pushfstring(L, "%s\n", lua_tostring(L, -1));
+      lua_remove(L, -2);
+    }
+    if (lua_pcall(L, firstline ? 0 : 1, 0, 0) != LUA_OK) {
+      lua_printf_err("%s\n", lua_tostring(L, -1));
+      lua_pop(L, 1); // pop the error message
     }
   } else {
     const char* history;
