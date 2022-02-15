@@ -314,12 +314,12 @@ static bool deal_repl_default(lua_State* L, const char* code, bool eof, const ch
       lua_pop(L, 1);
     }
     lua_getglobal(L, "print");
-    if (!firstline) {
+    if (running) {
       lua_getglobal(L, "_PROMPT2");
-      lua_pushfstring(L, "%s\n", lua_tostring(L, -1));
+      lua_pushfstring(L, "%s", lua_tostring(L, -1));
       lua_remove(L, -2);
     }
-    if (lua_pcall(L, firstline ? 0 : 1, 0, 0) != LUA_OK) {
+    if (lua_pcall(L, running ? 1 : 0, 0, 0) != LUA_OK) {
       lua_printf_err("%s\n", lua_tostring(L, -1));
       lua_pop(L, 1); // pop the error message
     }
