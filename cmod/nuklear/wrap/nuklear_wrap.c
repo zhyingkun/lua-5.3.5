@@ -54,6 +54,27 @@ static int NKWRAP_FUNCTION(convert)(lua_State* L) {
     };
     return luaL_error(L, "Convert nuklear draw command failed: %s", convertMessage[ret]);
   }
+  /*
+  printf("VertexBuffer and IndexBuffer:\n");
+  NuklearVertex* NV = (NuklearVertex*)nk_buffer_memory(vertices);
+  size_t count = vertices->allocated / sizeof(NuklearVertex);
+  for (size_t i = 0; i < count; i++) {
+    printf("pos: (%f, %f), uv: (%f, %f), color: (%d, %d, %d, %d)\n",
+           NV[i].position[0],
+           NV[i].position[1],
+           NV[i].uv[0],
+           NV[i].uv[1],
+           NV[i].color[0],
+           NV[i].color[1],
+           NV[i].color[2],
+           NV[i].color[3]);
+  }
+  uint16_t* indices = (uint16_t*)nk_buffer_memory(elements);
+  size_t cnt = elements->allocated / sizeof(uint16_t) / 3;
+  for (size_t i = 0; i < cnt; i++) {
+    printf("triangle: %d, %d, %d\n", indices[i * 3], indices[i * 3 + 1], indices[i * 3 + 2]);
+  }
+  */
   return 0;
 }
 
