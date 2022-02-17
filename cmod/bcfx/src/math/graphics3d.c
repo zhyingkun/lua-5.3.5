@@ -15,6 +15,7 @@ BCFX_API void g3d_translate(const Vec3* vec, Mat4x4* mat) {
 }
 
 // 'theta' are in degree, not radian
+// when theta == 0.0, you got MatI, means rotate nothing, so, matrix means rotate, not direction
 BCFX_API void g3d_rotate(float theta, const Vec3* axis, Mat4x4* mat) {
   ALLOCA_VEC3(A);
   VEC_NORMALIZE(axis, A);
@@ -94,7 +95,10 @@ BCFX_API void g3d_scale(const Vec3* vec, Mat4x4* mat) {
   // clang-format on
 }
 
-// fovy is in degree, not radian, 0 < zNear < zFar
+// fovy is in degree, not radian
+// zNear define the distance between the camera position and the near clipping planes
+// zFar  define the distance between the camera position and the far  clipping planes
+// 0 < zNear < zFar
 // aspect = width / height, in near plane
 BCFX_API void g3d_perspective(float fovy, float aspect, float zNear, float zFar, Mat4x4* mat) {
   // attention please, zNear and zFar are distance, n and f are signed depth
@@ -112,10 +116,10 @@ BCFX_API void g3d_perspective(float fovy, float aspect, float zNear, float zFar,
   0, n, 0, 0
   0, 0, n+f, -n*f
   0, 0, 1, 0
-  after this transform, the homogeneous component will be the z, which is negative
-  we also can make the homogeneous component to be -z and derive another matrix
-  the homogeneous component must be z * scale, and scale != 0
-  during compression, the range of z: [-zFar, -zNear] => [-zFar, -zNear], but not linear
+  after this transform, the homogeneous component is z, which is negative for look at z negative axis
+  the homogeneous component must be z * scale, and scale != 0, for perspective division
+  usually we choose 1 or -1 for scale
+  during compression, the range of z: n => n, f => f, but not linear, so, does not change handedness
   */
   ALLOCA_MAT4x4(p2oMat);
 #define MP2O(row, col) MAT_ELEMENT(p2oMat, row, col)
@@ -138,7 +142,9 @@ BCFX_API void g3d_perspective(float fovy, float aspect, float zNear, float zFar,
   float right = top * aspect;
   float left = -right;
   ALLOCA_MAT4x4(orthoMat);
-  g3d_orthogonal(left, right, bottom, top, zNear, zFar, orthoMat);
+  g3d_orthogonal(left, right, bottom, top, n, f, orthoMat); // will toggle handedness because 0 > n > f
+  // ViewSpace is RightHandedCoordinate
+  // ClipSpace is LeftHandedCoordinate
 
   MAT_MULTIPLY(orthoMat, p2oMat, mat);
 }
@@ -232,16 +238,17 @@ BCFX_API void g3d_perspectiveInfinity(float fovy, float aspect, float zNear, Mat
   */
 }
 
-// zNear define the distance between the camera position and the near clipping planes
-// zFar  define the distance between the camera position and the far  clipping planes
-// left < right, bottom < top, 0 < zNear < zFar
-BCFX_API void g3d_orthogonal(float left, float right, float bottom, float top, float zNear, float zFar, Mat4x4* mat) {
-  // l, r, b, t, n, f are all signed value, zNear and zFar are unsigned value
-  float l = left, r = right, b = bottom, t = top, n = -zNear, f = -zFar;
+// left < right, bottom < top
+// [left, right] => [-1, 1]
+// [bottom, top] => [-1, 1]
+// near => -1, far => 1
+BCFX_API void g3d_orthogonal(float left, float right, float bottom, float top, float near, float far, Mat4x4* mat) {
+  // l, r, b, t, n, f are all signed value
+  float l = left, r = right, b = bottom, t = top, n = near, f = far;
   /*
-  projection matrix should convert RightHandCoordinate to NDC (a LeftHandCoordinate)
+  we can control handedness by near and far, if near < far, handedness unchanged, if near > far, then toggle the handedness
   we mapping [l, r] to [-1, 1], [b, t] to [-1, 1], and n to -1, f to 1
-  because 0 > n > f, after mapping, -1 < 1, so, mapping the z axis change the Handedness
+  if 0 > n > f, after mapping, -1 < 1, so, mapping the z axis change the Handedness
   xNew = 2.0 / (r - l) * x - (l + r) / (r - l)
   yNew = 2.0 / (t - b) * y - (b + t) / (t - b)
   zNew = 2.0 / (f - n) * z - (n + f) / (f - n)
@@ -257,11 +264,10 @@ BCFX_API void g3d_orthogonal(float left, float right, float bottom, float top, f
 
 BCFX_API void g3d_lookAt(const Vec3* eye, const Vec3* center, const Vec3* up, Mat4x4* mat) {
   /*
-  'eye', 'center', 'up' also according to the world coordinate
+  'eye', 'center', 'up' also according to the world coordinate (in WorldSpace)
   we stand at 'eye', look at 'center', 'up' is the direction points to the top of camera
-  x, y, z is three vec3 for camera coordinate, according to the world coordinate
+  x, y, z are three vec3 for camera coordinate, according to the world coordinate (in WorldSpace)
   x, y, z will make a new coordinate, we call it ViewSpace
-  eye, x, y, z are all in WorldSpace
   we use CrossProduct to generate ViewSpace, so ViewSpace's handedness equals WorldSpace's handedness
 
   ASpace translate to BSpace, we should find 4 vectors according to BSpace:
