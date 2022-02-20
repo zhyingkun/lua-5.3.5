@@ -20,6 +20,11 @@
 
 #define EQUAL(a, b) ((a - b) < 1e-7 && (a - b) > -(1e-7))
 
+#define LIMITED(val, min, max) (val < min ? min : (val > max ? max : val))
+
+#define RADIAN(deg) ((deg)*M_PI / 180.0)
+#define DEGREE(rad) ((rad)*180.0 * M_1_PI)
+
 /* }====================================================== */
 
 /*
@@ -226,6 +231,20 @@ BCFX_API void vec3_init(Vec3* vec);
 #define VEC3_Y(vec) VEC_ELEMENT(vec, 1)
 #define VEC3_Z(vec) VEC_ELEMENT(vec, 2)
 
+#define VEC3_DIRECTION(x, y, z) \
+  { \
+    3, { \
+      x, y, z \
+    } \
+  }
+
+#define VEC3_UP() VEC3_DIRECTION(0.0, 0.0, 1.0)
+#define VEC3_DOWN() VEC3_DIRECTION(0.0, 0.0, -1.0)
+#define VEC3_FORWARD() VEC3_DIRECTION(0.0, 1.0, 0.0)
+#define VEC3_BACKWARD() VEC3_DIRECTION(0.0, -1.0, 0.0)
+#define VEC3_RIGHT() VEC3_DIRECTION(1.0, 0.0, 0.0)
+#define VEC3_LEFT() VEC3_DIRECTION(-1.0, 0.0, 0.0)
+
 #define VEC3_CROSS_PRODUCT(src1, src2, dst) vec3_crossProduct(src1, src2, dst)
 
 BCFX_API void vec3_crossProduct(const Vec3* src1, const Vec3* src2, Vec3* dst);
@@ -254,6 +273,60 @@ BCFX_API void vec4_init(Vec4* vec);
 #define VEC4_Y(vec) VEC_ELEMENT(vec, 1)
 #define VEC4_Z(vec) VEC_ELEMENT(vec, 2)
 #define VEC4_W(vec) VEC_ELEMENT(vec, 3)
+
+/* }====================================================== */
+
+// Euler angle store the degree, [-89, 89], [-180, 180]
+typedef struct {
+  float pitch; // up and down, rotate around x axis
+  float roll; // rotate around forward, the y axis
+  float yaw; // left and right, rotate around z axis
+} EulerAngle;
+
+typedef struct {
+  float w; // the real part of quaternion
+  float x;
+  float y;
+  float z;
+} Quaternion;
+
+/*
+** {======================================================
+** Euler Angle
+** =======================================================
+*/
+
+BCFX_API void euler_init(EulerAngle* ea, const Vec3* vec);
+BCFX_API void euler_initAxisAngle(EulerAngle* ea, float angle, const Vec3* axis);
+BCFX_API void euler_direction(const EulerAngle* ea, Vec3* direction);
+BCFX_API void euler_toQuaternion(const EulerAngle* ea, Quaternion* quat);
+BCFX_API void euler_toMatrix(const EulerAngle* ea, Mat4x4* mat);
+BCFX_API void euler_toAxisAngle(const EulerAngle* ea, Vec3* axis, float* angle);
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Quaternion
+** =======================================================
+*/
+
+BCFX_API void quat_init(Quaternion* quat, float angle, const Vec3* axis);
+BCFX_API void quat_initVec3(Quaternion* quat, const Vec3* vec);
+BCFX_API void quat_imaginary(Quaternion* quat, Vec3* vec);
+BCFX_API void quat_toEulerAngle(Quaternion* quat, EulerAngle* ea);
+BCFX_API void quat_toMatrix(Quaternion* quat, Mat4x4* mat);
+BCFX_API void quat_toAxisAngle(Quaternion* quat, Vec3* axis, float* angle);
+BCFX_API void quat_add(Quaternion* src1, Quaternion* src2, Quaternion* dst);
+BCFX_API void quat_subtract(Quaternion* src1, Quaternion* src2, Quaternion* dst);
+BCFX_API void quat_multiply(Quaternion* src1, Quaternion* src2, Quaternion* dst);
+BCFX_API void quat_scale(Quaternion* src, float scale, Quaternion* dst);
+BCFX_API void quat_conjugate(Quaternion* src, Quaternion* dst);
+BCFX_API void quat_normalize(Quaternion* src, Quaternion* dst);
+BCFX_API void quat_inverse(Quaternion* src, Quaternion* dst);
+BCFX_API float quat_dotProduct(Quaternion* src1, Quaternion* src2);
+BCFX_API void quat_rotate(Quaternion* quat, Vec3* src, Vec3* dst);
+BCFX_API void quat_slerp(Quaternion* s, Quaternion* e, float t, Quaternion* quat);
 
 /* }====================================================== */
 

@@ -134,7 +134,7 @@ BCFX_API void g3d_perspective(float fovy, float aspect, float zNear, float zFar,
   // but now the transform store the z, which in range [-zFar, -zNear], so we should negative it
   MAT_NEGATIVE_(p2oMat);
 
-  float radHalfFovY = fovy / 2.0 * M_PI / 180.0;
+  float radHalfFovY = RADIAN(fovy / 2.0);
   float tanHalfFovY = tanf(radHalfFovY);
   // for near plane
   float top = zNear * tanHalfFovY;
