@@ -8,12 +8,9 @@
 */
 
 BCFX_API void euler_init(EulerAngle* ea, const Vec3* vec) {
-  ea->pitch = LIMITED(VEC3_X(vec), -89.0, 89.0);
+  ea->pitch = LIMITED(VEC3_X(vec), -180.0, 180.0);
   ea->roll = LIMITED(VEC3_Y(vec), -180.0, 180.0);
   ea->yaw = LIMITED(VEC3_Z(vec), -180.0, 180.0);
-}
-
-BCFX_API void euler_initAxisAngle(EulerAngle* ea, float angle, const Vec3* axis) {
 }
 
 BCFX_API void euler_direction(const EulerAngle* ea, Vec3* direction) {
@@ -70,14 +67,14 @@ BCFX_API void euler_toMatrix(const EulerAngle* ea, Mat4x4* mat) {
   // clang-format on
 #undef MRZ
 
+  // according to the rotation order, the previous rotation operation changes the direction of the axis of the later rotation
+  // the rotation axis are in LocalSpace, not WorldSpace
+  // when rotation order are x->y->z, if y rotate pi/2, then z will rotate with the same direction of x, this is GimbalLock
   ALLOCA_MAT3x3(rotXY);
   MAT_MULTIPLY(rotY, rotX, rotXY);
   ALLOCA_MAT3x3(rotXYZ);
   MAT_MULTIPLY(rotZ, rotXY, rotXYZ);
   MAT4x4_INIT_MAT3x3(mat, rotXYZ);
-}
-
-BCFX_API void euler_toAxisAngle(const EulerAngle* ea, Vec3* axis, float* angle) {
 }
 
 /* }====================================================== */

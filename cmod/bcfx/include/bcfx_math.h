@@ -297,11 +297,9 @@ typedef struct {
 */
 
 BCFX_API void euler_init(EulerAngle* ea, const Vec3* vec);
-BCFX_API void euler_initAxisAngle(EulerAngle* ea, float angle, const Vec3* axis);
 BCFX_API void euler_direction(const EulerAngle* ea, Vec3* direction);
 BCFX_API void euler_toQuaternion(const EulerAngle* ea, Quaternion* quat);
 BCFX_API void euler_toMatrix(const EulerAngle* ea, Mat4x4* mat);
-BCFX_API void euler_toAxisAngle(const EulerAngle* ea, Vec3* axis, float* angle);
 
 /* }====================================================== */
 
@@ -313,20 +311,21 @@ BCFX_API void euler_toAxisAngle(const EulerAngle* ea, Vec3* axis, float* angle);
 
 BCFX_API void quat_init(Quaternion* quat, float angle, const Vec3* axis);
 BCFX_API void quat_initVec3(Quaternion* quat, const Vec3* vec);
-BCFX_API void quat_imaginary(Quaternion* quat, Vec3* vec);
-BCFX_API void quat_toEulerAngle(Quaternion* quat, EulerAngle* ea);
-BCFX_API void quat_toMatrix(Quaternion* quat, Mat4x4* mat);
-BCFX_API void quat_toAxisAngle(Quaternion* quat, Vec3* axis, float* angle);
-BCFX_API void quat_add(Quaternion* src1, Quaternion* src2, Quaternion* dst);
-BCFX_API void quat_subtract(Quaternion* src1, Quaternion* src2, Quaternion* dst);
-BCFX_API void quat_multiply(Quaternion* src1, Quaternion* src2, Quaternion* dst);
-BCFX_API void quat_scale(Quaternion* src, float scale, Quaternion* dst);
-BCFX_API void quat_conjugate(Quaternion* src, Quaternion* dst);
-BCFX_API void quat_normalize(Quaternion* src, Quaternion* dst);
-BCFX_API void quat_inverse(Quaternion* src, Quaternion* dst);
-BCFX_API float quat_dotProduct(Quaternion* src1, Quaternion* src2);
-BCFX_API void quat_rotate(Quaternion* quat, Vec3* src, Vec3* dst);
-BCFX_API void quat_slerp(Quaternion* s, Quaternion* e, float t, Quaternion* quat);
+BCFX_API void quat_imaginary(const Quaternion* quat, Vec3* vec);
+BCFX_API void quat_toEulerAngle(const Quaternion* quat, EulerAngle* ea);
+BCFX_API void quat_toMatrix(const Quaternion* quat, Mat4x4* mat);
+BCFX_API void quat_toAxisAngle(const Quaternion* quat, Vec3* axis, float* angle);
+BCFX_API void quat_add(const Quaternion* src1, const Quaternion* src2, Quaternion* dst);
+BCFX_API void quat_subtract(const Quaternion* src1, const Quaternion* src2, Quaternion* dst);
+BCFX_API void quat_multiply(const Quaternion* src1, const Quaternion* src2, Quaternion* dst);
+BCFX_API void quat_scale(const Quaternion* src, float scale, Quaternion* dst);
+BCFX_API void quat_conjugate(const Quaternion* src, Quaternion* dst);
+BCFX_API void quat_normalize(const Quaternion* src, Quaternion* dst);
+BCFX_API void quat_inverse(const Quaternion* src, Quaternion* dst);
+BCFX_API float quat_dotProduct(const Quaternion* src1, const Quaternion* src2);
+BCFX_API void quat_rotate(const Quaternion* quat, const Vec3* src, Vec3* dst);
+BCFX_API void quat_shortSide(const Quaternion* s, Quaternion* e);
+BCFX_API void quat_slerp(const Quaternion* s, const Quaternion* e, float t, Quaternion* quat);
 
 /* }====================================================== */
 
