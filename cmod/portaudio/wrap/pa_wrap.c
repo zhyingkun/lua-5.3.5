@@ -53,6 +53,10 @@ static int PAWRAP_FUNCTION(StreamParameters)(lua_State* L) {
   }
   return 1;
 }
+static void PAWRAP_FUNCTION(initStreamParametersMetatable)(lua_State* L) {
+  luaL_newmetatable(L, PA_STREAMPARAMETERS_TYPE);
+  lua_pop(L, 1);
+}
 
 #define PA_STREAMCALLBACKTIMEINFO_TYPE "PaStreamCallbackTimeInfo*"
 #define luaL_checkstreamcallbacktimeinfo(L, idx) (PaStreamCallbackTimeInfo*)luaL_checkudata(L, idx, PA_STREAMCALLBACKTIMEINFO_TYPE)
@@ -217,7 +221,7 @@ static int _streamCallback(const void* input, void* output, unsigned long frameC
 }
 static int PAWRAP_FUNCTION(OpenStream)(lua_State* L) {
   PaStream* stream;
-  const PaStreamParameters* inputParameters = luaL_checkstreamparameters(L, 1);
+  const PaStreamParameters* inputParameters = NULL; // luaL_checkstreamparameters(L, 1);
   const PaStreamParameters* outputParameters = luaL_checkstreamparameters(L, 2);
   double sampleRate = luaL_checknumber(L, 3);
   unsigned long framesPerBuffer = luaL_checkinteger(L, 4);
@@ -530,5 +534,6 @@ LUAMOD_API int luaopen_libportaudio(lua_State* L) {
   REGISTE_ENUM_PA(stream_callback_flag);
   REGISTE_ENUM_PA(stream_callback_result);
 
+  (void)PAWRAP_FUNCTION(initStreamParametersMetatable)(L);
   return 1;
 }
