@@ -67,9 +67,14 @@ BCFX_API void euler_toMatrix(const EulerAngle* ea, Mat4x4* mat) {
   // clang-format on
 #undef MRZ
 
-  // according to the rotation order, the previous rotation operation changes the direction of the axis of the later rotation
-  // the rotation axis are in LocalSpace, not WorldSpace
-  // when rotation order are x->y->z, if y rotate pi/2, then z will rotate with the same direction of x, this is GimbalLock
+  // intrinsic rotations: rotated axis, the previous rotation operation changes the direction of the axis for the later rotation, the rotation axis are in LocalSpace, not WorldSpace
+  // extrinsic rotations: static/fixed axis, the rotation axis are in WorldSpace
+
+  // when rotate order are x->y->z, if y rotate pi/2, then z will rotate with the same direction of x, this is GimbalLock
+
+  // here we using:
+  // rotate direction: all three axis are right hand spiral rule
+  // rotate order: x->y->z in extrinsic rotations
   ALLOCA_MAT3x3(rotXY);
   MAT_MULTIPLY(rotY, rotX, rotXY);
   ALLOCA_MAT3x3(rotXYZ);
