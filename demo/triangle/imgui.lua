@@ -228,6 +228,7 @@ local slider = 10
 
 function imgui.tick(delta)
 	nk.styleSetFont(myFont)
+	---[[
 	if nk.begin("Basic Demo", nk.packRect(0, 0, 400, 300), 
 		panel_flag.BORDER  |panel_flag.MOVABLE |panel_flag.TITLE|
 		panel_flag.SCALABLE|panel_flag.CLOSABLE|panel_flag.MINIMIZABLE)
@@ -239,10 +240,12 @@ function imgui.tick(delta)
 		nk.textWidget(str, text_alignment.LEFT)
 		nk.layoutRowDynamic(20, 1)
 		nk.textWidget("1234567890", text_alignment.RIGHT)
-		nk.layoutRowDynamic(50, 1)
+		nk.layoutRowStatic(50, 50, 2)
 		if nk.buttonImageText(_img_, "Button", text_alignment.LEFT) then
 			print("OnButtonClicked")
 			_OpenPopup_ = not _OpenPopup_
+		end
+		if nk.buttonImage(_img_) then
 		end
 		if _OpenPopup_ then
 			if nk.popupBegin(nk.popup_type.STATIC, "Image Popup", 0, nk.packRect(265, 0, 280, 220)) then
@@ -325,6 +328,17 @@ function imgui.tick(delta)
 		end
 	end
 	nk.endWindow()
+	--]]
+
+	nk.stylePushStyleItem(nk.getStylePtrTable().style_item.window.fixed_background, nk.StyleItem(nk.rgbaToColor(128, 128, 128, 0)))
+	if nk.begin("Transparent Background Demo", nk.packRect(0, 0, 400, 300),
+		panel_flag.BORDER  |panel_flag.MOVABLE |panel_flag.TITLE|
+		panel_flag.SCALABLE|panel_flag.CLOSABLE|panel_flag.MINIMIZABLE)
+	then
+	end
+	nk.endWindow()
+	nk.stylePopStyleItem()
+
 	local vbuf, ebuf
 	if bcfx.frameId() % 2 == 0 then
 		vbuf = vbuf1
