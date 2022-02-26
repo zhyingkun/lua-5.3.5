@@ -9,6 +9,7 @@
 #include <luautil.h>
 
 #include <stdlib.h>
+#include <assert.h>
 
 #include <mad.h>
 
