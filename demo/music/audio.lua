@@ -21,7 +21,7 @@ local deviceInfo = pa.GetDeviceInfo(index)
 local streamParameters = pa.StreamParameters({
 	device = index,
 	channelCount = 2,
-	sampleFormat = pa.sample_format.Float32,
+	sampleFormat = pa.sample_format.Int32,
 	suggestedLatency = deviceInfo.defaultLowOutputLatency,
 })
 print(streamParameters)
