@@ -23,6 +23,16 @@ Mat4x4* luaL_checkmat4x4(lua_State* L, int idx) {
   return (Mat4x4*)mat;
 }
 
+Mat3x3* luaL_testmat3x3(lua_State* L, int idx) {
+  Mat* mat = luaL_testmat(L, idx);
+  return (mat != NULL && IS_MAT3x3(mat)) ? (Mat3x3*)mat : NULL;
+}
+
+Mat4x4* luaL_testmat4x4(lua_State* L, int idx) {
+  Mat* mat = luaL_testmat(L, idx);
+  return (mat != NULL && IS_MAT4x4(mat)) ? (Mat4x4*)mat : NULL;
+}
+
 Mat* luaL_newmatrix(lua_State* L, uint8_t row, uint8_t col) {
   Mat* mat = (Mat*)lua_newuserdata(L, MAT_SIZE(row, col));
   luaL_setmetatable(L, BCFX_MATRIX_TYPE);
@@ -152,10 +162,10 @@ static int MATRIX_FUNCTION(__tostring)(lua_State* L) {
   snprintf(buf, TEMP_BUF_SIZE, "Mat*: %dx%d\n", mat->row, mat->col);
   luaL_addstring(b, buf);
   for (int i = 0; i < mat->row; i++) {
-    snprintf(buf, TEMP_BUF_SIZE, "\t%.2f", MAT_ELEMENT(mat, i, 0));
+    snprintf(buf, TEMP_BUF_SIZE, "\t%.7f", MAT_ELEMENT(mat, i, 0));
     luaL_addstring(b, buf);
     for (int j = 1; j < mat->col; j++) {
-      snprintf(buf, TEMP_BUF_SIZE, ", %.2f", MAT_ELEMENT(mat, i, j));
+      snprintf(buf, TEMP_BUF_SIZE, ", %.7f", MAT_ELEMENT(mat, i, j));
       luaL_addstring(b, buf);
     }
     luaL_addstring(b, "\n");
@@ -187,30 +197,55 @@ static const luaL_Reg MATRIX_FUNCTION(metafuncs)[] = {
     {NULL, NULL},
 };
 
-#define INIT_MAT4x4_ELEMENT(mat, row, col, value) MAT_ELEMENT(mat, row, col) = luaL_optnumber(L, row * 4 + col + 1, value)
+#define INIT_MAT_ELEMENT(mat, row, col, value, cnt) MAT_ELEMENT(mat, row, col) = luaL_optnumber(L, row * cnt + col + 1, value)
+
+static int MATRIX_FUNCTION(Mat3x3)(lua_State* L) {
+  Mat3x3* mat3 = luaL_testmat3x3(L, 1);
+  if (mat3 != NULL) {
+    Mat3x3* mat = luaL_newmat3x3(L);
+    *mat = *mat3;
+    return 1;
+  }
+  lua_settop(L, 3 * 3);
+  Mat3x3* mat = luaL_newmat3x3(L);
+#define IME(row, col, value) INIT_MAT_ELEMENT(mat, row, col, value, 3)
+  // clang-format off
+  IME(0, 0, 1.0); IME(0, 1, 0.0); IME(0, 2, 0.0);
+  IME(1, 0, 0.0); IME(1, 1, 1.0); IME(1, 2, 0.0);
+  IME(2, 0, 0.0); IME(2, 1, 0.0); IME(2, 2, 1.0);
+  // clang-format on
+#undef IME
+  return 1;
+}
+
 static int MATRIX_FUNCTION(Mat4x4)(lua_State* L) {
-  lua_settop(L, 16);
+  Mat4x4* mat4 = luaL_testmat4x4(L, 1);
+  if (mat4 != NULL) {
+    Mat4x4* mat = luaL_newmat4x4(L);
+    *mat = *mat4;
+    return 1;
+  }
+  Mat3x3* mat3 = luaL_testmat3x3(L, 1);
+  if (mat3 != NULL) {
+    Mat4x4* mat = luaL_newmat4x4(L);
+    mat4x4_initMat3x3(mat, mat3);
+    return 1;
+  }
+  lua_settop(L, 4 * 4);
   Mat4x4* mat = luaL_newmat4x4(L);
-  INIT_MAT4x4_ELEMENT(mat, 0, 0, 1.0);
-  INIT_MAT4x4_ELEMENT(mat, 0, 1, 0.0);
-  INIT_MAT4x4_ELEMENT(mat, 0, 2, 0.0);
-  INIT_MAT4x4_ELEMENT(mat, 0, 3, 0.0);
-  INIT_MAT4x4_ELEMENT(mat, 1, 0, 0.0);
-  INIT_MAT4x4_ELEMENT(mat, 1, 1, 1.0);
-  INIT_MAT4x4_ELEMENT(mat, 1, 2, 0.0);
-  INIT_MAT4x4_ELEMENT(mat, 1, 3, 0.0);
-  INIT_MAT4x4_ELEMENT(mat, 2, 0, 0.0);
-  INIT_MAT4x4_ELEMENT(mat, 2, 1, 0.0);
-  INIT_MAT4x4_ELEMENT(mat, 2, 2, 1.0);
-  INIT_MAT4x4_ELEMENT(mat, 2, 3, 0.0);
-  INIT_MAT4x4_ELEMENT(mat, 3, 0, 0.0);
-  INIT_MAT4x4_ELEMENT(mat, 3, 1, 0.0);
-  INIT_MAT4x4_ELEMENT(mat, 3, 2, 0.0);
-  INIT_MAT4x4_ELEMENT(mat, 3, 3, 1.0);
+#define IME(row, col, value) INIT_MAT_ELEMENT(mat, row, col, value, 4)
+  // clang-format off
+  IME(0, 0, 1.0); IME(0, 1, 0.0); IME(0, 2, 0.0); IME(0, 3, 0.0);
+  IME(1, 0, 0.0); IME(1, 1, 1.0); IME(1, 2, 0.0); IME(1, 3, 0.0);
+  IME(2, 0, 0.0); IME(2, 1, 0.0); IME(2, 2, 1.0); IME(2, 3, 0.0);
+  IME(3, 0, 0.0); IME(3, 1, 0.0); IME(3, 2, 0.0); IME(3, 3, 1.0);
+  // clang-format on
+#undef IME
   return 1;
 }
 
 static const luaL_Reg MATRIX_FUNCTION(funcs)[] = {
+    EMPLACE_MATRIX_FUNCTION(Mat3x3),
     EMPLACE_MATRIX_FUNCTION(Mat4x4),
     {NULL, NULL},
 };

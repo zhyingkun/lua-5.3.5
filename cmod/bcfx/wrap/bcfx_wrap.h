@@ -54,7 +54,11 @@ Mat3x3* luaL_checkmat3x3(lua_State* L, int idx);
 Mat4x4* luaL_checkmat4x4(lua_State* L, int idx);
 #define luaL_optmat3x3(L, idx, dft) luaL_opt(L, luaL_checkmat3x3, idx, dft)
 #define luaL_optmat4x4(L, idx, dft) luaL_opt(L, luaL_checkmat4x4, idx, dft)
+#define luaL_testmat(L, idx) (Mat*)luaL_testudata_recursive(L, idx, BCFX_MATRIX_TYPE)
+Mat3x3* luaL_testmat3x3(lua_State* L, int idx);
+Mat4x4* luaL_testmat4x4(lua_State* L, int idx);
 Mat* luaL_newmatrix(lua_State* L, uint8_t row, uint8_t col);
+#define luaL_newmat3x3(L) (Mat3x3*)luaL_newmatrix(L, 3, 3)
 #define luaL_newmat4x4(L) (Mat4x4*)luaL_newmatrix(L, 4, 4)
 
 #define luaL_checkshadertype(L, idx) ((bcfx_EShaderType)luaL_checkinteger(L, idx))
