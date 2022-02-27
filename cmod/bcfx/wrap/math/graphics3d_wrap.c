@@ -52,10 +52,10 @@ static int G3D_FUNCTION(orthogonal)(lua_State* L) {
   float right = luaL_checknumber(L, 2);
   float bottom = luaL_checknumber(L, 3);
   float top = luaL_checknumber(L, 4);
-  float zNear = luaL_checknumber(L, 5);
-  float zFar = luaL_checknumber(L, 6);
+  float near = luaL_checknumber(L, 5);
+  float far = luaL_checknumber(L, 6);
   Mat4x4* mat = luaL_newmat4x4(L);
-  g3d_orthogonal(left, right, bottom, top, zNear, zFar, mat);
+  g3d_orthogonal(left, right, bottom, top, near, far, mat);
   return 1;
 }
 
