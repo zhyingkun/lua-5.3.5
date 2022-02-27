@@ -28,7 +28,7 @@ end
 function dir.rmdir(path)
 	return libdir.rmdir(path)
 end
----@return string | nil, errStr, errCode
+---@return string | nil, nil | string, nil | integer @ path, errStr, errCode
 function dir.cwd()
 	return libdir.cwd()
 end

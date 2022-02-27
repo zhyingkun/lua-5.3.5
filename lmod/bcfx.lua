@@ -9,7 +9,6 @@ local libutils = libbcfx.utils
 
 local libuv = require("libuv")
 
-local ASYNC_WAIT_MSG = "AsyncWait api must running in coroutine"
 local queueWorkAsync = libuv.queueWorkAsync
 local queueWorkAsyncWait = libuv.queueWorkAsyncWait
 
@@ -159,7 +158,7 @@ math.graphics3d = graphics3d
 function graphics3d.translate(vec)
 	return libgraphics3d.translate(vec)
 end
----@param angle number
+---@param angle number @ in degree, not radian
 ---@param axis Vec3
 ---@return Mat4x4
 function graphics3d.rotate(angle, axis)
@@ -170,10 +169,12 @@ end
 function graphics3d.scale(vec)
 	return libgraphics3d.scale(vec)
 end
----@param fovy number
----@param aspect number
----@param zNear number
----@param zFar number
+---@overload fun(fovy:number, aspect:number, zNear:number):Mat4x4
+---@overload fun(fovy:number, aspect:number, zNear:number, zFar:number):Mat4x4
+---@param fovy number @ in degree, not radian
+---@param aspect number @ width / height
+---@param zNear number @ zNear > 0, means distance
+---@param zFar number @ zFar > zNear > 0, means distance
 ---@return Mat4x4
 function graphics3d.perspective(fovy, aspect, zNear, zFar)
 	return libgraphics3d.perspective(fovy, aspect, zNear, zFar)
@@ -182,11 +183,11 @@ end
 ---@param right number
 ---@param bottom number
 ---@param top number
----@param zNear number
----@param zFar number
+---@param near number @ map to -1, if near < far, orthogonal will leave handedness unchanged
+---@param far number @ map to 1, if far < near, orthogonal will toggle handedness
 ---@return Mat4x4
-function graphics3d.orthogonal(left, right, bottom, top, zNear, zFar)
-	return libgraphics3d.orthogonal(left, right, bottom, top, zNear, zFar)
+function graphics3d.orthogonal(left, right, bottom, top, near, far)
+	return libgraphics3d.orthogonal(left, right, bottom, top, near, far)
 end
 ---@param eye Vec3
 ---@param center Vec3
@@ -225,8 +226,21 @@ math.matrix = matrix
 ---@field public adjoint Matrix1Src1DstSignature
 ---@field public inverse fun(src:Mat):(nil | Mat)
 
+---@class Mat3x3:Mat
+
+---overload fun(mat:Mat3x3):Mat3x3
+---overload fun(...:number):Mat3x3
+---@vararg number
+---@return Mat3x3
+function matrix.Mat3x3(...)
+	return libmatrix.Mat3x3(...)
+end
+
 ---@class Mat4x4:Mat
 
+---overload fun(mat:Mat3x3):Mat4x4
+---overload fun(mat:Mat4x4):Mat4x4
+---overload fun(...:number):Mat4x4
 ---@vararg number
 ---@return Mat4x4
 function matrix.Mat4x4(...)
@@ -570,13 +584,13 @@ function bcfx.updateProgram(handle, vs, fs)
 	libbcfx.updateProgram(handle, vs, fs)
 end
 ---@param handle Handle
----@param offset number
+---@param offset integer
 ---@param mb luaL_MemBuffer
 function bcfx.updateDynamicVertexBuffer(handle, offset, mb)
 	libbcfx.updateDynamicVertexBuffer(handle, offset, mb)
 end
 ---@param handle Handle
----@param offset number
+---@param offset integer
 ---@param mb luaL_MemBuffer
 function bcfx.updateDynamicIndexBuffer(handle, offset, mb)
 	libbcfx.updateDynamicIndexBuffer(handle, offset, mb)
@@ -618,8 +632,8 @@ end
 ---@param id ViewId
 ---@param flags bcfx_clear_flag
 ---@param rgba Color
----@param depth number
----@param stencil number
+---@param depth number @ [-1.0, 1.0]
+---@param stencil integer @ [0, 255]
 function bcfx.setViewClear(id, flags, rgba, depth, stencil)
 	libbcfx.setViewClear(id, flags, rgba, depth, stencil)
 end
@@ -1000,12 +1014,12 @@ color.black = libcolor.black
 ---@type Color
 color.white = libcolor.white
 
----@overload fun(r:number, g:number, b:number):Color
----@overload fun(r:number, g:number, b:number, a:number):Color
----@param r number
----@param g number
----@param b number
----@param a number
+---@overload fun(r:integer | number, g:integer | number, b:integer | number):Color
+---@overload fun(r:integer | number, g:integer | number, b:integer | number, a:integer | number):Color
+---@param r integer | number
+---@param g integer | number
+---@param b integer | number
+---@param a integer | number
 ---@return Color
 function color.pack(r, g, b, a)
 	return libcolor.pack(r, g, b, a)
@@ -1029,13 +1043,10 @@ end
 ** =======================================================
 --]]
 
----@alias DataGetterSignature fun():number, ...
+---@alias DataGetterSignature fun():number, any @ return any count of numbers
 
 ---@overload fun(type:bcfx_data_type, data:number[]):luaL_MemBuffer
----@overload fun(type:bcfx_data_type, dataGetter:DataGetterSignature, ...):luaL_MemBuffer
----@param type bcfx_data_type
----@param data number[]
----@param dataGetter DataGetterSignature
+---@overload fun(type1:bcfx_data_type, dataGetter1:DataGetterSignature, type2:bcfx_data_type, dataGetter2:DataGetterSignature, ...):luaL_MemBuffer
 ---@return luaL_MemBuffer
 function bcfx.makeMemBuffer(...)
 	return libbcfx.makeMemBuffer(...)
@@ -1066,11 +1077,13 @@ bcfx.data_type = libbcfx.data_type
 local utils = {}
 bcfx.utils = utils
 
----@class bcfx_SamplerFlag
+---@class bcfx_SamplerFlag:table
 ---@field public wrapU bcfx_texture_wrap
 ---@field public wrapV bcfx_texture_wrap
 ---@field public filterMin bcfx_texture_filter
 ---@field public filterMag bcfx_texture_filter
+
+---@class bcfx_sampler_flag:integer
 
 ---@param flags bcfx_SamplerFlag
 ---@return bcfx_sampler_flag
@@ -1078,7 +1091,7 @@ function utils.packSamplerFlags(flags)
 	return libutils.packSamplerFlags(flags)
 end
 
----@class bcfx_RenderState
+---@class bcfx_RenderState:table
 ---@field public frontFace bcfx_front_face
 ---@field public enableCull boolean
 ---@field public cullFace bcfx_cull_face
@@ -1101,13 +1114,15 @@ end
 ---@field public enableLogicOp boolean
 ---@field public logicOp bcfx_logic_operate
 
----@param flags bcfx_RenderState
+---@class bcfx_render_state:integer
+
+---@param state bcfx_RenderState
 ---@return bcfx_render_state
 function utils.packRenderState(state)
 	return libutils.packRenderState(state)
 end
 
----@class bcfx_StencilState
+---@class bcfx_StencilState:table
 ---@field public func bcfx_compare_func
 ---@field public sfail bcfx_stencil_action
 ---@field public dpfail bcfx_stencil_action
@@ -1116,7 +1131,9 @@ end
 ---@field public mask integer
 ---@field public writeMask integer
 
----@param flags bcfx_StencilState
+---@class bcfx_stencil_state:integer
+
+---@param state bcfx_StencilState
 ---@return bcfx_stencil_state
 function utils.packStencilState(state)
 	return libutils.packStencilState(state)

@@ -12,13 +12,13 @@ local gb2312 = {}
 function gb2312.offset(str, nth, i)
 	return libgb2312.offset(str, nth, i)
 end
----@overload fun(str:string):integer, ...
----@overload fun(str:string, i:integer):integer, ...
----@overload fun(str:string, i:integer, e:integer):integer, ...
+---@overload fun(str:string):integer, any
+---@overload fun(str:string, i:integer):integer, any
+---@overload fun(str:string, i:integer, e:integer):integer, any
 ---@param str string
 ---@param i integer
 ---@param e integer
----@return integer, ...
+---@return integer, any
 function gb2312.codepoint(str, i, e)
 	return libgb2312.codepoint()
 end
@@ -44,7 +44,7 @@ function gb2312.len(str, i, j)
 	return libgb2312.len(str, i, j)
 end
 
----@alias CodepointIterSignature fun(str:string, idx:ingeter):nil | (integer, integer)
+---@alias CodepointIterSignature fun(str:string, idx:integer):nil | (integer, integer)
 
 ---@param str string
 ---@return CodepointIterSignature, string, integer

@@ -85,6 +85,13 @@ function font.koreanGlyphRanges()
 	return libfont.korean_glyph_ranges()
 end
 
+---@class nuklear_coord_type
+---@field public UV integer
+---@field public PIXEL integer
+
+---@type nuklear_coord_type
+font.coord_type = libfont.coord_type
+
 -- }======================================================
 
 --[[
@@ -312,6 +319,9 @@ end
 function nk.pushScissor(canvas, rect)
 	libnk.push_scissor(canvas, rect)
 end
+
+---@class nk_draw_list:lightuserdata
+
 ---@param canvas nk_command_buffer
 ---@param rect NuklearRect
 ---@param callback fun(drawList:nk_draw_list, x:integer, y:integer, w:integer, h:integer):void
@@ -565,8 +575,8 @@ end
 ---@param name string
 ---@param xOffset integer
 ---@param yOffset integer
-function nk.groupSetScroll(name, offsetX, offsetY)
-	libnk.group_set_scroll(curCtx, name, offsetX, offsetY)
+function nk.groupSetScroll(name, xOffset, yOffset)
+	libnk.group_set_scroll(curCtx, name, xOffset, yOffset)
 end
 
 -- }======================================================
@@ -701,7 +711,7 @@ end
 function nk.inputIsMousePrevHoveringRect(rect)
 	return libnk.input_is_mouse_prev_hovering_rect(curCtx, rect)
 end
----@param rect NuklearRect
+---@param bounds NuklearRect
 ---@return boolean
 function nk.inputIsMouseHoveringRect(bounds)
 	return libnk.input_is_mouse_hovering_rect(curCtx, bounds)
@@ -1083,7 +1093,7 @@ end
 function nk.buttonSymbol(symbol)
 	return libnk.button_symbol(curCtx, symbol)
 end
----@param image nk_image
+---@param img nk_image
 ---@return boolean
 function nk.buttonImage(img)
 	return libnk.button_image(curCtx, img)

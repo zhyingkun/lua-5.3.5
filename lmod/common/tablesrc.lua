@@ -114,7 +114,7 @@ local function TTLSRecursive(tbl, prefix)
 	return str
 end
 
----@type tablesrc
+---@class tablesrc
 local tablesrc = {}
 
 ---@overload fun(tbl:table):string

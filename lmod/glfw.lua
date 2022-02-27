@@ -28,7 +28,7 @@ end
 function glfw.extensionSupported(extension)
 	return libglfw.ExtensionSupported(extension)
 end
----@param window GLFWwindow
+---@param procname string
 ---@return lightuserdata
 function glfw.getProcAddress(procname)
 	return libglfw.GetProcAddress(procname)

@@ -99,7 +99,7 @@ function convertFunc(value)
 end
 --]]
 ---@param value any
----@param convertFunc fun(value:any):nil | bool | number | string | table
+---@param convertFunc fun(value:any):nil | boolean | number | string | table
 ---@param fmt boolean
 ---@return string
 function json.tostring(value, convertFunc, fmt)

@@ -1321,21 +1321,21 @@ function fs.utimeAsyncWait(path, atime, mtime)
 end
 ---@param fd integer
 ---@param atime number
----@param mtime number
+---@param utime number
 ---@return integer
 function fs.futime(fd, atime, utime)
 	return libfs.futime(loop, fd, atime, utime)
 end
 ---@param fd integer
 ---@param atime number
----@param mtime number
+---@param utime number
 ---@param callback StatusCallbackSignature
 function fs.futimeAsync(fd, atime, utime, callback)
 	libfs.futime(loop, fd, atime, utime, callback)
 end
 ---@param fd integer
 ---@param atime number
----@param mtime number
+---@param utime number
 ---@return integer
 function fs.futimeAsyncWait(fd, atime, utime)
 	local co, main = running()

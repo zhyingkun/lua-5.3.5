@@ -150,7 +150,7 @@ function os.sysname() end
 ---@overload fun(func:CharGetterSignature):string
 ---@overload fun(...):string
 ---@param func CharGetterSignature
----@param vararg integer
+---@vararg integer
 ---@return string
 function utf8.char(func, ...) end
 
@@ -168,7 +168,7 @@ local string
 ---@overload fun(func:CharGetterSignature):string
 ---@overload fun(...):string
 ---@param func CharGetterSignature
----@param vararg integer
+---@vararg integer
 ---@return string
 function string.char(func, ...) end
 
