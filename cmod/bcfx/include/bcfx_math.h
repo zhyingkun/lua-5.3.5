@@ -29,101 +29,6 @@
 
 /*
 ** {======================================================
-** Matrix
-** =======================================================
-*/
-
-typedef struct {
-  uint8_t row;
-  uint8_t col;
-  float element[1];
-} Mat;
-
-#define MAT_SIZE(row, col) (sizeof(Mat) + ((row) * (col)-1) * sizeof(float))
-#define MAT_ELEMENT(mat, i, j) (((Mat*)mat)->element[(i) + ((Mat*)mat)->row * (j)])
-
-#define MAT_INIT(mat, row, col) mat_init((Mat*)mat, row, col)
-#define IS_MAT_DIMENSION(mat, row_, col_) (mat->row == row_ && mat->col == col_)
-#define ALLOCA_MAT(var, row, col) \
-  Mat* var = (Mat*)alloca(MAT_SIZE(row, col)); \
-  MAT_INIT(var, row, col)
-#define NEW_MAT(var, row, col) \
-  Mat* var = (Mat*)malloc(MAT_SIZE(row, col)); \
-  MAT_INIT(var, row, col)
-
-#define MAT_ZERO(mat) mat_zero((Mat*)mat)
-#define MAT_IDENTITY(mat) mat_identity((Mat*)mat)
-#define MAT_ADD(src1, src2, dst) mat_add((Mat*)src1, (Mat*)src2, (Mat*)dst)
-#define MAT_ADD_(dst, src2) mat_add((Mat*)dst, (Mat*)src2, (Mat*)dst)
-#define MAT_SUBTRACT(src1, src2, dst) mat_subtract((Mat*)src1, (Mat*)src2, (Mat*)dst)
-#define MAT_SUBTRACT_(dst, src2) mat_subtract((Mat*)dst, (Mat*)src2, (Mat*)dst)
-#define MAT_SCALE(src, scale, dst) mat_scale((Mat*)src, scale, (Mat*)dst)
-#define MAT_SCALE_(dst, scale) mat_scale((Mat*)dst, scale, (Mat*)dst)
-#define MAT_NEGATIVE(src, dst) MAT_SCALE(src, -1.0, dst)
-#define MAT_NEGATIVE_(dst) MAT_SCALE_(dst, -1.0)
-#define MAT_COMPONENT_WISE_PRODUCT(src1, src2, dst) mat_componentWiseProduct((Mat*)src1, (Mat*)src2, (Mat*)dst)
-#define MAT_COMPONENT_WISE_PRODUCT_(dst, src2) mat_componentWiseProduct((Mat*)dst, (Mat*)src2, (Mat*)dst)
-#define MAT_MULTIPLY(src1, src2, dst) mat_multiply((Mat*)src1, (Mat*)src2, (Mat*)dst)
-#define MAT_TRANSPOSE(src, dst) mat_transpose((Mat*)src, (Mat*)dst)
-#define MAT_COPY(src, dst) mat_copy((Mat*)src, (Mat*)dst)
-#define MAT_DETERMINANT(mat) mat_determinant((Mat*)mat)
-#define MAT_ADJOINT(src, dst) mat_adjoint((Mat*)src, (Mat*)dst)
-#define MAT_INVERSE(src, dst) mat_inverse((Mat*)src, (Mat*)dst)
-
-BCFX_API void mat_init(Mat* mat, uint8_t row, uint8_t col);
-BCFX_API void mat_zero(Mat* mat);
-BCFX_API void mat_identity(Mat* mat);
-BCFX_API void mat_add(const Mat* src1, const Mat* src2, Mat* dst);
-BCFX_API void mat_subtract(const Mat* src1, const Mat* src2, Mat* dst);
-BCFX_API void mat_scale(const Mat* src, float scale, Mat* dst);
-BCFX_API void mat_componentWiseProduct(const Mat* src1, const Mat* src2, Mat* dst);
-BCFX_API void mat_multiply(const Mat* src1, const Mat* src2, Mat* dst);
-BCFX_API void mat_transpose(const Mat* src, Mat* dst);
-BCFX_API void mat_copy(const Mat* src, Mat* dst);
-BCFX_API float mat_determinant(const Mat* mat);
-BCFX_API void mat_adjoint(const Mat* src, Mat* dst);
-BCFX_API bool mat_inverse(const Mat* src, Mat* dst);
-
-typedef struct {
-  uint8_t row;
-  uint8_t col;
-  float element[3 * 3];
-} Mat3x3;
-
-#define MAT3x3_INIT(mat) mat3x3_init((Mat3x3*)mat)
-#define IS_MAT3x3(mat) IS_MAT_DIMENSION(mat, 3, 3)
-#define ALLOCA_MAT3x3(var) \
-  Mat3x3 var[1]; \
-  MAT3x3_INIT(var)
-#define NEW_MAT3x3(var) \
-  Mat3x3* var = (Mat3x3*)malloc(MAT_SIZE(3, 3)); \
-  MAT3x3_INIT(var)
-
-BCFX_API void mat3x3_init(Mat3x3* mat);
-
-typedef struct {
-  uint8_t row;
-  uint8_t col;
-  float element[4 * 4];
-} Mat4x4;
-
-#define MAT4x4_INIT(mat) mat4x4_init((Mat4x4*)mat)
-#define IS_MAT4x4(mat) IS_MAT_DIMENSION(mat, 4, 4)
-#define MAT4x4_INIT_MAT3x3(mat, mat3x3) mat4x4_initMat3x3((Mat4x4*)mat, (Mat3x3*)mat3x3)
-#define ALLOCA_MAT4x4(var) \
-  Mat4x4 var[1]; \
-  MAT4x4_INIT(var)
-#define NEW_MAT4x4(var) \
-  Mat4x4* var = (Mat4x4*)malloc(MAT_SIZE(4, 4)); \
-  MAT4x4_INIT(var)
-
-BCFX_API void mat4x4_init(Mat4x4* mat);
-BCFX_API void mat4x4_initMat3x3(Mat4x4* mat, const Mat3x3* mat3x3);
-
-/* }====================================================== */
-
-/*
-** {======================================================
 ** Vector
 ** =======================================================
 */
@@ -263,8 +168,8 @@ BCFX_API void vec4_init(Vec4* vec);
       v, v, v, v \
     } \
   }
-#define VEC4_ZERO() VEC4(0.0);
-#define VEC4_ONE() VEC4(1.0);
+#define VEC4_ZERO() VEC4(0.0)
+#define VEC4_ONE() VEC4(1.0)
 #define ALLOCA_VEC4(var) Vec4 var[1] = {VEC4_ZERO()}
 #define NEW_VEC4(var) \
   Vec4* var = (Vec4*)malloc(VEC_SIZE(4)); \
@@ -276,7 +181,104 @@ BCFX_API void vec4_init(Vec4* vec);
 
 /* }====================================================== */
 
-// Euler angle store the degree, [-89, 89], [-180, 180]
+/*
+** {======================================================
+** Matrix
+** =======================================================
+*/
+
+typedef struct {
+  uint8_t row;
+  uint8_t col;
+  float element[1];
+} Mat;
+
+#define MAT_SIZE(row, col) (sizeof(Mat) + ((row) * (col)-1) * sizeof(float))
+#define MAT_ELEMENT(mat, i, j) (((Mat*)mat)->element[(i) + ((Mat*)mat)->row * (j)])
+
+#define MAT_INIT(mat, row, col) mat_init((Mat*)mat, row, col)
+#define IS_MAT_DIMENSION(mat, row_, col_) (mat->row == row_ && mat->col == col_)
+#define ALLOCA_MAT(var, row, col) \
+  Mat* var = (Mat*)alloca(MAT_SIZE(row, col)); \
+  MAT_INIT(var, row, col)
+#define NEW_MAT(var, row, col) \
+  Mat* var = (Mat*)malloc(MAT_SIZE(row, col)); \
+  MAT_INIT(var, row, col)
+
+#define MAT_ZERO(mat) mat_zero((Mat*)mat)
+#define MAT_IDENTITY(mat) mat_identity((Mat*)mat)
+#define MAT_ADD(src1, src2, dst) mat_add((Mat*)src1, (Mat*)src2, (Mat*)dst)
+#define MAT_ADD_(dst, src2) mat_add((Mat*)dst, (Mat*)src2, (Mat*)dst)
+#define MAT_SUBTRACT(src1, src2, dst) mat_subtract((Mat*)src1, (Mat*)src2, (Mat*)dst)
+#define MAT_SUBTRACT_(dst, src2) mat_subtract((Mat*)dst, (Mat*)src2, (Mat*)dst)
+#define MAT_SCALE(src, scale, dst) mat_scale((Mat*)src, scale, (Mat*)dst)
+#define MAT_SCALE_(dst, scale) mat_scale((Mat*)dst, scale, (Mat*)dst)
+#define MAT_NEGATIVE(src, dst) MAT_SCALE(src, -1.0, dst)
+#define MAT_NEGATIVE_(dst) MAT_SCALE_(dst, -1.0)
+#define MAT_COMPONENT_WISE_PRODUCT(src1, src2, dst) mat_componentWiseProduct((Mat*)src1, (Mat*)src2, (Mat*)dst)
+#define MAT_COMPONENT_WISE_PRODUCT_(dst, src2) mat_componentWiseProduct((Mat*)dst, (Mat*)src2, (Mat*)dst)
+#define MAT_MULTIPLY(src1, src2, dst) mat_multiply((Mat*)src1, (Mat*)src2, (Mat*)dst)
+#define MAT_MULTIPLY_VEC(mat, src, dst) mat_multiplyVec((Mat*)mat, (Vec*)src, (Vec*)dst)
+#define MAT_TRANSPOSE(src, dst) mat_transpose((Mat*)src, (Mat*)dst)
+#define MAT_COPY(src, dst) mat_copy((Mat*)src, (Mat*)dst)
+#define MAT_DETERMINANT(mat) mat_determinant((Mat*)mat)
+#define MAT_ADJOINT(src, dst) mat_adjoint((Mat*)src, (Mat*)dst)
+#define MAT_INVERSE(src, dst) mat_inverse((Mat*)src, (Mat*)dst)
+
+BCFX_API void mat_init(Mat* mat, uint8_t row, uint8_t col);
+BCFX_API void mat_zero(Mat* mat);
+BCFX_API void mat_identity(Mat* mat);
+BCFX_API void mat_add(const Mat* src1, const Mat* src2, Mat* dst);
+BCFX_API void mat_subtract(const Mat* src1, const Mat* src2, Mat* dst);
+BCFX_API void mat_scale(const Mat* src, float scale, Mat* dst);
+BCFX_API void mat_componentWiseProduct(const Mat* src1, const Mat* src2, Mat* dst);
+BCFX_API void mat_multiply(const Mat* src1, const Mat* src2, Mat* dst);
+BCFX_API void mat_multiplyVec(const Mat* mat, const Vec* vec, Vec* dst);
+BCFX_API void mat_transpose(const Mat* src, Mat* dst);
+BCFX_API void mat_copy(const Mat* src, Mat* dst);
+BCFX_API float mat_determinant(const Mat* mat);
+BCFX_API void mat_adjoint(const Mat* src, Mat* dst);
+BCFX_API bool mat_inverse(const Mat* src, Mat* dst);
+
+typedef struct {
+  uint8_t row;
+  uint8_t col;
+  float element[3 * 3];
+} Mat3x3;
+
+#define MAT3x3_INIT(mat) mat3x3_init((Mat3x3*)mat)
+#define IS_MAT3x3(mat) IS_MAT_DIMENSION(mat, 3, 3)
+#define ALLOCA_MAT3x3(var) \
+  Mat3x3 var[1]; \
+  MAT3x3_INIT(var)
+#define NEW_MAT3x3(var) \
+  Mat3x3* var = (Mat3x3*)malloc(MAT_SIZE(3, 3)); \
+  MAT3x3_INIT(var)
+
+BCFX_API void mat3x3_init(Mat3x3* mat);
+
+typedef struct {
+  uint8_t row;
+  uint8_t col;
+  float element[4 * 4];
+} Mat4x4;
+
+#define MAT4x4_INIT(mat) mat4x4_init((Mat4x4*)mat)
+#define IS_MAT4x4(mat) IS_MAT_DIMENSION(mat, 4, 4)
+#define MAT4x4_INIT_MAT3x3(mat, mat3x3) mat4x4_initMat3x3((Mat4x4*)mat, (Mat3x3*)mat3x3)
+#define ALLOCA_MAT4x4(var) \
+  Mat4x4 var[1]; \
+  MAT4x4_INIT(var)
+#define NEW_MAT4x4(var) \
+  Mat4x4* var = (Mat4x4*)malloc(MAT_SIZE(4, 4)); \
+  MAT4x4_INIT(var)
+
+BCFX_API void mat4x4_init(Mat4x4* mat);
+BCFX_API void mat4x4_initMat3x3(Mat4x4* mat, const Mat3x3* mat3x3);
+
+/* }====================================================== */
+
+// Euler angle store the degree, [-180, 180]
 typedef struct {
   float pitch; // up and down, rotate around x axis
   float roll; // rotate around forward, the y axis
@@ -309,12 +311,13 @@ BCFX_API void euler_toMatrix(const EulerAngle* ea, Mat4x4* mat);
 ** =======================================================
 */
 
-BCFX_API void quat_init(Quaternion* quat, float angle, const Vec3* axis);
-BCFX_API void quat_initVec3(Quaternion* quat, const Vec3* vec);
+BCFX_API void quat_init(Quaternion* quat, float w, float x, float y, float z);
+BCFX_API void quat_initAngleAxis(Quaternion* quat, float angle, const Vec3* axis);
+BCFX_API void quat_initImaginary(Quaternion* quat, const Vec3* vec);
 BCFX_API void quat_imaginary(const Quaternion* quat, Vec3* vec);
 BCFX_API void quat_toEulerAngle(const Quaternion* quat, EulerAngle* ea);
 BCFX_API void quat_toMatrix(const Quaternion* quat, Mat4x4* mat);
-BCFX_API void quat_toAxisAngle(const Quaternion* quat, Vec3* axis, float* angle);
+BCFX_API void quat_toAngleAxis(const Quaternion* quat, float* angle, Vec3* axis);
 BCFX_API void quat_add(const Quaternion* src1, const Quaternion* src2, Quaternion* dst);
 BCFX_API void quat_subtract(const Quaternion* src1, const Quaternion* src2, Quaternion* dst);
 BCFX_API void quat_multiply(const Quaternion* src1, const Quaternion* src2, Quaternion* dst);
@@ -323,9 +326,11 @@ BCFX_API void quat_conjugate(const Quaternion* src, Quaternion* dst);
 BCFX_API void quat_normalize(const Quaternion* src, Quaternion* dst);
 BCFX_API void quat_inverse(const Quaternion* src, Quaternion* dst);
 BCFX_API float quat_dotProduct(const Quaternion* src1, const Quaternion* src2);
-BCFX_API void quat_rotate(const Quaternion* quat, const Vec3* src, Vec3* dst);
+BCFX_API void quat_rotateVec3(const Quaternion* quat, const Vec3* src, Vec3* dst);
 BCFX_API void quat_shortSide(const Quaternion* s, Quaternion* e);
 BCFX_API void quat_slerp(const Quaternion* s, const Quaternion* e, float t, Quaternion* quat);
+
+#define quat_multiply_(dst, src) quat_multiply(dst, src, dst)
 
 /* }====================================================== */
 

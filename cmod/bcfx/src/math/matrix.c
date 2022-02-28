@@ -94,6 +94,20 @@ BCFX_API void mat_multiply(const Mat* src1, const Mat* src2, Mat* dst) {
   }
 }
 
+BCFX_API void mat_multiplyVec(const Mat* mat, const Vec* src, Vec* dst) {
+  assert(mat->col == src->count &&
+         mat->row == dst->count);
+  ALLOCA_MAT(matSrc, src->count, 1);
+  for (uint8_t i = 0; i < src->count; i++) {
+    MAT_ELEMENT(matSrc, i, 0) = VEC_ELEMENT(src, i);
+  }
+  ALLOCA_MAT(matDst, dst->count, 1);
+  MAT_MULTIPLY(mat, matSrc, matDst);
+  for (uint8_t i = 0; i < dst->count; i++) {
+    VEC_ELEMENT(dst, i) = MAT_ELEMENT(matDst, i, 0);
+  }
+}
+
 // src and dst should not be the same
 BCFX_API void mat_transpose(const Mat* src, Mat* dst) {
   assert(src->row == dst->col &&
