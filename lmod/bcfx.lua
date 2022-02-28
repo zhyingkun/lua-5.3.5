@@ -226,6 +226,17 @@ math.matrix = matrix
 ---@field public adjoint Matrix1Src1DstSignature
 ---@field public inverse fun(src:Mat):(nil | Mat)
 
+---overload fun(mat:Mat):Mat
+---overload fun(row:integer, col:integer):Mat
+---overload fun(row:integer, col:integer, values:table):Mat
+---@param row integer
+---@param col integer
+---@param values table
+---@return Mat
+function matrix.Matrix(row, col, values)
+	return libmatrix.Matrix(row, col, values)
+end
+
 ---@class Mat3x3:Mat
 
 ---overload fun(mat:Mat3x3):Mat3x3
