@@ -24,12 +24,12 @@ Mat4x4* luaL_checkmat4x4(lua_State* L, int idx) {
 }
 
 Mat3x3* luaL_testmat3x3(lua_State* L, int idx) {
-  Mat* mat = luaL_testmat(L, idx);
+  Mat* mat = luaL_testmatrix(L, idx);
   return (mat != NULL && IS_MAT3x3(mat)) ? (Mat3x3*)mat : NULL;
 }
 
 Mat4x4* luaL_testmat4x4(lua_State* L, int idx) {
-  Mat* mat = luaL_testmat(L, idx);
+  Mat* mat = luaL_testmatrix(L, idx);
   return (mat != NULL && IS_MAT4x4(mat)) ? (Mat4x4*)mat : NULL;
 }
 
@@ -89,12 +89,38 @@ static int MATRIX_FUNCTION(scale)(lua_State* L) {
 }
 
 static int MATRIX_FUNCTION(multiply)(lua_State* L) {
-  Mat* src1 = luaL_checkmatrix(L, 1);
-  Mat* src2 = luaL_checkmatrix(L, 2);
-  if (src1->col != src2->row)
-    luaL_error(L, "First matrix column(%d) must equal to Second matrix row(%d)", src1->col, src2->row);
-  Mat* dst = luaL_newmatrix(L, src1->row, src2->col);
-  MAT_MULTIPLY(src1, src2, dst);
+  Mat* src1 = luaL_testmatrix(L, 1);
+  Mat* src2 = luaL_testmatrix(L, 2);
+  if (src1 != NULL) {
+    if (src2 != NULL) { // Matrix * Matrix
+      if (src1->col != src2->row) {
+        luaL_error(L, "First matrix column(%d) must equal to Second matrix row(%d)", src1->col, src2->row);
+      }
+      Mat* dst = luaL_newmatrix(L, src1->row, src2->col);
+      MAT_MULTIPLY(src1, src2, dst);
+    } else {
+      Vec* vec = luaL_testvector(L, 2);
+      if (vec != NULL) { // Matrix * Vector
+        if (src1->col != vec->count) {
+          luaL_error(L, "Matrix column(%d) must equal to vector count(%d)", src1->col, vec->count);
+        }
+        Vec* dst = luaL_newvector(L, src1->row);
+        MAT_MULTIPLY_VEC(src1, vec, dst);
+      } else { // Matrix * Number
+        float scale = luaL_checknumber(L, 2);
+        Mat* dst = luaL_newmatrix(L, src1->row, src1->col);
+        MAT_SCALE(src1, scale, dst);
+      }
+    }
+  } else {
+    if (src2 != NULL) { // Number * Matrix
+      float scale = luaL_checknumber(L, 1);
+      Mat* dst = luaL_newmatrix(L, src2->row, src2->col);
+      MAT_SCALE(src2, scale, dst);
+    } else {
+      luaL_error(L, "Must has one matrix for multiply at least");
+    }
+  }
   return 1;
 }
 

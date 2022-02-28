@@ -41,6 +41,7 @@ void MEMBUF_FUNCTION(init)(lua_State* L);
 #define luaL_checkvector(L, idx) (Vec*)luaL_checkudata(L, idx, BCFX_VECTOR_TYPE)
 Vec3* luaL_checkvec3(lua_State* L, int idx);
 Vec4* luaL_checkvec4(lua_State* L, int idx);
+#define luaL_testvector(L, idx) (Vec*)luaL_testudata_recursive(L, idx, BCFX_VECTOR_TYPE)
 Vec* luaL_newvector(lua_State* L, uint8_t cnt);
 #define luaL_newvec2(L) (Vec2*)luaL_newvector(L, 2);
 #define luaL_newvec3(L) (Vec3*)luaL_newvector(L, 3);
@@ -54,7 +55,7 @@ Mat3x3* luaL_checkmat3x3(lua_State* L, int idx);
 Mat4x4* luaL_checkmat4x4(lua_State* L, int idx);
 #define luaL_optmat3x3(L, idx, dft) luaL_opt(L, luaL_checkmat3x3, idx, dft)
 #define luaL_optmat4x4(L, idx, dft) luaL_opt(L, luaL_checkmat4x4, idx, dft)
-#define luaL_testmat(L, idx) (Mat*)luaL_testudata_recursive(L, idx, BCFX_MATRIX_TYPE)
+#define luaL_testmatrix(L, idx) (Mat*)luaL_testudata_recursive(L, idx, BCFX_MATRIX_TYPE)
 Mat3x3* luaL_testmat3x3(lua_State* L, int idx);
 Mat4x4* luaL_testmat4x4(lua_State* L, int idx);
 Mat* luaL_newmatrix(lua_State* L, uint8_t row, uint8_t col);
