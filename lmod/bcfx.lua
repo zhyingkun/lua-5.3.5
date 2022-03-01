@@ -228,10 +228,10 @@ math.matrix = matrix
 
 ---overload fun(mat:Mat):Mat
 ---overload fun(row:integer, col:integer):Mat
----overload fun(row:integer, col:integer, values:table):Mat
+---overload fun(row:integer, col:integer, values:number[]):Mat
 ---@param row integer
 ---@param col integer
----@param values table
+---@param values number[]
 ---@return Mat
 function matrix.Matrix(row, col, values)
 	return libmatrix.Matrix(row, col, values)
@@ -289,6 +289,15 @@ math.vector = vector
 ---@field public projection Vector2Src1DstSignature
 ---@field public perpendicular Vector2Src1DstSignature
 
+---@overload fun(count:integer):Vec2
+---@overload fun(count:integer, values:number[]):Vec2
+---@param count integer
+---@param values number[]
+---@return Vector
+function vector.Vector(count, values)
+	return libvector.Vector(count, values)
+end
+
 ---@class Vec2:Vec
 
 ---@overload fun():Vec2
@@ -345,6 +354,23 @@ end
 function vector.min(src1, src2)
 	return libvector.min(src1, src2)
 end
+
+---@type Vec3
+vector.zero = libvector.zero
+---@type Vec3
+vector.one = libvector.one
+---@type Vec3
+vector.up = libvector.up
+---@type Vec3
+vector.down = libvector.down
+---@type Vec3
+vector.forward = libvector.forward
+---@type Vec3
+vector.backward = libvector.backward
+---@type Vec3
+vector.right = libvector.right
+---@type Vec3
+vector.left = libvector.left
 
 -- }======================================================
 
