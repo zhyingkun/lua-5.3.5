@@ -23,6 +23,21 @@ Vec4* luaL_checkvec4(lua_State* L, int idx) {
   return (Vec4*)vec;
 }
 
+Vec2* luaL_testvec2(lua_State* L, int idx) {
+  Vec* vec = luaL_testvector(L, idx);
+  return (vec && IS_VEC2(vec)) ? (Vec2*)vec : NULL;
+}
+
+Vec3* luaL_testvec3(lua_State* L, int idx) {
+  Vec* vec = luaL_testvector(L, idx);
+  return (vec && IS_VEC3(vec)) ? (Vec3*)vec : NULL;
+}
+
+Vec4* luaL_testvec4(lua_State* L, int idx) {
+  Vec* vec = luaL_testvector(L, idx);
+  return (vec && IS_VEC4(vec)) ? (Vec4*)vec : NULL;
+}
+
 Vec* luaL_newvector(lua_State* L, uint8_t cnt) {
   Vec* vec = (Vec*)lua_newuserdata(L, VEC_SIZE(cnt));
   luaL_setmetatable(L, BCFX_VECTOR_TYPE);
@@ -283,8 +298,37 @@ static const luaL_Reg VECTOR_FUNCTION(metafuncs)[] = {
     {NULL, NULL},
 };
 
+static int VECTOR_FUNCTION(Vector)(lua_State* L) {
+  Vec* v = luaL_testvector(L, 1);
+  if (v != NULL) {
+    luaL_pushvector(L, v);
+    return 1;
+  }
+  int count = luaL_checkinteger(L, 1);
+  lua_settop(L, 2);
+  Vec* vec = luaL_newvector(L, count);
+#define TABLE_IDX 2
+  if (lua_istable(L, TABLE_IDX)) {
+    for (uint8_t i = 0; i < count; i++) {
+      lua_geti(L, TABLE_IDX, i + 1);
+      VEC_ELEMENT(vec, i) = lua_isnumber(L, -1) ? lua_tonumber(L, -1) : 0.0;
+      lua_pop(L, 1);
+    }
+  } else {
+    VEC_ZERO(vec);
+  }
+#undef TABLE_IDX
+  return 1;
+}
+
 #define INIT_VEC_ELEMENT(vec, i) VEC_ELEMENT(vec, i) = luaL_optnumber(L, i + 1, 0.0)
 static int VECTOR_FUNCTION(Vec2)(lua_State* L) {
+  Vec2* v = luaL_testvec2(L, 1);
+  if (v != NULL) {
+    luaL_pushvector(L, v);
+    return 1;
+  }
+  lua_settop(L, 2);
   Vec* vec = luaL_newvector(L, 2);
   INIT_VEC_ELEMENT(vec, 0);
   INIT_VEC_ELEMENT(vec, 1);
@@ -292,6 +336,12 @@ static int VECTOR_FUNCTION(Vec2)(lua_State* L) {
 }
 
 static int VECTOR_FUNCTION(Vec3)(lua_State* L) {
+  Vec3* v = luaL_testvec3(L, 1);
+  if (v != NULL) {
+    luaL_pushvector(L, v);
+    return 1;
+  }
+  lua_settop(L, 3);
   Vec* vec = luaL_newvector(L, 3);
   INIT_VEC_ELEMENT(vec, 0);
   INIT_VEC_ELEMENT(vec, 1);
@@ -300,6 +350,12 @@ static int VECTOR_FUNCTION(Vec3)(lua_State* L) {
 }
 
 static int VECTOR_FUNCTION(Vec4)(lua_State* L) {
+  Vec4* v = luaL_testvec4(L, 1);
+  if (v != NULL) {
+    luaL_pushvector(L, v);
+    return 1;
+  }
+  lua_settop(L, 4);
   Vec* vec = luaL_newvector(L, 4);
   INIT_VEC_ELEMENT(vec, 0);
   INIT_VEC_ELEMENT(vec, 1);
@@ -318,7 +374,24 @@ static int VECTOR_FUNCTION(min)(lua_State* L) {
   return 1;
 }
 
+typedef struct {
+  const char* Name;
+  Vec3 vec;
+} PresetVec3;
+static const PresetVec3 VECTOR_FUNCTION(preset)[] = {
+    {"zero", VEC3_ZERO()},
+    {"one", VEC3_ONE()},
+    {"up", VEC3_UP()},
+    {"down", VEC3_DOWN()},
+    {"forward", VEC3_FORWARD()},
+    {"backward", VEC3_BACKWARD()},
+    {"right", VEC3_RIGHT()},
+    {"left", VEC3_LEFT()},
+    {NULL, VEC3_ZERO()},
+};
+
 static const luaL_Reg VECTOR_FUNCTION(funcs)[] = {
+    EMPLACE_VECTOR_FUNCTION(Vector),
     EMPLACE_VECTOR_FUNCTION(Vec2),
     EMPLACE_VECTOR_FUNCTION(Vec3),
     EMPLACE_VECTOR_FUNCTION(Vec4),
@@ -335,6 +408,12 @@ void VECTOR_FUNCTION(init)(lua_State* L) {
   lua_pop(L, 1);
 
   luaL_newlib(L, VECTOR_FUNCTION(funcs));
+
+  for (int i = 0; VECTOR_FUNCTION(preset)[i].Name != NULL; i++) {
+    luaL_pushvec3(L, &VECTOR_FUNCTION(preset)[i].vec);
+    lua_setfield(L, -2, VECTOR_FUNCTION(preset)[i].Name);
+  }
+
   lua_setfield(L, -2, "vector");
 }
 

@@ -42,10 +42,21 @@ void MEMBUF_FUNCTION(init)(lua_State* L);
 Vec3* luaL_checkvec3(lua_State* L, int idx);
 Vec4* luaL_checkvec4(lua_State* L, int idx);
 #define luaL_testvector(L, idx) (Vec*)luaL_testudata_recursive(L, idx, BCFX_VECTOR_TYPE)
+Vec2* luaL_testvec2(lua_State* L, int idx);
+Vec3* luaL_testvec3(lua_State* L, int idx);
+Vec4* luaL_testvec4(lua_State* L, int idx);
 Vec* luaL_newvector(lua_State* L, uint8_t cnt);
-#define luaL_newvec2(L) (Vec2*)luaL_newvector(L, 2);
-#define luaL_newvec3(L) (Vec3*)luaL_newvector(L, 3);
-#define luaL_newvec4(L) (Vec4*)luaL_newvector(L, 4);
+#define luaL_newvec2(L) (Vec2*)luaL_newvector(L, 2)
+#define luaL_newvec3(L) (Vec3*)luaL_newvector(L, 3)
+#define luaL_newvec4(L) (Vec4*)luaL_newvector(L, 4)
+#define luaL_pushvector(L, vec) \
+  do { \
+    Vec* _v_ = luaL_newvector(L, ((Vec*)vec)->count); \
+    VEC_COPY(((Vec*)(vec)), _v_); \
+  } while (0)
+#define luaL_pushvec2(L, vec) *(luaL_newvec2(L)) = *((Vec2*)vec)
+#define luaL_pushvec3(L, vec) *(luaL_newvec3(L)) = *((Vec3*)vec)
+#define luaL_pushvec4(L, vec) *(luaL_newvec4(L)) = *((Vec4*)vec)
 void VECTOR_FUNCTION(init)(lua_State* L);
 
 #define MATRIX_FUNCTION(name) bcfx_wrap_matrix_##name
