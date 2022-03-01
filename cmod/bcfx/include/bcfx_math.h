@@ -41,6 +41,7 @@ typedef struct {
 #define VEC_SIZE(cnt) (sizeof(Vec) + ((cnt)-1) * sizeof(float))
 #define VEC_ELEMENT(vec, i) (((Vec*)vec)->element[i])
 #define VEC_COUNT(vec) (((Vec*)vec)->count)
+#define IS_VEC_COUNT(vec_, cnt_) ((vec_)->count == cnt_)
 
 #define VEC_INIT(vec, cnt) vec_init((Vec*)vec, cnt)
 #define VEC_ZERO(vec) vec_zero((Vec*)vec)
@@ -95,6 +96,7 @@ typedef struct {
 } Vec2;
 
 #define VEC2_INIT(vec) vec2_init((Vec2*)vec)
+#define IS_VEC2(vec) IS_VEC_COUNT(vec, 2)
 
 BCFX_API void vec2_init(Vec2* vec);
 #define VEC2(v) \
@@ -118,6 +120,7 @@ typedef struct {
 } Vec3;
 
 #define VEC3_INIT(vec) vec3_init((Vec3*)vec)
+#define IS_VEC3(vec) IS_VEC_COUNT(vec, 3)
 
 BCFX_API void vec3_init(Vec3* vec);
 #define VEC3(v) \
@@ -160,6 +163,7 @@ typedef struct {
 } Vec4;
 
 #define VEC4_INIT(vec) vec4_init((Vec4*)vec)
+#define IS_VEC4(vec) IS_VEC_COUNT(vec, 4)
 
 BCFX_API void vec4_init(Vec4* vec);
 #define VEC4(v) \
