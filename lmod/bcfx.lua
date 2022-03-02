@@ -608,6 +608,23 @@ end
 
 -- }======================================================
 
+---@param numVec4PerInstance integer
+---@param numInstance integer
+local function instanceDataBufferSize(numVec4PerInstance, numInstance)
+	--[[
+	local sizePerFloat = 4
+	local sizePerVec4 = 4 * sizePerFloat
+	local sizePerInstance = sizePerVec4 * numVec4PerInstance
+	return sizePerInstance * numInstance
+	--]]
+	return 16 * numVec4PerInstance * numInstance
+end
+bcfx.instanceDataBufferSize = instanceDataBufferSize
+
+function bcfx.createInstanceDataBuffer(numVec4PerInstance, numInstance)
+	return libbcfx.createDynamicVertexBuffer(instanceDataBufferSize(numVec4PerInstance, numInstance), 0)
+end
+
 --[[
 ** {======================================================
 ** Update Render Resource
@@ -662,15 +679,15 @@ function bcfx.setViewWindow(id, win)
 	libbcfx.setViewWindow(id, win)
 end
 ---@param id ViewId
----@param handle Handle
+---@param handle Handle @ framebuffer handle
 function bcfx.setViewFrameBuffer(id, handle)
 	libbcfx.setViewFrameBuffer(id, handle)
 end
 ---@param id ViewId
----@param flags bcfx_clear_flag
----@param rgba Color
----@param depth number @ [-1.0, 1.0]
----@param stencil integer @ [0, 255]
+---@param flags bcfx_clear_flag @ combining flags with '|'
+---@param rgba Color @ color buffer clear value
+---@param depth number @ [-1.0, 1.0], depth buffer clear value, usually 1.0
+---@param stencil integer @ [0, 255], stencil buffer clear value, usually 0
 function bcfx.setViewClear(id, flags, rgba, depth, stencil)
 	libbcfx.setViewClear(id, flags, rgba, depth, stencil)
 end
@@ -766,7 +783,7 @@ function bcfx.setScissor(x, y, width, height)
 	libbcfx.setScissor(x, y, width, height)
 end
 ---@param state bcfx_render_state
----@param rgba Color
+---@param rgba Color @ blend color
 function bcfx.setState(state, rgba)
 	libbcfx.setState(state, rgba)
 end
@@ -784,17 +801,17 @@ end
 ---@field numInstance integer
 
 ---@param data bcfx_InstanceDataBuffer
----@param start integer
----@param count integer
+---@param start integer @ per instance, not vec4, not float, not byte
+---@param count integer @ per instance, maybe multi vec4
 function bcfx.setInstanceDataBuffer(data, start, count)
 	libbcfx.setInstanceDataBuffer(data, start, count)
 end
 ---@param id ViewId
----@param handle Handle
----@param flags integer
----@param depth integer
-function bcfx.submit(id, handle, flags, depth)
-	libbcfx.submit(id, handle, flags, depth)
+---@param handle Handle @ shader program
+---@param flags bcfx_discard @ combining flags with '|'
+---@param sortDepth integer @ [0, 2^24-1], 24bit in sortkey
+function bcfx.submit(id, handle, flags, sortDepth)
+	libbcfx.submit(id, handle, flags, sortDepth)
 end
 
 ---@class bcfx_clear_flag
