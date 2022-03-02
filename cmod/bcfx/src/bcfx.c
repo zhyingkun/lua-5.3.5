@@ -262,8 +262,8 @@ BCFX_API void bcfx_setInstanceDataBuffer(const bcfx_InstanceDataBuffer* idb, uin
   ctx_setInstanceDataBuffer(s_ctx, idb, start, count);
 }
 
-BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags, uint32_t depth) {
-  ctx_submit(s_ctx, id, handle, flags, depth);
+BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags, uint32_t sortDepth) {
+  ctx_submit(s_ctx, id, handle, flags, sortDepth);
 }
 
 /* }====================================================== */

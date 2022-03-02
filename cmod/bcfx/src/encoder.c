@@ -111,7 +111,7 @@ void encoder_setInstanceDataBuffer(Encoder* encoder, const bcfx_InstanceDataBuff
   draw->numInstance = count;
 }
 
-void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags, uint32_t depth, ViewMode mode, bool notTouch) {
+void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags, uint32_t sortDepth, ViewMode mode, bool notTouch) {
   Frame* frame = encoder->frame;
   RenderDraw* draw = &encoder->draw;
   RenderBind* bind = &encoder->bind;
@@ -142,8 +142,8 @@ void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags,
         break;
       case VM_DepthDescending:
         sortType = ST_Depth;
-        depth &= SORTKEY_DEPTH_MAX;
-        depth = SORTKEY_DEPTH_MAX - depth;
+        sortDepth &= SORTKEY_DEPTH_MAX;
+        sortDepth = SORTKEY_DEPTH_MAX - sortDepth;
         break;
       default:
         break;
@@ -152,7 +152,7 @@ void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags,
     key->sortType = sortType;
     key->blend = (!!draw->state.alphaRef) + (!!draw->state.enableBlend) * 2;
     key->program = handle_index(program);
-    key->depth = depth;
+    key->depth = sortDepth;
   }
   frame_setSortKey(frame, index, sortkey_encode(key));
 

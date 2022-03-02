@@ -587,10 +587,10 @@ void ctx_setInstanceDataBuffer(Context* ctx, const bcfx_InstanceDataBuffer* idb,
   encoder_setInstanceDataBuffer(ctx->encoder, idb, start, count);
 }
 
-void ctx_submit(Context* ctx, ViewId id, Handle handle, uint32_t flags, uint32_t depth) {
+void ctx_submit(Context* ctx, ViewId id, Handle handle, uint32_t flags, uint32_t sortDepth) {
   CHECK_VIEWID(id);
   CHECK_HANDLE(handle, HT_Program);
-  encoder_submit(ctx->encoder, id, handle, flags, depth, ctx->views[id].mode, true);
+  encoder_submit(ctx->encoder, id, handle, flags, sortDepth, ctx->views[id].mode, true);
 }
 
 /* }====================================================== */
