@@ -537,11 +537,11 @@ static int BCWRAP_FUNCTION(setInstanceDataBuffer)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(submit)(lua_State* L) {
   ViewId id = luaL_checkviewid(L, 1);
-  Handle handle = luaL_checkhandle(L, 2);
-  uint32_t flags = luaL_optinteger(L, 3, BCFX_DISCARD_NONE);
-  uint32_t depth = luaL_optinteger(L, 4, 0);
+  Handle progHandle = luaL_checkhandle(L, 2);
+  uint32_t discardFlags = luaL_optinteger(L, 3, BCFX_DISCARD_NONE);
+  uint32_t sortDepth = luaL_optinteger(L, 4, 0);
 
-  bcfx_submit(id, handle, flags, depth);
+  bcfx_submit(id, progHandle, discardFlags, sortDepth);
   return 0;
 }
 
