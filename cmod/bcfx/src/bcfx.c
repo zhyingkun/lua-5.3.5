@@ -50,14 +50,6 @@ BCFX_API void bcfx_vertexLayoutClear(bcfx_VertexLayout* layout) {
 
 static Context s_ctx[1];
 
-BCFX_API uint32_t bcfx_frameId(void) {
-  return ctx_frameId(s_ctx);
-}
-
-BCFX_API void bcfx_setFrameCompletedCallback(bcfx_OnFrameCompleted cb, void* ud) {
-  ctx_setFrameCompletedCallback(s_ctx, cb, ud);
-}
-
 #define PRINT_SIZEOF_TYPE(type) printf("sizeof(" #type "): %ld\n", sizeof(type))
 BCFX_API void bcfx_init(Window mainWin) {
   ctx_init(s_ctx, mainWin);
@@ -77,6 +69,22 @@ BCFX_API void bcfx_apiFrame(uint32_t renderCount) {
 
 BCFX_API void bcfx_shutdowm(void) {
   ctx_shutdowm(s_ctx);
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Frame ID
+** =======================================================
+*/
+
+BCFX_API uint32_t bcfx_frameId(void) {
+  return ctx_frameId(s_ctx);
+}
+
+BCFX_API void bcfx_setFrameCompletedCallback(bcfx_OnFrameCompleted cb, void* ud) {
+  ctx_setFrameCompletedCallback(s_ctx, cb, ud);
 }
 
 /* }====================================================== */
@@ -206,6 +214,14 @@ BCFX_API void bcfx_setViewDebug(ViewId id, uint32_t debug) {
 BCFX_API void bcfx_resetView(ViewId id) {
   ctx_resetView(s_ctx, id);
 }
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Frame View Capture
+** =======================================================
+*/
 
 BCFX_API void bcfx_setFrameViewCaptureCallback(bcfx_OnFrameViewCapture callback, void* ud) {
   ctx_setFrameViewCaptureCallback(s_ctx, callback, ud);

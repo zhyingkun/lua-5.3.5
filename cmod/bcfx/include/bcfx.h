@@ -170,16 +170,24 @@ BCFX_API void bcfx_setMiscFuncs(bcfx_GetTime getTime);
 ** =======================================================
 */
 
-BCFX_API uint32_t bcfx_frameId(void);
-
-typedef void (*bcfx_OnFrameCompleted)(void* ud, uint32_t frameId);
-BCFX_API void bcfx_setFrameCompletedCallback(bcfx_OnFrameCompleted cb, void* ud);
-
 typedef void* Window;
 
 BCFX_API void bcfx_init(Window mainWin);
 BCFX_API void bcfx_apiFrame(uint32_t renderCount);
 BCFX_API void bcfx_shutdowm(void);
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Frame ID
+** =======================================================
+*/
+
+BCFX_API uint32_t bcfx_frameId(void);
+
+typedef void (*bcfx_OnFrameCompleted)(void* ud, uint32_t frameId);
+BCFX_API void bcfx_setFrameCompletedCallback(bcfx_OnFrameCompleted cb, void* ud);
 
 /* }====================================================== */
 
@@ -303,6 +311,14 @@ BCFX_API void bcfx_setViewMode(ViewId id, ViewMode mode);
 
 BCFX_API void bcfx_setViewDebug(ViewId id, uint32_t debug);
 BCFX_API void bcfx_resetView(ViewId id);
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Frame View Capture
+** =======================================================
+*/
 
 typedef struct {
   ViewId id;
@@ -494,13 +510,12 @@ typedef union {
 
 typedef struct {
   Handle handle; // dynamic vertex buffer handle
-  uint32_t bufferOffset;
-  uint8_t numAttrib;
+  uint32_t bufferOffset; // offset in bytes for vertex buffer
+  uint8_t numAttrib; // num of vec4 per instance
   uint32_t numInstance;
 } bcfx_InstanceDataBuffer;
 
-BCFX_API void
-bcfx_setUniformVec4(Handle handle, Vec4* vec, uint16_t num);
+BCFX_API void bcfx_setUniformVec4(Handle handle, Vec4* vec, uint16_t num);
 BCFX_API void bcfx_setUniformMat3x3(Handle handle, Mat3x3* mat, uint16_t num);
 BCFX_API void bcfx_setUniformMat4x4(Handle handle, Mat4x4* mat, uint16_t num);
 

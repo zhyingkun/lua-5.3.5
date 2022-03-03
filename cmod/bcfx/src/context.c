@@ -491,6 +491,14 @@ void ctx_resetView(Context* ctx, ViewId id) {
   view_reset(&ctx->views[id]);
 }
 
+/* }====================================================== */
+
+/*
+** {======================================================
+** Frame View Capture
+** =======================================================
+*/
+
 void ctx_setFrameViewCaptureCallback(Context* ctx, bcfx_OnFrameViewCapture callback, void* ud) {
   ctx->onFrameViewCapture = callback;
   ctx->onFrameViewCaptureArg = ud;
