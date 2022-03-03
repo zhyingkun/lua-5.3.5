@@ -78,7 +78,7 @@ static PacketStatus pm_nextPacket(PacketManager* pm, const uint8_t** pptr, size_
       ptr = luaBB_getbytes(pm->b, len);
       if (ptr == NULL) {
         status = PS_NeedMore;
-        luaBB_undoreaded(pm->b);
+        luaBB_undoread(pm->b);
       } else {
         luaBB_flush(pm->b);
         if (pptr) {
@@ -90,7 +90,7 @@ static PacketStatus pm_nextPacket(PacketManager* pm, const uint8_t** pptr, size_
       }
       break;
     case PS_NeedMore:
-      luaBB_undoreaded(pm->b);
+      luaBB_undoread(pm->b);
       break;
     case PS_ErrorLength:
       /* fall through */
