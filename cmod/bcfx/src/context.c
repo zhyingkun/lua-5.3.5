@@ -344,7 +344,7 @@ Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs) {
 Handle ctx_createUniform(Context* ctx, const char* name, bcfx_UniformType type, uint16_t num) {
   ADD_CMD_ALLOC_HANDLE(ctx, Uniform)
   size_t len = strlen(name) + 1;
-  char* buf = (char*)malloc(len);
+  char* buf = (char*)mem_malloc(len);
   memcpy(buf, name, len);
   param->cu.name = buf;
   param->cu.type = type;
