@@ -21,13 +21,13 @@ bcfx.image = image
 
 --[[
 ** {======================================================
-** ImageDecode
+** Image Decode
 ** =======================================================
 --]]
 
 ---@param mb luaL_MemBuffer
 ---@param format bcfx_texture_format
----@return luaL_MemBuffer, integer, integer, integer, integer @data, w, h, nrChannels, wantChannels
+---@return luaL_MemBuffer, integer, integer, integer, integer @ data, w, h, nrChannels, wantChannels
 function image.imageDecode(mb, format)
 	return libimage.imageDecode(mb, format)
 end
@@ -42,7 +42,7 @@ function image.imageDecodeAsync(mb, format, callback)
 end
 ---@param mb luaL_MemBuffer
 ---@param format bcfx_texture_format
----@return luaL_MemBuffer, integer, integer, integer, integer @data, w, h, nrChannels, wantChannels
+---@return luaL_MemBuffer, integer, integer, integer, integer @ data, w, h, nrChannels, wantChannels
 function image.imageDecodeAsyncWait(mb, format)
 	local ptr = libimage.packImageDecodeParam(mb, format)
 	local result = queueWorkAsyncWait(libimage.imageDecodePtr, ptr)
@@ -53,16 +53,19 @@ end
 
 --[[
 ** {======================================================
-** ImageEncode
+** Image Encode
 ** =======================================================
 --]]
+
+-- stride in bytes: the distance in bytes from the first byte of
+-- a row of pixels to the first byte of the next row of pixels
 
 ---@param mb luaL_MemBuffer
 ---@param x integer
 ---@param y integer
----@param comp integer
+---@param comp integer @ color channel num
 ---@param type bcfx_image_type
----@param sorq integer @strider or quality
+---@param sorq integer @ stride or quality, stride in bytes for png, quality for jpg
 ---@return luaL_MemBuffer
 function image.imageEncode(mb, x, y, comp, type, sorq)
 	return libimage.imageEncode(mb, x, y, comp, type, sorq)
@@ -70,12 +73,12 @@ end
 ---@param mb luaL_MemBuffer
 ---@param x integer
 ---@param y integer
----@param comp integer
+---@param comp integer @ color channel num
 ---@param type bcfx_image_type
----@param sorq integer @strider or quality
+---@param sorq integer @ stride or quality, stride in bytes for png, quality for jpg
 ---@param callback fun(mb:luaL_MemBuffer):void
 function image.imageEncodeAsync(mb, x, y, comp, type, sorq, callback) -- stride or quality
-	local ptr = libimage.packImageEncodeParam(mb, x, y, comp, type, sorq);
+	local ptr = libimage.packImageEncodeParam(mb, x, y, comp, type, sorq)
 	queueWorkAsync(libimage.imageEncodePtr, ptr, function(result, status)
 		callback(libimage.unpackImageEncodeResult(result))
 	end)
@@ -83,12 +86,12 @@ end
 ---@param mb luaL_MemBuffer
 ---@param x integer
 ---@param y integer
----@param comp integer
+---@param comp integer @ color channel num
 ---@param type bcfx_image_type
----@param sorq integer @strider or quality
+---@param sorq integer @ stride or quality, stride in bytes for png, quality for jpg
 ---@return luaL_MemBuffer
 function image.imageEncodeAsyncWait(mb, x, y, comp, type, sorq)
-	local ptr = libimage.packImageEncodeParam(mb, x, y, comp, type, sorq);
+	local ptr = libimage.packImageEncodeParam(mb, x, y, comp, type, sorq)
 	local result = queueWorkAsyncWait(libimage.imageEncodePtr, ptr)
 	return libimage.unpackImageEncodeResult(result)
 end
@@ -145,7 +148,7 @@ bcfx.math = math
 
 --[[
 ** {======================================================
-** Graphics3D
+** Graphics 3D
 ** =======================================================
 --]]
 
@@ -179,10 +182,10 @@ end
 function graphics3d.perspective(fovy, aspect, zNear, zFar)
 	return libgraphics3d.perspective(fovy, aspect, zNear, zFar)
 end
----@param left number
----@param right number
----@param bottom number
----@param top number
+---@param left number @ map to -1
+---@param right number @ map to 1
+---@param bottom number @ map to -1
+---@param top number @ map to 1
 ---@param near number @ map to -1, if near < far, orthogonal will leave handedness unchanged
 ---@param far number @ map to 1, if far < near, orthogonal will toggle handedness
 ---@return Mat4x4
@@ -270,27 +273,27 @@ end
 local vector = {}
 math.vector = vector
 
----@alias Vector2Src1DstSignature fun(src1:Vec, src2:Vec):Vec
----@alias Vector1Src1DstSignature fun(src:Vec):Vec
+---@alias Vector2Src1DstSignature fun(src1:Vector, src2:Vector):Vector
+---@alias Vector1Src1DstSignature fun(src:Vector):Vector
 
----@class Vec:userdata
+---@class Vector:userdata
 ---@field public add Vector2Src1DstSignature
 ---@field public subtract Vector2Src1DstSignature
 ---@field public componentWiseProduct Vector2Src1DstSignature
----@field public scale fun(src:Vec, scale:number):Vec
+---@field public scale fun(src:Vector, scale:number):Vector
 ---@field public dotProduct Vector2Src1DstSignature
----@field public lengthSquared fun(self:Vec):number
----@field public length fun(self:Vec):number
----@field public distanceSquared fun(src1:Vec, src2:Vec):number
----@field public distance fun(src1:Vec, src2:Vec):number
+---@field public lengthSquared fun(self:Vector):number
+---@field public length fun(self:Vector):number
+---@field public distanceSquared fun(src1:Vector, src2:Vector):number
+---@field public distance fun(src1:Vector, src2:Vector):number
 ---@field public normalize Vector1Src1DstSignature
 ---@field public copy Vector2Src1DstSignature
----@field public isZero fun(self:Vec):boolean
+---@field public isZero fun(self:Vector):boolean
 ---@field public projection Vector2Src1DstSignature
 ---@field public perpendicular Vector2Src1DstSignature
 
----@overload fun(count:integer):Vec2
----@overload fun(count:integer, values:number[]):Vec2
+---@overload fun(count:integer):Vector
+---@overload fun(count:integer, values:number[]):Vector
 ---@param count integer
 ---@param values number[]
 ---@return Vector
@@ -298,7 +301,7 @@ function vector.Vector(count, values)
 	return libvector.Vector(count, values)
 end
 
----@class Vec2:Vec
+---@class Vec2:Vector
 
 ---@overload fun():Vec2
 ---@overload fun(x:number):Vec2
@@ -310,7 +313,7 @@ function vector.Vec2(x, y)
 	return libvector.Vec2(x, y)
 end
 
----@class Vec3:Vec
+---@class Vec3:Vector
 ---@field public crossProduct Vector2Src1DstSignature
 
 ---@overload fun():Vec3
@@ -325,7 +328,7 @@ function vector.Vec3(x, y, z)
 	return libvector.Vec3(x, y, z)
 end
 
----@class Vec4:Vec
+---@class Vec4:Vector
 
 ---@overload fun():Vec4
 ---@overload fun(x:number):Vec4
@@ -341,16 +344,16 @@ function vector.Vec4(x, y, z, w)
 	return libvector.Vec4(x, y, z, w)
 end
 
----@param src1 Vec
----@param src2 Vec
----@return Vec
+---@param src1 Vector
+---@param src2 Vector
+---@return Vector
 function vector.max(src1, src2)
 	return libvector.max(src1, src2)
 end
 
----@param src1 Vec
----@param src2 Vec
----@return Vec
+---@param src1 Vector
+---@param src2 Vector
+---@return Vector
 function vector.min(src1, src2)
 	return libvector.min(src1, src2)
 end
@@ -380,7 +383,7 @@ bcfx.mesh = mesh
 
 --[[
 ** {======================================================
-** MeshParse
+** Mesh Parse
 ** =======================================================
 --]]
 
@@ -413,7 +416,7 @@ end
 
 --[[
 ** {======================================================
-** MaterialParse
+** Material Parse
 ** =======================================================
 --]]
 
@@ -499,6 +502,28 @@ end
 ** =======================================================
 --]]
 
+---@param mainWin lightuserdata
+function bcfx.init(mainWin)
+	libbcfx.init(mainWin)
+end
+---@overload fun():void
+---@overload fun(renderCount:integer):void
+---@param renderCount integer @ max draw call
+function bcfx.apiFrame(renderCount)
+	libbcfx.apiFrame(renderCount)
+end
+function bcfx.shutdown()
+	libbcfx.shutdown()
+end
+
+-- }======================================================
+
+--[[
+** {======================================================
+** Frame ID
+** =======================================================
+--]]
+
 function bcfx.frameId()
 	return libbcfx.frameId()
 end
@@ -510,19 +535,6 @@ end
 ---@param callback FrameCompletedSignature
 function bcfx.setFrameCompletedCallback(callback)
 	libbcfx.setFrameCompletedCallback(callback)
-end
----@param mainWin lightuserdata
-function bcfx.init(mainWin)
-	libbcfx.init(mainWin)
-end
----@overload fun():void
----@overload fun(renderCount:integer):void
----@param renderCount integer
-function bcfx.apiFrame(renderCount)
-	libbcfx.apiFrame(renderCount)
-end
-function bcfx.shutdown()
-	libbcfx.shutdown()
 end
 
 -- }======================================================
@@ -570,8 +582,8 @@ end
 function bcfx.createShader(mb, type)
 	return libbcfx.createShader(mb, type)
 end
----@param vs Handle
----@param fs Handle
+---@param vs Handle @ vertex shader handle
+---@param fs Handle @ fragment shader handle
 ---@return Handle
 function bcfx.createProgram(vs, fs)
 	return libbcfx.createProgram(vs, fs)
@@ -600,13 +612,11 @@ end
 function bcfx.createRenderTexture(width, height, format)
 	return libbcfx.createRenderTexture(width, height, format)
 end
----@vararg Handle
+---@vararg Handle @ render texture handle
 ---@return Handle
 function bcfx.createFrameBuffer(...)
 	return libbcfx.createFrameBuffer(...)
 end
-
--- }======================================================
 
 ---@param numVec4PerInstance integer
 ---@param numInstance integer
@@ -621,9 +631,14 @@ local function instanceDataBufferSize(numVec4PerInstance, numInstance)
 end
 bcfx.instanceDataBufferSize = instanceDataBufferSize
 
+---@param numVec4PerInstance integer
+---@param numInstance integer
+---@return Handle
 function bcfx.createInstanceDataBuffer(numVec4PerInstance, numInstance)
 	return libbcfx.createDynamicVertexBuffer(instanceDataBufferSize(numVec4PerInstance, numInstance), 0)
 end
+
+-- }======================================================
 
 --[[
 ** {======================================================
@@ -638,16 +653,23 @@ function bcfx.updateProgram(handle, vs, fs)
 	libbcfx.updateProgram(handle, vs, fs)
 end
 ---@param handle Handle
----@param offset integer
+---@param offset integer @ start point in vertex buffer for update
 ---@param mb luaL_MemBuffer
 function bcfx.updateDynamicVertexBuffer(handle, offset, mb)
 	libbcfx.updateDynamicVertexBuffer(handle, offset, mb)
 end
 ---@param handle Handle
----@param offset integer
+---@param offset integer @ start point in index buffer for update
 ---@param mb luaL_MemBuffer
 function bcfx.updateDynamicIndexBuffer(handle, offset, mb)
 	libbcfx.updateDynamicIndexBuffer(handle, offset, mb)
+end
+
+---@param handle Handle
+---@param offset integer @ start point in instance data buffer for update
+---@param mb luaL_MemBuffer
+function bcfx.updateInstanceDataBuffer(handle, offset, mb)
+	libbcfx.updateDynamicVertexBuffer(handle, offset, mb)
 end
 
 -- }======================================================
@@ -692,7 +714,7 @@ function bcfx.setViewClear(id, flags, rgba, depth, stencil)
 	libbcfx.setViewClear(id, flags, rgba, depth, stencil)
 end
 ---@param id ViewId
----@param x integer
+---@param x integer @ rect: origin is LeftBottom, x towards right, y towards top, unit is pixel
 ---@param y integer
 ---@param width integer
 ---@param height integer
@@ -700,7 +722,7 @@ function bcfx.setViewRect(id, x, y, width, height)
 	libbcfx.setViewRect(id, x, y, width, height)
 end
 ---@param id ViewId
----@param x integer
+---@param x integer @ rect: origin is LeftBottom, x towards right, y towards top, unit is pixel
 ---@param y integer
 ---@param width integer
 ---@param height integer
@@ -727,6 +749,15 @@ end
 function bcfx.resetView(id)
 	libbcfx.resetView(id)
 end
+
+-- }======================================================
+
+--[[
+** {======================================================
+** Frame View Capture
+** =======================================================
+--]]
+
 ---@param callback fun(frameId:integer, id:ViewId, width:integer, height:integer, mb:luaL_MemBuffer):void
 function bcfx.setFrameViewCaptureCallback(callback)
 	libbcfx.setFrameViewCaptureCallback(callback)
@@ -758,9 +789,12 @@ end
 function bcfx.setVertexBuffer(stream, handle)
 	libbcfx.setVertexBuffer(stream, handle)
 end
----@param handle Handle
----@param start integer
----@param count integer
+---@overload fun(handle:Handle):void
+---@overload fun(handle:Handle, start:integer):void
+---@overload fun(handle:Handle, start:integer, count:integer):void
+---@param handle Handle @ maybe kInvalidHandle
+---@param start integer @ for kInvalidHandle, count in vertex, not float, not byte, otherwise count in indices
+---@param count integer @ for kInvalidHandle, count in vertex, not float, not byte, otherwise count in indices
 function bcfx.setIndexBuffer(handle, start, count)
 	libbcfx.setIndexBuffer(handle, start, count)
 end
@@ -768,14 +802,14 @@ end
 function bcfx.setTransform(mat)
 	libbcfx.setTransform(mat)
 end
----@param stage integer
----@param sampler Handle
----@param texture Handle
+---@param stage integer @ start from 1
+---@param sampler Handle @ uniform handle
+---@param texture Handle @ texture handle
 ---@param flags bcfx_sampler_flag
 function bcfx.setTexture(stage, sampler, texture, flags)
 	libbcfx.setTexture(stage, sampler, texture, flags)
 end
----@param x integer
+---@param x integer @ rect: origin is LeftBottom, x towards right, y towards top, unit is pixel
 ---@param y integer
 ---@param width integer
 ---@param height integer
@@ -796,16 +830,22 @@ end
 
 ---@class bcfx_InstanceDataBuffer:table
 ---@field handle Handle
----@field bufferOffset integer
----@field numAttrib integer
+---@field bufferOffset integer @ skip num of bytes, for multi instance data using the same vertex buffer
+---@field numAttrib integer @ num of vec4 per instance
 ---@field numInstance integer
 
+---@overload fun(data:bcfx_InstanceDataBuffer):void
+---@overload fun(data:bcfx_InstanceDataBuffer, start:integer):void
+---@overload fun(data:bcfx_InstanceDataBuffer, start:integer, count:integer):void
 ---@param data bcfx_InstanceDataBuffer
----@param start integer @ per instance, not vec4, not float, not byte
----@param count integer @ per instance, maybe multi vec4
+---@param start integer @ skip num of instance, not vec4, not float, not byte
+---@param count integer @ num of instance
 function bcfx.setInstanceDataBuffer(data, start, count)
 	libbcfx.setInstanceDataBuffer(data, start, count)
 end
+---@overload fun(id:ViewId, handle:Handle):void
+---@overload fun(id:ViewId, handle:Handle, flags:bcfx_discard):void
+---@overload fun(id:ViewId, handle:Handle, flags:bcfx_discard, sortDepth:integer):void
 ---@param id ViewId
 ---@param handle Handle @ shader program
 ---@param flags bcfx_discard @ combining flags with '|'
@@ -813,6 +853,8 @@ end
 function bcfx.submit(id, handle, flags, sortDepth)
 	libbcfx.submit(id, handle, flags, sortDepth)
 end
+
+-- }======================================================
 
 ---@class bcfx_clear_flag
 ---@field public NONE integer
@@ -1024,8 +1066,6 @@ bcfx.texture_format = libbcfx.texture_format
 
 ---@type bcfx_uniform_type
 bcfx.uniform_type = libbcfx.uniform_type
-
--- }======================================================
 
 --[[
 ** {======================================================
