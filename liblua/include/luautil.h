@@ -93,14 +93,15 @@ LUALIB_API void luaBB_addbytes(luaL_ByteBuffer* b, const uint8_t* buf, uint32_t 
 LUALIB_API void luaBB_addlstringex(luaL_ByteBuffer* b, const char* str, uint32_t len, bool escape);
 LUALIB_API void luaBB_addvalue(luaL_ByteBuffer* b, lua_State* L, int idx);
 
-LUALIB_API const uint8_t* luaBB_getbytes(luaL_ByteBuffer* b, uint32_t len);
+LUALIB_API void luaBB_setread(luaL_ByteBuffer* b, uint32_t read);
+LUALIB_API const uint8_t* luaBB_readbytes(luaL_ByteBuffer* b, uint32_t len);
+LUALIB_API void luaBB_flushread(luaL_ByteBuffer* b);
 
 LUALIB_API void luaBB_clear(luaL_ByteBuffer* b);
-LUALIB_API void luaBB_flush(luaL_ByteBuffer* b);
-LUALIB_API void luaBB_undoread(luaL_ByteBuffer* b);
 
-#define luaBB_isempty(b) ((b)->readed == (b)->n)
-#define luaBB_getcount(b) ((b)->n - (b)->readed)
+#define luaBB_undoread(b) luaBB_setread(b, 0)
+#define luaBB_isemptyforread(b) ((b)->hadRead >= (b)->n)
+#define luaBB_getremainforread(b) ((b)->n - (b)->hadRead)
 
 #define luaBB_addbyte(b, u) \
   do { \

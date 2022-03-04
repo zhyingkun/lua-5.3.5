@@ -84,7 +84,7 @@ LUALIB_API void luaBB_destroybuffer(uint8_t* ptr) {
 }
 
 LUALIB_API uint8_t* luaBB_appendbytes(luaL_ByteBuffer* b, uint32_t len) {
-  luaBB_flush(b);
+  luaBB_flushread(b);
   uint32_t minisize = b->n + len;
   if (minisize > b->size) {
     if (b->bStatic) {
@@ -133,7 +133,11 @@ LUALIB_API void luaBB_addvalue(luaL_ByteBuffer* b, lua_State* L, int idx) {
   lua_pop(L, 1); // [-1, +0]
 }
 
-LUALIB_API const uint8_t* luaBB_getbytes(luaL_ByteBuffer* b, uint32_t len) {
+LUALIB_API void luaBB_setread(luaL_ByteBuffer* b, uint32_t read) {
+  b->hadRead = read;
+}
+
+LUALIB_API const uint8_t* luaBB_readbytes(luaL_ByteBuffer* b, uint32_t len) {
   if (b->hadRead + len > b->n) {
     return NULL;
   }
@@ -142,12 +146,7 @@ LUALIB_API const uint8_t* luaBB_getbytes(luaL_ByteBuffer* b, uint32_t len) {
   return s;
 }
 
-LUALIB_API void luaBB_clear(luaL_ByteBuffer* b) {
-  b->n = 0;
-  b->hadRead = 0;
-}
-
-LUALIB_API void luaBB_flush(luaL_ByteBuffer* b) {
+LUALIB_API void luaBB_flushread(luaL_ByteBuffer* b) {
   if (!b->bStatic && b->hadRead != 0) {
     uint32_t realn = b->n - b->hadRead;
     uint8_t* dst = b->b;
@@ -161,7 +160,8 @@ LUALIB_API void luaBB_flush(luaL_ByteBuffer* b) {
   }
 }
 
-LUALIB_API void luaBB_undoread(luaL_ByteBuffer* b) {
+LUALIB_API void luaBB_clear(luaL_ByteBuffer* b) {
+  b->n = 0;
   b->hadRead = 0;
 }
 
