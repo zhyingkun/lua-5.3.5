@@ -219,6 +219,10 @@ static int BCWRAP_FUNCTION(createUniform)(lua_State* L) {
   bcfx_UniformType type = luaL_checkuniformtype(L, 2);
   uint16_t num = luaL_optinteger(L, 3, 1);
 
+  if (type == UT_Sampler2D && num != 1) {
+    return luaL_error(L, "Sampler2D uniform does not support array");
+  }
+
   Handle handle = bcfx_createUniform(name, type, num);
   lua_pushinteger(L, handle);
   return 1;
