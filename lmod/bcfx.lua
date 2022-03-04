@@ -547,6 +547,9 @@ end
 
 ---@class Handle:integer
 
+---@type Handle
+bcfx.kInvalidHandle = libbcfx.kInvalidHandle
+
 ---@param layout bcfx_VertexLayout
 ---@return Handle
 function bcfx.createVertexLayout(layout)
@@ -635,7 +638,8 @@ bcfx.instanceDataBufferSize = instanceDataBufferSize
 ---@param numInstance integer
 ---@return Handle
 function bcfx.createInstanceDataBuffer(numVec4PerInstance, numInstance)
-	return libbcfx.createDynamicVertexBuffer(instanceDataBufferSize(numVec4PerInstance, numInstance), 0)
+	local size = instanceDataBufferSize(numVec4PerInstance, numInstance)
+	return libbcfx.createDynamicVertexBuffer(size, libbcfx.kInvalidHandle)
 end
 
 -- }======================================================
