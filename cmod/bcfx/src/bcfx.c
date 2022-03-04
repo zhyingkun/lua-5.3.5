@@ -95,6 +95,14 @@ BCFX_API void bcfx_setFrameCompletedCallback(bcfx_OnFrameCompleted cb, void* ud)
 ** =======================================================
 */
 
+// According to bcfx_EUniformType
+uint8_t sizeof_UniformType[] = {
+    sizeof(uint32_t),
+    sizeof(float) * 4,
+    sizeof(float) * 3 * 3,
+    sizeof(float) * 4 * 4,
+};
+
 BCFX_API Handle bcfx_createVertexLayout(bcfx_VertexLayout* layout) {
   return ctx_createVertexLayout(s_ctx, layout);
 }
@@ -291,11 +299,11 @@ BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags, uint32_t sor
 */
 
 BCFX_API bcfx_UniformType bcfx_uniformInfo(Handle handle, uint16_t* num) {
-  UniformAPI* u = &s_ctx->uniforms[handle_index(handle)];
+  UniformBase* ub = &s_ctx->uniforms[handle_index(handle)];
   if (num) {
-    *num = u->num;
+    *num = ub->num;
   }
-  return u->type;
+  return ub->type;
 }
 
 /* }====================================================== */

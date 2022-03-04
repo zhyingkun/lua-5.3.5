@@ -19,6 +19,8 @@ void frame_init(Frame* frame) {
     frame->viewCapture[i] = 0;
   }
   frame->numVCR = 0;
+
+  luaBB_init(frame->uniformDataBuffer, 1024);
 }
 
 void frame_reset(Frame* frame) {
@@ -31,6 +33,8 @@ void frame_reset(Frame* frame) {
     frame->viewCapture[i] = 0;
   }
   frame->numVCR = 0;
+
+  luaBB_clear(frame->uniformDataBuffer);
 }
 
 uint16_t frame_newRenderItemIndex(Frame* frame) {

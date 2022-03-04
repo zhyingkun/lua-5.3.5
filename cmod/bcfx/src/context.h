@@ -14,11 +14,6 @@
 */
 
 typedef struct {
-  bcfx_UniformType type;
-  uint16_t num;
-} UniformAPI;
-
-typedef struct {
   bool running;
   Window mainWin;
 
@@ -45,7 +40,7 @@ typedef struct {
   bcfx_OnFrameViewCapture onFrameViewCapture;
   void* onFrameViewCaptureArg;
 
-  UniformAPI uniforms[BCFX_CONFIG_MAX_UNIFORM];
+  UniformBase uniforms[BCFX_CONFIG_MAX_UNIFORM];
 } Context;
 
 uint32_t ctx_frameId(Context* ctx);

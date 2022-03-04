@@ -29,8 +29,8 @@ typedef struct {
   uint32_t numInstance;
 
   Mat4x4 model;
-  uint32_t uniformStart; // include, as index, such as 0
-  uint32_t uniformEnd; // exclude
+  uint32_t uniformStartByte;
+  uint32_t uniformSizeByte;
 
   Rect scissor;
   bcfx_RenderState state;
@@ -67,9 +67,7 @@ typedef struct {
   RenderBind renderBinds[BCFX_CONFIG_MAX_DRAW_CALLS];
   uint64_t sortKeys[BCFX_CONFIG_MAX_DRAW_CALLS];
 
-  uint32_t numUniformDatas;
-  Handle uniformHandles[BCFX_CONFIG_MAX_DRAW_CALLS];
-  UniformData uniformDatas[BCFX_CONFIG_MAX_DRAW_CALLS]; // maybe implement with serialize buffer
+  luaL_ByteBuffer uniformDataBuffer[1];
 
   CommandBuffer cmdPre[1];
   CommandBuffer cmdPost[1];
@@ -88,6 +86,7 @@ uint16_t frame_newRenderItemIndex(Frame* frame);
 void frame_setRenderItem(Frame* frame, uint16_t index, RenderItem* item);
 void frame_setRenderBind(Frame* frame, uint16_t index, RenderBind* bind);
 void frame_setSortKey(Frame* frame, uint16_t index, uint64_t sortKey);
+uint8_t* frame_encodeUniformData(Frame* frame, Handle handle, size_t sz);
 void frame_sort(Frame* frame);
 
 /* }====================================================== */

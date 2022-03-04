@@ -95,11 +95,14 @@ typedef enum {
   UB_Count,
 } bcfx_EUniformBuiltin;
 
-typedef union {
-  int stage; // for Texture Unit
-  Vec4 vec4;
-  Mat3x3 mat3x3;
-  Mat4x4 mat4x4;
-} UniformData;
+typedef struct {
+  bcfx_UniformType type;
+  uint16_t num;
+} UniformBase;
+void uniform_initBase(UniformBase* u, bcfx_UniformType type, uint16_t num);
+size_t uniform_getSize(UniformBase* u);
+
+uint8_t* uniform_writeData(luaL_ByteBuffer* b, Handle handle, size_t sz);
+uint8_t* uniform_readData(luaL_ByteBuffer* b, Handle* phandle, size_t* psize, size_t* pread);
 
 #endif /* _COMMON_H_ */

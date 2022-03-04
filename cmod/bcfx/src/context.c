@@ -348,10 +348,9 @@ Handle ctx_createUniform(Context* ctx, const char* name, bcfx_UniformType type, 
   memcpy(buf, name, len);
   param->cu.name = buf;
   param->cu.type = type;
-  param->cu.num = num;
-  UniformAPI* u = &ctx->uniforms[handle_index(handle)];
-  u->type = type;
-  u->num = num;
+  param->cu.num = type == UT_Sampler2D ? 1 : num;
+  UniformBase* u = &ctx->uniforms[handle_index(handle)];
+  uniform_initBase(u, type, num);
   return handle;
 }
 
@@ -522,36 +521,87 @@ void ctx_callOnFrameViewCapture(Context* ctx, Frame* frame, uint32_t frameId) {
 
 /*
 ** {======================================================
+** Uniform
+** =======================================================
+*/
+
+void uniform_initBase(UniformBase* u, bcfx_UniformType type, uint16_t num) {
+  u->type = type;
+  u->num = num;
+}
+static bool uniform_checkType(UniformBase* u, bcfx_UniformType type, uint16_t num) {
+  if (u->type != type || u->num != num) {
+    printf_err("Uniform mismatch, want type: %d, num: %d, got type: %d, num: %d\n", u->type, u->num, type, num);
+    return false;
+  }
+  return true;
+}
+size_t uniform_getSize(UniformBase* u) {
+  return sizeof_UniformType[u->type] * u->num;
+}
+
+uint8_t* uniform_writeData(luaL_ByteBuffer* b, Handle handle, size_t sz) {
+  uint32_t* ph = (uint32_t*)luaBB_appendbytes(b, sizeof(uint32_t)); // for memory alignment
+  *ph = handle;
+  uint32_t* ps = (uint32_t*)luaBB_appendbytes(b, sizeof(uint32_t)); // for memory alignment
+  *ps = sz;
+  assert(sz % sizeof(float) == 0); // for memory alignment in 4 byte
+  return (uint8_t*)luaBB_appendbytes(b, sz);
+}
+uint8_t* uniform_readData(luaL_ByteBuffer* b, Handle* phandle, size_t* psize, size_t* pread) {
+  uint32_t* ph = (uint32_t*)luaBB_readbytes(b, sizeof(uint32_t));
+  assert(ph != NULL);
+  *phandle = *ph;
+  uint32_t* ps = (uint32_t*)luaBB_readbytes(b, sizeof(uint32_t));
+  assert(ps != NULL);
+  size_t size = *ps;
+  *psize = size;
+  assert(size % sizeof(float) == 0);
+  uint8_t* ptr = (uint8_t*)luaBB_readbytes(b, size);
+  assert(ptr != NULL);
+  *pread += sizeof(uint32_t) + sizeof(uint32_t) + size;
+  return ptr;
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** Submit DrawCall
 ** =======================================================
 */
 
-static void ctx_checkUniform(Context* ctx, Handle handle, bcfx_UniformType type, uint16_t num) {
-  UniformAPI* u = &ctx->uniforms[handle_index(handle)];
-  if (u->type != type || u->num != num) {
-    printf_err("Uniform mismatch, want %d, %d, got %d, %d\n", u->type, u->num, type, num);
-  }
-}
-
 void ctx_setUniformVec4(Context* ctx, Handle handle, Vec4* vec, uint16_t num) {
   CHECK_HANDLE(handle, HT_Uniform);
-  ctx_checkUniform(ctx, handle, UT_Vec4, num);
-  for (uint16_t i = 0; i < num; i++) {
-    encoder_addUniformData(ctx->encoder, handle)->vec4 = vec[i];
+  UniformBase* u = &ctx->uniforms[handle_index(handle)];
+  if (uniform_checkType(u, UT_Vec4, num)) {
+    uint8_t* ptr = encoder_addUniformData(ctx->encoder, handle, uniform_getSize(u));
+    size_t sou = sizeof_UniformType[u->type];
+    for (uint16_t i = 0; i < num; i++) {
+      memcpy(ptr + i * sou, vec[i].element, sou);
+    }
   }
 }
 void ctx_setUniformMat3x3(Context* ctx, Handle handle, Mat3x3* mat, uint16_t num) {
   CHECK_HANDLE(handle, HT_Uniform);
-  ctx_checkUniform(ctx, handle, UT_Mat3x3, num);
-  for (uint16_t i = 0; i < num; i++) {
-    encoder_addUniformData(ctx->encoder, handle)->mat3x3 = mat[i];
+  UniformBase* u = &ctx->uniforms[handle_index(handle)];
+  if (uniform_checkType(u, UT_Mat3x3, num)) {
+    uint8_t* ptr = encoder_addUniformData(ctx->encoder, handle, uniform_getSize(u));
+    size_t sou = sizeof_UniformType[u->type];
+    for (uint16_t i = 0; i < num; i++) {
+      memcpy(ptr + i * sou, mat[i].element, sou);
+    }
   }
 }
 void ctx_setUniformMat4x4(Context* ctx, Handle handle, Mat4x4* mat, uint16_t num) {
   CHECK_HANDLE(handle, HT_Uniform);
-  ctx_checkUniform(ctx, handle, UT_Mat4x4, num);
-  for (uint16_t i = 0; i < num; i++) {
-    encoder_addUniformData(ctx->encoder, handle)->mat4x4 = mat[i];
+  UniformBase* u = &ctx->uniforms[handle_index(handle)];
+  if (uniform_checkType(u, UT_Mat4x4, num)) {
+    uint8_t* ptr = encoder_addUniformData(ctx->encoder, handle, uniform_getSize(u));
+    size_t sou = sizeof_UniformType[u->type];
+    for (uint16_t i = 0; i < num; i++) {
+      memcpy(ptr + i * sou, mat[i].element, sou);
+    }
   }
 }
 
@@ -576,9 +626,10 @@ void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture,
   CHECK_TEXTURE_UNIT(stage);
   CHECK_HANDLE(sampler, HT_Uniform);
   CHECK_HANDLE(texture, HT_Texture);
-  ctx_checkUniform(ctx, sampler, UT_Sampler2D, 1);
-  UniformData* data = encoder_addUniformData(ctx->encoder, sampler);
-  data->stage = stage;
+  UniformBase* u = &ctx->uniforms[handle_index(sampler)];
+  uniform_checkType(u, UT_Sampler2D, 1);
+  uint32_t* pstage = (uint32_t*)encoder_addUniformData(ctx->encoder, sampler, sizeof(uint32_t));
+  *pstage = stage;
   encoder_setTexture(ctx->encoder, stage, texture, flags);
 }
 void ctx_setScissor(Context* ctx, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {

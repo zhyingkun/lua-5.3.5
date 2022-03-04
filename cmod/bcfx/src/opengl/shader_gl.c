@@ -415,23 +415,24 @@ void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw
   for (uint16_t i = 0; i < pu->usedCountUD; i++) {
     UniformProperty* prop = &pu->propertiesUD[i];
     UniformGL* uniform = &glCtx->uniforms[prop->index];
-    if (uniform_glType[uniform->type] != prop->type) {
-      printf_err("Uniform type mismatch: %s, In shader: %d, In app: %d\n", uniform->name, prop->type, uniform->type);
+    UniformBase* ub = uniform->base;
+    if (uniform_glType[ub->type] != prop->type) {
+      printf_err("Uniform type mismatch: %s, In shader: %d, In app: %d\n", uniform->name, prop->type, ub->type);
     }
-    switch (uniform->type) {
+    switch (ub->type) {
       case UT_Sampler2D:
-        assert(uniform->num == 1);
+        assert(ub->num == 1);
         GL_CHECK(glUniform1i(prop->loc, (GLint)uniform->data.stage));
         gl_bindTextureUnit(glCtx, bind, uniform->data.stage);
         break;
       case UT_Vec4:
-        GL_CHECK(glUniform4fv(prop->loc, 1, (const GLfloat*)uniform->data.vec4.element));
+        GL_CHECK(glUniform4fv(prop->loc, ub->num, (const GLfloat*)uniform->data.ptr));
         break;
       case UT_Mat3x3:
-        GL_CHECK(glUniformMatrix3fv(prop->loc, 1, GL_FALSE, (const GLfloat*)uniform->data.mat3x3.element));
+        GL_CHECK(glUniformMatrix3fv(prop->loc, ub->num, GL_FALSE, (const GLfloat*)uniform->data.ptr));
         break;
       case UT_Mat4x4:
-        GL_CHECK(glUniformMatrix4fv(prop->loc, 1, GL_FALSE, (const GLfloat*)uniform->data.mat4x4.element));
+        GL_CHECK(glUniformMatrix4fv(prop->loc, ub->num, GL_FALSE, (const GLfloat*)uniform->data.ptr));
         break;
       default:
         break;

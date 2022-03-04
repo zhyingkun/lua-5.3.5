@@ -97,10 +97,13 @@ typedef struct {
   PredefinedUniform pu;
 } ProgramGL;
 
+typedef union {
+  uint32_t stage; // for Texture Unit
+  uint8_t* ptr; // for Vec4, Mat3x3, Mat4x4, Array
+} UniformData;
 typedef struct {
   const char* name;
-  bcfx_UniformType type;
-  uint16_t num;
+  UniformBase base[1];
   UniformData data;
 } UniformGL;
 typedef struct {

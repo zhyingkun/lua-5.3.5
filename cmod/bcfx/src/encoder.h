@@ -16,7 +16,7 @@ typedef struct {
   RenderDraw draw;
   RenderCompute compute;
   RenderBind bind;
-  uint32_t uniformStart;
+  uint32_t uniformStartByte;
   SortKey sortKey;
 } Encoder;
 
@@ -27,7 +27,7 @@ void encoder_touch(Encoder* encoder, ViewId id);
 void encoder_setVertexBuffer(Encoder* encoder, uint8_t stream, Handle vertexBuffer);
 void encoder_setIndexBuffer(Encoder* encoder, Handle indexBuffer, uint32_t start, uint32_t count);
 void encoder_setTransform(Encoder* encoder, Mat4x4* mat);
-UniformData* encoder_addUniformData(Encoder* encoder, Handle handle);
+uint8_t* encoder_addUniformData(Encoder* encoder, Handle handle, size_t sz);
 void encoder_setTexture(Encoder* encoder, uint8_t stage, Handle handle, bcfx_SamplerFlag flags);
 void encoder_setScissor(Encoder* encoder, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 void encoder_setState(Encoder* encoder, bcfx_RenderState state, uint32_t blendColor);

@@ -49,8 +49,7 @@ void encoder_begin(Encoder* encoder, Frame* frame) {
   MAT4x4_INIT(&encoder->draw.model);
   encoder_discard(encoder, BCFX_DISCARD_ALL);
 
-  frame->numUniformDatas = 0;
-  encoder->uniformStart = 0;
+  encoder->uniformStartByte = 0;
 }
 
 void encoder_touch(Encoder* encoder, ViewId id) {
@@ -69,12 +68,8 @@ void encoder_setIndexBuffer(Encoder* encoder, Handle indexBuffer, uint32_t start
 void encoder_setTransform(Encoder* encoder, Mat4x4* mat) {
   encoder->draw.model = *mat;
 }
-UniformData* encoder_addUniformData(Encoder* encoder, Handle handle) {
-  Frame* frame = encoder->frame;
-  uint32_t index = frame->numUniformDatas;
-  frame->uniformHandles[index] = handle;
-  frame->numUniformDatas++;
-  return &frame->uniformDatas[index];
+uint8_t* encoder_addUniformData(Encoder* encoder, Handle handle, size_t sz) {
+  return uniform_writeData(encoder->frame->uniformDataBuffer, handle, sz);
 }
 void encoder_setTexture(Encoder* encoder, uint8_t stage, Handle handle, bcfx_SamplerFlag flags) {
   Binding* bind = &encoder->bind.binds[stage];
@@ -116,9 +111,9 @@ void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags,
   RenderDraw* draw = &encoder->draw;
   RenderBind* bind = &encoder->bind;
 
-  draw->uniformStart = encoder->uniformStart;
-  draw->uniformEnd = frame->numUniformDatas;
-  encoder->uniformStart = frame->numUniformDatas;
+  draw->uniformStartByte = encoder->uniformStartByte;
+  draw->uniformSizeByte = frame->uniformDataBuffer->n - encoder->uniformStartByte;
+  encoder->uniformStartByte = frame->uniformDataBuffer->n;
 
   uint16_t index = frame_newRenderItemIndex(frame);
   frame_setRenderItem(frame, index, (RenderItem*)draw);

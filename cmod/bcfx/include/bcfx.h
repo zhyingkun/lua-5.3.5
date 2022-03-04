@@ -229,6 +229,7 @@ typedef enum {
   UT_Mat3x3,
   UT_Mat4x4,
 } bcfx_UniformType;
+BCFX_API uint8_t sizeof_UniformType[];
 
 BCFX_API Handle bcfx_createUniform(const char* name, bcfx_UniformType type, uint16_t num);
 

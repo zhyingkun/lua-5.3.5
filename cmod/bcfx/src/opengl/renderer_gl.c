@@ -390,8 +390,12 @@ static void gl_createUniform(RendererContext* ctx, Handle handle, const char* na
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   UniformGL* uniform = &glCtx->uniforms[handle_index(handle)];
   uniform->name = name;
-  uniform->type = type;
-  uniform->num = num;
+  uniform_initBase(uniform->base, type, num);
+  if (type == UT_Sampler2D) {
+    uniform->data.stage = 0;
+  } else {
+    uniform->data.ptr = (uint8_t*)mem_malloc(sizeof_UniformType[type] * num);
+  }
   glCtx->uniformCount++;
 }
 static void gl_createTexture(RendererContext* ctx, Handle handle, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
@@ -509,23 +513,26 @@ static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
 }
 
 static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, Frame* frame) {
-  for (uint32_t i = draw->uniformStart; i < draw->uniformEnd; i++) {
-    // Does not support uniform array, will use the last one
-    Handle handle = frame->uniformHandles[i];
-    UniformData* data = &frame->uniformDatas[i];
+  luaBB_setread(frame->uniformDataBuffer, draw->uniformStartByte);
+  size_t hadRead = 0;
+  while (hadRead < draw->uniformSizeByte) {
+    Handle handle = kInvalidHandle;
+    size_t size = 0;
+    size_t read = 0;
+    uint8_t* ptr = uniform_readData(frame->uniformDataBuffer, &handle, &size, &read);
+    hadRead += read;
+
     UniformGL* uniform = &glCtx->uniforms[handle_index(handle)];
-    switch (uniform->type) {
-#define CASE_UNIFORM(type, field) \
-  case UT_##type: \
-    uniform->data.field = data->field; \
-    break
-      CASE_UNIFORM(Sampler2D, stage);
-      CASE_UNIFORM(Vec4, vec4);
-      CASE_UNIFORM(Mat3x3, mat3x3);
-      CASE_UNIFORM(Mat4x4, mat4x4);
-#undef CASE_UNIFORM
+    UniformBase* ub = uniform->base;
+    if (ub->type == UT_Sampler2D) {
+      assert(size == sizeof(uint32_t));
+      uniform->data.stage = *ptr;
+    } else {
+      assert(size == uniform_getSize(ub));
+      memcpy(uniform->data.ptr, ptr, size);
     }
   }
+  // luaBB_undoread(frame->uniformDataBuffer);
 }
 
 static inline bool shouldCaptureView(Frame* frame, ViewId id) {
@@ -691,6 +698,10 @@ static void gl_destroyUniform(RendererContext* ctx, Handle handle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   UniformGL* uniform = &glCtx->uniforms[handle_index(handle)];
   free((void*)uniform->name);
+  UniformBase* ub = uniform->base;
+  if (ub->type != UT_Sampler2D) {
+    mem_free(uniform->data.ptr);
+  }
   memset((uint8_t*)uniform, 0, sizeof(UniformGL));
 }
 static void gl_destroyTexture(RendererContext* ctx, Handle handle) {
