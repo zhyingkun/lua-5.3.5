@@ -841,5 +841,8 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
 
   init_resource_manage(L);
 
+  lua_pushinteger(L, kInvalidHandle);
+  lua_setfield(L, -2, "kInvalidHandle");
+
   return 1;
 }
