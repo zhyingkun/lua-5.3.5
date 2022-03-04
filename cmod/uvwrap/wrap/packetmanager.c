@@ -29,7 +29,7 @@ static void _packLengthToBuffer(luaL_ByteBuffer* b, size_t len) {
 static PacketStatus _unpackLengthFromBuffer(luaL_ByteBuffer* b, size_t* plen) {
   size_t len = 0;
   for (int i = 0; i < 10; i++) {
-    const uint8_t* byte = luaBB_getbytes(b, 1);
+    const uint8_t* byte = luaBB_readbytes(b, 1);
     if (byte == NULL) {
       return PS_NeedMore;
     }
@@ -57,7 +57,7 @@ static void pm_destroy(PacketManager* pm) {
 static uint8_t* pm_packPacket(PacketManager* pm, const uint8_t* raw, size_t len, size_t* sz) {
   luaBB_clear(pm->tmp);
   _packLengthToBuffer(pm->tmp, len);
-  luaBB_addbytes(pm->tmp, raw, len);
+  luaBB_addbytes(pm->tmp, raw, (uint32_t)len);
   if (sz) {
     *sz = pm->tmp->n;
   }
@@ -65,8 +65,7 @@ static uint8_t* pm_packPacket(PacketManager* pm, const uint8_t* raw, size_t len,
 }
 
 static void pm_addPackData(PacketManager* pm, const uint8_t* data, size_t len) {
-  luaBB_flush(pm->b);
-  luaBB_addbytes(pm->b, data, len);
+  luaBB_addbytes(pm->b, data, (uint32_t)len);
 }
 
 static PacketStatus pm_nextPacket(PacketManager* pm, const uint8_t** pptr, size_t* plen) {
@@ -75,12 +74,12 @@ static PacketStatus pm_nextPacket(PacketManager* pm, const uint8_t** pptr, size_
   PacketStatus status = _unpackLengthFromBuffer(pm->b, &len);
   switch (status) {
     case PS_OK:
-      ptr = luaBB_getbytes(pm->b, len);
+      ptr = luaBB_readbytes(pm->b, (uint32_t)len);
       if (ptr == NULL) {
         status = PS_NeedMore;
         luaBB_undoread(pm->b);
       } else {
-        luaBB_flush(pm->b);
+        luaBB_flushread(pm->b);
         if (pptr) {
           *pptr = ptr;
         }
