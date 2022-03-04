@@ -616,7 +616,7 @@ void ctx_setVertexBuffer(Context* ctx, uint8_t stream, Handle handle) {
   encoder_setVertexBuffer(ctx->encoder, stream, handle);
 }
 void ctx_setIndexBuffer(Context* ctx, Handle handle, uint32_t start, uint32_t count) {
-  CHECK_HANDLE(handle, HT_IndexBuffer);
+  CHECK_HANDLE_IF_VALID(handle, HT_IndexBuffer);
   encoder_setIndexBuffer(ctx->encoder, handle, start, count);
 }
 void ctx_setTransform(Context* ctx, Mat4x4* mat) {
