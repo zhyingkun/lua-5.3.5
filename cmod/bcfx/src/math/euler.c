@@ -26,6 +26,21 @@ BCFX_API void euler_direction(const EulerAngle* ea, Vec3* direction) {
 }
 
 BCFX_API void euler_toQuaternion(const EulerAngle* ea, Quaternion* quat) {
+  float radHalfPitch = RADIAN(ea->pitch / 2.0);
+  float radHalfRoll = RADIAN(ea->roll / 2.0);
+  float radHalfYaw = RADIAN(ea->yaw / 2.0);
+  // rotate around x axis
+  Quaternion qX[1];
+  quat_init(qX, cosf(radHalfPitch), sinf(radHalfPitch), 0.0, 0.0);
+  // rotate around y axis
+  Quaternion qY[1];
+  quat_init(qY, cosf(radHalfRoll), 0.0, sinf(radHalfRoll), 0.0);
+  // rotate around z axis
+  Quaternion qZ[1];
+  quat_init(qZ, cosf(radHalfYaw), 0.0, 0.0, sinf(radHalfYaw));
+  // rotate order: x->y->z in extrinsic rotations
+  quat_multiply(qY, qX, quat);
+  quat_multiply(qZ, quat, quat);
 }
 
 BCFX_API void euler_toMatrix(const EulerAngle* ea, Mat4x4* mat) {

@@ -40,9 +40,96 @@ BCFX_API void quat_imaginary(const Quaternion* quat, Vec3* vec) {
 }
 
 BCFX_API void quat_toEulerAngle(const Quaternion* quat, EulerAngle* ea) {
+  // according to euler_toQuaternion
+  // we have:
+  // w = chp*chr*chy + shp*shr*shy
+  // x = shp*chr*chy - chp*shr*shy
+  // y = shp*chr*shy + chp*shr*chy
+  // z = chp*chr*shy - shp*shr*chy
+  // then:
+  // 2(wy-xz) = 2*chr*shr = sin(2*hr) = sin(roll)
+  // 2(wx+yz) = 2*chp*shp*(chr^2 - shr^2) = sin(2*hp)*cos(2*hr) = sin(pitch)*cos(roll)
+  // 2(wz+xy) = 2*chy*shy*(chr^2 - shr^2) = sin(2*hy)*cos(2*hr) = sin(yaw)*cos(roll)
+  // and, we can find roll, pitch, yaw
+  // for convenient:
+  // cos(pitch)*cos(roll) = w^2 + z^2 - x^2 - y^2
+  // cos(yaw)*cos(roll) = w^2 + x^2 - y^2 - z^2
+  // tan(pitch) = sin(pitch)/cos(pitch) = sin(pitch)*cos(roll)/[cos(pitch)*cos(roll)]
+  // tan(yaw) = sin(yaw)/cos(yaw) = sin(yaw)*cos(roll)/[cos(yaw)*cos(roll)]
+  float w = quat->w;
+  float x = quat->x;
+  float y = quat->y;
+  float z = quat->z;
+  float sinRoll = 2.0 * (w * y - x * z);
+  float sinPitchCosRoll = 2.0 * (w * x + y * z);
+  float sinYawCosRoll = 2.0 * (w * z + x * y);
+  float cosPitchCosRoll = w * w + z * z - x * x - y * y;
+  float cosYawCosRoll = w * w + x * x - y * y - z * z;
+  ea->pitch = atan2f(sinPitchCosRoll, cosPitchCosRoll);
+  ea->roll = asinf(sinRoll);
+  ea->yaw = atan2f(sinYawCosRoll, cosYawCosRoll);
 }
 
 BCFX_API void quat_toMatrix(const Quaternion* quat, Mat4x4* mat) {
+  // rotate vector P with angle theta against axis A, assume NewP as the rotate result, we have:
+  // NewP = (MatI * cos(theta) + MatCrossA * sin(theta) + MatDotA * (1 - cos(theta))) * P
+  // assume quat = (W, V), W is real part, V is image part
+  // we have: W = cos(theta/2), V = A * sin(theta/2)
+  // so:
+  // cos(theta) = 2 * cos(theta/2) * cos(theta/2) - 1
+  // MatCrossA = MatCrossV / sin(theta/2)
+  // sin(theta) = 2 * sin(theta/2) * cos(theta/2)
+  // MatDotA = MatDotV / (sin(theta/2) * sin(theta/2))
+  // 1 - cos(theta) = 2 * sin(theta/2) * sin(theta/2)
+  // then:
+  // NewP = (MatI * cos(theta) + MatCrossV * 2 * cos(theta/2) + MatDotV * 2) * P
+  float w = quat->w;
+  float x = quat->x;
+  float y = quat->y;
+  float z = quat->z;
+  float cosHalfTheta = w;
+  float cosTheta = 2.0 * cosHalfTheta * cosHalfTheta - 1.0;
+  ALLOCA_MAT3x3(matSum);
+  MAT_IDENTITY(matSum); // make it I
+  MAT_SCALE_(matSum, cosTheta); // MatI * cos(theta)
+  /*
+  A, B and C are three vec3
+  C = CrossProduct(A, B)
+  If we make C = MatCA * B, then MatCA is:
+    0.0, -Az,  Ay
+     Az, 0.0, -Ax
+    -Ay,  Ax, 0.0
+  */
+  ALLOCA_MAT3x3(matCV);
+#define MCV(row, col) MAT_ELEMENT(matCV, row, col)
+  // clang-format off
+  MCV(0, 0) = 0.0; MCV(0, 1) =  -z; MCV(0, 2) =   y;
+  MCV(1, 0) =   z; MCV(1, 1) = 0.0; MCV(1, 2) =  -x;
+  MCV(2, 0) =  -y; MCV(2, 1) =   x; MCV(2, 2) = 0.0;
+  // clang-format on
+#undef MCV
+  MAT_SCALE_(matCV, 2 * cosHalfTheta); // MatCrossV * 2 * cos(theta/2)
+  MAT_ADD_(matSum, matCV); // add it to sum
+  /*
+  A, C and P are three vec3
+  C = dot(A, P) * A, or C = dot(P, A) * A
+  If we make C = MatDA * P, then MatDA is:
+    Ax*Ax, Ax*Ay, Ax*Az
+    Ay*Ax, Ay*Ay, Ay*Az
+    Az*Ax, Az*Ay, Az*Az
+   */
+  ALLOCA_MAT3x3(matDV);
+#define MDV(row, col) MAT_ELEMENT(matDV, row, col)
+  // clang-format off
+  MDV(0, 0) = x * x; MDV(0, 1) = x * y; MDV(0, 2) = x * z;
+  MDV(1, 0) = y * x; MDV(1, 1) = y * y; MDV(1, 2) = y * z;
+  MDV(2, 0) = z * x; MDV(2, 1) = z * y; MDV(2, 2) = z * z;
+  // clang-format on
+#undef MDV
+  MAT_SCALE_(matDV, 2.0); // MatDotV * 2
+  MAT_ADD_(matSum, matDV); // add it to sum
+
+  MAT4x4_INIT_MAT3x3(mat, matSum);
 }
 
 BCFX_API void quat_toAngleAxis(const Quaternion* quat, float* angle, Vec3* axis) {
@@ -128,7 +215,7 @@ BCFX_API void quat_multiply(const Quaternion* src1, const Quaternion* src2, Quat
   dst->x = VEC_ELEMENT(vecDst, 1);
   dst->y = VEC_ELEMENT(vecDst, 2);
   dst->z = VEC_ELEMENT(vecDst, 3);
-*/
+  */
 }
 
 BCFX_API void quat_scale(const Quaternion* src, float scale, Quaternion* dst) {
@@ -187,7 +274,77 @@ BCFX_API void quat_rotateVec3(const Quaternion* quat, const Vec3* src, Vec3* dst
   quat_imaginary(quatSrc, dst);
 }
 
+BCFX_API void quat_lerp(const Quaternion* s, const Quaternion* e, float t, Quaternion* quat) {
+  Quaternion tmp[1];
+  quat_scale(s, 1.0 - t, quat);
+  quat_scale(e, t, tmp);
+  quat_add(quat, tmp, quat);
+  quat_normalize(quat, quat);
+}
+
+BCFX_API bool quat_shortestPath(const Quaternion* s, const Quaternion* e) {
+  // the quaternions q and −q represent the same rotation
+  return quat_dotProduct(s, e) >= 0.0;
+}
+
 BCFX_API void quat_slerp(const Quaternion* s, const Quaternion* e, float t, Quaternion* quat) {
+  float cosTheta = quat_dotProduct(s, e);
+  float theta = acosf(cosTheta);
+  if (EQUAL(theta, 0.0)) {
+    *quat = *s;
+    return;
+  }
+  if (theta < 1.0) {
+    quat_lerp(s, e, t, quat);
+    return;
+  }
+  float sinTheta = sinf(theta);
+  float tTheta = t * theta;
+  float coeff0 = sinf(theta - tTheta) / sinTheta;
+  float coeff1 = sinf(tTheta) / sinTheta;
+  quat_scale(s, coeff0, quat);
+  Quaternion quatTmp[1];
+  quat_scale(e, coeff1, quatTmp);
+  quat_add(quat, quatTmp, quat);
+}
+
+BCFX_API void quat_fromTo(const Vec3* from, const Vec3* to, Quaternion* quat) {
+  // http://lolengine.net/blog/2013/09/18/beautiful-maths-quaternion-from-vectors
+  /*
+  ALLOCA_VEC3(f);
+  VEC_NORMALIZE(from, f);
+  ALLOCA_VEC3(t);
+  VEC_NORMALIZE(to, t);
+  float cosTheta = VEC_DOT_PRODUCT(f, t);
+  float theta = acosf(cosTheta);
+  ALLOCA_VEC3(fxt);
+  VEC3_CROSS_PRODUCT(from, to, fxt);
+  VEC_NORMALIZE_(fxt);
+  quat_initAngleAxis(quat, theta, fxt);
+  */
+  float normFnormT = sqrt(VEC_DOT_PRODUCT(from, from) * VEC_DOT_PRODUCT(to, to));
+  float realPart = normFnormT + VEC_DOT_PRODUCT(from, to);
+  ALLOCA_VEC3(w);
+  if (realPart < 1.e-6f * normFnormT) {
+    /* If 'from' and 'to' are exactly opposite, rotate 180 degrees
+    * around an arbitrary orthogonal axis. Axis normalisation
+    * can happen later, when we normalise the quaternion. */
+    realPart = 0.0f;
+    if (fabsf(VEC3_X(from)) > fabsf(VEC3_Z(from))) {
+      VEC3_X(w) = -VEC3_Y(from);
+      VEC3_Y(w) = VEC3_X(from);
+      VEC3_Z(w) = 0.0;
+    } else {
+      VEC3_X(w) = 0.0;
+      VEC3_Y(w) = -VEC3_Z(from);
+      VEC3_Z(w) = VEC3_Y(from);
+    }
+  } else {
+    /* Otherwise, build quaternion the standard way. */
+    VEC3_CROSS_PRODUCT(from, to, w);
+  }
+  quat_init(quat, realPart, VEC3_X(w), VEC3_Y(w), VEC3_Z(w));
+  quat_normalize(quat, quat);
 }
 
 /* }====================================================== */

@@ -225,6 +225,49 @@ BCFX_API bool mat_inverse(const Mat* src, Mat* dst) {
   return true;
 }
 
+BCFX_API void mat_projection(const Vec* axis, Mat* mat) {
+  assert(axis->count == mat->row &&
+         axis->count == mat->col);
+  ALLOCA_VEC(A, axis->count);
+  VEC_NORMALIZE(axis, A);
+  /*
+  A, C and P are three vec3
+  C = dot(A, P) * A, or C = dot(P, A) * A
+  If we make C = MatDA * P, then MatDA is:
+    Ax*Ax, Ax*Ay, Ax*Az
+    Ay*Ax, Ay*Ay, Ay*Az
+    Az*Ax, Az*Ay, Az*Az
+  */
+#define MDA(row, col) MAT_ELEMENT(mat, row, col)
+#define VE(i) VEC_ELEMENT(A, i)
+  for (uint8_t i = 0; i < mat->row; i++) {
+    for (uint8_t j = 0; j < mat->col; j++) {
+      MDA(i, j) = VE(i);
+    }
+  }
+  for (uint8_t i = 0; i < mat->row; i++) {
+    for (uint8_t j = 0; j < mat->col; j++) {
+      MDA(i, j) *= VE(j);
+    }
+  }
+#undef VE
+#undef MDA
+}
+
+BCFX_API void mat_perpendicular(const Vec* axis, Mat* mat) {
+  /*
+  vPerp = v - vProj
+        = MatI * v - MatProj * v
+        = (MatI - MatProj) * v
+  */
+  assert(axis->count == mat->row &&
+         axis->count == mat->col);
+  MAT_IDENTITY(mat);
+  ALLOCA_MAT(matDA, mat->row, mat->col);
+  MAT_PROJECTION(axis, matDA);
+  MAT_SUBTRACT_(mat, matDA);
+}
+
 /* }====================================================== */
 
 /*
@@ -235,6 +278,34 @@ BCFX_API bool mat_inverse(const Mat* src, Mat* dst) {
 
 BCFX_API void mat3x3_init(Mat3x3* mat) {
   mat_init((Mat*)mat, 3, 3);
+}
+
+BCFX_API void mat3x3_crossProduct(const Vec3* A, Mat3x3* matCA) {
+  /*
+  A, B and C are three vec3
+  C = CrossProduct(A, B)
+  If we make C = MatCA * B, then MatCA is:
+    0.0, -Az,  Ay
+     Az, 0.0, -Ax
+    -Ay,  Ax, 0.0
+  If we make C = MatCB * A, then MatCB is:
+    0.0,  Bz, -By
+    -Bz, 0.0,  Bx
+     By, -Bx, 0.0
+  */
+#define MCA(row, col) MAT_ELEMENT(matCA, row, col)
+#define X(vec) VEC3_X(vec)
+#define Y(vec) VEC3_Y(vec)
+#define Z(vec) VEC3_Z(vec)
+  // clang-format off
+  MCA(0, 0) =   0.0; MCA(0, 1) = -Z(A); MCA(0, 2) =  Y(A);
+  MCA(1, 0) =  Z(A); MCA(1, 1) =   0.0; MCA(1, 2) = -X(A);
+  MCA(2, 0) = -Y(A); MCA(2, 1) =  X(A); MCA(2, 2) =   0.0;
+  // clang-format on
+#undef Z
+#undef Y
+#undef X
+#undef MCA
 }
 
 /* }====================================================== */

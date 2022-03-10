@@ -95,6 +95,28 @@ BCFX_API void g3d_scale(const Vec3* vec, Mat4x4* mat) {
   // clang-format on
 }
 
+BCFX_API void g3d_scaleAxis(float scale, const Vec3* axis, Mat4x4* mat) {
+  /*
+  before scale: decompose to perpendicular and projection against A
+  vProj = dot(v, A) * A // projection to A
+  v = vPerp + vProj, so, vPerp = v - vProj // perpendicular to A
+  after scale:
+  vPerpNew = vPerp, vProjNew = scale * vProj
+  vNew = vPerpNew + vProjNew
+       = vPerp + scale * vProj
+       = v - vProj + scale * vProj
+       = v + (scale - 1) * dot(v, A) * A
+       = MatI * v + (scale - 1) * MatDA * v
+       = (MatI + (scale - 1) * MatDA) * v
+  so, MatScaleAxis = MatI + (scale - 1) * MatDA
+  */
+  MAT_IDENTITY(mat);
+  ALLOCA_MAT3x3(matDA);
+  MAT_PROJECTION(axis, matDA);
+  MAT_SCALE_(matDA, scale - 1.0);
+  MAT_ADD_(mat, matDA);
+}
+
 // fovy is in degree, not radian
 // zNear define the distance between the camera position and the near clipping planes
 // zFar  define the distance between the camera position and the far  clipping planes
@@ -320,4 +342,39 @@ BCFX_API void g3d_lookAt(const Vec3* eye, const Vec3* center, const Vec3* up, Ma
 #undef MIR
 
   MAT_MULTIPLY(invRotation, invTranslation, mat);
+}
+
+BCFX_API void g3d_shear(const Vec3* xCoeff, const Vec3* yCoeff, const Vec3* zCoeff, Mat4x4* mat) {
+  /*
+  xNew = xCoeff.x * x + xCoeff.y * y + xCoeff.z * z
+  yNew and zNew also calculate with this method, Coeff is coefficient
+  */
+  // clang-format off
+  M(0, 0) = X(xCoeff); M(0, 1) = Y(xCoeff); M(0, 2) = Z(xCoeff); M(0, 3) = 0.0; // column vector, negative for Transpose
+  M(1, 0) = X(yCoeff); M(1, 1) = Y(yCoeff); M(1, 2) = Z(yCoeff); M(1, 3) = 0.0;
+  M(2, 0) = X(zCoeff); M(2, 1) = Y(zCoeff); M(2, 2) = Z(zCoeff); M(2, 3) = 0.0;
+  M(3, 0) =       0.0; M(3, 1) =       0.0; M(3, 2) =       0.0; M(3, 3) = 1.0;
+  // clang-format on
+}
+
+BCFX_API void g3d_reflection(const Vec3* normal, float delta, Mat4x4* mat) {
+  /*
+  for normal vector N
+  we have plane: dot(p, N) + delta = 0, where p is the point in the plane
+  for any point q, we have:
+  qProj = dot(q, N) * N // projection to N
+  qPerp = q - qProj // perpendicular to N
+  for reflection:
+  qNew = qPerp - qProj
+       = q - 2 * qProj
+       = q - 2 * dot(q, N) * N
+       = MatI * q - 2 * MatDN * q
+       = (MatI - 2 * MatDN) * q
+  so, MatReflection = MatI - 2 * MatDN
+  */
+  MAT_IDENTITY(mat);
+  ALLOCA_MAT3x3(matDA);
+  MAT_PROJECTION(normal, matDA);
+  MAT_SCALE_(matDA, 2.0);
+  MAT_SUBTRACT_(mat, matDA);
 }
