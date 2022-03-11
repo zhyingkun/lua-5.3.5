@@ -99,7 +99,11 @@ BCFX_API float vec_distance(const Vec* vec1, const Vec* vec2) {
 // src and dst can be the same
 BCFX_API void vec_normalize(const Vec* src, Vec* dst) {
   float length = vec_length(src);
-  vec_scale(src, 1.0 / length, dst);
+  if (EQUAL(length, 0.0)) {
+    vec_one(dst);
+  } else {
+    vec_scale(src, 1.0 / length, dst);
+  }
 }
 
 BCFX_API void vec_copy(const Vec* src, Vec* dst) {

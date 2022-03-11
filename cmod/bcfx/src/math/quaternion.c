@@ -139,12 +139,19 @@ BCFX_API void quat_toAngleAxis(const Quaternion* quat, float* angle, Vec3* axis)
   }
   if (axis) {
     float sinHA = sqrtf(1.0 - cosHA * cosHA);
-    VEC3_X(axis) = quat->x / sinHA;
-    VEC3_Y(axis) = quat->y / sinHA;
-    VEC3_Z(axis) = quat->z / sinHA;
+    if (EQUAL(sinHA, 0.0)) {
+      VEC3_X(axis) = 0.0;
+      VEC3_Y(axis) = 0.0;
+      VEC3_Z(axis) = 0.0;
+    } else {
+      VEC3_X(axis) = quat->x / sinHA;
+      VEC3_Y(axis) = quat->y / sinHA;
+      VEC3_Z(axis) = quat->z / sinHA;
+    }
   }
 }
 
+// src and dst can be the same
 BCFX_API void quat_add(const Quaternion* src1, const Quaternion* src2, Quaternion* dst) {
   dst->w = src1->w + src2->w;
   dst->x = src1->x + src2->x;
@@ -152,6 +159,7 @@ BCFX_API void quat_add(const Quaternion* src1, const Quaternion* src2, Quaternio
   dst->z = src1->z + src2->z;
 }
 
+// src and dst can be the same
 BCFX_API void quat_subtract(const Quaternion* src1, const Quaternion* src2, Quaternion* dst) {
   dst->w = src1->w - src2->w;
   dst->x = src1->x - src2->x;
@@ -218,6 +226,7 @@ BCFX_API void quat_multiply(const Quaternion* src1, const Quaternion* src2, Quat
   */
 }
 
+// src and dst can be the same
 BCFX_API void quat_scale(const Quaternion* src, float scale, Quaternion* dst) {
   dst->w = src->w * scale;
   dst->x = src->x * scale;
@@ -225,6 +234,7 @@ BCFX_API void quat_scale(const Quaternion* src, float scale, Quaternion* dst) {
   dst->z = src->z * scale;
 }
 
+// src and dst can be the same
 BCFX_API void quat_conjugate(const Quaternion* src, Quaternion* dst) {
   dst->w = src->w;
   dst->x = -src->x;
@@ -232,30 +242,35 @@ BCFX_API void quat_conjugate(const Quaternion* src, Quaternion* dst) {
   dst->z = -src->z;
 }
 
+// src and dst can be the same
 BCFX_API void quat_normalize(const Quaternion* src, Quaternion* dst) {
   float w = src->w;
   float x = src->x;
   float y = src->y;
   float z = src->z;
   float len = sqrtf(w * w + x * x + y * y + z * z);
-  dst->w = w / len;
-  dst->x = x / len;
-  dst->y = y / len;
-  dst->z = z / len;
+  if (EQUAL(len, 0.0)) {
+    quat_init(dst, 1.0, 0.0, 0.0, 0.0);
+  } else {
+    quat_init(dst, w / len, x / len, y / len, z / len)
+  }
 }
 
+// src and dst can be the same
 BCFX_API void quat_inverse(const Quaternion* src, Quaternion* dst) {
   float w = src->w;
   float x = src->x;
   float y = src->y;
   float z = src->z;
   float len2 = w * w + x * x + y * y + z * z;
-  dst->w = w / len2;
-  dst->x = -x / len2;
-  dst->y = -y / len2;
-  dst->z = -z / len2;
+  if (EQUAL(len2, 0.0)) {
+    quat_init(dst, 1.0, 0.0, 0.0, 0.0);
+  } else {
+    quat_init(dst, w / len2, -x / len2, -y / len2, -z / len2)
+  }
 }
 
+// src and dst can be the same
 BCFX_API float quat_dotProduct(const Quaternion* src1, const Quaternion* src2) {
   return src1->w * src2->w +
          src1->x * src2->x +
@@ -263,6 +278,7 @@ BCFX_API float quat_dotProduct(const Quaternion* src1, const Quaternion* src2) {
          src1->z * src2->z;
 }
 
+// src and dst can be the same
 BCFX_API void quat_rotateVec3(const Quaternion* quat, const Vec3* src, Vec3* dst) {
   Quaternion quatInverse[1];
   quat_inverse(quat, quatInverse); // for unit quaternion, inverse equals conjugate
@@ -274,6 +290,7 @@ BCFX_API void quat_rotateVec3(const Quaternion* quat, const Vec3* src, Vec3* dst
   quat_imaginary(quatSrc, dst);
 }
 
+// s and e can be the same
 BCFX_API void quat_lerp(const Quaternion* s, const Quaternion* e, float t, Quaternion* quat) {
   Quaternion tmp[1];
   quat_scale(s, 1.0 - t, quat);
@@ -282,11 +299,13 @@ BCFX_API void quat_lerp(const Quaternion* s, const Quaternion* e, float t, Quate
   quat_normalize(quat, quat);
 }
 
+// s and e can be the same
 BCFX_API bool quat_shortestPath(const Quaternion* s, const Quaternion* e) {
   // the quaternions q and −q represent the same rotation
   return quat_dotProduct(s, e) >= 0.0;
 }
 
+// s and e can be the same
 BCFX_API void quat_slerp(const Quaternion* s, const Quaternion* e, float t, Quaternion* quat) {
   float cosTheta = quat_dotProduct(s, e);
   float theta = acosf(cosTheta);
