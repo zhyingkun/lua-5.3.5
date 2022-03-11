@@ -130,6 +130,8 @@ void MATRIX_FUNCTION(init)(lua_State* L);
 EulerAngle* luaL_neweuler(lua_State* L);
 void luaL_pusheuler(lua_State* L, const EulerAngle* ea);
 
+void EULER_FUNCTION(init)(lua_State* L);
+
 /* }====================================================== */
 
 /*
@@ -145,6 +147,8 @@ void luaL_pusheuler(lua_State* L, const EulerAngle* ea);
 #define luaL_testquaternion(L, idx) (Quaternion*)luaL_testudata_recursive(L, idx, BCFX_QUATERNION_TYPE)
 Quaternion* luaL_newquaternion(lua_State* L);
 void luaL_pushquaternion(lua_State* L, const Quaternion* ea);
+
+void QUATERNION_FUNCTION(init)(lua_State* L);
 
 /* }====================================================== */
 

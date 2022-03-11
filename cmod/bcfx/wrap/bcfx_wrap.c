@@ -835,6 +835,8 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   (void)VECTOR_FUNCTION(init)(L);
   (void)MATRIX_FUNCTION(init)(L);
   (void)G3D_FUNCTION(init)(L);
+  (void)EULER_FUNCTION(init)(L);
+  (void)QUATERNION_FUNCTION(init)(L);
   lua_setfield(L, -2, "math");
 
   (void)UTILS_FUNCTION(init)(L);
