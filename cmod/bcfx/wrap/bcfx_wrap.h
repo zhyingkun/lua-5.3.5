@@ -23,6 +23,12 @@
 
 #define REGISTE_ENUM_BCWRAP(name) REGISTE_ENUM(name, BCWRAP_ENUM(name))
 
+/*
+** {======================================================
+** VertexLayout
+** =======================================================
+*/
+
 #define VL_FUNCTION(name) bcfx_wrap_vl_##name
 
 #define BCFX_VERTEXLAYOUT_TYPE "bcfx_VertexLayout*"
@@ -30,11 +36,35 @@
 
 void VL_FUNCTION(init_metatable)(lua_State* L);
 
+/* }====================================================== */
+
+/*
+** {======================================================
+** Color
+** =======================================================
+*/
+
 #define COLOR_FUNCTION(name) bcfx_wrap_color_##name
 void COLOR_FUNCTION(init)(lua_State* L);
 
+/* }====================================================== */
+
+/*
+** {======================================================
+** MemoryBuffer
+** =======================================================
+*/
+
 #define MEMBUF_FUNCTION(name) bcfx_wrap_membuf_##name
 void MEMBUF_FUNCTION(init)(lua_State* L);
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Vector
+** =======================================================
+*/
 
 #define VECTOR_FUNCTION(name) bcfx_wrap_vector_##name
 #define BCFX_VECTOR_TYPE "Vec*"
@@ -57,7 +87,16 @@ Vec* luaL_newvector(lua_State* L, uint8_t cnt);
 #define luaL_pushvec2(L, vec) *(luaL_newvec2(L)) = *((Vec2*)vec)
 #define luaL_pushvec3(L, vec) *(luaL_newvec3(L)) = *((Vec3*)vec)
 #define luaL_pushvec4(L, vec) *(luaL_newvec4(L)) = *((Vec4*)vec)
+
 void VECTOR_FUNCTION(init)(lua_State* L);
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Matrix
+** =======================================================
+*/
 
 #define MATRIX_FUNCTION(name) bcfx_wrap_matrix_##name
 #define BCFX_MATRIX_TYPE "Mat*"
@@ -73,6 +112,48 @@ Mat* luaL_newmatrix(lua_State* L, uint8_t row, uint8_t col);
 #define luaL_newmat3x3(L) (Mat3x3*)luaL_newmatrix(L, 3, 3)
 #define luaL_newmat4x4(L) (Mat4x4*)luaL_newmatrix(L, 4, 4)
 
+void MATRIX_FUNCTION(init)(lua_State* L);
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** EulerAngle
+** =======================================================
+*/
+
+#define EULER_FUNCTION(name) bcfx_wrap_euler_##name
+#define BCFX_EULER_TYPE "EulerAngle*"
+#define luaL_checkeulue(L, idx) (EulerAngle*)luaL_checkudata(L, idx, BCFX_EULER_TYPE)
+#define luaL_opteuler(L, idx, dft) luaL_opt(L, luaL_checkeulue, idx, dft)
+#define luaL_testeuler(L, idx) (EulerAngle*)luaL_testudata_recursive(L, idx, BCFX_EULER_TYPE)
+EulerAngle* luaL_neweuler(lua_State* L);
+void luaL_pusheuler(lua_State* L, const EulerAngle* ea);
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Quaternion
+** =======================================================
+*/
+
+#define QUATERNION_FUNCTION(name) bcfx_wrap_quaternion_##name
+#define BCFX_QUATERNION_TYPE "Quaternion*"
+#define luaL_checkquaternion(L, idx) (Quaternion*)luaL_checkudata(L, idx, BCFX_QUATERNION_TYPE)
+#define luaL_optquaternion(L, idx, dft) luaL_opt(L, luaL_checkquaternion, idx, dft)
+#define luaL_testquaternion(L, idx) (Quaternion*)luaL_testudata_recursive(L, idx, BCFX_QUATERNION_TYPE)
+Quaternion* luaL_newquaternion(lua_State* L);
+void luaL_pushquaternion(lua_State* L, const Quaternion* ea);
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Lua utilities function
+** =======================================================
+*/
+
 #define luaL_checkshadertype(L, idx) ((bcfx_EShaderType)luaL_checkinteger(L, idx))
 #define luaL_checkindextype(L, idx) ((bcfx_EIndexType)luaL_checkinteger(L, idx))
 #define luaL_checkhandle(L, idx) ((Handle)luaL_checkinteger(L, idx))
@@ -85,10 +166,24 @@ Mat* luaL_newmatrix(lua_State* L, uint8_t row, uint8_t col);
 #define luaL_checkattribtype(L, idx) ((bcfx_EAttribType)luaL_checkinteger(L, idx))
 #define luaL_checkimagetype(L, idx) ((ImageType)luaL_checkinteger(L, idx))
 
-void MATRIX_FUNCTION(init)(lua_State* L);
+/* }====================================================== */
+
+/*
+** {======================================================
+** Graphics3D
+** =======================================================
+*/
 
 #define G3D_FUNCTION(name) bcfx_wrap_graphics3d_##name
 void G3D_FUNCTION(init)(lua_State* L);
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Utils
+** =======================================================
+*/
 
 #define TEMP_BUF_SIZE 64
 #define VECTOR_STR_SIZE 64
@@ -102,5 +197,7 @@ void IMAGE_FUNCTION(init)(lua_State* L);
 
 #define MESH_FUNCTION(name) bcfx_wrap_mesh_##name
 void MESH_FUNCTION(init)(lua_State* L);
+
+/* }====================================================== */
 
 #endif /* _BCFX_WRAP_H_ */

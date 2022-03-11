@@ -75,16 +75,16 @@ static int MATRIX_FUNCTION(subtract)(lua_State* L) {
   return 1;
 }
 
-static int MATRIX_FUNCTION(componentWiseProduct)(lua_State* L) {
-  TWO_SRC_ONE_DST(componentWiseProduct);
-  return 1;
-}
-
 static int MATRIX_FUNCTION(scale)(lua_State* L) {
   Mat* src = luaL_checkmatrix(L, 1);
   float scale = luaL_checknumber(L, 2);
   Mat* dst = luaL_newmatrix(L, src->row, src->col);
   MAT_SCALE(src, scale, dst);
+  return 1;
+}
+
+static int MATRIX_FUNCTION(componentWiseProduct)(lua_State* L) {
+  TWO_SRC_ONE_DST(componentWiseProduct);
   return 1;
 }
 

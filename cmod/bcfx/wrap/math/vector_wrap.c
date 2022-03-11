@@ -341,6 +341,15 @@ static int VECTOR_FUNCTION(Vec3)(lua_State* L) {
     luaL_pushvector(L, v);
     return 1;
   }
+  Vec2* v2 = luaL_testvec2(L, 1);
+  if (v2 != NULL) {
+    ALLOCA_VEC3(v3);
+    VEC3_X(v3) = VEC2_X(v2);
+    VEC3_Y(v3) = VEC2_Y(v2);
+    VEC3_Z(v3) = luaL_optnumber(L, 2, 0.0);
+    luaL_pushvector(L, v3);
+    return 1;
+  }
   lua_settop(L, 3);
   Vec* vec = luaL_newvector(L, 3);
   INIT_VEC_ELEMENT(vec, 0);
@@ -353,6 +362,26 @@ static int VECTOR_FUNCTION(Vec4)(lua_State* L) {
   Vec4* v = luaL_testvec4(L, 1);
   if (v != NULL) {
     luaL_pushvector(L, v);
+    return 1;
+  }
+  Vec3* v3 = luaL_testvec3(L, 1);
+  if (v3 != NULL) {
+    ALLOCA_VEC4(v4);
+    VEC4_X(v4) = VEC3_X(v3);
+    VEC4_Y(v4) = VEC3_Y(v3);
+    VEC4_Z(v4) = VEC3_Z(v3);
+    VEC4_W(v4) = luaL_optnumber(L, 2, 0.0);
+    luaL_pushvector(L, v4);
+    return 1;
+  }
+  Vec2* v2 = luaL_testvec2(L, 1);
+  if (v2 != NULL) {
+    ALLOCA_VEC4(v4);
+    VEC4_X(v4) = VEC2_X(v2);
+    VEC4_Y(v4) = VEC2_Y(v2);
+    VEC4_Z(v4) = luaL_optnumber(L, 2, 0.0);
+    VEC4_W(v4) = luaL_optnumber(L, 3, 0.0);
+    luaL_pushvector(L, v4);
     return 1;
   }
   lua_settop(L, 4);

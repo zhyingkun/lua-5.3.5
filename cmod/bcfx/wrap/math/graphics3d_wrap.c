@@ -29,6 +29,14 @@ static int G3D_FUNCTION(scale)(lua_State* L) {
   return 1;
 }
 
+static int G3D_FUNCTION(scaleAxis)(lua_State* L) {
+  float scale = luaL_checknumber(L, 1);
+  Vec3* axis = luaL_checkvec3(L, 2);
+  Mat4x4* mat = luaL_newmat4x4(L);
+  g3d_scaleAxis(scale, axis, mat);
+  return 1;
+}
+
 static int G3D_FUNCTION(perspective)(lua_State* L) {
   float fovy = luaL_checknumber(L, 1);
   float aspect = luaL_checknumber(L, 2);
@@ -68,6 +76,23 @@ static int G3D_FUNCTION(lookAt)(lua_State* L) {
   return 1;
 }
 
+static int G3D_FUNCTION(shear)(lua_State* L) {
+  Vec3* xCoeff = luaL_checkvec3(L, 1);
+  Vec3* yCoeff = luaL_checkvec3(L, 2);
+  Vec3* zCoeff = luaL_checkvec3(L, 3);
+  Mat4x4* mat = luaL_newmat4x4(L);
+  g3d_shear(xCoeff, yCoeff, zCoeff, mat);
+  return 1;
+}
+
+static int G3D_FUNCTION(reflection)(lua_State* L) {
+  Vec3* normal = luaL_checkvec3(L, 1);
+  float delta = luaL_checknumber(L, 2);
+  Mat4x4* mat = luaL_newmat4x4(L);
+  g3d_reflection(normal, delta, mat);
+  return 1;
+}
+
 #define EMPLACE_G3D_FUNCTION(name) \
   { #name, G3D_FUNCTION(name) }
 
@@ -75,9 +100,12 @@ static const luaL_Reg G3D_FUNCTION(funcs)[] = {
     EMPLACE_G3D_FUNCTION(translate),
     EMPLACE_G3D_FUNCTION(rotate),
     EMPLACE_G3D_FUNCTION(scale),
+    EMPLACE_G3D_FUNCTION(scaleAxis),
     EMPLACE_G3D_FUNCTION(perspective),
     EMPLACE_G3D_FUNCTION(orthogonal),
     EMPLACE_G3D_FUNCTION(lookAt),
+    EMPLACE_G3D_FUNCTION(shear),
+    EMPLACE_G3D_FUNCTION(reflection),
     {NULL, NULL},
 };
 
