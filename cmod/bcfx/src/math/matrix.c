@@ -94,6 +94,7 @@ BCFX_API void mat_multiply(const Mat* src1, const Mat* src2, Mat* dst) {
   }
 }
 
+// src and dst can be the same
 BCFX_API void mat_multiplyVec(const Mat* mat, const Vec* src, Vec* dst) {
   assert(mat->col == src->count &&
          mat->row == dst->count);
@@ -119,6 +120,7 @@ BCFX_API void mat_transpose(const Mat* src, Mat* dst) {
   }
 }
 
+// src and dst can be the same, but it does nothing
 BCFX_API void mat_copy(const Mat* src, Mat* dst) {
   assert(src->row == dst->row &&
          src->col == dst->col);

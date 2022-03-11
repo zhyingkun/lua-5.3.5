@@ -28,10 +28,10 @@ BCFX_API void g3d_rotate(float theta, const Vec3* axis, Mat4x4* mat) {
   6. after rotation: NewPperp = Pperp * cos(theta) + cross(A, P) * sin(theta)
   7. after rotation: NewP = NewPperp + Pproj
   8. NewP = Pperp * cos(theta) + cross(A, P) * sin(theta) + Pproj
-   = (P - Pproj) * cos(theta) + cross(A, P) * sin(theta) + Pproj
-   = P * cos(theta) + cross(A, P) * sin(theta) + Pproj * (1 - cos(theta))
-   = P * cos(theta) + cross(A, P) * sin(theta) + dot(A, P) * A * (1 - cos(theta))
-   = (MatI * cos(theta) + MatCrossA * sin(theta) + MatDotA * (1 - cos(theta))) * P
+          = (P - Pproj) * cos(theta) + cross(A, P) * sin(theta) + Pproj
+          = P * cos(theta) + cross(A, P) * sin(theta) + Pproj * (1 - cos(theta))
+          = P * cos(theta) + cross(A, P) * sin(theta) + dot(A, P) * A * (1 - cos(theta))
+          = (MatI * cos(theta) + MatCrossA * sin(theta) + MatDotA * (1 - cos(theta))) * P
   */
   float rad = theta * M_PI / 180.0;
   float cosTheta = cosf(rad);
