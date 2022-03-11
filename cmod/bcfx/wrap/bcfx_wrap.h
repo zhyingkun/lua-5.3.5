@@ -124,7 +124,7 @@ void MATRIX_FUNCTION(init)(lua_State* L);
 
 #define EULER_FUNCTION(name) bcfx_wrap_euler_##name
 #define BCFX_EULER_TYPE "EulerAngle*"
-#define luaL_checkeulue(L, idx) (EulerAngle*)luaL_checkudata(L, idx, BCFX_EULER_TYPE)
+#define luaL_checkeuler(L, idx) (EulerAngle*)luaL_checkudata(L, idx, BCFX_EULER_TYPE)
 #define luaL_opteuler(L, idx, dft) luaL_opt(L, luaL_checkeulue, idx, dft)
 #define luaL_testeuler(L, idx) (EulerAngle*)luaL_testudata_recursive(L, idx, BCFX_EULER_TYPE)
 EulerAngle* luaL_neweuler(lua_State* L);

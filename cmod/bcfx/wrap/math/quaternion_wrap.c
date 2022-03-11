@@ -1,6 +1,8 @@
 #define _quaternion_wrap_c_
 #include <bcfx_wrap.h>
 
+#include <string.h>
+
 /*
 ** {======================================================
 ** Quaternion
