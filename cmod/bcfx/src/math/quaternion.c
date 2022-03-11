@@ -252,7 +252,7 @@ BCFX_API void quat_normalize(const Quaternion* src, Quaternion* dst) {
   if (EQUAL(len, 0.0)) {
     quat_init(dst, 1.0, 0.0, 0.0, 0.0);
   } else {
-    quat_init(dst, w / len, x / len, y / len, z / len)
+    quat_init(dst, w / len, x / len, y / len, z / len);
   }
 }
 
@@ -266,7 +266,7 @@ BCFX_API void quat_inverse(const Quaternion* src, Quaternion* dst) {
   if (EQUAL(len2, 0.0)) {
     quat_init(dst, 1.0, 0.0, 0.0, 0.0);
   } else {
-    quat_init(dst, w / len2, -x / len2, -y / len2, -z / len2)
+    quat_init(dst, w / len2, -x / len2, -y / len2, -z / len2);
   }
 }
 
