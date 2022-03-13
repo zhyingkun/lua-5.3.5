@@ -155,6 +155,40 @@ static int QUATERNION_FUNCTION(__newindex)(lua_State* L) {
   return luaL_error(L, "EulerAngle has no such field: %s", key);
 }
 
+static int QUATERNION_FUNCTION(__add)(lua_State* L) {
+  return QUATERNION_FUNCTION(add)(L);
+}
+static int QUATERNION_FUNCTION(__sub)(lua_State* L) {
+  return QUATERNION_FUNCTION(subtract)(L);
+}
+static int QUATERNION_FUNCTION(__mul)(lua_State* L) {
+  return QUATERNION_FUNCTION(multiply)(L);
+}
+static int QUATERNION_FUNCTION(__div)(lua_State* L) {
+  luaL_checkquaternion(L, 1);
+  float scale = luaL_checknumber(L, 2);
+  lua_settop(L, 1);
+  lua_pushnumber(L, 1.0 / scale);
+  return QUATERNION_FUNCTION(scale)(L);
+}
+static int QUATERNION_FUNCTION(__eq)(lua_State* L) {
+  Quaternion* src1 = luaL_checkquaternion(L, 1);
+  Quaternion* src2 = luaL_checkquaternion(L, 2);
+#define FIELD_EQUAL(field_) EQUAL(src1->field_, src2->field_)
+  bool ret = FIELD_EQUAL(w) &&
+             FIELD_EQUAL(x) &&
+             FIELD_EQUAL(y) &&
+             FIELD_EQUAL(z);
+#undef FIELD_EQUAL
+  lua_pushboolean(L, (int)ret);
+  return 1;
+}
+static int QUATERNION_FUNCTION(__tostring)(lua_State* L) {
+  Quaternion* quat = luaL_checkquaternion(L, 1);
+  lua_pushfstring(L, "Quaternion*: (w: %f, x: %f, y: %f, z: %f)", quat->w, quat->x, quat->y, quat->z);
+  return 1;
+}
+
 #define EMPLACE_QUATERNION_FUNCTION(name) \
   { #name, QUATERNION_FUNCTION(name) }
 static const luaL_Reg QUATERNION_FUNCTION(metafuncs)[] = {
@@ -173,6 +207,12 @@ static const luaL_Reg QUATERNION_FUNCTION(metafuncs)[] = {
     EMPLACE_QUATERNION_FUNCTION(rotateVec3),
     EMPLACE_QUATERNION_FUNCTION(__index),
     EMPLACE_QUATERNION_FUNCTION(__newindex),
+    EMPLACE_QUATERNION_FUNCTION(__add),
+    EMPLACE_QUATERNION_FUNCTION(__sub),
+    EMPLACE_QUATERNION_FUNCTION(__mul),
+    EMPLACE_QUATERNION_FUNCTION(__div),
+    EMPLACE_QUATERNION_FUNCTION(__eq),
+    EMPLACE_QUATERNION_FUNCTION(__tostring),
     {NULL, NULL},
 };
 

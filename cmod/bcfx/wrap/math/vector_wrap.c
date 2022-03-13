@@ -48,8 +48,9 @@ Vec* luaL_newvector(lua_State* L, uint8_t cnt) {
 #define TWO_SRC_ONE_DST(_op_) \
   Vec* src1 = luaL_checkvector(L, 1); \
   Vec* src2 = luaL_checkvector(L, 2); \
-  if (VEC_COUNT(src1) != VEC_COUNT(src2)) \
+  if (VEC_COUNT(src1) != VEC_COUNT(src2)) { \
     luaL_error(L, "Vector must be the same dimension: %d and %d", VEC_COUNT(src1), VEC_COUNT(src2)); \
+  } \
   Vec* dst = luaL_newvector(L, VEC_COUNT(src1)); \
   vec_##_op_(src1, src2, dst)
 
@@ -79,8 +80,9 @@ static int VECTOR_FUNCTION(scale)(lua_State* L) {
 static int VECTOR_FUNCTION(dotProduct)(lua_State* L) {
   Vec* vec1 = luaL_checkvector(L, 1);
   Vec* vec2 = luaL_checkvector(L, 2);
-  if (VEC_COUNT(vec1) != VEC_COUNT(vec2))
+  if (VEC_COUNT(vec1) != VEC_COUNT(vec2)) {
     luaL_error(L, "Vector must be the same dimension: %d and %d", VEC_COUNT(vec1), VEC_COUNT(vec2));
+  }
   float rst = VEC_DOT_PRODUCT(vec1, vec2);
   lua_pushnumber(L, rst);
   return 1;
@@ -89,8 +91,9 @@ static int VECTOR_FUNCTION(dotProduct)(lua_State* L) {
 static int VECTOR_FUNCTION(crossProduct)(lua_State* L) {
   Vec3* src1 = (Vec3*)luaL_checkvector(L, 1);
   Vec3* src2 = (Vec3*)luaL_checkvector(L, 2);
-  if (VEC_COUNT(src1) != VEC_COUNT(src2) || VEC_COUNT(src1) != 3)
+  if (VEC_COUNT(src1) != VEC_COUNT(src2) || VEC_COUNT(src1) != 3) {
     luaL_error(L, "Vector for cross product must has 3 dimension: %d and %d", VEC_COUNT(src1), VEC_COUNT(src2));
+  }
   Vec3* dst = (Vec3*)luaL_newvector(L, 3);
   VEC3_CROSS_PRODUCT(src1, src2, dst);
   return 1;
@@ -113,8 +116,9 @@ static int VECTOR_FUNCTION(length)(lua_State* L) {
 static int VECTOR_FUNCTION(distanceSquared)(lua_State* L) {
   Vec* vec1 = luaL_checkvector(L, 1);
   Vec* vec2 = luaL_checkvector(L, 2);
-  if (VEC_COUNT(vec1) != VEC_COUNT(vec2))
+  if (VEC_COUNT(vec1) != VEC_COUNT(vec2)) {
     luaL_error(L, "Vector must be the same dimension: %d and %d", VEC_COUNT(vec1), VEC_COUNT(vec2));
+  }
   float rst = VEC_DISTANCE_SQUARED(vec1, vec2);
   lua_pushnumber(L, rst);
   return 1;
@@ -123,8 +127,9 @@ static int VECTOR_FUNCTION(distanceSquared)(lua_State* L) {
 static int VECTOR_FUNCTION(distance)(lua_State* L) {
   Vec* vec1 = luaL_checkvector(L, 1);
   Vec* vec2 = luaL_checkvector(L, 2);
-  if (VEC_COUNT(vec1) != VEC_COUNT(vec2))
+  if (VEC_COUNT(vec1) != VEC_COUNT(vec2)) {
     luaL_error(L, "Vector must be the same dimension: %d and %d", VEC_COUNT(vec1), VEC_COUNT(vec2));
+  }
   float rst = VEC_DISTANCE(vec1, vec2);
   lua_pushnumber(L, rst);
   return 1;
@@ -201,8 +206,9 @@ static int VECTOR_FUNCTION(__len)(lua_State* L) {
 static int VECTOR_FUNCTION(__eq)(lua_State* L) {
   Vec* vec1 = luaL_checkvector(L, 1);
   Vec* vec2 = luaL_checkvector(L, 2);
-  if (VEC_COUNT(vec1) != VEC_COUNT(vec2))
+  if (VEC_COUNT(vec1) != VEC_COUNT(vec2)) {
     luaL_error(L, "Vector must be the same dimension: %d and %d", VEC_COUNT(vec1), VEC_COUNT(vec2));
+  }
   bool rst = VEC_EQUALS(vec1, vec2);
   lua_pushboolean(L, rst);
   return 1;
@@ -255,7 +261,7 @@ static int VECTOR_FUNCTION(__tostring)(lua_State* L) {
   char buf[TEMP_BUF_SIZE];
   Vec* vec = luaL_checkvector(L, 1);
   luaL_Buffer b[1];
-  luaL_buffinitsize(L, b, 64);
+  luaL_buffinitsize(L, b, TEMP_BUF_SIZE);
   snprintf(buf, TEMP_BUF_SIZE, "Vec*: %d (%f", VEC_COUNT(vec), VEC_ELEMENT(vec, 0));
   luaL_addstring(b, buf);
   for (int i = 1; i < VEC_COUNT(vec); i++) {

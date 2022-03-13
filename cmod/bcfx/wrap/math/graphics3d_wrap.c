@@ -93,6 +93,27 @@ static int G3D_FUNCTION(reflection)(lua_State* L) {
   return 1;
 }
 
+static int G3D_FUNCTION(projection)(lua_State* L) {
+  Vec* axis = luaL_checkvector(L, 1);
+  Mat* mat = luaL_newmatrix(L, axis->count, axis->count);
+  g3d_projection(axis, mat);
+  return 1;
+}
+
+static int G3D_FUNCTION(perpendicular)(lua_State* L) {
+  Vec* axis = luaL_checkvector(L, 1);
+  Mat* mat = luaL_newmatrix(L, axis->count, axis->count);
+  g3d_perpendicular(axis, mat);
+  return 1;
+}
+
+static int G3D_FUNCTION(crossProduct)(lua_State* L) {
+  Vec3* axis = luaL_checkvec3(L, 1);
+  Mat3x3* mat = luaL_newmat3x3(L);
+  g3d_crossProduct(axis, mat);
+  return 1;
+}
+
 #define EMPLACE_G3D_FUNCTION(name) \
   { #name, G3D_FUNCTION(name) }
 
@@ -106,6 +127,9 @@ static const luaL_Reg G3D_FUNCTION(funcs)[] = {
     EMPLACE_G3D_FUNCTION(lookAt),
     EMPLACE_G3D_FUNCTION(shear),
     EMPLACE_G3D_FUNCTION(reflection),
+    EMPLACE_G3D_FUNCTION(projection),
+    EMPLACE_G3D_FUNCTION(perpendicular),
+    EMPLACE_G3D_FUNCTION(crossProduct),
     {NULL, NULL},
 };
 
