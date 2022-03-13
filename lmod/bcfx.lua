@@ -1,7 +1,9 @@
 local libbcfx = require("libbcfx")
 local libimage = libbcfx.image
+local libeuler = libbcfx.euler
 local libgraphics3d = libbcfx.math.graphics3d
 local libmatrix = libbcfx.math.matrix
+local libquaternion = libbcfx.math.quaternion
 local libvector = libbcfx.math.vector
 local libmesh = libbcfx.mesh
 local libcolor = libbcfx.color
@@ -148,6 +150,42 @@ bcfx.math = math
 
 --[[
 ** {======================================================
+** Euler Angle
+** =======================================================
+--]]
+
+---@class bcfx_math_euler:table
+local euler = {}
+math.euler = euler
+
+---@class EulerAngle:userdata
+---@field public direction fun(self:EulerAngle):Vec3
+---@field public toQuaternion fun(self:EulerAngle):Quaternion
+---@field public toMatrix fun(self:EulerAngle):Mat4x4
+---@field public get fun(self:EulerAngle):number, number, number @ pitch, roll, yaw
+---@field public getVec3 fun(self:EulerAngle):Vec3
+---@field public pitch number
+---@field public roll number
+---@field public yaw number
+
+---@overload fun(ea:EulerAngle):EulerAngle
+---@overload fun(vec:Vec3):EulerAngle
+---@overload fun():EulerAngle
+---@overload fun(pitch:number):EulerAngle
+---@overload fun(pitch:number, roll:number):EulerAngle
+---@overload fun(pitch:number, roll:number, yaw:number):EulerAngle
+---@param pitch number @ [-180, 180]
+---@param roll number @ [-180, 180]
+---@param yaw number @ [-180, 180]
+---@return EulerAngle
+function euler.EulerAngle(pitch, roll, yaw)
+	return libeuler.EulerAngle(pitch, roll, yaw)
+end
+
+-- }======================================================
+
+--[[
+** {======================================================
 ** Graphics 3D
 ** =======================================================
 --]]
@@ -171,6 +209,12 @@ end
 ---@return Mat4x4
 function graphics3d.scale(vec)
 	return libgraphics3d.scale(vec)
+end
+---@param scale number
+---@param axis Vec3
+---@return Mat4x4
+function graphics3d.scaleAxis(scale, axis)
+	return libgraphics3d.scaleAxis(scale, axis)
 end
 ---@overload fun(fovy:number, aspect:number, zNear:number):Mat4x4
 ---@overload fun(fovy:number, aspect:number, zNear:number, zFar:number):Mat4x4
@@ -198,6 +242,34 @@ end
 ---@return Mat4x4
 function graphics3d.lookAt(eye, center, up)
 	return libgraphics3d.lookAt(eye, center, up)
+end
+---@param xCoeff Vec3
+---@param yCoeff Vec3
+---@param zCoeff Vec3
+---@return Mat4x4
+function graphics3d.shear(xCoeff, yCoeff, zCoeff)
+	return libgraphics3d.shear(xCoeff, yCoeff, zCoeff)
+end
+---@param normal Vec3
+---@param delta number
+---@return Mat4x4
+function graphics3d.reflection(normal, delta)
+	return libgraphics3d.reflection(normal, delta)
+end
+---@param axis Vector
+---@return Mat
+function graphics3d.projection(axis)
+	return libgraphics3d.projection(axis)
+end
+---@param axis Vector
+---@return Mat
+function graphics3d.perpendicular(axis)
+	return libgraphics3d.perpendicular(axis)
+end
+---@param vec Vec3
+---@return Mat3x3
+function graphics3d.crossProduct(vec)
+	return libgraphics3d.crossProduct(vec)
 end
 
 -- }======================================================
@@ -265,6 +337,80 @@ end
 
 --[[
 ** {======================================================
+** Quaternion
+** =======================================================
+--]]
+
+---@class bcfx_math_quaternion:table
+local quaternion = {}
+math.quaternion = quaternion
+
+---@class Quaternion:userdata
+---@field public imaginary fun(self:Quaternion):Vec3
+---@field public toEulerAngle fun(self:Quaternion):EulerAngle
+---@field public toMatrix fun(self:Quaternion):Mat4x4
+---@field public toAngleAxis fun(self:Quaternion):number, Vec3 @ angle, axis
+---@field public add fun(self:Quaternion, src2:Quaternion):Quaternion
+---@field public subtract fun(self:Quaternion, src2:Quaternion):Quaternion
+---@field public multiply fun(self:Quaternion, src2:Quaternion):Quaternion
+---@field public scale fun(self:Quaternion, scale:number):Quaternion
+---@field public conjugate fun(self:Quaternion):Quaternion
+---@field public normalize fun(self:Quaternion):Quaternion
+---@field public inverse fun(self:Quaternion):Quaternion
+---@field public dotProduct fun(self:Quaternion, src2:Quaternion):number
+---@field public rotateVec3 fun(self:Quaternion, src:Vec3):Vec3
+---@field public w number
+---@field public x number
+---@field public y number
+---@field public z number
+
+---@overload fun(quat:Quaternion):Quaternion
+---@overload fun(imaginary:Vec3):Quaternion
+---@overload fun(angle:number, axis:Vec3):Quaternion
+---@overload fun():Quaternion
+---@overload fun(w:number):Quaternion
+---@overload fun(w:number, x:number):Quaternion
+---@overload fun(w:number, x:number, y:number):Quaternion
+---@overload fun(w:number, x:number, y:number, z:number):Quaternion
+---@param w number @ [0, 1]
+---@param x number @ [0, 1]
+---@param y number @ [0, 1]
+---@param z number @ [0, 1]
+---@return Quaternion
+function quaternion.Quaternion(w, x, y, z)
+	return libquaternion.Quaternion(w, x, y, z)
+end
+---@param s Quaternion
+---@param e Quaternion
+---@param t number @ [0, 1]
+---@return Quaternion
+function quaternion.lerp(s, e, t)
+	return libquaternion.lerp(s, e, t)
+end
+---@param s Quaternion
+---@param e Quaternion
+---return boolean
+function quaternion.shortestPath(s, e)
+	return libquaternion.shortestPath(s, e)
+end
+---@param s Quaternion
+---@param e Quaternion
+---@param t number @ [0, 1]
+---@return Quaternion
+function quaternion.slerp(s, e, t)
+	return libquaternion.slerp(s, e, t)
+end
+---@param from Vec3
+---@param to Vec3
+---@return Quaternion
+function quaternion.fromTo(from, to)
+	return libquaternion.fromTo(from, to)
+end
+
+-- }======================================================
+
+--[[
+** {======================================================
 ** Vector
 ** =======================================================
 --]]
@@ -291,6 +437,10 @@ math.vector = vector
 ---@field public isZero fun(self:Vector):boolean
 ---@field public projection Vector2Src1DstSignature
 ---@field public perpendicular Vector2Src1DstSignature
+---@field public x number
+---@field public y number
+---@field public z number
+---@field public w number
 
 ---@overload fun(count:integer):Vector
 ---@overload fun(count:integer, values:number[]):Vector
