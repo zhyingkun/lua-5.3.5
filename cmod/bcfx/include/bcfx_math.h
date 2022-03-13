@@ -235,8 +235,6 @@ typedef struct {
 #define MAT_DETERMINANT(mat) mat_determinant((Mat*)mat)
 #define MAT_ADJOINT(src, dst) mat_adjoint((Mat*)src, (Mat*)dst)
 #define MAT_INVERSE(src, dst) mat_inverse((Mat*)src, (Mat*)dst)
-#define MAT_PROJECTION(axis, mat) mat_projection((Vec*)axis, (Mat*)mat)
-#define MAT_PERPENDICULAR(axis, mat) mat_perpendicular((Vec*)axis, (Mat*)mat)
 
 BCFX_API void mat_init(Mat* mat, uint8_t row, uint8_t col);
 BCFX_API void mat_zero(Mat* mat);
@@ -252,8 +250,6 @@ BCFX_API void mat_copy(const Mat* src, Mat* dst);
 BCFX_API float mat_determinant(const Mat* mat);
 BCFX_API void mat_adjoint(const Mat* src, Mat* dst);
 BCFX_API bool mat_inverse(const Mat* src, Mat* dst);
-BCFX_API void mat_projection(const Vec* axis, Mat* mat);
-BCFX_API void mat_perpendicular(const Vec* axis, Mat* mat);
 
 typedef struct {
   uint8_t row;
@@ -271,7 +267,6 @@ typedef struct {
   MAT3x3_INIT(var)
 
 BCFX_API void mat3x3_init(Mat3x3* mat);
-BCFX_API void mat3x3_crossProduct(const Vec3* A, Mat3x3* matCA);
 
 typedef struct {
   uint8_t row;
@@ -368,6 +363,9 @@ BCFX_API void g3d_orthogonal(float left, float right, float bottom, float top, f
 BCFX_API void g3d_lookAt(const Vec3* eye, const Vec3* center, const Vec3* up, Mat4x4* mat);
 BCFX_API void g3d_shear(const Vec3* xCoeff, const Vec3* yCoeff, const Vec3* zCoeff, Mat4x4* mat);
 BCFX_API void g3d_reflection(const Vec3* normal, float delta, Mat4x4* mat);
+BCFX_API void g3d_projection(const Vec* axis, Mat* mat);
+BCFX_API void g3d_perpendicular(const Vec* axis, Mat* mat);
+BCFX_API void g3d_crossProduct(const Vec3* A, Mat3x3* matCA);
 
 /* }====================================================== */
 
