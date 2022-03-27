@@ -48,7 +48,6 @@ static CommandParam* ctx_addCommand(Context* ctx, CommandType type, Handle handl
 ** =======================================================
 */
 
-// clang-format off
 static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
   RendererContext* renderCtx = ctx->renderCtx;
   for (uint32_t i = 0; i < cmdbuf->count; i++) {
@@ -59,11 +58,12 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
   case CT_##type: \
     CALL_RENDERER(func, ##__VA_ARGS__); \
     break
-      CASE_CALL_RENDERER(RendererInit, init, cmd->param.ci.mainWin);
-      case CT_CreateVertexLayout:
-        CALL_RENDERER(createVertexLayout, cmd->handle, param->cvl.layout);
-        RELEASE_VERCTX_LAYOUT(&param->cvl);
-        break;
+#define CASE_PRINTF_ERR(type) \
+  case CT_##type: \
+    printf_err("Error: " #type " Command should not be used in CommandBuffer!"); \
+    break
+      CASE_PRINTF_ERR(RendererInit);
+      CASE_CALL_RENDERER(CreateVertexLayout, createVertexLayout, cmd->handle, param->cvl.layout);
       CASE_CALL_RENDERER(CreateVertexBuffer, createVertexBuffer, cmd->handle, &param->cvb.mem, param->cvb.layoutHandle);
       CASE_CALL_RENDERER(CreateIndexBuffer, createIndexBuffer, cmd->handle, &param->cib.mem, param->cib.type);
       CASE_CALL_RENDERER(CreateShader, createShader, cmd->handle, &param->cs.mem, param->cs.type);
@@ -73,9 +73,7 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
       CASE_CALL_RENDERER(CreateFrameBuffer, createFrameBuffer, cmd->handle, param->cfb.num, param->cfb.handles);
       CASE_CALL_RENDERER(UpdateVertexBuffer, updateVertexBuffer, cmd->handle, param->cuvb.offset, &param->cuvb.mem);
       CASE_CALL_RENDERER(UpdateIndexBuffer, updateIndexBuffer, cmd->handle, param->cuib.offset, &param->cuib.mem);
-      case CT_End:
-        break;
-      // CASE_CALL_RENDERER(RendererShutdown, shutdown);
+      CASE_PRINTF_ERR(End);
       CASE_CALL_RENDERER(DestroyVertexLayout, destroyVertexLayout, cmd->handle);
       CASE_CALL_RENDERER(DestroyVertexBuffer, destroyVertexBuffer, cmd->handle);
       CASE_CALL_RENDERER(DestroyIndexBuffer, destroyIndexBuffer, cmd->handle);
@@ -84,13 +82,17 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
       CASE_CALL_RENDERER(DestroyUniform, destroyUniform, cmd->handle);
       CASE_CALL_RENDERER(DestroyTexture, destroyTexture, cmd->handle);
       CASE_CALL_RENDERER(DestroyFrameBuffer, destroyFrameBuffer, cmd->handle);
+      CASE_PRINTF_ERR(RendererShutdown);
+#undef CASE_PRINTF_ERR
+#undef CASE_CALL_RENDERER
       default:
         break;
-#undef CASE_CALL_RENDERER
+    }
+    if (cmd->type == CT_CreateVertexLayout) {
+      RELEASE_VERCTX_LAYOUT(&param->cvl);
     }
   }
 }
-// clang-format on
 
 /* }====================================================== */
 
@@ -188,10 +190,11 @@ static void ctx_renderFrame(Context* ctx) {
 
 static void _renderThreadStart(void* arg) {
   Context* ctx = (Context*)arg;
+  RendererContext* renderCtx = ctx->renderCtx;
+  CALL_RENDERER(init, ctx->mainWin);
   while (ctx->running) {
     ctx_renderFrame(ctx);
   }
-  RendererContext* renderCtx = ctx->renderCtx;
   CALL_RENDERER(shutdown);
 }
 
@@ -240,9 +243,6 @@ void ctx_init(Context* ctx, Window mainWin) {
   encoder_begin(ctx->encoder, ctx->submitFrame);
 
   ctx->renderCtx = CreateRenderer();
-
-  CommandParam* param = ctx_addCommand(ctx, CT_RendererInit, kInvalidHandle);
-  param->ci.mainWin = mainWin;
 
   ctx->apiSem = sem_init(0);
   ctx->renderSem = sem_init(1);

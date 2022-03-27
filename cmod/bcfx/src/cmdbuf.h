@@ -18,16 +18,12 @@ typedef enum {
   CT_UpdateVertexBuffer,
   CT_UpdateIndexBuffer,
   CT_End,
-  CT_RendererShutdown,
 #define XX(name, config_max) CT_Destroy##name,
   BCFX_RESOURCE_MAP(XX)
 #undef XX
+  CT_RendererShutdown,
 } CommandType;
 // clang-format on
-
-typedef struct {
-  Window mainWin;
-} CmdInit;
 
 typedef void (*ReleaseVertexLayout)(void* ud, bcfx_VertexLayout* layout);
 #define RELEASE_VERCTX_LAYOUT(cvl) \
@@ -80,8 +76,6 @@ typedef struct {
 } CmdUpdateIndexBuffer;
 
 typedef union {
-  CmdInit ci;
-
   CmdVertexLayout cvl;
   CmdVertexBuffer cvb;
   CmdIndexBuffer cib;
