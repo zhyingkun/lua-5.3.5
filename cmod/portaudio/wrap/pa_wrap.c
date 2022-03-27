@@ -77,6 +77,10 @@ static int PAWRAP_FUNCTION(StreamCallbackTimeInfo)(lua_State* L) {
   }
   return 1;
 }
+static void PAWRAP_FUNCTION(initStreamCallbackTimeInfoMetatable)(lua_State* L) {
+  luaL_newmetatable(L, PA_STREAMCALLBACKTIMEINFO_TYPE);
+  lua_pop(L, 1);
+}
 
 static void luaL_pushversioninfo(lua_State* L, const PaVersionInfo* info) {
   lua_createtable(L, 0, 5);
@@ -535,5 +539,6 @@ LUAMOD_API int luaopen_libportaudio(lua_State* L) {
   REGISTE_ENUM_PA(stream_callback_result);
 
   (void)PAWRAP_FUNCTION(initStreamParametersMetatable)(L);
+  (void)PAWRAP_FUNCTION(initStreamCallbackTimeInfoMetatable)(L);
   return 1;
 }
