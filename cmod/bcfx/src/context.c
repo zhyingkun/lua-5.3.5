@@ -62,7 +62,7 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
   case CT_##type: \
     printf_err("Error: " #type " Command should not be used in CommandBuffer!"); \
     break
-      CASE_PRINTF_ERR(RendererInit);
+      /* Create Render Resource */
       CASE_CALL_RENDERER(CreateVertexLayout, createVertexLayout, cmd->handle, param->cvl.layout);
       CASE_CALL_RENDERER(CreateVertexBuffer, createVertexBuffer, cmd->handle, &param->cvb.mem, param->cvb.layoutHandle);
       CASE_CALL_RENDERER(CreateIndexBuffer, createIndexBuffer, cmd->handle, &param->cib.mem, param->cib.type);
@@ -71,9 +71,12 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
       CASE_CALL_RENDERER(CreateUniform, createUniform, cmd->handle, param->cu.name, param->cu.type, param->cu.num);
       CASE_CALL_RENDERER(CreateTexture, createTexture, cmd->handle, &param->ct.mem, param->ct.width, param->ct.height, param->ct.format);
       CASE_CALL_RENDERER(CreateFrameBuffer, createFrameBuffer, cmd->handle, param->cfb.num, param->cfb.handles);
+      /* Update Render Resource */
       CASE_CALL_RENDERER(UpdateVertexBuffer, updateVertexBuffer, cmd->handle, param->cuvb.offset, &param->cuvb.mem);
       CASE_CALL_RENDERER(UpdateIndexBuffer, updateIndexBuffer, cmd->handle, param->cuib.offset, &param->cuib.mem);
+      /* Above/Below command will be processed before/after DrawCall */
       CASE_PRINTF_ERR(End);
+      /* Destroy Render Resource */
       CASE_CALL_RENDERER(DestroyVertexLayout, destroyVertexLayout, cmd->handle);
       CASE_CALL_RENDERER(DestroyVertexBuffer, destroyVertexBuffer, cmd->handle);
       CASE_CALL_RENDERER(DestroyIndexBuffer, destroyIndexBuffer, cmd->handle);
@@ -82,7 +85,6 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
       CASE_CALL_RENDERER(DestroyUniform, destroyUniform, cmd->handle);
       CASE_CALL_RENDERER(DestroyTexture, destroyTexture, cmd->handle);
       CASE_CALL_RENDERER(DestroyFrameBuffer, destroyFrameBuffer, cmd->handle);
-      CASE_PRINTF_ERR(RendererShutdown);
 #undef CASE_PRINTF_ERR
 #undef CASE_CALL_RENDERER
       default:

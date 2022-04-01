@@ -11,17 +11,19 @@
 
 // clang-format off
 typedef enum {
-  CT_RendererInit,
+  /* Create Render Resource */
 #define XX(name, config_max) CT_Create##name,
   BCFX_RESOURCE_MAP(XX)
 #undef XX
+  /* Update Render Resource */
   CT_UpdateVertexBuffer,
   CT_UpdateIndexBuffer,
+  /* Above/Below command will be processed before/after DrawCall */
   CT_End,
+  /* Destroy Render Resource */
 #define XX(name, config_max) CT_Destroy##name,
   BCFX_RESOURCE_MAP(XX)
 #undef XX
-  CT_RendererShutdown,
 } CommandType;
 // clang-format on
 
