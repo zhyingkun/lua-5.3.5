@@ -61,13 +61,14 @@ typedef struct {
 typedef struct {
   View views[BCFX_CONFIG_MAX_VIEWS]; // view data will copy from context->views
 
-  uint32_t renderCount; // for limit current DrawCalls
   uint32_t numRenderItems;
   RenderItem renderItems[BCFX_CONFIG_MAX_DRAW_CALLS];
   RenderBind renderBinds[BCFX_CONFIG_MAX_DRAW_CALLS];
-  uint64_t sortKeys[BCFX_CONFIG_MAX_DRAW_CALLS];
 
-  luaL_ByteBuffer uniformDataBuffer[1];
+  uint64_t sortKeys[BCFX_CONFIG_MAX_DRAW_CALLS]; // a sortkey for a DrawCall
+  uint32_t renderCount; // for limit current DrawCalls
+
+  luaL_ByteBuffer uniformDataBuffer[1]; // store all uniform data for all DrawCalls
 
   CommandBuffer cmdPre[1];
   CommandBuffer cmdPost[1];
@@ -75,7 +76,7 @@ typedef struct {
   int mwfbWidth; // MainWindowFrameBuffer
   int mwfbHeight;
 
-  uint64_t viewCapture[BCFX_VIEW_CAPTURE_BYTES]; // api thread pass to render thread
+  uint64_t viewCapture[BCFX_VIEW_CAPTURE_UINT64S]; // api thread pass to render thread
   uint8_t numVCR;
   bcfx_FrameViewCaptureResult viewCaptureResults[BCFX_CONFIG_MAX_VIEW_CAPTURE]; // render thread pass to api thread
 } Frame;
@@ -86,8 +87,6 @@ uint16_t frame_newRenderItemIndex(Frame* frame);
 void frame_setRenderItem(Frame* frame, uint16_t index, RenderItem* item);
 void frame_setRenderBind(Frame* frame, uint16_t index, RenderBind* bind);
 void frame_setSortKey(Frame* frame, uint16_t index, uint64_t sortKey);
-uint8_t* frame_encodeUniformData(Frame* frame, Handle handle, size_t sz);
-void frame_sort(Frame* frame);
 
 /* }====================================================== */
 

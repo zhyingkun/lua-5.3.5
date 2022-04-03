@@ -537,7 +537,7 @@ static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, F
 
 static inline bool shouldCaptureView(Frame* frame, ViewId id) {
   return (frame->numVCR < BCFX_CONFIG_MAX_VIEW_CAPTURE) &&
-         (frame->viewCapture[VIEW_BYTE_INDEX(id)] & VIEW_OFFSET_BIT(id)) != 0;
+         (frame->viewCapture[VIEW_UINT64_INDEX(id)] & VIEW_OFFSET_BIT(id)) != 0;
 }
 static void _releaseFrameCapture(void* ud, void* ptr) {
   (void)ud;

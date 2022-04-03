@@ -17,8 +17,8 @@ typedef struct {
   bool running;
   Window mainWin;
 
-  Semaphore renderSem;
   Semaphore apiSem;
+  Semaphore renderSem;
   Thread renderThread;
 
   View views[BCFX_CONFIG_MAX_VIEWS];

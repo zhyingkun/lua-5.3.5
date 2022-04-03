@@ -165,6 +165,8 @@ void ctx_apiFrame(Context* ctx, uint32_t renderCount) {
 
   ctx_apiSemPost(ctx);
 
+  // current frame just submitted to the render thread
+  // previous frame has been rendered
   if (ctx->frameCount > 0) { // frame 'n' submit frame means frame 'n-1' render completed
     uint32_t frameId = ctx->frameCount - 1;
     ctx_callOnFrameViewCapture(ctx, submitFrame, frameId);
@@ -227,15 +229,14 @@ void ctx_init(Context* ctx, Window mainWin) {
   assert(mainWin != NULL);
   ctx->running = true;
   ctx->mainWin = mainWin;
-  ctx->frameCount = 0;
-
-#define XX(name, config_max) handle_init(&ctx->allocators[(uint8_t)HT_##name], config_max, HT_##name);
-  BCFX_RESOURCE_MAP(XX)
-#undef XX
 
   for (size_t i = 0; i < BCFX_CONFIG_MAX_VIEWS; i++) {
     view_reset(&ctx->views[i]);
   }
+
+#define XX(name, config_max) handle_init(&ctx->allocators[(uint8_t)HT_##name], config_max, HT_##name);
+  BCFX_RESOURCE_MAP(XX)
+#undef XX
 
   ctx->submitFrame = &ctx->frames[0];
   ctx->renderFrame = &ctx->frames[1];
@@ -245,6 +246,17 @@ void ctx_init(Context* ctx, Window mainWin) {
   encoder_begin(ctx->encoder, ctx->submitFrame);
 
   ctx->renderCtx = CreateRenderer();
+
+  ctx->frameCount = 0;
+  ctx->onFrameCompleted = NULL;
+  ctx->onFrameCompletedArg = NULL;
+
+  ctx->onFrameViewCapture = NULL;
+  ctx->onFrameViewCaptureArg = NULL;
+
+  for (size_t i = 0; i < BCFX_CONFIG_MAX_UNIFORM; i++) {
+    uniform_initBase(&ctx->uniforms[i], UT_Sampler2D, 0); // clear
+  }
 
   ctx->apiSem = sem_init(0);
   ctx->renderSem = sem_init(1);
@@ -506,7 +518,7 @@ void ctx_setFrameViewCaptureCallback(Context* ctx, bcfx_OnFrameViewCapture callb
 }
 void ctx_requestCurrentFrameViewCapture(Context* ctx, ViewId id) {
   Frame* frame = ctx->submitFrame;
-  frame->viewCapture[VIEW_BYTE_INDEX(id)] |= VIEW_OFFSET_BIT(id);
+  frame->viewCapture[VIEW_UINT64_INDEX(id)] |= VIEW_OFFSET_BIT(id);
 }
 void ctx_callOnFrameViewCapture(Context* ctx, Frame* frame, uint32_t frameId) {
   for (uint8_t i = 0; i < frame->numVCR; i++) {
