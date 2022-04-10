@@ -24,12 +24,13 @@ void handle_init(HandleAlloc* allocator, uint16_t max, HandleType type) {
   allocator->sparse = ptr + max;
   for (uint16_t i = 0; i < max; i++) {
     allocator->dense[i] = i;
-    allocator->sparse[i] = 0;
+    allocator->sparse[i] = i;
   }
 }
 
 void handle_destroy(HandleAlloc* allocator) {
   mem_free((void*)allocator->dense);
+  allocator->dense = NULL;
   allocator->sparse = NULL;
   allocator->max = 0;
   allocator->num = 0;
@@ -38,29 +39,40 @@ void handle_destroy(HandleAlloc* allocator) {
 
 Handle handle_alloc(HandleAlloc* allocator) {
   if (allocator->num < allocator->max) {
-    uint16_t idx = allocator->num;
+    uint16_t denseIdx = allocator->num;
     allocator->num++;
-    uint16_t index = allocator->dense[idx];
-    allocator->sparse[index] = idx;
-    return (Handle)PACK_HANDLE(index, allocator->type);
+    uint16_t sparseIdx = allocator->dense[denseIdx];
+    assert(allocator->sparse[sparseIdx] == denseIdx);
+    return (Handle)PACK_HANDLE(sparseIdx, allocator->type);
   }
   return kInvalidHandle;
 }
 
+static void handle_swapDenseElement(HandleAlloc* allocator, uint16_t denseIdx1, uint16_t denseIdx2) {
+  uint16_t sparseIdx1 = allocator->dense[denseIdx1];
+  uint16_t sparseIdx2 = allocator->dense[denseIdx2];
+
+  allocator->dense[denseIdx1] = sparseIdx2;
+  allocator->sparse[sparseIdx2] = denseIdx1;
+  allocator->dense[denseIdx2] = sparseIdx1;
+  allocator->sparse[sparseIdx1] = denseIdx2;
+}
+
 void handle_free(HandleAlloc* allocator, Handle handle) {
-  uint16_t index = UNPACK_INDEX(handle);
-  uint16_t idx = allocator->sparse[index];
+  uint16_t sparseIdx = UNPACK_INDEX(handle);
+  uint16_t denseIdx = allocator->sparse[sparseIdx];
+  assert(allocator->num > 0);
   allocator->num--;
-  uint16_t temp = allocator->dense[allocator->num];
-  allocator->dense[allocator->num] = index;
-  allocator->sparse[temp] = idx;
-  allocator->dense[idx] = temp;
+  uint16_t denseIdxTop = allocator->num;
+
+  handle_swapDenseElement(allocator, denseIdx, denseIdxTop);
 }
 
 bool handle_isvalid(HandleAlloc* allocator, Handle handle) {
-  uint16_t index = UNPACK_INDEX(handle);
-  uint16_t idx = allocator->sparse[index];
-  return idx < allocator->num && allocator->dense[idx] == index;
+  uint16_t sparseIdx = UNPACK_INDEX(handle);
+  uint16_t denseIdx = allocator->sparse[sparseIdx];
+  assert(allocator->dense[denseIdx] == sparseIdx);
+  return denseIdx < allocator->num;
 }
 
 uint16_t handle_index(Handle handle) {
