@@ -15,7 +15,7 @@
 #include <string.h>
 #include <time.h>
 
-#if TARGET_OS_IOS
+#ifdef TARGET_OS_IOS
 #include <ftw.h>
 #endif
 
@@ -143,7 +143,7 @@ static time_t l_checktime(lua_State* L, int arg) {
 #endif /* } */
 /* }================================================================== */
 
-#if TARGET_OS_IOS
+#ifdef TARGET_OS_IOS
 int unlink_cb(const char* fpath, const struct stat* sb, int typeflag, struct FTW* ftwbuf) {
   (void)sb;
   (void)typeflag;
@@ -157,7 +157,7 @@ int unlink_cb(const char* fpath, const struct stat* sb, int typeflag, struct FTW
 
 static int os_execute(lua_State* L) {
   const char* cmd = luaL_optstring(L, 1, NULL);
-#if TARGET_OS_IOS // TargetConditionals.h
+#ifdef TARGET_OS_IOS // TargetConditionals.h
   int stat = nftw(cmd, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
 #else
   int stat = system(cmd);
