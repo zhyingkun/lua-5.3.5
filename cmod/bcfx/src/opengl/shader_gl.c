@@ -145,7 +145,7 @@ void prog_collectAttributes(ProgramGL* prog) {
         pa->instanceAttr[idx] = loc;
       } else if (strstr(name, "gl_") != name) {
         // start with 'gl_' are OpenGL Builtin Attribute, such as gl_InstanceID
-        printf_err("VertexAttribute %s %s is at location %d, size %d, Does Not Find In User Defined Uniform\n", glslTypeName(gltype), name, loc, num);
+        printf_err("VertexAttribute %s %s is at location %d, size %d, Does Not Find In Pre Defined Attribute\n", glslTypeName(gltype), name, loc, num);
       }
     }
   }
