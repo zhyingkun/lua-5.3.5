@@ -35,27 +35,44 @@ BCFX_API void bcfx_unpackColor(uint32_t rgba, uint8_t* r, uint8_t* g, uint8_t* b
 ** =======================================================
 */
 
+#define BIT_NONE() (0)
+#define BIT_INDEX(idx) (1 << idx)
+#define BIT_MASK(cnt) ((1 << cnt) - 1)
+#define HAS_BIT(mask, idx) (mask & BIT_INDEX(idx))
+
+#define VERTEX_ATTRIBUTE(XX) \
+XX(Position) \
+XX(Normal) \
+XX(Tangent) \
+XX(Bitangent) \
+XX(Color0) \
+XX(Color1) \
+XX(Color2) \
+XX(Color3) \
+XX(Indices) \
+XX(Weight) \
+XX(TexCoord0) \
+XX(TexCoord1) \
+XX(TexCoord2) \
+XX(TexCoord3) \
+XX(TexCoord4) \
+XX(TexCoord5) \
+XX(TexCoord6) \
+XX(TexCoord7)
+
 typedef enum {
-  VA_Position, //!< a_position
-  VA_Normal, //!< a_normal
-  VA_Tangent, //!< a_tangent
-  VA_Bitangent, //!< a_bitangent
-  VA_Color0, //!< a_color0
-  VA_Color1, //!< a_color1
-  VA_Color2, //!< a_color2
-  VA_Color3, //!< a_color3
-  VA_Indices, //!< a_indices
-  VA_Weight, //!< a_weight
-  VA_TexCoord0, //!< a_texcoord0
-  VA_TexCoord1, //!< a_texcoord1
-  VA_TexCoord2, //!< a_texcoord2
-  VA_TexCoord3, //!< a_texcoord3
-  VA_TexCoord4, //!< a_texcoord4
-  VA_TexCoord5, //!< a_texcoord5
-  VA_TexCoord6, //!< a_texcoord6
-  VA_TexCoord7, //!< a_texcoord7
+#define XX(name) VA_##name,
+    VERTEX_ATTRIBUTE(XX)
+#undef XX
   VA_Count,
 } bcfx_EVertexAttrib;
+
+typedef enum {
+#define XX(name) VAM_##name = BIT_INDEX(VA_##name),
+    VERTEX_ATTRIBUTE(XX)
+#undef XX
+  VAM_All = BIT_MASK(VA_Count),
+} bcfx_EVertexAttribMask;
 
 // WARNING: Change bcfx_EAttribType must Update sizeof_AttribType and attrib_glType
 typedef enum {
@@ -275,10 +292,6 @@ BCFX_API void bcfx_destroy(Handle handle);
 ** View
 ** =======================================================
 */
-
-#define BIT_NONE() (0)
-#define BIT_INDEX(idx) (1 << idx)
-#define BIT_MASK(cnt) ((1 << cnt) - 1)
 
 // setViewClear flags
 #define BCFX_CLEAR_NONE BIT_NONE()
@@ -523,7 +536,8 @@ BCFX_API void bcfx_setUniformMat4x4(Handle handle, Mat4x4* mat, uint16_t num);
 // Touch will fire Uniform flush and Clear render buffers
 BCFX_API void bcfx_touch(ViewId id);
 
-BCFX_API void bcfx_setVertexBuffer(uint8_t stream, Handle handle);
+// mask: combine bcfx_EVertexAttribMask with '|'
+BCFX_API void bcfx_setVertexBuffer(uint8_t stream, Handle handle, uint32_t attribMask);
 // start and count calculate in indexes，not byte
 BCFX_API void bcfx_setIndexBuffer(Handle handle, uint32_t start, uint32_t count);
 BCFX_API void bcfx_setTransform(Mat4x4* mat);

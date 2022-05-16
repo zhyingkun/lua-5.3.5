@@ -620,10 +620,10 @@ void ctx_touch(Context* ctx, ViewId id) {
   encoder_touch(ctx->encoder, id);
 }
 
-void ctx_setVertexBuffer(Context* ctx, uint8_t stream, Handle handle) {
+void ctx_setVertexBuffer(Context* ctx, uint8_t stream, Handle handle, uint32_t attribMask) {
   CHECK_STREAMID(stream);
   CHECK_HANDLE(handle, HT_VertexBuffer);
-  encoder_setVertexBuffer(ctx->encoder, stream, handle);
+  encoder_setVertexBuffer(ctx->encoder, stream, handle, attribMask);
 }
 void ctx_setIndexBuffer(Context* ctx, Handle handle, uint32_t start, uint32_t count) {
   CHECK_HANDLE_IF_VALID(handle, HT_IndexBuffer);

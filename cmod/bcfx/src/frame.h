@@ -13,6 +13,7 @@
 
 typedef struct {
   Handle vertexBuffer;
+  uint32_t attribMask;
 } Stream;
 
 typedef struct {

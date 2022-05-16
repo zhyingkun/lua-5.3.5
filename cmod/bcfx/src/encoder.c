@@ -56,8 +56,9 @@ void encoder_touch(Encoder* encoder, ViewId id) {
   encoder_submit(encoder, id, kInvalidHandle, BCFX_DISCARD_ALL, 0, VM_Default, false);
 }
 
-void encoder_setVertexBuffer(Encoder* encoder, uint8_t stream, Handle vertexBuffer) {
+void encoder_setVertexBuffer(Encoder* encoder, uint8_t stream, Handle vertexBuffer, uint32_t attribMask) {
   encoder->draw.streams[stream].vertexBuffer = vertexBuffer;
+  encoder->draw.streams[stream].attribMask = attribMask;
   encoder->draw.streamMask |= 1 << stream;
 }
 void encoder_setIndexBuffer(Encoder* encoder, Handle indexBuffer, uint32_t start, uint32_t count) {

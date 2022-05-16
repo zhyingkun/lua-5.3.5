@@ -261,8 +261,8 @@ BCFX_API void bcfx_touch(ViewId id) {
   ctx_touch(s_ctx, id);
 }
 
-BCFX_API void bcfx_setVertexBuffer(uint8_t stream, Handle handle) {
-  ctx_setVertexBuffer(s_ctx, stream, handle);
+BCFX_API void bcfx_setVertexBuffer(uint8_t stream, Handle handle, uint32_t attribMask) {
+  ctx_setVertexBuffer(s_ctx, stream, handle, attribMask);
 }
 BCFX_API void bcfx_setIndexBuffer(Handle handle, uint32_t start, uint32_t count) {
   ctx_setIndexBuffer(s_ctx, handle, start, count);

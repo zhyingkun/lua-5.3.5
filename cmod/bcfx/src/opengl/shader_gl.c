@@ -162,18 +162,23 @@ void prog_collectAttributes(ProgramGL* prog) {
 
 static bcfx_VertexLayout* find_vertexLayout(RendererContextGL* glCtx, RenderDraw* draw, bcfx_EVertexAttrib attr, VertexBufferGL** pvb) {
   bcfx_VertexLayout* target = NULL;
-  uint8_t stream = 0;
+  uint8_t streamIdx = 0;
   for (uint8_t i = 0; i < BCFX_CONFIG_MAX_VERTEX_STREAMS; i++) {
-    if (draw->streamMask & (1 << i)) {
-      VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(draw->streams[i].vertexBuffer)];
-      bcfx_VertexLayout* layout = &glCtx->vertexLayouts[handle_index(vb->layout)];
-      if (layout->attributes[attr].num > 0) {
-        if (target == NULL) {
-          target = layout;
-          *pvb = vb;
-          stream = i;
-        } else {
-          printf_err("Duplicate binding for VertexAttribute: %d, stream: %d, previous stream: %d\n", (uint8_t)attr, i, stream);
+    if (HAS_BIT(draw->streamMask, i)) {
+      Stream* stream = &draw->streams[i];
+      if (HAS_BIT(stream->attribMask, (uint8_t)attr)) {
+        VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(stream->vertexBuffer)];
+        bcfx_VertexLayout* layout = &glCtx->vertexLayouts[handle_index(vb->layout)];
+        if (layout->attributes[attr].num > 0) {
+          if (target == NULL) {
+            target = layout;
+            *pvb = vb;
+            streamIdx = i;
+          } else {
+            printf_err("Duplicate binding for VertexAttribute: %d, stream: %d, previous stream: %d\n", (uint8_t)attr, i, streamIdx);
+          }
+        } else if (stream->attribMask != VAM_All) {
+          printf_err("AttribMask indicate VertexAttribute does not exist: %d, stream: %d\n", (uint8_t)attr, i);
         }
       }
     }

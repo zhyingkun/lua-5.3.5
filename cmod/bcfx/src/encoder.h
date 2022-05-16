@@ -24,7 +24,7 @@ void encoder_begin(Encoder* encoder, Frame* frame);
 
 void encoder_touch(Encoder* encoder, ViewId id);
 
-void encoder_setVertexBuffer(Encoder* encoder, uint8_t stream, Handle vertexBuffer);
+void encoder_setVertexBuffer(Encoder* encoder, uint8_t stream, Handle vertexBuffer, uint32_t attribMask);
 void encoder_setIndexBuffer(Encoder* encoder, Handle indexBuffer, uint32_t start, uint32_t count);
 void encoder_setTransform(Encoder* encoder, Mat4x4* mat);
 uint8_t* encoder_addUniformData(Encoder* encoder, Handle handle, size_t sz);
