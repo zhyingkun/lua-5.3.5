@@ -1043,6 +1043,30 @@ bcfx.clear_flag = libbcfx.clear_flag
 ---@type bcfx_vertex_attrib
 bcfx.vertex_attrib = libbcfx.vertex_attrib
 
+---@class bcfx_vertex_attrib_mask
+---@field public Position integer
+---@field public Normal integer
+---@field public Tangent integer
+---@field public Bitangent integer
+---@field public Color0 integer
+---@field public Color1 integer
+---@field public Color2 integer
+---@field public Color3 integer
+---@field public Indices integer
+---@field public Weight integer
+---@field public TexCoord0 integer
+---@field public TexCoord1 integer
+---@field public TexCoord2 integer
+---@field public TexCoord3 integer
+---@field public TexCoord4 integer
+---@field public TexCoord5 integer
+---@field public TexCoord6 integer
+---@field public TexCoord7 integer
+---@field public All integer
+
+---@type bcfx_vertex_attrib_mask
+bcfx.vertex_attrib_mask = libbcfx.vertex_attrib_mask
+
 ---@class bcfx_attrib_type
 ---@field public Uint8 integer
 ---@field public Uint10 integer

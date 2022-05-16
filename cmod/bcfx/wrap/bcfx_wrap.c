@@ -478,8 +478,9 @@ static int BCWRAP_FUNCTION(touch)(lua_State* L) {
 static int BCWRAP_FUNCTION(setVertexBuffer)(lua_State* L) {
   uint8_t stream = luaL_checkinteger(L, 1);
   Handle handle = luaL_checkhandle(L, 2);
+  uint32_t attribMask = luaL_optinteger(L, 3, VAM_All);
 
-  bcfx_setVertexBuffer(stream, handle);
+  bcfx_setVertexBuffer(stream, handle, attribMask);
   return 0;
 }
 static int BCWRAP_FUNCTION(setIndexBuffer)(lua_State* L) {
@@ -643,28 +644,22 @@ static const luaL_Enum BCWRAP_ENUM(clear_flag)[] = {
     {"STENCIL", BCFX_CLEAR_STENCIL},
     {NULL, 0},
 };
+// clang-format off
 static const luaL_Enum BCWRAP_ENUM(vertex_attrib)[] = {
-    {"Position", VA_Position},
-    {"Normal", VA_Normal},
-    {"Tangent", VA_Tangent},
-    {"Bitangent", VA_Bitangent},
-    {"Color0", VA_Color0},
-    {"Color1", VA_Color1},
-    {"Color2", VA_Color2},
-    {"Color3", VA_Color3},
-    {"Indices", VA_Indices},
-    {"Weight", VA_Weight},
-    {"TexCoord0", VA_TexCoord0},
-    {"TexCoord1", VA_TexCoord1},
-    {"TexCoord2", VA_TexCoord2},
-    {"TexCoord3", VA_TexCoord3},
-    {"TexCoord4", VA_TexCoord4},
-    {"TexCoord5", VA_TexCoord5},
-    {"TexCoord6", VA_TexCoord6},
-    {"TexCoord7", VA_TexCoord7},
+#define XX(name) {#name, VA_##name},
+    VERTEX_ATTRIBUTE(XX)
+#undef XX
     {"Count", VA_Count},
     {NULL, 0},
 };
+static const luaL_Enum BCWRAP_ENUM(vertex_attrib_mask)[] = {
+#define XX(name) {#name, VAM_##name},
+    VERTEX_ATTRIBUTE(XX)
+#undef XX
+    {"All", VAM_All},
+    {NULL, 0},
+};
+// clang-format on
 static const luaL_Enum BCWRAP_ENUM(attrib_type)[] = {
     {"Uint8", AT_Uint8},
     {"Uint10", AT_Uint10},
@@ -817,6 +812,7 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
 
   REGISTE_ENUM_BCWRAP(clear_flag);
   REGISTE_ENUM_BCWRAP(vertex_attrib);
+  REGISTE_ENUM_BCWRAP(vertex_attrib_mask);
   REGISTE_ENUM_BCWRAP(attrib_type);
   REGISTE_ENUM_BCWRAP(index_type);
   REGISTE_ENUM_BCWRAP(shader_type);
