@@ -308,7 +308,7 @@ Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout) {
 Handle ctx_createVertexBuffer(Context* ctx, luaL_MemBuffer* mem, Handle layoutHandle) {
   CHECK_HANDLE(layoutHandle, HT_VertexLayout);
   ADD_CMD_ALLOC_HANDLE(ctx, VertexBuffer)
-  param->cvb.mem = *mem;
+  MEMBUFFER_MOVE(mem, &param->cvb.mem);
   param->cvb.layoutHandle = layoutHandle;
   return handle;
 }
@@ -316,32 +316,28 @@ Handle ctx_createVertexBuffer(Context* ctx, luaL_MemBuffer* mem, Handle layoutHa
 Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size, Handle layoutHandle) {
   CHECK_HANDLE_IF_VALID(layoutHandle, HT_VertexLayout);
   ADD_CMD_ALLOC_HANDLE(ctx, VertexBuffer)
-  luaL_MemBuffer mb = {0};
-  mb.sz = size;
-  param->cvb.mem = mb;
+  MEMBUFFER_SET(&param->cvb.mem, NULL, size, NULL, NULL);
   param->cvb.layoutHandle = layoutHandle;
   return handle;
 }
 
 Handle ctx_createIndexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_EIndexType type) {
   ADD_CMD_ALLOC_HANDLE(ctx, IndexBuffer)
-  param->cib.mem = *mem;
+  MEMBUFFER_MOVE(mem, &param->cib.mem);
   param->cib.type = type;
   return handle;
 }
 
 Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size, bcfx_EIndexType type) {
   ADD_CMD_ALLOC_HANDLE(ctx, IndexBuffer)
-  luaL_MemBuffer mb = {0};
-  mb.sz = size;
-  param->cib.mem = mb;
+  MEMBUFFER_SET(&param->cib.mem, NULL, size, NULL, NULL);
   param->cib.type = type;
   return handle;
 }
 
 Handle ctx_createShader(Context* ctx, luaL_MemBuffer* mem, bcfx_EShaderType type) {
   ADD_CMD_ALLOC_HANDLE(ctx, Shader)
-  param->cs.mem = *mem;
+  MEMBUFFER_MOVE(mem, &param->cs.mem);
   param->cs.type = type;
   return handle;
 }
@@ -370,7 +366,7 @@ Handle ctx_createUniform(Context* ctx, const char* name, bcfx_UniformType type, 
 
 Handle ctx_createTexture(Context* ctx, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
-  param->ct.mem = *mem;
+  MEMBUFFER_MOVE(mem, &param->ct.mem);
   param->ct.width = width;
   param->ct.height = height;
   param->ct.format = format;
@@ -421,14 +417,14 @@ void ctx_updateDynamicVertexBuffer(Context* ctx, Handle handle, size_t offset, l
   CHECK_HANDLE(handle, HT_VertexBuffer);
   CommandParam* param = ctx_addCommand(ctx, CT_UpdateVertexBuffer, handle);
   param->cuvb.offset = offset;
-  param->cuvb.mem = *mem;
+  MEMBUFFER_MOVE(mem, &param->cuvb.mem);
 }
 
 void ctx_updateDynamicIndexBuffer(Context* ctx, Handle handle, size_t offset, luaL_MemBuffer* mem) {
   CHECK_HANDLE(handle, HT_IndexBuffer);
   CommandParam* param = ctx_addCommand(ctx, CT_UpdateIndexBuffer, handle);
   param->cuib.offset = offset;
-  param->cuib.mem = *mem;
+  MEMBUFFER_MOVE(mem, &param->cuib.mem);
 }
 
 /* }====================================================== */
