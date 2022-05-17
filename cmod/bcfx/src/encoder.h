@@ -7,20 +7,21 @@
 
 /*
 ** {======================================================
-** Context
+** Encoder
 ** =======================================================
 */
 
 typedef struct {
   Frame* frame;
   RenderDraw draw;
-  RenderCompute compute;
   RenderBind bind;
   uint32_t uniformStartByte;
-  SortKey sortKey;
 } Encoder;
 
+void encoder_init(Encoder* encoder, Frame* frame);
+
 void encoder_begin(Encoder* encoder, Frame* frame);
+void encoder_end(Encoder* encoder);
 
 void encoder_touch(Encoder* encoder, ViewId id);
 

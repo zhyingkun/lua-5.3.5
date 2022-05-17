@@ -180,6 +180,8 @@ static WindowSwapper* gl_getWindowSwapper(RendererContextGL* glCtx, Window win) 
   // For OpenGL core profile mode, we must using a VertexArrayObject
   // MacOSX supports forward-compatible core profile contexts for OpenGL 3.2 and above
   GL_CHECK(glGenVertexArrays(1, &swapper->vaoId));
+  // New window has new OpenGLContext, cache it's RenderState
+  gl_cacheRenderState(glCtx, &swapper->renderState);
   return swapper;
 }
 static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win, GLuint mainWinFb) {
@@ -192,7 +194,7 @@ static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win, GLuint mainW
     WindowSwapper* swapper = gl_getWindowSwapper(glCtx, win);
     swapper->touch = true;
     GL_CHECK(glBindVertexArray(swapper->vaoId));
-    gl_initRenderState(glCtx);
+    glCtx->renderStatePtr = &swapper->renderState;
   }
   // only mainWin has non zero fb
   if (glCtx->mainWin == win && glCtx->curMainWinFb != mainWinFb) {
@@ -208,6 +210,7 @@ static void gl_init(RendererContext* ctx, Window mainWin) {
   glCtx->curMainWinFb = 0;
   glCtx->swapCount = 0;
   glCtx->uniformCount = 0;
+  glCtx->renderStatePtr = NULL;
   winctx_makeContextCurrent(glCtx->mainWin);
   if (!gladLoadGLLoader((GLADloadproc)winctx_getProcAddress)) {
     printf("Failed to initialize GLAD");

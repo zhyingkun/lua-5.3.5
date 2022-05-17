@@ -123,12 +123,6 @@ typedef struct {
 } TripleBuffer;
 
 typedef struct {
-  Window win;
-  GLuint vaoId;
-  bool touch;
-} WindowSwapper;
-
-typedef struct {
   GLenum func;
   GLenum sfail;
   GLenum dpfail;
@@ -167,6 +161,13 @@ typedef struct {
 } RenderStateGL;
 
 typedef struct {
+  Window win;
+  GLuint vaoId;
+  bool touch;
+  RenderStateGL renderState;
+} WindowSwapper;
+
+typedef struct {
   RendererContext api;
 
   IndexBufferGL indexBuffers[BCFX_CONFIG_MAX_INDEX_BUFFER];
@@ -190,7 +191,7 @@ typedef struct {
   uint8_t swapCount;
   WindowSwapper swapWins[BCFX_CONFIG_MAX_WINDOW];
 
-  RenderStateGL renderState;
+  RenderStateGL* renderStatePtr;
 
   uint32_t curVertexCount; // for gl_bindProgramAttributes pass count to gl_submitDraw
 } RendererContextGL;
@@ -231,7 +232,7 @@ extern const TextureFormatInfo textureFormat_glType[];
 ** =======================================================
 */
 
-void gl_initRenderState(RendererContextGL* glCtx);
+void gl_cacheRenderState(RendererContextGL* glCtx, RenderStateGL* renderState);
 void gl_updateRenderState(RendererContextGL* glCtx, RenderDraw* draw);
 
 /* }====================================================== */

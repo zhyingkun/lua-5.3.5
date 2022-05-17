@@ -29,8 +29,7 @@ typedef struct {
 } Clear;
 
 void clear_set(Clear* clear, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil);
-#define clear_reset(clear) \
-  clear_set(clear, 0, 0, 0.0, 0);
+#define clear_reset(clear) clear_set(clear, 0, 0, 0.0, 0)
 
 typedef struct {
   Window win;

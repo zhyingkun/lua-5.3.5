@@ -257,12 +257,12 @@ static void renderstate_updateLogicOp(RenderStateGL* stateGL, bcfx_RenderState s
   }
 }
 
-void gl_initRenderState(RendererContextGL* glCtx) {
-  renderstate_init(&glCtx->renderState);
+void gl_cacheRenderState(RendererContextGL* glCtx, RenderStateGL* renderState) {
+  renderstate_init(renderState);
 }
 
 void gl_updateRenderState(RendererContextGL* glCtx, RenderDraw* draw) {
-  RenderStateGL* stateGL = &glCtx->renderState;
+  RenderStateGL* stateGL = glCtx->renderStatePtr;
   renderstate_updateCull(stateGL, draw->state);
   renderstate_updateDepth(stateGL, draw->state);
   // alphaRef will be set in uniform, no OpenGL API

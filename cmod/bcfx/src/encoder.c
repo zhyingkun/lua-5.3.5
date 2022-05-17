@@ -12,6 +12,7 @@ static void encoder_discard(Encoder* encoder, uint32_t flags) {
   RenderDraw* draw = &encoder->draw;
   RenderBind* bind = &encoder->bind;
   if (flags & BCFX_DISCARD_VERTEX_STREAMS) {
+    /* no need to clear streams */
     draw->streamMask = 0;
   }
   if (flags & BCFX_DISCARD_INDEX_BUFFER) {
@@ -30,6 +31,7 @@ static void encoder_discard(Encoder* encoder, uint32_t flags) {
     bcfx_RenderState state = {0};
     draw->state = state;
     draw->blendColor = 0;
+    draw->enableStencil = false;
     bcfx_StencilState stencil = {0};
     draw->stencilFront = stencil;
     draw->stencilBack = stencil;
@@ -42,14 +44,24 @@ static void encoder_discard(Encoder* encoder, uint32_t flags) {
   }
 }
 
+void encoder_init(Encoder* encoder, Frame* frame) {
+  MAT4x4_INIT(&encoder->draw.model);
+  encoder_begin(encoder, frame);
+}
+
 void encoder_begin(Encoder* encoder, Frame* frame) {
   frame_reset(frame);
   encoder->frame = frame;
 
-  MAT4x4_INIT(&encoder->draw.model);
+  /* most field of RenderDraw and RenderBind will be clear in encoder_discard */
   encoder_discard(encoder, BCFX_DISCARD_ALL);
 
+  /* encoder->draw.uniformStartByte and encoder->draw.uniformSizeByte will set by encoder_submit */
+
   encoder->uniformStartByte = 0;
+}
+void encoder_end(Encoder* encoder) {
+  /* current do nothing */
 }
 
 void encoder_touch(Encoder* encoder, ViewId id) {
@@ -120,7 +132,8 @@ void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags,
   frame_setRenderItem(frame, index, (RenderItem*)draw);
   frame_setRenderBind(frame, index, bind);
 
-  SortKey* key = &encoder->sortKey;
+  SortKey sortKey;
+  SortKey* key = &sortKey;
   key->viewId = id;
   key->notTouch = notTouch;
   key->sequence = index;

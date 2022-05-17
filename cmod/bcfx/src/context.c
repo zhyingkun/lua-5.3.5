@@ -153,6 +153,8 @@ static void ctx_freeRecordHandle(Context* ctx, uint32_t frameId) {
 }
 
 void ctx_apiFrame(Context* ctx, uint32_t renderCount) {
+  encoder_end(ctx->encoder);
+
   ctx->submitFrame->renderCount = renderCount;
   memcpy(ctx->submitFrame->views, ctx->views, sizeof(ctx->views));
 
@@ -174,6 +176,7 @@ void ctx_apiFrame(Context* ctx, uint32_t renderCount) {
     ctx_callOnFrameCompleted(ctx, frameId); // before next frame, complete prev frame
   }
   ctx->frameCount++; // start next frame
+
   encoder_begin(ctx->encoder, submitFrame);
 }
 
@@ -243,7 +246,7 @@ void ctx_init(Context* ctx, Window mainWin) {
   frame_init(ctx->submitFrame);
   frame_init(ctx->renderFrame);
 
-  encoder_begin(ctx->encoder, ctx->submitFrame);
+  encoder_init(ctx->encoder, ctx->submitFrame);
 
   ctx->renderCtx = CreateRenderer();
 
