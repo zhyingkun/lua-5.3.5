@@ -65,20 +65,6 @@
 
 #define printf_err(...) (fprintf(stderr, ##__VA_ARGS__), fflush(stderr))
 
-#define BCFX_RESOURCE_MAP(XX) \
-  XX(VertexLayout, BCFX_CONFIG_MAX_VERTEX_LAYOUT) \
-  XX(VertexBuffer, BCFX_CONFIG_MAX_VERTEX_BUFFER) \
-  XX(IndexBuffer, BCFX_CONFIG_MAX_INDEX_BUFFER) \
-  XX(Shader, BCFX_CONFIG_MAX_SHADER) \
-  XX(Program, BCFX_CONFIG_MAX_PROGRAM) \
-  XX(Uniform, BCFX_CONFIG_MAX_UNIFORM) \
-  XX(Texture, BCFX_CONFIG_MAX_TEXTURE) \
-  XX(FrameBuffer, BCFX_CONFIG_MAX_FRAME_BUFFER)
-
-/*
-  XX(OcclusionQuery, BCFX_CONFIG_MAX_OCCLUSION_QUERY) \
-*/
-
 typedef enum {
   UB_ViewRect,
   UB_ViewTexel,

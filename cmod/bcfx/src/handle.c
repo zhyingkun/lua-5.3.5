@@ -12,9 +12,9 @@
 
 #define PACK_HANDLE(index, type) (((((uint16_t)(index)) & INDEX_MASK) << INDEX_OFFSET) | ((((uint16_t)(type)) & TYPE_MASK) << TYPE_OFFSET))
 #define UNPACK_INDEX(handle) ((((uint16_t)handle) >> INDEX_OFFSET) & INDEX_MASK)
-#define UNPACK_TYPE(handle) ((HandleType)((((uint16_t)handle) >> TYPE_OFFSET) & TYPE_MASK))
+#define UNPACK_TYPE(handle) ((bcfx_EHandleType)((((uint16_t)handle) >> TYPE_OFFSET) & TYPE_MASK))
 
-void handle_init(HandleAlloc* allocator, uint16_t max, HandleType type) {
+void handle_init(HandleAlloc* allocator, uint16_t max, bcfx_EHandleType type) {
   assert(max <= (1 << INDEX_BIT));
   allocator->num = 0;
   allocator->max = max;
@@ -79,11 +79,11 @@ uint16_t handle_index(Handle handle) {
   return UNPACK_INDEX(handle);
 }
 
-HandleType handle_type(Handle handle) {
+bcfx_EHandleType handle_type(Handle handle) {
   return UNPACK_TYPE(handle);
 }
 
-const char* handle_typename(HandleType type) {
+const char* handle_typename(bcfx_EHandleType type) {
   // clang-format off
   static const char* handle_name[] = {
       "None",

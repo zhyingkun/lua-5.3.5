@@ -41,38 +41,40 @@ BCFX_API void bcfx_unpackColor(uint32_t rgba, uint8_t* r, uint8_t* g, uint8_t* b
 #define HAS_BIT(mask, idx) (mask & BIT_INDEX(idx))
 
 #define VERTEX_ATTRIBUTE(XX) \
-XX(Position) \
-XX(Normal) \
-XX(Tangent) \
-XX(Bitangent) \
-XX(Color0) \
-XX(Color1) \
-XX(Color2) \
-XX(Color3) \
-XX(Indices) \
-XX(Weight) \
-XX(TexCoord0) \
-XX(TexCoord1) \
-XX(TexCoord2) \
-XX(TexCoord3) \
-XX(TexCoord4) \
-XX(TexCoord5) \
-XX(TexCoord6) \
-XX(TexCoord7)
+  XX(Position) \
+  XX(Normal) \
+  XX(Tangent) \
+  XX(Bitangent) \
+  XX(Color0) \
+  XX(Color1) \
+  XX(Color2) \
+  XX(Color3) \
+  XX(Indices) \
+  XX(Weight) \
+  XX(TexCoord0) \
+  XX(TexCoord1) \
+  XX(TexCoord2) \
+  XX(TexCoord3) \
+  XX(TexCoord4) \
+  XX(TexCoord5) \
+  XX(TexCoord6) \
+  XX(TexCoord7)
 
+// clang-format off
 typedef enum {
 #define XX(name) VA_##name,
-    VERTEX_ATTRIBUTE(XX)
+  VERTEX_ATTRIBUTE(XX)
 #undef XX
   VA_Count,
 } bcfx_EVertexAttrib;
 
 typedef enum {
 #define XX(name) VAM_##name = BIT_INDEX(VA_##name),
-    VERTEX_ATTRIBUTE(XX)
+  VERTEX_ATTRIBUTE(XX)
 #undef XX
   VAM_All = BIT_MASK(VA_Count),
 } bcfx_EVertexAttribMask;
+// clang-format on
 
 // WARNING: Change bcfx_EAttribType must Update sizeof_AttribType and attrib_glType
 typedef enum {
@@ -214,8 +216,31 @@ BCFX_API void bcfx_setFrameCompletedCallback(bcfx_OnFrameCompleted cb, void* ud)
 ** =======================================================
 */
 
+#define BCFX_RESOURCE_MAP(XX) \
+  XX(VertexLayout, BCFX_CONFIG_MAX_VERTEX_LAYOUT) \
+  XX(VertexBuffer, BCFX_CONFIG_MAX_VERTEX_BUFFER) \
+  XX(IndexBuffer, BCFX_CONFIG_MAX_INDEX_BUFFER) \
+  XX(Shader, BCFX_CONFIG_MAX_SHADER) \
+  XX(Program, BCFX_CONFIG_MAX_PROGRAM) \
+  XX(Uniform, BCFX_CONFIG_MAX_UNIFORM) \
+  XX(Texture, BCFX_CONFIG_MAX_TEXTURE) \
+  XX(FrameBuffer, BCFX_CONFIG_MAX_FRAME_BUFFER)
+
+// clang-format off
+typedef enum {
+  HT_None,
+#define XX(name, config_max) HT_##name,
+  BCFX_RESOURCE_MAP(XX)
+#undef XX
+  HT_Count,
+} bcfx_EHandleType;
+// clang-format on
+
 typedef uint16_t Handle;
 #define kInvalidHandle 0
+
+BCFX_API bcfx_EHandleType bcfx_handleType(Handle handle);
+BCFX_API const char* bcfx_handleTypeName(bcfx_EHandleType type);
 
 BCFX_API Handle bcfx_createVertexLayout(bcfx_VertexLayout* layout);
 BCFX_API Handle bcfx_createVertexBuffer(luaL_MemBuffer* mem, Handle layoutHandle);

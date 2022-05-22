@@ -439,7 +439,7 @@ void ctx_updateDynamicIndexBuffer(Context* ctx, Handle handle, size_t offset, lu
 */
 
 void ctx_destroy(Context* ctx, Handle handle) {
-  HandleType type = handle_type(handle);
+  bcfx_EHandleType type = handle_type(handle);
   CHECK_HANDLE(handle, type);
   switch (type) {
 #define XX(name, config_max) \

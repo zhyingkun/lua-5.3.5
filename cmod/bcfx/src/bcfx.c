@@ -95,6 +95,13 @@ BCFX_API void bcfx_setFrameCompletedCallback(bcfx_OnFrameCompleted cb, void* ud)
 ** =======================================================
 */
 
+BCFX_API bcfx_EHandleType bcfx_handleType(Handle handle) {
+  return handle_type(handle);
+}
+BCFX_API const char* bcfx_handleTypeName(bcfx_EHandleType type) {
+  return handle_typename(type);
+}
+
 // According to bcfx_EUniformType
 uint8_t sizeof_UniformType[] = {
     sizeof(uint32_t),
