@@ -160,7 +160,7 @@ void QUATERNION_FUNCTION(init)(lua_State* L);
 
 #define luaL_checkshadertype(L, idx) ((bcfx_EShaderType)luaL_checkinteger(L, idx))
 #define luaL_checkindextype(L, idx) ((bcfx_EIndexType)luaL_checkinteger(L, idx))
-#define luaL_checkhandle(L, idx) ((Handle)luaL_checkinteger(L, idx))
+#define luaL_checkhandle(L, idx) ((bcfx_Handle)luaL_checkinteger(L, idx))
 #define luaL_checkuniformtype(L, idx) ((bcfx_EUniformType)luaL_checkinteger(L, idx))
 #define luaL_checktextureformat(L, idx) ((bcfx_ETextureFormat)luaL_checkinteger(L, idx))
 #define luaL_checkviewid(L, idx) ((ViewId)luaL_checkinteger(L, idx))
