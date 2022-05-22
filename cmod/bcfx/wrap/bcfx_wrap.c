@@ -239,9 +239,9 @@ static bool urc_findUniformByHandle(Handle handle) {
   lua_pop(L, 1);
   return ret;
 }
-static void urc_checkCurrentTypeNum(bcfx_UniformType type, uint16_t num) {
+static void urc_checkCurrentTypeNum(bcfx_EUniformType type, uint16_t num) {
   lua_State* L = urcCtx->L;
-  bcfx_UniformType oldType = urcCtx->currentData.type;
+  bcfx_EUniformType oldType = urcCtx->currentData.type;
   uint16_t oldNum = urcCtx->currentData.num;
   if (type != oldType || num != oldNum) {
     luaL_error(L, "Create multi uniform with different parameters, type: %d, num: %d, oldType: %d, oldNum: %d", type, num, oldType, oldNum);
@@ -253,7 +253,7 @@ static void _updateDataToTable() {
   lua_pushinteger(L, packUniformData(urcCtx->currentData));
   lua_rawset(L, urcCtx->tableIdx);
 }
-static void urc_addUniform(int nameIdx, bcfx_UniformType type, uint16_t num, Handle handle) {
+static void urc_addUniform(int nameIdx, bcfx_EUniformType type, uint16_t num, Handle handle) {
   lua_State* L = urcCtx->L;
 
   lua_pushvalue(L, nameIdx);
@@ -370,7 +370,7 @@ static int BCWRAP_FUNCTION(createProgram)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(createUniform)(lua_State* L) {
   const char* name = luaL_checkstring(L, 1);
-  bcfx_UniformType type = luaL_checkuniformtype(L, 2);
+  bcfx_EUniformType type = luaL_checkuniformtype(L, 2);
   uint16_t num = luaL_optinteger(L, 3, 1);
 
   Handle handle = kInvalidHandle;
@@ -615,7 +615,7 @@ static int BCWRAP_FUNCTION(requestCurrentFrameViewCapture)(lua_State* L) {
 static int BCWRAP_FUNCTION(setUniform)(lua_State* L) {
   Handle handle = luaL_checkhandle(L, 1);
   uint16_t num;
-  bcfx_UniformType type = bcfx_uniformInfo(handle, &num);
+  bcfx_EUniformType type = bcfx_uniformInfo(handle, &num);
   uint16_t got = lua_gettop(L) - 1;
   if (num != got) {
     return luaL_error(L, "Uniform mismatch: want %d, got %d", num, got);
