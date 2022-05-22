@@ -150,6 +150,156 @@ static int BCWRAP_FUNCTION(shutdown)(lua_State* L) {
 
 /*
 ** {======================================================
+** Uniform Reference Count
+** =======================================================
+*/
+
+static int UNIFORM_TABLE_SIZE = 16;
+#define UNIFORM_TABLE_KEY ((void*)&UNIFORM_TABLE_SIZE)
+typedef struct {
+  uint16_t type;
+  uint16_t num;
+  uint16_t handle;
+  uint16_t refCount;
+} UniformData;
+typedef union {
+  uint64_t dataUINT64;
+  UniformData data;
+} UUniformData;
+static void clearUniformData(UniformData* data) {
+  UniformData d = {0};
+  *data = d;
+}
+static lua_Integer packUniformData(UniformData data) {
+  UUniformData uData;
+  uData.data = data;
+  return uData.dataUINT64;
+}
+static UniformData unpackUniformData(lua_Integer packedData) {
+  UUniformData uData;
+  uData.dataUINT64 = packedData;
+  return uData.data;
+}
+
+typedef struct {
+  lua_State* L;
+  int tableIdx; // handle => name, and name => UniformDataPackedInt64
+  UniformData currentData;
+} UniformReferenceCount;
+
+static UniformReferenceCount urcContext = {0};
+static UniformReferenceCount* urcCtx = &urcContext;
+#define CURRENT_NAME_KEY ((void*)&urcContext)
+
+static void urc_begin(lua_State* L) {
+  urcCtx->L = L;
+  lua_rawgetp(L, LUA_REGISTRYINDEX, UNIFORM_TABLE_KEY);
+  urcCtx->tableIdx = lua_gettop(L);
+  clearUniformData(&urcCtx->currentData);
+}
+static void urc_end() {
+  lua_State* L = urcCtx->L;
+  assert(urcCtx->tableIdx == lua_gettop(L));
+  lua_pushnil(L);
+  lua_rawsetp(L, urcCtx->tableIdx, CURRENT_NAME_KEY);
+  lua_pop(L, 1);
+  urcCtx->L = NULL;
+  urcCtx->tableIdx = 0;
+  clearUniformData(&urcCtx->currentData);
+}
+static bool urc_findUniformByName(int nameIdx) {
+  lua_State* L = urcCtx->L;
+
+  lua_pushvalue(L, nameIdx);
+  lua_rawget(L, urcCtx->tableIdx);
+  int isNum = 0;
+  lua_Integer packedData = lua_tointegerx(L, -1, &isNum);
+  lua_pop(L, 1);
+
+  if (isNum) {
+    lua_pushvalue(L, nameIdx);
+    lua_rawsetp(L, urcCtx->tableIdx, CURRENT_NAME_KEY);
+
+    urcCtx->currentData = unpackUniformData(packedData);
+    return true;
+  }
+  return false;
+}
+static bool urc_findUniformByHandle(Handle handle) {
+  lua_State* L = urcCtx->L;
+
+  lua_pushinteger(L, handle);
+  lua_rawget(L, urcCtx->tableIdx);
+  int idx = lua_gettop(L);
+
+  bool ret = false;
+  if (lua_isstring(L, idx)) {
+    ret = urc_findUniformByName(idx);
+  }
+  lua_pop(L, 1);
+  return ret;
+}
+static void urc_checkCurrentTypeNum(bcfx_UniformType type, uint16_t num) {
+  lua_State* L = urcCtx->L;
+  bcfx_UniformType oldType = urcCtx->currentData.type;
+  uint16_t oldNum = urcCtx->currentData.num;
+  if (type != oldType || num != oldNum) {
+    luaL_error(L, "Create multi uniform with different parameters, type: %d, num: %d, oldType: %d, oldNum: %d", type, num, oldType, oldNum);
+  }
+}
+static void _updateDataToTable() {
+  lua_State* L = urcCtx->L;
+  lua_rawgetp(L, urcCtx->tableIdx, CURRENT_NAME_KEY);
+  lua_pushinteger(L, packUniformData(urcCtx->currentData));
+  lua_rawset(L, urcCtx->tableIdx);
+}
+static void urc_addUniform(int nameIdx, bcfx_UniformType type, uint16_t num, Handle handle) {
+  lua_State* L = urcCtx->L;
+
+  lua_pushvalue(L, nameIdx);
+  lua_rawsetp(L, urcCtx->tableIdx, CURRENT_NAME_KEY);
+
+  lua_pushinteger(L, handle);
+  lua_pushvalue(L, nameIdx);
+  lua_rawset(L, urcCtx->tableIdx);
+
+  urcCtx->currentData.type = type;
+  urcCtx->currentData.num = num;
+  urcCtx->currentData.handle = handle;
+  urcCtx->currentData.refCount = 1;
+  _updateDataToTable();
+}
+static Handle urc_retainCurrentUniform() {
+  urcCtx->currentData.refCount++;
+  _updateDataToTable();
+  return urcCtx->currentData.handle;
+}
+static bool urc_releaseCurrentUniform() {
+  urcCtx->currentData.refCount--;
+  if (urcCtx->currentData.refCount > 0) {
+    _updateDataToTable();
+    return false;
+  }
+  lua_State* L = urcCtx->L;
+  lua_rawgetp(L, urcCtx->tableIdx, CURRENT_NAME_KEY);
+  lua_pushnil(L);
+  lua_rawset(L, urcCtx->tableIdx);
+
+  lua_pushnil(L);
+  lua_rawsetp(L, urcCtx->tableIdx, CURRENT_NAME_KEY);
+
+  lua_pushinteger(L, urcCtx->currentData.handle);
+  lua_pushnil(L);
+  lua_rawset(L, urcCtx->tableIdx);
+
+  clearUniformData(&urcCtx->currentData);
+  return true;
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** Create Render Resource
 ** =======================================================
 */
@@ -223,13 +373,30 @@ static int BCWRAP_FUNCTION(createUniform)(lua_State* L) {
   bcfx_UniformType type = luaL_checkuniformtype(L, 2);
   uint16_t num = luaL_optinteger(L, 3, 1);
 
-  if (type == UT_Sampler2D && num != 1) {
-    return luaL_error(L, "Sampler2D uniform does not support array");
+  Handle handle = kInvalidHandle;
+  urc_begin(L);
+  if (urc_findUniformByName(1)) {
+    urc_checkCurrentTypeNum(type, num);
+    handle = urc_retainCurrentUniform();
+  } else {
+    if (type == UT_Sampler2D && num != 1) {
+      return luaL_error(L, "Sampler2D uniform does not support array");
+    }
+    handle = bcfx_createUniform(name, type, num);
+    urc_addUniform(1, type, num, handle);
   }
-
-  Handle handle = bcfx_createUniform(name, type, num);
+  urc_end();
   lua_pushinteger(L, handle);
   return 1;
+}
+static void BCWRAP_FUNCTION(destroyUniform)(lua_State* L, Handle handle) {
+  urc_begin(L);
+  if (urc_findUniformByHandle(handle)) {
+    if (urc_releaseCurrentUniform()) {
+      bcfx_destroy(handle);
+    }
+  }
+  urc_end();
 }
 static int BCWRAP_FUNCTION(createTexture)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
@@ -310,7 +477,12 @@ static int BCWRAP_FUNCTION(destroy)(lua_State* L) {
   int top = lua_gettop(L);
   for (int idx = 1; idx <= top; idx++) {
     Handle handle = luaL_checkhandle(L, idx);
-    bcfx_destroy(handle);
+    if (bcfx_handleType(handle) == HT_Uniform) {
+      BCWRAP_FUNCTION(destroyUniform)
+      (L, handle);
+    } else {
+      bcfx_destroy(handle);
+    }
   }
   return 0;
 }
@@ -852,6 +1024,9 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
 
   lua_pushinteger(L, kInvalidHandle);
   lua_setfield(L, -2, "kInvalidHandle");
+
+  lua_createtable(L, 0, UNIFORM_TABLE_SIZE);
+  lua_rawsetp(L, LUA_REGISTRYINDEX, UNIFORM_TABLE_KEY);
 
   return 1;
 }
