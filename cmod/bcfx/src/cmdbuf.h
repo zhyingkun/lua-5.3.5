@@ -54,7 +54,7 @@ typedef struct {
 } CmdProgram;
 typedef struct {
   const char* name;
-  bcfx_UniformType type;
+  bcfx_EUniformType type;
   uint16_t num;
 } CmdUniform;
 typedef struct {

@@ -57,7 +57,7 @@ const GLenum attrib_glType[] = {
     GL_HALF_FLOAT, // Half
     GL_FLOAT, // Float
 };
-// According to bcfx_UniformType
+// According to bcfx_EUniformType
 const GLenum uniform_glType[] = {
     GL_SAMPLER_2D,
     GL_FLOAT_VEC4,
@@ -389,7 +389,7 @@ static void gl_createProgram(RendererContext* ctx, Handle handle, Handle vsh, Ha
   prog_collectAttributes(prog);
   prog_collectUniforms(prog, glCtx);
 }
-static void gl_createUniform(RendererContext* ctx, Handle handle, const char* name, bcfx_UniformType type, uint16_t num) {
+static void gl_createUniform(RendererContext* ctx, Handle handle, const char* name, bcfx_EUniformType type, uint16_t num) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   UniformGL* uniform = &glCtx->uniforms[handle_index(handle)];
   uniform->name = name;
@@ -397,7 +397,7 @@ static void gl_createUniform(RendererContext* ctx, Handle handle, const char* na
   if (type == UT_Sampler2D) {
     uniform->data.stage = 0;
   } else {
-    uniform->data.ptr = (uint8_t*)mem_malloc(sizeof_UniformType[type] * num);
+    uniform->data.ptr = (uint8_t*)mem_malloc(sizeof_EUniformType[type] * num);
   }
   glCtx->uniformCount++;
 }

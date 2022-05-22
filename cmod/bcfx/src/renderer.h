@@ -23,7 +23,7 @@ typedef void (*RendererCreateVertexBuffer)(RendererContext* ctx, Handle handle, 
 typedef void (*RendererCreateIndexBuffer)(RendererContext* ctx, Handle handle, luaL_MemBuffer* mem, bcfx_EIndexType type);
 typedef void (*RendererCreateShader)(RendererContext* ctx, Handle handle, luaL_MemBuffer* mem, bcfx_EShaderType type);
 typedef void (*RendererCreateProgram)(RendererContext* ctx, Handle handle, Handle vsh, Handle fsh);
-typedef void (*RendererCreateUniform)(RendererContext* ctx, Handle handle, const char* name, bcfx_UniformType type, uint16_t num);
+typedef void (*RendererCreateUniform)(RendererContext* ctx, Handle handle, const char* name, bcfx_EUniformType type, uint16_t num);
 typedef void (*RendererCreateTexture)(RendererContext* ctx, Handle handle, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format);
 typedef void (*RendererCreateFrameBuffer)(RendererContext* ctx, Handle handle, uint8_t num, Handle* handles);
 

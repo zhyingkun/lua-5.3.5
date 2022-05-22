@@ -264,16 +264,16 @@ typedef enum {
 BCFX_API Handle bcfx_createShader(luaL_MemBuffer* mem, bcfx_EShaderType type);
 BCFX_API Handle bcfx_createProgram(Handle vs, Handle fs);
 
-// WARNING: Change bcfx_UniformType must Update uniform_glType
+// WARNING: Change bcfx_EUniformType must Update uniform_glType and sizeof_EUniformType
 typedef enum {
   UT_Sampler2D,
   UT_Vec4,
   UT_Mat3x3,
   UT_Mat4x4,
-} bcfx_UniformType;
-BCFX_API uint8_t sizeof_UniformType[];
+} bcfx_EUniformType;
+BCFX_API uint8_t sizeof_EUniformType[];
 
-BCFX_API Handle bcfx_createUniform(const char* name, bcfx_UniformType type, uint16_t num);
+BCFX_API Handle bcfx_createUniform(const char* name, bcfx_EUniformType type, uint16_t num);
 
 // WARNING: Change bcfx_ETextureFormat must Update textureFormat_glType
 typedef enum {
@@ -582,7 +582,7 @@ BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags, uint32_t dep
 ** =======================================================
 */
 
-BCFX_API bcfx_UniformType bcfx_uniformInfo(Handle handle, uint16_t* num);
+BCFX_API bcfx_EUniformType bcfx_uniformInfo(Handle handle, uint16_t* num);
 
 /* }====================================================== */
 

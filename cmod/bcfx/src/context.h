@@ -58,7 +58,7 @@ Handle ctx_createIndexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_EIndexType 
 Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size, bcfx_EIndexType type);
 Handle ctx_createShader(Context* ctx, luaL_MemBuffer* mem, bcfx_EShaderType type);
 Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs);
-Handle ctx_createUniform(Context* ctx, const char* name, bcfx_UniformType type, uint16_t num);
+Handle ctx_createUniform(Context* ctx, const char* name, bcfx_EUniformType type, uint16_t num);
 Handle ctx_createTexture(Context* ctx, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format);
 Handle ctx_createRenderTexture(Context* ctx, uint16_t width, uint16_t height, bcfx_ETextureFormat format);
 Handle ctx_createFrameBuffer(Context* ctx, uint8_t num, Handle* handles);

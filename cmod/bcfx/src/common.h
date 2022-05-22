@@ -82,10 +82,10 @@ typedef enum {
 } bcfx_EUniformBuiltin;
 
 typedef struct {
-  bcfx_UniformType type;
+  bcfx_EUniformType type;
   uint16_t num;
 } UniformBase;
-void uniform_initBase(UniformBase* u, bcfx_UniformType type, uint16_t num);
+void uniform_initBase(UniformBase* u, bcfx_EUniformType type, uint16_t num);
 size_t uniform_getSize(UniformBase* u);
 
 uint8_t* uniform_writeData(luaL_ByteBuffer* b, Handle handle, size_t sz);

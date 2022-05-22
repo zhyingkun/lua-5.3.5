@@ -103,7 +103,7 @@ BCFX_API const char* bcfx_handleTypeName(bcfx_EHandleType type) {
 }
 
 // According to bcfx_EUniformType
-uint8_t sizeof_UniformType[] = {
+uint8_t sizeof_EUniformType[] = {
     sizeof(uint32_t),
     sizeof(float) * 4,
     sizeof(float) * 3 * 3,
@@ -138,7 +138,7 @@ BCFX_API Handle bcfx_createProgram(Handle vs, Handle fs) {
   return ctx_createProgram(s_ctx, vs, fs);
 }
 
-BCFX_API Handle bcfx_createUniform(const char* name, bcfx_UniformType type, uint16_t num) {
+BCFX_API Handle bcfx_createUniform(const char* name, bcfx_EUniformType type, uint16_t num) {
   return ctx_createUniform(s_ctx, name, type, num);
 }
 
@@ -305,7 +305,7 @@ BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags, uint32_t sor
 ** =======================================================
 */
 
-BCFX_API bcfx_UniformType bcfx_uniformInfo(Handle handle, uint16_t* num) {
+BCFX_API bcfx_EUniformType bcfx_uniformInfo(Handle handle, uint16_t* num) {
   UniformBase* ub = &s_ctx->uniforms[handle_index(handle)];
   if (num) {
     *num = ub->num;
