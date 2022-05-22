@@ -38,7 +38,7 @@ typedef struct {
 } CmdVertexLayout;
 typedef struct {
   luaL_MemBuffer mem;
-  Handle layoutHandle;
+  bcfx_Handle layoutHandle;
 } CmdVertexBuffer;
 typedef struct {
   luaL_MemBuffer mem;
@@ -49,8 +49,8 @@ typedef struct {
   bcfx_EShaderType type;
 } CmdShader;
 typedef struct {
-  Handle vsHandle;
-  Handle fsHandle;
+  bcfx_Handle vsHandle;
+  bcfx_Handle fsHandle;
 } CmdProgram;
 typedef struct {
   const char* name;
@@ -65,7 +65,7 @@ typedef struct {
 } CmdTexture;
 typedef struct {
   uint8_t num;
-  Handle handles[BCFX_CONFIG_MAX_FRAME_BUFFER_ATTACHMENTS];
+  bcfx_Handle handles[BCFX_CONFIG_MAX_FRAME_BUFFER_ATTACHMENTS];
 } CmdFrameBuffer;
 
 typedef struct {
@@ -93,7 +93,7 @@ typedef union {
 
 typedef struct {
   CommandType type;
-  Handle handle;
+  bcfx_Handle handle;
   CommandParam param;
 } Command;
 

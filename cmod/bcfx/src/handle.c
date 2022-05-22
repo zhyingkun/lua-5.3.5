@@ -37,13 +37,13 @@ void handle_destroy(HandleAlloc* allocator) {
   allocator->type = HT_None;
 }
 
-Handle handle_alloc(HandleAlloc* allocator) {
+bcfx_Handle handle_alloc(HandleAlloc* allocator) {
   if (allocator->num < allocator->max) {
     uint16_t denseIdx = allocator->num;
     allocator->num++;
     uint16_t sparseIdx = allocator->dense[denseIdx];
     assert(allocator->sparse[sparseIdx] == denseIdx);
-    return (Handle)PACK_HANDLE(sparseIdx, allocator->type);
+    return (bcfx_Handle)PACK_HANDLE(sparseIdx, allocator->type);
   }
   return kInvalidHandle;
 }
@@ -58,7 +58,7 @@ static void handle_swapDenseElement(HandleAlloc* allocator, uint16_t denseIdx1, 
   allocator->sparse[sparseIdx1] = denseIdx2;
 }
 
-void handle_free(HandleAlloc* allocator, Handle handle) {
+void handle_free(HandleAlloc* allocator, bcfx_Handle handle) {
   uint16_t sparseIdx = UNPACK_INDEX(handle);
   uint16_t denseIdx = allocator->sparse[sparseIdx];
   assert(allocator->num > 0);
@@ -68,18 +68,18 @@ void handle_free(HandleAlloc* allocator, Handle handle) {
   handle_swapDenseElement(allocator, denseIdx, denseIdxTop);
 }
 
-bool handle_isvalid(HandleAlloc* allocator, Handle handle) {
+bool handle_isvalid(HandleAlloc* allocator, bcfx_Handle handle) {
   uint16_t sparseIdx = UNPACK_INDEX(handle);
   uint16_t denseIdx = allocator->sparse[sparseIdx];
   assert(allocator->dense[denseIdx] == sparseIdx);
   return denseIdx < allocator->num;
 }
 
-uint16_t handle_index(Handle handle) {
+uint16_t handle_index(bcfx_Handle handle) {
   return UNPACK_INDEX(handle);
 }
 
-bcfx_EHandleType handle_type(Handle handle) {
+bcfx_EHandleType handle_type(bcfx_Handle handle) {
   return UNPACK_TYPE(handle);
 }
 

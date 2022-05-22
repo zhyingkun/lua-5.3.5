@@ -68,12 +68,12 @@ void encoder_touch(Encoder* encoder, ViewId id) {
   encoder_submit(encoder, id, kInvalidHandle, BCFX_DISCARD_ALL, 0, VM_Default, false);
 }
 
-void encoder_setVertexBuffer(Encoder* encoder, uint8_t stream, Handle vertexBuffer, uint32_t attribMask) {
+void encoder_setVertexBuffer(Encoder* encoder, uint8_t stream, bcfx_Handle vertexBuffer, uint32_t attribMask) {
   encoder->draw.streams[stream].vertexBuffer = vertexBuffer;
   encoder->draw.streams[stream].attribMask = attribMask;
   encoder->draw.streamMask |= 1 << stream;
 }
-void encoder_setIndexBuffer(Encoder* encoder, Handle indexBuffer, uint32_t start, uint32_t count) {
+void encoder_setIndexBuffer(Encoder* encoder, bcfx_Handle indexBuffer, uint32_t start, uint32_t count) {
   encoder->draw.indexBuffer = indexBuffer;
   encoder->draw.indexStart = start;
   encoder->draw.indexCount = count;
@@ -81,10 +81,10 @@ void encoder_setIndexBuffer(Encoder* encoder, Handle indexBuffer, uint32_t start
 void encoder_setTransform(Encoder* encoder, Mat4x4* mat) {
   encoder->draw.model = *mat;
 }
-uint8_t* encoder_addUniformData(Encoder* encoder, Handle handle, size_t sz) {
+uint8_t* encoder_addUniformData(Encoder* encoder, bcfx_Handle handle, size_t sz) {
   return uniform_writeData(encoder->frame->uniformDataBuffer, handle, sz);
 }
-void encoder_setTexture(Encoder* encoder, uint8_t stage, Handle handle, bcfx_SamplerFlag flags) {
+void encoder_setTexture(Encoder* encoder, uint8_t stage, bcfx_Handle handle, bcfx_SamplerFlag flags) {
   Binding* bind = &encoder->bind.binds[stage];
   bind->handle = handle;
   bind->samplerFlags = flags;
@@ -119,7 +119,7 @@ void encoder_setInstanceDataBuffer(Encoder* encoder, const bcfx_InstanceDataBuff
   draw->numInstance = count;
 }
 
-void encoder_submit(Encoder* encoder, ViewId id, Handle program, uint32_t flags, uint32_t sortDepth, ViewMode mode, bool notTouch) {
+void encoder_submit(Encoder* encoder, ViewId id, bcfx_Handle program, uint32_t flags, uint32_t sortDepth, ViewMode mode, bool notTouch) {
   Frame* frame = encoder->frame;
   RenderDraw* draw = &encoder->draw;
   RenderBind* bind = &encoder->bind;

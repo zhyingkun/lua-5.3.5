@@ -34,7 +34,7 @@ void clear_set(Clear* clear, uint16_t flags, uint32_t rgba, float depth, uint8_t
 void view_setWindow(View* view, Window win) {
   view->win = win;
 }
-void view_setFrameBuffer(View* view, Handle handle) {
+void view_setFrameBuffer(View* view, bcfx_Handle handle) {
   view->fbh = handle;
 }
 

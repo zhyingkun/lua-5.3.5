@@ -33,7 +33,7 @@ void clear_set(Clear* clear, uint16_t flags, uint32_t rgba, float depth, uint8_t
 
 typedef struct {
   Window win;
-  Handle fbh;
+  bcfx_Handle fbh;
   Clear clear;
   Rect rect;
   Rect scissor;
@@ -44,7 +44,7 @@ typedef struct {
 } View;
 
 void view_setWindow(View* view, Window win);
-void view_setFrameBuffer(View* view, Handle handle);
+void view_setFrameBuffer(View* view, bcfx_Handle handle);
 
 void view_setClear(View* view, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil);
 void view_setRect(View* view, uint16_t x, uint16_t y, uint16_t width, uint16_t height);

@@ -31,7 +31,7 @@ static void ctx_renderSemPost(Context* ctx) {
   sem_post(ctx->renderSem);
 }
 
-static CommandParam* ctx_addCommand(Context* ctx, CommandType type, Handle handle) {
+static CommandParam* ctx_addCommand(Context* ctx, CommandType type, bcfx_Handle handle) {
   Frame* frame = ctx->submitFrame;
   CommandBuffer* cmdbuf = type < CT_End ? frame->cmdPre : frame->cmdPost;
   Command* cmd = cmdbuf_next(cmdbuf);
@@ -120,12 +120,12 @@ void ctx_callOnFrameCompleted(Context* ctx, uint32_t frameId) {
 
 typedef struct {
   uint32_t frameId;
-  Handle handle;
+  bcfx_Handle handle;
 } HandleRecord;
 static HandleRecord* recordList = NULL;
 static uint32_t recordSize = 0;
 static uint32_t recordCount = 0;
-static void ctx_delayFreeHandle(Context* ctx, Handle handle) {
+static void ctx_delayFreeHandle(Context* ctx, bcfx_Handle handle) {
   if (recordCount + 1 > recordSize) {
     if (recordSize == 0) {
       recordSize = 32;
@@ -291,14 +291,14 @@ void ctx_shutdowm(Context* ctx) {
 */
 
 #define ADD_CMD_ALLOC_HANDLE(ctx, name) \
-  Handle handle = HANDLE_ALLOC(name); \
+  bcfx_Handle handle = HANDLE_ALLOC(name); \
   CommandParam* param = ctx_addCommand(ctx, CT_Create##name, handle);
 
 static void _releaseVertexLayout(void* ud, bcfx_VertexLayout* layout) {
   (void)ud;
   mem_free((void*)layout);
 }
-Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout) {
+bcfx_Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout) {
   ADD_CMD_ALLOC_HANDLE(ctx, VertexLayout)
   bcfx_VertexLayout* ly = (bcfx_VertexLayout*)mem_malloc(sizeof(bcfx_VertexLayout));
   *ly = *layout;
@@ -308,7 +308,7 @@ Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout) {
   return handle;
 }
 
-Handle ctx_createVertexBuffer(Context* ctx, luaL_MemBuffer* mem, Handle layoutHandle) {
+bcfx_Handle ctx_createVertexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_Handle layoutHandle) {
   CHECK_HANDLE(layoutHandle, HT_VertexLayout);
   ADD_CMD_ALLOC_HANDLE(ctx, VertexBuffer)
   MEMBUFFER_MOVE(mem, &param->cvb.mem);
@@ -316,7 +316,7 @@ Handle ctx_createVertexBuffer(Context* ctx, luaL_MemBuffer* mem, Handle layoutHa
   return handle;
 }
 
-Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size, Handle layoutHandle) {
+bcfx_Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size, bcfx_Handle layoutHandle) {
   CHECK_HANDLE_IF_VALID(layoutHandle, HT_VertexLayout);
   ADD_CMD_ALLOC_HANDLE(ctx, VertexBuffer)
   MEMBUFFER_SET(&param->cvb.mem, NULL, size, NULL, NULL);
@@ -324,28 +324,28 @@ Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size, Handle layoutHan
   return handle;
 }
 
-Handle ctx_createIndexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_EIndexType type) {
+bcfx_Handle ctx_createIndexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_EIndexType type) {
   ADD_CMD_ALLOC_HANDLE(ctx, IndexBuffer)
   MEMBUFFER_MOVE(mem, &param->cib.mem);
   param->cib.type = type;
   return handle;
 }
 
-Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size, bcfx_EIndexType type) {
+bcfx_Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size, bcfx_EIndexType type) {
   ADD_CMD_ALLOC_HANDLE(ctx, IndexBuffer)
   MEMBUFFER_SET(&param->cib.mem, NULL, size, NULL, NULL);
   param->cib.type = type;
   return handle;
 }
 
-Handle ctx_createShader(Context* ctx, luaL_MemBuffer* mem, bcfx_EShaderType type) {
+bcfx_Handle ctx_createShader(Context* ctx, luaL_MemBuffer* mem, bcfx_EShaderType type) {
   ADD_CMD_ALLOC_HANDLE(ctx, Shader)
   MEMBUFFER_MOVE(mem, &param->cs.mem);
   param->cs.type = type;
   return handle;
 }
 
-Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs) {
+bcfx_Handle ctx_createProgram(Context* ctx, bcfx_Handle vs, bcfx_Handle fs) {
   CHECK_HANDLE(vs, HT_Shader);
   CHECK_HANDLE(fs, HT_Shader);
   ADD_CMD_ALLOC_HANDLE(ctx, Program)
@@ -354,7 +354,7 @@ Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs) {
   return handle;
 }
 
-Handle ctx_createUniform(Context* ctx, const char* name, bcfx_EUniformType type, uint16_t num) {
+bcfx_Handle ctx_createUniform(Context* ctx, const char* name, bcfx_EUniformType type, uint16_t num) {
   ADD_CMD_ALLOC_HANDLE(ctx, Uniform)
   size_t len = strlen(name) + 1;
   char* buf = (char*)mem_malloc(len);
@@ -367,7 +367,7 @@ Handle ctx_createUniform(Context* ctx, const char* name, bcfx_EUniformType type,
   return handle;
 }
 
-Handle ctx_createTexture(Context* ctx, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
+bcfx_Handle ctx_createTexture(Context* ctx, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   MEMBUFFER_MOVE(mem, &param->ct.mem);
   param->ct.width = width;
@@ -376,7 +376,7 @@ Handle ctx_createTexture(Context* ctx, luaL_MemBuffer* mem, uint16_t width, uint
   return handle;
 }
 
-Handle ctx_createRenderTexture(Context* ctx, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
+bcfx_Handle ctx_createRenderTexture(Context* ctx, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   MEMBUFFER_CLEAR(&param->ct.mem);
   param->ct.width = width;
@@ -385,7 +385,7 @@ Handle ctx_createRenderTexture(Context* ctx, uint16_t width, uint16_t height, bc
   return handle;
 }
 
-Handle ctx_createFrameBuffer(Context* ctx, uint8_t num, Handle* handles) {
+bcfx_Handle ctx_createFrameBuffer(Context* ctx, uint8_t num, bcfx_Handle* handles) {
   ADD_CMD_ALLOC_HANDLE(ctx, FrameBuffer)
   param->cfb.num = num;
   for (uint8_t i = 0; i < BCFX_CONFIG_MAX_FRAME_BUFFER_ATTACHMENTS; i++) {
@@ -407,7 +407,7 @@ Handle ctx_createFrameBuffer(Context* ctx, uint8_t num, Handle* handles) {
 ** =======================================================
 */
 
-void ctx_updateProgram(Context* ctx, Handle handle, Handle vs, Handle fs) {
+void ctx_updateProgram(Context* ctx, bcfx_Handle handle, bcfx_Handle vs, bcfx_Handle fs) {
   CHECK_HANDLE(handle, HT_Program);
   CHECK_HANDLE(vs, HT_Shader);
   CHECK_HANDLE(fs, HT_Shader);
@@ -416,14 +416,14 @@ void ctx_updateProgram(Context* ctx, Handle handle, Handle vs, Handle fs) {
   param->cp.fsHandle = fs;
 }
 
-void ctx_updateDynamicVertexBuffer(Context* ctx, Handle handle, size_t offset, luaL_MemBuffer* mem) {
+void ctx_updateDynamicVertexBuffer(Context* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem) {
   CHECK_HANDLE(handle, HT_VertexBuffer);
   CommandParam* param = ctx_addCommand(ctx, CT_UpdateVertexBuffer, handle);
   param->cuvb.offset = offset;
   MEMBUFFER_MOVE(mem, &param->cuvb.mem);
 }
 
-void ctx_updateDynamicIndexBuffer(Context* ctx, Handle handle, size_t offset, luaL_MemBuffer* mem) {
+void ctx_updateDynamicIndexBuffer(Context* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem) {
   CHECK_HANDLE(handle, HT_IndexBuffer);
   CommandParam* param = ctx_addCommand(ctx, CT_UpdateIndexBuffer, handle);
   param->cuib.offset = offset;
@@ -438,7 +438,7 @@ void ctx_updateDynamicIndexBuffer(Context* ctx, Handle handle, size_t offset, lu
 ** =======================================================
 */
 
-void ctx_destroy(Context* ctx, Handle handle) {
+void ctx_destroy(Context* ctx, bcfx_Handle handle) {
   bcfx_EHandleType type = handle_type(handle);
   CHECK_HANDLE(handle, type);
   switch (type) {
@@ -467,7 +467,7 @@ void ctx_setViewWindow(Context* ctx, ViewId id, Window win) {
   view_setWindow(&ctx->views[id], win);
   view_setFrameBuffer(&ctx->views[id], kInvalidHandle);
 }
-void ctx_setViewFrameBuffer(Context* ctx, ViewId id, Handle handle) {
+void ctx_setViewFrameBuffer(Context* ctx, ViewId id, bcfx_Handle handle) {
   CHECK_VIEWID(id);
   view_setWindow(&ctx->views[id], NULL);
   view_setFrameBuffer(&ctx->views[id], handle);
@@ -553,7 +553,7 @@ size_t uniform_getSize(UniformBase* u) {
   return sizeof_EUniformType[u->type] * u->num;
 }
 
-uint8_t* uniform_writeData(luaL_ByteBuffer* b, Handle handle, size_t sz) {
+uint8_t* uniform_writeData(luaL_ByteBuffer* b, bcfx_Handle handle, size_t sz) {
   uint32_t* ph = (uint32_t*)luaBB_appendbytes(b, sizeof(uint32_t)); // for memory alignment
   *ph = handle;
   uint32_t* ps = (uint32_t*)luaBB_appendbytes(b, sizeof(uint32_t)); // for memory alignment
@@ -561,7 +561,7 @@ uint8_t* uniform_writeData(luaL_ByteBuffer* b, Handle handle, size_t sz) {
   assert(sz % sizeof(float) == 0); // for memory alignment in 4 byte
   return (uint8_t*)luaBB_appendbytes(b, sz);
 }
-uint8_t* uniform_readData(luaL_ByteBuffer* b, Handle* phandle, size_t* psize, size_t* pread) {
+uint8_t* uniform_readData(luaL_ByteBuffer* b, bcfx_Handle* phandle, size_t* psize, size_t* pread) {
   uint32_t* ph = (uint32_t*)luaBB_readbytes(b, sizeof(uint32_t));
   assert(ph != NULL);
   *phandle = *ph;
@@ -584,7 +584,7 @@ uint8_t* uniform_readData(luaL_ByteBuffer* b, Handle* phandle, size_t* psize, si
 ** =======================================================
 */
 
-void ctx_setUniformVec4(Context* ctx, Handle handle, Vec4* vec, uint16_t num) {
+void ctx_setUniformVec4(Context* ctx, bcfx_Handle handle, Vec4* vec, uint16_t num) {
   CHECK_HANDLE(handle, HT_Uniform);
   UniformBase* u = &ctx->uniforms[handle_index(handle)];
   if (uniform_checkType(u, UT_Vec4, num)) {
@@ -595,7 +595,7 @@ void ctx_setUniformVec4(Context* ctx, Handle handle, Vec4* vec, uint16_t num) {
     }
   }
 }
-void ctx_setUniformMat3x3(Context* ctx, Handle handle, Mat3x3* mat, uint16_t num) {
+void ctx_setUniformMat3x3(Context* ctx, bcfx_Handle handle, Mat3x3* mat, uint16_t num) {
   CHECK_HANDLE(handle, HT_Uniform);
   UniformBase* u = &ctx->uniforms[handle_index(handle)];
   if (uniform_checkType(u, UT_Mat3x3, num)) {
@@ -606,7 +606,7 @@ void ctx_setUniformMat3x3(Context* ctx, Handle handle, Mat3x3* mat, uint16_t num
     }
   }
 }
-void ctx_setUniformMat4x4(Context* ctx, Handle handle, Mat4x4* mat, uint16_t num) {
+void ctx_setUniformMat4x4(Context* ctx, bcfx_Handle handle, Mat4x4* mat, uint16_t num) {
   CHECK_HANDLE(handle, HT_Uniform);
   UniformBase* u = &ctx->uniforms[handle_index(handle)];
   if (uniform_checkType(u, UT_Mat4x4, num)) {
@@ -623,19 +623,19 @@ void ctx_touch(Context* ctx, ViewId id) {
   encoder_touch(ctx->encoder, id);
 }
 
-void ctx_setVertexBuffer(Context* ctx, uint8_t stream, Handle handle, uint32_t attribMask) {
+void ctx_setVertexBuffer(Context* ctx, uint8_t stream, bcfx_Handle handle, uint32_t attribMask) {
   CHECK_STREAMID(stream);
   CHECK_HANDLE(handle, HT_VertexBuffer);
   encoder_setVertexBuffer(ctx->encoder, stream, handle, attribMask);
 }
-void ctx_setIndexBuffer(Context* ctx, Handle handle, uint32_t start, uint32_t count) {
+void ctx_setIndexBuffer(Context* ctx, bcfx_Handle handle, uint32_t start, uint32_t count) {
   CHECK_HANDLE_IF_VALID(handle, HT_IndexBuffer);
   encoder_setIndexBuffer(ctx->encoder, handle, start, count);
 }
 void ctx_setTransform(Context* ctx, Mat4x4* mat) {
   encoder_setTransform(ctx->encoder, mat);
 }
-void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlag flags) {
+void ctx_setTexture(Context* ctx, uint8_t stage, bcfx_Handle sampler, bcfx_Handle texture, bcfx_SamplerFlag flags) {
   CHECK_TEXTURE_UNIT(stage);
   CHECK_HANDLE(sampler, HT_Uniform);
   CHECK_HANDLE(texture, HT_Texture);
@@ -659,7 +659,7 @@ void ctx_setInstanceDataBuffer(Context* ctx, const bcfx_InstanceDataBuffer* idb,
   encoder_setInstanceDataBuffer(ctx->encoder, idb, start, count);
 }
 
-void ctx_submit(Context* ctx, ViewId id, Handle handle, uint32_t flags, uint32_t sortDepth) {
+void ctx_submit(Context* ctx, ViewId id, bcfx_Handle handle, uint32_t flags, uint32_t sortDepth) {
   CHECK_VIEWID(id);
   CHECK_HANDLE(handle, HT_Program);
   encoder_submit(ctx->encoder, id, handle, flags, sortDepth, ctx->views[id].mode, true);

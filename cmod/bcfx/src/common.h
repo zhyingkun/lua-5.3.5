@@ -88,7 +88,7 @@ typedef struct {
 void uniform_initBase(UniformBase* u, bcfx_EUniformType type, uint16_t num);
 size_t uniform_getSize(UniformBase* u);
 
-uint8_t* uniform_writeData(luaL_ByteBuffer* b, Handle handle, size_t sz);
-uint8_t* uniform_readData(luaL_ByteBuffer* b, Handle* phandle, size_t* psize, size_t* pread);
+uint8_t* uniform_writeData(luaL_ByteBuffer* b, bcfx_Handle handle, size_t sz);
+uint8_t* uniform_readData(luaL_ByteBuffer* b, bcfx_Handle* phandle, size_t* psize, size_t* pread);
 
 #endif /* _COMMON_H_ */

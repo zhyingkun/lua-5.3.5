@@ -95,7 +95,7 @@ BCFX_API void bcfx_setFrameCompletedCallback(bcfx_OnFrameCompleted cb, void* ud)
 ** =======================================================
 */
 
-BCFX_API bcfx_EHandleType bcfx_handleType(Handle handle) {
+BCFX_API bcfx_EHandleType bcfx_handleType(bcfx_Handle handle) {
   return handle_type(handle);
 }
 BCFX_API const char* bcfx_handleTypeName(bcfx_EHandleType type) {
@@ -110,47 +110,47 @@ uint8_t sizeof_EUniformType[] = {
     sizeof(float) * 4 * 4,
 };
 
-BCFX_API Handle bcfx_createVertexLayout(bcfx_VertexLayout* layout) {
+BCFX_API bcfx_Handle bcfx_createVertexLayout(bcfx_VertexLayout* layout) {
   return ctx_createVertexLayout(s_ctx, layout);
 }
 
-BCFX_API Handle bcfx_createVertexBuffer(luaL_MemBuffer* mem, Handle layoutHandle) {
+BCFX_API bcfx_Handle bcfx_createVertexBuffer(luaL_MemBuffer* mem, bcfx_Handle layoutHandle) {
   return ctx_createVertexBuffer(s_ctx, mem, layoutHandle);
 }
 
-BCFX_API Handle bcfx_createDynamicVertexBuffer(size_t size, Handle layoutHandle) {
+BCFX_API bcfx_Handle bcfx_createDynamicVertexBuffer(size_t size, bcfx_Handle layoutHandle) {
   return ctx_createDynamicVertexBuffer(s_ctx, size, layoutHandle);
 }
 
-BCFX_API Handle bcfx_createIndexBuffer(luaL_MemBuffer* mem, bcfx_EIndexType type) {
+BCFX_API bcfx_Handle bcfx_createIndexBuffer(luaL_MemBuffer* mem, bcfx_EIndexType type) {
   return ctx_createIndexBuffer(s_ctx, mem, type);
 }
 
-BCFX_API Handle bcfx_createDynamicIndexBuffer(size_t size, bcfx_EIndexType type) {
+BCFX_API bcfx_Handle bcfx_createDynamicIndexBuffer(size_t size, bcfx_EIndexType type) {
   return ctx_createDynamicIndexBuffer(s_ctx, size, type);
 }
 
-BCFX_API Handle bcfx_createShader(luaL_MemBuffer* mem, bcfx_EShaderType type) {
+BCFX_API bcfx_Handle bcfx_createShader(luaL_MemBuffer* mem, bcfx_EShaderType type) {
   return ctx_createShader(s_ctx, mem, type);
 }
 
-BCFX_API Handle bcfx_createProgram(Handle vs, Handle fs) {
+BCFX_API bcfx_Handle bcfx_createProgram(bcfx_Handle vs, bcfx_Handle fs) {
   return ctx_createProgram(s_ctx, vs, fs);
 }
 
-BCFX_API Handle bcfx_createUniform(const char* name, bcfx_EUniformType type, uint16_t num) {
+BCFX_API bcfx_Handle bcfx_createUniform(const char* name, bcfx_EUniformType type, uint16_t num) {
   return ctx_createUniform(s_ctx, name, type, num);
 }
 
-BCFX_API Handle bcfx_createTexture(luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
+BCFX_API bcfx_Handle bcfx_createTexture(luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
   return ctx_createTexture(s_ctx, mem, width, height, format);
 }
 
-BCFX_API Handle bcfx_createRenderTexture(uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
+BCFX_API bcfx_Handle bcfx_createRenderTexture(uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
   return ctx_createRenderTexture(s_ctx, width, height, format);
 }
 
-BCFX_API Handle bcfx_createFrameBuffer(uint8_t num, Handle* handles) {
+BCFX_API bcfx_Handle bcfx_createFrameBuffer(uint8_t num, bcfx_Handle* handles) {
   return ctx_createFrameBuffer(s_ctx, num, handles);
 }
 
@@ -162,15 +162,15 @@ BCFX_API Handle bcfx_createFrameBuffer(uint8_t num, Handle* handles) {
 ** =======================================================
 */
 
-BCFX_API void bcfx_updateProgram(Handle handle, Handle vs, Handle fs) {
+BCFX_API void bcfx_updateProgram(bcfx_Handle handle, bcfx_Handle vs, bcfx_Handle fs) {
   ctx_updateProgram(s_ctx, handle, vs, fs);
 }
 
-BCFX_API void bcfx_updateDynamicVertexBuffer(Handle handle, size_t offset, luaL_MemBuffer* mem) {
+BCFX_API void bcfx_updateDynamicVertexBuffer(bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem) {
   ctx_updateDynamicVertexBuffer(s_ctx, handle, offset, mem);
 }
 
-BCFX_API void bcfx_updateDynamicIndexBuffer(Handle handle, size_t offset, luaL_MemBuffer* mem) {
+BCFX_API void bcfx_updateDynamicIndexBuffer(bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem) {
   ctx_updateDynamicIndexBuffer(s_ctx, handle, offset, mem);
 }
 
@@ -182,7 +182,7 @@ BCFX_API void bcfx_updateDynamicIndexBuffer(Handle handle, size_t offset, luaL_M
 ** =======================================================
 */
 
-BCFX_API void bcfx_destroy(Handle handle) {
+BCFX_API void bcfx_destroy(bcfx_Handle handle) {
   ctx_destroy(s_ctx, handle);
 }
 
@@ -198,7 +198,7 @@ BCFX_API void bcfx_setViewWindow(ViewId id, Window win) {
   ctx_setViewWindow(s_ctx, id, win);
 }
 
-BCFX_API void bcfx_setViewFrameBuffer(ViewId id, Handle handle) {
+BCFX_API void bcfx_setViewFrameBuffer(ViewId id, bcfx_Handle handle) {
   ctx_setViewFrameBuffer(s_ctx, id, handle);
 }
 
@@ -254,13 +254,13 @@ BCFX_API void bcfx_requestCurrentFrameViewCapture(ViewId id) {
 ** =======================================================
 */
 
-BCFX_API void bcfx_setUniformVec4(Handle handle, Vec4* vec, uint16_t num) {
+BCFX_API void bcfx_setUniformVec4(bcfx_Handle handle, Vec4* vec, uint16_t num) {
   ctx_setUniformVec4(s_ctx, handle, vec, num);
 }
-BCFX_API void bcfx_setUniformMat3x3(Handle handle, Mat3x3* mat, uint16_t num) {
+BCFX_API void bcfx_setUniformMat3x3(bcfx_Handle handle, Mat3x3* mat, uint16_t num) {
   ctx_setUniformMat3x3(s_ctx, handle, mat, num);
 }
-BCFX_API void bcfx_setUniformMat4x4(Handle handle, Mat4x4* mat, uint16_t num) {
+BCFX_API void bcfx_setUniformMat4x4(bcfx_Handle handle, Mat4x4* mat, uint16_t num) {
   ctx_setUniformMat4x4(s_ctx, handle, mat, num);
 }
 
@@ -268,16 +268,16 @@ BCFX_API void bcfx_touch(ViewId id) {
   ctx_touch(s_ctx, id);
 }
 
-BCFX_API void bcfx_setVertexBuffer(uint8_t stream, Handle handle, uint32_t attribMask) {
+BCFX_API void bcfx_setVertexBuffer(uint8_t stream, bcfx_Handle handle, uint32_t attribMask) {
   ctx_setVertexBuffer(s_ctx, stream, handle, attribMask);
 }
-BCFX_API void bcfx_setIndexBuffer(Handle handle, uint32_t start, uint32_t count) {
+BCFX_API void bcfx_setIndexBuffer(bcfx_Handle handle, uint32_t start, uint32_t count) {
   ctx_setIndexBuffer(s_ctx, handle, start, count);
 }
 BCFX_API void bcfx_setTransform(Mat4x4* mat) {
   ctx_setTransform(s_ctx, mat);
 }
-BCFX_API void bcfx_setTexture(uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlag flags) {
+BCFX_API void bcfx_setTexture(uint8_t stage, bcfx_Handle sampler, bcfx_Handle texture, bcfx_SamplerFlag flags) {
   ctx_setTexture(s_ctx, stage, sampler, texture, flags);
 }
 BCFX_API void bcfx_setScissor(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
@@ -293,7 +293,7 @@ BCFX_API void bcfx_setInstanceDataBuffer(const bcfx_InstanceDataBuffer* idb, uin
   ctx_setInstanceDataBuffer(s_ctx, idb, start, count);
 }
 
-BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags, uint32_t sortDepth) {
+BCFX_API void bcfx_submit(ViewId id, bcfx_Handle handle, uint32_t flags, uint32_t sortDepth) {
   ctx_submit(s_ctx, id, handle, flags, sortDepth);
 }
 
@@ -305,7 +305,7 @@ BCFX_API void bcfx_submit(ViewId id, Handle handle, uint32_t flags, uint32_t sor
 ** =======================================================
 */
 
-BCFX_API bcfx_EUniformType bcfx_uniformInfo(Handle handle, uint16_t* num) {
+BCFX_API bcfx_EUniformType bcfx_uniformInfo(bcfx_Handle handle, uint16_t* num) {
   UniformBase* ub = &s_ctx->uniforms[handle_index(handle)];
   if (num) {
     *num = ub->num;

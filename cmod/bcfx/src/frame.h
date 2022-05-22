@@ -12,7 +12,7 @@
 */
 
 typedef struct {
-  Handle vertexBuffer;
+  bcfx_Handle vertexBuffer;
   uint32_t attribMask;
 } Stream;
 
@@ -20,11 +20,11 @@ typedef struct {
   Stream streams[BCFX_CONFIG_MAX_VERTEX_STREAMS];
   uint8_t streamMask;
 
-  Handle indexBuffer;
+  bcfx_Handle indexBuffer;
   uint32_t indexStart;
   uint32_t indexCount;
 
-  Handle instanceDataBuffer;
+  bcfx_Handle instanceDataBuffer;
   uint32_t instanceDataOffset; // skip num of bytes
   uint8_t numAttrib; // num of vec4 per instance
   uint32_t numInstance;
@@ -51,7 +51,7 @@ typedef union {
 } RenderItem;
 
 typedef struct {
-  Handle handle;
+  bcfx_Handle handle;
   bcfx_SamplerFlag samplerFlags;
 } Binding;
 

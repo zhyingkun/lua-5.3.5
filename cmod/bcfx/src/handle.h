@@ -19,11 +19,11 @@ typedef struct {
 
 void handle_init(HandleAlloc* allocator, uint16_t max, bcfx_EHandleType type);
 void handle_destroy(HandleAlloc* allocator);
-Handle handle_alloc(HandleAlloc* allocator);
-void handle_free(HandleAlloc* allocator, Handle handle);
-bool handle_isvalid(HandleAlloc* allocator, Handle handle);
-uint16_t handle_index(Handle handle);
-bcfx_EHandleType handle_type(Handle handle);
+bcfx_Handle handle_alloc(HandleAlloc* allocator);
+void handle_free(HandleAlloc* allocator, bcfx_Handle handle);
+bool handle_isvalid(HandleAlloc* allocator, bcfx_Handle handle);
+uint16_t handle_index(bcfx_Handle handle);
+bcfx_EHandleType handle_type(bcfx_Handle handle);
 const char* handle_typename(bcfx_EHandleType type);
 
 /* }====================================================== */

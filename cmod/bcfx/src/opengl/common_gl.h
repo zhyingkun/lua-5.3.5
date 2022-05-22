@@ -61,7 +61,7 @@ typedef struct {
 typedef struct {
   GLuint id;
   // uint32_t count; // how many vertex in this buffer, not byte
-  Handle layout;
+  bcfx_Handle layout;
   bool bIsDynamic;
   size_t size;
 } VertexBufferGL;

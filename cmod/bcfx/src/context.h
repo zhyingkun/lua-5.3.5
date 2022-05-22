@@ -51,26 +51,26 @@ void ctx_apiFrame(Context* ctx, uint32_t renderCount);
 void ctx_init(Context* ctx, Window mainWin);
 void ctx_shutdowm(Context* ctx);
 
-Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout);
-Handle ctx_createVertexBuffer(Context* ctx, luaL_MemBuffer* mem, Handle layoutHandle);
-Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size, Handle layoutHandle);
-Handle ctx_createIndexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_EIndexType type);
-Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size, bcfx_EIndexType type);
-Handle ctx_createShader(Context* ctx, luaL_MemBuffer* mem, bcfx_EShaderType type);
-Handle ctx_createProgram(Context* ctx, Handle vs, Handle fs);
-Handle ctx_createUniform(Context* ctx, const char* name, bcfx_EUniformType type, uint16_t num);
-Handle ctx_createTexture(Context* ctx, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format);
-Handle ctx_createRenderTexture(Context* ctx, uint16_t width, uint16_t height, bcfx_ETextureFormat format);
-Handle ctx_createFrameBuffer(Context* ctx, uint8_t num, Handle* handles);
+bcfx_Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout);
+bcfx_Handle ctx_createVertexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_Handle layoutHandle);
+bcfx_Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size, bcfx_Handle layoutHandle);
+bcfx_Handle ctx_createIndexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_EIndexType type);
+bcfx_Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size, bcfx_EIndexType type);
+bcfx_Handle ctx_createShader(Context* ctx, luaL_MemBuffer* mem, bcfx_EShaderType type);
+bcfx_Handle ctx_createProgram(Context* ctx, bcfx_Handle vs, bcfx_Handle fs);
+bcfx_Handle ctx_createUniform(Context* ctx, const char* name, bcfx_EUniformType type, uint16_t num);
+bcfx_Handle ctx_createTexture(Context* ctx, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format);
+bcfx_Handle ctx_createRenderTexture(Context* ctx, uint16_t width, uint16_t height, bcfx_ETextureFormat format);
+bcfx_Handle ctx_createFrameBuffer(Context* ctx, uint8_t num, bcfx_Handle* handles);
 
-void ctx_updateProgram(Context* ctx, Handle handle, Handle vs, Handle fs);
-void ctx_updateDynamicVertexBuffer(Context* ctx, Handle handle, size_t offset, luaL_MemBuffer* mem);
-void ctx_updateDynamicIndexBuffer(Context* ctx, Handle handle, size_t offset, luaL_MemBuffer* mem);
+void ctx_updateProgram(Context* ctx, bcfx_Handle handle, bcfx_Handle vs, bcfx_Handle fs);
+void ctx_updateDynamicVertexBuffer(Context* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem);
+void ctx_updateDynamicIndexBuffer(Context* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem);
 
-void ctx_destroy(Context* ctx, Handle handle);
+void ctx_destroy(Context* ctx, bcfx_Handle handle);
 
 void ctx_setViewWindow(Context* ctx, ViewId id, Window win);
-void ctx_setViewFrameBuffer(Context* ctx, ViewId id, Handle handle);
+void ctx_setViewFrameBuffer(Context* ctx, ViewId id, bcfx_Handle handle);
 
 void ctx_setViewClear(Context* ctx, ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil);
 void ctx_setViewRect(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
@@ -86,22 +86,22 @@ void ctx_setFrameViewCaptureCallback(Context* ctx, bcfx_OnFrameViewCapture callb
 void ctx_requestCurrentFrameViewCapture(Context* ctx, ViewId id);
 void ctx_callOnFrameViewCapture(Context* ctx, Frame* frame, uint32_t frameId);
 
-void ctx_setUniformVec4(Context* ctx, Handle handle, Vec4* vec, uint16_t num);
-void ctx_setUniformMat3x3(Context* ctx, Handle handle, Mat3x3* mat, uint16_t num);
-void ctx_setUniformMat4x4(Context* ctx, Handle handle, Mat4x4* mat, uint16_t num);
+void ctx_setUniformVec4(Context* ctx, bcfx_Handle handle, Vec4* vec, uint16_t num);
+void ctx_setUniformMat3x3(Context* ctx, bcfx_Handle handle, Mat3x3* mat, uint16_t num);
+void ctx_setUniformMat4x4(Context* ctx, bcfx_Handle handle, Mat4x4* mat, uint16_t num);
 
 void ctx_touch(Context* ctx, ViewId id);
 
-void ctx_setVertexBuffer(Context* ctx, uint8_t stream, Handle handle, uint32_t attribMask);
-void ctx_setIndexBuffer(Context* ctx, Handle handle, uint32_t start, uint32_t count);
+void ctx_setVertexBuffer(Context* ctx, uint8_t stream, bcfx_Handle handle, uint32_t attribMask);
+void ctx_setIndexBuffer(Context* ctx, bcfx_Handle handle, uint32_t start, uint32_t count);
 void ctx_setTransform(Context* ctx, Mat4x4* mat);
-void ctx_setTexture(Context* ctx, uint8_t stage, Handle sampler, Handle texture, bcfx_SamplerFlag flags);
+void ctx_setTexture(Context* ctx, uint8_t stage, bcfx_Handle sampler, bcfx_Handle texture, bcfx_SamplerFlag flags);
 void ctx_setScissor(Context* ctx, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 void ctx_setState(Context* ctx, bcfx_RenderState state, uint32_t blendColor);
 void ctx_setStencil(Context* ctx, bool enable, bcfx_StencilState front, bcfx_StencilState back);
 void ctx_setInstanceDataBuffer(Context* ctx, const bcfx_InstanceDataBuffer* idb, uint32_t start, uint32_t count);
 
-void ctx_submit(Context* ctx, ViewId id, Handle handle, uint32_t flags, uint32_t depth);
+void ctx_submit(Context* ctx, ViewId id, bcfx_Handle handle, uint32_t flags, uint32_t depth);
 
 /* }====================================================== */
 
