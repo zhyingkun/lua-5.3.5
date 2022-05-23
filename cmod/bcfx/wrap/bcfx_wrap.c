@@ -228,7 +228,7 @@ static bool urc_findUniformByName(int nameIdx) {
 static bool urc_findUniformByHandle(bcfx_Handle handle) {
   lua_State* L = urcCtx->L;
 
-  lua_pushinteger(L, handle);
+  luaL_pushhandle(L, handle);
   lua_rawget(L, urcCtx->tableIdx);
   int idx = lua_gettop(L);
 
@@ -259,7 +259,7 @@ static void urc_addUniform(int nameIdx, bcfx_EUniformType type, uint16_t num, bc
   lua_pushvalue(L, nameIdx);
   lua_rawsetp(L, urcCtx->tableIdx, CURRENT_NAME_KEY);
 
-  lua_pushinteger(L, handle);
+  luaL_pushhandle(L, handle);
   lua_pushvalue(L, nameIdx);
   lua_rawset(L, urcCtx->tableIdx);
 
@@ -288,7 +288,7 @@ static bool urc_releaseCurrentUniform() {
   lua_pushnil(L);
   lua_rawsetp(L, urcCtx->tableIdx, CURRENT_NAME_KEY);
 
-  lua_pushinteger(L, urcCtx->currentData.handle);
+  luaL_pushhandle(L, urcCtx->currentData.handle);
   lua_pushnil(L);
   lua_rawset(L, urcCtx->tableIdx);
 
@@ -308,7 +308,7 @@ static int BCWRAP_FUNCTION(createVertexLayout)(lua_State* L) {
   bcfx_VertexLayout* layout = luaL_checkvertexlayout(L, 1);
 
   bcfx_Handle handle = bcfx_createVertexLayout(layout);
-  lua_pushinteger(L, handle);
+  luaL_pushhandle(L, handle);
   return 1;
 }
 static int BCWRAP_FUNCTION(createVertexBuffer)(lua_State* L) {
@@ -316,7 +316,7 @@ static int BCWRAP_FUNCTION(createVertexBuffer)(lua_State* L) {
   bcfx_Handle layoutHandle = luaL_checkinteger(L, 2);
 
   bcfx_Handle handle = bcfx_createVertexBuffer(mb, layoutHandle);
-  lua_pushinteger(L, handle);
+  luaL_pushhandle(L, handle);
   return 1;
 }
 static int BCWRAP_FUNCTION(createDynamicVertexBuffer)(lua_State* L) {
@@ -324,7 +324,7 @@ static int BCWRAP_FUNCTION(createDynamicVertexBuffer)(lua_State* L) {
   bcfx_Handle layoutHandle = luaL_checkinteger(L, 2);
 
   bcfx_Handle handle = bcfx_createDynamicVertexBuffer(size, layoutHandle);
-  lua_pushinteger(L, handle);
+  luaL_pushhandle(L, handle);
   return 1;
 }
 static int BCWRAP_FUNCTION(createIndexBuffer)(lua_State* L) {
@@ -332,7 +332,7 @@ static int BCWRAP_FUNCTION(createIndexBuffer)(lua_State* L) {
   bcfx_EIndexType type = luaL_checkindextype(L, 2);
 
   bcfx_Handle handle = bcfx_createIndexBuffer(mb, type);
-  lua_pushinteger(L, handle);
+  luaL_pushhandle(L, handle);
   return 1;
 }
 static int BCWRAP_FUNCTION(createDynamicIndexBuffer)(lua_State* L) {
@@ -340,7 +340,7 @@ static int BCWRAP_FUNCTION(createDynamicIndexBuffer)(lua_State* L) {
   bcfx_EIndexType type = luaL_checkindextype(L, 2);
 
   bcfx_Handle handle = bcfx_createDynamicIndexBuffer(size, type);
-  lua_pushinteger(L, handle);
+  luaL_pushhandle(L, handle);
   return 1;
 }
 static int BCWRAP_FUNCTION(createShader)(lua_State* L) {
@@ -357,7 +357,7 @@ static int BCWRAP_FUNCTION(createShader)(lua_State* L) {
   bcfx_EShaderType type = luaL_checkshadertype(L, 2);
 
   bcfx_Handle handle = bcfx_createShader(mb, type);
-  lua_pushinteger(L, handle);
+  luaL_pushhandle(L, handle);
   return 1;
 }
 static int BCWRAP_FUNCTION(createProgram)(lua_State* L) {
@@ -365,7 +365,7 @@ static int BCWRAP_FUNCTION(createProgram)(lua_State* L) {
   bcfx_Handle fs = luaL_checkhandle(L, 2);
 
   bcfx_Handle handle = bcfx_createProgram(vs, fs);
-  lua_pushinteger(L, handle);
+  luaL_pushhandle(L, handle);
   return 1;
 }
 static int BCWRAP_FUNCTION(createUniform)(lua_State* L) {
@@ -386,7 +386,7 @@ static int BCWRAP_FUNCTION(createUniform)(lua_State* L) {
     urc_addUniform(1, type, num, handle);
   }
   urc_end();
-  lua_pushinteger(L, handle);
+  luaL_pushhandle(L, handle);
   return 1;
 }
 static void BCWRAP_FUNCTION(destroyUniform)(lua_State* L, bcfx_Handle handle) {
@@ -405,7 +405,7 @@ static int BCWRAP_FUNCTION(createTexture)(lua_State* L) {
   bcfx_ETextureFormat format = luaL_checktextureformat(L, 4);
 
   bcfx_Handle handle = bcfx_createTexture(mb, width, height, format);
-  lua_pushinteger(L, handle);
+  luaL_pushhandle(L, handle);
   return 1;
 }
 static int BCWRAP_FUNCTION(createRenderTexture)(lua_State* L) {
@@ -414,7 +414,7 @@ static int BCWRAP_FUNCTION(createRenderTexture)(lua_State* L) {
   bcfx_ETextureFormat format = luaL_checktextureformat(L, 3);
 
   bcfx_Handle handle = bcfx_createRenderTexture(width, height, format);
-  lua_pushinteger(L, handle);
+  luaL_pushhandle(L, handle);
   return 1;
 }
 static int BCWRAP_FUNCTION(createFrameBuffer)(lua_State* L) {
@@ -428,7 +428,7 @@ static int BCWRAP_FUNCTION(createFrameBuffer)(lua_State* L) {
   }
 
   bcfx_Handle handle = bcfx_createFrameBuffer((uint8_t)num, handles);
-  lua_pushinteger(L, handle);
+  luaL_pushhandle(L, handle);
   return 1;
 }
 
@@ -1022,7 +1022,7 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
 
   init_resource_manage(L);
 
-  lua_pushinteger(L, kInvalidHandle);
+  luaL_pushhandle(L, kInvalidHandle);
   lua_setfield(L, -2, "kInvalidHandle");
 
   lua_createtable(L, 0, UNIFORM_TABLE_SIZE);
