@@ -24,6 +24,7 @@ typedef void (*RendererCreateIndexBuffer)(RendererContext* ctx, bcfx_Handle hand
 typedef void (*RendererCreateShader)(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_EShaderType type);
 typedef void (*RendererCreateProgram)(RendererContext* ctx, bcfx_Handle handle, bcfx_Handle vsh, bcfx_Handle fsh);
 typedef void (*RendererCreateUniform)(RendererContext* ctx, bcfx_Handle handle, const char* name, bcfx_EUniformType type, uint16_t num);
+typedef void (*RendererCreateSampler)(RendererContext* ctx, bcfx_Handle handle, bcfx_SamplerFlag flags);
 typedef void (*RendererCreateTexture)(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format);
 typedef void (*RendererCreateFrameBuffer)(RendererContext* ctx, bcfx_Handle handle, uint8_t num, bcfx_Handle* handles);
 
@@ -41,6 +42,7 @@ typedef void (*RendererDestroyIndexBuffer)(RendererContext* ctx, bcfx_Handle han
 typedef void (*RendererDestroyShader)(RendererContext* ctx, bcfx_Handle handle);
 typedef void (*RendererDestroyProgram)(RendererContext* ctx, bcfx_Handle handle);
 typedef void (*RendererDestroyUniform)(RendererContext* ctx, bcfx_Handle handle);
+typedef void (*RendererDestroySampler)(RendererContext* ctx, bcfx_Handle handle);
 typedef void (*RendererDestroyTexture)(RendererContext* ctx, bcfx_Handle handle);
 typedef void (*RendererDestroyFrameBuffer)(RendererContext* ctx, bcfx_Handle handle);
 
@@ -54,6 +56,7 @@ struct RendererContext {
   RendererCreateShader createShader;
   RendererCreateProgram createProgram;
   RendererCreateUniform createUniform;
+  RendererCreateSampler createSampler;
   RendererCreateTexture createTexture;
   RendererCreateFrameBuffer createFrameBuffer;
 
@@ -71,6 +74,7 @@ struct RendererContext {
   RendererDestroyShader destroyShader;
   RendererDestroyProgram destroyProgram;
   RendererDestroyUniform destroyUniform;
+  RendererDestroySampler destroySampler;
   RendererDestroyTexture destroyTexture;
   RendererDestroyFrameBuffer destroyFrameBuffer;
 };

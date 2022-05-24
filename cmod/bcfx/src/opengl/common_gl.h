@@ -108,6 +108,9 @@ typedef struct {
 } UniformGL;
 typedef struct {
   GLuint id;
+} SamplerGL;
+typedef struct {
+  GLuint id;
   bcfx_ETextureFormat format;
 } TextureGL;
 typedef struct {
@@ -177,6 +180,7 @@ typedef struct {
   ProgramGL programs[BCFX_CONFIG_MAX_PROGRAM];
   uint16_t uniformCount;
   UniformGL uniforms[BCFX_CONFIG_MAX_UNIFORM];
+  SamplerGL samplers[BCFX_CONFIG_MAX_SAMPLER];
   TextureGL textures[BCFX_CONFIG_MAX_TEXTURE];
   FrameBufferGL frameBuffers[BCFX_CONFIG_MAX_FRAME_BUFFER];
 

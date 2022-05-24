@@ -69,6 +69,7 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
       CASE_CALL_RENDERER(CreateShader, createShader, cmd->handle, &param->cs.mem, param->cs.type);
       CASE_CALL_RENDERER(CreateProgram, createProgram, cmd->handle, param->cp.vsHandle, param->cp.fsHandle);
       CASE_CALL_RENDERER(CreateUniform, createUniform, cmd->handle, param->cu.name, param->cu.type, param->cu.num);
+      CASE_CALL_RENDERER(CreateSampler, createSampler, cmd->handle, param->csa.flags);
       CASE_CALL_RENDERER(CreateTexture, createTexture, cmd->handle, &param->ct.mem, param->ct.width, param->ct.height, param->ct.format);
       CASE_CALL_RENDERER(CreateFrameBuffer, createFrameBuffer, cmd->handle, param->cfb.num, param->cfb.handles);
       /* Update Render Resource */
@@ -83,6 +84,7 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
       CASE_CALL_RENDERER(DestroyShader, destroyShader, cmd->handle);
       CASE_CALL_RENDERER(DestroyProgram, destroyProgram, cmd->handle);
       CASE_CALL_RENDERER(DestroyUniform, destroyUniform, cmd->handle);
+      CASE_CALL_RENDERER(DestroySampler, destroySampler, cmd->handle);
       CASE_CALL_RENDERER(DestroyTexture, destroyTexture, cmd->handle);
       CASE_CALL_RENDERER(DestroyFrameBuffer, destroyFrameBuffer, cmd->handle);
 #undef CASE_PRINTF_ERR
@@ -367,6 +369,12 @@ bcfx_Handle ctx_createUniform(Context* ctx, const char* name, bcfx_EUniformType 
   return handle;
 }
 
+bcfx_Handle ctx_createSampler(Context* ctx, bcfx_SamplerFlag flags) {
+  ADD_CMD_ALLOC_HANDLE(ctx, Sampler)
+  param->csa.flags = flags;
+  return handle;
+}
+
 bcfx_Handle ctx_createTexture(Context* ctx, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   MEMBUFFER_MOVE(mem, &param->ct.mem);
@@ -635,15 +643,16 @@ void ctx_setIndexBuffer(Context* ctx, bcfx_Handle handle, uint32_t start, uint32
 void ctx_setTransform(Context* ctx, Mat4x4* mat) {
   encoder_setTransform(ctx->encoder, mat);
 }
-void ctx_setTexture(Context* ctx, uint8_t stage, bcfx_Handle sampler, bcfx_Handle texture, bcfx_SamplerFlag flags) {
+void ctx_setTexture(Context* ctx, uint8_t stage, bcfx_Handle uniform, bcfx_Handle texture, bcfx_Handle sampler) {
   CHECK_TEXTURE_UNIT(stage);
-  CHECK_HANDLE(sampler, HT_Uniform);
+  CHECK_HANDLE(uniform, HT_Uniform);
   CHECK_HANDLE(texture, HT_Texture);
-  UniformBase* u = &ctx->uniforms[handle_index(sampler)];
+  CHECK_HANDLE(sampler, HT_Sampler);
+  UniformBase* u = &ctx->uniforms[handle_index(uniform)];
   uniform_checkType(u, UT_Sampler2D, 1);
-  uint32_t* pstage = (uint32_t*)encoder_addUniformData(ctx->encoder, sampler, sizeof(uint32_t));
+  uint32_t* pstage = (uint32_t*)encoder_addUniformData(ctx->encoder, uniform, sizeof(uint32_t));
   *pstage = stage;
-  encoder_setTexture(ctx->encoder, stage, texture, flags);
+  encoder_setTexture(ctx->encoder, stage, texture, sampler);
 }
 void ctx_setScissor(Context* ctx, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
   encoder_setScissor(ctx->encoder, x, y, width, height);

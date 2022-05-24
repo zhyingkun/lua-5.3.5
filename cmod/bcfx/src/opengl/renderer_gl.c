@@ -401,6 +401,17 @@ static void gl_createUniform(RendererContext* ctx, bcfx_Handle handle, const cha
   }
   glCtx->uniformCount++;
 }
+static void gl_createSampler(RendererContext* ctx, bcfx_Handle handle, bcfx_SamplerFlag flags) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  SamplerGL* sampler = &glCtx->samplers[handle_index(handle)];
+  GL_CHECK(glGenSamplers(1, &sampler->id));
+
+  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_WRAP_S, textureWrap_glType[flags.wrapU]));
+  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_WRAP_T, textureWrap_glType[flags.wrapV]));
+  // must set GL_TEXTURE_MIN_FILTER for Texture2D, if not, you will get a black color when sample it
+  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_MIN_FILTER, textureFilter_glType[flags.filterMin]));
+  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_MAG_FILTER, textureFilter_glType[flags.filterMag]));
+}
 static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   TextureGL* texture = &glCtx->textures[handle_index(handle)];
@@ -707,6 +718,12 @@ static void gl_destroyUniform(RendererContext* ctx, bcfx_Handle handle) {
   }
   memset((uint8_t*)uniform, 0, sizeof(UniformGL));
 }
+static void gl_destroySampler(RendererContext* ctx, bcfx_Handle handle) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  SamplerGL* sampler = &glCtx->samplers[handle_index(handle)];
+  GL_CHECK(glDeleteSamplers(1, &sampler->id));
+  sampler->id = 0;
+}
 static void gl_destroyTexture(RendererContext* ctx, bcfx_Handle handle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   TextureGL* texture = &glCtx->textures[handle_index(handle)];
@@ -734,6 +751,7 @@ RendererContext* CreateRendererGL(void) {
   renderer->createShader = gl_createShader;
   renderer->createProgram = gl_createProgram;
   renderer->createUniform = gl_createUniform;
+  renderer->createSampler = gl_createSampler;
   renderer->createTexture = gl_createTexture;
   renderer->createFrameBuffer = gl_createFrameBuffer;
 
@@ -751,6 +769,7 @@ RendererContext* CreateRendererGL(void) {
   renderer->destroyShader = gl_destroyShader;
   renderer->destroyProgram = gl_destroyProgram;
   renderer->destroyUniform = gl_destroyUniform;
+  renderer->destroySampler = gl_destroySampler;
   renderer->destroyTexture = gl_destroyTexture;
   renderer->destroyFrameBuffer = gl_destroyFrameBuffer;
 

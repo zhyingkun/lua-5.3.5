@@ -335,11 +335,8 @@ static void gl_bindTextureUnit(RendererContextGL* glCtx, RenderBind* bind, uint8
     GL_CHECK(glActiveTexture(GL_TEXTURE0 + stage));
     GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
 
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, textureWrap_glType[b->samplerFlags.wrapU]));
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, textureWrap_glType[b->samplerFlags.wrapV]));
-    // must set GL_TEXTURE_MIN_FILTER, if not, you will get a black color when sample it
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, textureFilter_glType[b->samplerFlags.filterMin]));
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, textureFilter_glType[b->samplerFlags.filterMag]));
+    SamplerGL* sampler = &glCtx->samplers[handle_index(b->sampler)];
+    GL_CHECK(glBindSampler(stage, sampler->id));
   } else {
     printf_err("Bind texture unit %d with invalid handle\n", stage);
   }

@@ -84,10 +84,10 @@ void encoder_setTransform(Encoder* encoder, Mat4x4* mat) {
 uint8_t* encoder_addUniformData(Encoder* encoder, bcfx_Handle handle, size_t sz) {
   return uniform_writeData(encoder->frame->uniformDataBuffer, handle, sz);
 }
-void encoder_setTexture(Encoder* encoder, uint8_t stage, bcfx_Handle handle, bcfx_SamplerFlag flags) {
+void encoder_setTexture(Encoder* encoder, uint8_t stage, bcfx_Handle handle, bcfx_Handle sampler) {
   Binding* bind = &encoder->bind.binds[stage];
   bind->handle = handle;
-  bind->samplerFlags = flags;
+  bind->sampler = sampler;
 }
 void encoder_setScissor(Encoder* encoder, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
   Rect* scissor = &encoder->draw.scissor;

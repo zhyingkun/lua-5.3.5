@@ -223,6 +223,7 @@ BCFX_API void bcfx_setFrameCompletedCallback(bcfx_OnFrameCompleted cb, void* ud)
   XX(Shader, BCFX_CONFIG_MAX_SHADER) \
   XX(Program, BCFX_CONFIG_MAX_PROGRAM) \
   XX(Uniform, BCFX_CONFIG_MAX_UNIFORM) \
+  XX(Sampler, BCFX_CONFIG_MAX_SAMPLER) \
   XX(Texture, BCFX_CONFIG_MAX_TEXTURE) \
   XX(FrameBuffer, BCFX_CONFIG_MAX_FRAME_BUFFER)
 
@@ -274,6 +275,33 @@ typedef enum {
 BCFX_API uint8_t sizeof_EUniformType[];
 
 BCFX_API bcfx_Handle bcfx_createUniform(const char* name, bcfx_EUniformType type, uint16_t num);
+
+// WARNING: Change bcfx_ETextureWrap must Update frontFace_glType
+typedef enum {
+  TW_Repeat,
+  TW_Clamp,
+} bcfx_ETextureWrap;
+// WARNING: Change bcfx_ETextureFilter must Update frontFace_glType
+typedef enum {
+  TF_Linear,
+  TF_Nearest,
+} bcfx_ETextureFilter;
+typedef struct {
+  uint8_t wrapU : 1;
+  uint8_t wrapV : 1;
+  uint8_t filterMin : 1;
+  uint8_t filterMag : 1;
+  uint8_t reserved1 : 4;
+  uint8_t reserved2[3];
+} bcfx_SamplerFlag;
+typedef union {
+  uint32_t flagsUINT32;
+  bcfx_SamplerFlag flagsStruct;
+} bcfx_USamplerFlag;
+#define SAMPLERFLAGS_UINT32(flags) (((bcfx_USamplerFlag*)&flags)->flagsUINT32)
+#define SAMPLERFLAGS_STRUCT(flags) (((bcfx_USamplerFlag*)&flags)->flagsStruct)
+
+BCFX_API bcfx_Handle bcfx_createSampler(bcfx_SamplerFlag flags);
 
 // WARNING: Change bcfx_ETextureFormat must Update textureFormat_glType
 typedef enum {
@@ -378,30 +406,6 @@ BCFX_API void bcfx_requestCurrentFrameViewCapture(ViewId id);
 ** Submit DrawCall
 ** =======================================================
 */
-
-// WARNING: Change bcfx_ETextureWrap must Update frontFace_glType
-typedef enum {
-  TW_Repeat,
-  TW_Clamp,
-} bcfx_ETextureWrap;
-// WARNING: Change bcfx_ETextureFilter must Update frontFace_glType
-typedef enum {
-  TF_Linear,
-  TF_Nearest,
-} bcfx_ETextureFilter;
-typedef struct {
-  uint8_t wrapU : 1;
-  uint8_t wrapV : 1;
-  uint8_t filterMin : 1;
-  uint8_t filterMag : 1;
-  uint8_t reserved1 : 4;
-  uint8_t reserved2[3];
-} bcfx_SamplerFlag;
-typedef union {
-  uint32_t flagsUINT32;
-  bcfx_SamplerFlag flagsStruct;
-} bcfx_USamplerFlag;
-#define SAMPLERFLAGS_UINT32(flags) (((bcfx_USamplerFlag*)&flags)->flagsUINT32)
 
 // WARNING: Change bcfx_EFrontFace must Update frontFace_glType
 typedef enum {
@@ -566,7 +570,7 @@ BCFX_API void bcfx_setVertexBuffer(uint8_t stream, bcfx_Handle handle, uint32_t 
 // start and count calculate in indexes，not byte
 BCFX_API void bcfx_setIndexBuffer(bcfx_Handle handle, uint32_t start, uint32_t count);
 BCFX_API void bcfx_setTransform(Mat4x4* mat);
-BCFX_API void bcfx_setTexture(uint8_t stage, bcfx_Handle sampler, bcfx_Handle texture, bcfx_SamplerFlag flags);
+BCFX_API void bcfx_setTexture(uint8_t stage, bcfx_Handle uniform, bcfx_Handle texture, bcfx_Handle sampler);
 BCFX_API void bcfx_setScissor(uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor);
 BCFX_API void bcfx_setStencil(bool enable, bcfx_StencilState front, bcfx_StencilState back);

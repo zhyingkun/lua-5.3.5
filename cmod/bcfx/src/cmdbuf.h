@@ -58,6 +58,9 @@ typedef struct {
   uint16_t num;
 } CmdUniform;
 typedef struct {
+  bcfx_SamplerFlag flags;
+} CmdSampler;
+typedef struct {
   luaL_MemBuffer mem;
   uint16_t width;
   uint16_t height;
@@ -84,6 +87,7 @@ typedef union {
   CmdShader cs;
   CmdProgram cp;
   CmdUniform cu;
+  CmdSampler csa;
   CmdTexture ct;
   CmdFrameBuffer cfb;
 

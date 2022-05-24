@@ -142,6 +142,10 @@ BCFX_API bcfx_Handle bcfx_createUniform(const char* name, bcfx_EUniformType type
   return ctx_createUniform(s_ctx, name, type, num);
 }
 
+BCFX_API bcfx_Handle bcfx_createSampler(bcfx_SamplerFlag flags) {
+  return ctx_createSampler(s_ctx, flags);
+}
+
 BCFX_API bcfx_Handle bcfx_createTexture(luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
   return ctx_createTexture(s_ctx, mem, width, height, format);
 }
@@ -277,8 +281,8 @@ BCFX_API void bcfx_setIndexBuffer(bcfx_Handle handle, uint32_t start, uint32_t c
 BCFX_API void bcfx_setTransform(Mat4x4* mat) {
   ctx_setTransform(s_ctx, mat);
 }
-BCFX_API void bcfx_setTexture(uint8_t stage, bcfx_Handle sampler, bcfx_Handle texture, bcfx_SamplerFlag flags) {
-  ctx_setTexture(s_ctx, stage, sampler, texture, flags);
+BCFX_API void bcfx_setTexture(uint8_t stage, bcfx_Handle uniform, bcfx_Handle texture, bcfx_Handle sampler) {
+  ctx_setTexture(s_ctx, stage, uniform, texture, sampler);
 }
 BCFX_API void bcfx_setScissor(uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
   ctx_setScissor(s_ctx, x, y, width, height);
