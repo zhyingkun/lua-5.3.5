@@ -750,6 +750,11 @@ end
 function bcfx.createUniform(name, type, num)
 	return libbcfx.createUniform(name, type, num)
 end
+---@param flags bcfx_sampler_flag
+---@return Handle
+function bcfx.createSampler(flags)
+	return libbcfx.createSampler(flags)
+end
 ---@param mb luaL_MemBuffer
 ---@param width integer
 ---@param height integer
@@ -957,11 +962,11 @@ function bcfx.setTransform(mat)
 	libbcfx.setTransform(mat)
 end
 ---@param stage integer @ start from 1
----@param sampler Handle @ uniform handle
+---@param uniform Handle @ uniform handle
 ---@param texture Handle @ texture handle
----@param flags bcfx_sampler_flag
-function bcfx.setTexture(stage, sampler, texture, flags)
-	libbcfx.setTexture(stage, sampler, texture, flags)
+---@param sampler Handle @ sampler handle
+function bcfx.setTexture(stage, uniform, texture, sampler)
+	libbcfx.setTexture(stage, uniform, texture, sampler)
 end
 ---@param x integer @ rect: origin is LeftBottom, x towards right, y towards top, unit is pixel
 ---@param y integer
