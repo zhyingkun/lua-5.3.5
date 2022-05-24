@@ -389,6 +389,12 @@ static int BCWRAP_FUNCTION(createUniform)(lua_State* L) {
   luaL_pushhandle(L, handle);
   return 1;
 }
+static int BCWRAP_FUNCTION(createSampler)(lua_State* L) {
+  uint32_t flags = luaL_checkinteger(L, 1);
+  bcfx_Handle handle = bcfx_createSampler(SAMPLERFLAGS_STRUCT(flags));
+  luaL_pushhandle(L, handle);
+  return 1;
+}
 static void BCWRAP_FUNCTION(destroyUniform)(lua_State* L, bcfx_Handle handle) {
   urc_begin(L);
   if (urc_findUniformByHandle(handle)) {
@@ -671,12 +677,11 @@ static int BCWRAP_FUNCTION(setTransform)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(setTexture)(lua_State* L) {
   uint8_t stage = luaL_checkinteger(L, 1);
-  bcfx_Handle sampler = luaL_checkhandle(L, 2);
+  bcfx_Handle uniform = luaL_checkhandle(L, 2);
   bcfx_Handle texture = luaL_checkhandle(L, 3);
-  bcfx_USamplerFlag flags;
-  flags.flagsUINT32 = luaL_checkinteger(L, 4);
+  bcfx_Handle sampler = luaL_checkhandle(L, 4);
 
-  bcfx_setTexture(stage, sampler, texture, flags.flagsStruct);
+  bcfx_setTexture(stage, uniform, texture, sampler);
   return 0;
 }
 static int BCWRAP_FUNCTION(setScissor)(lua_State* L) {
@@ -764,6 +769,7 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(createShader),
     EMPLACE_BCWRAP_FUNCTION(createProgram),
     EMPLACE_BCWRAP_FUNCTION(createUniform),
+    EMPLACE_BCWRAP_FUNCTION(createSampler),
     EMPLACE_BCWRAP_FUNCTION(createTexture),
     EMPLACE_BCWRAP_FUNCTION(createRenderTexture),
     EMPLACE_BCWRAP_FUNCTION(createFrameBuffer),
