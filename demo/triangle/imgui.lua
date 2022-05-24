@@ -133,6 +133,7 @@ local indexHandle
 local vertexMemBuffer
 local indexMemBuffer
 local uniformTex
+local samplerHandle
 local imguiShader
 local projMat
 local state
@@ -153,6 +154,15 @@ function imgui.setup(mainWin_)
 	mb = bcfx.image.imageFlipVertical(mb, width, height)
 	local imageHandle = bcfx.createTexture(mb, width, height, bcfx.texture_format.RGBA8)
 	nullTex = atlas:endAtlas(imageHandle)
+
+
+	local flags = bcfx.utils.packSamplerFlags({
+		wrapU = texture_wrap.Repeat,
+		wrapV = texture_wrap.Repeat,
+		filterMin = texture_filter.Linear,
+		filterMag = texture_filter.Linear,
+	})
+	samplerHandle = bcfx.createSampler(flags)
 
 	local ctx = nk.Context(myFont)
 	nk.setContext(ctx)
@@ -363,18 +373,11 @@ function imgui.tick(delta)
 	local pixelWidth, pixelHeight = glfw.getFramebufferSize(mainWin)
 	bcfx.setViewRect(255, 0, 0, pixelWidth, pixelHeight)
 
-	local flags = bcfx.utils.packSamplerFlags({
-		wrapU = texture_wrap.Repeat,
-		wrapV = texture_wrap.Repeat,
-		filterMin = texture_filter.Linear,
-		filterMag = texture_filter.Linear,
-	})
-
 	local screenWidth, screenHeight = glfw.getWindowSize(mainWin)
 
 	nk.drawForEach(cmds, screenWidth, screenHeight, pixelWidth, pixelHeight, function(offset, count, texture, x, y, w, h)
 		bcfx.setIndexBuffer(indexHandle, offset, count)
-		bcfx.setTexture(0, uniformTex, texture, flags)
+		bcfx.setTexture(0, uniformTex, texture, samplerHandle)
 		bcfx.setScissor(x, y, w, h) -- in pixel coordinate
 		bcfx.submit(255, imguiShader, discard.INDEX_BUFFER | discard.BINDINGS)
 	end)

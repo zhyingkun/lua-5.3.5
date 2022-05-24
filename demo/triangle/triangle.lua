@@ -272,6 +272,7 @@ end
 local triangle
 local cube
 local spot
+local samplerHandle
 local instanceBuffer
 local instanceData
 
@@ -342,6 +343,14 @@ local function setup(mainWin)
 	}
 	instanceData = bcfx.makeMemBuffer(data_type.Float, instanceOffset)
 	bcfx.updateDynamicVertexBuffer(instanceBuffer, 0, instanceData)
+
+	local flags = bcfx.utils.packSamplerFlags({
+		wrapU = texture_wrap.Repeat,
+		wrapV = texture_wrap.Repeat,
+		filterMin = texture_filter.Linear,
+		filterMag = texture_filter.Linear,
+	})
+	samplerHandle = bcfx.createSampler(flags)
 end
 
 local angle = 0
@@ -374,14 +383,8 @@ local function tick(delta)
 	-- local mat = graphics3d.rotate(45, vector.Vec3(1.0, 0.0, 0.0))
 	bcfx.setTransform(matRotate * matScale)
 
-	local flags = bcfx.utils.packSamplerFlags({
-		wrapU = texture_wrap.Repeat,
-		wrapV = texture_wrap.Repeat,
-		filterMin = texture_filter.Linear,
-		filterMag = texture_filter.Linear,
-	})
 	-- bcfx.setTexture(0, cube.uniform, cube.texture, flags)
-	bcfx.setTexture(0, cube.uniform, spot.texture, flags)
+	bcfx.setTexture(0, cube.uniform, spot.texture, samplerHandle)
 
 	local state = bcfx.utils.packRenderState({
 		enableDepth = true,
@@ -392,7 +395,7 @@ local function tick(delta)
 	bcfx.submit(1, cube.shader, discard.ALL)
 
 	bcfx.setVertexBuffer(0, blit.vertex)
-	bcfx.setTexture(0, blit.uniform, blit.texture, flags)
+	bcfx.setTexture(0, blit.uniform, blit.texture, samplerHandle)
 	bcfx.submit(2, blit.shader, discard.ALL)
 
 	-- bcfx.setVertexBuffer(0, vertexHandle)
