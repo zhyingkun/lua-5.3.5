@@ -18,7 +18,7 @@ static int UTILS_FUNCTION(packSamplerFlags)(lua_State* L) {
   SET_FLAGS_FIELD(wrapV, integer);
   SET_FLAGS_FIELD(filterMin, integer);
   SET_FLAGS_FIELD(filterMag, integer);
-  lua_pushinteger(L, SAMPLERFLAGS_UINT32(flags));
+  lua_pushinteger(L, SAMPLERFLAG_UINT32(flags));
   return 1;
 }
 

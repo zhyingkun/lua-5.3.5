@@ -391,7 +391,7 @@ static int BCWRAP_FUNCTION(createUniform)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(createSampler)(lua_State* L) {
   uint32_t flags = luaL_checkinteger(L, 1);
-  bcfx_Handle handle = bcfx_createSampler(SAMPLERFLAGS_STRUCT(flags));
+  bcfx_Handle handle = bcfx_createSampler(SAMPLERFLAG_STRUCT(flags));
   luaL_pushhandle(L, handle);
   return 1;
 }
@@ -694,20 +694,18 @@ static int BCWRAP_FUNCTION(setScissor)(lua_State* L) {
   return 0;
 }
 static int BCWRAP_FUNCTION(setState)(lua_State* L) {
-  bcfx_URenderState uState;
-  uState.stateUINT64 = (uint64_t)luaL_checkinteger(L, 1);
+  uint64_t state = (uint64_t)luaL_checkinteger(L, 1);
   uint32_t rgba = (uint32_t)luaL_checkinteger(L, 2);
 
-  bcfx_setState(uState.stateStruct, rgba);
+  bcfx_setState(RENDERSTATE_STRUCT(state), rgba);
   return 0;
 }
 static int BCWRAP_FUNCTION(setStencil)(lua_State* L) {
   int enable = luaL_checkboolean(L, 1);
-  bcfx_UStencilState uFront, uBack;
-  uFront.stateUINT64 = (uint64_t)luaL_checkinteger(L, 2);
-  uBack.stateUINT64 = (uint64_t)luaL_checkinteger(L, 3);
+  uint64_t frontState = (uint64_t)luaL_checkinteger(L, 2);
+  uint64_t backState = (uint64_t)luaL_checkinteger(L, 3);
 
-  bcfx_setStencil(enable, uFront.stateStruct, uBack.stateStruct);
+  bcfx_setStencil(enable, STENCILSTATE_STRUCT(frontState), STENCILSTATE_STRUCT(backState));
   return 0;
 }
 static int BCWRAP_FUNCTION(setInstanceDataBuffer)(lua_State* L) {
