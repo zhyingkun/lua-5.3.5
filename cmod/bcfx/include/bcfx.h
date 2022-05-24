@@ -20,8 +20,8 @@ typedef struct {
   uint8_t r, g, b, a;
 } bcfx_Color;
 typedef union {
-  uint32_t rgba;
-  bcfx_Color color;
+  uint32_t colorUINT32;
+  bcfx_Color colorStruct;
 } bcfx_UColor;
 
 BCFX_API uint32_t bcfx_packColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
@@ -298,8 +298,8 @@ typedef union {
   uint32_t flagsUINT32;
   bcfx_SamplerFlag flagsStruct;
 } bcfx_USamplerFlag;
-#define SAMPLERFLAGS_UINT32(flags) (((bcfx_USamplerFlag*)&flags)->flagsUINT32)
-#define SAMPLERFLAGS_STRUCT(flags) (((bcfx_USamplerFlag*)&flags)->flagsStruct)
+#define SAMPLERFLAG_UINT32(flags) (((bcfx_USamplerFlag*)&flags)->flagsUINT32)
+#define SAMPLERFLAG_STRUCT(flags) (((bcfx_USamplerFlag*)&flags)->flagsStruct)
 
 BCFX_API bcfx_Handle bcfx_createSampler(bcfx_SamplerFlag flags);
 
@@ -512,6 +512,7 @@ typedef union {
   bcfx_RenderState stateStruct;
 } bcfx_URenderState;
 #define RENDERSTATE_UINT64(state) (((bcfx_URenderState*)&state)->stateUINT64)
+#define RENDERSTATE_STRUCT(state) (((bcfx_URenderState*)&state)->stateStruct)
 
 // WARNING: Change bcfx_EStencilAction must Update stencilAction_glType
 typedef enum {
@@ -541,6 +542,7 @@ typedef union {
   bcfx_StencilState stateStruct;
 } bcfx_UStencilState;
 #define STENCILSTATE_UINT64(state) (((bcfx_UStencilState*)&state)->stateUINT64)
+#define STENCILSTATE_STRUCT(state) (((bcfx_UStencilState*)&state)->stateStruct)
 
 #define BCFX_DISCARD_NONE BIT_NONE()
 #define BCFX_DISCARD_VERTEX_STREAMS BIT_INDEX(0)

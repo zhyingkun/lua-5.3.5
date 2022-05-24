@@ -9,20 +9,20 @@
 
 BCFX_API uint32_t bcfx_packColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
   bcfx_UColor uc;
-  uc.color.r = r;
-  uc.color.g = g;
-  uc.color.b = b;
-  uc.color.a = a;
-  return uc.rgba;
+  uc.colorStruct.r = r;
+  uc.colorStruct.g = g;
+  uc.colorStruct.b = b;
+  uc.colorStruct.a = a;
+  return uc.colorUINT32;
 }
 
 BCFX_API void bcfx_unpackColor(uint32_t rgba, uint8_t* r, uint8_t* g, uint8_t* b, uint8_t* a) {
   bcfx_UColor uc;
-  uc.rgba = rgba;
-  *r = uc.color.r;
-  *g = uc.color.g;
-  *b = uc.color.b;
-  *a = uc.color.a;
+  uc.colorUINT32 = rgba;
+  *r = uc.colorStruct.r;
+  *g = uc.colorStruct.g;
+  *b = uc.colorStruct.b;
+  *a = uc.colorStruct.a;
 }
 
 /* }====================================================== */
