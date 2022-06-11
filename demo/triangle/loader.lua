@@ -40,7 +40,7 @@ function loader.LoadTexture(filename)
 	local filePath = pathPrefix .. "Resource/Texture/" .. filename;
 	local fileData = mbio.readFile(filePath)
 	local parseMB, width, height = image.imageDecode(fileData, texture_format.RGBA8)
-	return bcfx.createTexture(parseMB, width, height, texture_format.RGBA8)
+	return bcfx.createTexture2D(texture_format.RGBA8, parseMB, width, height)
 end
 
 function loader.loadMesh(fileName)

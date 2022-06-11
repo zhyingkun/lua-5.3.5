@@ -161,7 +161,7 @@ local function CreateCubeBuffer()
 	local mem = bcfx.makeMemBuffer(data_type.Uint8, indexTbl)
 	local idxHandle = bcfx.createIndexBuffer(mem, index_type.Uint8)
 
-	uniformHandle = bcfx.createUniform("my_texture", 0)
+	uniformHandle = bcfx.createUniform("my_texture", bcfx.uniform_type.Sampler2D)
 
 	local shaderProgramHandle = loader.LoadProgram("cube")
 
@@ -214,7 +214,7 @@ local function CreateBlitBuffer()
 	local mem = bcfx.makeMemBuffer(data_type.Float, vertexTbl)
 	local vertexHandle = bcfx.createVertexBuffer(mem, layoutHandle)
 
-	local uniformHandle = bcfx.createUniform("blit_texture", 0)
+	local uniformHandle = bcfx.createUniform("blit_texture", bcfx.uniform_type.Sampler2D)
 	local shaderProgramHandle = loader.LoadProgram("blit")
 
 	return {
@@ -297,8 +297,8 @@ local function setup(mainWin)
 
 	local fbWidth = pixelw // 2
 	local fbHeight = pixelh // 2
-	colorRT = bcfx.createRenderTexture(fbWidth, fbHeight, texture_format.RGBA8)
-	dsRT = bcfx.createRenderTexture(fbWidth, fbHeight, texture_format.D24S8)
+	colorRT = bcfx.createRenderTexture(texture_format.RGBA8, fbWidth, fbHeight)
+	dsRT = bcfx.createRenderTexture(texture_format.D24S8, fbWidth, fbHeight)
 	frameBuffer = bcfx.createFrameBuffer(colorRT, dsRT)
 	blit = CreateBlitBuffer()
 	blit.texture = colorRT

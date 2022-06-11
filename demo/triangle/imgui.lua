@@ -152,7 +152,7 @@ function imgui.setup(mainWin_)
 	-- bcfx.utils.imageWrite("zykTest.png", width, height, 4, image)
 	local mb = util.MemBuffer(image, width * height * 4, release, ud)
 	mb = bcfx.image.imageFlipVertical(mb, width, height)
-	local imageHandle = bcfx.createTexture(mb, width, height, bcfx.texture_format.RGBA8)
+	local imageHandle = bcfx.createTexture2D(bcfx.texture_format.RGBA8, mb, width, height)
 	nullTex = atlas:endAtlas(imageHandle)
 
 
@@ -181,7 +181,7 @@ function imgui.setup(mainWin_)
 	vertexMemBuffer = util.MemBuffer()
 	indexMemBuffer = util.MemBuffer()
 
-	uniformTex = bcfx.createUniform("Texture", 0)
+	uniformTex = bcfx.createUniform("Texture", bcfx.uniform_type.Sampler2D)
 	imguiShader = require("loader").LoadProgram("imgui")
 
 	local viewMat = graphics3d.lookAt(
