@@ -41,6 +41,7 @@ typedef struct {
   void* onFrameViewCaptureArg;
 
   UniformBase uniforms[BCFX_CONFIG_MAX_UNIFORM];
+  TextureBase textures[BCFX_CONFIG_MAX_TEXTURE];
 } Context;
 
 uint32_t ctx_frameId(Context* ctx);

@@ -61,16 +61,6 @@ typedef struct {
   bcfx_SamplerFlag flags;
 } CmdSampler;
 
-typedef enum {
-  TT_Texture1D,
-  TT_Texture1DArray,
-  TT_Texture2D,
-  TT_Texture2DArray,
-  TT_Texture3D,
-  TT_TextureCubeMap,
-  TT_Texture2DMipmap,
-} bcfx_ETextureType;
-
 typedef struct {
   luaL_MemBuffer mem;
   uint16_t width;

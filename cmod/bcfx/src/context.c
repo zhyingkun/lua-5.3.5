@@ -375,11 +375,15 @@ bcfx_Handle ctx_createSampler(Context* ctx, bcfx_SamplerFlag flags) {
   return handle;
 }
 
+#define INIT_TEXTURE_PARAM(type_) \
+  CmdTexture* ct = &param->ct; \
+  ct->type = TT_##type_; \
+  ct->format = format; \
+  TextureBase* t = &ctx->textures[handle_index(handle)]; \
+  texture_initBase(t, TT_##type_);
 bcfx_Handle ctx_createTexture1D(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mem, uint16_t width, bool bGenMipmap) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
-  CmdTexture* ct = &param->ct;
-  ct->type = TT_Texture1D;
-  ct->format = format;
+  INIT_TEXTURE_PARAM(Texture1D);
   ParamTexture1D* t1d = &ct->value.t1d;
   MEMBUFFER_MOVE(mem, &t1d->mem);
   t1d->width = width;
@@ -389,9 +393,7 @@ bcfx_Handle ctx_createTexture1D(Context* ctx, bcfx_ETextureFormat format, luaL_M
 
 bcfx_Handle ctx_createTexture1DArray(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t layers, bool bGenMipmap) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
-  CmdTexture* ct = &param->ct;
-  ct->type = TT_Texture1DArray;
-  ct->format = format;
+  INIT_TEXTURE_PARAM(Texture1DArray);
   ParamTexture1DArray* t1da = &ct->value.t1da;
   t1da->mba = (luaL_MemBuffer*)mem_malloc(sizeof(luaL_MemBuffer) * layers);
   for (uint16_t layer = 0; layer < layers; layer++) {
@@ -405,9 +407,7 @@ bcfx_Handle ctx_createTexture1DArray(Context* ctx, bcfx_ETextureFormat format, l
 
 bcfx_Handle ctx_createTexture2D(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bool bGenMipmap) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
-  CmdTexture* ct = &param->ct;
-  ct->type = TT_Texture2D;
-  ct->format = format;
+  INIT_TEXTURE_PARAM(Texture2D);
   ParamTexture2D* t2d = &ct->value.t2d;
   MEMBUFFER_MOVE(mem, &t2d->mem);
   t2d->width = width;
@@ -418,9 +418,7 @@ bcfx_Handle ctx_createTexture2D(Context* ctx, bcfx_ETextureFormat format, luaL_M
 
 bcfx_Handle ctx_createTexture2DArray(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t layers, bool bGenMipmap) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
-  CmdTexture* ct = &param->ct;
-  ct->type = TT_Texture2DArray;
-  ct->format = format;
+  INIT_TEXTURE_PARAM(Texture2DArray);
   ParamTexture2DArray* t2da = &ct->value.t2da;
   t2da->mba = (luaL_MemBuffer*)mem_malloc(sizeof(luaL_MemBuffer) * layers);
   for (uint16_t layer = 0; layer < layers; layer++) {
@@ -435,9 +433,7 @@ bcfx_Handle ctx_createTexture2DArray(Context* ctx, bcfx_ETextureFormat format, l
 
 bcfx_Handle ctx_createTexture3D(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t depth, bool bGenMipmap) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
-  CmdTexture* ct = &param->ct;
-  ct->type = TT_Texture3D;
-  ct->format = format;
+  INIT_TEXTURE_PARAM(Texture3D);
   ParamTexture3D* t3d = &ct->value.t3d;
   t3d->mba = (luaL_MemBuffer*)mem_malloc(sizeof(luaL_MemBuffer) * depth);
   for (uint16_t d = 0; d < depth; d++) {
@@ -452,9 +448,7 @@ bcfx_Handle ctx_createTexture3D(Context* ctx, bcfx_ETextureFormat format, luaL_M
 
 bcfx_Handle ctx_createTextureCubeMap(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mb6, uint16_t width, uint16_t height, bool bGenMipmap) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
-  CmdTexture* ct = &param->ct;
-  ct->type = TT_TextureCubeMap;
-  ct->format = format;
+  INIT_TEXTURE_PARAM(TextureCubeMap);
   ParamTextureCubeMap* tcm = &ct->value.tcm;
   tcm->mb6 = (luaL_MemBuffer*)mem_malloc(sizeof(luaL_MemBuffer) * 6);
   for (uint16_t side = 0; side < 6; side++) {
@@ -468,9 +462,7 @@ bcfx_Handle ctx_createTextureCubeMap(Context* ctx, bcfx_ETextureFormat format, l
 
 bcfx_Handle ctx_createTexture2DMipmap(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t levels) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
-  CmdTexture* ct = &param->ct;
-  ct->type = TT_Texture2DMipmap;
-  ct->format = format;
+  INIT_TEXTURE_PARAM(Texture2DMipmap);
   ParamTexture2DMipmap* t2dm = &ct->value.t2dm;
   t2dm->mba = (luaL_MemBuffer*)mem_malloc(sizeof(luaL_MemBuffer) * levels);
   for (uint16_t d = 0; d < levels; d++) {
@@ -744,7 +736,17 @@ void ctx_setTexture(Context* ctx, uint8_t stage, bcfx_Handle uniform, bcfx_Handl
   CHECK_HANDLE(texture, HT_Texture);
   CHECK_HANDLE(sampler, HT_Sampler);
   UniformBase* u = &ctx->uniforms[handle_index(uniform)];
-  uniform_checkType(u, UT_Sampler2D, 1);
+  TextureBase* t = &ctx->textures[handle_index(texture)];
+  static bcfx_EUniformType texture_ToUniformType[] = {
+      UT_Sampler1D,
+      UT_Sampler1DArray,
+      UT_Sampler2D,
+      UT_Sampler2DArray,
+      UT_Sampler3D,
+      UT_SamplerCubeMap,
+      UT_SamplerBuffer,
+  };
+  uniform_checkType(u, texture_ToUniformType[t->type], 1);
   uint32_t* pstage = (uint32_t*)encoder_addUniformData(ctx->encoder, uniform, sizeof(uint32_t));
   *pstage = stage;
   encoder_setTexture(ctx->encoder, stage, texture, sampler);

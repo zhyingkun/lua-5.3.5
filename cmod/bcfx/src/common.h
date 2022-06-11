@@ -91,4 +91,19 @@ size_t uniform_getSize(UniformBase* u);
 uint8_t* uniform_writeData(luaL_ByteBuffer* b, bcfx_Handle handle, size_t sz);
 uint8_t* uniform_readData(luaL_ByteBuffer* b, bcfx_Handle* phandle, size_t* psize, size_t* pread);
 
+typedef enum {
+  TT_Texture1D,
+  TT_Texture1DArray,
+  TT_Texture2D,
+  TT_Texture2DArray,
+  TT_Texture3D,
+  TT_TextureCubeMap,
+  TT_Texture2DMipmap,
+} bcfx_ETextureType;
+
+typedef struct {
+  bcfx_ETextureType type;
+} TextureBase;
+void texture_initBase(TextureBase* t, bcfx_ETextureType type);
+
 #endif /* _COMMON_H_ */
