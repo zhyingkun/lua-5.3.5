@@ -404,22 +404,98 @@ static void BCWRAP_FUNCTION(destroyUniform)(lua_State* L, bcfx_Handle handle) {
   }
   urc_end();
 }
-static int BCWRAP_FUNCTION(createTexture)(lua_State* L) {
-  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  uint16_t width = luaL_checkinteger(L, 2);
-  uint16_t height = luaL_checkinteger(L, 3);
-  bcfx_ETextureFormat format = luaL_checktextureformat(L, 4);
+static int BCWRAP_FUNCTION(createTexture1D)(lua_State* L) {
+  bcfx_ETextureFormat format = luaL_checktextureformat(L, 1);
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 2);
+  uint16_t width = luaL_checkinteger(L, 3);
+  bool bGenMipmap = luaL_optboolean(L, 4, 0);
 
-  bcfx_Handle handle = bcfx_createTexture(mb, width, height, format);
+  bcfx_Handle handle = bcfx_createTexture1D(format, mb, width, bGenMipmap);
   luaL_pushhandle(L, handle);
   return 1;
 }
-static int BCWRAP_FUNCTION(createRenderTexture)(lua_State* L) {
-  uint16_t width = luaL_checkinteger(L, 1);
-  uint16_t height = luaL_checkinteger(L, 2);
-  bcfx_ETextureFormat format = luaL_checktextureformat(L, 3);
+#define GET_MEM_ARRAY(mba, layers, idx) \
+  int layers = luaL_len(L, idx); \
+  GET_MEM_ARRAY_LEN(mba, layers, idx)
+#define GET_MEM_ARRAY_LEN(mba, layers, idx) \
+  luaL_MemBuffer* mba = (luaL_MemBuffer*)alloca(sizeof(luaL_MemBuffer) * layers); \
+  for (int layer = 0; layer < layers; layer++) { \
+    lua_geti(L, idx, layer); \
+    luaL_MemBuffer* mb = luaL_checkmembuffer(L, -1); \
+    MEMBUFFER_MOVE(mb, &mba[layer]); \
+    lua_pop(L, 1); \
+  }
+static int BCWRAP_FUNCTION(createTexture1DArray)(lua_State* L) {
+  bcfx_ETextureFormat format = luaL_checktextureformat(L, 1);
+  GET_MEM_ARRAY(mba, layers, 2);
+  uint16_t width = luaL_checkinteger(L, 3);
+  bool bGenMipmap = luaL_optboolean(L, 4, 0);
 
-  bcfx_Handle handle = bcfx_createRenderTexture(width, height, format);
+  bcfx_Handle handle = bcfx_createTexture1DArray(format, mba, width, layers, bGenMipmap);
+  luaL_pushhandle(L, handle);
+  return 1;
+}
+static int BCWRAP_FUNCTION(createTexture2D)(lua_State* L) {
+  bcfx_ETextureFormat format = luaL_checktextureformat(L, 1);
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 2);
+  uint16_t width = luaL_checkinteger(L, 3);
+  uint16_t height = luaL_checkinteger(L, 4);
+  bool bGenMipmap = luaL_optboolean(L, 5, 0);
+
+  bcfx_Handle handle = bcfx_createTexture2D(format, mb, width, height, bGenMipmap);
+  luaL_pushhandle(L, handle);
+  return 1;
+}
+static int BCWRAP_FUNCTION(createTexture2DArray)(lua_State* L) {
+  bcfx_ETextureFormat format = luaL_checktextureformat(L, 1);
+  GET_MEM_ARRAY(mba, layers, 2);
+  uint16_t width = luaL_checkinteger(L, 3);
+  uint16_t height = luaL_checkinteger(L, 4);
+  bool bGenMipmap = luaL_optboolean(L, 5, 0);
+
+  bcfx_Handle handle = bcfx_createTexture2DArray(format, mba, width, height, layers, bGenMipmap);
+  luaL_pushhandle(L, handle);
+  return 1;
+}
+static int BCWRAP_FUNCTION(createTexture3D)(lua_State* L) {
+  bcfx_ETextureFormat format = luaL_checktextureformat(L, 1);
+  GET_MEM_ARRAY(mba, depth, 2);
+  uint16_t width = luaL_checkinteger(L, 3);
+  uint16_t height = luaL_checkinteger(L, 4);
+  bool bGenMipmap = luaL_optboolean(L, 5, 0);
+
+  bcfx_Handle handle = bcfx_createTexture3D(format, mba, width, height, depth, bGenMipmap);
+  luaL_pushhandle(L, handle);
+  return 1;
+}
+static int BCWRAP_FUNCTION(createTextureCubeMap)(lua_State* L) {
+  bcfx_ETextureFormat format = luaL_checktextureformat(L, 1);
+  GET_MEM_ARRAY_LEN(mb6, 6, 2);
+  uint16_t width = luaL_checkinteger(L, 3);
+  uint16_t height = luaL_checkinteger(L, 4);
+  bool bGenMipmap = luaL_optboolean(L, 5, 0);
+
+  bcfx_Handle handle = bcfx_createTextureCubeMap(format, mb6, width, height, bGenMipmap);
+  luaL_pushhandle(L, handle);
+  return 1;
+}
+static int BCWRAP_FUNCTION(createTexture2DMipmap)(lua_State* L) {
+  bcfx_ETextureFormat format = luaL_checktextureformat(L, 1);
+  GET_MEM_ARRAY(mba, levels, 2);
+  uint16_t width = luaL_checkinteger(L, 3);
+  uint16_t height = luaL_checkinteger(L, 4);
+
+  bcfx_Handle handle = bcfx_createTexture2DMipmap(format, mba, width, height, levels);
+  luaL_pushhandle(L, handle);
+  return 1;
+}
+
+static int BCWRAP_FUNCTION(createRenderTexture)(lua_State* L) {
+  bcfx_ETextureFormat format = luaL_checktextureformat(L, 1);
+  uint16_t width = luaL_checkinteger(L, 2);
+  uint16_t height = luaL_checkinteger(L, 3);
+
+  bcfx_Handle handle = bcfx_createRenderTexture(format, width, height);
   luaL_pushhandle(L, handle);
   return 1;
 }
@@ -768,7 +844,13 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(createProgram),
     EMPLACE_BCWRAP_FUNCTION(createUniform),
     EMPLACE_BCWRAP_FUNCTION(createSampler),
-    EMPLACE_BCWRAP_FUNCTION(createTexture),
+    EMPLACE_BCWRAP_FUNCTION(createTexture1D),
+    EMPLACE_BCWRAP_FUNCTION(createTexture1DArray),
+    EMPLACE_BCWRAP_FUNCTION(createTexture2D),
+    EMPLACE_BCWRAP_FUNCTION(createTexture2DArray),
+    EMPLACE_BCWRAP_FUNCTION(createTexture3D),
+    EMPLACE_BCWRAP_FUNCTION(createTextureCubeMap),
+    EMPLACE_BCWRAP_FUNCTION(createTexture2DMipmap),
     EMPLACE_BCWRAP_FUNCTION(createRenderTexture),
     EMPLACE_BCWRAP_FUNCTION(createFrameBuffer),
     /* Update Render Resource */
@@ -974,10 +1056,16 @@ static const luaL_Enum BCWRAP_ENUM(texture_format)[] = {
     {NULL, 0},
 };
 static const luaL_Enum BCWRAP_ENUM(uniform_type)[] = {
-    {"Sampler2D", UT_Sampler2D},
     {"Vec4", UT_Vec4},
     {"Mat3x3", UT_Mat3x3},
     {"Mat4x4", UT_Mat4x4},
+    {"Sampler1D", UT_Sampler1D},
+    {"Sampler1DArray", UT_Sampler1DArray},
+    {"Sampler2D", UT_Sampler2D},
+    {"Sampler2DArray", UT_Sampler2DArray},
+    {"Sampler3D", UT_Sampler3D},
+    {"SamplerCubeMap", UT_SamplerCubeMap},
+    {"SamplerBuffer", UT_SamplerBuffer},
     {NULL, 0},
 };
 
