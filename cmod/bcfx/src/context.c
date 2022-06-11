@@ -380,7 +380,7 @@ bcfx_Handle ctx_createSampler(Context* ctx, bcfx_SamplerFlag flags) {
   ct->type = TT_##type_; \
   ct->format = format; \
   TextureBase* t = &ctx->textures[handle_index(handle)]; \
-  texture_initBase(t, TT_##type_);
+  t->type = TT_##type_;
 bcfx_Handle ctx_createTexture1D(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mem, uint16_t width, bool bGenMipmap) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   INIT_TEXTURE_PARAM(Texture1D);

@@ -446,6 +446,8 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
         GL_CHECK(glTexImage2D(GL_TEXTURE_1D_ARRAY, 0, fi->internalFormat, p->width, layer, 0, fi->format, fi->type, p->mba[layer].ptr));
         MEMBUFFER_RELEASE(&p->mba[layer]);
       }
+      mem_free((void*)p->mba);
+      p->mba = NULL;
       if (p->bGenMipmap) {
         GL_CHECK(glGenerateMipmap(GL_TEXTURE_1D_ARRAY));
       }
@@ -471,6 +473,8 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
         GL_CHECK(glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, fi->internalFormat, p->width, p->height, layer, 0, fi->format, fi->type, p->mba[layer].ptr));
         MEMBUFFER_RELEASE(&p->mba[layer]);
       }
+      mem_free((void*)p->mba);
+      p->mba = NULL;
       if (p->bGenMipmap) {
         GL_CHECK(glGenerateMipmap(GL_TEXTURE_2D_ARRAY));
       }
@@ -484,6 +488,8 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
         GL_CHECK(glTexImage3D(GL_TEXTURE_3D, 0, fi->internalFormat, p->width, p->height, depth, 0, fi->format, fi->type, p->mba[depth].ptr));
         MEMBUFFER_RELEASE(&p->mba[depth]);
       }
+      mem_free((void*)p->mba);
+      p->mba = NULL;
       if (p->bGenMipmap) {
         GL_CHECK(glGenerateMipmap(GL_TEXTURE_3D));
       }
@@ -497,6 +503,8 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
         GL_CHECK(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, fi->internalFormat, p->width, p->height, 0, fi->format, fi->type, p->mb6[side].ptr));
         MEMBUFFER_RELEASE(&p->mb6[side]);
       }
+      mem_free((void*)p->mb6);
+      p->mb6 = NULL;
       if (p->bGenMipmap) {
         GL_CHECK(glGenerateMipmap(GL_TEXTURE_CUBE_MAP));
       }
@@ -516,6 +524,8 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
         width = MAX(1, (width / 2));
         height = MAX(1, (height / 2));
       }
+      mem_free((void*)p->mba);
+      p->mba = NULL;
       GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
     } break;
     default:

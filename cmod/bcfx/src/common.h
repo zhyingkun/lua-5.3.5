@@ -104,6 +104,5 @@ typedef enum {
 typedef struct {
   bcfx_ETextureType type;
 } TextureBase;
-void texture_initBase(TextureBase* t, bcfx_ETextureType type);
 
 #endif /* _COMMON_H_ */
