@@ -225,6 +225,7 @@ typedef struct {
   GLenum internalFormat;
   GLenum format;
   GLenum type;
+  uint8_t pixelSizeByte;
 } TextureFormatInfo;
 extern const TextureFormatInfo textureFormat_glType[];
 

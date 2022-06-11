@@ -203,7 +203,7 @@ void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderD
       }
       if (curId != vb->id) {
         curId = vb->id;
-        GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
+        GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id)); // glVertexAttribPointer will save reference to this buffer
       }
       GL_CHECK(glEnableVertexAttribArray(loc));
       GL_CHECK(glVertexAttribDivisor(loc, 0)); // indicated it's per vertex, not per instance
@@ -422,11 +422,6 @@ void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw
       printf_err("Uniform type mismatch: %s, In shader: %d, In app: %d\n", uniform->name, prop->type, ub->type);
     }
     switch (ub->type) {
-      case UT_Sampler2D:
-        assert(ub->num == 1);
-        GL_CHECK(glUniform1i(prop->loc, (GLint)uniform->data.stage));
-        gl_bindTextureUnit(glCtx, bind, uniform->data.stage);
-        break;
       case UT_Vec4:
         GL_CHECK(glUniform4fv(prop->loc, ub->num, (const GLfloat*)uniform->data.ptr));
         break;
@@ -435,6 +430,17 @@ void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw
         break;
       case UT_Mat4x4:
         GL_CHECK(glUniformMatrix4fv(prop->loc, ub->num, GL_FALSE, (const GLfloat*)uniform->data.ptr));
+        break;
+      case UT_Sampler1D:
+      case UT_Sampler1DArray:
+      case UT_Sampler2D:
+      case UT_Sampler2DArray:
+      case UT_Sampler3D:
+      case UT_SamplerCubeMap:
+      case UT_SamplerBuffer:
+        assert(ub->num == 1);
+        GL_CHECK(glUniform1i(prop->loc, (GLint)uniform->data.stage));
+        gl_bindTextureUnit(glCtx, bind, uniform->data.stage);
         break;
       default:
         break;

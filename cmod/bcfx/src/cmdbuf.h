@@ -60,11 +60,73 @@ typedef struct {
 typedef struct {
   bcfx_SamplerFlag flags;
 } CmdSampler;
+
+typedef enum {
+  TT_Texture1D,
+  TT_Texture1DArray,
+  TT_Texture2D,
+  TT_Texture2DArray,
+  TT_Texture3D,
+  TT_TextureCubeMap,
+  TT_Texture2DMipmap,
+} bcfx_ETextureType;
+
+typedef struct {
+  luaL_MemBuffer mem;
+  uint16_t width;
+  bool bGenMipmap;
+} ParamTexture1D;
+typedef struct {
+  luaL_MemBuffer* mba;
+  uint16_t width;
+  uint16_t layers;
+  bool bGenMipmap;
+} ParamTexture1DArray;
 typedef struct {
   luaL_MemBuffer mem;
   uint16_t width;
   uint16_t height;
+  bool bGenMipmap;
+} ParamTexture2D;
+typedef struct {
+  luaL_MemBuffer* mba;
+  uint16_t width;
+  uint16_t height;
+  uint16_t layers;
+  bool bGenMipmap;
+} ParamTexture2DArray;
+typedef struct {
+  luaL_MemBuffer* mba;
+  uint16_t width;
+  uint16_t height;
+  uint16_t depth;
+  bool bGenMipmap;
+} ParamTexture3D;
+typedef struct {
+  luaL_MemBuffer* mb6;
+  uint16_t width;
+  uint16_t height;
+  bool bGenMipmap;
+} ParamTextureCubeMap;
+typedef struct {
+  luaL_MemBuffer* mba;
+  uint16_t width;
+  uint16_t height;
+  uint16_t levels;
+} ParamTexture2DMipmap;
+
+typedef struct {
   bcfx_ETextureFormat format;
+  bcfx_ETextureType type;
+  union {
+    ParamTexture1D t1d;
+    ParamTexture1DArray t1da;
+    ParamTexture2D t2d;
+    ParamTexture2DArray t2da;
+    ParamTexture3D t3d;
+    ParamTextureCubeMap tcm;
+    ParamTexture2DMipmap t2dm;
+  } value;
 } CmdTexture;
 typedef struct {
   uint8_t num;

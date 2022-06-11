@@ -59,10 +59,16 @@ const GLenum attrib_glType[] = {
 };
 // According to bcfx_EUniformType
 const GLenum uniform_glType[] = {
-    GL_SAMPLER_2D,
     GL_FLOAT_VEC4,
     GL_FLOAT_MAT3,
     GL_FLOAT_MAT4,
+    GL_SAMPLER_1D,
+    GL_SAMPLER_1D_ARRAY,
+    GL_SAMPLER_2D,
+    GL_SAMPLER_2D_ARRAY,
+    GL_SAMPLER_3D,
+    GL_SAMPLER_CUBE,
+    GL_SAMPLER_BUFFER,
 };
 // According to bcfx_ETextureWrap
 const GLenum textureWrap_glType[] = {
@@ -154,9 +160,9 @@ const GLenum stencilAction_glType[] = {
 };
 // According to bcfx_ETextureFormat
 const TextureFormatInfo textureFormat_glType[] = {
-    {GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE},
-    {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE},
-    {GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8},
+    {GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, 3},
+    {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4},
+    {GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 4},
 };
 // According to bcfx_EShaderType
 const GLenum shader_glType[] = {
@@ -179,7 +185,7 @@ static WindowSwapper* gl_getWindowSwapper(RendererContextGL* glCtx, Window win) 
   swapper->win = win;
   // For OpenGL core profile mode, we must using a VertexArrayObject
   // MacOSX supports forward-compatible core profile contexts for OpenGL 3.2 and above
-  GL_CHECK(glGenVertexArrays(1, &swapper->vaoId));
+  GL_CHECK(glGenVertexArrays(1, &swapper->vaoId)); // Contains VertexAttributes and ElementIndexBuffer
   // New window has new OpenGLContext, cache it's RenderState
   gl_cacheRenderState(glCtx, &swapper->renderState);
   return swapper;
@@ -394,7 +400,7 @@ static void gl_createUniform(RendererContext* ctx, bcfx_Handle handle, const cha
   UniformGL* uniform = &glCtx->uniforms[handle_index(handle)];
   uniform->name = name;
   uniform_initBase(uniform->base, type, num);
-  if (type == UT_Sampler2D) {
+  if (type >= UT_Sampler1D) {
     uniform->data.stage = 0;
   } else {
     uniform->data.ptr = (uint8_t*)mem_malloc(sizeof_EUniformType[type] * num);
@@ -412,20 +418,109 @@ static void gl_createSampler(RendererContext* ctx, bcfx_Handle handle, bcfx_Samp
   GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_MIN_FILTER, textureFilter_glType[flags.filterMin]));
   GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_MAG_FILTER, textureFilter_glType[flags.filterMag]));
 }
-static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
+//luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format
+static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTexture* param) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   TextureGL* texture = &glCtx->textures[handle_index(handle)];
-  texture->format = format;
+  texture->format = param->format;
+  const TextureFormatInfo* fi = &textureFormat_glType[texture->format];
 
   GL_CHECK(glGenTextures(1, &texture->id));
-  GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
-  GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
-
-  const TextureFormatInfo* fi = &textureFormat_glType[format];
-  GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, fi->internalFormat, width, height, 0, fi->format, fi->type, mem->ptr));
-
-  GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
-  MEMBUFFER_RELEASE(mem);
+  switch (param->type) {
+    case TT_Texture1D: {
+      ParamTexture1D* p = &param->value.t1d;
+      GL_CHECK(glBindTexture(GL_TEXTURE_1D, texture->id));
+      assert(p->mem.sz == p->width * fi->pixelSizeByte);
+      GL_CHECK(glTexImage1D(GL_TEXTURE_1D, 0, fi->internalFormat, p->width, 0, fi->format, fi->type, p->mem.ptr));
+      if (p->bGenMipmap) {
+        GL_CHECK(glGenerateMipmap(GL_TEXTURE_1D));
+      }
+      GL_CHECK(glBindTexture(GL_TEXTURE_1D, 0));
+      MEMBUFFER_RELEASE(&p->mem);
+    } break;
+    case TT_Texture1DArray: {
+      ParamTexture1DArray* p = &param->value.t1da;
+      GL_CHECK(glBindTexture(GL_TEXTURE_1D_ARRAY, texture->id));
+      for (uint16_t layer = 0; layer < p->layers; layer++) {
+        assert(p->mba[layer].sz == p->width * fi->pixelSizeByte);
+        GL_CHECK(glTexImage2D(GL_TEXTURE_1D_ARRAY, 0, fi->internalFormat, p->width, layer, 0, fi->format, fi->type, p->mba[layer].ptr));
+        MEMBUFFER_RELEASE(&p->mba[layer]);
+      }
+      if (p->bGenMipmap) {
+        GL_CHECK(glGenerateMipmap(GL_TEXTURE_1D_ARRAY));
+      }
+      GL_CHECK(glBindTexture(GL_TEXTURE_1D_ARRAY, 0));
+    } break;
+    case TT_Texture2D: {
+      ParamTexture2D* p = &param->value.t2d;
+      GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
+      GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+      assert(p->mem.sz == p->width * p->height * fi->pixelSizeByte);
+      GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, fi->internalFormat, p->width, p->height, 0, fi->format, fi->type, p->mem.ptr));
+      if (p->bGenMipmap) {
+        GL_CHECK(glGenerateMipmap(GL_TEXTURE_2D));
+      }
+      GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
+      MEMBUFFER_RELEASE(&p->mem);
+    } break;
+    case TT_Texture2DArray: {
+      ParamTexture2DArray* p = &param->value.t2da;
+      GL_CHECK(glBindTexture(GL_TEXTURE_2D_ARRAY, texture->id));
+      for (uint16_t layer = 0; layer < p->layers; layer++) {
+        assert(p->mba[layer].sz == p->width * p->height * fi->pixelSizeByte);
+        GL_CHECK(glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, fi->internalFormat, p->width, p->height, layer, 0, fi->format, fi->type, p->mba[layer].ptr));
+        MEMBUFFER_RELEASE(&p->mba[layer]);
+      }
+      if (p->bGenMipmap) {
+        GL_CHECK(glGenerateMipmap(GL_TEXTURE_2D_ARRAY));
+      }
+      GL_CHECK(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
+    } break;
+    case TT_Texture3D: {
+      ParamTexture3D* p = &param->value.t3d;
+      GL_CHECK(glBindTexture(GL_TEXTURE_3D, texture->id));
+      for (uint16_t depth = 0; depth < p->depth; depth++) {
+        assert(p->mba[depth].sz == p->width * p->height * fi->pixelSizeByte);
+        GL_CHECK(glTexImage3D(GL_TEXTURE_3D, 0, fi->internalFormat, p->width, p->height, depth, 0, fi->format, fi->type, p->mba[depth].ptr));
+        MEMBUFFER_RELEASE(&p->mba[depth]);
+      }
+      if (p->bGenMipmap) {
+        GL_CHECK(glGenerateMipmap(GL_TEXTURE_3D));
+      }
+      GL_CHECK(glBindTexture(GL_TEXTURE_3D, 0));
+    } break;
+    case TT_TextureCubeMap: {
+      ParamTextureCubeMap* p = &param->value.tcm;
+      GL_CHECK(glBindTexture(GL_TEXTURE_CUBE_MAP, texture->id));
+      for (uint8_t side = 0; side < 6; side++) { // +X, -X, +Y, -Y, +Z, -Z
+        assert(p->mb6[side].sz == p->width * p->height * fi->pixelSizeByte);
+        GL_CHECK(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, fi->internalFormat, p->width, p->height, 0, fi->format, fi->type, p->mb6[side].ptr));
+        MEMBUFFER_RELEASE(&p->mb6[side]);
+      }
+      if (p->bGenMipmap) {
+        GL_CHECK(glGenerateMipmap(GL_TEXTURE_CUBE_MAP));
+      }
+      GL_CHECK(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
+    } break;
+    case TT_Texture2DMipmap: {
+      ParamTexture2DMipmap* p = &param->value.t2dm;
+      GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
+      GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+      assert(p->levels <= log2(MAX(p->width, p->height)) + 1);
+      uint16_t width = p->width;
+      uint16_t height = p->height;
+      for (uint16_t level = 0; level < p->levels; level++) {
+        assert(p->mba[level].sz == width * height * fi->pixelSizeByte);
+        GL_CHECK(glTexImage2D(GL_TEXTURE_2D, level, fi->internalFormat, p->width, p->height, 0, fi->format, fi->type, p->mba[level].ptr));
+        MEMBUFFER_RELEASE(&p->mba[level]);
+        width = MAX(1, (width / 2));
+        height = MAX(1, (height / 2));
+      }
+      GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
+    } break;
+    default:
+      break;
+  }
 }
 static void gl_createFrameBuffer(RendererContext* ctx, bcfx_Handle handle, uint8_t num, bcfx_Handle* handles) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;

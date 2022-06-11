@@ -70,7 +70,7 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
       CASE_CALL_RENDERER(CreateProgram, createProgram, cmd->handle, param->cp.vsHandle, param->cp.fsHandle);
       CASE_CALL_RENDERER(CreateUniform, createUniform, cmd->handle, param->cu.name, param->cu.type, param->cu.num);
       CASE_CALL_RENDERER(CreateSampler, createSampler, cmd->handle, param->csa.flags);
-      CASE_CALL_RENDERER(CreateTexture, createTexture, cmd->handle, &param->ct.mem, param->ct.width, param->ct.height, param->ct.format);
+      CASE_CALL_RENDERER(CreateTexture, createTexture, cmd->handle, &param->ct);
       CASE_CALL_RENDERER(CreateFrameBuffer, createFrameBuffer, cmd->handle, param->cfb.num, param->cfb.handles);
       /* Update Render Resource */
       CASE_CALL_RENDERER(UpdateVertexBuffer, updateVertexBuffer, cmd->handle, param->cuvb.offset, &param->cuvb.mem);
@@ -363,7 +363,7 @@ bcfx_Handle ctx_createUniform(Context* ctx, const char* name, bcfx_EUniformType 
   memcpy(buf, name, len);
   param->cu.name = buf;
   param->cu.type = type;
-  param->cu.num = type == UT_Sampler2D ? 1 : num;
+  param->cu.num = type >= UT_Sampler1D ? 1 : num;
   UniformBase* u = &ctx->uniforms[handle_index(handle)];
   uniform_initBase(u, type, num);
   return handle;
@@ -375,22 +375,117 @@ bcfx_Handle ctx_createSampler(Context* ctx, bcfx_SamplerFlag flags) {
   return handle;
 }
 
-bcfx_Handle ctx_createTexture(Context* ctx, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
+bcfx_Handle ctx_createTexture1D(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mem, uint16_t width, bool bGenMipmap) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
-  MEMBUFFER_MOVE(mem, &param->ct.mem);
-  param->ct.width = width;
-  param->ct.height = height;
-  param->ct.format = format;
+  CmdTexture* ct = &param->ct;
+  ct->type = TT_Texture1D;
+  ct->format = format;
+  ParamTexture1D* t1d = &ct->value.t1d;
+  MEMBUFFER_MOVE(mem, &t1d->mem);
+  t1d->width = width;
+  t1d->bGenMipmap = bGenMipmap;
   return handle;
 }
 
-bcfx_Handle ctx_createRenderTexture(Context* ctx, uint16_t width, uint16_t height, bcfx_ETextureFormat format) {
+bcfx_Handle ctx_createTexture1DArray(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t layers, bool bGenMipmap) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
-  MEMBUFFER_CLEAR(&param->ct.mem);
-  param->ct.width = width;
-  param->ct.height = height;
-  param->ct.format = format;
+  CmdTexture* ct = &param->ct;
+  ct->type = TT_Texture1DArray;
+  ct->format = format;
+  ParamTexture1DArray* t1da = &ct->value.t1da;
+  t1da->mba = (luaL_MemBuffer*)mem_malloc(sizeof(luaL_MemBuffer) * layers);
+  for (uint16_t layer = 0; layer < layers; layer++) {
+    MEMBUFFER_MOVE(&mba[layer], &t1da->mba[layer]);
+  }
+  t1da->width = width;
+  t1da->layers = layers;
+  t1da->bGenMipmap = bGenMipmap;
   return handle;
+}
+
+bcfx_Handle ctx_createTexture2D(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bool bGenMipmap) {
+  ADD_CMD_ALLOC_HANDLE(ctx, Texture)
+  CmdTexture* ct = &param->ct;
+  ct->type = TT_Texture2D;
+  ct->format = format;
+  ParamTexture2D* t2d = &ct->value.t2d;
+  MEMBUFFER_MOVE(mem, &t2d->mem);
+  t2d->width = width;
+  t2d->height = height;
+  t2d->bGenMipmap = bGenMipmap;
+  return handle;
+}
+
+bcfx_Handle ctx_createTexture2DArray(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t layers, bool bGenMipmap) {
+  ADD_CMD_ALLOC_HANDLE(ctx, Texture)
+  CmdTexture* ct = &param->ct;
+  ct->type = TT_Texture2DArray;
+  ct->format = format;
+  ParamTexture2DArray* t2da = &ct->value.t2da;
+  t2da->mba = (luaL_MemBuffer*)mem_malloc(sizeof(luaL_MemBuffer) * layers);
+  for (uint16_t layer = 0; layer < layers; layer++) {
+    MEMBUFFER_MOVE(&mba[layer], &t2da->mba[layer]);
+  }
+  t2da->width = width;
+  t2da->height = height;
+  t2da->layers = layers;
+  t2da->bGenMipmap = bGenMipmap;
+  return handle;
+}
+
+bcfx_Handle ctx_createTexture3D(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t depth, bool bGenMipmap) {
+  ADD_CMD_ALLOC_HANDLE(ctx, Texture)
+  CmdTexture* ct = &param->ct;
+  ct->type = TT_Texture3D;
+  ct->format = format;
+  ParamTexture3D* t3d = &ct->value.t3d;
+  t3d->mba = (luaL_MemBuffer*)mem_malloc(sizeof(luaL_MemBuffer) * depth);
+  for (uint16_t d = 0; d < depth; d++) {
+    MEMBUFFER_MOVE(&mba[d], &t3d->mba[d]);
+  }
+  t3d->width = width;
+  t3d->height = height;
+  t3d->depth = depth;
+  t3d->bGenMipmap = bGenMipmap;
+  return handle;
+}
+
+bcfx_Handle ctx_createTextureCubeMap(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mb6, uint16_t width, uint16_t height, bool bGenMipmap) {
+  ADD_CMD_ALLOC_HANDLE(ctx, Texture)
+  CmdTexture* ct = &param->ct;
+  ct->type = TT_TextureCubeMap;
+  ct->format = format;
+  ParamTextureCubeMap* tcm = &ct->value.tcm;
+  tcm->mb6 = (luaL_MemBuffer*)mem_malloc(sizeof(luaL_MemBuffer) * 6);
+  for (uint16_t side = 0; side < 6; side++) {
+    MEMBUFFER_MOVE(&mb6[side], &tcm->mb6[side]);
+  }
+  tcm->width = width;
+  tcm->height = height;
+  tcm->bGenMipmap = bGenMipmap;
+  return handle;
+}
+
+bcfx_Handle ctx_createTexture2DMipmap(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t levels) {
+  ADD_CMD_ALLOC_HANDLE(ctx, Texture)
+  CmdTexture* ct = &param->ct;
+  ct->type = TT_Texture2DMipmap;
+  ct->format = format;
+  ParamTexture2DMipmap* t2dm = &ct->value.t2dm;
+  t2dm->mba = (luaL_MemBuffer*)mem_malloc(sizeof(luaL_MemBuffer) * levels);
+  for (uint16_t d = 0; d < levels; d++) {
+    MEMBUFFER_MOVE(&mba[d], &t2dm->mba[d]);
+  }
+  t2dm->width = width;
+  t2dm->height = height;
+  t2dm->levels = levels;
+  return handle;
+}
+
+bcfx_Handle ctx_createRenderTexture(Context* ctx, bcfx_ETextureFormat format, uint16_t width, uint16_t height) {
+  luaL_MemBuffer mb[1];
+  MEMBUFFER_CLEAR(mb);
+  return ctx_createTexture2D(ctx, format, mb, width, height, false);
 }
 
 bcfx_Handle ctx_createFrameBuffer(Context* ctx, uint8_t num, bcfx_Handle* handles) {
