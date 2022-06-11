@@ -755,20 +755,84 @@ end
 function bcfx.createSampler(flags)
 	return libbcfx.createSampler(flags)
 end
+---@overload fun(format:bcfx_texture_format, mb:luaL_MemBuffer, width:integer):Handle
+---@overload fun(format:bcfx_texture_format, mb:luaL_MemBuffer, width:integer, bGenMipmap:boolean):Handle
+---@param format bcfx_texture_format
+---@param mb luaL_MemBuffer
+---@param width integer
+---@param bGenMipmap boolean
+---@return Handle
+function bcfx.createTexture1D(format, mb, width, bGenMipmap)
+	return libbcfx.createTexture1D(format, mb, width, bGenMipmap)
+end
+---@overload fun(format:bcfx_texture_format, mba:luaL_MemBuffer[], width:integer):Handle
+---@overload fun(format:bcfx_texture_format, mba:luaL_MemBuffer[], width:integer, bGenMipmap:boolean):Handle
+---@param format bcfx_texture_format
+---@param mba luaL_MemBuffer[]
+---@param width integer
+---@param bGenMipmap boolean
+---@return Handle
+function bcfx.createTexture1DArray(format, mba, width, bGenMipmap)
+	return libbcfx.createTexture1DArray(format, mba, width, bGenMipmap)
+end
+---@overload fun(format:bcfx_texture_format, mb:luaL_MemBuffer, width:integer, height:integer):Handle
+---@overload fun(format:bcfx_texture_format, mb:luaL_MemBuffer, width:integer, height:integer, bGenMipmap:boolean):Handle
+---@param format bcfx_texture_format
 ---@param mb luaL_MemBuffer
 ---@param width integer
 ---@param height integer
----@param format bcfx_texture_format
+---@param bGenMipmap boolean
 ---@return Handle
-function bcfx.createTexture(mb, width, height, format)
-	return libbcfx.createTexture(mb, width, height, format)
+function bcfx.createTexture2D(format, mb, width, height, bGenMipmap)
+	return libbcfx.createTexture2D(format, mb, width, height, bGenMipmap)
 end
+---@overload fun(format:bcfx_texture_format, mba:luaL_MemBuffer[], width:integer, height:integer):Handle
+---@overload fun(format:bcfx_texture_format, mba:luaL_MemBuffer[], width:integer, height:integer, bGenMipmap:boolean):Handle
+---@param format bcfx_texture_format
+---@param mba luaL_MemBuffer[]
 ---@param width integer
 ---@param height integer
----@param format bcfx_texture_format
+---@param bGenMipmap boolean
 ---@return Handle
-function bcfx.createRenderTexture(width, height, format)
-	return libbcfx.createRenderTexture(width, height, format)
+function bcfx.createTexture2DArray(format, mba, width, height, bGenMipmap)
+	return libbcfx.createTexture2DArray(format, mba, width, height, bGenMipmap)
+end
+---@overload fun(format:bcfx_texture_format, mba:luaL_MemBuffer[], width:integer, height:integer):Handle
+---@overload fun(format:bcfx_texture_format, mba:luaL_MemBuffer[], width:integer, height:integer, bGenMipmap:boolean):Handle
+---@param format bcfx_texture_format
+---@param mba luaL_MemBuffer[]
+---@param width integer
+---@param height integer
+---@param bGenMipmap boolean
+---@return Handle
+function bcfx.createTexture3D(format, mba, width, height, bGenMipmap)
+	return libbcfx.createTexture3D(format, mba, width, height, bGenMipmap)
+end
+---@overload fun(format:bcfx_texture_format, mb6:luaL_MemBuffer[], width:integer, height:integer):Handle
+---@overload fun(format:bcfx_texture_format, mb6:luaL_MemBuffer[], width:integer, height:integer, bGenMipmap:boolean):Handle
+---@param format bcfx_texture_format
+---@param mb6 luaL_MemBuffer[]
+---@param width integer
+---@param height integer
+---@param bGenMipmap boolean
+---@return Handle
+function bcfx.createTextureCubeMap(format, mb6, width, height, bGenMipmap)
+	return libbcfx.createTextureCubeMap(format, mb6, width, height, bGenMipmap)
+end
+---@param format bcfx_texture_format
+---@param mba luaL_MemBuffer[]
+---@param width integer
+---@param height integer
+---@return Handle
+function bcfx.createTexture2DMipmap(format, mba, width, height)
+	return libbcfx.createTexture2DMipmap(format, mba, width, height)
+end
+---@param format bcfx_texture_format
+---@param width integer
+---@param height integer
+---@return Handle
+function bcfx.createRenderTexture(format, width, height)
+	return libbcfx.createRenderTexture(format, width, height)
 end
 ---@vararg Handle @ render texture handle
 ---@return Handle
