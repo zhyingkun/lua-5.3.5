@@ -60,6 +60,7 @@ static int UTILS_FUNCTION(packRenderState)(lua_State* L) {
   SET_STATE_FIELD(blendEquA, integer);
   SET_STATE_FIELD(enableLogicOp, boolean);
   SET_STATE_FIELD(logicOp, integer);
+  SET_STATE_FIELD(enableDepthClamp, boolean);
   lua_pushinteger(L, RENDERSTATE_UINT64(state));
   return 1;
 }
