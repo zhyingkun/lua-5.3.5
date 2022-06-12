@@ -157,6 +157,7 @@ typedef struct {
   GLenum blendEquA;
   GLboolean enableLogicOp;
   GLenum logicOp;
+  GLboolean enableDepthClamp;
   uint32_t blendColor;
   GLboolean enableStencil;
   StencilStateGL stencilFront;

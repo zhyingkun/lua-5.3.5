@@ -108,6 +108,7 @@ static void renderstate_init(RenderStateGL* state) {
   GET_GL_ENUM(blendEquA, GL_BLEND_EQUATION_ALPHA);
   GET_GL_BOOLEAN(enableLogicOp, GL_COLOR_LOGIC_OP);
   GET_GL_ENUM(logicOp, GL_LOGIC_OP_MODE);
+  GET_GL_BOOLEAN(enableDepthClamp, GL_DEPTH_CLAMP);
   {
     GLfloat data[4];
     GL_CHECK(glGetFloatv(GL_BLEND_COLOR, data));
@@ -160,6 +161,14 @@ static void renderstate_updateDepth(RenderStateGL* stateGL, bcfx_RenderState sta
       } else {
         GL_CHECK(glDisable(GL_DEPTH_TEST));
       }
+    }
+  }
+  GLboolean enableDepthClamp = state.enableDepthClamp;
+  if (IS_STATE_CHANGED(enableDepthClamp)) {
+    if (enableDepthClamp) {
+      GL_CHECK(glEnable(GL_DEPTH_CLAMP));
+    } else {
+      GL_CHECK(glDisable(GL_DEPTH_CLAMP));
     }
   }
 }

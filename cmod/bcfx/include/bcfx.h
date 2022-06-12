@@ -518,7 +518,8 @@ typedef struct {
 
   uint8_t enableLogicOp : 1;
   uint8_t logicOp : 4;
-  uint8_t reserved2 : 3;
+  uint8_t enableDepthClamp : 1;
+  uint8_t reserved2 : 2;
 } bcfx_RenderState;
 typedef union {
   uint64_t stateUINT64;
