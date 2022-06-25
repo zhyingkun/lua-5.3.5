@@ -45,7 +45,6 @@ local function GenerateColorCircle(radius)
 	local layout = bcfx.VertexLayout()
 	layout:add(vertex_attrib.Position, 2, attrib_type.Float, false)
 	layout:add(vertex_attrib.Color0, 3, attrib_type.Float, false)
-	local layoutHandle = bcfx.createVertexLayout(layout)
 
 	local mem = bcfx.makeMemBuffer(data_type.Float, coroutine.wrap(function()
 		coroutine.yield(0.0, 0.0)
@@ -62,7 +61,7 @@ local function GenerateColorCircle(radius)
 			coroutine.yield(r, g, b)
 		end
 	end))
-	local vertexHandle = bcfx.createVertexBuffer(mem, layoutHandle)
+	local vertexHandle = bcfx.createVertexBuffer(mem, layout)
 
 	local mem = bcfx.makeMemBuffer(data_type.Uint8, coroutine.wrap(function()
 		for i = 1, 12, 1 do

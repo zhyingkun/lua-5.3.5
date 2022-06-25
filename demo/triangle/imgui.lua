@@ -175,8 +175,7 @@ function imgui.setup(mainWin_)
 	layout:add(vertex_attrib.Position, 2, attrib_type.Float, false)
 	layout:add(vertex_attrib.TexCoord0, 2, attrib_type.Float, false)
 	layout:add(vertex_attrib.Color0, 4, attrib_type.Uint8, true)
-	local layoutHandle = bcfx.createVertexLayout(layout)
-	vertexHandle = bcfx.createDynamicVertexBuffer(vsize, layoutHandle)
+	vertexHandle = bcfx.createDynamicVertexBuffer(vsize, layout)
 	indexHandle = bcfx.createDynamicIndexBuffer(esize, index_type.Uint16)
 	vertexMemBuffer = util.MemBuffer()
 	indexMemBuffer = util.MemBuffer()
@@ -364,8 +363,8 @@ function imgui.tick(delta)
 
 	vertexMemBuffer:setReplace(vbuf:frontBufferPtr(), vbuf:frontBufferAllocated()) -- 
 	indexMemBuffer:setReplace(ebuf:frontBufferPtr(), ebuf:frontBufferAllocated()) -- 
-	bcfx.updateDynamicVertexBuffer(vertexHandle, 0, vertexMemBuffer)
-	bcfx.updateDynamicIndexBuffer(indexHandle, 0, indexMemBuffer)
+	bcfx.updateDynamicBuffer(vertexHandle, 0, vertexMemBuffer)
+	bcfx.updateDynamicBuffer(indexHandle, 0, indexMemBuffer)
 
 	bcfx.setVertexBuffer(0, vertexHandle)
 	bcfx.setState(state, bcfx.color.black)

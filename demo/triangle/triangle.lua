@@ -49,25 +49,23 @@ end)()
 local function CreateTriangleBuffer()
 	local layout = bcfx.VertexLayout()
 	layout:add(vertex_attrib.Position, 3, attrib_type.Float, false)
-	local layoutHandle = bcfx.createVertexLayout(layout)
 	local vertexTbl = {
 		-1.0, -1.0, 0.0,
 		1.0, -1.0, 0.0,
 		0.0, 1.0, 0.0,
 	}
 	local mem = bcfx.makeMemBuffer(data_type.Float, vertexTbl)
-	local vertexHandle = bcfx.createVertexBuffer(mem, layoutHandle)
+	local vertexHandle = bcfx.createVertexBuffer(mem, layout)
 
 	local layout = bcfx.VertexLayout()
 	layout:add(vertex_attrib.Color0, 3, attrib_type.Float, false)
-	local layoutHandle = bcfx.createVertexLayout(layout)
 	local colorTbl = {
 		1.0, 0.0, 0.0,
 		0.0, 1.0, 0.0,
 		0.0, 0.0, 1.0,
 	}
 	local mem = bcfx.makeMemBuffer(data_type.Float, colorTbl)
-	local colorHandle = bcfx.createVertexBuffer(mem, layoutHandle)
+	local colorHandle = bcfx.createVertexBuffer(mem, layout)
 
 	local indexTbl = {
 		0, 1, 2,
@@ -88,7 +86,6 @@ end
 local function CreateCubeBuffer()
 	local layout = bcfx.VertexLayout()
 	layout:add(vertex_attrib.Position, 3, attrib_type.Float, false)
-	local layoutHandle = bcfx.createVertexLayout(layout)
 	local vertexTbl = {
 	   -0.5, -0.5,  0.5, -- In OpenGL: front
 		0.5, -0.5,  0.5, -- In Unity : back
@@ -116,11 +113,10 @@ local function CreateCubeBuffer()
 		0.5, -0.5,  0.5,
 	 }
 	local mem = bcfx.makeMemBuffer(data_type.Float, vertexTbl)
-	local vertexHandle = bcfx.createVertexBuffer(mem, layoutHandle)
+	local vertexHandle = bcfx.createVertexBuffer(mem, layout)
 
 	local layout = bcfx.VertexLayout()
 	layout:add(vertex_attrib.TexCoord0, 2, attrib_type.Float, false)
-	local layoutHandle = bcfx.createVertexLayout(layout)
 	local texCoordTbl = {
 		0.0, 0.0, -- In OpenGL: front
 		1.0, 0.0, -- In Unity : back
@@ -148,7 +144,7 @@ local function CreateCubeBuffer()
 		0.0, 1.0,
 	  }
 	local mem = bcfx.makeMemBuffer(data_type.Float, texCoordTbl)
-	local texCoordHandle = bcfx.createVertexBuffer(mem, layoutHandle)
+	local texCoordHandle = bcfx.createVertexBuffer(mem, layout)
 
 	local indexTbl = {
 		0,  1,  2,  0,  2,  3, -- In OpenGL: front, In Unity: back
@@ -183,8 +179,7 @@ local function CreateSpotBuffer()
 	layout:add(vertex_attrib.Position, 3, attrib_type.Float, false)
 	layout:add(vertex_attrib.Normal, 3, attrib_type.Float, false)
 	layout:add(vertex_attrib.TexCoord0, 2, attrib_type.Float, false)
-	local layoutHandle = bcfx.createVertexLayout(layout)
-	local vertexHandle = bcfx.createVertexBuffer(vbMB, layoutHandle)
+	local vertexHandle = bcfx.createVertexBuffer(vbMB, layout)
 	local idxHandle = bcfx.createIndexBuffer(ibMB, index_type.Uint32)
 
 	local textureHandle = loader.LoadTexture("spot_texture.png")
@@ -202,7 +197,6 @@ local function CreateBlitBuffer()
 	local layout = bcfx.VertexLayout()
 	layout:add(vertex_attrib.Position, 2, attrib_type.Float, false)
 	layout:add(vertex_attrib.TexCoord0, 2, attrib_type.Float, false)
-	local layoutHandle = bcfx.createVertexLayout(layout)
 	local vertexTbl = {
 		-1.0, -1.0, 0.0, 0.0,
 		1.0, -1.0, 1.0, 0.0,
@@ -212,7 +206,7 @@ local function CreateBlitBuffer()
 		-1.0, 1.0, 0.0, 1.0,
 	}
 	local mem = bcfx.makeMemBuffer(data_type.Float, vertexTbl)
-	local vertexHandle = bcfx.createVertexBuffer(mem, layoutHandle)
+	local vertexHandle = bcfx.createVertexBuffer(mem, layout)
 
 	local uniformHandle = bcfx.createUniform("blit_texture", bcfx.uniform_type.Sampler2D)
 	local shaderProgramHandle = loader.LoadProgram("blit")
@@ -335,14 +329,14 @@ local function setup(mainWin)
 		print("frame:", bcfx.frameId())
 	end)
 
-	instanceBuffer = bcfx.createDynamicVertexBuffer(4 * 4 * 1 * 3, 0)
+	instanceBuffer = bcfx.createDynamicInstanceDataBuffer(3, 1)
 	local instanceOffset = {
 		0.0, 0.0, 0.0, 0.0,
 		0.3, 0.3, 0.3, 0.0,
 		0.6, 0.6, 0.6, 0.0
 	}
 	instanceData = bcfx.makeMemBuffer(data_type.Float, instanceOffset)
-	bcfx.updateDynamicVertexBuffer(instanceBuffer, 0, instanceData)
+	bcfx.updateDynamicBuffer(instanceBuffer, 0, instanceData)
 
 	local flags = bcfx.utils.packSamplerFlags({
 		wrapU = texture_wrap.Repeat,
