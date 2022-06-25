@@ -636,6 +636,14 @@ static int BCWRAP_FUNCTION(setViewMode)(lua_State* L) {
   bcfx_setViewMode(id, mode);
   return 0;
 }
+static int BCWRAP_FUNCTION(setViewDepthRange)(lua_State* L) {
+  ViewId id = luaL_checkviewid(L, 1);
+  float near = luaL_checknumber(L, 2);
+  float far = luaL_checknumber(L, 3);
+
+  bcfx_setViewDepthRange(id, near, far);
+  return 0;
+}
 static int BCWRAP_FUNCTION(setViewDebug)(lua_State* L) {
   ViewId id = luaL_checkviewid(L, 1);
   uint32_t debug = (uint32_t)luaL_checkinteger(L, 2);
@@ -867,6 +875,7 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(setViewScissor),
     EMPLACE_BCWRAP_FUNCTION(setViewTransform),
     EMPLACE_BCWRAP_FUNCTION(setViewMode),
+    EMPLACE_BCWRAP_FUNCTION(setViewDepthRange),
     EMPLACE_BCWRAP_FUNCTION(setViewDebug),
     EMPLACE_BCWRAP_FUNCTION(resetView),
     EMPLACE_BCWRAP_FUNCTION(setFrameViewCaptureCallback),

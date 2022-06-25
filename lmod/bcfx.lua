@@ -964,6 +964,12 @@ function bcfx.setViewMode(id, mode)
 	libbcfx.setViewMode(id, mode)
 end
 ---@param id ViewId
+---@param near number
+---@param far number
+function bcfx.setViewDepthRange(id, near, far)
+	libbcfx.setViewDepthRange(id, near, far)
+end
+---@param id ViewId
 ---@param debug bcfx_debug
 function bcfx.setViewDebug(id, debug)
 	libbcfx.setViewDebug(id, debug)
