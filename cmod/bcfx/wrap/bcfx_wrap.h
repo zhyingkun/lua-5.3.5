@@ -170,6 +170,8 @@ void QUATERNION_FUNCTION(init)(lua_State* L);
 #define luaL_checkattribtype(L, idx) ((bcfx_EAttribType)luaL_checkinteger(L, idx))
 #define luaL_checkimagetype(L, idx) ((ImageType)luaL_checkinteger(L, idx))
 
+#define luaL_opthandle(L, idx, dft) ((bcfx_Handle)luaL_optinteger(L, idx, dft))
+
 #define luaL_pushhandle(L, handle) lua_pushinteger(L, handle);
 
 /* }====================================================== */

@@ -735,6 +735,8 @@ end
 function bcfx.createShader(mb, type)
 	return libbcfx.createShader(mb, type)
 end
+---@overload fun(vs:Handle):Handle
+---@overload fun(vs:Handle, fs:Handle):Handle
 ---@param vs Handle @ vertex shader handle
 ---@param fs Handle @ fragment shader handle
 ---@return Handle
@@ -1045,6 +1047,8 @@ end
 function bcfx.setScissor(x, y, width, height)
 	libbcfx.setScissor(x, y, width, height)
 end
+---@overload fun(state:bcfx_render_state):void
+---@overload fun(state:bcfx_render_state, rgba:Color):void
 ---@param state bcfx_render_state
 ---@param rgba Color @ blend color
 function bcfx.setState(state, rgba)

@@ -362,7 +362,7 @@ static int BCWRAP_FUNCTION(createShader)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(createProgram)(lua_State* L) {
   bcfx_Handle vs = luaL_checkhandle(L, 1);
-  bcfx_Handle fs = luaL_checkhandle(L, 2);
+  bcfx_Handle fs = luaL_opthandle(L, 2, kInvalidHandle);
 
   bcfx_Handle handle = bcfx_createProgram(vs, fs);
   luaL_pushhandle(L, handle);
