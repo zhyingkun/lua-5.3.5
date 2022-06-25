@@ -771,7 +771,7 @@ static int BCWRAP_FUNCTION(setScissor)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(setState)(lua_State* L) {
   uint64_t state = (uint64_t)luaL_checkinteger(L, 1);
-  uint32_t rgba = (uint32_t)luaL_checkinteger(L, 2);
+  uint32_t rgba = (uint32_t)luaL_optinteger(L, 2, 0);
 
   bcfx_setState(RENDERSTATE_STRUCT(state), rgba);
   return 0;
