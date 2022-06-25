@@ -349,7 +349,7 @@ bcfx_Handle ctx_createShader(Context* ctx, luaL_MemBuffer* mem, bcfx_EShaderType
 
 bcfx_Handle ctx_createProgram(Context* ctx, bcfx_Handle vs, bcfx_Handle fs) {
   CHECK_HANDLE(vs, HT_Shader);
-  CHECK_HANDLE(fs, HT_Shader);
+  CHECK_HANDLE_IF_VALID(fs, HT_Shader);
   ADD_CMD_ALLOC_HANDLE(ctx, Program)
   param->cp.vsHandle = vs;
   param->cp.fsHandle = fs;

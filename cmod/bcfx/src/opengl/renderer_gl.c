@@ -360,12 +360,11 @@ static void gl_createShader(RendererContext* ctx, bcfx_Handle handle, luaL_MemBu
 }
 static void gl_createProgram(RendererContext* ctx, bcfx_Handle handle, bcfx_Handle vsh, bcfx_Handle fsh) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  ShaderGL* vs = &glCtx->shaders[handle_index(vsh)];
-  ShaderGL* fs = &glCtx->shaders[handle_index(fsh)];
   ProgramGL* prog = &glCtx->programs[handle_index(handle)];
   if (prog->id == 0) {
     GL_CHECK(prog->id = glCreateProgram());
   }
+  ShaderGL* vs = &glCtx->shaders[handle_index(vsh)];
   if (prog->vs != vs->id) {
     if (prog->vs != 0) {
       GL_CHECK(glDetachShader(prog->id, prog->vs));
@@ -373,12 +372,19 @@ static void gl_createProgram(RendererContext* ctx, bcfx_Handle handle, bcfx_Hand
     GL_CHECK(glAttachShader(prog->id, vs->id));
     prog->vs = vs->id;
   }
-  if (prog->fs != fs->id) {
+  GLuint fsID = 0;
+  if (fsh != kInvalidHandle) {
+    ShaderGL* fs = &glCtx->shaders[handle_index(fsh)];
+    fsID = fs->id;
+  }
+  if (prog->fs != fsID) {
     if (prog->fs != 0) {
       GL_CHECK(glDetachShader(prog->id, prog->fs));
     }
-    GL_CHECK(glAttachShader(prog->id, fs->id));
-    prog->fs = fs->id;
+    prog->fs = fsID;
+    if (prog->fs != 0) {
+      GL_CHECK(glAttachShader(prog->id, prog->fs));
+    }
   }
   GL_CHECK(glLinkProgram(prog->id));
 
