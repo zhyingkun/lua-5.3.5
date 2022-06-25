@@ -1052,14 +1052,14 @@ end
 ---@field numAttrib integer @ num of vec4 per instance
 ---@field numInstance integer
 
----@overload fun(data:bcfx_InstanceDataBuffer):void
----@overload fun(data:bcfx_InstanceDataBuffer, start:integer):void
----@overload fun(data:bcfx_InstanceDataBuffer, start:integer, count:integer):void
----@param data bcfx_InstanceDataBuffer
----@param start integer @ skip num of instance, not vec4, not float, not byte
----@param count integer @ num of instance
-function bcfx.setInstanceDataBuffer(data, start, count)
-	libbcfx.setInstanceDataBuffer(data, start, count)
+---@overload fun(numInstance:integer):void
+---@overload fun(numInstance:integer, handle:Handle):void
+---@overload fun(numInstance:integer, handle:Handle, startInstance:integer):void
+---@param numInstance integer
+---@param handle Handle @ instance data buffer handle
+---@param startInstance integer @ skip num of instance, not vec4, not float, not byte
+function bcfx.setInstanceDataBuffer(numInstance, handle, startInstance)
+	libbcfx.setInstanceDataBuffer(numInstance, handle, startInstance)
 end
 ---@overload fun(id:ViewId, handle:Handle):void
 ---@overload fun(id:ViewId, handle:Handle, flags:bcfx_discard):void
