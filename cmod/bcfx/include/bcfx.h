@@ -573,13 +573,6 @@ typedef union {
 #define BCFX_DISCARD_INSTANCE_DATA BIT_INDEX(5)
 #define BCFX_DISCARD_ALL BIT_MASK(6)
 
-typedef struct {
-  bcfx_Handle handle; // dynamic vertex buffer handle
-  uint32_t bufferOffset; // offset in bytes for vertex buffer
-  uint8_t numAttrib; // num of vec4 per instance
-  uint32_t numInstance;
-} bcfx_InstanceDataBuffer;
-
 BCFX_API void bcfx_setUniformVec4(bcfx_Handle handle, Vec4* vec, uint16_t num);
 BCFX_API void bcfx_setUniformMat3x3(bcfx_Handle handle, Mat3x3* mat, uint16_t num);
 BCFX_API void bcfx_setUniformMat4x4(bcfx_Handle handle, Mat4x4* mat, uint16_t num);
@@ -596,7 +589,7 @@ BCFX_API void bcfx_setTexture(uint8_t stage, bcfx_Handle uniform, bcfx_Handle te
 BCFX_API void bcfx_setScissor(uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor);
 BCFX_API void bcfx_setStencil(bool enable, bcfx_StencilState front, bcfx_StencilState back);
-BCFX_API void bcfx_setInstanceDataBuffer(const bcfx_InstanceDataBuffer* idb, uint32_t start, uint32_t count);
+BCFX_API void bcfx_setInstanceDataBuffer(uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance);
 
 BCFX_API void bcfx_submit(ViewId id, bcfx_Handle handle, uint32_t flags, uint32_t depth);
 

@@ -121,6 +121,7 @@ typedef struct {
 typedef struct {
   BufferGL buffer;
   uint32_t numVec4PerInstance;
+  uint32_t numInstance;
 } InstanceDataBufferGL;
 typedef struct {
   BufferGL buffer;

@@ -24,10 +24,9 @@ typedef struct {
   uint32_t indexStart;
   uint32_t indexCount;
 
-  bcfx_Handle instanceDataBuffer;
-  uint32_t instanceDataOffset; // skip num of bytes
-  uint8_t numAttrib; // num of vec4 per instance
   uint32_t numInstance;
+  bcfx_Handle instanceDataBuffer;
+  uint32_t startInstance; // skip num of instance
 
   Mat4x4 model;
   uint32_t uniformStartByte;

@@ -223,16 +223,31 @@ void gl_bindInstanceAttributes(RendererContextGL* glCtx, ProgramGL* prog, Render
     return;
   }
   InstanceDataBufferGL* idb = &glCtx->instanceDataBuffers[handle_index(draw->instanceDataBuffer)];
-  GLsizei stride = sizeof(GLfloat) * 4 * draw->numAttrib;
   PredefinedAttrib* pa = &prog->pa;
+  if (draw->startInstance >= idb->numInstance) {
+    printf_err("Draw startInstance greater than buffer numInstance, startInstance: %d, numInstance: %d\n", draw->startInstance, idb->numInstance);
+    for (uint8_t i = 0; pa->instanceAttr[i] != -1; i++) {
+      GLint loc = pa->instanceAttr[i];
+      GL_CHECK(glDisableVertexAttribArray(loc));
+    }
+    return;
+  }
+  if (draw->startInstance + draw->numInstance > idb->numInstance) {
+    printf_err("Draw instance count greater than the rest buffer instance, startInstance: %d, numInstanceDraw: %d, numInstanceBuffer: %d\n", draw->startInstance, draw->numInstance, idb->numInstance);
+  }
+  const uint8_t numBytePerFloat = sizeof(GLfloat);
+  const uint8_t numFloatPerVec4 = 4;
+  const uint8_t numBytePerVec4 = numFloatPerVec4 * numBytePerFloat;
+  GLsizei numBytePerInstance = idb->numVec4PerInstance * numBytePerVec4;
+  GLsizei startByte = draw->startInstance * numBytePerInstance;
   for (uint8_t i = 0; pa->instanceAttr[i] != -1; i++) {
     GLint loc = pa->instanceAttr[i];
-    if (i < draw->numAttrib) {
+    if (i < idb->numVec4PerInstance) {
       GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, idb->buffer.id));
       GL_CHECK(glEnableVertexAttribArray(loc));
       GL_CHECK(glVertexAttribDivisor(loc, 1)); // indicated it's per instance, not per vertex
-      void* offset = (void*)((long)draw->instanceDataOffset + sizeof(GLfloat) * 4 * i);
-      GL_CHECK(glVertexAttribPointer(loc, 4, GL_FLOAT, GL_FALSE, stride, offset));
+      void* offset = (void*)((long)startByte + numBytePerVec4 * i);
+      GL_CHECK(glVertexAttribPointer(loc, 4, GL_FLOAT, GL_FALSE, numBytePerInstance, offset));
     } else {
       GL_CHECK(glDisableVertexAttribArray(loc));
     }

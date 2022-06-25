@@ -579,6 +579,11 @@ static void gl_createInstanceDataBuffer(RendererContext* ctx, bcfx_Handle handle
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   InstanceDataBufferGL* idb = &glCtx->instanceDataBuffers[handle_index(handle)];
   idb->numVec4PerInstance = numVec4PerInstance;
+  const uint8_t numBytePerFloat = sizeof(GLfloat);
+  const uint8_t numFloatPerVec4 = 4;
+  const uint8_t numBytePerVec4 = numFloatPerVec4 * numBytePerFloat;
+  uint32_t numBytePerInstance = numVec4PerInstance * numBytePerVec4;
+  idb->numInstance = mem->sz / numBytePerInstance;
   gl_createBufferGPU(&idb->buffer, mem, GL_ARRAY_BUFFER);
 }
 static void gl_createTextureBuffer(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_ETextureFormat format) {
