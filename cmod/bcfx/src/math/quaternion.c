@@ -308,15 +308,27 @@ BCFX_API bool quat_shortestPath(const Quaternion* s, const Quaternion* e) {
 // s and e can be the same
 BCFX_API void quat_slerp(const Quaternion* s, const Quaternion* e, float t, Quaternion* quat) {
   float cosTheta = quat_dotProduct(s, e);
-  float theta = acosf(cosTheta);
-  if (EQUAL(theta, 0.0)) {
+  if (EQUAL(cosTheta, 1.0)) {
     *quat = *s;
     return;
   }
-  if (theta < 1.0) {
+  if (cosTheta > 0.9995) {
     quat_lerp(s, e, t, quat);
     return;
   }
+  cosTheta = CLAMP(cosTheta, -1.0, 1.0);
+  float theta = acosf(cosTheta);
+  float tTheta = t * theta;
+  Quaternion quatTmp[1];
+  quat_scale(s, cosTheta, quatTmp);
+  quat_subtract(e, quatTmp, quatTmp);
+  quat_normalize(quatTmp, quatTmp);
+  Quaternion quatTmp2[1];
+  quat_scale(s, cosf(tTheta), quatTmp2);
+  quat_scale(quatTmp, sinf(tTheta), quatTmp);
+  quat_add(quatTmp2, quatTmp, quat);
+  /*
+  float theta = acosf(cosTheta);
   float sinTheta = sinf(theta);
   float tTheta = t * theta;
   float coeff0 = sinf(theta - tTheta) / sinTheta;
@@ -325,6 +337,7 @@ BCFX_API void quat_slerp(const Quaternion* s, const Quaternion* e, float t, Quat
   Quaternion quatTmp[1];
   quat_scale(e, coeff1, quatTmp);
   quat_add(quat, quatTmp, quat);
+  */
 }
 
 BCFX_API void quat_fromTo(const Vec3* from, const Vec3* to, Quaternion* quat) {

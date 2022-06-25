@@ -21,6 +21,7 @@
 #define EQUAL(a, b) ((a - b) < 1e-7 && (a - b) > -(1e-7))
 
 #define LIMITED(val, min, max) (val < min ? min : (val > max ? max : val))
+#define CLAMP(val, min, max) LIMITED(val, min, max)
 
 #define RADIAN(deg) ((deg)*M_PI / 180.0)
 #define DEGREE(rad) ((rad)*180.0 * M_1_PI)
