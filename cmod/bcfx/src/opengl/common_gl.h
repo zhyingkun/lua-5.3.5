@@ -53,18 +53,20 @@ const char* err_EnumName(GLenum _enum);
 
 typedef struct {
   GLuint id;
+  bool bIsDynamic;
+  size_t size;
+} BufferGL;
+
+typedef struct {
+  BufferGL buffer;
+  // uint32_t count; // how many vertex in this buffer, not byte
+  bcfx_VertexLayout layout;
+} VertexBufferGL;
+typedef struct {
+  BufferGL buffer;
   uint32_t count; // how many indices in this buffer, not byte
   bcfx_EIndexType type;
-  bool bIsDynamic;
-  size_t size;
 } IndexBufferGL;
-typedef struct {
-  GLuint id;
-  // uint32_t count; // how many vertex in this buffer, not byte
-  bcfx_Handle layout;
-  bool bIsDynamic;
-  size_t size;
-} VertexBufferGL;
 typedef struct {
   GLuint id;
   GLenum type;
@@ -116,6 +118,15 @@ typedef struct {
 typedef struct {
   GLuint id;
 } FrameBufferGL;
+typedef struct {
+  BufferGL buffer;
+  uint32_t numVec4PerInstance;
+} InstanceDataBufferGL;
+typedef struct {
+  BufferGL buffer;
+  GLuint textureID;
+  bcfx_ETextureFormat format;
+} TextureBufferGL;
 
 typedef struct {
   GLuint fb;
@@ -174,9 +185,8 @@ typedef struct {
 typedef struct {
   RendererContext api;
 
-  IndexBufferGL indexBuffers[BCFX_CONFIG_MAX_INDEX_BUFFER];
-  bcfx_VertexLayout vertexLayouts[BCFX_CONFIG_MAX_VERTEX_LAYOUT];
   VertexBufferGL vertexBuffers[BCFX_CONFIG_MAX_VERTEX_BUFFER];
+  IndexBufferGL indexBuffers[BCFX_CONFIG_MAX_INDEX_BUFFER];
   ShaderGL shaders[BCFX_CONFIG_MAX_SHADER];
   ProgramGL programs[BCFX_CONFIG_MAX_PROGRAM];
   uint16_t uniformCount;
@@ -184,6 +194,8 @@ typedef struct {
   SamplerGL samplers[BCFX_CONFIG_MAX_SAMPLER];
   TextureGL textures[BCFX_CONFIG_MAX_TEXTURE];
   FrameBufferGL frameBuffers[BCFX_CONFIG_MAX_FRAME_BUFFER];
+  InstanceDataBufferGL instanceDataBuffers[BCFX_CONFIG_MAX_INSTANCE_DATA_BUFFER];
+  TextureBufferGL textureBuffers[BCFX_CONFIG_MAX_TEXTURE_BUFFER];
 
   Window mainWin;
   Window curWin;
@@ -200,6 +212,18 @@ typedef struct {
 
   uint32_t curVertexCount; // for gl_bindProgramAttributes pass count to gl_submitDraw
 } RendererContextGL;
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** OpenGL Buffer
+** =======================================================
+*/
+
+void gl_createBufferGPU(BufferGL* buf, luaL_MemBuffer* mem, GLenum target);
+void gl_updateBufferGPU(BufferGL* buf, size_t offset, luaL_MemBuffer* mem, GLenum target);
+void gl_destroyBufferGPU(BufferGL* buf);
 
 /* }====================================================== */
 

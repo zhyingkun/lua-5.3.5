@@ -101,7 +101,7 @@ typedef struct {
 
 BCFX_API void bcfx_vertexLayoutInit(bcfx_VertexLayout* layout);
 BCFX_API void bcfx_vertexLayoutAdd(bcfx_VertexLayout* layout, bcfx_EVertexAttrib attrib, uint8_t num, bcfx_EAttribType type, bool normalized);
-BCFX_API void bcfx_vertexLayoutSkip(bcfx_VertexLayout* layout, uint8_t num_byte);
+BCFX_API void bcfx_vertexLayoutSkip(bcfx_VertexLayout* layout, uint8_t numByte);
 BCFX_API void bcfx_vertexLayoutClear(bcfx_VertexLayout* layout);
 
 /* }====================================================== */
@@ -217,7 +217,6 @@ BCFX_API void bcfx_setFrameCompletedCallback(bcfx_OnFrameCompleted cb, void* ud)
 */
 
 #define BCFX_RESOURCE_MAP(XX) \
-  XX(VertexLayout, BCFX_CONFIG_MAX_VERTEX_LAYOUT) \
   XX(VertexBuffer, BCFX_CONFIG_MAX_VERTEX_BUFFER) \
   XX(IndexBuffer, BCFX_CONFIG_MAX_INDEX_BUFFER) \
   XX(Shader, BCFX_CONFIG_MAX_SHADER) \
@@ -225,7 +224,9 @@ BCFX_API void bcfx_setFrameCompletedCallback(bcfx_OnFrameCompleted cb, void* ud)
   XX(Uniform, BCFX_CONFIG_MAX_UNIFORM) \
   XX(Sampler, BCFX_CONFIG_MAX_SAMPLER) \
   XX(Texture, BCFX_CONFIG_MAX_TEXTURE) \
-  XX(FrameBuffer, BCFX_CONFIG_MAX_FRAME_BUFFER)
+  XX(FrameBuffer, BCFX_CONFIG_MAX_FRAME_BUFFER) \
+  XX(InstanceDataBuffer, BCFX_CONFIG_MAX_INSTANCE_DATA_BUFFER) \
+  XX(TextureBuffer, BCFX_CONFIG_MAX_TEXTURE_BUFFER)
 
 // clang-format off
 typedef enum {
@@ -243,9 +244,8 @@ typedef uint16_t bcfx_Handle;
 BCFX_API bcfx_EHandleType bcfx_handleType(bcfx_Handle handle);
 BCFX_API const char* bcfx_handleTypeName(bcfx_EHandleType type);
 
-BCFX_API bcfx_Handle bcfx_createVertexLayout(bcfx_VertexLayout* layout);
-BCFX_API bcfx_Handle bcfx_createVertexBuffer(luaL_MemBuffer* mem, bcfx_Handle layoutHandle);
-BCFX_API bcfx_Handle bcfx_createDynamicVertexBuffer(size_t size, bcfx_Handle layoutHandle);
+BCFX_API bcfx_Handle bcfx_createVertexBuffer(luaL_MemBuffer* mem, bcfx_VertexLayout* layout);
+BCFX_API bcfx_Handle bcfx_createDynamicVertexBuffer(size_t size, bcfx_VertexLayout* layout);
 
 // WARNING: Change bcfx_EIndexType must Update sizeof_IndexType and index_glType
 typedef enum {
@@ -328,6 +328,12 @@ BCFX_API bcfx_Handle bcfx_createRenderTexture(bcfx_ETextureFormat format, uint16
 
 BCFX_API bcfx_Handle bcfx_createFrameBuffer(uint8_t num, bcfx_Handle* handles);
 
+BCFX_API bcfx_Handle bcfx_createInstanceDataBuffer(luaL_MemBuffer* mem, uint32_t numVec4PerInstance);
+BCFX_API bcfx_Handle bcfx_createDynamicInstanceDataBuffer(uint32_t numInstance, uint32_t numVec4PerInstance);
+
+BCFX_API bcfx_Handle bcfx_createTextureBuffer(luaL_MemBuffer* mem, bcfx_ETextureFormat format);
+BCFX_API bcfx_Handle bcfx_createDynamicTextureBuffer(size_t size, bcfx_ETextureFormat format);
+
 /* }====================================================== */
 
 /*
@@ -338,8 +344,7 @@ BCFX_API bcfx_Handle bcfx_createFrameBuffer(uint8_t num, bcfx_Handle* handles);
 
 BCFX_API void bcfx_updateProgram(bcfx_Handle handle, bcfx_Handle vs, bcfx_Handle fs);
 // offset measured in bytes, the same as the size of mem
-BCFX_API void bcfx_updateDynamicVertexBuffer(bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem);
-BCFX_API void bcfx_updateDynamicIndexBuffer(bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem);
+BCFX_API void bcfx_updateDynamicBuffer(bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem);
 
 /* }====================================================== */
 

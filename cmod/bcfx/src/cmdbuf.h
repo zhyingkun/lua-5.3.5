@@ -16,8 +16,7 @@ typedef enum {
   BCFX_RESOURCE_MAP(XX)
 #undef XX
   /* Update Render Resource */
-  CT_UpdateVertexBuffer,
-  CT_UpdateIndexBuffer,
+  CT_UpdateBuffer,
   /* Above/Below command will be processed before/after DrawCall */
   CT_End,
   /* Destroy Render Resource */
@@ -32,13 +31,10 @@ typedef void (*ReleaseVertexLayout)(void* ud, bcfx_VertexLayout* layout);
   if ((cvl)->release) \
   (cvl)->release((cvl)->ud, (cvl)->layout)
 typedef struct {
+  luaL_MemBuffer mem;
   bcfx_VertexLayout* layout;
   ReleaseVertexLayout release;
   void* ud;
-} CmdVertexLayout;
-typedef struct {
-  luaL_MemBuffer mem;
-  bcfx_Handle layoutHandle;
 } CmdVertexBuffer;
 typedef struct {
   luaL_MemBuffer mem;
@@ -124,16 +120,20 @@ typedef struct {
 } CmdFrameBuffer;
 
 typedef struct {
-  size_t offset;
   luaL_MemBuffer mem;
-} CmdUpdateVertexBuffer;
+  uint32_t numVec4PerInstance;
+} CmdInstanceDataBuffer;
+typedef struct {
+  luaL_MemBuffer mem;
+  bcfx_ETextureFormat format;
+} CmdTextureBuffer;
+
 typedef struct {
   size_t offset;
   luaL_MemBuffer mem;
-} CmdUpdateIndexBuffer;
+} CmdUpdateBuffer;
 
 typedef union {
-  CmdVertexLayout cvl;
   CmdVertexBuffer cvb;
   CmdIndexBuffer cib;
   CmdShader cs;
@@ -142,9 +142,10 @@ typedef union {
   CmdSampler csa;
   CmdTexture ct;
   CmdFrameBuffer cfb;
+  CmdInstanceDataBuffer cidb;
+  CmdTextureBuffer ctb;
 
-  CmdUpdateVertexBuffer cuvb;
-  CmdUpdateIndexBuffer cuib;
+  CmdUpdateBuffer cub;
 } CommandParam;
 
 typedef struct {

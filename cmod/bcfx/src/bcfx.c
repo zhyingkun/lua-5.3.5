@@ -32,8 +32,8 @@ BCFX_API void bcfx_vertexLayoutAdd(bcfx_VertexLayout* layout, bcfx_EVertexAttrib
   layout->stride += sizeof_AttribType[type] * num;
 }
 
-BCFX_API void bcfx_vertexLayoutSkip(bcfx_VertexLayout* layout, uint8_t num_byte) {
-  layout->stride += num_byte;
+BCFX_API void bcfx_vertexLayoutSkip(bcfx_VertexLayout* layout, uint8_t numByte) {
+  layout->stride += numByte;
 }
 
 BCFX_API void bcfx_vertexLayoutClear(bcfx_VertexLayout* layout) {
@@ -116,22 +116,16 @@ uint8_t sizeof_EUniformType[] = {
     sizeof(uint32_t),
 };
 
-BCFX_API bcfx_Handle bcfx_createVertexLayout(bcfx_VertexLayout* layout) {
-  return ctx_createVertexLayout(s_ctx, layout);
+BCFX_API bcfx_Handle bcfx_createVertexBuffer(luaL_MemBuffer* mem, bcfx_VertexLayout* layout) {
+  return ctx_createVertexBuffer(s_ctx, mem, layout);
 }
-
-BCFX_API bcfx_Handle bcfx_createVertexBuffer(luaL_MemBuffer* mem, bcfx_Handle layoutHandle) {
-  return ctx_createVertexBuffer(s_ctx, mem, layoutHandle);
-}
-
-BCFX_API bcfx_Handle bcfx_createDynamicVertexBuffer(size_t size, bcfx_Handle layoutHandle) {
-  return ctx_createDynamicVertexBuffer(s_ctx, size, layoutHandle);
+BCFX_API bcfx_Handle bcfx_createDynamicVertexBuffer(size_t size, bcfx_VertexLayout* layout) {
+  return ctx_createDynamicVertexBuffer(s_ctx, size, layout);
 }
 
 BCFX_API bcfx_Handle bcfx_createIndexBuffer(luaL_MemBuffer* mem, bcfx_EIndexType type) {
   return ctx_createIndexBuffer(s_ctx, mem, type);
 }
-
 BCFX_API bcfx_Handle bcfx_createDynamicIndexBuffer(size_t size, bcfx_EIndexType type) {
   return ctx_createDynamicIndexBuffer(s_ctx, size, type);
 }
@@ -188,6 +182,20 @@ BCFX_API bcfx_Handle bcfx_createFrameBuffer(uint8_t num, bcfx_Handle* handles) {
   return ctx_createFrameBuffer(s_ctx, num, handles);
 }
 
+BCFX_API bcfx_Handle bcfx_createInstanceDataBuffer(luaL_MemBuffer* mem, uint32_t numVec4PerInstance) {
+  return ctx_createInstanceDataBuffer(s_ctx, mem, numVec4PerInstance);
+}
+BCFX_API bcfx_Handle bcfx_createDynamicInstanceDataBuffer(uint32_t numInstance, uint32_t numVec4PerInstance) {
+  return ctx_createDynamicInstanceDataBuffer(s_ctx, numInstance, numVec4PerInstance);
+}
+
+BCFX_API bcfx_Handle bcfx_createTextureBuffer(luaL_MemBuffer* mem, bcfx_ETextureFormat format) {
+  return ctx_createTextureBuffer(s_ctx, mem, format);
+}
+BCFX_API bcfx_Handle bcfx_createDynamicTextureBuffer(size_t size, bcfx_ETextureFormat format) {
+  return ctx_createDynamicTextureBuffer(s_ctx, size, format);
+}
+
 /* }====================================================== */
 
 /*
@@ -200,12 +208,8 @@ BCFX_API void bcfx_updateProgram(bcfx_Handle handle, bcfx_Handle vs, bcfx_Handle
   ctx_updateProgram(s_ctx, handle, vs, fs);
 }
 
-BCFX_API void bcfx_updateDynamicVertexBuffer(bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem) {
-  ctx_updateDynamicVertexBuffer(s_ctx, handle, offset, mem);
-}
-
-BCFX_API void bcfx_updateDynamicIndexBuffer(bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem) {
-  ctx_updateDynamicIndexBuffer(s_ctx, handle, offset, mem);
+BCFX_API void bcfx_updateDynamicBuffer(bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem) {
+  ctx_updateDynamicBuffer(s_ctx, handle, offset, mem);
 }
 
 /* }====================================================== */

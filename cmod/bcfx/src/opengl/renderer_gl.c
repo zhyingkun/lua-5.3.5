@@ -254,20 +254,14 @@ static void gl_endFrame(RendererContext* ctx) {
 static void gl_shutdown(RendererContext* ctx) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
 
-  for (size_t i = 0; i < BCFX_CONFIG_MAX_INDEX_BUFFER; i++) {
-    IndexBufferGL* ib = &glCtx->indexBuffers[i];
-    if (ib->id != 0) {
-      GL_CHECK(glDeleteBuffers(1, &ib->id));
-      ib->id = 0;
-    }
-  }
-  memset(glCtx->vertexBuffers, 0, sizeof(bcfx_VertexLayout) * BCFX_CONFIG_MAX_VERTEX_LAYOUT);
   for (size_t i = 0; i < BCFX_CONFIG_MAX_VERTEX_BUFFER; i++) {
     VertexBufferGL* vb = &glCtx->vertexBuffers[i];
-    if (vb->id != 0) {
-      GL_CHECK(glDeleteBuffers(1, &vb->id));
-      vb->id = 0;
-    }
+    gl_destroyBufferGPU(&vb->buffer);
+    memset(&vb->layout, 0, sizeof(bcfx_VertexLayout));
+  }
+  for (size_t i = 0; i < BCFX_CONFIG_MAX_INDEX_BUFFER; i++) {
+    IndexBufferGL* ib = &glCtx->indexBuffers[i];
+    gl_destroyBufferGPU(&ib->buffer);
   }
   for (size_t i = 0; i < BCFX_CONFIG_MAX_SHADER; i++) {
     ShaderGL* shader = &glCtx->shaders[i];
@@ -283,12 +277,39 @@ static void gl_shutdown(RendererContext* ctx) {
       prog->id = 0;
     }
   }
+  // TODO: free memory which allocated in UniformGL
   memset(glCtx->uniforms, 0, sizeof(UniformGL) * BCFX_CONFIG_MAX_UNIFORM);
+  for (size_t i = 0; i < BCFX_CONFIG_MAX_SAMPLER; i++) {
+    SamplerGL* sampler = &glCtx->samplers[i];
+    if (sampler->id != 0) {
+      GL_CHECK(glDeleteSamplers(1, &sampler->id));
+      sampler->id = 0;
+    }
+  }
   for (size_t i = 0; i < BCFX_CONFIG_MAX_TEXTURE; i++) {
     TextureGL* texture = &glCtx->textures[i];
     if (texture->id != 0) {
       GL_CHECK(glDeleteTextures(1, &texture->id));
       texture->id = 0;
+    }
+  }
+  for (size_t i = 0; i < BCFX_CONFIG_MAX_FRAME_BUFFER; i++) {
+    FrameBufferGL* fb = &glCtx->frameBuffers[i];
+    if (fb->id != 0) {
+      GL_CHECK(glDeleteFramebuffers(1, &fb->id));
+      fb->id = 0;
+    }
+  }
+  for (size_t i = 0; i < BCFX_CONFIG_MAX_INSTANCE_DATA_BUFFER; i++) {
+    InstanceDataBufferGL* idb = &glCtx->instanceDataBuffers[i];
+    gl_destroyBufferGPU(&idb->buffer);
+  }
+  for (size_t i = 0; i < BCFX_CONFIG_MAX_TEXTURE_BUFFER; i++) {
+    TextureBufferGL* tb = &glCtx->textureBuffers[i];
+    gl_destroyBufferGPU(&tb->buffer);
+    if (tb->textureID != 0) {
+      GL_CHECK(glDeleteTextures(1, &tb->textureID));
+      tb->textureID = 0;
     }
   }
 
@@ -307,36 +328,19 @@ static void gl_flip(RendererContext* ctx) {
   }
 }
 
-static void gl_createVertexLayout(RendererContext* ctx, bcfx_Handle handle, const bcfx_VertexLayout* layout) {
-  RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  glCtx->vertexLayouts[handle_index(handle)] = *layout;
-}
-static void gl_createVertexBuffer(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_Handle layoutHandle) {
+static void gl_createVertexBuffer(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, const bcfx_VertexLayout* layout) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
-  // bcfx_VertexLayout* layout = &glCtx->vertexLayouts[handle_index(layoutHandle)];
   // vb->count = mem->sz / layout->stride;
-  vb->layout = layoutHandle;
-  vb->bIsDynamic = mem->ptr == NULL;
-  vb->size = mem->sz;
-  GL_CHECK(glGenBuffers(1, &vb->id));
-  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
-  GL_CHECK(glBufferData(GL_ARRAY_BUFFER, vb->size, mem->ptr, vb->bIsDynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
-  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
-  MEMBUFFER_RELEASE(mem);
+  vb->layout = *layout;
+  gl_createBufferGPU(&vb->buffer, mem, GL_ARRAY_BUFFER);
 }
 static void gl_createIndexBuffer(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_EIndexType type) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
   ib->count = mem->sz / sizeof_IndexType[type];
   ib->type = type;
-  ib->bIsDynamic = mem->ptr == NULL;
-  ib->size = mem->sz;
-  GL_CHECK(glGenBuffers(1, &ib->id));
-  GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
-  GL_CHECK(glBufferData(GL_ELEMENT_ARRAY_BUFFER, ib->size, mem->ptr, ib->bIsDynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
-  GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-  MEMBUFFER_RELEASE(mem);
+  gl_createBufferGPU(&ib->buffer, mem, GL_ELEMENT_ARRAY_BUFFER);
 }
 static void gl_createShader(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_EShaderType type) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
@@ -463,7 +467,7 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
       ParamTexture2D* p = &param->value.t2d;
       GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
       GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
-      assert(p->mem.sz == p->width * p->height * fi->pixelSizeByte);
+      assert(p->mem.ptr == NULL || p->mem.sz == p->width * p->height * fi->pixelSizeByte);
       GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, fi->internalFormat, p->width, p->height, 0, fi->format, fi->type, p->mem.ptr));
       if (p->bGenMipmap) {
         GL_CHECK(glGenerateMipmap(GL_TEXTURE_2D));
@@ -571,29 +575,51 @@ static void gl_createFrameBuffer(RendererContext* ctx, bcfx_Handle handle, uint8
   }
   GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
-
-static void gl_updateVertexBuffer(RendererContext* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem) {
+static void gl_createInstanceDataBuffer(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, uint32_t numVec4PerInstance) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
-  CHECK_DYNAMIC_BUFFER(vb);
-  size_t size = mem->sz;
-  CLAMP_OFFSET_COUNT(vb->size, offset, size);
-  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
-  GL_CHECK(glBufferSubData(GL_ARRAY_BUFFER, offset, size, mem->ptr));
-  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
-  MEMBUFFER_RELEASE(mem);
+  InstanceDataBufferGL* idb = &glCtx->instanceDataBuffers[handle_index(handle)];
+  idb->numVec4PerInstance = numVec4PerInstance;
+  gl_createBufferGPU(&idb->buffer, mem, GL_ARRAY_BUFFER);
+}
+static void gl_createTextureBuffer(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_ETextureFormat format) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  TextureBufferGL* tb = &glCtx->textureBuffers[handle_index(handle)];
+  tb->format = format;
+  gl_createBufferGPU(&tb->buffer, mem, GL_TEXTURE_BUFFER);
+  GL_CHECK(glGenTextures(1, &tb->textureID));
+  GL_CHECK(glBindTexture(GL_TEXTURE_BUFFER, tb->textureID));
+  GL_CHECK(glTexBuffer(GL_TEXTURE_BUFFER, textureFormat_glType[format].internalFormat, tb->buffer.id));
+  GL_CHECK(glBindTexture(GL_TEXTURE_BUFFER, 0));
 }
 
-static void gl_updateIndexBuffer(RendererContext* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem) {
+static void gl_updateBuffer(RendererContext* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
-  CHECK_DYNAMIC_BUFFER(ib);
-  size_t size = mem->sz;
-  CLAMP_OFFSET_COUNT(ib->size, offset, size);
-  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, ib->id));
-  GL_CHECK(glBufferSubData(GL_ARRAY_BUFFER, offset, size, mem->ptr));
-  GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
-  MEMBUFFER_RELEASE(mem);
+  bcfx_EHandleType type = handle_type(handle);
+  switch (type) {
+    case HT_VertexBuffer: {
+      VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
+      CHECK_DYNAMIC_BUFFER(&vb->buffer);
+      gl_updateBufferGPU(&vb->buffer, offset, mem, GL_ARRAY_BUFFER);
+    } break;
+    case HT_IndexBuffer: {
+      IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
+      CHECK_DYNAMIC_BUFFER(&ib->buffer);
+      gl_updateBufferGPU(&ib->buffer, offset, mem, GL_ELEMENT_ARRAY_BUFFER);
+    } break;
+    case HT_InstanceDataBuffer: {
+      InstanceDataBufferGL* idb = &glCtx->instanceDataBuffers[handle_index(handle)];
+      CHECK_DYNAMIC_BUFFER(&idb->buffer);
+      gl_updateBufferGPU(&idb->buffer, offset, mem, GL_ARRAY_BUFFER);
+    } break;
+    case HT_TextureBuffer: {
+      TextureBufferGL* tb = &glCtx->textureBuffers[handle_index(handle)];
+      CHECK_DYNAMIC_BUFFER(&tb->buffer);
+      gl_updateBufferGPU(&tb->buffer, offset, mem, GL_TEXTURE_BUFFER);
+    } break;
+    default:
+      printf_err("Update buffer with error handle: %d, %s\n", handle, handle_typename(type));
+      break;
+  }
 }
 
 static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
@@ -731,7 +757,7 @@ static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw
     }
   } else {
     IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
-    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->id));
+    GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib->buffer.id));
     // Index Count
     GLsizei total = ib->count;
     GLsizei start = draw->indexStart; // count in indices
@@ -789,22 +815,17 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
   gl_MakeWinCurrent(glCtx, NULL, 0); // set mainWin framebuffer to 0 for fixed swap nothing error in MacOSX
 }
 
-static void gl_destroyVertexLayout(RendererContext* ctx, bcfx_Handle handle) {
-  RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  bcfx_VertexLayout* vl = &glCtx->vertexLayouts[handle_index(handle)];
-  memset((uint8_t*)vl, 0, sizeof(bcfx_VertexLayout));
-}
 static void gl_destroyVertexBuffer(RendererContext* ctx, bcfx_Handle handle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
-  GL_CHECK(glDeleteBuffers(1, &vb->id));
-  vb->id = 0;
+  gl_destroyBufferGPU(&vb->buffer);
+  bcfx_VertexLayout* vl = &vb->layout;
+  memset((uint8_t*)vl, 0, sizeof(bcfx_VertexLayout));
 }
 static void gl_destroyIndexBuffer(RendererContext* ctx, bcfx_Handle handle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
-  GL_CHECK(glDeleteBuffers(1, &ib->id));
-  ib->id = 0;
+  gl_destroyBufferGPU(&ib->buffer);
 }
 static void gl_destroyShader(RendererContext* ctx, bcfx_Handle handle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
@@ -848,6 +869,16 @@ static void gl_destroyFrameBuffer(RendererContext* ctx, bcfx_Handle handle) {
   GL_CHECK(glDeleteFramebuffers(1, &fb->id));
   fb->id = 0;
 }
+static void gl_destroyInstanceDataBuffer(RendererContext* ctx, bcfx_Handle handle) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  InstanceDataBufferGL* idb = &glCtx->instanceDataBuffers[handle_index(handle)];
+  gl_destroyBufferGPU(&idb->buffer);
+}
+static void gl_destroyTextureBuffer(RendererContext* ctx, bcfx_Handle handle) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  TextureBufferGL* tb = &glCtx->textureBuffers[handle_index(handle)];
+  gl_destroyBufferGPU(&tb->buffer);
+}
 
 RendererContext* CreateRendererGL(void) {
   RendererContextGL* glCtx = (RendererContextGL*)mem_malloc(sizeof(RendererContextGL));
@@ -857,7 +888,6 @@ RendererContext* CreateRendererGL(void) {
   renderer->init = gl_init;
   renderer->shutdown = gl_shutdown;
 
-  renderer->createVertexLayout = gl_createVertexLayout;
   renderer->createVertexBuffer = gl_createVertexBuffer;
   renderer->createIndexBuffer = gl_createIndexBuffer;
   renderer->createShader = gl_createShader;
@@ -866,16 +896,16 @@ RendererContext* CreateRendererGL(void) {
   renderer->createSampler = gl_createSampler;
   renderer->createTexture = gl_createTexture;
   renderer->createFrameBuffer = gl_createFrameBuffer;
+  renderer->createInstanceDataBuffer = gl_createInstanceDataBuffer;
+  renderer->createTextureBuffer = gl_createTextureBuffer;
 
-  renderer->updateVertexBuffer = gl_updateVertexBuffer;
-  renderer->updateIndexBuffer = gl_updateIndexBuffer;
+  renderer->updateBuffer = gl_updateBuffer;
 
   renderer->beginFrame = gl_beginFrame;
   renderer->submit = gl_submit;
   renderer->endFrame = gl_endFrame;
   renderer->flip = gl_flip;
 
-  renderer->destroyVertexLayout = gl_destroyVertexLayout;
   renderer->destroyVertexBuffer = gl_destroyVertexBuffer;
   renderer->destroyIndexBuffer = gl_destroyIndexBuffer;
   renderer->destroyShader = gl_destroyShader;
@@ -884,6 +914,8 @@ RendererContext* CreateRendererGL(void) {
   renderer->destroySampler = gl_destroySampler;
   renderer->destroyTexture = gl_destroyTexture;
   renderer->destroyFrameBuffer = gl_destroyFrameBuffer;
+  renderer->destroyInstanceDataBuffer = gl_destroyInstanceDataBuffer;
+  renderer->destroyTextureBuffer = gl_destroyTextureBuffer;
 
   return renderer;
 }

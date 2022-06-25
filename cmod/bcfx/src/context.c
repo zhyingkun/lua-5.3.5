@@ -7,6 +7,7 @@
 #define HANDLE_TYPE(handle) handle_type(handle)
 #define HANDLE_TYPENAME(handle) handle_typename(handle_type(handle))
 
+#define CHECK_HANDLE_VALID(handle, targetType) assert(HANDLE_ISVALID(handle))
 #define CHECK_HANDLE(handle, targetType) assert(HANDLE_TYPE(handle) == (targetType) && HANDLE_ISVALID(handle))
 #define CHECK_HANDLE_IF_VALID(handle, targetType) assert((handle) == kInvalidHandle || (HANDLE_TYPE(handle) == (targetType) && HANDLE_ISVALID(handle)))
 
@@ -63,8 +64,7 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
     printf_err("Error: " #type " Command should not be used in CommandBuffer!"); \
     break
       /* Create Render Resource */
-      CASE_CALL_RENDERER(CreateVertexLayout, createVertexLayout, cmd->handle, param->cvl.layout);
-      CASE_CALL_RENDERER(CreateVertexBuffer, createVertexBuffer, cmd->handle, &param->cvb.mem, param->cvb.layoutHandle);
+      CASE_CALL_RENDERER(CreateVertexBuffer, createVertexBuffer, cmd->handle, &param->cvb.mem, param->cvb.layout);
       CASE_CALL_RENDERER(CreateIndexBuffer, createIndexBuffer, cmd->handle, &param->cib.mem, param->cib.type);
       CASE_CALL_RENDERER(CreateShader, createShader, cmd->handle, &param->cs.mem, param->cs.type);
       CASE_CALL_RENDERER(CreateProgram, createProgram, cmd->handle, param->cp.vsHandle, param->cp.fsHandle);
@@ -72,13 +72,13 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
       CASE_CALL_RENDERER(CreateSampler, createSampler, cmd->handle, param->csa.flags);
       CASE_CALL_RENDERER(CreateTexture, createTexture, cmd->handle, &param->ct);
       CASE_CALL_RENDERER(CreateFrameBuffer, createFrameBuffer, cmd->handle, param->cfb.num, param->cfb.handles);
+      CASE_CALL_RENDERER(CreateInstanceDataBuffer, createInstanceDataBuffer, cmd->handle, &param->cidb.mem, param->cidb.numVec4PerInstance);
+      CASE_CALL_RENDERER(CreateTextureBuffer, createTextureBuffer, cmd->handle, &param->ctb.mem, param->ctb.format);
       /* Update Render Resource */
-      CASE_CALL_RENDERER(UpdateVertexBuffer, updateVertexBuffer, cmd->handle, param->cuvb.offset, &param->cuvb.mem);
-      CASE_CALL_RENDERER(UpdateIndexBuffer, updateIndexBuffer, cmd->handle, param->cuib.offset, &param->cuib.mem);
+      CASE_CALL_RENDERER(UpdateBuffer, updateBuffer, cmd->handle, param->cub.offset, &param->cub.mem);
       /* Above/Below command will be processed before/after DrawCall */
       CASE_PRINTF_ERR(End);
       /* Destroy Render Resource */
-      CASE_CALL_RENDERER(DestroyVertexLayout, destroyVertexLayout, cmd->handle);
       CASE_CALL_RENDERER(DestroyVertexBuffer, destroyVertexBuffer, cmd->handle);
       CASE_CALL_RENDERER(DestroyIndexBuffer, destroyIndexBuffer, cmd->handle);
       CASE_CALL_RENDERER(DestroyShader, destroyShader, cmd->handle);
@@ -87,13 +87,15 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
       CASE_CALL_RENDERER(DestroySampler, destroySampler, cmd->handle);
       CASE_CALL_RENDERER(DestroyTexture, destroyTexture, cmd->handle);
       CASE_CALL_RENDERER(DestroyFrameBuffer, destroyFrameBuffer, cmd->handle);
+      CASE_CALL_RENDERER(DestroyInstanceDataBuffer, destroyInstanceDataBuffer, cmd->handle);
+      CASE_CALL_RENDERER(DestroyTextureBuffer, destroyTextureBuffer, cmd->handle);
 #undef CASE_PRINTF_ERR
 #undef CASE_CALL_RENDERER
       default:
         break;
     }
-    if (cmd->type == CT_CreateVertexLayout) {
-      RELEASE_VERCTX_LAYOUT(&param->cvl);
+    if (cmd->type == CT_CreateVertexBuffer) {
+      RELEASE_VERCTX_LAYOUT(&param->cvb);
     }
   }
 }
@@ -300,30 +302,20 @@ static void _releaseVertexLayout(void* ud, bcfx_VertexLayout* layout) {
   (void)ud;
   mem_free((void*)layout);
 }
-bcfx_Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout) {
-  ADD_CMD_ALLOC_HANDLE(ctx, VertexLayout)
-  bcfx_VertexLayout* ly = (bcfx_VertexLayout*)mem_malloc(sizeof(bcfx_VertexLayout));
-  *ly = *layout;
-  param->cvl.layout = ly;
-  param->cvl.release = _releaseVertexLayout;
-  param->cvl.ud = NULL;
-  return handle;
-}
-
-bcfx_Handle ctx_createVertexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_Handle layoutHandle) {
-  CHECK_HANDLE(layoutHandle, HT_VertexLayout);
+bcfx_Handle ctx_createVertexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_VertexLayout* layout) {
   ADD_CMD_ALLOC_HANDLE(ctx, VertexBuffer)
   MEMBUFFER_MOVE(mem, &param->cvb.mem);
-  param->cvb.layoutHandle = layoutHandle;
+  bcfx_VertexLayout* ly = (bcfx_VertexLayout*)mem_malloc(sizeof(bcfx_VertexLayout));
+  *ly = *layout;
+  param->cvb.layout = ly;
+  param->cvb.release = _releaseVertexLayout;
+  param->cvb.ud = NULL;
   return handle;
 }
-
-bcfx_Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size, bcfx_Handle layoutHandle) {
-  CHECK_HANDLE_IF_VALID(layoutHandle, HT_VertexLayout);
-  ADD_CMD_ALLOC_HANDLE(ctx, VertexBuffer)
-  MEMBUFFER_SET(&param->cvb.mem, NULL, size, NULL, NULL);
-  param->cvb.layoutHandle = layoutHandle;
-  return handle;
+bcfx_Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size, bcfx_VertexLayout* layout) {
+  luaL_MemBuffer mb[1];
+  MEMBUFFER_SET(mb, NULL, size, NULL, NULL);
+  return ctx_createVertexBuffer(ctx, mb, layout);
 }
 
 bcfx_Handle ctx_createIndexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_EIndexType type) {
@@ -332,7 +324,6 @@ bcfx_Handle ctx_createIndexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_EIndex
   param->cib.type = type;
   return handle;
 }
-
 bcfx_Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size, bcfx_EIndexType type) {
   ADD_CMD_ALLOC_HANDLE(ctx, IndexBuffer)
   MEMBUFFER_SET(&param->cib.mem, NULL, size, NULL, NULL);
@@ -390,7 +381,6 @@ bcfx_Handle ctx_createTexture1D(Context* ctx, bcfx_ETextureFormat format, luaL_M
   t1d->bGenMipmap = bGenMipmap;
   return handle;
 }
-
 bcfx_Handle ctx_createTexture1DArray(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t layers, bool bGenMipmap) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   INIT_TEXTURE_PARAM(Texture1DArray);
@@ -404,7 +394,6 @@ bcfx_Handle ctx_createTexture1DArray(Context* ctx, bcfx_ETextureFormat format, l
   t1da->bGenMipmap = bGenMipmap;
   return handle;
 }
-
 bcfx_Handle ctx_createTexture2D(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bool bGenMipmap) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   INIT_TEXTURE_PARAM(Texture2D);
@@ -415,7 +404,6 @@ bcfx_Handle ctx_createTexture2D(Context* ctx, bcfx_ETextureFormat format, luaL_M
   t2d->bGenMipmap = bGenMipmap;
   return handle;
 }
-
 bcfx_Handle ctx_createTexture2DArray(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t layers, bool bGenMipmap) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   INIT_TEXTURE_PARAM(Texture2DArray);
@@ -430,7 +418,6 @@ bcfx_Handle ctx_createTexture2DArray(Context* ctx, bcfx_ETextureFormat format, l
   t2da->bGenMipmap = bGenMipmap;
   return handle;
 }
-
 bcfx_Handle ctx_createTexture3D(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t depth, bool bGenMipmap) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   INIT_TEXTURE_PARAM(Texture3D);
@@ -445,7 +432,6 @@ bcfx_Handle ctx_createTexture3D(Context* ctx, bcfx_ETextureFormat format, luaL_M
   t3d->bGenMipmap = bGenMipmap;
   return handle;
 }
-
 bcfx_Handle ctx_createTextureCubeMap(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mb6, uint16_t width, uint16_t height, bool bGenMipmap) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   INIT_TEXTURE_PARAM(TextureCubeMap);
@@ -459,7 +445,6 @@ bcfx_Handle ctx_createTextureCubeMap(Context* ctx, bcfx_ETextureFormat format, l
   tcm->bGenMipmap = bGenMipmap;
   return handle;
 }
-
 bcfx_Handle ctx_createTexture2DMipmap(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t levels) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   INIT_TEXTURE_PARAM(Texture2DMipmap);
@@ -494,6 +479,35 @@ bcfx_Handle ctx_createFrameBuffer(Context* ctx, uint8_t num, bcfx_Handle* handle
   return handle;
 }
 
+bcfx_Handle ctx_createInstanceDataBuffer(Context* ctx, luaL_MemBuffer* mem, uint32_t numVec4PerInstance) {
+  ADD_CMD_ALLOC_HANDLE(ctx, InstanceDataBuffer)
+  MEMBUFFER_MOVE(mem, &param->cidb.mem);
+  param->cidb.numVec4PerInstance = numVec4PerInstance;
+  return handle;
+}
+bcfx_Handle ctx_createDynamicInstanceDataBuffer(Context* ctx, uint32_t numInstance, uint32_t numVec4PerInstance) {
+  ADD_CMD_ALLOC_HANDLE(ctx, InstanceDataBuffer)
+  const uint8_t numFloatPerVec4 = 4;
+  const uint8_t numBytePerFloat = 4;
+  size_t sz = numInstance * numVec4PerInstance * numFloatPerVec4 * numBytePerFloat;
+  MEMBUFFER_SET(&param->cidb.mem, NULL, sz, NULL, NULL);
+  param->cidb.numVec4PerInstance = numVec4PerInstance;
+  return handle;
+}
+
+bcfx_Handle ctx_createTextureBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_ETextureFormat format) {
+  ADD_CMD_ALLOC_HANDLE(ctx, TextureBuffer)
+  MEMBUFFER_MOVE(mem, &param->ctb.mem);
+  param->ctb.format = format;
+  return handle;
+}
+bcfx_Handle ctx_createDynamicTextureBuffer(Context* ctx, size_t size, bcfx_ETextureFormat format) {
+  ADD_CMD_ALLOC_HANDLE(ctx, TextureBuffer)
+  MEMBUFFER_SET(&param->ctb.mem, NULL, size, NULL, NULL);
+  param->ctb.format = format;
+  return handle;
+}
+
 /* }====================================================== */
 
 /*
@@ -511,18 +525,11 @@ void ctx_updateProgram(Context* ctx, bcfx_Handle handle, bcfx_Handle vs, bcfx_Ha
   param->cp.fsHandle = fs;
 }
 
-void ctx_updateDynamicVertexBuffer(Context* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem) {
-  CHECK_HANDLE(handle, HT_VertexBuffer);
-  CommandParam* param = ctx_addCommand(ctx, CT_UpdateVertexBuffer, handle);
-  param->cuvb.offset = offset;
-  MEMBUFFER_MOVE(mem, &param->cuvb.mem);
-}
-
-void ctx_updateDynamicIndexBuffer(Context* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem) {
-  CHECK_HANDLE(handle, HT_IndexBuffer);
-  CommandParam* param = ctx_addCommand(ctx, CT_UpdateIndexBuffer, handle);
-  param->cuib.offset = offset;
-  MEMBUFFER_MOVE(mem, &param->cuib.mem);
+void ctx_updateDynamicBuffer(Context* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem) {
+  CHECK_HANDLE_VALID(handle, HT_VertexBuffer);
+  CommandParam* param = ctx_addCommand(ctx, CT_UpdateBuffer, handle);
+  param->cub.offset = offset;
+  MEMBUFFER_MOVE(mem, &param->cub.mem);
 }
 
 /* }====================================================== */
@@ -765,7 +772,7 @@ void ctx_setStencil(Context* ctx, bool enable, bcfx_StencilState front, bcfx_Ste
   encoder_setStencil(ctx->encoder, enable, front, back);
 }
 void ctx_setInstanceDataBuffer(Context* ctx, const bcfx_InstanceDataBuffer* idb, uint32_t start, uint32_t count) {
-  CHECK_HANDLE_IF_VALID(idb->handle, HT_VertexBuffer); // Support invalid instance buffer
+  CHECK_HANDLE_IF_VALID(idb->handle, HT_InstanceDataBuffer); // Support invalid instance data buffer
   encoder_setInstanceDataBuffer(ctx->encoder, idb, start, count);
 }
 

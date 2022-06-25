@@ -168,7 +168,7 @@ static bcfx_VertexLayout* find_vertexLayout(RendererContextGL* glCtx, RenderDraw
       Stream* stream = &draw->streams[i];
       if (HAS_BIT(stream->attribMask, (uint8_t)attr)) {
         VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(stream->vertexBuffer)];
-        bcfx_VertexLayout* layout = &glCtx->vertexLayouts[handle_index(vb->layout)];
+        bcfx_VertexLayout* layout = &vb->layout;
         if (layout->attributes[attr].num > 0) {
           if (target == NULL) {
             target = layout;
@@ -199,11 +199,11 @@ void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderD
     } else {
       if (attr == VA_Position) {
         // glCtx->curVertexCount = vb->count;
-        glCtx->curVertexCount = vb->size / layout->stride;
+        glCtx->curVertexCount = vb->buffer.size / layout->stride;
       }
-      if (curId != vb->id) {
-        curId = vb->id;
-        GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id)); // glVertexAttribPointer will save reference to this buffer
+      if (curId != vb->buffer.id) {
+        curId = vb->buffer.id;
+        GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, curId)); // glVertexAttribPointer will save reference to this buffer
       }
       GL_CHECK(glEnableVertexAttribArray(loc));
       GL_CHECK(glVertexAttribDivisor(loc, 0)); // indicated it's per vertex, not per instance
@@ -222,13 +222,13 @@ void gl_bindInstanceAttributes(RendererContextGL* glCtx, ProgramGL* prog, Render
   if (draw->instanceDataBuffer == kInvalidHandle) {
     return;
   }
-  VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(draw->instanceDataBuffer)];
+  InstanceDataBufferGL* idb = &glCtx->instanceDataBuffers[handle_index(draw->instanceDataBuffer)];
   GLsizei stride = sizeof(GLfloat) * 4 * draw->numAttrib;
   PredefinedAttrib* pa = &prog->pa;
   for (uint8_t i = 0; pa->instanceAttr[i] != -1; i++) {
     GLint loc = pa->instanceAttr[i];
     if (i < draw->numAttrib) {
-      GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, vb->id));
+      GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, idb->buffer.id));
       GL_CHECK(glEnableVertexAttribArray(loc));
       GL_CHECK(glVertexAttribDivisor(loc, 1)); // indicated it's per instance, not per vertex
       void* offset = (void*)((long)draw->instanceDataOffset + sizeof(GLfloat) * 4 * i);

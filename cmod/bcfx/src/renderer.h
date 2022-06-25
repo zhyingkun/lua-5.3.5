@@ -18,8 +18,7 @@ typedef struct RendererContext RendererContext;
 typedef void (*RendererInit)(RendererContext* ctx, Window mainWin);
 typedef void (*RendererShutdown)(RendererContext* ctx);
 
-typedef void (*RendererCreateVertexLayout)(RendererContext* ctx, bcfx_Handle handle, const bcfx_VertexLayout* layout);
-typedef void (*RendererCreateVertexBuffer)(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_Handle layoutHandle);
+typedef void (*RendererCreateVertexBuffer)(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, const bcfx_VertexLayout* layout);
 typedef void (*RendererCreateIndexBuffer)(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_EIndexType type);
 typedef void (*RendererCreateShader)(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_EShaderType type);
 typedef void (*RendererCreateProgram)(RendererContext* ctx, bcfx_Handle handle, bcfx_Handle vsh, bcfx_Handle fsh);
@@ -27,9 +26,10 @@ typedef void (*RendererCreateUniform)(RendererContext* ctx, bcfx_Handle handle, 
 typedef void (*RendererCreateSampler)(RendererContext* ctx, bcfx_Handle handle, bcfx_SamplerFlag flags);
 typedef void (*RendererCreateTexture)(RendererContext* ctx, bcfx_Handle handle, CmdTexture* param);
 typedef void (*RendererCreateFrameBuffer)(RendererContext* ctx, bcfx_Handle handle, uint8_t num, bcfx_Handle* handles);
+typedef void (*RendererCreateInstanceDataBuffer)(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, uint32_t numVec4PerInstance);
+typedef void (*RendererCreateTextureBuffer)(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_ETextureFormat format);
 
-typedef void (*RendererUpdateVertexBuffer)(RendererContext* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem);
-typedef void (*RendererUpdateIndexBuffer)(RendererContext* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem);
+typedef void (*RendererUpdateBuffer)(RendererContext* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem);
 
 typedef void (*RendererBeginFrame)(RendererContext* ctx, Frame* frame);
 typedef void (*RendererSubmit)(RendererContext* ctx, Frame* frame);
@@ -45,12 +45,13 @@ typedef void (*RendererDestroyUniform)(RendererContext* ctx, bcfx_Handle handle)
 typedef void (*RendererDestroySampler)(RendererContext* ctx, bcfx_Handle handle);
 typedef void (*RendererDestroyTexture)(RendererContext* ctx, bcfx_Handle handle);
 typedef void (*RendererDestroyFrameBuffer)(RendererContext* ctx, bcfx_Handle handle);
+typedef void (*RendererDestroyInstanceDataBuffer)(RendererContext* ctx, bcfx_Handle handle);
+typedef void (*RendererDestroyTextureBuffer)(RendererContext* ctx, bcfx_Handle handle);
 
 struct RendererContext {
   RendererInit init;
   RendererShutdown shutdown;
 
-  RendererCreateVertexLayout createVertexLayout;
   RendererCreateVertexBuffer createVertexBuffer;
   RendererCreateIndexBuffer createIndexBuffer;
   RendererCreateShader createShader;
@@ -59,9 +60,10 @@ struct RendererContext {
   RendererCreateSampler createSampler;
   RendererCreateTexture createTexture;
   RendererCreateFrameBuffer createFrameBuffer;
+  RendererCreateInstanceDataBuffer createInstanceDataBuffer;
+  RendererCreateTextureBuffer createTextureBuffer;
 
-  RendererUpdateVertexBuffer updateVertexBuffer;
-  RendererUpdateIndexBuffer updateIndexBuffer;
+  RendererUpdateBuffer updateBuffer;
 
   RendererBeginFrame beginFrame;
   RendererSubmit submit;
@@ -77,6 +79,8 @@ struct RendererContext {
   RendererDestroySampler destroySampler;
   RendererDestroyTexture destroyTexture;
   RendererDestroyFrameBuffer destroyFrameBuffer;
+  RendererDestroyInstanceDataBuffer destroyInstanceDataBuffer;
+  RendererDestroyTextureBuffer destroyTextureBuffer;
 };
 
 typedef RendererContext* (*RendererCreator)(void);

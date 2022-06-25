@@ -52,11 +52,12 @@ void ctx_apiFrame(Context* ctx, uint32_t renderCount);
 void ctx_init(Context* ctx, Window mainWin);
 void ctx_shutdowm(Context* ctx);
 
-bcfx_Handle ctx_createVertexLayout(Context* ctx, bcfx_VertexLayout* layout);
-bcfx_Handle ctx_createVertexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_Handle layoutHandle);
-bcfx_Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size, bcfx_Handle layoutHandle);
+bcfx_Handle ctx_createVertexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_VertexLayout* layout);
+bcfx_Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size, bcfx_VertexLayout* layout);
+
 bcfx_Handle ctx_createIndexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_EIndexType type);
 bcfx_Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size, bcfx_EIndexType type);
+
 bcfx_Handle ctx_createShader(Context* ctx, luaL_MemBuffer* mem, bcfx_EShaderType type);
 bcfx_Handle ctx_createProgram(Context* ctx, bcfx_Handle vs, bcfx_Handle fs);
 bcfx_Handle ctx_createUniform(Context* ctx, const char* name, bcfx_EUniformType type, uint16_t num);
@@ -73,9 +74,14 @@ bcfx_Handle ctx_createTexture2DMipmap(Context* ctx, bcfx_ETextureFormat format, 
 bcfx_Handle ctx_createRenderTexture(Context* ctx, bcfx_ETextureFormat format, uint16_t width, uint16_t height);
 bcfx_Handle ctx_createFrameBuffer(Context* ctx, uint8_t num, bcfx_Handle* handles);
 
+bcfx_Handle ctx_createInstanceDataBuffer(Context* ctx, luaL_MemBuffer* mem, uint32_t numVec4PerInstance);
+bcfx_Handle ctx_createDynamicInstanceDataBuffer(Context* ctx, uint32_t numInstance, uint32_t numVec4PerInstance);
+
+bcfx_Handle ctx_createTextureBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_ETextureFormat format);
+bcfx_Handle ctx_createDynamicTextureBuffer(Context* ctx, size_t size, bcfx_ETextureFormat format);
+
 void ctx_updateProgram(Context* ctx, bcfx_Handle handle, bcfx_Handle vs, bcfx_Handle fs);
-void ctx_updateDynamicVertexBuffer(Context* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem);
-void ctx_updateDynamicIndexBuffer(Context* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem);
+void ctx_updateDynamicBuffer(Context* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem);
 
 void ctx_destroy(Context* ctx, bcfx_Handle handle);
 
