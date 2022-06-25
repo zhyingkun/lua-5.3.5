@@ -304,26 +304,19 @@ static bool urc_releaseCurrentUniform() {
 ** =======================================================
 */
 
-static int BCWRAP_FUNCTION(createVertexLayout)(lua_State* L) {
-  bcfx_VertexLayout* layout = luaL_checkvertexlayout(L, 1);
-
-  bcfx_Handle handle = bcfx_createVertexLayout(layout);
-  luaL_pushhandle(L, handle);
-  return 1;
-}
 static int BCWRAP_FUNCTION(createVertexBuffer)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  bcfx_Handle layoutHandle = luaL_checkinteger(L, 2);
+  bcfx_VertexLayout* layout = luaL_checkvertexlayout(L, 2);
 
-  bcfx_Handle handle = bcfx_createVertexBuffer(mb, layoutHandle);
+  bcfx_Handle handle = bcfx_createVertexBuffer(mb, layout);
   luaL_pushhandle(L, handle);
   return 1;
 }
 static int BCWRAP_FUNCTION(createDynamicVertexBuffer)(lua_State* L) {
   size_t size = luaL_checkinteger(L, 1);
-  bcfx_Handle layoutHandle = luaL_checkinteger(L, 2);
+  bcfx_VertexLayout* layout = luaL_checkvertexlayout(L, 2);
 
-  bcfx_Handle handle = bcfx_createDynamicVertexBuffer(size, layoutHandle);
+  bcfx_Handle handle = bcfx_createDynamicVertexBuffer(size, layout);
   luaL_pushhandle(L, handle);
   return 1;
 }
@@ -513,7 +506,38 @@ static int BCWRAP_FUNCTION(createFrameBuffer)(lua_State* L) {
   luaL_pushhandle(L, handle);
   return 1;
 }
+static int BCWRAP_FUNCTION(createInstanceDataBuffer)(lua_State* L) {
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  uint32_t numVec4PerInstance = luaL_checkinteger(L, 2);
 
+  bcfx_Handle handle = bcfx_createInstanceDataBuffer(mb, numVec4PerInstance);
+  luaL_pushhandle(L, handle);
+  return 1;
+}
+static int BCWRAP_FUNCTION(createDynamicInstanceDataBuffer)(lua_State* L) {
+  uint32_t numInstance = luaL_checkinteger(L, 1);
+  uint32_t numVec4PerInstance = luaL_checkinteger(L, 2);
+
+  bcfx_Handle handle = bcfx_createDynamicInstanceDataBuffer(numInstance, numVec4PerInstance);
+  luaL_pushhandle(L, handle);
+  return 1;
+}
+static int BCWRAP_FUNCTION(createTextureBuffer)(lua_State* L) {
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  bcfx_ETextureFormat format = luaL_checktextureformat(L, 2);
+
+  bcfx_Handle handle = bcfx_createTextureBuffer(mb, format);
+  luaL_pushhandle(L, handle);
+  return 1;
+}
+static int BCWRAP_FUNCTION(createDynamicTextureBuffer)(lua_State* L) {
+  size_t size = luaL_checkinteger(L, 1);
+  bcfx_ETextureFormat format = luaL_checktextureformat(L, 2);
+
+  bcfx_Handle handle = bcfx_createDynamicTextureBuffer(size, format);
+  luaL_pushhandle(L, handle);
+  return 1;
+}
 /* }====================================================== */
 
 /*
@@ -530,20 +554,12 @@ static int BCWRAP_FUNCTION(updateProgram)(lua_State* L) {
   bcfx_updateProgram(handle, vs, fs);
   return 0;
 }
-static int BCWRAP_FUNCTION(updateDynamicVertexBuffer)(lua_State* L) {
+static int BCWRAP_FUNCTION(updateDynamicBuffer)(lua_State* L) {
   bcfx_Handle handle = luaL_checkhandle(L, 1);
   size_t offset = luaL_checkinteger(L, 2);
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 3);
 
-  bcfx_updateDynamicVertexBuffer(handle, offset, mb);
-  return 0;
-}
-static int BCWRAP_FUNCTION(updateDynamicIndexBuffer)(lua_State* L) {
-  bcfx_Handle handle = luaL_checkhandle(L, 1);
-  size_t offset = luaL_checkinteger(L, 2);
-  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 3);
-
-  bcfx_updateDynamicIndexBuffer(handle, offset, mb);
+  bcfx_updateDynamicBuffer(handle, offset, mb);
   return 0;
 }
 
@@ -843,7 +859,6 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(apiFrame),
     EMPLACE_BCWRAP_FUNCTION(shutdown),
     /* Create Render Resource */
-    EMPLACE_BCWRAP_FUNCTION(createVertexLayout),
     EMPLACE_BCWRAP_FUNCTION(createVertexBuffer),
     EMPLACE_BCWRAP_FUNCTION(createDynamicVertexBuffer),
     EMPLACE_BCWRAP_FUNCTION(createIndexBuffer),
@@ -861,10 +876,13 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(createTexture2DMipmap),
     EMPLACE_BCWRAP_FUNCTION(createRenderTexture),
     EMPLACE_BCWRAP_FUNCTION(createFrameBuffer),
+    EMPLACE_BCWRAP_FUNCTION(createInstanceDataBuffer),
+    EMPLACE_BCWRAP_FUNCTION(createDynamicInstanceDataBuffer),
+    EMPLACE_BCWRAP_FUNCTION(createTextureBuffer),
+    EMPLACE_BCWRAP_FUNCTION(createDynamicTextureBuffer),
     /* Update Render Resource */
     EMPLACE_BCWRAP_FUNCTION(updateProgram),
-    EMPLACE_BCWRAP_FUNCTION(updateDynamicVertexBuffer),
-    EMPLACE_BCWRAP_FUNCTION(updateDynamicIndexBuffer),
+    EMPLACE_BCWRAP_FUNCTION(updateDynamicBuffer),
     /* Create Render Resource */
     EMPLACE_BCWRAP_FUNCTION(destroy),
     /* View */

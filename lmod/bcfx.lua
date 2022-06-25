@@ -700,22 +700,17 @@ end
 ---@type Handle
 bcfx.kInvalidHandle = libbcfx.kInvalidHandle
 
+---@param mb luaL_MemBuffer
 ---@param layout bcfx_VertexLayout
 ---@return Handle
-function bcfx.createVertexLayout(layout)
-	return libbcfx.createVertexLayout(layout)
-end
----@param mb luaL_MemBuffer
----@param layoutHandle Handle
----@return Handle
-function bcfx.createVertexBuffer(mb, layoutHandle)
-	return libbcfx.createVertexBuffer(mb, layoutHandle)
+function bcfx.createVertexBuffer(mb, layout)
+	return libbcfx.createVertexBuffer(mb, layout)
 end
 ---@param size integer
----@param layoutHandle Handle
+---@param layout bcfx_VertexLayout
 ---@return Handle
-function bcfx.createDynamicVertexBuffer(size, layoutHandle)
-	return libbcfx.createDynamicVertexBuffer(size, layoutHandle)
+function bcfx.createDynamicVertexBuffer(size, layout)
+	return libbcfx.createDynamicVertexBuffer(size, layout)
 end
 ---@param mb luaL_MemBuffer
 ---@param type bcfx_index_type
@@ -844,7 +839,7 @@ end
 
 ---@param numVec4PerInstance integer
 ---@param numInstance integer
-local function instanceDataBufferSize(numVec4PerInstance, numInstance)
+function bcfx.instanceDataBufferSize(numVec4PerInstance, numInstance)
 	--[[
 	local sizePerFloat = 4
 	local sizePerVec4 = 4 * sizePerFloat
@@ -853,14 +848,17 @@ local function instanceDataBufferSize(numVec4PerInstance, numInstance)
 	--]]
 	return 16 * numVec4PerInstance * numInstance
 end
-bcfx.instanceDataBufferSize = instanceDataBufferSize
-
+---@param mb luaL_MemBuffer
 ---@param numVec4PerInstance integer
----@param numInstance integer
 ---@return Handle
-function bcfx.createInstanceDataBuffer(numVec4PerInstance, numInstance)
-	local size = instanceDataBufferSize(numVec4PerInstance, numInstance)
-	return libbcfx.createDynamicVertexBuffer(size, libbcfx.kInvalidHandle)
+function bcfx.createInstanceDataBuffer(mb, numVec4PerInstance)
+	return libbcfx.createInstanceDataBuffer(mb, numVec4PerInstance)
+end
+---@param numInstance integer
+---@param numVec4PerInstance integer
+---@return Handle
+function bcfx.createDynamicInstanceDataBuffer(numInstance, numVec4PerInstance)
+	return libbcfx.createDynamicInstanceDataBuffer(numInstance, numVec4PerInstance)
 end
 
 -- }======================================================
@@ -878,23 +876,10 @@ function bcfx.updateProgram(handle, vs, fs)
 	libbcfx.updateProgram(handle, vs, fs)
 end
 ---@param handle Handle
----@param offset integer @ start point in vertex buffer for update
+---@param offset integer @ start byte in buffer for update
 ---@param mb luaL_MemBuffer
-function bcfx.updateDynamicVertexBuffer(handle, offset, mb)
-	libbcfx.updateDynamicVertexBuffer(handle, offset, mb)
-end
----@param handle Handle
----@param offset integer @ start point in index buffer for update
----@param mb luaL_MemBuffer
-function bcfx.updateDynamicIndexBuffer(handle, offset, mb)
-	libbcfx.updateDynamicIndexBuffer(handle, offset, mb)
-end
-
----@param handle Handle
----@param offset integer @ start point in instance data buffer for update
----@param mb luaL_MemBuffer
-function bcfx.updateInstanceDataBuffer(handle, offset, mb)
-	libbcfx.updateDynamicVertexBuffer(handle, offset, mb)
+function bcfx.updateDynamicBuffer(handle, offset, mb)
+	libbcfx.updateDynamicBuffer(handle, offset, mb)
 end
 
 -- }======================================================
@@ -1500,7 +1485,7 @@ end
 
 ---@class bcfx_VertexLayout:userdata
 ---@field public add fun(self:bcfx_VertexLayout, attrib:bcfx_vertex_attrib, num:integer, type:bcfx_attrib_type, normalized:boolean):void
----@field public skip fun(self:bcfx_VertexLayout, numbyte:integer):void
+---@field public skip fun(self:bcfx_VertexLayout, numByte:integer):void
 ---@field public clear fun(self:bcfx_VertexLayout):void
 
 ---@return bcfx_VertexLayout
