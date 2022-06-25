@@ -59,6 +59,10 @@ void view_setTransform(View* view, Mat4x4* viewMat, Mat4x4* projMat) {
 void view_setMode(View* view, ViewMode mode) {
   view->mode = mode;
 }
+void view_setDepthRange(View* view, float near, float far) {
+  view->nearDepth = near;
+  view->farDepth = far;
+}
 
 void view_setDebug(View* view, uint32_t debug) {
   view->debug = debug;
@@ -75,6 +79,8 @@ void view_reset(View* view) {
   MAT_IDENTITY(&view->projMat);
   view->mode = VM_Default;
   view->debug = BCFX_DEBUG_NONE;
+  view->nearDepth = 0.0;
+  view->farDepth = 1.0;
 }
 
 /* }====================================================== */

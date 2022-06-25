@@ -256,6 +256,10 @@ BCFX_API void bcfx_setViewMode(ViewId id, ViewMode mode) {
   ctx_setViewMode(s_ctx, id, mode);
 }
 
+BCFX_API void bcfx_setViewDepthRange(ViewId id, float near, float far) {
+  ctx_setViewDepthRange(s_ctx, id, near, far);
+}
+
 BCFX_API void bcfx_setViewDebug(ViewId id, uint32_t debug) {
   ctx_setViewDebug(s_ctx, id, debug);
 }

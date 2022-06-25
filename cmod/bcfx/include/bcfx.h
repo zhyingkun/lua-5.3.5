@@ -388,6 +388,7 @@ BCFX_API void bcfx_setViewScissor(ViewId id, uint16_t x, uint16_t y, uint16_t wi
 
 BCFX_API void bcfx_setViewTransform(ViewId id, Mat4x4* viewMat, Mat4x4* projMat);
 BCFX_API void bcfx_setViewMode(ViewId id, ViewMode mode);
+BCFX_API void bcfx_setViewDepthRange(ViewId id, float near, float far);
 
 BCFX_API void bcfx_setViewDebug(ViewId id, uint32_t debug);
 BCFX_API void bcfx_resetView(ViewId id);

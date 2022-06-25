@@ -629,6 +629,7 @@ static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
     GL_CHECK(glScissor(rect->x, rect->y, rect->width, rect->height));
     GL_CHECK(glClear(flags));
   }
+  GL_CHECK(glDepthRange(view->nearDepth, view->farDepth));
 }
 
 static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, Frame* frame) {

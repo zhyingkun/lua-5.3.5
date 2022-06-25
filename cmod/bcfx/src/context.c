@@ -589,6 +589,10 @@ void ctx_setViewMode(Context* ctx, ViewId id, ViewMode mode) {
   CHECK_VIEWID(id);
   view_setMode(&ctx->views[id], mode);
 }
+void ctx_setViewDepthRange(Context* ctx, ViewId id, float near, float far) {
+  CHECK_VIEWID(id);
+  view_setDepthRange(&ctx->views[id], near, far);
+}
 void ctx_setViewDebug(Context* ctx, ViewId id, uint32_t debug) {
   CHECK_VIEWID(id);
   view_setDebug(&ctx->views[id], debug);

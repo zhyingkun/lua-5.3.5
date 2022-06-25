@@ -41,6 +41,8 @@ typedef struct {
   Mat4x4 projMat;
   ViewMode mode;
   uint32_t debug;
+  float nearDepth;
+  float farDepth;
 } View;
 
 void view_setWindow(View* view, Window win);
@@ -52,6 +54,7 @@ void view_setScissor(View* view, uint16_t x, uint16_t y, uint16_t width, uint16_
 
 void view_setTransform(View* view, Mat4x4* viewMat, Mat4x4* projMat);
 void view_setMode(View* view, ViewMode mode);
+void view_setDepthRange(View* view, float near, float far);
 
 void view_setDebug(View* view, uint32_t debug);
 void view_reset(View* view);
