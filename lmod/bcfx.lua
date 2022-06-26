@@ -992,7 +992,7 @@ end
 --]]
 
 ---@param handle Handle
----@vararg Vec4 | Mat3x3 | Mat4x4
+---@vararg number | integer | boolean | Vec4 | Mat3x3 | Mat4x4
 function bcfx.setUniform(handle, ...)
 	libbcfx.setUniform(handle, ...)
 end
@@ -1301,10 +1301,19 @@ bcfx.discard = libbcfx.discard
 bcfx.texture_format = libbcfx.texture_format
 
 ---@class bcfx_uniform_type
----@field public Sampler2D integer
+---@field public Float integer
+---@field public Int integer
+---@field public Bool integer
 ---@field public Vec4 integer
 ---@field public Mat3x3 integer
 ---@field public Mat4x4 integer
+---@field public Sampler1D integer
+---@field public Sampler1DArray integer
+---@field public Sampler2D integer
+---@field public Sampler2DArray integer
+---@field public Sampler3D integer
+---@field public SamplerCubeMap integer
+---@field public SamplerBuffer integer
 
 ---@type bcfx_uniform_type
 bcfx.uniform_type = libbcfx.uniform_type

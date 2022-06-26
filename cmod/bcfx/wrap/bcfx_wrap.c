@@ -727,6 +727,19 @@ static int BCWRAP_FUNCTION(setUniform)(lua_State* L) {
     return luaL_error(L, "Uniform mismatch: want %d, got %d", num, got);
   }
   switch (type) {
+#define CASE_UNIFORMTYPE_VALUE(name_, type_, check_) \
+  case UT_##name_: { \
+    type_* arr = (type_*)alloca(num * sizeof(type_)); \
+    for (uint16_t i = 0; i < num; i++) { \
+      type_ pv = luaL_check##check_(L, i + 2); \
+      arr[i] = pv; \
+    } \
+    bcfx_setUniform##name_(handle, arr, num); \
+  } break
+    CASE_UNIFORMTYPE_VALUE(Float, float, number);
+    CASE_UNIFORMTYPE_VALUE(Int, int, integer);
+    CASE_UNIFORMTYPE_VALUE(Bool, bool, boolean);
+#undef CASE_UNIFORMTYPE_VALUE
 #define CASE_UNIFORMTYPE(type_, check_) \
   case UT_##type_: { \
     type_* arr = (type_*)alloca(num * sizeof(type_)); \
@@ -1073,6 +1086,9 @@ static const luaL_Enum BCWRAP_ENUM(texture_format)[] = {
     {NULL, 0},
 };
 static const luaL_Enum BCWRAP_ENUM(uniform_type)[] = {
+    {"Float", UT_Float},
+    {"Int", UT_Int},
+    {"Bool", UT_Bool},
     {"Vec4", UT_Vec4},
     {"Mat3x3", UT_Mat3x3},
     {"Mat4x4", UT_Mat4x4},
