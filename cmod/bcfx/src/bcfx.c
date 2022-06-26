@@ -104,6 +104,9 @@ BCFX_API const char* bcfx_handleTypeName(bcfx_EHandleType type) {
 
 // According to bcfx_EUniformType
 uint8_t sizeof_EUniformType[] = {
+    sizeof(float),
+    sizeof(int),
+    sizeof(unsigned int),
     sizeof(float) * 4,
     sizeof(float) * 3 * 3,
     sizeof(float) * 4 * 4,
@@ -296,6 +299,15 @@ BCFX_API void bcfx_requestCurrentFrameViewCapture(ViewId id) {
 ** =======================================================
 */
 
+BCFX_API void bcfx_setUniformFloat(bcfx_Handle handle, float* val, uint16_t num) {
+  ctx_setUniformFloat(s_ctx, handle, val, num);
+}
+BCFX_API void bcfx_setUniformInt(bcfx_Handle handle, int* val, uint16_t num) {
+  ctx_setUniformInt(s_ctx, handle, val, num);
+}
+BCFX_API void bcfx_setUniformBool(bcfx_Handle handle, bool* val, uint16_t num) {
+  ctx_setUniformBool(s_ctx, handle, val, num);
+}
 BCFX_API void bcfx_setUniformVec4(bcfx_Handle handle, Vec4* vec, uint16_t num) {
   ctx_setUniformVec4(s_ctx, handle, vec, num);
 }

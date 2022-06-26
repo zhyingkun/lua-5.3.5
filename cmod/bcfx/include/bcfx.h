@@ -267,6 +267,9 @@ BCFX_API bcfx_Handle bcfx_createProgram(bcfx_Handle vs, bcfx_Handle fs);
 
 // WARNING: Change bcfx_EUniformType must Update uniform_glType and sizeof_EUniformType
 typedef enum {
+  UT_Float,
+  UT_Int,
+  UT_Bool,
   UT_Vec4,
   UT_Mat3x3,
   UT_Mat4x4,
@@ -573,6 +576,9 @@ typedef union {
 #define BCFX_DISCARD_INSTANCE_DATA BIT_INDEX(5)
 #define BCFX_DISCARD_ALL BIT_MASK(6)
 
+BCFX_API void bcfx_setUniformFloat(bcfx_Handle handle, float* val, uint16_t num);
+BCFX_API void bcfx_setUniformInt(bcfx_Handle handle, int* val, uint16_t num);
+BCFX_API void bcfx_setUniformBool(bcfx_Handle handle, bool* val, uint16_t num);
 BCFX_API void bcfx_setUniformVec4(bcfx_Handle handle, Vec4* vec, uint16_t num);
 BCFX_API void bcfx_setUniformMat3x3(bcfx_Handle handle, Mat3x3* mat, uint16_t num);
 BCFX_API void bcfx_setUniformMat4x4(bcfx_Handle handle, Mat4x4* mat, uint16_t num);

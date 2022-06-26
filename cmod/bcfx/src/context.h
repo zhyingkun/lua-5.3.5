@@ -103,6 +103,9 @@ void ctx_setFrameViewCaptureCallback(Context* ctx, bcfx_OnFrameViewCapture callb
 void ctx_requestCurrentFrameViewCapture(Context* ctx, ViewId id);
 void ctx_callOnFrameViewCapture(Context* ctx, Frame* frame, uint32_t frameId);
 
+void ctx_setUniformFloat(Context* ctx, bcfx_Handle handle, float* val, uint16_t num);
+void ctx_setUniformInt(Context* ctx, bcfx_Handle handle, int* val, uint16_t num);
+void ctx_setUniformBool(Context* ctx, bcfx_Handle handle, bool* val, uint16_t num);
 void ctx_setUniformVec4(Context* ctx, bcfx_Handle handle, Vec4* vec, uint16_t num);
 void ctx_setUniformMat3x3(Context* ctx, bcfx_Handle handle, Mat3x3* mat, uint16_t num);
 void ctx_setUniformMat4x4(Context* ctx, bcfx_Handle handle, Mat4x4* mat, uint16_t num);

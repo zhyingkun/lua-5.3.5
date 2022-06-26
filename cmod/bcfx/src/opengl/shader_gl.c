@@ -437,6 +437,15 @@ void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw
       printf_err("Uniform type mismatch: %s, In shader: %d, In app: %d\n", uniform->name, prop->type, ub->type);
     }
     switch (ub->type) {
+      case UT_Float:
+        GL_CHECK(glUniform1fv(prop->loc, ub->num, (const GLfloat*)uniform->data.ptr));
+        break;
+      case UT_Int:
+        GL_CHECK(glUniform1iv(prop->loc, ub->num, (const GLint*)uniform->data.ptr));
+        break;
+      case UT_Bool:
+        GL_CHECK(glUniform1uiv(prop->loc, ub->num, (const GLuint*)uniform->data.ptr));
+        break;
       case UT_Vec4:
         GL_CHECK(glUniform4fv(prop->loc, ub->num, (const GLfloat*)uniform->data.ptr));
         break;

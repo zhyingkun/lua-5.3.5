@@ -690,38 +690,37 @@ uint8_t* uniform_readData(luaL_ByteBuffer* b, bcfx_Handle* phandle, size_t* psiz
 ** =======================================================
 */
 
-void ctx_setUniformVec4(Context* ctx, bcfx_Handle handle, Vec4* vec, uint16_t num) {
-  CHECK_HANDLE(handle, HT_Uniform);
-  UniformBase* u = &ctx->uniforms[handle_index(handle)];
-  if (uniform_checkType(u, UT_Vec4, num)) {
-    uint8_t* ptr = encoder_addUniformData(ctx->encoder, handle, uniform_getSize(u));
-    size_t sou = sizeof_EUniformType[u->type];
-    for (uint16_t i = 0; i < num; i++) {
-      memcpy(ptr + i * sou, vec[i].element, sou);
-    }
+#define ENCODE_UNIFORM(type_, ptr_) \
+  CHECK_HANDLE(handle, HT_Uniform); \
+  UniformBase* u = &ctx->uniforms[handle_index(handle)]; \
+  if (uniform_checkType(u, type_, num)) { \
+    uint8_t* ptr = encoder_addUniformData(ctx->encoder, handle, uniform_getSize(u)); \
+    size_t sou = sizeof_EUniformType[u->type]; \
+    for (uint16_t i = 0; i < num; i++) { \
+      memcpy(ptr + i * sou, ptr_, sou); \
+    } \
   }
+void ctx_setUniformFloat(Context* ctx, bcfx_Handle handle, float* val, uint16_t num) {
+  ENCODE_UNIFORM(UT_Float, &val[i])
+}
+void ctx_setUniformInt(Context* ctx, bcfx_Handle handle, int* val, uint16_t num) {
+  ENCODE_UNIFORM(UT_Int, &val[i])
+}
+void ctx_setUniformBool(Context* ctx, bcfx_Handle handle, bool* val, uint16_t num) {
+  unsigned int* tmp = (unsigned int*)alloca(sizeof(unsigned int) * num);
+  for (uint16_t i = 0; i < num; i++) {
+    tmp[i] = val[i];
+  }
+  ENCODE_UNIFORM(UT_Bool, &tmp[i])
+}
+void ctx_setUniformVec4(Context* ctx, bcfx_Handle handle, Vec4* vec, uint16_t num) {
+  ENCODE_UNIFORM(UT_Vec4, vec[i].element)
 }
 void ctx_setUniformMat3x3(Context* ctx, bcfx_Handle handle, Mat3x3* mat, uint16_t num) {
-  CHECK_HANDLE(handle, HT_Uniform);
-  UniformBase* u = &ctx->uniforms[handle_index(handle)];
-  if (uniform_checkType(u, UT_Mat3x3, num)) {
-    uint8_t* ptr = encoder_addUniformData(ctx->encoder, handle, uniform_getSize(u));
-    size_t sou = sizeof_EUniformType[u->type];
-    for (uint16_t i = 0; i < num; i++) {
-      memcpy(ptr + i * sou, mat[i].element, sou);
-    }
-  }
+  ENCODE_UNIFORM(UT_Mat3x3, mat[i].element)
 }
 void ctx_setUniformMat4x4(Context* ctx, bcfx_Handle handle, Mat4x4* mat, uint16_t num) {
-  CHECK_HANDLE(handle, HT_Uniform);
-  UniformBase* u = &ctx->uniforms[handle_index(handle)];
-  if (uniform_checkType(u, UT_Mat4x4, num)) {
-    uint8_t* ptr = encoder_addUniformData(ctx->encoder, handle, uniform_getSize(u));
-    size_t sou = sizeof_EUniformType[u->type];
-    for (uint16_t i = 0; i < num; i++) {
-      memcpy(ptr + i * sou, mat[i].element, sou);
-    }
-  }
+  ENCODE_UNIFORM(UT_Mat4x4, mat[i].element)
 }
 
 void ctx_touch(Context* ctx, ViewId id) {

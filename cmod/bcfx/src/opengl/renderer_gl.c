@@ -59,6 +59,9 @@ const GLenum attrib_glType[] = {
 };
 // According to bcfx_EUniformType
 const GLenum uniform_glType[] = {
+    GL_FLOAT,
+    GL_INT,
+    GL_BOOL,
     GL_FLOAT_VEC4,
     GL_FLOAT_MAT3,
     GL_FLOAT_MAT4,
@@ -681,7 +684,7 @@ static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, F
 
     UniformGL* uniform = &glCtx->uniforms[handle_index(handle)];
     UniformBase* ub = uniform->base;
-    if (ub->type == UT_Sampler2D) {
+    if (ub->type >= UT_Sampler1D) {
       assert(size == sizeof(uint32_t));
       uniform->data.stage = *ptr;
     } else {
