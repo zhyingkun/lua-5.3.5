@@ -17,6 +17,22 @@ void mem_free(void* ptr);
 
 /*
 ** {======================================================
+** String
+** =======================================================
+*/
+
+typedef struct {
+  const char* str;
+  size_t sz;
+} String;
+const String* str_create(const char* str, size_t sz);
+void str_destroy(const String* strObj);
+bool str_isEqual(const String* a, const String* b);
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** Thread feature
 ** =======================================================
 */

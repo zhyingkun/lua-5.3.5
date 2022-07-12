@@ -49,6 +49,31 @@ void mem_free(void* ptr) {
 
 /*
 ** {======================================================
+** String
+** =======================================================
+*/
+
+const String* str_create(const char* str, size_t sz) {
+  String* strObj = (String*)mem_malloc(sizeof(String) + sz + 1);
+  char* p = (char*)(strObj + 1);
+  strncpy(p, str, sz);
+  p[sz] = '\0';
+  strObj->str = p;
+  strObj->sz = sz;
+  return strObj;
+}
+void str_destroy(const String* strObj) {
+  mem_free((void*)strObj);
+}
+
+bool str_isEqual(const String* a, const String* b) {
+  return a->sz == b->sz && strncmp(a->str, b->str, a->sz) == 0;
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** Inject Thread API
 ** =======================================================
 */
