@@ -2,6 +2,7 @@
 #define _CMDBUF_H_
 
 #include <common.h>
+#include <utils.h>
 
 /*
 ** {======================================================
@@ -43,6 +44,7 @@ typedef struct {
 typedef struct {
   luaL_MemBuffer mem;
   bcfx_EShaderType type;
+  const String* path;
 } CmdShader;
 typedef struct {
   bcfx_Handle vsHandle;

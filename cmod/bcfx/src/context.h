@@ -59,6 +59,7 @@ bcfx_Handle ctx_createIndexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_EIndex
 bcfx_Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size, bcfx_EIndexType type);
 
 bcfx_Handle ctx_createShader(Context* ctx, luaL_MemBuffer* mem, bcfx_EShaderType type);
+bcfx_Handle ctx_createIncludeShader(Context* ctx, luaL_MemBuffer* mem, bcfx_EShaderType type, const char* path);
 bcfx_Handle ctx_createProgram(Context* ctx, bcfx_Handle vs, bcfx_Handle fs);
 bcfx_Handle ctx_createUniform(Context* ctx, const char* name, bcfx_EUniformType type, uint16_t num);
 bcfx_Handle ctx_createSampler(Context* ctx, bcfx_SamplerFlag flags);

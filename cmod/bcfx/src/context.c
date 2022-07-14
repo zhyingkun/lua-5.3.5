@@ -66,7 +66,7 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
       /* Create Render Resource */
       CASE_CALL_RENDERER(CreateVertexBuffer, createVertexBuffer, cmd->handle, &param->cvb.mem, param->cvb.layout);
       CASE_CALL_RENDERER(CreateIndexBuffer, createIndexBuffer, cmd->handle, &param->cib.mem, param->cib.type);
-      CASE_CALL_RENDERER(CreateShader, createShader, cmd->handle, &param->cs.mem, param->cs.type);
+      CASE_CALL_RENDERER(CreateShader, createShader, cmd->handle, &param->cs.mem, param->cs.type, param->cs.path);
       CASE_CALL_RENDERER(CreateProgram, createProgram, cmd->handle, param->cp.vsHandle, param->cp.fsHandle);
       CASE_CALL_RENDERER(CreateUniform, createUniform, cmd->handle, param->cu.name, param->cu.type, param->cu.num);
       CASE_CALL_RENDERER(CreateSampler, createSampler, cmd->handle, param->csa.flags);
@@ -332,9 +332,14 @@ bcfx_Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size, bcfx_EIndexT
 }
 
 bcfx_Handle ctx_createShader(Context* ctx, luaL_MemBuffer* mem, bcfx_EShaderType type) {
+  return ctx_createIncludeShader(ctx, mem, type, NULL);
+}
+
+bcfx_Handle ctx_createIncludeShader(Context* ctx, luaL_MemBuffer* mem, bcfx_EShaderType type, const char* path) {
   ADD_CMD_ALLOC_HANDLE(ctx, Shader)
   MEMBUFFER_MOVE(mem, &param->cs.mem);
   param->cs.type = type;
+  param->cs.path = path == NULL ? NULL : str_create(path, strlen(path));
   return handle;
 }
 

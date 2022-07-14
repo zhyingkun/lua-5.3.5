@@ -214,6 +214,7 @@ static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win, GLuint mainW
 
 static void gl_init(RendererContext* ctx, Window mainWin) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  gl_initShaderInclude(glCtx);
   glCtx->mainWin = mainWin;
   glCtx->curWin = NULL;
   glCtx->curMainWinFb = 0;
@@ -256,6 +257,7 @@ static void gl_endFrame(RendererContext* ctx) {
 
 static void gl_shutdown(RendererContext* ctx) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  gl_destroyShaderInclude(glCtx);
 
   for (size_t i = 0; i < BCFX_CONFIG_MAX_VERTEX_BUFFER; i++) {
     VertexBufferGL* vb = &glCtx->vertexBuffers[i];
@@ -345,7 +347,7 @@ static void gl_createIndexBuffer(RendererContext* ctx, bcfx_Handle handle, luaL_
   ib->type = type;
   gl_createBufferGPU(&ib->buffer, mem, GL_ELEMENT_ARRAY_BUFFER);
 }
-static void gl_createShader(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_EShaderType type) {
+static void gl_createShader(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_EShaderType type, const String* path) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   ShaderGL* shader = &glCtx->shaders[handle_index(handle)];
   shader->type = shader_glType[type];
@@ -364,6 +366,13 @@ static void gl_createShader(RendererContext* ctx, bcfx_Handle handle, luaL_MemBu
     printf_err("Shader compile error: %s\n", infoLog);
   }
   MEMBUFFER_RELEASE(mem);
+
+  shader->numDep = 0;
+  gl_scanShaderDependence(glCtx, shader, mem->ptr, mem->sz);
+
+  if (path != NULL) {
+    gl_addShaderIncludeHandle(glCtx, path, handle);
+  }
 }
 static void gl_createProgram(RendererContext* ctx, bcfx_Handle handle, bcfx_Handle vsh, bcfx_Handle fsh) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
@@ -371,29 +380,23 @@ static void gl_createProgram(RendererContext* ctx, bcfx_Handle handle, bcfx_Hand
   if (prog->id == 0) {
     GL_CHECK(prog->id = glCreateProgram());
   }
-  ShaderGL* vs = &glCtx->shaders[handle_index(vsh)];
-  if (prog->vs != vs->id) {
-    if (prog->vs != 0) {
-      GL_CHECK(glDetachShader(prog->id, prog->vs));
-    }
-    GL_CHECK(glAttachShader(prog->id, vs->id));
-    prog->vs = vs->id;
+  prog->vs = vsh;
+  prog->fs = fsh;
+  if (prog->vs != kInvalidHandle) {
+    gl_attachShader(glCtx, prog, prog->vs);
   }
-  GLuint fsID = 0;
-  if (fsh != kInvalidHandle) {
-    ShaderGL* fs = &glCtx->shaders[handle_index(fsh)];
-    fsID = fs->id;
+  if (prog->fs != kInvalidHandle) {
+    gl_attachShader(glCtx, prog, prog->fs);
   }
-  if (prog->fs != fsID) {
-    if (prog->fs != 0) {
-      GL_CHECK(glDetachShader(prog->id, prog->fs));
-    }
-    prog->fs = fsID;
-    if (prog->fs != 0) {
-      GL_CHECK(glAttachShader(prog->id, prog->fs));
-    }
+  if (prog->fs != fsh) {
   }
   GL_CHECK(glLinkProgram(prog->id));
+  if (prog->vs != kInvalidHandle) {
+    gl_detachShader(glCtx, prog, prog->vs);
+  }
+  if (prog->fs != kInvalidHandle) {
+    gl_detachShader(glCtx, prog, prog->fs);
+  }
 
   GLint success;
   GL_CHECK(glGetProgramiv(prog->id, GL_LINK_STATUS, &success));
@@ -840,6 +843,7 @@ static void gl_destroyShader(RendererContext* ctx, bcfx_Handle handle) {
   ShaderGL* shader = &glCtx->shaders[handle_index(handle)];
   GL_CHECK(glDeleteShader(shader->id));
   shader->id = 0;
+  shader->numDep = 0;
 }
 static void gl_destroyProgram(RendererContext* ctx, bcfx_Handle handle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;

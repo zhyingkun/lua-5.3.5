@@ -263,6 +263,7 @@ typedef enum {
 } bcfx_EShaderType;
 
 BCFX_API bcfx_Handle bcfx_createShader(luaL_MemBuffer* mem, bcfx_EShaderType type);
+BCFX_API bcfx_Handle bcfx_createIncludeShader(luaL_MemBuffer* mem, bcfx_EShaderType type, const char* path);
 BCFX_API bcfx_Handle bcfx_createProgram(bcfx_Handle vs, bcfx_Handle fs);
 
 // WARNING: Change bcfx_EUniformType must Update uniform_glType and sizeof_EUniformType

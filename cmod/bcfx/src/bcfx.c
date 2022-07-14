@@ -137,6 +137,10 @@ BCFX_API bcfx_Handle bcfx_createShader(luaL_MemBuffer* mem, bcfx_EShaderType typ
   return ctx_createShader(s_ctx, mem, type);
 }
 
+BCFX_API bcfx_Handle bcfx_createIncludeShader(luaL_MemBuffer* mem, bcfx_EShaderType type, const char* path) {
+  return ctx_createIncludeShader(s_ctx, mem, type, path);
+}
+
 BCFX_API bcfx_Handle bcfx_createProgram(bcfx_Handle vs, bcfx_Handle fs) {
   return ctx_createProgram(s_ctx, vs, fs);
 }

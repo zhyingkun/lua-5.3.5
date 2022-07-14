@@ -1,4 +1,5 @@
 #include <common_gl.h>
+#include <ctype.h>
 
 /*
 ** {======================================================
@@ -470,6 +471,225 @@ void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw
         break;
     }
   }
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Parse Shader Source
+** =======================================================
+*/
+
+#define islalpha(c) (isalpha(c) || (c) == '_')
+
+typedef enum {
+  TK_PRAGMA = 257,
+  TK_INCLUDE,
+  TK_OTHER,
+  TK_EOS,
+} Token;
+
+DEFINE_STATIC_STRING(StrPragma, "pragma")
+DEFINE_STATIC_STRING(StrInclude, "include")
+
+static uint32_t nextToken(luaL_ByteBuffer* b) {
+  const uint8_t* pCh = luaBB_readbytes(b, 1);
+  while (pCh != NULL) {
+    switch (*pCh) {
+      case ' ':
+      case '\f':
+      case '\t':
+      case '\v': { /* spaces */
+        pCh = luaBB_readbytes(b, 1);
+        break;
+      }
+      case '#':
+      case '<': {
+        return *pCh;
+      }
+      default: {
+        if (islalpha(*pCh)) { /* identifier or reserved word? */
+          String tmp[1];
+          tmp->str = (const char*)pCh;
+          do {
+            pCh = luaBB_readbytes(b, 1);
+          } while (pCh != NULL && islalpha(*pCh));
+          tmp->sz = (const char*)pCh - tmp->str;
+          if (str_isEqual(tmp, StrPragma)) {
+            return TK_PRAGMA;
+          }
+          if (str_isEqual(tmp, StrInclude)) {
+            return TK_INCLUDE;
+          }
+        }
+        return TK_OTHER;
+      }
+    }
+  }
+  return TK_EOS;
+}
+static const char* readPath(luaL_ByteBuffer* b, char del, size_t* sz) {
+  const uint8_t* pCh = luaBB_readbytes(b, 1);
+  const char* path = (const char*)pCh;
+  while (pCh != NULL && *pCh != del) {
+    switch (*pCh) {
+      case '\n':
+      case '\r':
+        return NULL; // unfinished path
+      default:
+        pCh = luaBB_readbytes(b, 1);
+        break;
+    }
+  }
+  if (pCh != NULL && *pCh == del) {
+    *sz = (const char*)pCh - path;
+    return path;
+  }
+  return NULL;
+}
+typedef void (*OnFindIncludePath)(void* ud, const char* path, size_t len);
+static void parseOneLine(const char* line, size_t sz, OnFindIncludePath cb, void* ud) {
+  luaL_ByteBuffer b[1];
+  luaBB_static(b, (uint8_t*)line, sz, false);
+  // include statement
+  static uint32_t tokens[] = {
+      '#',
+      TK_PRAGMA,
+      TK_INCLUDE,
+      '<',
+      TK_EOS,
+  };
+  for (int i = 0; tokens[i] != TK_EOS; i++) {
+    if (nextToken(b) != tokens[i]) {
+      return; // not a include statement
+    }
+  }
+  size_t len = 0;
+  const char* path = readPath(b, '>', &len);
+  if (path != NULL && len != 0) {
+    cb(ud, path, len);
+  }
+}
+static void parseShaderSource(const char* buf, size_t sz, OnFindIncludePath cb, void* ud) {
+  size_t lineIdx = 0;
+  for (size_t i = 0; i < sz; i++) {
+    const char ch = buf[i];
+    if (ch == '\r' || ch == '\n') {
+      if (lineIdx < i) {
+        parseOneLine(&buf[lineIdx], i - lineIdx, cb, ud);
+      }
+      lineIdx = i + 1;
+    }
+  }
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Shader Dependence
+** =======================================================
+*/
+
+void gl_initShaderInclude(RendererContextGL* glCtx) {
+  IncludeNodeArray* ina = &glCtx->ina;
+  ina->n = 0;
+  ina->sz = 64;
+  ina->arr = (IncludeNode*)mem_malloc(ina->sz * sizeof(IncludeNode));
+}
+void gl_destroyShaderInclude(RendererContextGL* glCtx) {
+  IncludeNodeArray* ina = &glCtx->ina;
+  for (size_t i = 0; i < ina->n; i++) {
+    str_destroy(ina->arr[i].path);
+  }
+  mem_free((void*)ina->arr);
+  ina->n = 0;
+  ina->sz = 0;
+  ina->arr = NULL;
+}
+void gl_addShaderIncludeHandle(RendererContextGL* glCtx, const String* path, bcfx_Handle handle) {
+  IncludeNodeArray* ina = &glCtx->ina;
+  if (ina->n >= ina->sz) {
+    ina->sz *= 2;
+    ina->arr = (IncludeNode*)mem_realloc(ina->arr, sizeof(IncludeNode) * ina->sz);
+  }
+  ina->arr[ina->n].path = path;
+  ina->arr[ina->n].handle = handle;
+  ina->n++;
+}
+bcfx_Handle gl_findShaderIncludeHandle(RendererContextGL* glCtx, const String* path) {
+  IncludeNodeArray* ina = &glCtx->ina;
+  for (size_t i = 0; i < ina->n; i++) {
+    if (str_isEqual(path, ina->arr[i].path)) {
+      return ina->arr[i].handle;
+    }
+  }
+  return kInvalidHandle;
+}
+
+typedef struct {
+  RendererContextGL* glCtx;
+  ShaderGL* shader;
+} Param;
+static void _onFindIncludePath(void* ud, const char* str, size_t sz) {
+  String path[1];
+  path->str = str;
+  path->sz = sz;
+  Param* p = (Param*)ud;
+  RendererContextGL* glCtx = p->glCtx;
+  bcfx_Handle handle = gl_findShaderIncludeHandle(glCtx, path);
+  if (handle == kInvalidHandle) {
+    char* tmp = (char*)alloca(sz + 1);
+    strncmp(tmp, str, sz);
+    tmp[sz] = '\0';
+    printf_err("Error: could not find shader include file: %s\n", tmp);
+    return;
+  }
+  ShaderGL* shader = p->shader;
+  if (shader->numDep >= BCFX_SHADER_DEPEND_COUNT) {
+    printf_err("Error: shader include dependence more than max limit");
+    return;
+  }
+  ShaderGL* depShader = &glCtx->shaders[handle_index(handle)];
+  if (shader->type != depShader->type) {
+    printf_err("Error: shader include dependence has different shader type");
+    return;
+  }
+  shader->depend[shader->numDep] = handle;
+  shader->numDep++;
+}
+void gl_scanShaderDependence(RendererContextGL* glCtx, ShaderGL* shader, const char* source, size_t len) {
+  Param p[1];
+  p->glCtx = glCtx;
+  p->shader = shader;
+  parseShaderSource(source, len, _onFindIncludePath, (void*)p);
+}
+
+typedef void (*OnFindShader)(void* ud, ShaderGL* s);
+static void _forEachDependShader(RendererContextGL* glCtx, bcfx_Handle handle, OnFindShader callback, void* ud) {
+  // TODO: check handle invalid
+  ShaderGL* shader = &glCtx->shaders[handle_index(handle)];
+  callback(ud, shader);
+  for (uint16_t i = 0; i < shader->numDep; i++) {
+    _forEachDependShader(glCtx, shader->depend[i], callback, ud);
+  }
+}
+
+static void _doAttachShader(void* ud, ShaderGL* shader) {
+  ProgramGL* prog = (ProgramGL*)ud;
+  GL_CHECK(glAttachShader(prog->id, shader->id));
+}
+void gl_attachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle) {
+  _forEachDependShader(glCtx, handle, _doAttachShader, (void*)prog);
+}
+
+static void _doDetachShader(void* ud, ShaderGL* shader) {
+  ProgramGL* prog = (ProgramGL*)ud;
+  GL_CHECK(glDetachShader(prog->id, shader->id));
+}
+void gl_detachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle) {
+  _forEachDependShader(glCtx, handle, _doDetachShader, (void*)prog);
 }
 
 /* }====================================================== */

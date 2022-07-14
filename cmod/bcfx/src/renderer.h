@@ -20,7 +20,7 @@ typedef void (*RendererShutdown)(RendererContext* ctx);
 
 typedef void (*RendererCreateVertexBuffer)(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, const bcfx_VertexLayout* layout);
 typedef void (*RendererCreateIndexBuffer)(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_EIndexType type);
-typedef void (*RendererCreateShader)(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_EShaderType type);
+typedef void (*RendererCreateShader)(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_EShaderType type, const String* path);
 typedef void (*RendererCreateProgram)(RendererContext* ctx, bcfx_Handle handle, bcfx_Handle vsh, bcfx_Handle fsh);
 typedef void (*RendererCreateUniform)(RendererContext* ctx, bcfx_Handle handle, const char* name, bcfx_EUniformType type, uint16_t num);
 typedef void (*RendererCreateSampler)(RendererContext* ctx, bcfx_Handle handle, bcfx_SamplerFlag flags);

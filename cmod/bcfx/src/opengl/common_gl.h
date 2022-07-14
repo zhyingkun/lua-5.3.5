@@ -67,9 +67,13 @@ typedef struct {
   uint32_t count; // how many indices in this buffer, not byte
   bcfx_EIndexType type;
 } IndexBufferGL;
+
+#define BCFX_SHADER_DEPEND_COUNT 7
 typedef struct {
   GLuint id;
   GLenum type;
+  uint16_t numDep;
+  bcfx_Handle depend[BCFX_SHADER_DEPEND_COUNT];
 } ShaderGL;
 
 typedef struct {
@@ -93,8 +97,8 @@ typedef struct {
 } PredefinedUniform;
 typedef struct {
   GLuint id;
-  GLuint vs;
-  GLuint fs;
+  bcfx_Handle vs;
+  bcfx_Handle fs;
   PredefinedAttrib pa;
   PredefinedUniform pu;
 } ProgramGL;
@@ -128,6 +132,16 @@ typedef struct {
   GLuint textureID;
   bcfx_ETextureFormat format;
 } TextureBufferGL;
+
+typedef struct {
+  const String* path;
+  bcfx_Handle handle;
+} IncludeNode; // shader include node
+typedef struct {
+  size_t sz;
+  size_t n; // how many node in this array
+  IncludeNode* arr;
+} IncludeNodeArray;
 
 typedef struct {
   GLuint fb;
@@ -197,6 +211,8 @@ typedef struct {
   FrameBufferGL frameBuffers[BCFX_CONFIG_MAX_FRAME_BUFFER];
   InstanceDataBufferGL instanceDataBuffers[BCFX_CONFIG_MAX_INSTANCE_DATA_BUFFER];
   TextureBufferGL textureBuffers[BCFX_CONFIG_MAX_TEXTURE_BUFFER];
+
+  IncludeNodeArray ina;
 
   Window mainWin;
   Window curWin;
@@ -289,6 +305,24 @@ void gl_bindInstanceAttributes(RendererContextGL* glCtx, ProgramGL* prog, Render
 
 void prog_collectUniforms(ProgramGL* prog, RendererContextGL* glCtx);
 void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw, View* view, RenderBind* bind);
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Shader Dependence
+** =======================================================
+*/
+
+void gl_initShaderInclude(RendererContextGL* glCtx);
+void gl_destroyShaderInclude(RendererContextGL* glCtx);
+void gl_addShaderIncludeHandle(RendererContextGL* glCtx, const String* path, bcfx_Handle handle);
+bcfx_Handle gl_findShaderIncludeHandle(RendererContextGL* glCtx, const String* path);
+
+void gl_scanShaderDependence(RendererContextGL* glCtx, ShaderGL* shader, const char* source, size_t len);
+
+void gl_attachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle);
+void gl_detachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle);
 
 /* }====================================================== */
 
