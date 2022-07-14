@@ -56,8 +56,8 @@ LUALIB_API void luaBB_init(luaL_ByteBuffer* b, uint32_t size) {
   luaBB_set(b, ptr, size, 0, 0, false);
 }
 
-LUALIB_API void luaBB_static(luaL_ByteBuffer* b, uint8_t* ptr, uint32_t size) {
-  luaBB_set(b, ptr, size, 0, 0, true);
+LUALIB_API void luaBB_static(luaL_ByteBuffer* b, uint8_t* ptr, uint32_t size, bool bClear) {
+  luaBB_set(b, ptr, size, bClear ? 0 : size, 0, true);
 }
 
 LUALIB_API void luaBB_destroy(luaL_ByteBuffer* b) {

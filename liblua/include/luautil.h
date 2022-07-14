@@ -82,7 +82,7 @@ typedef struct {
 } luaL_ByteBuffer;
 
 LUALIB_API void luaBB_init(luaL_ByteBuffer* b, uint32_t size);
-LUALIB_API void luaBB_static(luaL_ByteBuffer* b, uint8_t* ptr, uint32_t size);
+LUALIB_API void luaBB_static(luaL_ByteBuffer* b, uint8_t* ptr, uint32_t size, bool bClear);
 
 LUALIB_API void luaBB_destroy(luaL_ByteBuffer* b);
 LUALIB_API const uint8_t* luaBB_movebuffer(luaL_ByteBuffer* b, uint32_t* plen);
