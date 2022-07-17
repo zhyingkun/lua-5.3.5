@@ -33,14 +33,14 @@ static int COLOR_FUNCTION(unpack)(lua_State* L) {
   return 4;
 }
 
-static int COLOR_FUNCTION(unpackf)(lua_State* L) {
+static int COLOR_FUNCTION(unpackNF)(lua_State* L) {
   uint32_t rgba = (uint32_t)luaL_checkinteger(L, 1);
-  uint8_t r, g, b, a;
-  bcfx_unpackColor(rgba, &r, &g, &b, &a);
-  lua_pushnumber(L, ((float)r) / 255.0);
-  lua_pushnumber(L, ((float)g) / 255.0);
-  lua_pushnumber(L, ((float)b) / 255.0);
-  lua_pushnumber(L, ((float)a) / 255.0);
+  float r, g, b, a;
+  bcfx_unpackColorNF(rgba, &r, &g, &b, &a);
+  lua_pushnumber(L, r);
+  lua_pushnumber(L, g);
+  lua_pushnumber(L, b);
+  lua_pushnumber(L, a);
   return 4;
 }
 
@@ -49,7 +49,7 @@ static int COLOR_FUNCTION(unpackf)(lua_State* L) {
 static const luaL_Reg color_funcs[] = {
     EMPLACE_COLOR_FUNCTION(pack),
     EMPLACE_COLOR_FUNCTION(unpack),
-    EMPLACE_COLOR_FUNCTION(unpackf),
+    EMPLACE_COLOR_FUNCTION(unpackNF),
     {NULL, NULL},
 };
 

@@ -372,8 +372,8 @@ static int BCWRAP_FUNCTION(createUniform)(lua_State* L) {
     urc_checkCurrentTypeNum(type, num);
     handle = urc_retainCurrentUniform();
   } else {
-    if (type == UT_Sampler2D && num != 1) {
-      return luaL_error(L, "Sampler2D uniform does not support array");
+    if (type >= UT_Sampler1D && num != 1) {
+      return luaL_error(L, "Sampler uniform does not support array");
     }
     handle = bcfx_createUniform(name, type, num);
     urc_addUniform(1, type, num, handle);

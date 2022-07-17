@@ -16,9 +16,13 @@ static int UTILS_FUNCTION(packSamplerFlags)(lua_State* L) {
   bcfx_SamplerFlag flags = {0};
   SET_FLAGS_FIELD(wrapU, integer);
   SET_FLAGS_FIELD(wrapV, integer);
+  SET_FLAGS_FIELD(wrapW, integer);
   SET_FLAGS_FIELD(filterMin, integer);
   SET_FLAGS_FIELD(filterMag, integer);
-  lua_pushinteger(L, SAMPLERFLAG_UINT32(flags));
+  SET_FLAGS_FIELD(enableMipmap, boolean);
+  SET_FLAGS_FIELD(filterMipmap, integer);
+  SET_FLAGS_FIELD(borderColor, integer);
+  lua_pushinteger(L, SAMPLERFLAG_UINT64(flags));
   return 1;
 }
 
