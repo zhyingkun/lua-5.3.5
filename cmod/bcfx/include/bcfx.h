@@ -260,6 +260,7 @@ BCFX_API bcfx_Handle bcfx_createDynamicIndexBuffer(size_t size, bcfx_EIndexType 
 typedef enum {
   ST_Vertex,
   ST_Fragment,
+  ST_Count,
 } bcfx_EShaderType;
 
 BCFX_API bcfx_Handle bcfx_createShader(luaL_MemBuffer* mem, bcfx_EShaderType type);
@@ -346,6 +347,7 @@ BCFX_API bcfx_Handle bcfx_createDynamicTextureBuffer(size_t size, bcfx_ETextureF
 ** =======================================================
 */
 
+BCFX_API void bcfx_updateShader(bcfx_Handle handle, luaL_MemBuffer* mem);
 BCFX_API void bcfx_updateProgram(bcfx_Handle handle, bcfx_Handle vs, bcfx_Handle fs);
 // offset measured in bytes, the same as the size of mem
 BCFX_API void bcfx_updateDynamicBuffer(bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem);

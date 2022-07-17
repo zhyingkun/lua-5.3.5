@@ -211,6 +211,10 @@ BCFX_API bcfx_Handle bcfx_createDynamicTextureBuffer(size_t size, bcfx_ETextureF
 ** =======================================================
 */
 
+BCFX_API void bcfx_updateShader(bcfx_Handle handle, luaL_MemBuffer* mem) {
+  ctx_updateShader(s_ctx, handle, mem);
+}
+
 BCFX_API void bcfx_updateProgram(bcfx_Handle handle, bcfx_Handle vs, bcfx_Handle fs) {
   ctx_updateProgram(s_ctx, handle, vs, fs);
 }

@@ -350,10 +350,18 @@ static void gl_createIndexBuffer(RendererContext* ctx, bcfx_Handle handle, luaL_
 static void gl_createShader(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_EShaderType type, const String* path) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   ShaderGL* shader = &glCtx->shaders[handle_index(handle)];
-  shader->type = shader_glType[type];
-  GL_CHECK(shader->id = glCreateShader(shader->type));
+  bool bCreate = shader->id == 0;
+  if (bCreate) {
+    assert(type != ST_Count);
+    shader->type = shader_glType[type];
+    GL_CHECK(shader->id = glCreateShader(shader->type));
+  } else {
+    assert(type == ST_Count);
+    assert(path == NULL);
+  }
   const GLint length = mem->sz;
   GL_CHECK(glShaderSource(shader->id, 1, (const GLchar* const*)&mem->ptr, &length));
+  MEMBUFFER_RELEASE(mem);
   GL_CHECK(glCompileShader(shader->id));
 
   GLint success;
@@ -364,14 +372,18 @@ static void gl_createShader(RendererContext* ctx, bcfx_Handle handle, luaL_MemBu
     GLchar* infoLog = (GLchar*)alloca(logLen);
     GL_CHECK(glGetShaderInfoLog(shader->id, logLen, NULL, infoLog));
     printf_err("Shader compile error: %s\n", infoLog);
+    return;
   }
-  MEMBUFFER_RELEASE(mem);
 
   shader->numDep = 0;
   gl_scanShaderDependence(glCtx, shader, mem->ptr, mem->sz);
 
-  if (path != NULL) {
-    gl_addShaderIncludeHandle(glCtx, path, handle);
+  if (bCreate) {
+    if (path != NULL) {
+      gl_addShaderIncludeHandle(glCtx, path, handle);
+    }
+  } else {
+    gl_updateAllProgram(glCtx, handle);
   }
 }
 static void gl_createProgram(RendererContext* ctx, bcfx_Handle handle, bcfx_Handle vsh, bcfx_Handle fsh) {

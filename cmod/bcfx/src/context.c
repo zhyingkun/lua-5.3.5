@@ -518,6 +518,14 @@ bcfx_Handle ctx_createDynamicTextureBuffer(Context* ctx, size_t size, bcfx_EText
 ** =======================================================
 */
 
+void ctx_updateShader(Context* ctx, bcfx_Handle handle, luaL_MemBuffer* mem) {
+  CHECK_HANDLE(handle, HT_Shader);
+  CommandParam* param = ctx_addCommand(ctx, CT_CreateShader, handle);
+  MEMBUFFER_MOVE(mem, &param->cs.mem);
+  param->cs.type = ST_Count;
+  param->cs.path = NULL;
+}
+
 void ctx_updateProgram(Context* ctx, bcfx_Handle handle, bcfx_Handle vs, bcfx_Handle fs) {
   CHECK_HANDLE(handle, HT_Program);
   CHECK_HANDLE(vs, HT_Shader);

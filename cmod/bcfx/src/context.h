@@ -81,6 +81,7 @@ bcfx_Handle ctx_createDynamicInstanceDataBuffer(Context* ctx, uint32_t numInstan
 bcfx_Handle ctx_createTextureBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_ETextureFormat format);
 bcfx_Handle ctx_createDynamicTextureBuffer(Context* ctx, size_t size, bcfx_ETextureFormat format);
 
+void ctx_updateShader(Context* ctx, bcfx_Handle handle, luaL_MemBuffer* mem);
 void ctx_updateProgram(Context* ctx, bcfx_Handle handle, bcfx_Handle vs, bcfx_Handle fs);
 void ctx_updateDynamicBuffer(Context* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem);
 

@@ -324,6 +324,8 @@ void gl_scanShaderDependence(RendererContextGL* glCtx, ShaderGL* shader, const c
 void gl_attachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle);
 void gl_detachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle);
 
+void gl_updateAllProgram(RendererContextGL* glCtx, bcfx_Handle shaderHandle);
+
 /* }====================================================== */
 
 /*

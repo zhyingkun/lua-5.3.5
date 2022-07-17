@@ -669,30 +669,54 @@ void gl_scanShaderDependence(RendererContextGL* glCtx, ShaderGL* shader, const c
   parseShaderSource(source, len, _onFindIncludePath, (void*)p);
 }
 
-typedef void (*OnFindShader)(void* ud, ShaderGL* s);
+typedef void (*OnFindShader)(void* ud, bcfx_Handle handle, ShaderGL* s);
 static void _forEachDependShader(RendererContextGL* glCtx, bcfx_Handle handle, OnFindShader callback, void* ud) {
   // TODO: check handle invalid
   ShaderGL* shader = &glCtx->shaders[handle_index(handle)];
-  callback(ud, shader);
+  callback(ud, handle, shader);
   for (uint16_t i = 0; i < shader->numDep; i++) {
     _forEachDependShader(glCtx, shader->depend[i], callback, ud);
   }
 }
 
-static void _doAttachShader(void* ud, ShaderGL* shader) {
+static void _doAttachShader(void* ud, bcfx_Handle handle, ShaderGL* shader) {
   ProgramGL* prog = (ProgramGL*)ud;
+  (void)handle;
   GL_CHECK(glAttachShader(prog->id, shader->id));
 }
 void gl_attachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle) {
   _forEachDependShader(glCtx, handle, _doAttachShader, (void*)prog);
 }
 
-static void _doDetachShader(void* ud, ShaderGL* shader) {
+static void _doDetachShader(void* ud, bcfx_Handle handle, ShaderGL* shader) {
   ProgramGL* prog = (ProgramGL*)ud;
+  (void)handle;
   GL_CHECK(glDetachShader(prog->id, shader->id));
 }
 void gl_detachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle) {
   _forEachDependShader(glCtx, handle, _doDetachShader, (void*)prog);
 }
 
+static bool bHasDepend = false;
+static void _doDependenceCheck(void* ud, bcfx_Handle handle, ShaderGL* shader) {
+  bcfx_Handle shaderHandle = *(bcfx_Handle*)ud;
+  if (shaderHandle == handle) {
+    bHasDepend = true;
+  }
+}
+static bool gl_isProgramDependsShader(RendererContextGL* glCtx, bcfx_Handle prog, bcfx_Handle shaderHandle) {
+  bHasDepend = false;
+  _forEachDependShader(glCtx, prog, _doDependenceCheck, (void*)&shaderHandle);
+  return bHasDepend;
+}
+void gl_updateAllProgram(RendererContextGL* glCtx, bcfx_Handle shaderHandle) {
+  for (int i = 0; i < BCFX_CONFIG_MAX_PROGRAM; i++) {
+    ProgramGL* prog = &glCtx->programs[i];
+    if (prog->id != 0) {
+      if (gl_isProgramDependsShader(glCtx, prog, shaderHandle)) {
+        glCtx->api.createProgram((RendererContext*)glCtx, handle_pack(HT_Program, i), prog->vs, prog->fs);
+      }
+    }
+  }
+}
 /* }====================================================== */
