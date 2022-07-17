@@ -13,13 +13,6 @@
 ** =======================================================
 */
 
-// According to bcfx_ETextureFormat
-static int textureFormat_channels[] = {
-    3,
-    4,
-    4,
-};
-
 typedef struct {
   luaL_MemBuffer mb;
   bcfx_ETextureFormat format;
@@ -46,7 +39,7 @@ static int IMAGE_FUNCTION(packImageDecodeParam)(lua_State* L) {
 static void* IMAGE_FUNCTION(imageDecodePtr)(void* arg) {
   ImageDecodeParam* param = (ImageDecodeParam*)arg;
   ImageDecodeResult* result = (ImageDecodeResult*)malloc(sizeof(ImageDecodeResult));
-  result->wantChannels = textureFormat_channels[param->format];
+  result->wantChannels = channels_textureFormat[param->format];
   luaL_MemBuffer* mb = &param->mb;
   result->data = (void*)stbi_load_from_memory((const stbi_uc*)mb->ptr, mb->sz, &result->width, &result->height, &result->nrChannels, result->wantChannels);
   MEMBUFFER_RELEASE(mb);
@@ -81,7 +74,7 @@ static int IMAGE_FUNCTION(imageDecode)(lua_State* L) {
   bcfx_ETextureFormat format = luaL_checktextureformat(L, 2);
 
   int width, height, nrChannels;
-  int wantChannels = textureFormat_channels[format];
+  int wantChannels = channels_textureFormat[format];
   void* data = (void*)stbi_load_from_memory((const stbi_uc*)mb->ptr, mb->sz, &width, &height, &nrChannels, wantChannels);
   MEMBUFFER_RELEASE(mb);
   return _dealImageDecodeResult(L, data, width, height, nrChannels, wantChannels);
