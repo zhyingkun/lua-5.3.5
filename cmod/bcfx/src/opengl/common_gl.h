@@ -264,10 +264,10 @@ extern const GLenum logicOperate_glType[];
 extern const GLenum stencilAction_glType[];
 
 typedef struct {
-  GLenum internalFormat;
-  GLenum format;
-  GLenum type;
-  uint8_t pixelSizeByte;
+  GLenum format; // how many component per pixel in texture data
+  GLenum type; // what the component data type in texture data
+  uint8_t pixelSizeByte; // size byte in texture data
+  GLenum internalFormat; // how to store texture in GPU
 } TextureFormatInfo;
 extern const TextureFormatInfo textureFormat_glType[];
 

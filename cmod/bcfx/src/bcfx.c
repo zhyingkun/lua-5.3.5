@@ -119,6 +119,27 @@ uint8_t sizeof_EUniformType[] = {
     sizeof(uint32_t),
 };
 
+// According to bcfx_ETextureFormat
+uint8_t channels_textureFormat[] = {
+    1,
+    1,
+    2,
+    2,
+
+    3,
+    4,
+
+    3,
+    4,
+
+    1,
+    3,
+    4,
+    3,
+    4,
+    2,
+};
+
 BCFX_API bcfx_Handle bcfx_createVertexBuffer(luaL_MemBuffer* mem, bcfx_VertexLayout* layout) {
   return ctx_createVertexBuffer(s_ctx, mem, layout);
 }

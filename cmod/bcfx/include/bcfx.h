@@ -325,12 +325,29 @@ typedef union {
 
 BCFX_API bcfx_Handle bcfx_createSampler(bcfx_SamplerFlag flags);
 
-// WARNING: Change bcfx_ETextureFormat must Update textureFormat_glType
+// WARNING: Change bcfx_ETextureFormat must Update textureFormat_glType and channels_textureFormat
 typedef enum {
+  /* unsigned integer */
+  TF_R8,
+  TF_R16,
+  TF_RG8,
+  TF_RG16,
+
   TF_RGB8,
   TF_RGBA8,
+  /* texture are gamma color, shader will convert to linear color automatically */
+  TF_SRGB8,
+  TF_SRGBA8,
+  /* float, maybe for render texture */
+  TF_R32F,
+  TF_RGB16F,
+  TF_RGBA16F,
+  TF_RGB32F,
+  TF_RGBA32F,
+  /* depth and stencil texture*/
   TF_D24S8,
 } bcfx_ETextureFormat;
+BCFX_API uint8_t channels_textureFormat[];
 
 BCFX_API bcfx_Handle bcfx_createTexture1D(bcfx_ETextureFormat format, luaL_MemBuffer* mem, uint16_t width, bool bGenMipmap);
 BCFX_API bcfx_Handle bcfx_createTexture1DArray(bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t layers, bool bGenMipmap);

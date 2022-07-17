@@ -757,6 +757,7 @@ void ctx_setTexture(Context* ctx, uint8_t stage, bcfx_Handle uniform, bcfx_Handl
   CHECK_HANDLE(sampler, HT_Sampler);
   UniformBase* u = &ctx->uniforms[handle_index(uniform)];
   TextureBase* t = &ctx->textures[handle_index(texture)];
+  // According to bcfx_ETextureType
   static bcfx_EUniformType texture_ToUniformType[] = {
       UT_Sampler1D,
       UT_Sampler1DArray,

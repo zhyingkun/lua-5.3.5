@@ -38,6 +38,7 @@ const char* err_EnumName(GLenum _enum) {
 ** =======================================================
 */
 
+// According to bcfx_EIndexType
 const uint8_t sizeof_IndexType[] = {
     sizeof(uint8_t),
     sizeof(uint16_t),
@@ -170,9 +171,25 @@ const GLenum stencilAction_glType[] = {
 };
 // According to bcfx_ETextureFormat
 const TextureFormatInfo textureFormat_glType[] = {
-    {GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, 3},
-    {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4},
-    {GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 4},
+    /* unsigned integer (Input) => unsigned integer (GPU) => normalized float (Shader) */
+    {GL_RED, GL_UNSIGNED_BYTE, 1, GL_R8},
+    {GL_RED, GL_UNSIGNED_SHORT, 2, GL_R16},
+    {GL_RG, GL_UNSIGNED_BYTE, 2, GL_RG8},
+    {GL_RG, GL_UNSIGNED_SHORT, 4, GL_RG16},
+
+    {GL_RGB, GL_UNSIGNED_BYTE, 3, GL_RGB8},
+    {GL_RGBA, GL_UNSIGNED_BYTE, 4, GL_RGBA8},
+    /* texture are gamma color, shader will convert to linear color automatically */
+    {GL_SRGB, GL_UNSIGNED_BYTE, 3, GL_SRGB8},
+    {GL_SRGB_ALPHA, GL_UNSIGNED_BYTE, 4, GL_SRGB8_ALPHA8},
+    /* float (Input) => float (GPU) => float (Shader) */
+    {GL_RED, GL_FLOAT, 4, GL_R32F},
+    {GL_RGB, GL_HALF_FLOAT, 6, GL_RGB16F},
+    {GL_RGBA, GL_HALF_FLOAT, 8, GL_RGBA16F},
+    {GL_RGB, GL_FLOAT, 12, GL_RGB32F},
+    {GL_RGBA, GL_FLOAT, 16, GL_RGBA32F},
+    /* depth and stencil texture*/
+    {GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 4, GL_DEPTH24_STENCIL8},
 };
 // According to bcfx_EShaderType
 const GLenum shader_glType[] = {
