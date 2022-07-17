@@ -628,7 +628,7 @@ static void gl_updateBuffer(RendererContext* ctx, bcfx_Handle handle, size_t off
       gl_updateBufferGPU(&tb->buffer, offset, mem, GL_TEXTURE_BUFFER);
     } break;
     default:
-      printf_err("Update buffer with error handle: %d, %s\n", handle, handle_typename(type));
+      printf_err("Update buffer with error handle: %d, %s\n", handle, handle_typeName(type));
       break;
   }
 }

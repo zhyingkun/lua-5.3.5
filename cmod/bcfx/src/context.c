@@ -3,9 +3,9 @@
 
 #define HANDLE_ALLOC(name) handle_alloc(&ctx->allocators[(uint8_t)HT_##name])
 #define HANDLE_FREE(handle) handle_free(&ctx->allocators[(uint8_t)handle_type(handle)], handle)
-#define HANDLE_ISVALID(handle) handle_isvalid(&ctx->allocators[(uint8_t)handle_type(handle)], handle)
+#define HANDLE_ISVALID(handle) handle_isValid(&ctx->allocators[(uint8_t)handle_type(handle)], handle)
 #define HANDLE_TYPE(handle) handle_type(handle)
-#define HANDLE_TYPENAME(handle) handle_typename(handle_type(handle))
+#define HANDLE_TYPENAME(handle) handle_typeName(handle_type(handle))
 
 #define CHECK_HANDLE_VALID(handle, targetType) assert(HANDLE_ISVALID(handle))
 #define CHECK_HANDLE(handle, targetType) assert(HANDLE_TYPE(handle) == (targetType) && HANDLE_ISVALID(handle))
