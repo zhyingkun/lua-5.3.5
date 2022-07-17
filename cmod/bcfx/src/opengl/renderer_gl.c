@@ -858,10 +858,11 @@ static void gl_destroyUniform(RendererContext* ctx, bcfx_Handle handle) {
   UniformGL* uniform = &glCtx->uniforms[handle_index(handle)];
   str_destroy(uniform->name);
   UniformBase* ub = uniform->base;
-  if (ub->type != UT_Sampler2D) {
+  if (ub->type < UT_Sampler1D) {
     mem_free(uniform->data.ptr);
   }
   memset((uint8_t*)uniform, 0, sizeof(UniformGL));
+  glCtx->uniformCount--;
 }
 static void gl_destroySampler(RendererContext* ctx, bcfx_Handle handle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
