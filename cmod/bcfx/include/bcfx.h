@@ -23,9 +23,16 @@ typedef union {
   uint32_t colorUINT32;
   bcfx_Color colorStruct;
 } bcfx_UColor;
+#define COLOR_UINT32(col) (((bcfx_UColor*)&(col))->colorUINT32)
+#define COLOR_STRUCT(col) (((bcfx_UColor*)&(col))->colorStruct)
 
 BCFX_API uint32_t bcfx_packColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 BCFX_API void bcfx_unpackColor(uint32_t rgba, uint8_t* r, uint8_t* g, uint8_t* b, uint8_t* a);
+BCFX_API void bcfx_unpackColorNF(uint32_t rgba, float* r, float* g, float* b, float* a); // NF is Normalized Float
+
+#define bcfx_packColorArray(arr_) bcfx_packColor((arr_)[0], (arr_)[1], (arr_)[2], (arr_)[3]);
+#define bcfx_unpackColorArray(rgba_, arr_) bcfx_unpackColor(rgba_, &(arr_)[0], &(arr_)[1], &(arr_)[2], &(arr_)[3]);
+#define bcfx_unpackColorNFArray(rgba_, arr_) bcfx_unpackColorNF(rgba_, &(arr_)[0], &(arr_)[1], &(arr_)[2], &(arr_)[3]);
 
 /* }====================================================== */
 
@@ -287,30 +294,34 @@ BCFX_API uint8_t sizeof_EUniformType[];
 
 BCFX_API bcfx_Handle bcfx_createUniform(const char* name, bcfx_EUniformType type, uint16_t num);
 
-// WARNING: Change bcfx_ETextureWrap must Update frontFace_glType
+// WARNING: Change bcfx_ETextureWrap must Update textureWrap_glType
 typedef enum {
   TW_Repeat,
   TW_Clamp,
+  TW_ClampToBorder
 } bcfx_ETextureWrap;
-// WARNING: Change bcfx_ETextureFilter must Update frontFace_glType
+// WARNING: Change bcfx_ETextureFilter must Update bcfx_ETextureFilter and textureFilterMipmap_glType
 typedef enum {
   TF_Linear,
   TF_Nearest,
 } bcfx_ETextureFilter;
 typedef struct {
-  uint8_t wrapU : 1;
-  uint8_t wrapV : 1;
+  uint8_t wrapU : 2;
+  uint8_t wrapV : 2;
+  uint8_t wrapW : 2;
   uint8_t filterMin : 1;
   uint8_t filterMag : 1;
-  uint8_t reserved1 : 4;
-  uint8_t reserved2[3];
+  uint8_t enableMipmap : 1;
+  uint8_t filterMipmap : 1; // Only filterMin has mipmap
+  uint8_t reserved1[3];
+  uint32_t borderColor;
 } bcfx_SamplerFlag;
 typedef union {
-  uint32_t flagsUINT32;
+  uint64_t flagsUINT64;
   bcfx_SamplerFlag flagsStruct;
 } bcfx_USamplerFlag;
-#define SAMPLERFLAG_UINT32(flags) (((bcfx_USamplerFlag*)&flags)->flagsUINT32)
-#define SAMPLERFLAG_STRUCT(flags) (((bcfx_USamplerFlag*)&flags)->flagsStruct)
+#define SAMPLERFLAG_UINT64(flags) (((bcfx_USamplerFlag*)&(flags))->flagsUINT64)
+#define SAMPLERFLAG_STRUCT(flags) (((bcfx_USamplerFlag*)&(flags))->flagsStruct)
 
 BCFX_API bcfx_Handle bcfx_createSampler(bcfx_SamplerFlag flags);
 
@@ -537,8 +548,8 @@ typedef union {
   uint64_t stateUINT64;
   bcfx_RenderState stateStruct;
 } bcfx_URenderState;
-#define RENDERSTATE_UINT64(state) (((bcfx_URenderState*)&state)->stateUINT64)
-#define RENDERSTATE_STRUCT(state) (((bcfx_URenderState*)&state)->stateStruct)
+#define RENDERSTATE_UINT64(state) (((bcfx_URenderState*)&(state))->stateUINT64)
+#define RENDERSTATE_STRUCT(state) (((bcfx_URenderState*)&(state))->stateStruct)
 
 // WARNING: Change bcfx_EStencilAction must Update stencilAction_glType
 typedef enum {
@@ -567,8 +578,8 @@ typedef union {
   uint64_t stateUINT64;
   bcfx_StencilState stateStruct;
 } bcfx_UStencilState;
-#define STENCILSTATE_UINT64(state) (((bcfx_UStencilState*)&state)->stateUINT64)
-#define STENCILSTATE_STRUCT(state) (((bcfx_UStencilState*)&state)->stateStruct)
+#define STENCILSTATE_UINT64(state) (((bcfx_UStencilState*)&(state))->stateUINT64)
+#define STENCILSTATE_STRUCT(state) (((bcfx_UStencilState*)&(state))->stateStruct)
 
 #define BCFX_DISCARD_NONE BIT_NONE()
 #define BCFX_DISCARD_VERTEX_STREAMS BIT_INDEX(0)

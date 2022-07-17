@@ -77,11 +77,18 @@ const GLenum uniform_glType[] = {
 const GLenum textureWrap_glType[] = {
     GL_REPEAT,
     GL_CLAMP_TO_EDGE,
+    GL_CLAMP_TO_BORDER,
 };
 // According to bcfx_ETextureFilter
 const GLenum textureFilter_glType[] = {
     GL_LINEAR,
     GL_NEAREST,
+};
+const GLenum textureFilterMipmap_glType[] = {
+    GL_LINEAR_MIPMAP_LINEAR,
+    GL_LINEAR_MIPMAP_NEAREST,
+    GL_NEAREST_MIPMAP_LINEAR,
+    GL_NEAREST_MIPMAP_NEAREST,
 };
 // According to bcfx_EFrontFace
 const GLenum frontFace_glType[] = {
@@ -442,9 +449,21 @@ static void gl_createSampler(RendererContext* ctx, bcfx_Handle handle, bcfx_Samp
 
   GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_WRAP_S, textureWrap_glType[flags.wrapU]));
   GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_WRAP_T, textureWrap_glType[flags.wrapV]));
+  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_WRAP_R, textureWrap_glType[flags.wrapW]));
+
   // must set GL_TEXTURE_MIN_FILTER for Texture2D, if not, you will get a black color when sample it
-  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_MIN_FILTER, textureFilter_glType[flags.filterMin]));
+  GLenum filterMin = GL_NONE;
+  if (flags.enableMipmap) {
+    filterMin = textureFilterMipmap_glType[flags.filterMin * 2 + flags.filterMipmap];
+  } else {
+    filterMin = textureFilter_glType[flags.filterMin];
+  }
+  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_MIN_FILTER, filterMin));
   GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_MAG_FILTER, textureFilter_glType[flags.filterMag]));
+
+  float borderColor[4];
+  bcfx_unpackColorNFArray(flags.borderColor, borderColor);
+  glSamplerParameterfv(sampler->id, GL_TEXTURE_BORDER_COLOR, borderColor);
 }
 //luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format
 static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTexture* param) {
@@ -661,13 +680,9 @@ static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
   GLuint flags = 0;
   if (clear->flags & BCFX_CLEAR_COLOR) {
     flags |= GL_COLOR_BUFFER_BIT;
-    uint8_t r, g, b, a;
-    bcfx_unpackColor(clear->rgba, &r, &g, &b, &a);
-    float rr = ((float)r) / 255.0f;
-    float gg = ((float)g) / 255.0f;
-    float bb = ((float)b) / 255.0f;
-    float aa = ((float)a) / 255.0f;
-    GL_CHECK(glClearColor(rr, gg, bb, aa));
+    float r, g, b, a;
+    bcfx_unpackColorNF(clear->rgba, &r, &g, &b, &a);
+    GL_CHECK(glClearColor(r, b, b, a));
     GL_CHECK(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
   }
   if (clear->flags & BCFX_CLEAR_DEPTH) {
