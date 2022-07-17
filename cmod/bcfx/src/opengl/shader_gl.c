@@ -264,30 +264,30 @@ void gl_bindInstanceAttributes(RendererContextGL* glCtx, ProgramGL* prog, Render
 ** =======================================================
 */
 
-static const char* uniformNames[] = {
-    "u_viewRect",
-    "u_viewTexel",
-    "u_view",
-    "u_invView",
-    "u_proj",
-    "u_invProj",
-    "u_viewProj",
-    "u_invViewProj",
-    "u_model",
-    "u_modelView",
-    "u_modelViewProj",
-    "u_alphaRef4",
-    NULL,
+static const String uniformNames[] = {
+    STRING_LITERAL("u_viewRect"),
+    STRING_LITERAL("u_viewTexel"),
+    STRING_LITERAL("u_view"),
+    STRING_LITERAL("u_invView"),
+    STRING_LITERAL("u_proj"),
+    STRING_LITERAL("u_invProj"),
+    STRING_LITERAL("u_viewProj"),
+    STRING_LITERAL("u_invViewProj"),
+    STRING_LITERAL("u_model"),
+    STRING_LITERAL("u_modelView"),
+    STRING_LITERAL("u_modelViewProj"),
+    STRING_LITERAL("u_alphaRef4"),
+    STRING_LITERAL_NULL(),
 };
-static bcfx_EUniformBuiltin findUniformBuiltinEnum(const char* name) {
-  for (uint8_t i = 0; uniformNames[i] != NULL; i++) {
-    if (strcmp(uniformNames[i], name) == 0) {
+static bcfx_EUniformBuiltin findUniformBuiltinEnum(const String* name) {
+  for (uint8_t i = 0; !str_isNull(&uniformNames[i]); i++) {
+    if (str_isEqual(&uniformNames[i], name)) {
       return (bcfx_EUniformBuiltin)i;
     }
   }
   return UB_Count;
 }
-static uint16_t findUniformUserDefined(RendererContextGL* glCtx, const char* name) {
+static uint16_t findUniformUserDefined(RendererContextGL* glCtx, const String* name) {
   uint16_t idx = 0;
   for (uint16_t i = 0; i < glCtx->uniformCount; i++, idx++) {
     UniformGL* uniform = &glCtx->uniforms[idx];
@@ -295,7 +295,7 @@ static uint16_t findUniformUserDefined(RendererContextGL* glCtx, const char* nam
       idx++;
       uniform = &glCtx->uniforms[idx];
     }
-    if (strcmp(uniform->name, name) == 0) {
+    if (str_isEqual(uniform->name, name)) {
       return idx;
     }
   }
@@ -321,7 +321,10 @@ void prog_collectUniforms(ProgramGL* prog, RendererContextGL* glCtx) {
     GL_CHECK(glGetActiveUniform(prog->id, i, maxLength + 1, NULL, &num, &gltype, name));
     GL_CHECK(loc = glGetUniformLocation(prog->id, name));
     // printf_err("Uniform %s %s is at location %d, size %d\n", glslTypeName(gltype), name, loc, num);
-    bcfx_EUniformBuiltin eub = findUniformBuiltinEnum(name);
+    String nameStr[1];
+    nameStr->str = name;
+    nameStr->sz = strlen(name);
+    bcfx_EUniformBuiltin eub = findUniformBuiltinEnum(nameStr);
     if (eub != UB_Count) {
       assert(loc != -1);
       pu->used[cnt] = eub;
@@ -329,7 +332,7 @@ void prog_collectUniforms(ProgramGL* prog, RendererContextGL* glCtx) {
       UniformProperty* prop = &pu->properties[eub];
       SET_UNIFORM_PROPERTY(prop, loc, num, gltype, 0);
     } else {
-      uint16_t idx = findUniformUserDefined(glCtx, name);
+      uint16_t idx = findUniformUserDefined(glCtx, nameStr);
       if (idx != UINT16_MAX) {
         assert(loc != -1);
         UniformProperty* prop = &pu->propertiesUD[cntUD];
@@ -435,7 +438,7 @@ void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw
     UniformGL* uniform = &glCtx->uniforms[prop->index];
     UniformBase* ub = uniform->base;
     if (uniform_glType[ub->type] != prop->type) {
-      printf_err("Uniform type mismatch: %s, In shader: %d, In app: %d\n", uniform->name, prop->type, ub->type);
+      printf_err("Uniform type mismatch: %s, In shader: %d, In app: %d\n", uniform->name->str, prop->type, ub->type);
     }
     switch (ub->type) {
       case UT_Float:
@@ -490,8 +493,8 @@ typedef enum {
   TK_EOS,
 } Token;
 
-DEFINE_STATIC_STRING(StrPragma, "pragma")
-DEFINE_STATIC_STRING(StrInclude, "include")
+static String StrPragma[1] = {STRING_LITERAL("pragma")};
+static String StrInclude[1] = {STRING_LITERAL("include")};
 
 static uint32_t nextToken(luaL_ByteBuffer* b) {
   const uint8_t* pCh = luaBB_readbytes(b, 1);

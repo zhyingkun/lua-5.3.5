@@ -354,10 +354,7 @@ bcfx_Handle ctx_createProgram(Context* ctx, bcfx_Handle vs, bcfx_Handle fs) {
 
 bcfx_Handle ctx_createUniform(Context* ctx, const char* name, bcfx_EUniformType type, uint16_t num) {
   ADD_CMD_ALLOC_HANDLE(ctx, Uniform)
-  size_t len = strlen(name) + 1;
-  char* buf = (char*)mem_malloc(len);
-  memcpy(buf, name, len);
-  param->cu.name = buf;
+  param->cu.name = str_create(name, strlen(name));
   param->cu.type = type;
   param->cu.num = type >= UT_Sampler1D ? 1 : num;
   UniformBase* u = &ctx->uniforms[handle_index(handle)];

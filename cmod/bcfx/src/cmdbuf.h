@@ -51,7 +51,7 @@ typedef struct {
   bcfx_Handle fsHandle;
 } CmdProgram;
 typedef struct {
-  const char* name;
+  const String* name;
   bcfx_EUniformType type;
   uint16_t num;
 } CmdUniform;

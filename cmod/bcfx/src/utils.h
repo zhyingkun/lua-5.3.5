@@ -26,7 +26,11 @@ typedef struct {
   size_t sz;
 } String;
 
-#define DEFINE_STATIC_STRING(var_, str_) static String var_[1] = {{str_, sizeof(str_) - 1}};
+#define STRING_LITERAL(str_) \
+  { str_, sizeof(str_) - 1 }
+#define STRING_LITERAL_NULL() \
+  { NULL, 0 }
+#define str_isNull(str_) ((str_)->str == NULL && (str_)->sz == 0)
 
 const String* str_create(const char* str, size_t sz);
 void str_destroy(const String* strObj);

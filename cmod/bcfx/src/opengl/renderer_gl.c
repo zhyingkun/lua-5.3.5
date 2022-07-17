@@ -411,7 +411,7 @@ static void gl_createProgram(RendererContext* ctx, bcfx_Handle handle, bcfx_Hand
   prog_collectAttributes(prog);
   prog_collectUniforms(prog, glCtx);
 }
-static void gl_createUniform(RendererContext* ctx, bcfx_Handle handle, const char* name, bcfx_EUniformType type, uint16_t num) {
+static void gl_createUniform(RendererContext* ctx, bcfx_Handle handle, const String* name, bcfx_EUniformType type, uint16_t num) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   UniformGL* uniform = &glCtx->uniforms[handle_index(handle)];
   uniform->name = name;
@@ -856,7 +856,7 @@ static void gl_destroyProgram(RendererContext* ctx, bcfx_Handle handle) {
 static void gl_destroyUniform(RendererContext* ctx, bcfx_Handle handle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   UniformGL* uniform = &glCtx->uniforms[handle_index(handle)];
-  free((void*)uniform->name);
+  str_destroy(uniform->name);
   UniformBase* ub = uniform->base;
   if (ub->type != UT_Sampler2D) {
     mem_free(uniform->data.ptr);
