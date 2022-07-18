@@ -778,8 +778,9 @@ static int BCWRAP_FUNCTION(setIndexBuffer)(lua_State* L) {
   bcfx_Handle handle = luaL_checkhandle(L, 1);
   uint32_t start = luaL_optinteger(L, 2, 0);
   uint32_t count = luaL_optinteger(L, 3, 0);
+  int32_t baseVertex = luaL_optinteger(L, 4, 0);
 
-  bcfx_setIndexBuffer(handle, start, count);
+  bcfx_setIndexBuffer(handle, start, count, baseVertex);
   return 0;
 }
 static int BCWRAP_FUNCTION(setTransform)(lua_State* L) {
@@ -825,8 +826,9 @@ static int BCWRAP_FUNCTION(setInstanceDataBuffer)(lua_State* L) {
   uint32_t numInstance = luaL_checkinteger(L, 1);
   bcfx_Handle handle = luaL_opthandle(L, 2, kInvalidHandle);
   uint32_t startInstance = luaL_optinteger(L, 3, 0);
+  uint32_t baseInstance = luaL_optinteger(L, 4, 0);
 
-  bcfx_setInstanceDataBuffer(numInstance, handle, startInstance);
+  bcfx_setInstanceDataBuffer(numInstance, handle, startInstance, baseInstance);
   return 0;
 }
 static int BCWRAP_FUNCTION(submit)(lua_State* L) {
