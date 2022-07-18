@@ -297,23 +297,33 @@ BCFX_API bcfx_Handle bcfx_createUniform(const char* name, bcfx_EUniformType type
 // WARNING: Change bcfx_ETextureWrap must Update textureWrap_glType
 typedef enum {
   TW_Repeat,
-  TW_Clamp,
-  TW_ClampToBorder
+  TW_ClampToEdge,
+  TW_ClampToBorder,
 } bcfx_ETextureWrap;
-// WARNING: Change bcfx_ETextureFilter must Update bcfx_ETextureFilter and textureFilterMipmap_glType
+// WARNING: Change bcfx_ETextureFilter must Update textureFilter_glType and textureFilterMipmap_glType
 typedef enum {
   TF_Linear,
   TF_Nearest,
 } bcfx_ETextureFilter;
+// WARNING: Change bcfx_ETextureCompareMode must Update textureCompareMode_glType
+typedef enum {
+  TCM_None,
+  TCM_RefToTexture,
+} bcfx_ETextureCompareMode;
 typedef struct {
   uint8_t wrapU : 2;
   uint8_t wrapV : 2;
   uint8_t wrapW : 2;
+  uint8_t wrapMirror : 1;
+  uint8_t compareMode : 1;
+  uint8_t compareFunc : 3;
   uint8_t filterMin : 1;
   uint8_t filterMag : 1;
   uint8_t enableMipmap : 1;
   uint8_t filterMipmap : 1; // Only filterMin has mipmap
-  uint8_t reserved1[3];
+  uint8_t enableAniso : 1;
+
+  uint8_t reserved1[2];
   uint32_t borderColor;
 } bcfx_SamplerFlag;
 typedef union {

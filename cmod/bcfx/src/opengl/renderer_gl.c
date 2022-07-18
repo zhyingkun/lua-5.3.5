@@ -78,6 +78,8 @@ const GLenum uniform_glType[] = {
 const GLenum textureWrap_glType[] = {
     GL_REPEAT,
     GL_CLAMP_TO_EDGE,
+    GL_MIRRORED_REPEAT,
+    GL_MIRROR_CLAMP_TO_EDGE,
     GL_CLAMP_TO_BORDER,
 };
 // According to bcfx_ETextureFilter
@@ -90,6 +92,11 @@ const GLenum textureFilterMipmap_glType[] = {
     GL_LINEAR_MIPMAP_NEAREST,
     GL_NEAREST_MIPMAP_LINEAR,
     GL_NEAREST_MIPMAP_NEAREST,
+};
+// According to bcfx_ETextureCompareMode
+const GLenum textureCompareMode_glType[] = {
+    GL_NONE,
+    GL_COMPARE_REF_TO_TEXTURE,
 };
 // According to bcfx_EFrontFace
 const GLenum frontFace_glType[] = {
@@ -459,14 +466,28 @@ static void gl_createUniform(RendererContext* ctx, bcfx_Handle handle, const Str
   }
   glCtx->uniformCount++;
 }
+static GLenum _getTextureWrapType(uint8_t wrap, uint8_t bMirror) {
+  if (wrap == TW_ClampToBorder) {
+    return GL_CLAMP_TO_BORDER;
+  }
+  uint8_t wrapIndex = bMirror * 2 + wrap;
+  return textureWrap_glType[wrapIndex];
+}
 static void gl_createSampler(RendererContext* ctx, bcfx_Handle handle, bcfx_SamplerFlag flags) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   SamplerGL* sampler = &glCtx->samplers[handle_index(handle)];
   GL_CHECK(glGenSamplers(1, &sampler->id));
 
-  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_WRAP_S, textureWrap_glType[flags.wrapU]));
-  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_WRAP_T, textureWrap_glType[flags.wrapV]));
-  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_WRAP_R, textureWrap_glType[flags.wrapW]));
+  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_WRAP_S, _getTextureWrapType(flags.wrapU, flags.wrapMirror)));
+  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_WRAP_T, _getTextureWrapType(flags.wrapV, flags.wrapMirror)));
+  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_WRAP_R, _getTextureWrapType(flags.wrapW, flags.wrapMirror)));
+
+  float borderColor[4];
+  bcfx_unpackColorNFArray(flags.borderColor, borderColor);
+  GL_CHECK(glSamplerParameterfv(sampler->id, GL_TEXTURE_BORDER_COLOR, borderColor));
+
+  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_COMPARE_MODE, textureCompareMode_glType[flags.compareMode]));
+  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_COMPARE_FUNC, compareFunc_glType[flags.compareFunc]));
 
   // must set GL_TEXTURE_MIN_FILTER for Texture2D, if not, you will get a black color when sample it
   GLenum filterMin = GL_NONE;
@@ -478,9 +499,11 @@ static void gl_createSampler(RendererContext* ctx, bcfx_Handle handle, bcfx_Samp
   GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_MIN_FILTER, filterMin));
   GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_MAG_FILTER, textureFilter_glType[flags.filterMag]));
 
-  float borderColor[4];
-  bcfx_unpackColorNFArray(flags.borderColor, borderColor);
-  glSamplerParameterfv(sampler->id, GL_TEXTURE_BORDER_COLOR, borderColor);
+  if (flags.enableAniso) {
+    GLfloat maxAniso = 0.0f;
+    GL_CHECK(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAniso));
+    GL_CHECK(glSamplerParameterf(sampler->id, GL_TEXTURE_MAX_ANISOTROPY, maxAniso));
+  }
 }
 //luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format
 static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTexture* param) {
