@@ -808,7 +808,7 @@ static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw
       GL_CHECK(glDrawArrays(GL_TRIANGLES, start, count));
     } else {
       gl_bindInstanceAttributes(glCtx, prog, draw);
-      GL_CHECK(glDrawArraysInstanced(GL_TRIANGLES, start, count, draw->numInstance));
+      GL_CHECK(glDrawArraysInstancedBaseInstance(GL_TRIANGLES, start, count, draw->numInstance, draw->baseInstance));
     }
   } else {
     IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
@@ -820,10 +820,10 @@ static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw
     CLAMP_OFFSET_COUNT(total, start, count);
     const void* indices = (const void*)((uint64_t)start * sizeof_IndexType[ib->type]); // offset in byte
     if (draw->numInstance == 0) {
-      GL_CHECK(glDrawElements(GL_TRIANGLES, count, index_glType[ib->type], indices));
+      GL_CHECK(glDrawElementsBaseVertex(GL_TRIANGLES, count, index_glType[ib->type], indices, draw->baseVertex));
     } else {
       gl_bindInstanceAttributes(glCtx, prog, draw);
-      GL_CHECK(glDrawElementsInstanced(GL_TRIANGLES, count, index_glType[ib->type], indices, draw->numInstance));
+      GL_CHECK(glDrawElementsInstancedBaseVertexBaseInstance(GL_TRIANGLES, count, index_glType[ib->type], indices, draw->numInstance, draw->baseVertex, draw->baseInstance));
     }
   }
 }

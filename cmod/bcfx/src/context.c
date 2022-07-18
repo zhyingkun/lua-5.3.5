@@ -743,9 +743,9 @@ void ctx_setVertexBuffer(Context* ctx, uint8_t stream, bcfx_Handle handle, uint3
   CHECK_HANDLE(handle, HT_VertexBuffer);
   encoder_setVertexBuffer(ctx->encoder, stream, handle, attribMask);
 }
-void ctx_setIndexBuffer(Context* ctx, bcfx_Handle handle, uint32_t start, uint32_t count) {
+void ctx_setIndexBuffer(Context* ctx, bcfx_Handle handle, uint32_t start, uint32_t count, int32_t baseVertex) {
   CHECK_HANDLE_IF_VALID(handle, HT_IndexBuffer);
-  encoder_setIndexBuffer(ctx->encoder, handle, start, count);
+  encoder_setIndexBuffer(ctx->encoder, handle, start, count, baseVertex);
 }
 void ctx_setTransform(Context* ctx, Mat4x4* mat) {
   encoder_setTransform(ctx->encoder, mat);
@@ -781,9 +781,9 @@ void ctx_setState(Context* ctx, bcfx_RenderState state, uint32_t blendColor) {
 void ctx_setStencil(Context* ctx, bool enable, bcfx_StencilState front, bcfx_StencilState back) {
   encoder_setStencil(ctx->encoder, enable, front, back);
 }
-void ctx_setInstanceDataBuffer(Context* ctx, uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance) {
+void ctx_setInstanceDataBuffer(Context* ctx, uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance, uint32_t baseInstance) {
   CHECK_HANDLE_IF_VALID(handle, HT_InstanceDataBuffer); // Support invalid instance data buffer
-  encoder_setInstanceDataBuffer(ctx->encoder, numInstance, handle, startInstance);
+  encoder_setInstanceDataBuffer(ctx->encoder, numInstance, handle, startInstance, baseInstance);
 }
 
 void ctx_submit(Context* ctx, ViewId id, bcfx_Handle handle, uint32_t flags, uint32_t sortDepth) {

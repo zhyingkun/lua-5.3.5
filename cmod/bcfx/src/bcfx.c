@@ -354,8 +354,8 @@ BCFX_API void bcfx_touch(ViewId id) {
 BCFX_API void bcfx_setVertexBuffer(uint8_t stream, bcfx_Handle handle, uint32_t attribMask) {
   ctx_setVertexBuffer(s_ctx, stream, handle, attribMask);
 }
-BCFX_API void bcfx_setIndexBuffer(bcfx_Handle handle, uint32_t start, uint32_t count) {
-  ctx_setIndexBuffer(s_ctx, handle, start, count);
+BCFX_API void bcfx_setIndexBuffer(bcfx_Handle handle, uint32_t start, uint32_t count, int32_t baseVertex) {
+  ctx_setIndexBuffer(s_ctx, handle, start, count, baseVertex);
 }
 BCFX_API void bcfx_setTransform(Mat4x4* mat) {
   ctx_setTransform(s_ctx, mat);
@@ -372,8 +372,8 @@ BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor) {
 BCFX_API void bcfx_setStencil(bool enable, bcfx_StencilState front, bcfx_StencilState back) {
   ctx_setStencil(s_ctx, enable, front, back);
 }
-BCFX_API void bcfx_setInstanceDataBuffer(uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance) {
-  ctx_setInstanceDataBuffer(s_ctx, numInstance, handle, startInstance);
+BCFX_API void bcfx_setInstanceDataBuffer(uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance, uint32_t baseInstance) {
+  ctx_setInstanceDataBuffer(s_ctx, numInstance, handle, startInstance, baseInstance);
 }
 
 BCFX_API void bcfx_submit(ViewId id, bcfx_Handle handle, uint32_t flags, uint32_t sortDepth) {

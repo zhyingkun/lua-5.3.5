@@ -19,6 +19,7 @@ static void encoder_discard(Encoder* encoder, uint32_t flags) {
     draw->indexBuffer = kInvalidHandle;
     draw->indexStart = 0;
     draw->indexCount = 0;
+    draw->baseVertex = 0;
   }
   if (flags & BCFX_DISCARD_TRANSFORM) {
     MAT_IDENTITY(&draw->model);
@@ -40,6 +41,7 @@ static void encoder_discard(Encoder* encoder, uint32_t flags) {
     draw->numInstance = 0;
     draw->instanceDataBuffer = kInvalidHandle;
     draw->startInstance = 0;
+    draw->baseInstance = 0;
   }
 }
 
@@ -72,10 +74,11 @@ void encoder_setVertexBuffer(Encoder* encoder, uint8_t stream, bcfx_Handle verte
   encoder->draw.streams[stream].attribMask = attribMask;
   encoder->draw.streamMask |= 1 << stream;
 }
-void encoder_setIndexBuffer(Encoder* encoder, bcfx_Handle indexBuffer, uint32_t start, uint32_t count) {
+void encoder_setIndexBuffer(Encoder* encoder, bcfx_Handle indexBuffer, uint32_t start, uint32_t count, int32_t baseVertex) {
   encoder->draw.indexBuffer = indexBuffer;
   encoder->draw.indexStart = start;
   encoder->draw.indexCount = count;
+  encoder->draw.baseVertex = baseVertex;
 }
 void encoder_setTransform(Encoder* encoder, Mat4x4* mat) {
   encoder->draw.model = *mat;
@@ -104,11 +107,12 @@ void encoder_setStencil(Encoder* encoder, bool enable, bcfx_StencilState front, 
   encoder->draw.stencilFront = front;
   encoder->draw.stencilBack = back;
 }
-void encoder_setInstanceDataBuffer(Encoder* encoder, uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance) {
+void encoder_setInstanceDataBuffer(Encoder* encoder, uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance, uint32_t baseInstance) {
   RenderDraw* draw = &encoder->draw;
   draw->numInstance = numInstance;
   draw->instanceDataBuffer = handle;
   draw->startInstance = startInstance;
+  draw->baseInstance = baseInstance;
 }
 
 void encoder_submit(Encoder* encoder, ViewId id, bcfx_Handle program, uint32_t flags, uint32_t sortDepth, ViewMode mode, bool notTouch) {
