@@ -971,7 +971,8 @@ static const luaL_Enum BCWRAP_ENUM(shader_type)[] = {
 };
 static const luaL_Enum BCWRAP_ENUM(texture_wrap)[] = {
     {"Repeat", TW_Repeat},
-    {"Clamp", TW_Clamp},
+    {"ClampToEdge", TW_ClampToEdge},
+    {"ClampToBorder", TW_ClampToBorder},
     {NULL, 0},
 };
 static const luaL_Enum BCWRAP_ENUM(texture_filter)[] = {
