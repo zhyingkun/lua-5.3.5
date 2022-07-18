@@ -372,8 +372,8 @@ BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor) {
 BCFX_API void bcfx_setStencil(bool enable, bcfx_StencilState front, bcfx_StencilState back) {
   ctx_setStencil(s_ctx, enable, front, back);
 }
-BCFX_API void bcfx_setInstanceDataBuffer(uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance, uint32_t baseInstance) {
-  ctx_setInstanceDataBuffer(s_ctx, numInstance, handle, startInstance, baseInstance);
+BCFX_API void bcfx_setInstanceDataBuffer(uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance) {
+  ctx_setInstanceDataBuffer(s_ctx, numInstance, handle, startInstance);
 }
 
 BCFX_API void bcfx_submit(ViewId id, bcfx_Handle handle, uint32_t flags, uint32_t sortDepth) {

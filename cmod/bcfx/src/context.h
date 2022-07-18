@@ -121,7 +121,7 @@ void ctx_setTexture(Context* ctx, uint8_t stage, bcfx_Handle uniform, bcfx_Handl
 void ctx_setScissor(Context* ctx, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 void ctx_setState(Context* ctx, bcfx_RenderState state, uint32_t blendColor);
 void ctx_setStencil(Context* ctx, bool enable, bcfx_StencilState front, bcfx_StencilState back);
-void ctx_setInstanceDataBuffer(Context* ctx, uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance, uint32_t baseInstance);
+void ctx_setInstanceDataBuffer(Context* ctx, uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance);
 
 void ctx_submit(Context* ctx, ViewId id, bcfx_Handle handle, uint32_t flags, uint32_t depth);
 

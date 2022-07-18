@@ -781,9 +781,9 @@ void ctx_setState(Context* ctx, bcfx_RenderState state, uint32_t blendColor) {
 void ctx_setStencil(Context* ctx, bool enable, bcfx_StencilState front, bcfx_StencilState back) {
   encoder_setStencil(ctx->encoder, enable, front, back);
 }
-void ctx_setInstanceDataBuffer(Context* ctx, uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance, uint32_t baseInstance) {
+void ctx_setInstanceDataBuffer(Context* ctx, uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance) {
   CHECK_HANDLE_IF_VALID(handle, HT_InstanceDataBuffer); // Support invalid instance data buffer
-  encoder_setInstanceDataBuffer(ctx->encoder, numInstance, handle, startInstance, baseInstance);
+  encoder_setInstanceDataBuffer(ctx->encoder, numInstance, handle, startInstance);
 }
 
 void ctx_submit(Context* ctx, ViewId id, bcfx_Handle handle, uint32_t flags, uint32_t sortDepth) {
