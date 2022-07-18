@@ -826,9 +826,8 @@ static int BCWRAP_FUNCTION(setInstanceDataBuffer)(lua_State* L) {
   uint32_t numInstance = luaL_checkinteger(L, 1);
   bcfx_Handle handle = luaL_opthandle(L, 2, kInvalidHandle);
   uint32_t startInstance = luaL_optinteger(L, 3, 0);
-  uint32_t baseInstance = luaL_optinteger(L, 4, 0);
 
-  bcfx_setInstanceDataBuffer(numInstance, handle, startInstance, baseInstance);
+  bcfx_setInstanceDataBuffer(numInstance, handle, startInstance);
   return 0;
 }
 static int BCWRAP_FUNCTION(submit)(lua_State* L) {
