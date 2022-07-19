@@ -504,6 +504,10 @@ static void gl_createSampler(RendererContext* ctx, bcfx_Handle handle, bcfx_Samp
     GL_CHECK(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAniso));
     GL_CHECK(glSamplerParameterf(sampler->id, GL_TEXTURE_MAX_ANISOTROPY, maxAniso));
   }
+
+  // GL_CHECK(glSamplerParameterf(sampler->id, GL_TEXTURE_MIN_LOD, -1000.0f));
+  // GL_CHECK(glSamplerParameterf(sampler->id, GL_TEXTURE_MAX_LOD, 1000.0f));
+  // GL_CHECK(glSamplerParameterf(sampler->id, GL_TEXTURE_LOD_BIAS, 0.0f));
 }
 //luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format
 static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTexture* param) {
@@ -613,6 +617,8 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
       }
       mem_free((void*)p->mba);
       p->mba = NULL;
+      GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0));
+      GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, p->levels - 1));
       GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
     } break;
     default:
