@@ -516,6 +516,8 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
   texture->format = param->format;
   const TextureFormatInfo* fi = &textureFormat_glType[texture->format];
 
+  // Specifies the alignment requirements for the start of each pixel row in memory. The allowable values are 1/2/4/8, default is 4
+  GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
   GL_CHECK(glGenTextures(1, &texture->id));
   switch (param->type) {
     case TT_Texture1D: {
@@ -547,7 +549,6 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
     case TT_Texture2D: {
       ParamTexture2D* p = &param->value.t2d;
       GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
-      GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
       assert(p->mem.ptr == NULL || p->mem.sz == p->width * p->height * fi->pixelSizeByte);
       GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, fi->internalFormat, p->width, p->height, 0, fi->format, fi->type, p->mem.ptr));
       if (p->bGenMipmap) {
