@@ -202,7 +202,7 @@ static void ctx_renderFrame(Context* ctx) {
 static void _renderThreadStart(void* arg) {
   Context* ctx = (Context*)arg;
   RendererContext* renderCtx = ctx->renderCtx;
-  CALL_RENDERER(init, ctx->mainWin, ctx->flagMask);
+  CALL_RENDERER(init, ctx->mainWin, ctx->initMask);
   while (ctx->running) {
     ctx_renderFrame(ctx);
   }
@@ -232,11 +232,11 @@ static void DestroyRenderer(RendererContext* renderer) {
   destroyers[RT_OpenGL](renderer);
 }
 
-void ctx_init(Context* ctx, Window mainWin, uint32_t flagMask) {
+void ctx_init(Context* ctx, Window mainWin, uint32_t initMask) {
   assert(mainWin != NULL);
   ctx->running = true;
   ctx->mainWin = mainWin;
-  ctx->mainWin = flagMask;
+  ctx->initMask = initMask;
 
   for (size_t i = 0; i < BCFX_CONFIG_MAX_VIEWS; i++) {
     view_reset(&ctx->views[i]);
@@ -586,9 +586,9 @@ void ctx_setViewFrameBuffer(Context* ctx, ViewId id, bcfx_Handle handle) {
   view_setFrameBuffer(&ctx->views[id], handle);
 }
 
-void ctx_setViewClear(Context* ctx, ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil) {
+void ctx_setViewClear(Context* ctx, ViewId id, uint32_t clearMask, uint32_t rgba, float depth, uint8_t stencil) {
   CHECK_VIEWID(id);
-  view_setClear(&ctx->views[id], flags, rgba, depth, stencil);
+  view_setClear(&ctx->views[id], clearMask, rgba, depth, stencil);
 }
 void ctx_setViewRect(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
   CHECK_VIEWID(id);
@@ -611,9 +611,9 @@ void ctx_setViewDepthRange(Context* ctx, ViewId id, float near, float far) {
   CHECK_VIEWID(id);
   view_setDepthRange(&ctx->views[id], near, far);
 }
-void ctx_setViewDebug(Context* ctx, ViewId id, uint32_t debug) {
+void ctx_setViewDebug(Context* ctx, ViewId id, uint32_t debugMask) {
   CHECK_VIEWID(id);
-  view_setDebug(&ctx->views[id], debug);
+  view_setDebug(&ctx->views[id], debugMask);
 }
 void ctx_resetView(Context* ctx, ViewId id) {
   CHECK_VIEWID(id);
@@ -787,10 +787,10 @@ void ctx_setInstanceDataBuffer(Context* ctx, uint32_t numInstance, bcfx_Handle h
   encoder_setInstanceDataBuffer(ctx->encoder, numInstance, handle, startInstance);
 }
 
-void ctx_submit(Context* ctx, ViewId id, bcfx_Handle handle, uint32_t flags, uint32_t sortDepth) {
+void ctx_submit(Context* ctx, ViewId id, bcfx_Handle handle, uint32_t discardMask, uint32_t sortDepth) {
   CHECK_VIEWID(id);
   CHECK_HANDLE(handle, HT_Program);
-  encoder_submit(ctx->encoder, id, handle, flags, sortDepth, ctx->views[id].mode, true);
+  encoder_submit(ctx->encoder, id, handle, discardMask, sortDepth, ctx->views[id].mode, true);
 }
 
 /* }====================================================== */

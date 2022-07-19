@@ -24,8 +24,8 @@ void rect_intersect(Rect* src1, Rect* src2, Rect* dst) {
   dst->height = ey > sy ? ey - sy : 0;
 }
 
-void clear_set(Clear* clear, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil) {
-  clear->flags = flags;
+void clear_set(Clear* clear, uint32_t clearMask, uint32_t rgba, float depth, uint8_t stencil) {
+  clear->clearMask = clearMask;
   clear->rgba = rgba;
   clear->depth = depth;
   clear->stencil = stencil;
@@ -38,8 +38,8 @@ void view_setFrameBuffer(View* view, bcfx_Handle handle) {
   view->fbh = handle;
 }
 
-void view_setClear(View* view, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil) {
-  clear_set(&view->clear, flags, rgba, depth, stencil);
+void view_setClear(View* view, uint32_t clearMask, uint32_t rgba, float depth, uint8_t stencil) {
+  clear_set(&view->clear, clearMask, rgba, depth, stencil);
 }
 void view_setRect(View* view, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
   rect_set(&view->rect, x, y, width, height);
@@ -64,8 +64,8 @@ void view_setDepthRange(View* view, float near, float far) {
   view->farDepth = far;
 }
 
-void view_setDebug(View* view, uint32_t debug) {
-  view->debug = debug;
+void view_setDebug(View* view, uint32_t debugMask) {
+  view->debugMask = debugMask;
 }
 void view_reset(View* view) {
   view->win = NULL;
@@ -78,7 +78,7 @@ void view_reset(View* view) {
   MAT4x4_INIT(&view->projMat);
   MAT_IDENTITY(&view->projMat);
   view->mode = VM_Default;
-  view->debug = BCFX_DEBUG_NONE;
+  view->debugMask = 0;
   view->nearDepth = 0.0;
   view->farDepth = 1.0;
 }

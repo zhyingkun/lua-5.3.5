@@ -8,26 +8,26 @@
 ** =======================================================
 */
 
-static void encoder_discard(Encoder* encoder, uint32_t flags) {
+static void encoder_discard(Encoder* encoder, uint32_t discardMask) {
   RenderDraw* draw = &encoder->draw;
   RenderBind* bind = &encoder->bind;
-  if (flags & BCFX_DISCARD_VERTEX_STREAMS) {
+  if (HAS_BIT(discardMask, DF_VertexStreams)) {
     /* no need to clear streams */
     draw->streamMask = 0;
   }
-  if (flags & BCFX_DISCARD_INDEX_BUFFER) {
+  if (HAS_BIT(discardMask, DF_IndexBuffer)) {
     draw->indexBuffer = kInvalidHandle;
     draw->indexStart = 0;
     draw->indexCount = 0;
     draw->baseVertex = 0;
   }
-  if (flags & BCFX_DISCARD_TRANSFORM) {
+  if (HAS_BIT(discardMask, DF_Transform)) {
     MAT_IDENTITY(&draw->model);
   }
-  if (flags & BCFX_DISCARD_BINDINGS) {
+  if (HAS_BIT(discardMask, DF_Bindings)) {
     memset(bind, 0, sizeof(RenderBind));
   }
-  if (flags & BCFX_DISCARD_STATE) {
+  if (HAS_BIT(discardMask, DF_State)) {
     rect_reset(&draw->scissor);
     bcfx_RenderState state = {0};
     draw->state = state;
@@ -37,7 +37,7 @@ static void encoder_discard(Encoder* encoder, uint32_t flags) {
     draw->stencilFront = stencil;
     draw->stencilBack = stencil;
   }
-  if (flags & BCFX_DISCARD_INSTANCE_DATA) {
+  if (HAS_BIT(discardMask, DF_InstanceData)) {
     draw->numInstance = 0;
     draw->instanceDataBuffer = kInvalidHandle;
     draw->startInstance = 0;
@@ -54,7 +54,7 @@ void encoder_begin(Encoder* encoder, Frame* frame) {
   encoder->frame = frame;
 
   /* most field of RenderDraw and RenderBind will be clear in encoder_discard */
-  encoder_discard(encoder, BCFX_DISCARD_ALL);
+  encoder_discard(encoder, DFM_All);
 
   /* encoder->draw.uniformStartByte and encoder->draw.uniformSizeByte will set by encoder_submit */
 
@@ -65,7 +65,7 @@ void encoder_end(Encoder* encoder) {
 }
 
 void encoder_touch(Encoder* encoder, ViewId id) {
-  encoder_submit(encoder, id, kInvalidHandle, BCFX_DISCARD_ALL, 0, VM_Default, false);
+  encoder_submit(encoder, id, kInvalidHandle, DFM_All, 0, VM_Default, false);
 }
 
 void encoder_setVertexBuffer(Encoder* encoder, uint8_t stream, bcfx_Handle vertexBuffer, uint32_t attribMask) {
@@ -113,7 +113,7 @@ void encoder_setInstanceDataBuffer(Encoder* encoder, uint32_t numInstance, bcfx_
   draw->startInstance = startInstance;
 }
 
-void encoder_submit(Encoder* encoder, ViewId id, bcfx_Handle program, uint32_t flags, uint32_t sortDepth, ViewMode mode, bool notTouch) {
+void encoder_submit(Encoder* encoder, ViewId id, bcfx_Handle program, uint32_t discardMask, uint32_t sortDepth, ViewMode mode, bool notTouch) {
   Frame* frame = encoder->frame;
   RenderDraw* draw = &encoder->draw;
   RenderBind* bind = &encoder->bind;
@@ -159,7 +159,7 @@ void encoder_submit(Encoder* encoder, ViewId id, bcfx_Handle program, uint32_t f
   }
   frame_setSortKey(frame, index, sortkey_encode(key));
 
-  encoder_discard(encoder, flags);
+  encoder_discard(encoder, discardMask);
 }
 
 /* }====================================================== */

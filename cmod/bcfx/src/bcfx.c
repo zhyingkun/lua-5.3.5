@@ -51,8 +51,8 @@ BCFX_API void bcfx_vertexLayoutClear(bcfx_VertexLayout* layout) {
 static Context s_ctx[1];
 
 #define PRINT_SIZEOF_TYPE(type) printf("sizeof(" #type "): %ld\n", sizeof(type))
-BCFX_API void bcfx_init(Window mainWin, uint32_t flagMask) {
-  ctx_init(s_ctx, mainWin, flagMask);
+BCFX_API void bcfx_init(Window mainWin, uint32_t initMask) {
+  ctx_init(s_ctx, mainWin, initMask);
   // PRINT_SIZEOF_TYPE(bcfx_Color);
   // PRINT_SIZEOF_TYPE(bcfx_UColor);
   // PRINT_SIZEOF_TYPE(bcfx_SamplerFlag);
@@ -272,8 +272,8 @@ BCFX_API void bcfx_setViewFrameBuffer(ViewId id, bcfx_Handle handle) {
   ctx_setViewFrameBuffer(s_ctx, id, handle);
 }
 
-BCFX_API void bcfx_setViewClear(ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil) {
-  ctx_setViewClear(s_ctx, id, flags, rgba, depth, stencil);
+BCFX_API void bcfx_setViewClear(ViewId id, uint32_t clearMask, uint32_t rgba, float depth, uint8_t stencil) {
+  ctx_setViewClear(s_ctx, id, clearMask, rgba, depth, stencil);
 }
 
 BCFX_API void bcfx_setViewRect(ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height) {
@@ -296,8 +296,8 @@ BCFX_API void bcfx_setViewDepthRange(ViewId id, float near, float far) {
   ctx_setViewDepthRange(s_ctx, id, near, far);
 }
 
-BCFX_API void bcfx_setViewDebug(ViewId id, uint32_t debug) {
-  ctx_setViewDebug(s_ctx, id, debug);
+BCFX_API void bcfx_setViewDebug(ViewId id, uint32_t debugMask) {
+  ctx_setViewDebug(s_ctx, id, debugMask);
 }
 
 BCFX_API void bcfx_resetView(ViewId id) {
@@ -376,8 +376,8 @@ BCFX_API void bcfx_setInstanceDataBuffer(uint32_t numInstance, bcfx_Handle handl
   ctx_setInstanceDataBuffer(s_ctx, numInstance, handle, startInstance);
 }
 
-BCFX_API void bcfx_submit(ViewId id, bcfx_Handle handle, uint32_t flags, uint32_t sortDepth) {
-  ctx_submit(s_ctx, id, handle, flags, sortDepth);
+BCFX_API void bcfx_submit(ViewId id, bcfx_Handle handle, uint32_t discardMask, uint32_t sortDepth) {
+  ctx_submit(s_ctx, id, handle, discardMask, sortDepth);
 }
 
 /* }====================================================== */

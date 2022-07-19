@@ -16,7 +16,7 @@
 typedef struct {
   bool running;
   Window mainWin;
-  uint32_t flagMask;
+  uint32_t initMask;
 
   Semaphore apiSem;
   Semaphore renderSem;
@@ -50,7 +50,7 @@ void ctx_setFrameCompletedCallback(Context* ctx, bcfx_OnFrameCompleted cb, void*
 void ctx_callOnFrameCompleted(Context* ctx, uint32_t frameId);
 
 void ctx_apiFrame(Context* ctx, uint32_t renderCount);
-void ctx_init(Context* ctx, Window mainWin, uint32_t flagMask);
+void ctx_init(Context* ctx, Window mainWin, uint32_t initMask);
 void ctx_shutdowm(Context* ctx);
 
 bcfx_Handle ctx_createVertexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_VertexLayout* layout);
@@ -91,7 +91,7 @@ void ctx_destroy(Context* ctx, bcfx_Handle handle);
 void ctx_setViewWindow(Context* ctx, ViewId id, Window win);
 void ctx_setViewFrameBuffer(Context* ctx, ViewId id, bcfx_Handle handle);
 
-void ctx_setViewClear(Context* ctx, ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil);
+void ctx_setViewClear(Context* ctx, ViewId id, uint32_t clearMask, uint32_t rgba, float depth, uint8_t stencil);
 void ctx_setViewRect(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 void ctx_setViewScissor(Context* ctx, ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 
@@ -124,7 +124,7 @@ void ctx_setState(Context* ctx, bcfx_RenderState state, uint32_t blendColor);
 void ctx_setStencil(Context* ctx, bool enable, bcfx_StencilState front, bcfx_StencilState back);
 void ctx_setInstanceDataBuffer(Context* ctx, uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance);
 
-void ctx_submit(Context* ctx, ViewId id, bcfx_Handle handle, uint32_t flags, uint32_t depth);
+void ctx_submit(Context* ctx, ViewId id, bcfx_Handle handle, uint32_t discardMask, uint32_t depth);
 
 /* }====================================================== */
 

@@ -243,7 +243,7 @@ static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win, GLuint mainW
   }
 }
 
-static void gl_init(RendererContext* ctx, Window mainWin, uint32_t flagMask) {
+static void gl_init(RendererContext* ctx, Window mainWin, uint32_t initMask) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   gl_initShaderInclude(glCtx);
   glCtx->mainWin = mainWin;
@@ -261,7 +261,7 @@ static void gl_init(RendererContext* ctx, Window mainWin, uint32_t flagMask) {
   gl_MakeWinCurrent(glCtx, glCtx->mainWin, 0);
   gl_initMainWinTripleBuffer(glCtx, false);
 
-  if (HAS_BIT(flagMask, IF_FramebufferSRGB)) {
+  if (HAS_BIT(initMask, IF_FramebufferSRGB)) {
     GL_CHECK(glEnable(GL_FRAMEBUFFER_SRGB));
   } else {
     GL_CHECK(glDisable(GL_FRAMEBUFFER_SRGB));
@@ -731,19 +731,19 @@ static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
   GL_CHECK(glViewport(rect->x, rect->y, rect->width, rect->height));
   Clear* clear = &view->clear;
   GLuint flags = 0;
-  if (clear->flags & BCFX_CLEAR_COLOR) {
+  if (HAS_BIT(clear->clearMask, CF_Color)) {
     flags |= GL_COLOR_BUFFER_BIT;
     float r, g, b, a;
     bcfx_unpackColorNF(clear->rgba, &r, &g, &b, &a);
     GL_CHECK(glClearColor(r, b, b, a));
     GL_CHECK(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
   }
-  if (clear->flags & BCFX_CLEAR_DEPTH) {
+  if (HAS_BIT(clear->clearMask, CF_Depth)) {
     flags |= GL_DEPTH_BUFFER_BIT;
     GL_CHECK(glClearDepth(clear->depth));
     GL_CHECK(glDepthMask(GL_TRUE));
   }
-  if (clear->flags & BCFX_CLEAR_STENCIL) {
+  if (HAS_BIT(clear->clearMask, CF_Stencil)) {
     flags |= GL_STENCIL_BUFFER_BIT;
     GL_CHECK(glClearStencil(clear->stencil));
   }
@@ -884,7 +884,7 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
       curViewId = id;
       gl_MakeViewCurrent(glCtx, view);
 
-      GLenum polMod = (view->debug & BCFX_DEBUG_WIREFRAME) ? GL_LINE : GL_FILL;
+      GLenum polMod = (HAS_BIT(view->debugMask, DF_Wireframe)) ? GL_LINE : GL_FILL;
       if (IS_VALUE_CHANGED(curPolMod, polMod)) {
         GL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, curPolMod));
       }

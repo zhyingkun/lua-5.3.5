@@ -213,8 +213,8 @@ typedef enum {
 #undef XX
 } bcfx_EInitFlagMask;
 
-// mask: combine bcfx_EInitFlagMask with '|'
-BCFX_API void bcfx_init(Window mainWin, uint32_t flagMask);
+// initMask: combine bcfx_EInitFlagMask with '|'
+BCFX_API void bcfx_init(Window mainWin, uint32_t initMask);
 BCFX_API void bcfx_apiFrame(uint32_t renderCount);
 BCFX_API void bcfx_shutdowm(void);
 
@@ -425,13 +425,42 @@ BCFX_API void bcfx_destroy(bcfx_Handle handle);
 */
 
 // setViewClear flags
-#define BCFX_CLEAR_NONE BIT_NONE()
-#define BCFX_CLEAR_COLOR BIT_INDEX(0)
-#define BCFX_CLEAR_DEPTH BIT_INDEX(1)
-#define BCFX_CLEAR_STENCIL BIT_INDEX(2)
+#define CLEAR_FLAG(XX) \
+  XX(Color) \
+  XX(Depth) \
+  XX(Stencil)
 
-#define BCFX_DEBUG_NONE BIT_NONE()
-#define BCFX_DEBUG_WIREFRAME BIT_INDEX(0)
+// clang-format off
+typedef enum {
+#define XX(name) CF_##name,
+  CLEAR_FLAG(XX)
+#undef XX
+  CF_Count,
+} bcfx_EClearFlag;
+
+typedef enum {
+  CFM_None = BIT_NONE(),
+#define XX(name) CFM_##name = BIT_INDEX(CF_##name),
+  CLEAR_FLAG(XX)
+#undef XX
+  CFM_All = BIT_MASK(CF_Count),
+} bcfx_EClearFlagMask;
+// clang-format on
+
+#define DEBUG_FLAG(XX) \
+  XX(Wireframe)
+
+typedef enum {
+#define XX(name) DF_##name,
+  DEBUG_FLAG(XX)
+#undef XX
+} bcfx_EDebugFlag;
+
+typedef enum {
+#define XX(name) DFM_##name = BIT_INDEX(DF_##name),
+  DEBUG_FLAG(XX)
+#undef XX
+} bcfx_EDebugFlagMask;
 
 typedef enum {
   VM_Default,
@@ -446,7 +475,8 @@ typedef uint16_t ViewId;
 BCFX_API void bcfx_setViewWindow(ViewId id, Window win);
 BCFX_API void bcfx_setViewFrameBuffer(ViewId id, bcfx_Handle handle);
 
-BCFX_API void bcfx_setViewClear(ViewId id, uint16_t flags, uint32_t rgba, float depth, uint8_t stencil);
+// clearMask: combine bcfx_EClearFlagMask with '|'
+BCFX_API void bcfx_setViewClear(ViewId id, uint32_t clearMask, uint32_t rgba, float depth, uint8_t stencil);
 // rect: origin is LeftBottom, x towards right, y towards top, unit is pixel
 BCFX_API void bcfx_setViewRect(ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
 BCFX_API void bcfx_setViewScissor(ViewId id, uint16_t x, uint16_t y, uint16_t width, uint16_t height);
@@ -455,7 +485,8 @@ BCFX_API void bcfx_setViewTransform(ViewId id, Mat4x4* viewMat, Mat4x4* projMat)
 BCFX_API void bcfx_setViewMode(ViewId id, ViewMode mode);
 BCFX_API void bcfx_setViewDepthRange(ViewId id, float near, float far);
 
-BCFX_API void bcfx_setViewDebug(ViewId id, uint32_t debug);
+// debugMask: combine bcfx_EDebugFlagMask with '|'
+BCFX_API void bcfx_setViewDebug(ViewId id, uint32_t debugMask);
 BCFX_API void bcfx_resetView(ViewId id);
 
 /* }====================================================== */
@@ -624,14 +655,30 @@ typedef union {
 #define STENCILSTATE_UINT64(state) (((bcfx_UStencilState*)&(state))->stateUINT64)
 #define STENCILSTATE_STRUCT(state) (((bcfx_UStencilState*)&(state))->stateStruct)
 
-#define BCFX_DISCARD_NONE BIT_NONE()
-#define BCFX_DISCARD_VERTEX_STREAMS BIT_INDEX(0)
-#define BCFX_DISCARD_INDEX_BUFFER BIT_INDEX(1)
-#define BCFX_DISCARD_TRANSFORM BIT_INDEX(2)
-#define BCFX_DISCARD_BINDINGS BIT_INDEX(3)
-#define BCFX_DISCARD_STATE BIT_INDEX(4)
-#define BCFX_DISCARD_INSTANCE_DATA BIT_INDEX(5)
-#define BCFX_DISCARD_ALL BIT_MASK(6)
+#define DISCARD_FLAG(XX) \
+  XX(VertexStreams) \
+  XX(IndexBuffer) \
+  XX(Transform) \
+  XX(Bindings) \
+  XX(State) \
+  XX(InstanceData)
+
+// clang-format off
+typedef enum {
+#define XX(name) DF_##name,
+  DISCARD_FLAG(XX)
+#undef XX
+  DF_Count,
+} bcfx_EDiscardFlag;
+
+typedef enum {
+  DFM_None = BIT_NONE(),
+#define XX(name) DFM_##name = BIT_INDEX(DF_##name),
+  DISCARD_FLAG(XX)
+#undef XX
+  DFM_All = BIT_MASK(DF_Count),
+} bcfx_EDiscardFlagMask;
+// clang-format on
 
 BCFX_API void bcfx_setUniformFloat(bcfx_Handle handle, float* val, uint16_t num);
 BCFX_API void bcfx_setUniformInt(bcfx_Handle handle, int* val, uint16_t num);
@@ -643,7 +690,7 @@ BCFX_API void bcfx_setUniformMat4x4(bcfx_Handle handle, Mat4x4* mat, uint16_t nu
 // Touch will fire Uniform flush and Clear render buffers
 BCFX_API void bcfx_touch(ViewId id);
 
-// mask: combine bcfx_EVertexAttribMask with '|'
+// attribMask: combine bcfx_EVertexAttribMask with '|'
 BCFX_API void bcfx_setVertexBuffer(uint8_t stream, bcfx_Handle handle, uint32_t attribMask);
 // start and count calculate in indexes，not byte
 BCFX_API void bcfx_setIndexBuffer(bcfx_Handle handle, uint32_t start, uint32_t count, int32_t baseVertex);
@@ -654,7 +701,8 @@ BCFX_API void bcfx_setState(bcfx_RenderState state, uint32_t blendColor);
 BCFX_API void bcfx_setStencil(bool enable, bcfx_StencilState front, bcfx_StencilState back);
 BCFX_API void bcfx_setInstanceDataBuffer(uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance);
 
-BCFX_API void bcfx_submit(ViewId id, bcfx_Handle handle, uint32_t flags, uint32_t depth);
+// discardMask: combine bcfx_EDiscardFlagMask with '|'
+BCFX_API void bcfx_submit(ViewId id, bcfx_Handle handle, uint32_t discardMask, uint32_t depth);
 
 /* }====================================================== */
 
