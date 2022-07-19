@@ -28,6 +28,7 @@ glfw.windowHint(window_hint.CONTEXT_VERSION_MAJOR, 4)
 glfw.windowHint(window_hint.CONTEXT_VERSION_MINOR, 1)
 glfw.windowHint(window_hint.OPENGL_PROFILE, hint_value.OPENGL_CORE_PROFILE)
 glfw.windowHint(window_hint.OPENGL_FORWARD_COMPAT, hint_value.TRUE)
+glfw.windowHint(window_hint.SRGB_CAPABLE, hint_value.TRUE)
 
 local window = glfw.createWindow(800, 600, "Triangle")
 if not window then
