@@ -131,8 +131,9 @@ static int BCWRAP_FUNCTION(setFrameCompletedCallback)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(init)(lua_State* L) {
   void* mainWin = luaL_checklightuserdata(L, 1);
+  uint32_t flagMask = luaL_optinteger(L, 2, 0);
 
-  bcfx_init(mainWin);
+  bcfx_init(mainWin, flagMask);
   return 0;
 }
 static int BCWRAP_FUNCTION(apiFrame)(lua_State* L) {
