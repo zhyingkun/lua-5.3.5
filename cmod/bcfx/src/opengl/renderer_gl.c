@@ -243,7 +243,7 @@ static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win, GLuint mainW
   }
 }
 
-static void gl_init(RendererContext* ctx, Window mainWin) {
+static void gl_init(RendererContext* ctx, Window mainWin, uint32_t flagMask) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   gl_initShaderInclude(glCtx);
   glCtx->mainWin = mainWin;
@@ -260,6 +260,12 @@ static void gl_init(RendererContext* ctx, Window mainWin) {
   winctx_makeContextCurrent(NULL);
   gl_MakeWinCurrent(glCtx, glCtx->mainWin, 0);
   gl_initMainWinTripleBuffer(glCtx, false);
+
+  if (HAS_BIT(flagMask, IF_FramebufferSRGB)) {
+    GL_CHECK(glEnable(GL_FRAMEBUFFER_SRGB));
+  } else {
+    GL_CHECK(glDisable(GL_FRAMEBUFFER_SRGB));
+  }
 }
 
 static void gl_beginFrame(RendererContext* ctx, Frame* frame) {

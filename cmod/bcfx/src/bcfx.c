@@ -51,8 +51,8 @@ BCFX_API void bcfx_vertexLayoutClear(bcfx_VertexLayout* layout) {
 static Context s_ctx[1];
 
 #define PRINT_SIZEOF_TYPE(type) printf("sizeof(" #type "): %ld\n", sizeof(type))
-BCFX_API void bcfx_init(Window mainWin) {
-  ctx_init(s_ctx, mainWin);
+BCFX_API void bcfx_init(Window mainWin, uint32_t flagMask) {
+  ctx_init(s_ctx, mainWin, flagMask);
   // PRINT_SIZEOF_TYPE(bcfx_Color);
   // PRINT_SIZEOF_TYPE(bcfx_UColor);
   // PRINT_SIZEOF_TYPE(bcfx_SamplerFlag);

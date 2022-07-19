@@ -16,6 +16,7 @@
 typedef struct {
   bool running;
   Window mainWin;
+  uint32_t flagMask;
 
   Semaphore apiSem;
   Semaphore renderSem;
@@ -49,7 +50,7 @@ void ctx_setFrameCompletedCallback(Context* ctx, bcfx_OnFrameCompleted cb, void*
 void ctx_callOnFrameCompleted(Context* ctx, uint32_t frameId);
 
 void ctx_apiFrame(Context* ctx, uint32_t renderCount);
-void ctx_init(Context* ctx, Window mainWin);
+void ctx_init(Context* ctx, Window mainWin, uint32_t flagMask);
 void ctx_shutdowm(Context* ctx);
 
 bcfx_Handle ctx_createVertexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_VertexLayout* layout);

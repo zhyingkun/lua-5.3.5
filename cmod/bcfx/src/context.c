@@ -202,7 +202,7 @@ static void ctx_renderFrame(Context* ctx) {
 static void _renderThreadStart(void* arg) {
   Context* ctx = (Context*)arg;
   RendererContext* renderCtx = ctx->renderCtx;
-  CALL_RENDERER(init, ctx->mainWin);
+  CALL_RENDERER(init, ctx->mainWin, ctx->flagMask);
   while (ctx->running) {
     ctx_renderFrame(ctx);
   }
@@ -232,10 +232,11 @@ static void DestroyRenderer(RendererContext* renderer) {
   destroyers[RT_OpenGL](renderer);
 }
 
-void ctx_init(Context* ctx, Window mainWin) {
+void ctx_init(Context* ctx, Window mainWin, uint32_t flagMask) {
   assert(mainWin != NULL);
   ctx->running = true;
   ctx->mainWin = mainWin;
+  ctx->mainWin = flagMask;
 
   for (size_t i = 0; i < BCFX_CONFIG_MAX_VIEWS; i++) {
     view_reset(&ctx->views[i]);

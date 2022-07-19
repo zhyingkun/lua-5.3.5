@@ -198,7 +198,23 @@ BCFX_API void bcfx_setMiscFuncs(bcfx_GetTime getTime);
 
 typedef void* Window;
 
-BCFX_API void bcfx_init(Window mainWin);
+#define INIT_FLAG(XX) \
+  XX(FramebufferSRGB)
+
+typedef enum {
+#define XX(name) IF_##name,
+  INIT_FLAG(XX)
+#undef XX
+} bcfx_EInitFlag;
+
+typedef enum {
+#define XX(name) IFM_##name = BIT_INDEX(IF_##name),
+  INIT_FLAG(XX)
+#undef XX
+} bcfx_EInitFlagMask;
+
+// mask: combine bcfx_EInitFlagMask with '|'
+BCFX_API void bcfx_init(Window mainWin, uint32_t flagMask);
 BCFX_API void bcfx_apiFrame(uint32_t renderCount);
 BCFX_API void bcfx_shutdowm(void);
 

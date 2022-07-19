@@ -15,7 +15,7 @@
 
 typedef struct RendererContext RendererContext;
 
-typedef void (*RendererInit)(RendererContext* ctx, Window mainWin);
+typedef void (*RendererInit)(RendererContext* ctx, Window mainWin, uint32_t flagMask);
 typedef void (*RendererShutdown)(RendererContext* ctx);
 
 typedef void (*RendererCreateVertexBuffer)(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, const bcfx_VertexLayout* layout);
