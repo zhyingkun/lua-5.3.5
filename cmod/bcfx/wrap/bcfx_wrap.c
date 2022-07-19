@@ -131,9 +131,9 @@ static int BCWRAP_FUNCTION(setFrameCompletedCallback)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(init)(lua_State* L) {
   void* mainWin = luaL_checklightuserdata(L, 1);
-  uint32_t flagMask = luaL_optinteger(L, 2, 0);
+  uint32_t initMask = luaL_optinteger(L, 2, 0);
 
-  bcfx_init(mainWin, flagMask);
+  bcfx_init(mainWin, initMask);
   return 0;
 }
 static int BCWRAP_FUNCTION(apiFrame)(lua_State* L) {
@@ -610,12 +610,12 @@ static int BCWRAP_FUNCTION(setViewFrameBuffer)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(setViewClear)(lua_State* L) {
   ViewId id = luaL_checkviewid(L, 1);
-  uint16_t flags = (uint16_t)luaL_checkinteger(L, 2);
+  uint32_t clearMask = (uint16_t)luaL_checkinteger(L, 2);
   uint32_t rgba = (uint32_t)luaL_checkinteger(L, 3);
   float depth = (float)luaL_checknumber(L, 4);
   uint8_t stencil = (uint8_t)luaL_checkinteger(L, 5);
 
-  bcfx_setViewClear(id, flags, rgba, depth, stencil);
+  bcfx_setViewClear(id, clearMask, rgba, depth, stencil);
   return 0;
 }
 static int BCWRAP_FUNCTION(setViewRect)(lua_State* L) {
@@ -834,10 +834,10 @@ static int BCWRAP_FUNCTION(setInstanceDataBuffer)(lua_State* L) {
 static int BCWRAP_FUNCTION(submit)(lua_State* L) {
   ViewId id = luaL_checkviewid(L, 1);
   bcfx_Handle progHandle = luaL_checkhandle(L, 2);
-  uint32_t discardFlags = luaL_optinteger(L, 3, BCFX_DISCARD_NONE);
+  uint32_t discardMask = luaL_optinteger(L, 3, DFM_None);
   uint32_t sortDepth = luaL_optinteger(L, 4, 0);
 
-  bcfx_submit(id, progHandle, discardFlags, sortDepth);
+  bcfx_submit(id, progHandle, discardMask, sortDepth);
   return 0;
 }
 
@@ -928,10 +928,18 @@ static const luaL_Reg wrap_funcs[] = {
 */
 
 static const luaL_Enum BCWRAP_ENUM(clear_flag)[] = {
-    {"NONE", BCFX_CLEAR_NONE},
-    {"COLOR", BCFX_CLEAR_COLOR},
-    {"DEPTH", BCFX_CLEAR_DEPTH},
-    {"STENCIL", BCFX_CLEAR_STENCIL},
+#define XX(name) {#name, CF_##name},
+    CLEAR_FLAG(XX)
+#undef XX
+        {"Count", CF_Count},
+    {NULL, 0},
+};
+static const luaL_Enum BCWRAP_ENUM(clear_flag_mask)[] = {
+    {"None", CFM_None},
+#define XX(name) {#name, CFM_##name},
+    CLEAR_FLAG(XX)
+#undef XX
+        {"All", CFM_All},
     {NULL, 0},
 };
 // clang-format off
@@ -1066,20 +1074,31 @@ static const luaL_Enum BCWRAP_ENUM(view_mode)[] = {
     {"Count", VM_Count},
     {NULL, 0},
 };
-static const luaL_Enum BCWRAP_ENUM(debug)[] = {
-    {"NONE", BCFX_DEBUG_NONE},
-    {"WIREFRAME", BCFX_DEBUG_WIREFRAME},
+static const luaL_Enum BCWRAP_ENUM(debug_flag)[] = {
+#define XX(name) {#name, DF_##name},
+    DEBUG_FLAG(XX)
+#undef XX
+        {NULL, 0},
+};
+static const luaL_Enum BCWRAP_ENUM(debug_flag_mask)[] = {
+#define XX(name) {#name, DFM_##name},
+    DEBUG_FLAG(XX)
+#undef XX
+        {NULL, 0},
+};
+static const luaL_Enum BCWRAP_ENUM(discard_flag)[] = {
+#define XX(name) {#name, DF_##name},
+    DISCARD_FLAG(XX)
+#undef XX
+        {"Count", DF_Count},
     {NULL, 0},
 };
-static const luaL_Enum BCWRAP_ENUM(discard)[] = {
-    {"NONE", BCFX_DISCARD_NONE},
-    {"VERTEX_STREAMS", BCFX_DISCARD_VERTEX_STREAMS},
-    {"INDEX_BUFFER", BCFX_DISCARD_INDEX_BUFFER},
-    {"TRANSFORM", BCFX_DISCARD_TRANSFORM},
-    {"BINDINGS", BCFX_DISCARD_BINDINGS},
-    {"STATE", BCFX_DISCARD_STATE},
-    {"INSTANCE_DATA", BCFX_DISCARD_INSTANCE_DATA},
-    {"ALL", BCFX_DISCARD_ALL},
+static const luaL_Enum BCWRAP_ENUM(discard_flag_mask)[] = {
+    {"None", DFM_None},
+#define XX(name) {#name, DFM_##name},
+    DISCARD_FLAG(XX)
+#undef XX
+        {"All", DFM_All},
     {NULL, 0},
 };
 static const luaL_Enum BCWRAP_ENUM(texture_format)[] = {
@@ -1111,6 +1130,7 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   luaL_newlib(L, wrap_funcs);
 
   REGISTE_ENUM_BCWRAP(clear_flag);
+  REGISTE_ENUM_BCWRAP(clear_flag_mask);
   REGISTE_ENUM_BCWRAP(vertex_attrib);
   REGISTE_ENUM_BCWRAP(vertex_attrib_mask);
   REGISTE_ENUM_BCWRAP(attrib_type);
@@ -1126,8 +1146,10 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   REGISTE_ENUM_BCWRAP(logic_operate);
   REGISTE_ENUM_BCWRAP(stencil_action);
   REGISTE_ENUM_BCWRAP(view_mode);
-  REGISTE_ENUM_BCWRAP(debug);
-  REGISTE_ENUM_BCWRAP(discard);
+  REGISTE_ENUM_BCWRAP(debug_flag);
+  REGISTE_ENUM_BCWRAP(debug_flag_mask);
+  REGISTE_ENUM_BCWRAP(discard_flag);
+  REGISTE_ENUM_BCWRAP(discard_flag_mask);
   REGISTE_ENUM_BCWRAP(texture_format);
   REGISTE_ENUM_BCWRAP(uniform_type);
 
