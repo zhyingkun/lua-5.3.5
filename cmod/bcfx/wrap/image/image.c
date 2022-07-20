@@ -25,6 +25,17 @@ typedef struct {
   int wantChannels;
 } ImageDecodeResult;
 
+static void _doImageDecode(ImageDecodeParam* param, ImageDecodeResult* result) {
+  result->wantChannels = channels_textureFormat[param->format];
+  luaL_MemBuffer* mb = &param->mb;
+  result->data = (void*)stbi_load_from_memory((const stbi_uc*)mb->ptr, mb->sz, &result->width, &result->height, &result->nrChannels, result->wantChannels);
+  MEMBUFFER_RELEASE(mb);
+}
+static void _releaseImageSTB(void* ud, void* ptr) {
+  (void)ud;
+  stbi_image_free((stbi_uc*)ptr);
+}
+
 static int IMAGE_FUNCTION(packImageDecodeParam)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   bcfx_ETextureFormat format = luaL_checktextureformat(L, 2);
@@ -39,21 +50,19 @@ static int IMAGE_FUNCTION(packImageDecodeParam)(lua_State* L) {
 static void* IMAGE_FUNCTION(imageDecodePtr)(void* arg) {
   ImageDecodeParam* param = (ImageDecodeParam*)arg;
   ImageDecodeResult* result = (ImageDecodeResult*)malloc(sizeof(ImageDecodeResult));
-  result->wantChannels = channels_textureFormat[param->format];
-  luaL_MemBuffer* mb = &param->mb;
-  result->data = (void*)stbi_load_from_memory((const stbi_uc*)mb->ptr, mb->sz, &result->width, &result->height, &result->nrChannels, result->wantChannels);
-  MEMBUFFER_RELEASE(mb);
+  _doImageDecode(param, result);
   free((void*)param);
   return (void*)result;
 }
-static void _releaseImageSTB(void* ud, void* ptr) {
-  (void)ud;
-  stbi_image_free((stbi_uc*)ptr);
-}
-static int _dealImageDecodeResult(lua_State* L, void* data, int width, int height, int nrChannels, int wantChannels) {
+static int _dealImageDecodeResult(lua_State* L, ImageDecodeResult* result) {
+  void* data = result->data;
   if (!data) {
     return 0;
   }
+  int width = result->width;
+  int height = result->height;
+  int nrChannels = result->nrChannels;
+  int wantChannels = result->wantChannels;
   luaL_MemBuffer* mb = luaL_newmembuffer(L);
   MEMBUFFER_SET(mb, data, width * height * wantChannels, _releaseImageSTB, NULL);
   lua_pushinteger(L, width);
@@ -64,7 +73,7 @@ static int _dealImageDecodeResult(lua_State* L, void* data, int width, int heigh
 }
 static int IMAGE_FUNCTION(unpackImageDecodeResult)(lua_State* L) {
   ImageDecodeResult* result = (ImageDecodeResult*)luaL_checklightuserdata(L, 1);
-  int ret = _dealImageDecodeResult(L, result->data, result->width, result->height, result->nrChannels, result->wantChannels);
+  int ret = _dealImageDecodeResult(L, result);
   free((void*)result);
   return ret;
 }
@@ -73,11 +82,13 @@ static int IMAGE_FUNCTION(imageDecode)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   bcfx_ETextureFormat format = luaL_checktextureformat(L, 2);
 
-  int width, height, nrChannels;
-  int wantChannels = channels_textureFormat[format];
-  void* data = (void*)stbi_load_from_memory((const stbi_uc*)mb->ptr, mb->sz, &width, &height, &nrChannels, wantChannels);
-  MEMBUFFER_RELEASE(mb);
-  return _dealImageDecodeResult(L, data, width, height, nrChannels, wantChannels);
+  ImageDecodeParam param[1];
+  MEMBUFFER_MOVE(mb, &param->mb);
+  param->format = format;
+
+  ImageDecodeResult result[1];
+  _doImageDecode(param, result);
+  return _dealImageDecodeResult(L, result);
 }
 
 /* }====================================================== */
@@ -178,6 +189,10 @@ static int _imageEncodeToMemBuffer(ImageEncodeParam* param, luaL_MemBuffer* mb) 
   MEMBUFFER_SET(mb, wb->buf, wb->used, _releaseBuffer, NULL);
   return 0;
 }
+static void _doImageEncode(ImageEncodeParam* param, ImageEncodeResult* result) {
+  result->err = _imageEncodeToMemBuffer(param, &result->mb);
+  MEMBUFFER_RELEASE(&param->mb);
+}
 
 static int IMAGE_FUNCTION(packImageEncodeParam)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
@@ -203,22 +218,21 @@ static int IMAGE_FUNCTION(packImageEncodeParam)(lua_State* L) {
 static void* IMAGE_FUNCTION(imageEncodePtr)(void* arg) {
   ImageEncodeParam* param = (ImageEncodeParam*)arg;
   ImageEncodeResult* result = (ImageEncodeResult*)malloc(sizeof(ImageEncodeResult));
-  result->err = _imageEncodeToMemBuffer(param, &result->mb);
-  MEMBUFFER_RELEASE(&param->mb);
+  _doImageEncode(param, result);
   free((void*)param);
   return (void*)result;
 }
-static int _dealImageEncodeResult(lua_State* L, int err, luaL_MemBuffer* mb) {
-  if (err != 0) {
+static int _dealImageEncodeResult(lua_State* L, ImageEncodeResult* result) {
+  if (result->err != 0) {
     return 0;
   }
   luaL_MemBuffer* membuf = luaL_newmembuffer(L);
-  MEMBUFFER_MOVE(mb, membuf);
+  MEMBUFFER_MOVE(&result->mb, membuf);
   return 1;
 }
 static int IMAGE_FUNCTION(unpackImageEncodeResult)(lua_State* L) {
   ImageEncodeResult* result = (ImageEncodeResult*)luaL_checklightuserdata(L, 1);
-  int ret = _dealImageEncodeResult(L, result->err, &result->mb);
+  int ret = _dealImageEncodeResult(L, result);
   free((void*)result);
   return ret;
 }
@@ -241,11 +255,9 @@ static int IMAGE_FUNCTION(imageEncode)(lua_State* L) {
   param->stride = stride;
   param->quality = quality;
 
-  luaL_MemBuffer membuf[1];
-  int err = _imageEncodeToMemBuffer(param, membuf);
-  MEMBUFFER_RELEASE(&param->mb);
-
-  return _dealImageEncodeResult(L, err, membuf);
+  ImageEncodeResult result[1];
+  _doImageEncode(param, result);
+  return _dealImageEncodeResult(L, result);
 }
 
 /* }====================================================== */
@@ -261,6 +273,20 @@ typedef struct {
   int width;
   int height;
 } ImageFlipVerticalParam;
+typedef struct {
+  luaL_MemBuffer mb;
+} ImageFlipVerticalResult;
+
+static void _doImageFlipVertical(ImageFlipVerticalParam* param, ImageFlipVerticalResult* result) {
+  luaL_MemBuffer* mb = &param->mb;
+  int width = param->width;
+  int height = param->height;
+
+  int bytesPerPixel = mb->sz / (width * height);
+  stbi__vertical_flip(mb->ptr, width, height, bytesPerPixel);
+
+  MEMBUFFER_MOVE(mb, &result->mb);
+}
 
 static int IMAGE_FUNCTION(packImageFlipVerticalParam)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
@@ -277,23 +303,19 @@ static int IMAGE_FUNCTION(packImageFlipVerticalParam)(lua_State* L) {
 }
 static void* IMAGE_FUNCTION(imageFlipVerticalPtr)(void* arg) {
   ImageFlipVerticalParam* param = (ImageFlipVerticalParam*)arg;
-  luaL_MemBuffer* mb = &param->mb;
-  int width = param->width;
-  int height = param->height;
-
-  int bytesPerPixel = mb->sz / (width * height);
-  stbi__vertical_flip(mb->ptr, width, height, bytesPerPixel);
-
-  return (void*)param;
+  ImageFlipVerticalResult* result = (ImageFlipVerticalResult*)malloc(sizeof(ImageFlipVerticalResult));
+  _doImageFlipVertical(param, result);
+  free((void*)param);
+  return (void*)result;
 }
 static int IMAGE_FUNCTION(unpackImageFlipVerticalResult)(lua_State* L) {
-  ImageFlipVerticalParam* param = (ImageFlipVerticalParam*)luaL_checklightuserdata(L, 1);
-  luaL_MemBuffer* mb = &param->mb;
+  ImageFlipVerticalResult* result = (ImageFlipVerticalResult*)luaL_checklightuserdata(L, 1);
+  luaL_MemBuffer* mb = &result->mb;
 
   luaL_MemBuffer* membuf = luaL_newmembuffer(L);
   MEMBUFFER_MOVE(mb, membuf);
 
-  free((void*)param);
+  free((void*)result);
   return 1;
 }
 static int IMAGE_FUNCTION(imageFlipVertical)(lua_State* L) {
@@ -301,11 +323,15 @@ static int IMAGE_FUNCTION(imageFlipVertical)(lua_State* L) {
   int width = luaL_checkinteger(L, 2);
   int height = luaL_checkinteger(L, 3);
 
-  int bytesPerPixel = mb->sz / (width * height);
-  stbi__vertical_flip(mb->ptr, width, height, bytesPerPixel);
+  ImageFlipVerticalParam param[1];
+  MEMBUFFER_MOVE(mb, &param->mb);
+  param->width = width;
+  param->height = height;
 
+  ImageFlipVerticalResult result[1];
+  _doImageFlipVertical(param, result);
   luaL_MemBuffer* membuf = luaL_newmembuffer(L);
-  MEMBUFFER_MOVE(mb, membuf);
+  MEMBUFFER_MOVE(&result->mb, membuf);
   return 1;
 }
 
