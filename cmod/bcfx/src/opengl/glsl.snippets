@@ -13,7 +13,99 @@ https://www.khronos.org/opengl/wiki/OpenGL_Shading_Language
 https://www.khronos.org/registry/OpenGL-Refpages/gl4/
 */
 {
-	///STORAGE QUALIFIERS
+	// Preprocessor
+	"#define": {
+		"prefix": "#define",
+		"body": "#define",
+		"description": "#define and #undef functionality are defined as is standard for C++ preprocessors for macro definitions both with and without macro parameters."
+	},
+	"#undef": {
+		"prefix": "#undef",
+		"body": "#undef",
+		"description": "#define and #undef functionality are defined as is standard for C++ preprocessors for macro definitions both with and without macro parameters."
+	},
+	"#if": {
+		"prefix": "#if",
+		"body": "#if",
+		"description": "operate as is standard for C++ preprocessors"
+	},
+	"#ifdef": {
+		"prefix": "#ifdef",
+		"body": "#ifdef",
+		"description": "operate as is standard for C++ preprocessors"
+	},
+	"#ifndef": {
+		"prefix": "#ifndef",
+		"body": "#ifndef",
+		"description": "operate as is standard for C++ preprocessors"
+	},
+	"#else": {
+		"prefix": "#else",
+		"body": "#else",
+		"description": "operate as is standard for C++ preprocessors"
+	},
+	"#elif": {
+		"prefix": "#elif",
+		"body": "#elif",
+		"description": "operate as is standard for C++ preprocessors"
+	},
+	"#endif": {
+		"prefix": "#endif",
+		"body": "#endif",
+		"description": "operate as is standard for C++ preprocessors"
+	},
+	"#error": {
+		"prefix": "#error",
+		"body": "#error $1",
+		"description": "#error message\n\n#error will cause the implementation to put a diagnostic message into the shader object’s information log\n\nThe message will be the tokens following the #error directive, up to the first new-line. The implementation must then consider the shader to be ill-formed."
+	},
+	"#pragma": {
+		"prefix": "#pragma",
+		"body": "#pragma $1",
+		"description": "#pragma allows implementation dependent compiler control. Tokens following #pragma are not subject to preprocessor macro expansion. If an implementation does not recognize the tokens following #pragma, then it will ignore that pragma. The following pragmas are defined as part of the language.\n\n#pragma STDGL\n\n#pragma optimize(on)\n\n#pragma optimize(off)\n\n#pragma debug(on)\n\n#pragma debug(off)"
+	},
+	"#extension": {
+		"prefix": "#extension",
+		"body": "#extension $1 : $2",
+		"description": "#extension extension_name : behavior\n#extension all : behavior\nbehavior: require/enable/warn/disable"
+	},
+	"#version": {
+		"prefix": "#version 410 core",
+		"body": "#version 410 core",
+		"description": "#version number profile(opt)\n\nIf the optional profile argument is provided, it must be the name of an OpenGL profile. Currently, there are two choices:\n\ncore/compatibility\n\nIf no profile argument is provided, the default is core.\n\nThere is a built-in macro definition for each profile the implementation supports. All implementations provide the following macro:\n\n#define GL_core_profile 1\n\nImplementations providing the compatibility profile provide the following macro:\n\n#define GL_compatibility_profile 1\n\nThe #version directive must occur in a shader before anything else, except for comments and white space."
+	},
+	"#line": {
+		"prefix": "#line",
+		"body": "#line",
+		"description": "#line line-number\n#line line-number source-string-number\nwhere line-number and source-string-number are constant integer expressions. After processing this directive (including its new-line), the implementation will behave as if it is compiling at line number line-number and source string number source-string-number. Subsequent source strings will be numbered sequentially, until another #line directive overrides that numbering."
+	},
+	"defined": {
+		"prefix": "defined",
+		"body": "defined",
+		"description": "defined identifier\n\ndefined(identifier)"
+	},
+	"##": {
+		"prefix": "##",
+		"body": "##",
+		"description": "Two tokens in a macro can be concatenated into one token using the token pasting (##) operator, as is standard for C++ preprocessors. The result must be a valid single token, which will then be subject to macro expansion. That is, macro expansion happens only after token pasting. There are no other number sign based operators (e.g., no # or #@), nor is there a sizeof operator."
+	},
+	"__LINE__": {
+		"prefix": "__LINE__",
+		"body": "__LINE__",
+		"description": "__LINE__ will substitute a decimal integer constant that is one more than the number of preceding newlines in the current source string."
+	},
+	"__FILE__": {
+		"prefix": "__FILE__",
+		"body": "__FILE__",
+		"description": "__FILE__ will substitute a decimal integer constant that says which source string number is currently being processed."
+	},
+	"__VERSION__": {
+		"prefix": "__VERSION__",
+		"body": "__VERSION__",
+		"description": "__VERSION__ will substitute a decimal integer reflecting the version number of the OpenGL shading language."
+	},
+
+	// Storage Qualifiers
 	"const": {
 		"prefix": "const",
 		"body": "const",
@@ -35,7 +127,7 @@ https://www.khronos.org/registry/OpenGL-Refpages/gl4/
 		"description": "The qualifier varying is used to declare variables that are shared between the vertex shader and the fragment shader.\nVarying are used for information that is calculated in the vertex shader and should be handed over to the fragment shader. Both shaders have to declare the varying and the declarations must be identical. The vertex shader initializes the varying for each vertex. After that the per vertex data of the varying is interpolated during rasterization before being handed over to the fragment shader.\nThe varying qualifier can only be used with floating point scalar, floating point vectors and (floating point) matrices as well as arrays containing these types."
 	},
 
-	///PRECISION QUALIFIERS
+	// Precision Qualifiers
 	"highp": {
 		"prefix": "highp",
 		"body": "highp",
@@ -74,7 +166,7 @@ https://www.khronos.org/registry/OpenGL-Refpages/gl4/
 		"description": "The qualifier inout is used to mark a parameter as read-write when a function is declared. The parameter will be passed by reference to the function and is initialized, i.e. the value can be read. The value can be modified by the function and the changes are preserved after the function exits.\nThe above function declaration shows the three possible parameter qualifiers. The usage of the read-only qualifier is not necessary since this is the default if no qualifier is specified."
 	},
 
-	///SCALAR TYPES
+	// Scalar Types
 	"void": {
 		"prefix": "void",
 		"body":	"void main(void);",
@@ -94,6 +186,21 @@ https://www.khronos.org/registry/OpenGL-Refpages/gl4/
 		"prefix": "bool",
 		"body":	"bool ${NAME} = $2;",
 		"description": "bool aBool = true;\nbool bBool = bool(aInt);\nbool cBool = bool(aFloat);\n\nThe data type bool is used for boolean values (true or false).\n\nSide note: Implicit type conversions are not supported. Type conversions can be done using constructors as shown in the second and third example."
+	},
+	"uint": {
+		"prefix": "uint",
+		"body":	"uint ${NAME} = $2;",
+		"description": "uint aUint = 43;"
+	},
+	"double": {
+		"prefix": "double",
+		"body":	"double ${NAME} = $2;",
+		"description": "double aDouble = 2.0lf;\ndouble bDouble = 2.0LF"
+	},
+	"struct": {
+		"prefix": "struct",
+		"body":	"struct $1 {} $2;",
+		"description": "struct light {\n\tfloat intensity;\n\tvec3 position;\n} lightVar;"
 	},
 
 	///VECTOR TYPES
@@ -255,7 +362,41 @@ https://www.khronos.org/registry/OpenGL-Refpages/gl4/
 		"description": "void main(void){\n\t//code\n}\n\nThe keyword main is used to define the main function of a shader. This function is the entry point for the execution of every vertex and fragment shader. The main function takes no parameters and does not return a value."
 	},
 
-	///SPECIAL INPUT VARIABLES OF THE FRAGMENT SHADER
+	// Builtin Input Varilables of Vertex Shader
+	"gl_VertexID": {
+		"prefix": "gl_VertexID",
+		"body": "gl_VertexID",
+		"description": "in int gl_VertexID;\n\ngl_VertexID is a vertex language input variable that holds an integer index for the vertex. The index is implicitly generated by glDrawArrays and other commands that do not reference the content of the GL_ELEMENT_ARRAY_BUFFER, or explicitly generated from the content of the GL_ELEMENT_ARRAY_BUFFER by commands such as glDrawElements. For glDrawElements forms that take a basevertex, gl_VertexID will have this value added to the index from the buffer."
+	},
+	"gl_InstanceID": {
+		"prefix": "gl_InstanceID",
+		"body": "gl_InstanceID",
+		"description": "in int gl_InstanceID;\n\ngl_InstanceID is a vertex language input variable that holds the integer index of the current primitive in an instanced draw command such as glDrawArraysInstanced. If the current primitive does not originate from an instanced draw command, the value of gl_InstanceID is zero."
+	},
+
+	// Builtin Output Varilables of Vertex Shader
+	"gl_PerVertex": {
+		"prefix": "gl_PerVertex",
+		"body": "gl_PerVertex",
+		"description": "out gl_PerVertex {\n\nvec4 gl_Position;\n\nfloat gl_PointSize;\n\nfloat gl_ClipDistance[];\n\n};\n\ngl_PerVertex defines an interface block for outputs. The block is defined without an instance name, so that prefixing the names is not required.\n\nThese variables only take on the meanings below if this shader is the last active Vertex Processing stage, and if rasterization is still active (ie: GL_RASTERIZER_DISCARD is not enabled). The text below explains how the Vertex Post-Processing system uses the variables. These variables may not be redeclared with interpolation qualifiers."
+	},
+	"gl_Position": {
+		"prefix": "gl_Position",
+		"body": "gl_Position",
+		"description": "In the vertex a single global instance of the gl_PerVertex named block is available and its gl_Position member is an output that receives the homogeneous vertex position. It may be written at any time during shader execution. The value written to gl_Position will be used by primitive assembly, clipping, culling and other fixed functionality operations, if present, that operate on primitives after vertex processing has occurred."
+	},
+	"gl_PointSize": {
+		"prefix": "gl_PointSize",
+		"body": "gl_PointSize",
+		"description": "In the vertex a single global instance of the gl_PerVertex named block is available and its gl_PointSize member is an output that receives the intended size of the point to be rasterized, in pixels. It may be written at any time during shader execution. If GL_PROGRAM_POINT_SIZE is enabled, gl_PointSize is used to determine the size of rasterized points, otherwise it is ignored by the rasterization stage."
+	},
+	"gl_ClipDistance": {
+		"prefix": "gl_ClipDistance",
+		"body": "gl_ClipDistance",
+		"description": "gl_ClipDistance is a member of the gl_PerVertex named block.\n\nIn fragment shaders, it is intrinsically declared as: in float gl_ClipDistance[];\n\nThe gl_ClipDistance variable provides a forward compatible mechanism for controlling user clipping. The element gl_ClipDistance[i] specifies a clip distance for each user clip plane i. A distance of 0.0 means that the vertex is on the plane, a positive distance means that the vertex is inside the clip plane, and a negative distance means that the point is outside the clip plane. The clip distances will be linearly interpolated across the primitive and the portion of the primitive with interpolated distances less than 0.0 will be clipped.\n\nThe gl_ClipDistance array is initially predeclared as unsized and must be sized by the shader either by redeclaring it with an explicit size, or by indexing it with only integral constant expressions. The array must be sized to include all clip planes that are enabled via the OpenGL API; if the size does not include all enabled planes, results are undefined. The size may be at most gl_MaxClipDistances. The number of varying components consumed by gl_ClipDistance will match the size of the array, no matter how many planes are enabled. The shader must also set all values in gl_ClipDistance that have been enabled via the OpenGL API, or results are undefined. Values written into gl_ClipDistance planes that are not enabled have no effect.\n\nIn the vertex a single global instance of the gl_PerVertex named block is available and its gl_ClipDistance member is an output that receives the clip distances for the current vertex. It may be written at any time during shader execution. The value written to gl_ClipDistance will be used by primitive assembly, clipping, culling and other fixed functionality operations, if present, that operate on primitives after vertex processing has occurred.\n\nThe value of gl_ClipDistance is undefined after the vertex shading stages if the corresponding shader executable does not write to gl_ClipDistance."
+	},
+
+	// Builtin Input Varilables of Fragment Shader
 	"gl_FragCoord": {
 		"prefix": "gl_FragCoord",
 		"body": "gl_FragCoord",
@@ -271,12 +412,42 @@ https://www.khronos.org/registry/OpenGL-Refpages/gl4/
 		"body": "gl_PointCoord",
 		"description": "mediump int gl_PointCoord;\n\nThe built-in variable gl_PointCoord is used by the OpenGL ES 2.0 pipeline to hand over the coordinates of a point sprite to the fragment shader. The variable is read-only and the value is calculated and assigned by the OpenGL ES 2.0 pipeline based on the position and radius of the point sprite.\nSide note: A value for this variable is provided by the OpenGL ES 2.0 pipeline only if the rendered primitives are points."
 	},
+	"gl_NumSamples": {
+		"prefix": "gl_NumSamples",
+		"body": "gl_NumSamples",
+		"description": "gl_NumSamples is a fragment language input variable that contains the number of samples in the framebuffer, or 1 if rendering to a non-multisample framebuffer. gl_NumSamples is the sample count of the framebuffer regardless of whether multisample rasterization is enabled or not."
+	},
+	"gl_SampleID": {
+		"prefix": "gl_SampleID",
+		"body": "gl_SampleID",
+		"description": "gl_SampleID is a fragment language input variable that contains the index of the sample currently being processed.\nThis variable is in the range 0 to gl_NumSamples - 1, where gl_NumSamples is the total number of samples in each fragment for the current framebuffer (and thus 1 if rendering to a non-multisample buffer).\nAny static use of this variable in a fragment shader causes the entire shader to be evaluated per-sample rather than per-fragment.\nWhen rendering to a non-multisample buffer, or if multisample rasterization is disabled, gl_SampleID will always be zero. gl_NumSamples is the sample count of the framebuffer regardless of whether multisample rasterization is enabled or not."
+	},
+	"gl_SampleMaskIn": {
+		"prefix": "gl_SampleMaskIn",
+		"body": "gl_SampleMaskIn[]",
+		"description": "gl_SampleMaskIn is a fragment language that indicates the set of samples covered by the primitive generating the fragment during multisample rasterization.\nIt has a sample bit set if and only if the sample is considered covered for this fragment shader invocation.\nBit B of mask gl_SampleMask[M] corresponds to sample 32 * M + B.\nThe array has ceil(s / 32) elements where s is the maximum number of color samples supported by the implementation."
+	},
+	"gl_SamplePosition": {
+		"prefix": "gl_SamplePosition",
+		"body": "gl_SamplePosition",
+		"description": "gl_SamplePosition is a fragment language input variable that contains the location within a fragment of the sample currently being processed.\nThe x and y components of gl_SamplePosition contain the sub-pixel coordinate of the current sample and will have values in the range 0.0 to 1.0.\nThe sub-pixel coordinates of the center of the pixel are always (0.5, 0.5).\nAny static use of gl_SamplePosition causes the entire fragment shader to be evaluated per-sample rather than per-fragment.\nWhen rendering to a non-multisample buffer, or if multisample rasterization is disabled, gl_SamplePosition will be (0.5, 0.5)."
+	},
 
-	///SPECIAL OUTPUT VARIABLES OF THE FRAGMENT SHADER
+	// Builtin Output Varilables of Fragment Shader
 	"gl_FragColor": {
 		"prefix": "gl_FragColor",
 		"body": "gl_FragColor",
 		"description": "mediump vec4 gl_FragColor;\n\nThe built-in variable gl_FragColor is used by the fragment shader to hand over the color of the fragment to the OpenGL ES 2.0 pipeline. The variable is pre-declared as shown above that way the variable can be used in the fragment shader for an assignment without prior declaration.\nThe values of the color vector are interpreted in the RGBA color space.\nThe assignment of values to this variable is mandatory for the fragment shader."
+	},
+	"gl_FragDepth": {
+		"prefix": "gl_FragDepth",
+		"body": "gl_FragDepth",
+		"description": "out float gl_FragDepth;\nAvailable only in the fragment language, gl_FragDepth is an output variable that is used to establish the depth value for the current fragment.\nIf depth buffering is enabled and no shader writes to gl_FragDepth, then the fixed function value for depth will be used (this value is contained in the z component of gl_FragCoord) otherwise, the value written to gl_FragDepth is used.\nIf a shader statically assigns to gl_FragDepth, then the value of the fragment's depth may be undefined for executions of the shader that don't take that path.\nThat is, if the set of linked fragment shaders statically contain a write to gl_FragDepth, then it is responsible for always writing it."
+	},
+	"gl_SampleMask": {
+		"prefix": "gl_SampleMask",
+		"body": "gl_SampleMask[]",
+		"description": "out int gl_SampleMask[];\ngl_SampleMask is a fragment language output array that may be used to set the sample mask for the fragment being processed.\nCoverage for the current fragment will become the logical AND of the coverage mask and the output gl_SampleMask.\nThat is, setting a bit in gl_SampleMask to zero will cause the corresponding sample to be considered uncovered for the purposes of multisample fragment operations.\nHowever, setting sample mask bits back to one will never enable samples not covered by the original primitive.\nBit B of mask gl_SampleMask[M] corresponds to sample 32 * M + B.\nThis array must be sized in the fragment shader either implicitly or explicitly to be the same size as the implementation-dependent maximum sample-mask (as an array of 32-bit elements), determined by the maximum number of samples.\nIf the fragment shader statically assigns a value to gl_SampleMask, the sample mask will be undefined for any array elements of any fragment shader invocation that fails to assign a value.\nIf a shader does not statically assign a value to gl_SampleMask, the sample mask has no effect on the processing of a fragment.\nIf the fragment shader is being evaluated at any frequency other than per-fragment, bits within the sample mask not corresponding to the current fragment shader invocation are ignored."
 	},
 
 	///BUILT-IN CONSTANTS (FRAGMENT-SHADER)
@@ -553,6 +724,347 @@ https://www.khronos.org/registry/OpenGL-Refpages/gl4/
 		"description": "find the nearest even integer to the parameter - The fractional part of 0.5 will round toward the nearest even integer. For example, both 3.5 and 4.5 will round to 4.0."
 	},
 
+	// Bit Operation
+	"bitCount": {
+		"prefix": "bitCount",
+		"body": "bitCount(${value})",
+		"description": "bitCount returns the number of bits that are set to 1 in the binary representation of value."
+	},
+	"bitfieldExtract": {
+		"prefix": "bitfieldExtract",
+		"body": "bitfieldExtract(${value}, ${offset}, ${bits})",
+		"description": "bitfieldExtract extracts a subset of the bits of value and returns it in the least significant bits of the result.\nThe range of bits extracted is [offset, offset + bits - 1].\nFor unsigned data types, the most significant bits of the result will be set to zero.\nFor signed data types, the most significant bits will be set to the value of bit offset + base - 1 (i.e., it is sign extended to the width of the return type).\nIf bits is zero, the result will be zero.\nThe result will be undefined if offset or bits is negative, or if the sum of offset and bits is greater than the number of bits used to store the operand."
+	},
+	"bitfieldInsert": {
+		"prefix": "bitfieldInsert",
+		"body": "bitfieldInsert(${base}, ${insert}, ${offset}, ${bits})",
+		"description": "bitfieldInsert inserts the bits least significant 'bits' of 'insert' into 'base' at offset 'offset'. The returned value will have bits [offset, offset + bits + 1] taken from [0, bits - 1] of 'insert' and all other bits taken directly from the corresponding bits of 'base'. If 'bits' is zero, the result will simply be the original value of 'base'. The result will be undefined if 'offset' or 'bits' is negative, or if the sum of 'offset' and 'bits' is greater than the number of bits used to store the operand."
+	},
+	"bitfieldReverse": {
+		"prefix": "bitfieldReverse",
+		"body": "bitfieldReverse(${value})",
+		"description": "bitfieldReverse returns the reversal of the bits of 'value'.\nThe bit numbered n will be taken from bit ('bits' - 1) - n of 'value', where 'bits' is the total number of bits used to represent 'value'."
+	},
+	"findLSB": {
+		"prefix": "findLSB",
+		"body": "findLSB(${value})",
+		"description": "findLSB returns the bit number of the least significant bit that is set to 1 in the binary representation of 'value'.\nIf 'value' is zero, -1 will be returned."
+	},
+	"findMSB": {
+		"prefix": "findMSB",
+		"body": "findMSB(${value})",
+		"description": "findMSB returns the bit number of the most significant bit that is set to 1 in the binary representation of 'value'. For positive integers, the result will be the bit number of the most significant bit that is set to 1. For negative integers, the result will be the bit number of the most significant bit set to 0. For a 'value' of zero or negative 1, -1 will be returned."
+	},
+	"floatBitsToInt": {
+		"prefix": "floatBitsToInt",
+		"body": "floatBitsToInt($1)",
+		"description": "floatBitsToInt and floatBitsToUint return the encoding of their floating-point parameters as int or uint, respectively. The floating-point bit-level representation is preserved."
+	},
+	"floatBitsToUint": {
+		"prefix": "floatBitsToUint",
+		"body": "floatBitsToUint($1)",
+		"description": "floatBitsToInt and floatBitsToUint return the encoding of their floating-point parameters as int or uint, respectively. The floating-point bit-level representation is preserved."
+	},
+	"intBitsToFloat": {
+		"prefix": "intBitsToFloat",
+		"body": "intBitsToFloat($1)",
+		"description": "intBitsToFloat and uintBitsToFloat return the encoding passed in parameter x as a floating-point value.\nIf the encoding of a NaN is passed in x, it will not signal and the resulting value will be undefined.\nIf the encoding of a floating point infinity is passed in parameter x, the resulting floating-point value is the corresponding (positive or negative) floating point infinity."
+	},
+	"uintBitsToFloat": {
+		"prefix": "uintBitsToFloat",
+		"body": "uintBitsToFloat($1)",
+		"description": "intBitsToFloat and uintBitsToFloat return the encoding passed in parameter x as a floating-point value.\nIf the encoding of a NaN is passed in x, it will not signal and the resulting value will be undefined.\nIf the encoding of a floating point infinity is passed in parameter x, the resulting floating-point value is the corresponding (positive or negative) floating point infinity."
+	},
+
+	// Matrix Operation
+	"determinant": {
+		"prefix": "determinant",
+		"body": "determinant($1)",
+		"description": "returns the determinant of the matrix m."
+	},
+	"transpose": {
+		"prefix": "transpose",
+		"body": "transpose($1)",
+		"description": "returns the transpose of the matrix m."
+	},
+	"inverse": {
+		"prefix": "inverse",
+		"body": "inverse($1)",
+		"description": "returns the inverse of the matrix m. The values in the returned matrix are undefined if m is singular or poorly-conditioned (nearly singular)."
+	},
+	"matrixCompMult": {
+		"prefix": "matrixCompMult",
+		"body": "matrixCompMult($1)",
+		"description": "matrixCompMult performs a component-wise multiplication of two matrices, yielding a result matrix where each component, result[i][j] is computed as the scalar product of x[i][j] and y[i][j]."
+	},
+
+	// Number Compare Operation
+	"isinf": {
+		"prefix": "isinf",
+		"body": "isinf($1)",
+		"description": "For each element i of the result, isinf returns true if x[i] is posititve or negative floating point infinity and false otherwise."
+	},
+	"isnan": {
+		"prefix": "isnan",
+		"body": "isnan($1)",
+		"description": "For each element i of the result, isnan returns true if x[i] is posititve or negative floating point NaN (Not a Number) and false otherwise."
+	},
+	"not": {
+		"prefix": "not",
+		"body": "not($1)",
+		"description": "bvec not(bvec x);\nnot logically inverts the boolean vector x. It returns a new boolean vector for which each element i is computed as !x[i]."
+	},
+	"notEqual": {
+		"prefix": "notEqual",
+		"body": "notEqual(${x}, ${y})",
+		"description": "notEqual returns a boolean vector in which each element i is computed as x[i] != y[i]."
+	},
+	"lessThan": {
+		"prefix": "lessThan",
+		"body": "lessThan(${x}, ${y})",
+		"description": "lessThan returns a boolean vector in which each element i is computed as x[i] < y[i]."
+	},
+	"lessThanEqual": {
+		"prefix": "lessThanEqual",
+		"body": "lessThanEqual(${x}, ${y})",
+		"description": "lessThanEqual returns a boolean vector in which each element i is computed as x[i] ≤ y[i]."
+	},
+	"greaterThan": {
+		"prefix": "greaterThan",
+		"body": "greaterThan(${x}, ${y})",
+		"description": "greaterThan returns a boolean vector in which each element i is computed as x[i] > y[i]."
+	},
+	"greaterThanEqual": {
+		"prefix": "greaterThanEqual",
+		"body": "greaterThanEqual(${x}, ${y})",
+		"description": "greaterThanEqual returns a boolean vector in which each element i is computed as x[i] ≥ y[i]."
+	},
+	"imulExtended": {
+		"prefix": "imulExtended",
+		"body": "imulExtended(${x}, ${y})",
+		"description": "void imulExtended(genIType x, genIType y, out genIType msb, out genIType lsb);\numulExtended and imulExtended perform multiplication of the two 32-bit integer quantities x and y, producing a 64-bit integer result. The 32 least significant bits of this product are returned in lsb and the 32 most significant bits are returned in msb. umulExtended and imulExtended perform unsigned and signed multiplication, respectively."
+	},
+	"umulExtended": {
+		"prefix": "umulExtended",
+		"body": "umulExtended(${x}, ${y})",
+		"description": "void umulExtended(genUType x, genUType y, out genUType msb, out genUType lsb);\numulExtended and imulExtended perform multiplication of the two 32-bit integer quantities x and y, producing a 64-bit integer result. The 32 least significant bits of this product are returned in lsb and the 32 most significant bits are returned in msb. umulExtended and imulExtended perform unsigned and signed multiplication, respectively."
+	},
+	"interpolateAtCentroid": {
+		"prefix": "interpolateAtCentroid",
+		"body": "interpolateAtCentroid($1)",
+		"description": "interpolateAtCentroid returns the value of the input varying 'interpolant' sampled at a location inside both the pixel and the primitive being processed. The value obtained would be the value assigned to the input variable if declared with the 'centroid' qualifier."
+	},
+	"interpolateAtOffset": {
+		"prefix": "interpolateAtOffset",
+		"body": "interpolateAtOffset(${interpolant}, ${offset})",
+		"description": "interpolateAtOffset returns the value of the input varying 'interpolant' sampled at an offset from the center of the pixel specified by 'offset'. The two floating-point components of 'offset' give the offset in pixels in the x and y directions from the center of the pixel, respectively. An offset of (0, 0) identifies the center of the pixel. The range and granularity of offsets supported by this function is implementation-dependent."
+	},
+	"interpolateAtSample": {
+		"prefix": "interpolateAtSample",
+		"body": "interpolateAtSample(${interpolant}, ${sample})",
+		"description": "interpolateAtSample returns the value of the input varying 'interpolant' sampled at the location of sample number 'sample'. If multisample buffers are not available, the input varying will be evaluated at the center of the pixel. If sample 'sample' does not exist, the position used to interpolate the input varying is undefined."
+	},
+
+	// Pack and Unpack
+	"packUnorm2x16": {
+		"prefix": "packUnorm2x16",
+		"body": "packUnorm2x16($1)",
+		"description": "uint packUnorm2x16(vec2 v);\n\npackUnorm2x16, packUnorm4x8 and packSnorm4x8 convert each component of the normalized floating-ponit value v into 8- or 16-bit integer values and then packs the results into a 32-bit unsigned intgeter.\nThe conversion for component c of v to fixed-point is performed as follows:\n\tpackUnorm2x16: round(clamp(c, 0.0, 1.0) * 65535.0)\n\tpackUnorm4x8: round(clamp(c, 0.0, 1.0) * 255.0)\n\tpackSnorm4x8: round(clamp(c, -1.0, 1.0) * 127.0)\n\nThe first component of the vector will be written to the least significant bits of the output; the last component will be written to the most significant bits."
+	},
+	"packUnorm4x8": {
+		"prefix": "packUnorm4x8",
+		"body": "packUnorm4x8($1)",
+		"description": "uint packUnorm4x8(vec4 v);"
+	},
+	"packSnorm4x8": {
+		"prefix": "packSnorm4x8",
+		"body": "packSnorm4x8($1)",
+		"description": "uint packSnorm4x8(vec4 v);"
+	},
+	"packDouble2x32": {
+		"prefix": "packDouble2x32",
+		"body": "packDouble2x32($1)",
+		"description": "double packDouble2x32(uvec2 v);\n\npackDouble2x32 packs the component of parameter v into a 64-bit value. If an IEEE-754 infinity or NaN is created, it will not signal and the resulting floating-point value is undefined. Otherwise, the bit-level representation of v is preserved. The first vector component (v[0]) specifies the 32 least significant bits of the result; the second component (v[1]) specifies the 32 most significant bits."
+	},
+	"unpackUnorm2x16": {
+		"prefix": "unpackUnorm2x16",
+		"body": "unpackUnorm2x16($1)",
+		"description": "vec2 unpackUnorm2x16(uint p);unpackUnorm2x16, unpackUnorm4x8 and unpackSnorm4x8 unpack single 32-bit unsigned integers, specified in the parameter p into a pair of 16-bit unsigned integers, four 8-bit unsigned integers or four 8-bit signed integers. Then, each component is converted to a normalized floating-point value to generate the returned two- or four-component vector.\nThe conversion for unpacked fixed point value f to floating-point is performed as follows:\n\tpackUnorm2x16: f / 65535.0\n\tpackUnorm4x8: f / 255.0\n\tpackSnorm4x8: clamp(f / 127.0, -1.0, 1.0)\n\nThe first component of the returned vector will be extracted from the least significant bits of the input; the last component will be extracted from the most significant bits."
+	},
+	"unpackUnorm4x8": {
+		"prefix": "unpackUnorm4x8",
+		"body": "unpackUnorm4x8($1)",
+		"description": "vec4 unpackUnorm4x8(uint p);"
+	},
+	"unpackSnorm4x8": {
+		"prefix": "unpackSnorm4x8",
+		"body": "unpackSnorm4x8($1)",
+		"description": "vec4 unpackSnorm4x8(uint p);"
+	},
+	"unpackDouble2x32": {
+		"prefix": "unpackDouble2x32",
+		"body": "unpackDouble2x32($1)",
+		"description": "uvec2 unpackDouble2x32(double d);\n\nunpackDouble2x32 returns a two-component unsigned integer vector representation of d. The bit-level representation of d is preserved. The first component of the returned vector contains the 32 least significant bits of the double; the second component consists the 32 most significant bits."
+	},
+
+	// Texture Operation
+	"texture": {
+		"prefix": "texture",
+		"body": "texture(${sampler}, ${p})",
+		"description": "texture samples texels from the texture bound to sampler at texture coordinate P. An optional bias, specified in bias is included in the level-of-detail computation that is used to choose mipmap(s) from which to sample.\nFor shadow forms, when compare is present, it is used as Dsub and the array layer is specified in P.w. When compare is not present, the last component of P is used as Dsub and the array layer is specified in the second to last component of P. (The second component of P is unused for 1D shadow lookups.)\nFor non-shadow variants, the array layer comes from the last component of P."
+	},
+	"texelFetch": {
+		"prefix": "texelFetch",
+		"body": "texelFetch($1, $2)",
+		"description": "texelFetch performs a lookup of a single texel from texture coordinate P in the texture bound to sampler. The array layer is specified in the last component of P for array forms. The lod parameter (if present) specifies the level-of-detail from which the texel will be fetched. The sample specifies which sample within the texel will be returned when reading from a multi-sample texure."
+	},
+	"texelFetchOffset": {
+		"prefix": "texelFetchOffset",
+		"body": "texelFetchOffset($1, $2, $3)",
+		"description": "texelFetchOffset performs a lookup of a single texel from texture coordinate P in the texture bound to sampler. Before fetching the texel, the offset specified in offset is added to P. offset must be a constant expression. The array layer is specified in the last component of P for array forms. The lod parameter (if present) specifies the level-of-detail from which the texel will be fetched. The sample parameter specifies which sample within the texel will be returned when reading from a multi-sample texure."
+	},
+	"textureGrather": {
+		"prefix": "textureGrather",
+		"body": "textureGrather($1, $2)",
+		"description": "textureGather returns the value:\nvec4(Sample_i0_j1(P, base).comp,\n\tSample_i1_j1(P, base).comp,\n\tSample_i1_j0(P, base).comp,\n\tSample_i0_j0(P, base).comp);\nIf specified, the value of comp must be a constant integer expression with a value of 0, 1, 2, or 3, identifying the x, y, z or w component of the four-component vector lookup result for each texel, respectively. If comp is not specified, it is treated as 0, selecting the x component of each texel to generate the result."
+	},
+	"textureGratherOffset": {
+		"prefix": "textureGratherOffset",
+		"body": "textureGratherOffset($1, $2, $3)",
+		"description": "textureGatherOffset returns the value:\nvec4(Sample_i0_j1(P + offset, base).comp,\n\tSample_i1_j1(P + offset, base).comp,\n\tSample_i1_j0(P + offset, base).comp,\n\tSample_i0_j0(P + offset, base).comp);\n\nIt perfoms as textureGather but with offset applied as described in textureOffset, except that the implementation-dependent minimum and maximum offset values are given by GL_MIN_PROGRRAM_TEXTURE_GATHER_OFFSET and GL_MAX_PROGRAM_TEXTURE_GATHER_OFFSET, respectively.\n\nIf specified, the value of comp must be a constant integer expression with a value of 0, 1, 2, or 3, identifying the x, y, z or w component of the four-component vector lookup result for each texel, respectively. If comp is not specified, it is treated as 0, selecting the x component of each texel to generate the result."
+	},
+	"textureGratherOffsets": {
+		"prefix": "textureGratherOffsets",
+		"body": "textureGratherOffsets($1, $2, $3)",
+		"description": "textureGatherOffsets operates identically to textureGatherOffset, except that offsets is used to determine the location of the four texels to sample. Each of the four texels is obtained by applying the offset in offsets as a (u, v) coordinate offset to P, identifying the four-texel GL_LINEAR footprint, and then selecting the texel i0i0 of that footprint. The specified values in offsets must be set with constant integral expressions."
+	},
+	"textureGrad": {
+		"prefix": "textureGrad",
+		"body": "textureGrad($1, $2, $3, $4)",
+		"description": "textureGrad performs a texture lookup at coordinate P from the texture bound to sampler with explicit texture coordinate gradiends as specified in dPdx and dPdy. "
+	},
+	"textureGradOffset": {
+		"prefix": "textureGradOffset",
+		"body": "textureGradOffset($1, $2, $3, $4, $5)",
+		"description": "textureGradOffset performs a texture lookup at coordinate P from the texture bound to sampler with explicit texture coordinate gradiends as specified in dPdx and dPdy. An explicit offset is also supplied in offset. textureGradOffset consumes dPdx and dPdy as textureGrad and offset as textureOffset."
+	},
+	"textureLod": {
+		"prefix": "textureLod",
+		"body": "textureLod(${sampler}, ${P}, ${lod})",
+		"description": "textureLod performs a texture lookup at coordinate 'P' from the texture bound to 'sampler' with an explicit level-of-detail as specified in 'lod'."
+	},
+	"textureLodOffset": {
+		"prefix": "textureLodOffset",
+		"body": "textureLodOffset(${sampler}, ${P}, ${lod}, ${offset})",
+		"description": "textureLodOffset performs a texture lookup at coordinate 'P' from the texture bound to 'sampler' with an explicit level-of-detail as specified in 'lod'. Behavior is the same as in textureLod except that before sampling, 'offset' is added to 'P'."
+	},
+	"textureOffset": {
+		"prefix": "textureOffset",
+		"body": "textureOffset($1, $2, $3)",
+		"description": "textureOffset performs a texture lookup at coordinate P from the texture bound to sampler with an additional offset, specified in texels in offset that will be applied to the (u, v, w) texture coordinates before looking up each texel. The offset value must be a constant expression. A limited range of offset values are supported; the minimum and maximum offset values are implementation-dependent and may be determined by querying GL_MIN_PROGRAM_TEXEL_OFFSET and GL_MAX_PROGRAM_TEXEL_OFFSET, respectively.\n\nNote that offset does not apply to the layer coordinate for texture arrays. Also note that offsets are not supported for cube maps."
+	},
+	"textureProj": {
+		"prefix": "textureProj",
+		"body": "textureProj($1, $2)",
+		"description": "textureProj performs a texture lookup with projection. The texture coordinates consumed from P, not including the last component of P, are divided by the last component of P. The resulting 3rd component of P in the shadow forms is used as Dref. After these values are computed, the texture lookup proceeds as in texture."
+	},
+	"textureProjGrad": {
+		"prefix": "textureProjGrad",
+		"body": "textureProjGrad($1, $2, $3, $4)",
+		"description": "textureProjGrad performs a texture lookup with projection and explicit gradients. The texture coordinates consumed from P, not including the last component of P, are divided by the last component of P. The resulting 3rd component of P in the shadow forms is used as Dref. After these values are computed, the texture lookup proceeds as in textureGrad, passing dPdx and dPdy as gradients."
+	},
+	"textureProjGradOffset": {
+		"prefix": "textureProjGradOffset",
+		"body": "textureProjGradOffset($1, $2, $3, $4, $5)",
+		"description": "textureProjGradOffset performs a texture lookup with projection and explicit gradients and offsets. The texture coordinates consumed from P, not including the last component of P, are divided by the last component of P. The resulting 3rd component of P in the shadow forms is used as Dref. After these values are computed, the texture lookup proceeds as in textureGradOffset, passing dPdx and dPdy as gradients, and offset as the offset."
+	},
+	"textureProjLod": {
+		"prefix": "textureProjLod",
+		"body": "textureProjLod($1, $2, $3)",
+		"description": "textureProjLod performs a texture lookup with projection from an explicitly specified level-of-detail. The texture coordinates consumed from P, not including the last component of P, are divided by the last component of P. The resulting 3rd component of P in the shadow forms is used as Dref. After these values are computed, the texture lookup proceeds as in textureLod, with lod used to specify the level-of-detail from which the texture will be sampled."
+	},
+	"textureProjLodOffset": {
+		"prefix": "textureProjLodOffset",
+		"body": "textureProjLodOffset($1, $2, $3, $4)",
+		"description": "textureProjLodOffset performs a texture lookup with projection from an explicitly specified level-of-detail with an offset applied to the texture coordinates before sampling. The texture coordinates consumed from P, not including the last component of P, are divided by the last component of P. The resulting 3rd component of P in the shadow forms is used as Dref. After these values are computed, the texture lookup proceeds as in textureLodOffset, with lod used to specify the level-of-detail from which the texture will be sampled and offset used to specifiy the offset, in texels, to be applied to the texture coordinates before sampling."
+	},
+	"textureProjOffset": {
+		"prefix": "textureProjOffset",
+		"body": "textureProjOffset($1, $2, $3)",
+		"description": "textureProjOffset performs a texture lookup with projection. The texture coordinates consumed from P, not including the last component of P, are divided by the last component of P. The resulting 3rd component of P in the shadow forms is used as Dref. After these values are computed, the texture lookup proceeds as in textureOffset, with the offset used to offset the computed texture coordinates."
+	},
+	"textureQueryLod": {
+		"prefix": "textureQueryLod",
+		"body": "textureQueryLod($1, $2)",
+		"description": "Available only in the fragment shader, textureQueryLod computes the level-of-detail that would be used to sample from a texture. The mipmap array(s) that would be accessed is returned in the x component of the return value. The computed level-of-detail relative to the base level is returned in the y component of the return value.\nIf called on an incomplete texture, the result of the operation is undefined."
+	},
+	"textureSize": {
+		"prefix": "textureSize",
+		"body": "textureSize($1, $2)",
+		"description": "textureSize returns the dimensions of level lod (if present) of the texture bound to sampler. The components in the return value are filled in, in order, with the width, height and depth of the texture. For the array forms, the last component of the return value is the number of layers in the texture array."
+	},
+
+	// Noise Operation
+	"noise1": {
+		"prefix": "noise1",
+		"body": "noise1($1)",
+		"description": "float noise1(genType x);\n\nnoise1, noise2, noise3 and noise4 return noise values (vector or scalar) based on the input value x. The noise function is a stochastic function that can be used to increase visual complexity. Values returned by the noise functions give the appearance of randomness, but are not truly random. They are defined to have the following characteristics:\n\tThe return value(s) are always in the range [-1.0,1.0], and cover at least the range [-0.6, 0.6], with a Gaussian-like distribution.\n\tThe return value(s) have an overall average of 0.0.\n\tThey are repeatable, in that a particular input value will always produce the same return value.\n\tThey are statistically invariant under rotation (i.e., no matter how the domain is rotated, it has the same statistical character).\n\tThey have a statistical invariance under translation (i.e., no matter how the domain is translated, it has the same statistical character).\n\tThey typically give different results under translation.\n\tThe spatial frequency is narrowly concentrated, centered somewhere between 0.5 to 1.0.\n\tThey are C1 continuous everywhere (i.e., the first derivative is continuous)."
+	},
+	"noise2": {
+		"prefix": "noise2",
+		"body": "noise2($1)",
+		"description": "vec2 noise2(genType x);"
+	},
+	"noise3": {
+		"prefix": "noise3",
+		"body": "noise3($1)",
+		"description": "vec3 noise3(genType x);"
+	},
+	"noise4": {
+		"prefix": "noise4",
+		"body": "noise4($1)",
+		"description": "vec4 noise4(genType x);"
+	},
+
+	// Pixel Rate
+	"dFdx": {
+		"prefix": "dFdx",
+		"body": "dFdx($1)",
+		"description": "genType dFdx(genType p);\n\nAvailable only in the fragment shader, these functions return the partial derivative of expression p with respect to the window x coordinate (for dFdx*) and y coordinate (for dFdy*)."
+	},
+	"dFdy": {
+		"prefix": "dFdy",
+		"body": "dFdy($1)",
+		"description": "genType dFdy(genType p);\n\nAvailable only in the fragment shader, these functions return the partial derivative of expression p with respect to the window x coordinate (for dFdx*) and y coordinate (for dFdy*)."
+	},
+	"fwidth": {
+		"prefix": "fwidth",
+		"body": "fwidth($1)",
+		"description": "genType fwidth(genType p);\n\nAvailable only in the fragment shader, these functions return the sum of the absolute derivatives in x and y using local differencing for the input argument 'p'. fwidth is equivalent to abs(dFdx(p)) + abs(dFdy(p)) ."
+	},
+
+	// Other
+	"fma": {
+		"prefix": "fma",
+		"body": "fma($1, $2, $3)",
+		"description": "genType fma(genType a, genType b, genType c);\ngenDType fma(genDType a, genDType b, genDType c);\n\nfma performs, where possible, a fused multiply-add operation, returning a * b + c. In use cases where the return value is eventually consumed by a variable declared as precise:\n\tfma() is considered a single operation, whereas the expression a * b + c consumed by a variable declared as precise is considered two operations.\n\tThe precision of fma() can differ from the precision of the expression a * b + c.\n\tfma() will be computed with the same precision as any other fma() consumed by a precise variable, giving invariant results for the same input values of a, b and c.\nOtherwise, in the absence of precise consumption, there are no special constraints on the number of operations or difference in precision between fma() and the expression a * b + c."
+	},
+	"outerProduct": {
+		"prefix": "outerProduct",
+		"body": "outerProduct(${c}, %{r})",
+		"description": "outerProduct treats the first parameter 'c' as a column vector (matrix with one column) and the second parameter 'r' as a row vector (matrix with one row) and does a linear algebraic matrix multiply c * r, yielding a matrix whose number of rows is the number of components in 'c' and whose number of columns is the number of components in 'r'."
+	},
+	"uaddCarry": {
+		"prefix": "uaddCarry",
+		"body": "uaddCarry($1, $2, $3)",
+		"description": "genUType uaddCarry(genUType x, genUType y, out genUType carry);\n\nuaddCarry adds two 32-bit unsigned integer variables (scalars or vectors) and generates a 32-bit unsigned integer result, along with a carry output. The result is the sum of 'x' and 'y' modulo 232. The value carry is set to 0 if the sum is less than 232 and to 1 otherwise."
+	},
+	"usubBorrow": {
+		"prefix": "usubBorrow",
+		"body": "usubBorrow($1, $2, $3)",
+		"description": "genUType usubBorrow(genUType x, genUType y, out genUType borrow);\n\nusubBorrow subtracts two 32-bit unsigned integer variables (scalars or vectors) and generates a 32-bit unsigned integer result, along with a borrow output. The result is the difference of 'x' and 'y' if non-negative, or 232 plus that difference otherwise. The value borrow is set to 0 if x ≥ y and to 1 otherwise."
+	},
+
 	// ATOMIC
 	"atomicCounter": {
 		"prefix": "atomicCounter",
@@ -728,4 +1240,11 @@ https://www.khronos.org/registry/OpenGL-Refpages/gl4/
 		],
 		"description": "rotate"
 	},
+
+	// Customize Features
+	"#include": {
+		"prefix": "#include",
+		"body": "#pragma include<$1>",
+		"description": "include another functional shader"
+	}
 }
