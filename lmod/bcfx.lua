@@ -652,9 +652,12 @@ end
 ** =======================================================
 --]]
 
+---@overload fun(mainWin:lightuserdata):void
+---@overload fun(mainWin:lightuserdata, initMask:bcfx_init_flag_mask):void
 ---@param mainWin lightuserdata
-function bcfx.init(mainWin)
-	libbcfx.init(mainWin)
+---@param initMask bcfx_init_flag_mask @ combine bcfx_init_flag_mask with '|'
+function bcfx.init(mainWin, initMask)
+	libbcfx.init(mainWin, initMask)
 end
 ---@overload fun():void
 ---@overload fun(renderCount:integer):void
@@ -729,6 +732,13 @@ end
 ---@return Handle
 function bcfx.createShader(mb, type)
 	return libbcfx.createShader(mb, type)
+end
+---@param mb string | luaL_MemBuffer
+---@param type bcfx_shader_type
+---@param path string
+---@return Handle
+function bcfx.createIncludeShader(mb, type, path)
+	return libbcfx.createIncludeShader(mb, type, path)
 end
 ---@overload fun(vs:Handle):Handle
 ---@overload fun(vs:Handle, fs:Handle):Handle
@@ -870,6 +880,11 @@ end
 --]]
 
 ---@param handle Handle
+---@param mb luaL_MemBuffer
+function bcfx.updateShader(handle, mb)
+	libbcfx.updateShader(handle, mb)
+end
+---@param handle Handle
 ---@param vs Handle
 ---@param fs Handle
 function bcfx.updateProgram(handle, vs, fs)
@@ -916,12 +931,12 @@ function bcfx.setViewFrameBuffer(id, handle)
 	libbcfx.setViewFrameBuffer(id, handle)
 end
 ---@param id ViewId
----@param flags bcfx_clear_flag @ combining flags with '|'
+---@param clearMask bcfx_clear_flag_mask @ combining bcfx_clear_flag_mask with '|'
 ---@param rgba Color @ color buffer clear value
 ---@param depth number @ [-1.0, 1.0], depth buffer clear value, usually 1.0
 ---@param stencil integer @ [0, 255], stencil buffer clear value, usually 0
-function bcfx.setViewClear(id, flags, rgba, depth, stencil)
-	libbcfx.setViewClear(id, flags, rgba, depth, stencil)
+function bcfx.setViewClear(id, clearMask, rgba, depth, stencil)
+	libbcfx.setViewClear(id, clearMask, rgba, depth, stencil)
 end
 ---@param id ViewId
 ---@param x integer @ rect: origin is LeftBottom, x towards right, y towards top, unit is pixel
@@ -957,9 +972,9 @@ function bcfx.setViewDepthRange(id, near, far)
 	libbcfx.setViewDepthRange(id, near, far)
 end
 ---@param id ViewId
----@param debug bcfx_debug
-function bcfx.setViewDebug(id, debug)
-	libbcfx.setViewDebug(id, debug)
+---@param debugMask bcfx_debug_flag_mask @ combine bcfx_debug_flag_mask with '|'
+function bcfx.setViewDebug(id, debugMask)
+	libbcfx.setViewDebug(id, debugMask)
 end
 ---@param id ViewId
 function bcfx.resetView(id)
@@ -1000,19 +1015,24 @@ end
 function bcfx.touch(id)
 	libbcfx.touch(id)
 end
+---@overload fun(stream:integer, handle:Handle):void
+---@overload fun(stream:integer, handle:Handle, attribMask:bcfx_vertex_attrib_mask):void
 ---@param stream integer
 ---@param handle Handle
-function bcfx.setVertexBuffer(stream, handle)
-	libbcfx.setVertexBuffer(stream, handle)
+---@param attribMask bcfx_vertex_attrib_mask @ combine bcfx_vertex_attrib_mask with '|'
+function bcfx.setVertexBuffer(stream, handle, attribMask)
+	libbcfx.setVertexBuffer(stream, handle, attribMask)
 end
 ---@overload fun(handle:Handle):void
 ---@overload fun(handle:Handle, start:integer):void
 ---@overload fun(handle:Handle, start:integer, count:integer):void
+---@overload fun(handle:Handle, start:integer, count:integer, baseVertex:integer):void
 ---@param handle Handle @ maybe kInvalidHandle
 ---@param start integer @ for kInvalidHandle, count in vertex, not float, not byte, otherwise count in indices
 ---@param count integer @ for kInvalidHandle, count in vertex, not float, not byte, otherwise count in indices
-function bcfx.setIndexBuffer(handle, start, count)
-	libbcfx.setIndexBuffer(handle, start, count)
+---@param baseVertex integer
+function bcfx.setIndexBuffer(handle, start, count, baseVertex)
+	libbcfx.setIndexBuffer(handle, start, count, baseVertex)
 end
 ---@param mat Mat4x4
 function bcfx.setTransform(mat)
@@ -1062,26 +1082,48 @@ function bcfx.setInstanceDataBuffer(numInstance, handle, startInstance)
 	libbcfx.setInstanceDataBuffer(numInstance, handle, startInstance)
 end
 ---@overload fun(id:ViewId, handle:Handle):void
----@overload fun(id:ViewId, handle:Handle, flags:bcfx_discard):void
----@overload fun(id:ViewId, handle:Handle, flags:bcfx_discard, sortDepth:integer):void
+---@overload fun(id:ViewId, handle:Handle, flags:bcfx_discard_flag_mask):void
+---@overload fun(id:ViewId, handle:Handle, flags:bcfx_discard_flag_mask, sortDepth:integer):void
 ---@param id ViewId
 ---@param handle Handle @ shader program
----@param flags bcfx_discard @ combining flags with '|'
+---@param discardMask bcfx_discard_flag_mask @ combining bcfx_discard_flag_mask with '|'
 ---@param sortDepth integer @ [0, 2^24-1], 24bit in sortkey
-function bcfx.submit(id, handle, flags, sortDepth)
-	libbcfx.submit(id, handle, flags, sortDepth)
+function bcfx.submit(id, handle, discardMask, sortDepth)
+	libbcfx.submit(id, handle, discardMask, sortDepth)
 end
 
 -- }======================================================
 
+---@class bcfx_init_flag
+---@field public FramebufferSRGB integer
+
+---@type bcfx_init_flag
+bcfx.init_flag = libbcfx.init_flag
+
+---@class bcfx_init_flag_mask
+---@field public FramebufferSRGB integer
+
+---@type bcfx_init_flag_mask
+bcfx.init_flag_mask = libbcfx.init_flag_mask
+
 ---@class bcfx_clear_flag
----@field public NONE integer
----@field public COLOR integer
----@field public DEPTH integer
----@field public STENCIL integer
+---@field public Color integer
+---@field public Depth integer
+---@field public Stencil integer
+---@field public Count integer
 
 ---@type bcfx_clear_flag
 bcfx.clear_flag = libbcfx.clear_flag
+
+---@class bcfx_clear_flag_mask
+---@field public None integer
+---@field public Color integer
+---@field public Depth integer
+---@field public Stencil integer
+---@field public All integer
+
+---@type bcfx_clear_flag_mask
+bcfx.clear_flag_mask = libbcfx.clear_flag_mask
 
 ---@class bcfx_vertex_attrib
 ---@field public Position integer
@@ -1152,13 +1194,15 @@ bcfx.index_type = libbcfx.index_type
 ---@class bcfx_shader_type
 ---@field public Vertex integer
 ---@field public Fragment integer
+---@field public Count integer
 
 ---@type bcfx_shader_type
 bcfx.shader_type = libbcfx.shader_type
 
 ---@class bcfx_texture_wrap
 ---@field public Repeat integer
----@field public Clamp integer
+---@field public ClampToEdge integer
+---@field public ClampToBorder integer
 
 ---@type bcfx_texture_wrap
 bcfx.texture_wrap = libbcfx.texture_wrap
@@ -1169,6 +1213,13 @@ bcfx.texture_wrap = libbcfx.texture_wrap
 
 ---@type bcfx_texture_filter
 bcfx.texture_filter = libbcfx.texture_filter
+
+---@class bcfx_texture_compare_mode
+---@field public None integer
+---@field public RefToTexture integer
+
+---@type bcfx_texture_compare_mode
+bcfx.texture_compare_mode = libbcfx.texture_compare_mode
 
 ---@class bcfx_front_face
 ---@field public CounterClockWise integer
@@ -1272,29 +1323,57 @@ bcfx.stencil_action = libbcfx.stencil_action
 ---@type bcfx_view_mode
 bcfx.view_mode = libbcfx.view_mode
 
----@class bcfx_debug
----@field public NONE integer
----@field public WIREFRAME integer
+---@class bcfx_debug_flag
+---@field public Wireframe integer
 
----@type bcfx_debug
-bcfx.debug = libbcfx.debug
+---@type bcfx_debug_flag
+bcfx.debug_flag = libbcfx.debug_flag
 
----@class bcfx_discard
----@field public NONE integer
----@field public VERTEX_STREAMS integer
----@field public INDEX_BUFFER integer
----@field public TRANSFORM integer
----@field public BINDINGS integer
----@field public STATE integer
----@field public INSTANCE_DATA integer
----@field public ALL integer
+---@class bcfx_debug_flag_mask
+---@field public Wireframe integer
 
----@type bcfx_discard
-bcfx.discard = libbcfx.discard
+---@type bcfx_debug_flag_mask
+bcfx.debug_flag_mask = libbcfx.debug_flag_mask
+
+---@class bcfx_discard_flag
+---@field public VertexStreams integer
+---@field public IndexBuffer integer
+---@field public Transform integer
+---@field public Bindings integer
+---@field public State integer
+---@field public InstanceData integer
+---@field public Count integer
+
+---@type bcfx_discard_flag
+bcfx.discard_flag = libbcfx.discard_flag
+
+---@class bcfx_discard_flag_mask
+---@field public None integer
+---@field public VertexStreams integer
+---@field public IndexBuffer integer
+---@field public Transform integer
+---@field public Bindings integer
+---@field public State integer
+---@field public InstanceData integer
+---@field public All integer
+
+---@type bcfx_discard_flag_mask
+bcfx.discard_flag_mask = libbcfx.discard_flag_mask
 
 ---@class bcfx_texture_format
+---@field public R8 integer
+---@field public R16 integer
+---@field public RG8 integer
+---@field public RG16 integer
 ---@field public RGB8 integer
 ---@field public RGBA8 integer
+---@field public SRGB8 integer
+---@field public SRGBA8 integer
+---@field public R32F integer
+---@field public RGB16F integer
+---@field public RGBA16F integer
+---@field public RGB32F integer
+---@field public RGBA32F integer
 ---@field public D24S8 integer
 
 ---@type bcfx_texture_format
@@ -1425,8 +1504,16 @@ bcfx.utils = utils
 ---@class bcfx_SamplerFlag:table
 ---@field public wrapU bcfx_texture_wrap
 ---@field public wrapV bcfx_texture_wrap
+---@field public wrapW bcfx_texture_wrap
+---@field public wrapMirror boolean
+---@field public compareMode bcfx_texture_compare_mode
+---@field public compareFunc bcfx_compare_func
 ---@field public filterMin bcfx_texture_filter
 ---@field public filterMag bcfx_texture_filter
+---@field public enableMipmap boolean
+---@field public filterMipmap bcfx_texture_filter
+---@field public enableAniso boolean
+---@field public borderColor Color
 
 ---@class bcfx_sampler_flag:integer
 
