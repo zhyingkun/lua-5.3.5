@@ -354,6 +354,24 @@ static int BCWRAP_FUNCTION(createShader)(lua_State* L) {
   luaL_pushhandle(L, handle);
   return 1;
 }
+static int BCWRAP_FUNCTION(createIncludeShader)(lua_State* L) {
+  luaL_MemBuffer buffer;
+  luaL_MemBuffer* mb = &buffer;
+  if (lua_isstring(L, 1)) {
+    size_t sz = 0;
+    void* ptr = (void*)lua_tolstring(L, 1, &sz);
+    MEMBUFFER_SET(mb, ptr, sz, NULL, NULL);
+    hold_frame_resourse(L, bcfx_frameId(), 1);
+  } else {
+    mb = luaL_checkmembuffer(L, 1);
+  }
+  bcfx_EShaderType type = luaL_checkshadertype(L, 2);
+  const char* path = luaL_checkstring(L, 3);
+
+  bcfx_Handle handle = bcfx_createIncludeShader(mb, type, path);
+  luaL_pushhandle(L, handle);
+  return 1;
+}
 static int BCWRAP_FUNCTION(createProgram)(lua_State* L) {
   bcfx_Handle vs = luaL_checkhandle(L, 1);
   bcfx_Handle fs = luaL_opthandle(L, 2, kInvalidHandle);
@@ -547,6 +565,13 @@ static int BCWRAP_FUNCTION(createDynamicTextureBuffer)(lua_State* L) {
 ** =======================================================
 */
 
+static int BCWRAP_FUNCTION(updateShader)(lua_State* L) {
+  bcfx_Handle handle = luaL_checkhandle(L, 1);
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 2);
+
+  bcfx_updateShader(handle, mb);
+  return 0;
+}
 static int BCWRAP_FUNCTION(updateProgram)(lua_State* L) {
   bcfx_Handle handle = luaL_checkhandle(L, 1);
   bcfx_Handle vs = luaL_checkhandle(L, 2);
@@ -663,9 +688,9 @@ static int BCWRAP_FUNCTION(setViewDepthRange)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(setViewDebug)(lua_State* L) {
   ViewId id = luaL_checkviewid(L, 1);
-  uint32_t debug = (uint32_t)luaL_checkinteger(L, 2);
+  uint32_t debugMask = (uint32_t)luaL_checkinteger(L, 2);
 
-  bcfx_setViewDebug(id, debug);
+  bcfx_setViewDebug(id, debugMask);
   return 0;
 }
 static int BCWRAP_FUNCTION(resetView)(lua_State* L) {
@@ -869,6 +894,7 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(createIndexBuffer),
     EMPLACE_BCWRAP_FUNCTION(createDynamicIndexBuffer),
     EMPLACE_BCWRAP_FUNCTION(createShader),
+    EMPLACE_BCWRAP_FUNCTION(createIncludeShader),
     EMPLACE_BCWRAP_FUNCTION(createProgram),
     EMPLACE_BCWRAP_FUNCTION(createUniform),
     EMPLACE_BCWRAP_FUNCTION(createSampler),
@@ -886,6 +912,7 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(createTextureBuffer),
     EMPLACE_BCWRAP_FUNCTION(createDynamicTextureBuffer),
     /* Update Render Resource */
+    EMPLACE_BCWRAP_FUNCTION(updateShader),
     EMPLACE_BCWRAP_FUNCTION(updateProgram),
     EMPLACE_BCWRAP_FUNCTION(updateDynamicBuffer),
     /* Create Render Resource */
@@ -927,11 +954,12 @@ static const luaL_Reg wrap_funcs[] = {
 ** =======================================================
 */
 
+// clang-format off
 static const luaL_Enum BCWRAP_ENUM(clear_flag)[] = {
 #define XX(name) {#name, CF_##name},
     CLEAR_FLAG(XX)
 #undef XX
-        {"Count", CF_Count},
+    {"Count", CF_Count},
     {NULL, 0},
 };
 static const luaL_Enum BCWRAP_ENUM(clear_flag_mask)[] = {
@@ -939,7 +967,7 @@ static const luaL_Enum BCWRAP_ENUM(clear_flag_mask)[] = {
 #define XX(name) {#name, CFM_##name},
     CLEAR_FLAG(XX)
 #undef XX
-        {"All", CFM_All},
+    {"All", CFM_All},
     {NULL, 0},
 };
 // clang-format off
@@ -975,6 +1003,7 @@ static const luaL_Enum BCWRAP_ENUM(index_type)[] = {
 static const luaL_Enum BCWRAP_ENUM(shader_type)[] = {
     {"Vertex", ST_Vertex},
     {"Fragment", ST_Fragment},
+    {"Count", ST_Count},
     {NULL, 0},
 };
 static const luaL_Enum BCWRAP_ENUM(texture_wrap)[] = {
@@ -986,6 +1015,11 @@ static const luaL_Enum BCWRAP_ENUM(texture_wrap)[] = {
 static const luaL_Enum BCWRAP_ENUM(texture_filter)[] = {
     {"Linear", TF_Linear},
     {"Nearest", TF_Nearest},
+    {NULL, 0},
+};
+static const luaL_Enum BCWRAP_ENUM(texture_compare_mode)[] = {
+    {"None", TCM_None},
+    {"RefToTexture", TCM_RefToTexture},
     {NULL, 0},
 };
 static const luaL_Enum BCWRAP_ENUM(front_face)[] = {
@@ -1074,23 +1108,24 @@ static const luaL_Enum BCWRAP_ENUM(view_mode)[] = {
     {"Count", VM_Count},
     {NULL, 0},
 };
+// clang-format off
 static const luaL_Enum BCWRAP_ENUM(debug_flag)[] = {
 #define XX(name) {#name, DF_##name},
     DEBUG_FLAG(XX)
 #undef XX
-        {NULL, 0},
+    {NULL, 0},
 };
 static const luaL_Enum BCWRAP_ENUM(debug_flag_mask)[] = {
 #define XX(name) {#name, DFM_##name},
     DEBUG_FLAG(XX)
 #undef XX
-        {NULL, 0},
+    {NULL, 0},
 };
 static const luaL_Enum BCWRAP_ENUM(discard_flag)[] = {
 #define XX(name) {#name, DF_##name},
     DISCARD_FLAG(XX)
 #undef XX
-        {"Count", DF_Count},
+    {"Count", DF_Count},
     {NULL, 0},
 };
 static const luaL_Enum BCWRAP_ENUM(discard_flag_mask)[] = {
@@ -1098,12 +1133,29 @@ static const luaL_Enum BCWRAP_ENUM(discard_flag_mask)[] = {
 #define XX(name) {#name, DFM_##name},
     DISCARD_FLAG(XX)
 #undef XX
-        {"All", DFM_All},
+    {"All", DFM_All},
     {NULL, 0},
 };
+// clang-format on
 static const luaL_Enum BCWRAP_ENUM(texture_format)[] = {
+    /* unsigned integer */
+    {"R8", TF_R8},
+    {"R16", TF_R16},
+    {"RG8", TF_RG8},
+    {"RG16", TF_RG16},
+
     {"RGB8", TF_RGB8},
     {"RGBA8", TF_RGBA8},
+    /* texture are gamma color, shader will convert to linear color automatically */
+    {"SRGB8", TF_SRGB8},
+    {"SRGBA8", TF_SRGBA8},
+    /* float, maybe for render texture */
+    {"R32F", TF_R32F},
+    {"RGB16F", TF_RGB16F},
+    {"RGBA16F", TF_RGBA16F},
+    {"RGB32F", TF_RGB32F},
+    {"RGBA32F", TF_RGBA32F},
+    /* depth and stencil texture*/
     {"D24S8", TF_D24S8},
     {NULL, 0},
 };
@@ -1138,6 +1190,7 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   REGISTE_ENUM_BCWRAP(shader_type);
   REGISTE_ENUM_BCWRAP(texture_wrap);
   REGISTE_ENUM_BCWRAP(texture_filter);
+  REGISTE_ENUM_BCWRAP(texture_compare_mode);
   REGISTE_ENUM_BCWRAP(front_face);
   REGISTE_ENUM_BCWRAP(cull_face);
   REGISTE_ENUM_BCWRAP(compare_func);
