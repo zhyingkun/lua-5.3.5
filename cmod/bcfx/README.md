@@ -46,6 +46,10 @@
 3. glClear 本质是一个修改 FrameBuffer 像素数据的操作，默认是 Clear 整个 FrameBuffer，受 Scissor 控制
 4. glfw 处理的窗口事件中，给到的坐标是基于屏幕坐标（不是像素坐标），并且，左上角为原点，X 正向右，Y 正向下。因此要注意，传递给 OpenGL/BCFX 的坐标需要使用 FrameBufferSize 之类的像素版本，并且，处理原点和 Y 正方向不一致的问题
 
+## Shader 功能
+
+1. 支持以`#pragma include<xxx/xx.xxxx.glsl>`的方式来使用类似 C 语言`#include`预处理的功能
+
 ## 关于色环
 
 ![色环](ColorCircle.jpeg)
