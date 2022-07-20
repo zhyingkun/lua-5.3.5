@@ -7,7 +7,7 @@ local graphics3d = bcfx.math.graphics3d
 local vector = bcfx.math.vector
 local texture_wrap = bcfx.texture_wrap
 local texture_filter = bcfx.texture_filter
-local discard = bcfx.discard
+local discard = bcfx.discard_flag_mask
 local texture_format = bcfx.texture_format
 local blend_equation = bcfx.blend_equation
 local blend_func = bcfx.blend_func
@@ -17,7 +17,7 @@ local font = nk.font
 local panel_flag = nk.panel_flag
 local text_alignment = nk.text_alignment
 local index_type = bcfx.index_type
-local clear_flag = bcfx.clear_flag
+local clear_flag = bcfx.clear_flag_mask
 
 
 ---@param nk nuklear
@@ -378,7 +378,7 @@ function imgui.tick(delta)
 		bcfx.setIndexBuffer(indexHandle, offset, count)
 		bcfx.setTexture(0, uniformTex, texture, samplerHandle)
 		bcfx.setScissor(x, y, w, h) -- in pixel coordinate
-		bcfx.submit(255, imguiShader, discard.INDEX_BUFFER | discard.BINDINGS)
+		bcfx.submit(255, imguiShader, discard.IndexBuffer | discard.Bindings)
 	end)
 	--[[
 	bcfx.setIndexBuffer(indexHandle, 0, 324)

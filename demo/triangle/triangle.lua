@@ -2,7 +2,7 @@ local libuv = require("libuv")
 local glfw = require("glfw")
 
 local bcfx = require("bcfx")
-local clear_flag = bcfx.clear_flag
+local clear_flag = bcfx.clear_flag_mask
 local vertex_attrib = bcfx.vertex_attrib
 local attrib_type = bcfx.attrib_type
 local index_type = bcfx.index_type
@@ -11,7 +11,7 @@ local graphics3d = bcfx.math.graphics3d
 local vector = bcfx.math.vector
 local texture_wrap = bcfx.texture_wrap
 local texture_filter = bcfx.texture_filter
-local discard = bcfx.discard
+local discard = bcfx.discard_flag_mask
 local texture_format = bcfx.texture_format
 
 local loader = require("loader")
@@ -221,13 +221,13 @@ end
 local function SetupViewFull(viewID, win, width, height)
 	bcfx.setViewWindow(viewID, win)
 	local color = bcfx.color.pack(51, 76, 76, 255)
-	bcfx.setViewClear(viewID, clear_flag.COLOR | clear_flag.DEPTH, color, 1.0, 0)
+	bcfx.setViewClear(viewID, clear_flag.Color | clear_flag.Depth, color, 1.0, 0)
 	bcfx.setViewRect(viewID, 0, 0, width, height)
 end
 local function SetupFrameBufferView(viewID, fb, width, height)
 	bcfx.setViewFrameBuffer(viewID, fb)
 	local color = bcfx.color.pack(199, 174, 174, 255)
-	bcfx.setViewClear(viewID, clear_flag.COLOR | clear_flag.DEPTH, color, 1.0, 0)
+	bcfx.setViewClear(viewID, clear_flag.Color | clear_flag.Depth, color, 1.0, 0)
 	bcfx.setViewRect(viewID, 0, 0, width, height)
 
 	local viewMat = graphics3d.lookAt(
@@ -357,7 +357,7 @@ local function tick(delta)
 	local mat = graphics3d.scale(vector.Vec3(0.5, 0.5, 0.5))
 	bcfx.setTransform(mat)
 	bcfx.setInstanceDataBuffer(3, instanceBuffer)
-	bcfx.submit(0, triangle.shader, discard.ALL)
+	bcfx.submit(0, triangle.shader, discard.All)
 
 	-- bcfx.setVertexBuffer(0, cube.vertex)
 	-- bcfx.setVertexBuffer(1, cube.texCoord)
@@ -382,16 +382,16 @@ local function tick(delta)
 	bcfx.setState(state, bcfx.color.black)
 
 	-- bcfx.setViewDebug(1, bcfx.debug.WIREFRAME)
-	bcfx.submit(1, cube.shader, discard.ALL)
+	bcfx.submit(1, cube.shader, discard.All)
 
 	bcfx.setVertexBuffer(0, blit.vertex)
 	bcfx.setTexture(0, blit.uniform, blit.texture, samplerHandle)
-	bcfx.submit(2, blit.shader, discard.ALL)
+	bcfx.submit(2, blit.shader, discard.All)
 
 	-- bcfx.setVertexBuffer(0, vertexHandle)
 	-- bcfx.setVertexBuffer(1, colorHandle)
 	-- bcfx.setIndexBuffer(idxHandle)
-	-- bcfx.submit(3, shaderProgramHandle, discard.ALL)
+	-- bcfx.submit(3, shaderProgramHandle, discard.All)
 
 	-- local color = bcfx.color.pack(255, 255, 0, 255)
 	-- bcfx.setViewClear(3, clear_flag.COLOR, color, 0.0, 0)
