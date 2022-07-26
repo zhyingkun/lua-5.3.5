@@ -36,7 +36,6 @@ typedef void (*RendererSubmit)(RendererContext* ctx, Frame* frame);
 typedef void (*RendererEndFrame)(RendererContext* ctx);
 typedef void (*RendererFlip)(RendererContext* ctx);
 
-typedef void (*RendererDestroyVertexLayout)(RendererContext* ctx, bcfx_Handle handle);
 typedef void (*RendererDestroyVertexBuffer)(RendererContext* ctx, bcfx_Handle handle);
 typedef void (*RendererDestroyIndexBuffer)(RendererContext* ctx, bcfx_Handle handle);
 typedef void (*RendererDestroyShader)(RendererContext* ctx, bcfx_Handle handle);
@@ -70,7 +69,6 @@ struct RendererContext {
   RendererEndFrame endFrame;
   RendererFlip flip;
 
-  RendererDestroyVertexLayout destroyVertexLayout;
   RendererDestroyVertexBuffer destroyVertexBuffer;
   RendererDestroyIndexBuffer destroyIndexBuffer;
   RendererDestroyShader destroyShader;
