@@ -398,7 +398,6 @@ static void gl_createShader(RendererContext* ctx, bcfx_Handle handle, luaL_MemBu
   }
   const GLint length = mem->sz;
   GL_CHECK(glShaderSource(shader->id, 1, (const GLchar* const*)&mem->ptr, &length));
-  MEMBUFFER_RELEASE(mem);
   GL_CHECK(glCompileShader(shader->id));
 
   GLint success;
@@ -409,19 +408,18 @@ static void gl_createShader(RendererContext* ctx, bcfx_Handle handle, luaL_MemBu
     GLchar* infoLog = (GLchar*)alloca(logLen);
     GL_CHECK(glGetShaderInfoLog(shader->id, logLen, NULL, infoLog));
     printf_err("Shader compile error: %s\n", infoLog);
-    return;
-  }
-
-  shader->numDep = 0;
-  gl_scanShaderDependence(glCtx, shader, mem->ptr, mem->sz);
-
-  if (bCreate) {
-    if (path != NULL) {
-      gl_addShaderIncludeHandle(glCtx, path, handle);
-    }
   } else {
-    gl_updateAllProgram(glCtx, handle);
+    shader->numDep = 0;
+    gl_scanShaderDependence(glCtx, shader, mem->ptr, mem->sz);
+    if (bCreate) {
+      if (path != NULL) {
+        gl_addShaderIncludeHandle(glCtx, path, handle);
+      }
+    } else {
+      gl_updateAllProgram(glCtx, handle);
+    }
   }
+  MEMBUFFER_RELEASE(mem);
 }
 static void gl_createProgram(RendererContext* ctx, bcfx_Handle handle, bcfx_Handle vsh, bcfx_Handle fsh) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
@@ -455,10 +453,10 @@ static void gl_createProgram(RendererContext* ctx, bcfx_Handle handle, bcfx_Hand
     GLchar* infoLog = (GLchar*)alloca(logLen);
     GL_CHECK(glGetProgramInfoLog(prog->id, logLen, NULL, infoLog));
     printf_err("Shader program link error: %s\n", infoLog);
-    return;
+  } else {
+    prog_collectAttributes(prog);
+    prog_collectUniforms(prog, glCtx);
   }
-  prog_collectAttributes(prog);
-  prog_collectUniforms(prog, glCtx);
 }
 static void gl_createUniform(RendererContext* ctx, bcfx_Handle handle, const String* name, bcfx_EUniformType type, uint16_t num) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
