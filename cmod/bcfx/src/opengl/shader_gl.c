@@ -518,6 +518,9 @@ static uint32_t nextToken(luaL_ByteBuffer* b) {
           do {
             pCh = luaBB_readbytes(b, 1);
           } while (pCh != NULL && islalpha(*pCh));
+          if (pCh != NULL) {
+            luaBB_unreadbytes(b, 1);
+          }
           tmp->sz = (const char*)pCh - tmp->str;
           if (str_isEqual(tmp, StrPragma)) {
             return TK_PRAGMA;
@@ -644,7 +647,7 @@ static void _onFindIncludePath(void* ud, const char* str, size_t sz) {
   bcfx_Handle handle = gl_findShaderIncludeHandle(glCtx, path);
   if (handle == kInvalidHandle) {
     char* tmp = (char*)alloca(sz + 1);
-    strncmp(tmp, str, sz);
+    strncpy(tmp, str, sz);
     tmp[sz] = '\0';
     printf_err("Error: could not find shader include file: %s\n", tmp);
     return;
