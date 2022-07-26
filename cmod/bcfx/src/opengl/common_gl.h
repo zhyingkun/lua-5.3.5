@@ -28,13 +28,15 @@ const char* err_EnumName(GLenum _enum);
 
 #define CLAMP_OFFSET_COUNT(total_, offset_, count_) \
   do { \
-    if ((offset_) > (total_)) { \
-      (offset_) = (total_); \
-      printf_err("Error: offset > total, File: %s, Line: %d\n", __FILE__, __LINE__); \
-    } \
-    if ((count_) > (total_) - (offset_)) { \
-      (count_) = (total_) - (offset_); \
-      printf_err("Error: count > total - offset, File: %s, Line: %d\n", __FILE__, __LINE__); \
+    if ((total_) > 0) { \
+      if ((offset_) > (total_)) { \
+        (offset_) = (total_); \
+        printf_err("Error: offset > total, File: %s, Line: %d\n", __FILE__, __LINE__); \
+      } \
+      if ((count_) > (total_) - (offset_)) { \
+        (count_) = (total_) - (offset_); \
+        printf_err("Error: count > total - offset, File: %s, Line: %d\n", __FILE__, __LINE__); \
+      } \
     } \
   } while (0)
 
