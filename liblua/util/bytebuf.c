@@ -146,6 +146,13 @@ LUALIB_API const uint8_t* luaBB_readbytes(luaL_ByteBuffer* b, uint32_t len) {
   return s;
 }
 
+LUALIB_API void luaBB_unreadbytes(luaL_ByteBuffer* b, uint32_t len) {
+  if (len > b->hadRead) {
+    len = b->hadRead;
+  }
+  b->hadRead -= len;
+}
+
 LUALIB_API void luaBB_flushread(luaL_ByteBuffer* b) {
   if (!b->bStatic && b->hadRead != 0) {
     uint32_t realn = b->n - b->hadRead;

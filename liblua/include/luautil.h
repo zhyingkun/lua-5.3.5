@@ -95,6 +95,7 @@ LUALIB_API void luaBB_addvalue(luaL_ByteBuffer* b, lua_State* L, int idx);
 
 LUALIB_API void luaBB_setread(luaL_ByteBuffer* b, uint32_t read);
 LUALIB_API const uint8_t* luaBB_readbytes(luaL_ByteBuffer* b, uint32_t len);
+LUALIB_API void luaBB_unreadbytes(luaL_ByteBuffer* b, uint32_t len);
 LUALIB_API void luaBB_flushread(luaL_ByteBuffer* b);
 
 LUALIB_API void luaBB_clear(luaL_ByteBuffer* b);
