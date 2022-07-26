@@ -50,6 +50,8 @@ typedef struct {
 #define NEW_VEC(var, count) \
   Vec* var = (Vec*)malloc(VEC_SIZE(count)); \
   VEC_INIT(var, row, col)
+#define DELETE_VEC(var) \
+  free((void*)(var))
 
 #define VEC_INIT(vec, cnt) vec_init((Vec*)vec, cnt)
 #define VEC_ZERO(vec) vec_zero((Vec*)vec)
@@ -216,6 +218,8 @@ typedef struct {
 #define NEW_MAT(var, row, col) \
   Mat* var = (Mat*)malloc(MAT_SIZE(row, col)); \
   MAT_INIT(var, row, col)
+#define DELETE_MAT(var) \
+  free((void*)(var))
 
 #define MAT_ZERO(mat) mat_zero((Mat*)mat)
 #define MAT_IDENTITY(mat) mat_identity((Mat*)mat)
