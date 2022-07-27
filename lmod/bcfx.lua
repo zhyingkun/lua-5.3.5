@@ -1455,8 +1455,8 @@ function color.unpack(rgba)
 end
 ---@param rgba Color
 ---@return number, number, number, number @r, g, b, a
-function color.unpackf(rgba)
-	return libcolor.unpackf(rgba)
+function color.unpackNF(rgba)
+	return libcolor.unpackNF(rgba)
 end
 
 -- }======================================================
