@@ -198,7 +198,7 @@ static void urc_begin(lua_State* L) {
   urcCtx->tableIdx = lua_gettop(L);
   clearUniformData(&urcCtx->currentData);
 }
-static void urc_end() {
+static void urc_end(void) {
   lua_State* L = urcCtx->L;
   assert(urcCtx->tableIdx == lua_gettop(L));
   lua_pushnil(L);
@@ -248,7 +248,7 @@ static void urc_checkCurrentTypeNum(bcfx_EUniformType type, uint16_t num) {
     luaL_error(L, "Create multi uniform with different parameters, type: %d, num: %d, oldType: %d, oldNum: %d", type, num, oldType, oldNum);
   }
 }
-static void _updateDataToTable() {
+static void _updateDataToTable(void) {
   lua_State* L = urcCtx->L;
   lua_rawgetp(L, urcCtx->tableIdx, CURRENT_NAME_KEY);
   lua_pushinteger(L, packUniformData(urcCtx->currentData));
@@ -270,12 +270,12 @@ static void urc_addUniform(int nameIdx, bcfx_EUniformType type, uint16_t num, bc
   urcCtx->currentData.refCount = 1;
   _updateDataToTable();
 }
-static bcfx_Handle urc_retainCurrentUniform() {
+static bcfx_Handle urc_retainCurrentUniform(void) {
   urcCtx->currentData.refCount++;
   _updateDataToTable();
   return urcCtx->currentData.handle;
 }
-static bool urc_releaseCurrentUniform() {
+static bool urc_releaseCurrentUniform(void) {
   urcCtx->currentData.refCount--;
   if (urcCtx->currentData.refCount > 0) {
     _updateDataToTable();
