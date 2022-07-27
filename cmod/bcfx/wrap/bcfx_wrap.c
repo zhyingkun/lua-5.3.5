@@ -3,6 +3,8 @@
 #define _bcfx_wrap_c_
 #include <bcfx_wrap.h>
 
+#include <assert.h>
+
 /*
 ** {======================================================
 ** BCFX Resource Manage
