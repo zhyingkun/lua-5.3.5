@@ -151,12 +151,15 @@ void prog_collectAttributes(ProgramGL* prog) {
     }
   }
   pa->usedCount = cnt;
-  int idx = 0;
+  int emptyIdx = 0;
   for (int i = 0; i < BCFX_CONFIG_MAX_INSTANCE_DATA; i++) {
-    if (pa->instanceAttr[i] != -1 && i > idx) {
-      pa->instanceAttr[idx] = pa->instanceAttr[i];
-      pa->instanceAttr[i] = -1;
-      idx++;
+    if (pa->instanceAttr[i] != -1) {
+      if (i > emptyIdx) {
+        // Move attr to the empty one
+        pa->instanceAttr[emptyIdx] = pa->instanceAttr[i];
+        pa->instanceAttr[i] = -1;
+      }
+      emptyIdx++;
     }
   }
 }
@@ -515,13 +518,14 @@ static uint32_t nextToken(luaL_ByteBuffer* b) {
         if (islalpha(*pCh)) { /* identifier or reserved word? */
           String tmp[1];
           tmp->str = (const char*)pCh;
+          tmp->sz = 0;
           do {
+            tmp->sz++;
             pCh = luaBB_readbytes(b, 1);
           } while (pCh != NULL && islalpha(*pCh));
           if (pCh != NULL) {
             luaBB_unreadbytes(b, 1);
           }
-          tmp->sz = (const char*)pCh - tmp->str;
           if (str_isEqual(tmp, StrPragma)) {
             return TK_PRAGMA;
           }
