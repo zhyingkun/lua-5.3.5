@@ -553,7 +553,7 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
     case TT_Texture2D: {
       ParamTexture2D* p = &param->value.t2d;
       GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
-      assert(p->mem.ptr == NULL || p->mem.sz == p->width * p->height * fi->pixelSizeByte);
+      assert(p->mem.ptr == NULL || p->mem.sz == (size_t)(p->width * p->height * fi->pixelSizeByte));
       GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, fi->internalFormat, p->width, p->height, 0, fi->format, fi->type, p->mem.ptr));
       if (p->bGenMipmap) {
         GL_CHECK(glGenerateMipmap(GL_TEXTURE_2D));
@@ -565,7 +565,7 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
       ParamTexture2DArray* p = &param->value.t2da;
       GL_CHECK(glBindTexture(GL_TEXTURE_2D_ARRAY, texture->id));
       for (uint16_t layer = 0; layer < p->layers; layer++) {
-        assert(p->mba[layer].sz == p->width * p->height * fi->pixelSizeByte);
+        assert(p->mba[layer].sz == (size_t)(p->width * p->height * fi->pixelSizeByte));
         GL_CHECK(glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, fi->internalFormat, p->width, p->height, layer, 0, fi->format, fi->type, p->mba[layer].ptr));
         MEMBUFFER_RELEASE(&p->mba[layer]);
       }
@@ -580,7 +580,7 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
       ParamTexture3D* p = &param->value.t3d;
       GL_CHECK(glBindTexture(GL_TEXTURE_3D, texture->id));
       for (uint16_t depth = 0; depth < p->depth; depth++) {
-        assert(p->mba[depth].sz == p->width * p->height * fi->pixelSizeByte);
+        assert(p->mba[depth].sz == (size_t)(p->width * p->height * fi->pixelSizeByte));
         GL_CHECK(glTexImage3D(GL_TEXTURE_3D, 0, fi->internalFormat, p->width, p->height, depth, 0, fi->format, fi->type, p->mba[depth].ptr));
         MEMBUFFER_RELEASE(&p->mba[depth]);
       }
@@ -595,7 +595,7 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
       ParamTextureCubeMap* p = &param->value.tcm;
       GL_CHECK(glBindTexture(GL_TEXTURE_CUBE_MAP, texture->id));
       for (uint8_t side = 0; side < 6; side++) { // +X, -X, +Y, -Y, +Z, -Z
-        assert(p->mb6[side].sz == p->width * p->height * fi->pixelSizeByte);
+        assert(p->mb6[side].sz == (size_t)(p->width * p->height * fi->pixelSizeByte));
         GL_CHECK(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, fi->internalFormat, p->width, p->height, 0, fi->format, fi->type, p->mb6[side].ptr));
         MEMBUFFER_RELEASE(&p->mb6[side]);
       }
@@ -614,7 +614,7 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
       uint16_t width = p->width;
       uint16_t height = p->height;
       for (uint16_t level = 0; level < p->levels; level++) {
-        assert(p->mba[level].sz == width * height * fi->pixelSizeByte);
+        assert(p->mba[level].sz == (size_t)(width * height * fi->pixelSizeByte));
         GL_CHECK(glTexImage2D(GL_TEXTURE_2D, level, fi->internalFormat, p->width, p->height, 0, fi->format, fi->type, p->mba[level].ptr));
         MEMBUFFER_RELEASE(&p->mba[level]);
         width = MAX(1, (width / 2));
