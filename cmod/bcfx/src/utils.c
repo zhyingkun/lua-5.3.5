@@ -22,10 +22,10 @@ BCFX_API void bcfx_unpackColor(uint32_t rgba, uint8_t* r, uint8_t* g, uint8_t* b
 
 BCFX_API void bcfx_unpackColorNF(uint32_t rgba, float* r, float* g, float* b, float* a) {
   bcfx_Color c = COLOR_STRUCT(rgba);
-  *r = c.r / 255.0f;
-  *g = c.g / 255.0f;
-  *b = c.b / 255.0f;
-  *a = c.a / 255.0f;
+  *r = ((float)c.r) / 255.0f;
+  *g = ((float)c.g) / 255.0f;
+  *b = ((float)c.b) / 255.0f;
+  *a = ((float)c.a) / 255.0f;
 }
 
 /* }====================================================== */
