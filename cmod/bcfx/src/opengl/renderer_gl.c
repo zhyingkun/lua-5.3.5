@@ -733,7 +733,7 @@ static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
     flags |= GL_COLOR_BUFFER_BIT;
     float r, g, b, a;
     bcfx_unpackColorNF(clear->rgba, &r, &g, &b, &a);
-    GL_CHECK(glClearColor(r, b, b, a));
+    GL_CHECK(glClearColor(r, g, b, a));
     GL_CHECK(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
   }
   if (HAS_BIT(clear->clearMask, CF_Depth)) {
