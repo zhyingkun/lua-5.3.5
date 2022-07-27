@@ -12,8 +12,10 @@ local function setup(glfw, bcfx, win)
     end)
     glfw.setFramebufferSizeCallback(win, function(window, width, height)
         bcfx.setViewRect(viewIDClear, 0, 0, width, height)
-        bcfx.setViewRect(viewID1, 20, 20, width // 3, height // 3)
-        bcfx.setViewRect(viewID2, 260, 260, width // 4, height // 4)
+        local offset1 = width // 40
+        local offset2 = width // 3
+        bcfx.setViewRect(viewID1, offset1, offset1, width // 3, height // 3)
+        bcfx.setViewRect(viewID2, offset2, offset2, width // 4, height // 4)
     end)
 
     local width, height = glfw.getFramebufferSize(win)
@@ -26,10 +28,12 @@ local function setup(glfw, bcfx, win)
     bcfx.setViewRect(viewIDFB, 0, 0, width, height)
     bcfx.setViewClear(viewIDFB, bcfx.clear_flag_mask.Color, bcfx.color.cyan, 1.0, 0)
 
-    bcfx.setViewRect(viewID1, 20, 20, width // 3, height // 3)
-    bcfx.setViewClear(viewID1, bcfx.clear_flag_mask.Color, bcfx.color.indigo, 1.0, 0)
+    local offset1 = width // 40
+    bcfx.setViewRect(viewID1, offset1, offset1, width // 3, height // 3)
+    bcfx.setViewClear(viewID1, bcfx.clear_flag_mask.Color, bcfx.color.black, 1.0, 0)
 
-    bcfx.setViewRect(viewID2, 260, 260, width // 4, height // 4)
+    local offset2 = width // 3
+    bcfx.setViewRect(viewID2, offset2, offset2, width // 4, height // 4)
     bcfx.setViewClear(viewID2, bcfx.clear_flag_mask.Color, bcfx.color.black, 1.0, 0)
 
     local layout = bcfx.VertexLayout()
@@ -108,11 +112,9 @@ local function loop(bcfx)
     bcfx.setVertexBuffer(0, triangle.vertexHandle)
     bcfx.submit(viewIDFB, triangle.programHandle)
 
-    bcfx.setVertexBuffer(0, triangle.vertexHandle)
-    bcfx.submit(viewID1, triangle.programHandle)
-    -- bcfx.setVertexBuffer(0, blit.vertex)
-    -- bcfx.setTexture(0, blit.uniform, blit.texture, blit.samplerHandle)
-    -- bcfx.submit(viewID1, blit.shader)
+    bcfx.setVertexBuffer(0, blit.vertex)
+    bcfx.setTexture(0, blit.uniform, blit.texture, blit.samplerHandle)
+    bcfx.submit(viewID1, blit.shader)
 
     bcfx.setVertexBuffer(0, blit.vertex)
     bcfx.setTexture(0, blit.uniform, blit.texture, blit.samplerHandle)
