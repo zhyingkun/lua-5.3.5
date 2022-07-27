@@ -83,7 +83,18 @@ void sortkey_decode(SortKey* key, uint64_t value) {
 }
 
 static int _compare(const void* a, const void* b) {
-  return *(uint64_t*)a - *(uint64_t*)b;
+  /*
+   * The contents of the array are sorted into ascending order according to a comparison function pointed to by compar,
+   * which is called with two arguments that point to the objects being compared.
+   * The function shall return an integer less than, equal to, or greater than zero
+   * if the first argument is considered to be respectively less than, equal to, or greater than the second.
+   * If two elements compare as equal, their order in the resulting sorted array is unspecified.
+   */
+  uint64_t va = *(uint64_t*)a;
+  uint64_t vb = *(uint64_t*)b;
+  // clang-format off
+  return va < vb ? -1 : va == vb ? 0 : 1;
+  // clang-format on
 }
 void sortUint64Array(uint64_t* values, uint32_t num) {
   // qsort and heapsort are not stable, mergesort is stable
