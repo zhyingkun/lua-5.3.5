@@ -720,8 +720,9 @@ void gl_updateAllProgram(RendererContextGL* glCtx, bcfx_Handle shaderHandle) {
   for (int i = 0; i < BCFX_CONFIG_MAX_PROGRAM; i++) {
     ProgramGL* prog = &glCtx->programs[i];
     if (prog->id != 0) {
-      if (gl_isProgramDependsShader(glCtx, prog, shaderHandle)) {
-        glCtx->api.createProgram((RendererContext*)glCtx, handle_pack(HT_Program, i), prog->vs, prog->fs);
+      bcfx_Handle progHandle = handle_pack(HT_Program, i);
+      if (gl_isProgramDependsShader(glCtx, progHandle, shaderHandle)) {
+        glCtx->api.createProgram((RendererContext*)glCtx, progHandle, prog->vs, prog->fs);
       }
     }
   }
