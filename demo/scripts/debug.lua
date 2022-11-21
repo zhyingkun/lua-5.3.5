@@ -8,9 +8,8 @@ local cmods = {
 	json = true,
 	lproc = true,
 	luasocket = true,
-	madwrap = true,
+	nfd = true,
 	nuklear = true,
-	portaudio = true,
 	protobuf = true,
 	uvwrap = true,
 }

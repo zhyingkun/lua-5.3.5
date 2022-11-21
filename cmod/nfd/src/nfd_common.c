@@ -13,6 +13,13 @@ static char g_errorstr[NFD_MAX_STRLEN] = {0};
 
 /* public routines */
 
+void NFD_FreePath(nfdchar_t** inPath) {
+  if (*inPath != NULL) {
+    NFDi_Free(*inPath);
+    *inPath = NULL;
+  }
+}
+
 const char* NFD_GetError(void) {
   return g_errorstr;
 }

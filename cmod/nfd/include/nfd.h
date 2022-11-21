@@ -54,6 +54,8 @@ nfdresult_t NFD_PickFolder(const nfdchar_t* defaultPath,
 
 /* nfd_common.c */
 
+void NFD_FreePath(nfdchar_t** inPath);
+
 /* get last error -- set when nfdresult_t returns NFD_ERROR */
 const char* NFD_GetError(void);
 /* get the number of entries stored in pathSet */
