@@ -97,8 +97,6 @@ ndk-build -B # rebuild project
     - json: 封装了 JSON 模块，底层使用 cJSON，支持 Table 与 JSON 字符串互转
     - lproc: 《Lua 程序设计》中的多线程模块，使用 pthread
     - luasocket: 封装了 socket 接口，代码来自[LuaSocket](https://github.com/diegonehab/luasocket)
-    - madwrap: MP3 解码库，基础代码来自[libmad](https://sourceforge.net/projects/mad/files/libmad/0.15.1b/)
-    - portaudio: 音频库，基础代码来自[PortAudio](http://www.portaudio.com)
     - protobuf: C 语言实现的 protobuf，代码来自[pbc](https://github.com/cloudwu/pbc)
     - uvwrap: 封装了 libuv 库，用于支持事件驱动的异步 IO，基础代码来自[libuv](http://libuv.org)
 2. demo: 用于测试的 Demo
@@ -106,11 +104,13 @@ ndk-build -B # rebuild project
     - c-lang: C 语言特性示例
     - glfwrap: glfw 特性示例 Lua 版
     - lpg: 《Lua Programming Gems》中的一部分案例代码
+    - oglib: OpenGL 渲染的示例
     - pbdemo: 使用 ProtocolBuffer 的示例，包含协议示例
     - pil: 《Lua 程序设计》中的一部分示例代码
     - runner: Lua 环境的独立运行工具
     - scripts: 用于测试的 Lua 脚本
     - stdlib: 用 Lua 语言实现的部分 Lua 标准库函数
+    - triangle: bcfx 渲染库示例
     - uvwrap: libuv 示例 Lua 版
 3. etc: 工程杂项
     - fromlua: 来自 Lua 官方的相关文件，包括 Lua 文档，留着方便查看
@@ -122,13 +122,11 @@ ndk-build -B # rebuild project
     - include: Lua 源码中的外部使用头文件单独放到一个文件夹中
     - libraries: Lua 自带的官方标准库
     - test: 扩展 Lua 功能的测试代码
+    - util: 功能杂项
 5. lmod: Lua 语言实现的工具模块
     - common: 通用功能
-    - man: 简易文档，方便交互模式下查看函数原型
     - protobuf: protobuf 模块的 Lua 封装
-    - glfw.lua: glfw 库的 Lua 层封装
-    - json.lua: JSON 模块的 Lua 层封装
-    - libuv.lua: libuv 模块的 Lua 封装
+    - reload: reload 模块的 Lua 封装
 6. lua: Lua 官方命令行工具，带编译器和虚拟机，依赖 Lua 库
 7. luac: Lua 官方命令行编译器
 8. luawithlib: 包含 lua 和 luaC 模块的运行时动态库（iOS 下是静态库）
