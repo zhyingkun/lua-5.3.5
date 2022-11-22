@@ -87,6 +87,11 @@ if(APPLE)
 		"-framework Foundation"
 		"-framework AppKit"
 	)
+	if (CMAKE_HOST_SYSTEM_VERSION VERSION_GREATER_EQUAL 21) # MacOSX 12.0 is Darwin-21.0.1
+		target_link_libraries(${PROJECT_NAME}
+			"-framework UniformTypeIdentifiers"
+		)
+	endif()
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	# find_package(GTK3 REQUIRED) # require gtk3-config.cmake
 	find_package(PkgConfig) # require pkg-config

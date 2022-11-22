@@ -39,13 +39,34 @@ static NSArray* BuildAllowedFileTypes(const char* filterList) {
   return returnArray;
 }
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_VERSION_12_0
+#include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+static NSArray* MakeContentTypes(NSArray* fileTypes) {
+  NSMutableArray* buildFilterList = [[NSMutableArray alloc] init];
+  for (size_t i = 0; i < [fileTypes count]; ++i) {
+    NSString* fileType = [fileTypes objectAtIndex:i];
+    UTType* thisType = [UTType typeWithFilenameExtension:fileType];
+    if (thisType != nil) {
+      [buildFilterList addObject:thisType];
+    }
+  }
+  NSArray* returnArray = [NSArray arrayWithArray:buildFilterList];
+  [buildFilterList release];
+  return returnArray;
+}
+#endif
+
 static void AddFilterListToDialog(NSSavePanel* dialog, const char* filterList) {
   if (!filterList || strlen(filterList) == 0)
     return;
 
   NSArray* allowedFileTypes = BuildAllowedFileTypes(filterList);
   if ([allowedFileTypes count] != 0) {
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_VERSION_12_0
+    [dialog setAllowedContentTypes:MakeContentTypes(allowedFileTypes)];
+#else
     [dialog setAllowedFileTypes:allowedFileTypes];
+#endif
   }
 }
 
