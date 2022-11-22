@@ -81,15 +81,21 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	POSITION_INDEPENDENT_CODE ON
 )
 
+target_link_libraries(${PROJECT_NAME} liblua)
 if(APPLE)
-	target_link_libraries(${PROJECT_NAME} liblua
+	target_link_libraries(${PROJECT_NAME}
 		"-framework Foundation"
 		"-framework AppKit"
 	)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	target_link_libraries(${PROJECT_NAME} liblua gtk+-3.0)
+	# find_package(GTK3 REQUIRED) # require gtk3-config.cmake
+	find_package(PkgConfig) # require pkg-config
+	pkg_search_module(GTK3 REQUIRED gtk+-3.0)
+	include_directories(${GTK3_INCLUDE_DIRS})
+	link_directories(${GTK3_LIBRARY_DIRS})
+	target_link_libraries(${PROJECT_NAME} ${GTK3_LIBRARIES})
 elseif(WIN32)
-	target_link_libraries(${PROJECT_NAME} liblua ole32 uuid)
+	target_link_libraries(${PROJECT_NAME} ole32 uuid)
 	set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "lib")
 endif()
 
