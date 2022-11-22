@@ -161,14 +161,18 @@ nfdresult_t NFD_OpenDialog(const nfdchar_t* filterList,
     return NFD_ERROR;
   }
 
+  GtkWidget* window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   dialog = gtk_file_chooser_dialog_new("Open File",
-                                       NULL,
+                                       GTK_WINDOW(window),
                                        GTK_FILE_CHOOSER_ACTION_OPEN,
                                        "_Cancel",
                                        GTK_RESPONSE_CANCEL,
                                        "_Open",
                                        GTK_RESPONSE_ACCEPT,
                                        NULL);
+
+  // gtk_window_set_transient_for(GTK_WINDOW(dialog), GTK_WINDOW(window));
+  // gtk_window_set_modal(GTK_WINDOW(dialog), TRUE);
 
   /* Build the filter list */
   AddFiltersToDialog(dialog, filterList);
@@ -199,6 +203,7 @@ nfdresult_t NFD_OpenDialog(const nfdchar_t* filterList,
 
   WaitForCleanup();
   gtk_widget_destroy(dialog);
+  gtk_widget_destroy(window);
   WaitForCleanup();
 
   return result;
@@ -215,8 +220,9 @@ nfdresult_t NFD_OpenDialogMultiple(const nfdchar_t* filterList,
     return NFD_ERROR;
   }
 
+  GtkWidget* window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   dialog = gtk_file_chooser_dialog_new("Open Files",
-                                       NULL,
+                                       GTK_WINDOW(window),
                                        GTK_FILE_CHOOSER_ACTION_OPEN,
                                        "_Cancel",
                                        GTK_RESPONSE_CANCEL,
@@ -244,6 +250,7 @@ nfdresult_t NFD_OpenDialogMultiple(const nfdchar_t* filterList,
 
   WaitForCleanup();
   gtk_widget_destroy(dialog);
+  gtk_widget_destroy(window);
   WaitForCleanup();
 
   return result;
@@ -260,8 +267,9 @@ nfdresult_t NFD_SaveDialog(const nfdchar_t* filterList,
     return NFD_ERROR;
   }
 
+  GtkWidget* window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   dialog = gtk_file_chooser_dialog_new("Save File",
-                                       NULL,
+                                       GTK_WINDOW(window),
                                        GTK_FILE_CHOOSER_ACTION_SAVE,
                                        "_Cancel",
                                        GTK_RESPONSE_CANCEL,
@@ -298,6 +306,7 @@ nfdresult_t NFD_SaveDialog(const nfdchar_t* filterList,
 
   WaitForCleanup();
   gtk_widget_destroy(dialog);
+  gtk_widget_destroy(window);
   WaitForCleanup();
 
   return result;
@@ -313,8 +322,9 @@ nfdresult_t NFD_PickFolder(const nfdchar_t* defaultPath,
     return NFD_ERROR;
   }
 
+  GtkWidget* window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   dialog = gtk_file_chooser_dialog_new("Select folder",
-                                       NULL,
+                                       GTK_WINDOW(window),
                                        GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER,
                                        "_Cancel",
                                        GTK_RESPONSE_CANCEL,
@@ -348,6 +358,7 @@ nfdresult_t NFD_PickFolder(const nfdchar_t* defaultPath,
 
   WaitForCleanup();
   gtk_widget_destroy(dialog);
+  gtk_widget_destroy(window);
   WaitForCleanup();
 
   return result;
