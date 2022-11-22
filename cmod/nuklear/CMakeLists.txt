@@ -80,12 +80,10 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	POSITION_INDEPENDENT_CODE ON
 )
 
+target_link_libraries(${PROJECT_NAME} liblua)
 if(APPLE)
-	target_link_libraries(${PROJECT_NAME} liblua)
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	target_link_libraries(${PROJECT_NAME} liblua)
 elseif(WIN32)
-	target_link_libraries(${PROJECT_NAME} liblua)
 	set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "lib")
 endif()
 
