@@ -80,7 +80,7 @@ end
 --]]
 
 local function printerr(...)
-	io.stderr:writeAsync(string.format(...))
+	io.stderr:write(string.format(...))
 end
 
 function tick()
@@ -565,8 +565,8 @@ function pipe_echo_client()
 end
 
 function proc_streams_test()
-	io.stderr:writeAsync("This is stderr\n")
-	io.stdout:writeAsync("This is stdout\n")
+	io.stderr:write("This is stderr\n")
+	io.stdout:write("This is stdout\n")
 end
 
 function proc_streams()
