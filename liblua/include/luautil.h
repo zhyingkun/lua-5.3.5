@@ -40,7 +40,7 @@
     lua_pushnil(L); \
     lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)(((char*)ptr) + num)); \
   } while (0)
-#define PUSH_HOLD_OBJECT_UNHOLD(L, ptr, num) \
+#define PUSH_HOLD_OBJECT_CLEAN(L, ptr, num) \
   PUSH_HOLD_OBJECT(L, ptr, num); \
   UNHOLD_LUA_OBJECT(L, ptr, num)
 
