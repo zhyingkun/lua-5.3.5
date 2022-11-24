@@ -58,7 +58,7 @@ static void HANDLE_CALLBACK(__gc)(uv_handle_t* handle) {
 int HANDLE_FUNCTION(__gc)(lua_State* L) {
   uv_handle_t* handle = luaL_checkhandle(L, 1);
   if (!uv_is_closing(handle)) {
-    uv_handle_set_data((uv_handle_t*)handle, (void*)L);
+    // uv_handle_set_data((uv_handle_t*)handle, (void*)L);
     HOLD_HANDLE_ITSELF(L, handle, 1);
     uv_close(handle, HANDLE_CALLBACK(__gc));
   }

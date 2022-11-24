@@ -1708,8 +1708,8 @@ libuv.network = network
 ---@class sockaddr:userdata
 ---@field public len fun(self:sockaddr):integer
 ---@field public family fun(self:sockaddr):libuv_address_family
----@field public ip4Addr fun(self:sockaddr, ip:string, port:integer):void
----@field public ip6Addr fun(self:sockaddr, ip:string, port:integer):void
+---@field public ip4Addr fun(self:sockaddr, ip:string, port:integer):sockaddr
+---@field public ip6Addr fun(self:sockaddr, ip:string, port:integer):sockaddr
 ---@field public name fun(self:sockaddr):string
 ---@field public port fun(self:sockaddr):integer
 ---@field public ip6ScopeId fun(self:sockaddr):integer

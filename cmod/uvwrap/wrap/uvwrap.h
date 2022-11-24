@@ -281,7 +281,7 @@ extern lua_State* staticL;
 
 #define SET_HANDLE_CALLBACK(L, handle, num, idx) \
   do { \
-    uv_handle_set_data((uv_handle_t*)handle, (void*)L); \
+    /* uv_handle_set_data((uv_handle_t*)handle, (void*)L); */ \
     HOLD_LUA_OBJECT(L, handle, num, idx); \
   } while (0)
 #define PUSH_HANDLE_CALLBACK(L, handle, num) \

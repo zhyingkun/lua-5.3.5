@@ -35,7 +35,8 @@ static int SOCKADDR_FUNCTION(ip4Addr)(lua_State* L) {
   int port = luaL_checkinteger(L, 3);
   int err = uv_ip4_addr(ip, port, addr);
   CHECK_ERROR(L, err);
-  return 0;
+  lua_settop(L, 1);
+  return 1;
 }
 
 static int SOCKADDR_FUNCTION(ip6Addr)(lua_State* L) {
@@ -44,7 +45,8 @@ static int SOCKADDR_FUNCTION(ip6Addr)(lua_State* L) {
   int port = luaL_checkinteger(L, 3);
   int err = uv_ip6_addr(ip, port, addr);
   CHECK_ERROR(L, err);
-  return 0;
+  lua_settop(L, 1);
+  return 1;
 }
 
 #define UVWRAP_INET_ADDRSTRLEN 16
@@ -443,11 +445,11 @@ static const luaL_Enum UVWRAP_ENUM(nameinfo_flag)[] = {
 void NETWORK_FUNCTION(init)(lua_State* L) {
   luaL_newlib(L, NETWORK_FUNCTION(funcs));
 
-    REGISTE_ENUM_UVWRAP(address_family);
-    REGISTE_ENUM_UVWRAP(protocol);
-    REGISTE_ENUM_UVWRAP(socktype);
-    REGISTE_ENUM_UVWRAP(addrinfo_flag);
-    REGISTE_ENUM_UVWRAP(nameinfo_flag);
+  REGISTE_ENUM_UVWRAP(address_family);
+  REGISTE_ENUM_UVWRAP(protocol);
+  REGISTE_ENUM_UVWRAP(socktype);
+  REGISTE_ENUM_UVWRAP(addrinfo_flag);
+  REGISTE_ENUM_UVWRAP(nameinfo_flag);
 
   lua_setfield(L, -2, "network");
 
