@@ -25,9 +25,8 @@ static int HANDLE_FUNCTION(isClosing)(lua_State* L) {
 
 static void HANDLE_CALLBACK(close)(uv_handle_t* handle) {
   lua_State* L;
-  PUSH_HANDLE_CLOSE_CALLBACK_CLEAN(L, handle);
+  PUSH_HANDLE_CLOSE_CALLBACK_CLEAN_FOR_INVOKE(L, handle);
   UNHOLD_HANDLE_ITSELF(L, handle);
-  CLEAR_HANDLE_CALLBACK(L, handle, IDX_HANDLE_CALLBACK);
   if (lua_isfunction(L, -1)) {
     CALL_LUA_FUNCTION(L, 0);
   } else {
@@ -42,7 +41,7 @@ static int HANDLE_FUNCTION(close)(lua_State* L) {
       lua_pushnil(L);
       lua_replace(L, 2);
     }
-    SET_HANDLE_CLOSE_CALLBACK(L, handle, 2);
+    HOLD_HANDLE_CLOSE_CALLBACK(L, handle, 2);
     HOLD_HANDLE_ITSELF(L, handle, 1);
     uv_close(handle, HANDLE_CALLBACK(close));
   }
@@ -50,9 +49,8 @@ static int HANDLE_FUNCTION(close)(lua_State* L) {
 }
 
 static void HANDLE_CALLBACK(__gc)(uv_handle_t* handle) {
-  lua_State* L;
-  GET_HANDLE_LUA_STATE(L, handle);
-  CLEAR_HANDLE_CALLBACK(L, handle, IDX_HANDLE_CALLBACK);
+  lua_State* L = GET_MAIN_LUA_STATE();
+  UNHOLD_HANDLE_CALLBACK(L, handle, IDX_HANDLE_CALLBACK);
   UNHOLD_HANDLE_ITSELF(L, handle);
 }
 int HANDLE_FUNCTION(__gc)(lua_State* L) {

@@ -6,7 +6,7 @@
 
 static void ASYNC_CALLBACK(AsyncEvent)(uv_async_t* handle) {
   lua_State* L;
-  PUSH_HANDLE_CALLBACK(L, handle, IDX_ASYNC_START); /* make sure one handle only push one callback */
+  PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_ASYNC_START); /* make sure one handle only push one callback */
   CALL_LUA_FUNCTION(L, 0);
 }
 static int ASYNC_FUNCTION(AsyncEvent)(lua_State* L) {
@@ -18,7 +18,7 @@ static int ASYNC_FUNCTION(AsyncEvent)(lua_State* L) {
   int err = uv_async_init(loop, handle, ASYNC_CALLBACK(AsyncEvent));
   CHECK_ERROR(L, err);
 
-  SET_HANDLE_CALLBACK(L, handle, IDX_ASYNC_START, 2);
+  HOLD_HANDLE_CALLBACK(L, handle, IDX_ASYNC_START, 2);
 
   luaL_setmetatable(L, UVWRAP_HANDLE_TYPE);
   (void)HANDLE_FUNCTION(ctor)(L, (uv_handle_t*)handle);

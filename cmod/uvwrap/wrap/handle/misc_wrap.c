@@ -24,7 +24,7 @@
 \
   static void UVWRAP_CALLBACK(name, start)(uv_##name##_t * handle) { \
     lua_State* L; \
-    PUSH_HANDLE_CALLBACK(L, handle, IDX_##NAME##_START); /* make sure one handle only push one callback */ \
+    PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_##NAME##_START); /* make sure one handle only push one callback */ \
     CALL_LUA_FUNCTION(L, 0); \
   } \
   static int UVWRAP_FUNCTION(name, start)(lua_State * L) { \
@@ -33,7 +33,7 @@
 \
     int err = uv_##name##_start(handle, UVWRAP_CALLBACK(name, start)); \
     CHECK_ERROR(L, err); \
-    SET_HANDLE_CALLBACK(L, handle, IDX_##NAME##_START, 2); \
+    HOLD_HANDLE_CALLBACK(L, handle, IDX_##NAME##_START, 2); \
     return 0; \
   } \
 \

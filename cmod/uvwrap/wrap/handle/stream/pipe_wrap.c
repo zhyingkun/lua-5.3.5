@@ -23,7 +23,7 @@ static int PIPE_FUNCTION(bind)(lua_State* L) {
 
 static void PIPE_CALLBACK(connectAsync)(uv_connect_t* req, int status) {
   lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
+  PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
   UNHOLD_REQ_PARAM(L, req, 1);
   (void)MEMORY_FUNCTION(free_req)(req);
   lua_pushinteger(L, status);
@@ -36,7 +36,7 @@ static int PIPE_FUNCTION(connectAsync)(lua_State* L) {
 
   uv_connect_t* req = (uv_connect_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_connect_t));
   uv_pipe_connect(req, handle, name, PIPE_CALLBACK(connectAsync));
-  SET_REQ_CALLBACK(L, 3, req);
+  HOLD_REQ_CALLBACK(L, req, 3);
   HOLD_REQ_PARAM(L, req, 1, 2);
   return 0;
 }
@@ -53,7 +53,7 @@ static int PIPE_FUNCTION(connectAsyncWait)(lua_State* co) {
 
   uv_connect_t* req = (uv_connect_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_connect_t));
   uv_pipe_connect(req, handle, name, PIPE_CALLBACK(connectAsyncWait));
-  HOLD_COROUTINE(co);
+  HOLD_COROUTINE_FOR_REQ(co);
   HOLD_REQ_PARAM(co, req, 2, 2);
   return lua_yield(co, 0);
 }

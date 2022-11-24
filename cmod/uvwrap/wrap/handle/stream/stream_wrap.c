@@ -9,7 +9,7 @@ void STREAM_FUNCTION(ctor)(lua_State* L, uv_stream_t* handle) {
 
 static void STREAM_CALLBACK(shutdownAsync)(uv_shutdown_t* req, int status) {
   lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
+  PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
   lua_pushinteger(L, status);
   (void)MEMORY_FUNCTION(free_req)(req);
   CALL_LUA_FUNCTION(L, 1);
@@ -22,7 +22,7 @@ static int STREAM_FUNCTION(shutdownAsync)(lua_State* L) {
   uv_shutdown_t* req = (uv_shutdown_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_shutdown_t));
   int err = uv_shutdown(req, handle, STREAM_CALLBACK(shutdownAsync));
   CHECK_ERROR(L, err);
-  SET_REQ_CALLBACK(L, 2, req);
+  HOLD_REQ_CALLBACK(L, req, 2);
   return 0;
 }
 
@@ -37,13 +37,13 @@ static int STREAM_FUNCTION(shutdownAsyncWait)(lua_State* co) {
   uv_shutdown_t* req = (uv_shutdown_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_shutdown_t));
   int err = uv_shutdown(req, handle, STREAM_CALLBACK(shutdownAsyncWait));
   CHECK_ERROR(co, err);
-  HOLD_COROUTINE(co);
+  HOLD_COROUTINE_FOR_REQ(co);
   return lua_yield(co, 0);
 }
 
 static void STREAM_CALLBACK(listenAsync)(uv_stream_t* handle, int status) {
   lua_State* L;
-  PUSH_HANDLE_CALLBACK(L, handle, IDX_STREAM_LISTEN);
+  PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_STREAM_LISTEN);
   lua_pushinteger(L, status);
   CALL_LUA_FUNCTION(L, 1);
 }
@@ -54,7 +54,7 @@ static int STREAM_FUNCTION(listenAsync)(lua_State* L) {
 
   int err = uv_listen(handle, backlog, STREAM_CALLBACK(listenAsync));
   CHECK_ERROR(L, err);
-  SET_HANDLE_CALLBACK(L, handle, IDX_STREAM_LISTEN, 3);
+  HOLD_HANDLE_CALLBACK(L, handle, IDX_STREAM_LISTEN, 3);
   return 0;
 }
 
@@ -68,7 +68,7 @@ static int STREAM_FUNCTION(accept)(lua_State* L) {
 
 static void STREAM_CALLBACK(readStartAsync)(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   lua_State* L;
-  PUSH_HANDLE_CALLBACK(L, handle, IDX_STREAM_READ_START);
+  PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_STREAM_READ_START);
   lua_pushinteger(L, nread); // nread == 0 means No data in buffer, nread == UV_EOF means EOF
   if (nread > 0) {
     lua_pushlstring(L, buf->base, nread);
@@ -84,7 +84,7 @@ static int STREAM_FUNCTION(readStartAsync)(lua_State* L) {
 
   int err = uv_read_start(handle, MEMORY_FUNCTION(buf_alloc), STREAM_CALLBACK(readStartAsync));
   CHECK_ERROR(L, err);
-  SET_HANDLE_CALLBACK(L, handle, IDX_STREAM_READ_START, 2);
+  HOLD_HANDLE_CALLBACK(L, handle, IDX_STREAM_READ_START, 2);
   return 0;
 }
 
@@ -97,7 +97,7 @@ static int STREAM_FUNCTION(readStop)(lua_State* L) {
 
 static void STREAM_CALLBACK(writeAsync)(uv_write_t* req, int status) {
   lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
+  PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
   UNHOLD_REQ_PARAM(L, req, 1);
   (void)MEMORY_FUNCTION(free_req)(req);
   lua_pushinteger(L, status);
@@ -113,7 +113,7 @@ static int STREAM_FUNCTION(writeAsync)(lua_State* L) {
   BUFS_INIT(data, len);
   int err = uv_write(req, handle, BUFS, NBUFS, STREAM_CALLBACK(writeAsync));
   CHECK_ERROR(L, err);
-  SET_REQ_CALLBACK(L, 3, req);
+  HOLD_REQ_CALLBACK(L, req, 3);
   HOLD_REQ_PARAM(L, req, 1, 2);
   return 0;
 }
@@ -133,14 +133,14 @@ static int STREAM_FUNCTION(writeAsyncWait)(lua_State* co) {
   BUFS_INIT(data, len);
   int err = uv_write(req, handle, BUFS, NBUFS, STREAM_CALLBACK(writeAsyncWait));
   CHECK_ERROR(co, err);
-  HOLD_COROUTINE(co);
+  HOLD_COROUTINE_FOR_REQ(co);
   HOLD_REQ_PARAM(co, req, 2, 2);
   return lua_yield(co, 0);
 }
 
 static void STREAM_CALLBACK(write2Async)(uv_write_t* req, int status) {
   lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
+  PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
   UNHOLD_REQ_PARAM(L, req, 1);
   UNHOLD_REQ_PARAM(L, req, 2);
   (void)MEMORY_FUNCTION(free_req)(req);
@@ -158,7 +158,7 @@ static int STREAM_FUNCTION(write2Async)(lua_State* L) {
   BUFS_INIT(data, len);
   int err = uv_write2(req, handle, BUFS, NBUFS, send_handle, STREAM_CALLBACK(write2Async));
   CHECK_ERROR(L, err);
-  SET_REQ_CALLBACK(L, 4, req);
+  HOLD_REQ_CALLBACK(L, req, 4);
   HOLD_REQ_PARAM(L, req, 1, 2);
   HOLD_REQ_PARAM(L, req, 2, 3);
   return 0;
@@ -181,7 +181,7 @@ static int STREAM_FUNCTION(write2AsyncWait)(lua_State* co) {
   BUFS_INIT(data, len);
   int err = uv_write2(req, handle, BUFS, NBUFS, send_handle, STREAM_CALLBACK(write2AsyncWait));
   CHECK_ERROR(co, err);
-  HOLD_COROUTINE(co);
+  HOLD_COROUTINE_FOR_REQ(co);
   HOLD_REQ_PARAM(co, req, 2, 2);
   HOLD_REQ_PARAM(co, req, 3, 3);
   return lua_yield(co, 0);

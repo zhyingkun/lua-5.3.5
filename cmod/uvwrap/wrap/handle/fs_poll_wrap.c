@@ -6,7 +6,7 @@
 
 static void FS_POLL_CALLBACK(startAsync)(uv_fs_poll_t* handle, int status, const uv_stat_t* prev, const uv_stat_t* curr) {
   lua_State* L;
-  PUSH_HANDLE_CALLBACK(L, handle, IDX_FS_POLL_START);
+  PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_FS_POLL_START);
   lua_pushinteger(L, status);
   lua_pushuv_stat_t(L, prev);
   lua_pushuv_stat_t(L, curr);
@@ -20,7 +20,7 @@ static int FS_POLL_FUNCTION(startAsync)(lua_State* L) {
 
   int err = uv_fs_poll_start(handle, FS_POLL_CALLBACK(startAsync), path, interval);
   CHECK_ERROR(L, err);
-  SET_HANDLE_CALLBACK(L, handle, IDX_FS_POLL_START, 2);
+  HOLD_HANDLE_CALLBACK(L, handle, IDX_FS_POLL_START, 2);
   return 0;
 }
 

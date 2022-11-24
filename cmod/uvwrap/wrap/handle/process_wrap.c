@@ -61,9 +61,8 @@ static void STDIOCONT_FUNCTION(init_metatable)(lua_State* L) {
 }
 
 static void PROCESS_CALLBACK(Process)(uv_process_t* handle, int64_t exit_status, int term_signal) {
-  lua_State* L;
-  GET_HANDLE_LUA_STATE(L, handle);
-  PUSH_HANDLE_CALLBACK(L, handle, IDX_PROCESS_SPAWN);
+  lua_State* L = GET_MAIN_LUA_STATE();
+  PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_PROCESS_SPAWN);
   lua_pushinteger(L, exit_status);
   lua_pushinteger(L, term_signal);
   CALL_LUA_FUNCTION(L, 2);
@@ -139,7 +138,7 @@ static void parse_spawn_options(lua_State* L, uv_process_t* handle, uv_process_o
     if (!lua_isfunction(L, -1)) {
       luaL_error(L, "spawn process exitCallback must be a function");
     }
-    SET_HANDLE_CALLBACK(L, handle, IDX_PROCESS_SPAWN, -1);
+    HOLD_HANDLE_CALLBACK(L, handle, IDX_PROCESS_SPAWN, -1);
     options->exit_cb = PROCESS_CALLBACK(Process);
   }
   lua_pop(L, 1);

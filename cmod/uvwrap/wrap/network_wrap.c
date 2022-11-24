@@ -259,7 +259,7 @@ char* PHYSADDR_FUNCTION(create)(lua_State* L) {
 
 static void NETWORK_CALLBACK(getaddrinfo)(uv_getaddrinfo_t* req, int status, struct addrinfo* res) {
   lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
+  PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
   PUSH_GETADDRINFO_RESULT(L, res);
   lua_pushinteger(L, status);
   (void)MEMORY_FUNCTION(free_req)(req);
@@ -287,7 +287,7 @@ static int NETWORK_FUNCTION(getaddrinfo)(lua_State* L) {
   int err = uv_getaddrinfo(loop, req, async ? NETWORK_CALLBACK(getaddrinfo) : NULL, node, service, hints);
   if (async) {
     CHECK_ERROR(L, err);
-    SET_REQ_CALLBACK(L, 5, req);
+    HOLD_REQ_CALLBACK(L, req, 5);
     return 0;
   }
   struct addrinfo* res = req->addrinfo;
@@ -299,7 +299,7 @@ static int NETWORK_FUNCTION(getaddrinfo)(lua_State* L) {
 
 static void NETWORK_CALLBACK(getnameinfo)(uv_getnameinfo_t* req, int status, const char* hostname, const char* service) {
   lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
+  PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
   lua_pushstring(L, hostname); // hostname and service store in req
   lua_pushstring(L, service);
   lua_pushinteger(L, status);
@@ -316,7 +316,7 @@ static int NETWORK_FUNCTION(getnameinfo)(lua_State* L) {
   int err = uv_getnameinfo(loop, req, async ? NETWORK_CALLBACK(getnameinfo) : NULL, addr, flags);
   if (async) {
     CHECK_ERROR(L, err);
-    SET_REQ_CALLBACK(L, 4, req);
+    HOLD_REQ_CALLBACK(L, req, 4);
     return 0;
   }
   if (err == UVWRAP_OK) {

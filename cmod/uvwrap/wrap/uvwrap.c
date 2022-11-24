@@ -99,8 +99,8 @@ static const void* luaL_checkarg(lua_State* L, int idx) {
 static void callback_queue_work(uv_work_t* req, int status) {
   void* result = ((uvwrap_work_t*)req)->result;
   lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN(L, req);
-  UNHOLD_LUA_OBJECT(L, req, 1);
+  PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
+  UNHOLD_REQ_PARAM(L, req, 1);
   lua_pushlightuserdata(L, result);
   lua_pushinteger(L, status);
   (void)MEMORY_FUNCTION(free_req)(req);
@@ -119,8 +119,8 @@ static int uvwrap_queue_work(lua_State* L) {
   int err = uv_queue_work(loop, (uv_work_t*)req, callback_worker, callback_queue_work);
 
   CHECK_ERROR(L, err);
-  SET_REQ_CALLBACK(L, 4, req);
-  HOLD_LUA_OBJECT(L, req, 1, 3);
+  HOLD_REQ_CALLBACK(L, req, 4);
+  HOLD_REQ_PARAM(L, req, 1, 3);
   return 0;
 }
 
@@ -208,32 +208,32 @@ LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
   lua_pushlightuserdata(L, (void*)worker_hello);
   lua_setfield(L, -2, "worker_hello");
 
-  CALL_MODULE_INIT(mbio);
-  CALL_MODULE_INIT(pm);
+  INVOKE_MODULE_INIT(mbio);
+  INVOKE_MODULE_INIT(pm);
 
-  CALL_MODULE_INIT(handle);
-  CALL_MODULE_INIT(stream);
+  INVOKE_MODULE_INIT(handle);
+  INVOKE_MODULE_INIT(stream);
 
-  CALL_MODULE_INIT(pipe);
-  CALL_MODULE_INIT(tcp);
-  CALL_MODULE_INIT(tty);
+  INVOKE_MODULE_INIT(pipe);
+  INVOKE_MODULE_INIT(tcp);
+  INVOKE_MODULE_INIT(tty);
 
-  CALL_MODULE_INIT(async);
-  CALL_MODULE_INIT(fs_event);
-  CALL_MODULE_INIT(fs_poll);
-  CALL_MODULE_INIT(misc);
-  CALL_MODULE_INIT(process);
-  CALL_MODULE_INIT(signal);
-  CALL_MODULE_INIT(timer);
-  CALL_MODULE_INIT(udp);
+  INVOKE_MODULE_INIT(async);
+  INVOKE_MODULE_INIT(fs_event);
+  INVOKE_MODULE_INIT(fs_poll);
+  INVOKE_MODULE_INIT(misc);
+  INVOKE_MODULE_INIT(process);
+  INVOKE_MODULE_INIT(signal);
+  INVOKE_MODULE_INIT(timer);
+  INVOKE_MODULE_INIT(udp);
 
-  CALL_MODULE_INIT(debug);
-  CALL_MODULE_INIT(fs);
-  CALL_MODULE_INIT(loop);
-  CALL_MODULE_INIT(network);
-  CALL_MODULE_INIT(os);
-  CALL_MODULE_INIT(sys);
-  CALL_MODULE_INIT(thread);
+  INVOKE_MODULE_INIT(debug);
+  INVOKE_MODULE_INIT(fs);
+  INVOKE_MODULE_INIT(loop);
+  INVOKE_MODULE_INIT(network);
+  INVOKE_MODULE_INIT(os);
+  INVOKE_MODULE_INIT(sys);
+  INVOKE_MODULE_INIT(thread);
 
   return 1;
 }

@@ -420,8 +420,7 @@ static int lua_doREPL(lua_State* L) {
 }
 
 static void async_doREPL(uv_async_t* handle) {
-  lua_State* L;
-  GET_HANDLE_LUA_STATE(L, handle);
+  lua_State* L = GET_MAIN_LUA_STATE();
 #ifndef NDEBUG
   int top = lua_gettop(L);
 #endif

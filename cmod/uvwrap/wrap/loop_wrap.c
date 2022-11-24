@@ -30,7 +30,7 @@ static void on_loop_close(lua_State* L, uv_loop_t* loop) {
   lua_pushnil(L);
   while (lua_next(L, idx)) {
     uv_handle_t* handle = lua_touserdata(L, -2);
-    CLEAR_HANDLE_CALLBACK(L, handle, IDX_HANDLE_CALLBACK);
+    UNHOLD_HANDLE_CALLBACK(L, handle, IDX_HANDLE_CALLBACK);
     lua_pop(L, 1);
   }
   lua_pop(L, 1);

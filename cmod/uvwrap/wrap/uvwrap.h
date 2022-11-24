@@ -44,45 +44,14 @@
 #define PUSH_LIB_TABLE(module) \
   luaL_newlib(L, UVWRAP_FUNCTION(module, funcs))
 
-#define PUSH_NEW_FUNC(module) \
-  lua_pushcfunction(L, UVWRAP_FUNCTION(module, new))
-
 #define INVOKE_INIT_METATABLE(module) \
   (void)UVWRAP_FUNCTION(module, init_metatable)(L)
-
-#define REGISTE_META_NEW_FUNC(module) \
-  lua_createtable(L, 0, 1); \
-  lua_pushcfunction(L, UVWRAP_FUNCTION(module, __call)); \
-  lua_setfield(L, -2, "__call"); \
-  lua_setmetatable(L, -2)
 
 #define REGISTE_ENUM_UVWRAP(name) REGISTE_ENUM(name, UVWRAP_ENUM(name))
 
 #define REGISTE_ENUM_R(name, name_r) \
   luaL_newenum_r(L, UVWRAP_ENUM(name)); \
   lua_setfield(L, -2, #name_r)
-
-#define DEFINE_INIT_API_TABLE(module) \
-  DEFINE_INIT_API_BEGIN(module) \
-  PUSH_LIB_TABLE(module;) \
-  INVOKE_INIT_METATABLE(module); \
-  DEFINE_INIT_API_END(module)
-
-#define DEFINE_INIT_API_METATABLE(module) \
-  DEFINE_INIT_API_BEGIN(module) \
-  PUSH_LIB_TABLE(module); \
-  REGISTE_META_NEW_FUNC(module); \
-  INVOKE_INIT_METATABLE(module); \
-  DEFINE_INIT_API_END(module)
-
-#define DEFINE_INIT_API_FUNCTION(module) \
-  DEFINE_INIT_API_BEGIN(module) \
-  PUSH_NEW_FUNC(module); \
-  INVOKE_INIT_METATABLE(module); \
-  DEFINE_INIT_API_END(module)
-
-#define DEFINE_INIT_API(module) \
-  DEFINE_INIT_API_TABLE(module)
 
 /* }====================================================== */
 
@@ -92,7 +61,7 @@
 ** =======================================================
 */
 
-#define CALL_MODULE_INIT(module) \
+#define INVOKE_MODULE_INIT(module) \
   (void)UVWRAP_FUNCTION(module, init)(L)
 
 #define DECLARE_INIT_API(module) \
@@ -192,7 +161,7 @@ int ERROR_FUNCTION(check)(lua_State* L, int err);
 ** =======================================================
 */
 
-DECLARE_HANDLE_API(mbio)
+DECLARE_INIT_API(mbio)
 
 /* }====================================================== */
 
@@ -203,7 +172,7 @@ DECLARE_HANDLE_API(mbio)
 */
 
 #define PACKET_MANATER_TYPE "PacketManager*"
-DECLARE_HANDLE_API(pm)
+DECLARE_INIT_API(pm)
 
 /* }====================================================== */
 
@@ -253,45 +222,32 @@ void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf);
 */
 
 extern lua_State* staticL;
-// #define GET_HANDLE_LUA_STATE(L, handle) L = (lua_State*)uv_handle_get_data((uv_handle_t*)handle)
-#define GET_HANDLE_LUA_STATE(L, handle) L = staticL
-// #define GET_REQ_LUA_STATE(L, req) L = (lua_State*)uv_req_get_data((uv_req_t*)req)
-#define GET_REQ_LUA_STATE(L, req) L = staticL
+#define GET_MAIN_LUA_STATE() (staticL)
 
 #define CHECK_IS_ASYNC(L, idx) (lua_type(L, idx) == LUA_TFUNCTION)
 
-#define SET_REQ_CALLBACK(L, idx, req) \
+#define HOLD_REQ_CALLBACK(L, req, idx) HOLD_LUA_OBJECT(L, req, 0, idx)
+#define PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req) \
   do { \
-    /* uv_req_set_data((uv_req_t*)req, (void*)L); */ \
-    HOLD_LUA_OBJECT(L, req, 0, idx); \
-  } while (0)
-
-#define PUSH_REQ_CALLBACK_CLEAN(L, req) \
-  do { \
-    GET_REQ_LUA_STATE(L, req); \
+    L = GET_MAIN_LUA_STATE(); \
     PREPARE_CALL_LUA(L); \
-    PUSH_HOLD_OBJECT(L, req, 0); \
-    UNHOLD_LUA_OBJECT(L, req, 0); \
+    PUSH_HOLD_OBJECT_CLEAN(L, req, 0); \
   } while (0)
 
 #define REQ_BASE_INDEX 0
 #define HOLD_REQ_PARAM(L, req, num, idx) HOLD_LUA_OBJECT(L, req, REQ_BASE_INDEX + num, idx)
 #define UNHOLD_REQ_PARAM(L, req, num) UNHOLD_LUA_OBJECT(L, req, REQ_BASE_INDEX + num)
-#define PUSH_REQ_PARAM(L, req, num) PUSH_HOLD_OBJECT(L, req, num)
+#define PUSH_REQ_PARAM(L, req, num) PUSH_HOLD_OBJECT(L, req, REQ_BASE_INDEX + num)
+#define PUSH_REQ_PARAM_CLEAN(L, req, num) PUSH_HOLD_OBJECT_CLEAN(L, req, REQ_BASE_INDEX + num)
 
-#define SET_HANDLE_CALLBACK(L, handle, num, idx) \
+#define HOLD_HANDLE_CALLBACK(L, handle, num, idx) HOLD_LUA_OBJECT(L, handle, num, idx)
+#define UNHOLD_HANDLE_CALLBACK(L, handle, num) UNHOLD_LUA_OBJECT(L, handle, num)
+#define PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, num) \
   do { \
-    /* uv_handle_set_data((uv_handle_t*)handle, (void*)L); */ \
-    HOLD_LUA_OBJECT(L, handle, num, idx); \
-  } while (0)
-#define PUSH_HANDLE_CALLBACK(L, handle, num) \
-  do { \
-    GET_HANDLE_LUA_STATE(L, handle); \
+    L = GET_MAIN_LUA_STATE(); \
     PREPARE_CALL_LUA(L); \
     PUSH_HOLD_OBJECT(L, handle, num); \
   } while (0)
-#define CLEAR_HANDLE_CALLBACK(L, handle, num) \
-  UNHOLD_LUA_OBJECT(L, handle, num)
 
 #define IDX_HANDLE_ITSELF 0
 #define IDX_HANDLE_CLOSE 1
@@ -318,14 +274,13 @@ extern lua_State* staticL;
 #define UNHOLD_HANDLE_ITSELF(L, handle) \
   UNHOLD_LUA_OBJECT(L, handle, IDX_HANDLE_ITSELF)
 
-#define SET_HANDLE_CLOSE_CALLBACK(L, handle, idx) \
-  SET_HANDLE_CALLBACK(L, handle, IDX_HANDLE_CLOSE, idx)
-#define PUSH_HANDLE_CLOSE_CALLBACK_CLEAN(L, handle) \
+#define HOLD_HANDLE_CLOSE_CALLBACK(L, handle, idx) \
+  HOLD_HANDLE_CALLBACK(L, handle, IDX_HANDLE_CLOSE, idx)
+#define PUSH_HANDLE_CLOSE_CALLBACK_CLEAN_FOR_INVOKE(L, handle) \
   do { \
-    GET_HANDLE_LUA_STATE(L, handle); \
+    L = GET_MAIN_LUA_STATE(); \
     PREPARE_CALL_LUA(L); \
-    PUSH_HOLD_OBJECT(L, handle, IDX_HANDLE_CLOSE); \
-    UNHOLD_LUA_OBJECT(L, handle, IDX_HANDLE_CLOSE); \
+    PUSH_HOLD_OBJECT_CLEAN(L, handle, IDX_HANDLE_CLOSE); \
   } while (0)
 
 #define ASYNC_WAIT_MSG "AsyncWait api must running in coroutine"
@@ -333,13 +288,12 @@ extern lua_State* staticL;
   if (lua_pushthread(co)) { \
     return luaL_error(co, ASYNC_WAIT_MSG); \
   }
-#define HOLD_COROUTINE(co) \
+#define HOLD_COROUTINE_FOR_REQ(co) \
   uv_req_set_data((uv_req_t*)req, (void*)co); \
   HOLD_REQ_PARAM(co, req, 0, -1); /* hold the coroutine */ \
-  HOLD_REQ_PARAM(co, req, 1, 1)
+  HOLD_REQ_PARAM(co, req, 1, 1) /* hold the handle */
 #define REQ_ASYNC_WAIT_PREPARE() \
-  lua_State* L; \
-  GET_REQ_LUA_STATE(L, req); \
+  lua_State* L = GET_MAIN_LUA_STATE(); \
   lua_checkstack(L, LUA_MINSTACK); \
   lua_State* co = (lua_State*)uv_req_get_data((const uv_req_t*)req); \
   (void)MEMORY_FUNCTION(free_req)(req); \

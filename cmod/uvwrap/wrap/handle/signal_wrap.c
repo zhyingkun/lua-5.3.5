@@ -6,7 +6,7 @@
 
 static void SIGNAL_CALLBACK(startAsync)(uv_signal_t* handle, int signum) {
   lua_State* L;
-  PUSH_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START); /* make sure one handle only push one callback */
+  PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_SIGNAL_START); /* make sure one handle only push one callback */
   lua_pushinteger(L, signum);
   CALL_LUA_FUNCTION(L, 1);
 }
@@ -17,14 +17,14 @@ static int SIGNAL_FUNCTION(startAsync)(lua_State* L) {
 
   int err = uv_signal_start(handle, SIGNAL_CALLBACK(startAsync), signum);
   CHECK_ERROR(L, err);
-  SET_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START, 2);
+  HOLD_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START, 2);
   return 0;
 }
 
 static void SIGNAL_CALLBACK(startOneShotAsync)(uv_signal_t* handle, int signum) {
   lua_State* L;
-  PUSH_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START); /* make sure one handle only push one callback */
-  CLEAR_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START);
+  PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_SIGNAL_START); /* make sure one handle only push one callback */
+  UNHOLD_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START);
   lua_pushinteger(L, signum);
   CALL_LUA_FUNCTION(L, 1);
 }
@@ -35,7 +35,7 @@ static int SIGNAL_FUNCTION(startOneShotAsync)(lua_State* L) {
 
   int err = uv_signal_start_oneshot(handle, SIGNAL_CALLBACK(startOneShotAsync), signum);
   CHECK_ERROR(L, err);
-  SET_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START, 2);
+  HOLD_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START, 2);
   return 0;
 }
 
