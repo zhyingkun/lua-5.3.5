@@ -39,18 +39,6 @@
 extern lua_State* staticL;
 #define GET_MAIN_LUA_STATE() staticL
 
-#define HOLD_LUA_OBJECT(L, ptr, num, idx) \
-  do { \
-    lua_pushvalue(L, idx); \
-    lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)(((char*)ptr) + num)); \
-  } while (0)
-#define PUSH_HOLD_OBJECT(L, ptr, num) lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)(((char*)ptr) + num))
-#define UNHOLD_LUA_OBJECT(L, ptr, num) \
-  do { \
-    lua_pushnil(L); \
-    lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)(((char*)ptr) + num)); \
-  } while (0)
-
 nk_color luaL_checknkcolor(lua_State* L, int idx);
 void luaL_pushnkcolor(lua_State* L, nk_color color);
 nk_colorf luaL_checknkcolorf(lua_State* L, int idx);
