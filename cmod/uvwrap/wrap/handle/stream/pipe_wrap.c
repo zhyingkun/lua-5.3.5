@@ -25,9 +25,10 @@ static void PIPE_CALLBACK(connectAsync)(uv_connect_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
   UNHOLD_REQ_PARAM(L, req, 1);
-  (void)MEMORY_FUNCTION(free_req)(req);
   lua_pushinteger(L, status);
-  CALL_LUA_FUNCTION(L, 1);
+  PUSH_REQ_PARAM_CLEAN(L, req, 2); // push the handle
+  (void)MEMORY_FUNCTION(free_req)(req);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int PIPE_FUNCTION(connectAsync)(lua_State* L) {
   uv_pipe_t* handle = luaL_checkpipe(L, 1);
@@ -38,6 +39,7 @@ static int PIPE_FUNCTION(connectAsync)(lua_State* L) {
   uv_pipe_connect(req, handle, name, PIPE_CALLBACK(connectAsync));
   HOLD_REQ_CALLBACK(L, req, 3);
   HOLD_REQ_PARAM(L, req, 1, 2);
+  HOLD_REQ_PARAM(L, req, 2, 1);
   return 0;
 }
 

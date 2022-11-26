@@ -26,10 +26,11 @@ static int HANDLE_FUNCTION(isClosing)(lua_State* L) {
 static void HANDLE_CALLBACK(close)(uv_handle_t* handle) {
   lua_State* L;
   PUSH_HANDLE_CLOSE_CALLBACK_CLEAN_FOR_INVOKE(L, handle);
-  UNHOLD_HANDLE_ITSELF(L, handle);
   if (lua_isfunction(L, -1)) {
-    CALL_LUA_FUNCTION(L, 0);
+    PUSH_HANDLE_ITSELF_CLEAN(L, handle);
+    CALL_LUA_FUNCTION(L, 1);
   } else {
+    UNHOLD_HANDLE_ITSELF(L, handle);
     lua_pop(L, 2); // pop the value and msgh
   }
 }

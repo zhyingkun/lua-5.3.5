@@ -12,7 +12,8 @@ void FS_EVENT_CALLBACK(startAsync)(uv_fs_event_t* handle, const char* filename, 
   lua_pushstring(L, filename);
   lua_pushinteger(L, events);
   lua_pushinteger(L, status);
-  CALL_LUA_FUNCTION(L, 3);
+  PUSH_HANDLE_ITSELF(L, handle);
+  CALL_LUA_FUNCTION(L, 4);
 }
 static int FS_EVENT_FUNCTION(startAsync)(lua_State* L) {
   uv_fs_event_t* handle = luaL_checkfs_event(L, 1);
@@ -23,6 +24,7 @@ static int FS_EVENT_FUNCTION(startAsync)(lua_State* L) {
   int err = uv_fs_event_start(handle, FS_EVENT_CALLBACK(startAsync), filepath, flags);
   CHECK_ERROR(L, err);
   HOLD_HANDLE_CALLBACK(L, handle, IDX_FS_EVENT_START, 2);
+  HOLD_HANDLE_ITSELF(L, handle, 1);
   return 0;
 }
 
@@ -30,6 +32,7 @@ static int FS_EVENT_FUNCTION(stop)(lua_State* L) {
   uv_fs_event_t* handle = luaL_checkfs_event(L, 1);
   int err = uv_fs_event_stop(handle);
   CHECK_ERROR(L, err);
+  UNHOLD_HANDLE_ITSELF(L, handle);
   return 0;
 }
 

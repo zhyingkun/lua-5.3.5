@@ -17,9 +17,10 @@ static int TCP_FUNCTION(bind)(lua_State* L) {
 static void TCP_CALLBACK(connectAsync)(uv_connect_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
-  (void)MEMORY_FUNCTION(free_req)(req);
   lua_pushinteger(L, status);
-  CALL_LUA_FUNCTION(L, 1);
+  PUSH_REQ_PARAM_CLEAN(L, req, 1);
+  (void)MEMORY_FUNCTION(free_req)(req);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int TCP_FUNCTION(connectAsync)(lua_State* L) {
   uv_tcp_t* handle = luaL_checktcp(L, 1);
@@ -31,6 +32,7 @@ static int TCP_FUNCTION(connectAsync)(lua_State* L) {
   int err = uv_tcp_connect(req, handle, addr, TCP_CALLBACK(connectAsync));
   if (err == UVWRAP_OK) {
     HOLD_REQ_CALLBACK(L, req, 3);
+    HOLD_REQ_PARAM(L, req, 1, 1);
   }
   lua_pushinteger(L, err);
   return 1;

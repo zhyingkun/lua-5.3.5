@@ -226,12 +226,13 @@ extern lua_State* staticL;
 
 #define CHECK_IS_ASYNC(L, idx) (lua_type(L, idx) == LUA_TFUNCTION)
 
-#define HOLD_REQ_CALLBACK(L, req, idx) HOLD_LUA_OBJECT(L, req, 0, idx)
+#define REQ_BASE_INDEX 0
+#define HOLD_REQ_CALLBACK(L, req, idx) HOLD_LUA_OBJECT(L, req, REQ_BASE_INDEX, idx)
 #define PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req) \
   do { \
     L = GET_MAIN_LUA_STATE(); \
     PREPARE_CALL_LUA(L); \
-    PUSH_HOLD_OBJECT_CLEAN(L, req, 0); \
+    PUSH_HOLD_OBJECT_CLEAN(L, req, REQ_BASE_INDEX); \
   } while (0)
 
 #define REQ_BASE_INDEX 0
@@ -273,6 +274,10 @@ extern lua_State* staticL;
   HOLD_LUA_OBJECT(L, handle, IDX_HANDLE_ITSELF, idx)
 #define UNHOLD_HANDLE_ITSELF(L, handle) \
   UNHOLD_LUA_OBJECT(L, handle, IDX_HANDLE_ITSELF)
+#define PUSH_HANDLE_ITSELF(L, handle) \
+  PUSH_HOLD_OBJECT(L, handle, IDX_HANDLE_ITSELF)
+#define PUSH_HANDLE_ITSELF_CLEAN(L, handle) \
+  PUSH_HOLD_OBJECT_CLEAN(L, handle, IDX_HANDLE_ITSELF)
 
 #define HOLD_HANDLE_CLOSE_CALLBACK(L, handle, idx) \
   HOLD_HANDLE_CALLBACK(L, handle, IDX_HANDLE_CLOSE, idx)

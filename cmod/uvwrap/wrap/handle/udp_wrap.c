@@ -96,9 +96,10 @@ static void UDP_CALLBACK(sendAsync)(uv_udp_send_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
   UNHOLD_REQ_PARAM(L, req, 1);
-  (void)MEMORY_FUNCTION(free_req)(req);
   lua_pushinteger(L, status);
-  CALL_LUA_FUNCTION(L, 1);
+  PUSH_REQ_PARAM_CLEAN(L, req, 2);
+  (void)MEMORY_FUNCTION(free_req)(req);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int UDP_FUNCTION(sendAsync)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
@@ -113,6 +114,7 @@ static int UDP_FUNCTION(sendAsync)(lua_State* L) {
   CHECK_ERROR(L, err);
   HOLD_REQ_CALLBACK(L, req, 4);
   HOLD_REQ_PARAM(L, req, 1, 2);
+  HOLD_REQ_PARAM(L, req, 2, 1);
   return 0;
 }
 
@@ -171,7 +173,8 @@ static void UDP_CALLBACK(recvStartAsync)(uv_udp_t* handle, ssize_t nread, const 
     lua_pushnil(L);
   }
   lua_pushinteger(L, flags);
-  CALL_LUA_FUNCTION(L, 4);
+  PUSH_HANDLE_ITSELF(L, handle);
+  CALL_LUA_FUNCTION(L, 5);
 }
 static int UDP_FUNCTION(recvStartAsync)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
@@ -180,6 +183,7 @@ static int UDP_FUNCTION(recvStartAsync)(lua_State* L) {
   int err = uv_udp_recv_start(handle, MEMORY_FUNCTION(buf_alloc), UDP_CALLBACK(recvStartAsync));
   CHECK_ERROR(L, err);
   HOLD_HANDLE_CALLBACK(L, handle, IDX_UDP_RECV_START, 2);
+  HOLD_HANDLE_ITSELF(L, handle, 1);
   return 0;
 }
 
@@ -187,6 +191,7 @@ static int UDP_FUNCTION(recvStop)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   int err = uv_udp_recv_stop(handle);
   CHECK_ERROR(L, err);
+  UNHOLD_HANDLE_ITSELF(L, handle);
   return 0;
 }
 

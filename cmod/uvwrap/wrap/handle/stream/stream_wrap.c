@@ -11,8 +11,10 @@ static void STREAM_CALLBACK(shutdownAsync)(uv_shutdown_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
   lua_pushinteger(L, status);
+  PUSH_REQ_PARAM_CLEAN(L, req, 1);
+  UNHOLD_HANDLE_ITSELF(L, req->handle); // shutdown will cancel listenAsync, so remove handle itself cache
   (void)MEMORY_FUNCTION(free_req)(req);
-  CALL_LUA_FUNCTION(L, 1);
+  CALL_LUA_FUNCTION(L, 2);
 }
 // Shutdown the outgoing (write) side of a duplex stream
 static int STREAM_FUNCTION(shutdownAsync)(lua_State* L) {
@@ -23,6 +25,7 @@ static int STREAM_FUNCTION(shutdownAsync)(lua_State* L) {
   int err = uv_shutdown(req, handle, STREAM_CALLBACK(shutdownAsync));
   CHECK_ERROR(L, err);
   HOLD_REQ_CALLBACK(L, req, 2);
+  HOLD_REQ_PARAM(L, req, 1, 1);
   return 0;
 }
 
@@ -45,7 +48,8 @@ static void STREAM_CALLBACK(listenAsync)(uv_stream_t* handle, int status) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_STREAM_LISTEN);
   lua_pushinteger(L, status);
-  CALL_LUA_FUNCTION(L, 1);
+  PUSH_HANDLE_ITSELF(L, handle);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int STREAM_FUNCTION(listenAsync)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
@@ -55,6 +59,7 @@ static int STREAM_FUNCTION(listenAsync)(lua_State* L) {
   int err = uv_listen(handle, backlog, STREAM_CALLBACK(listenAsync));
   CHECK_ERROR(L, err);
   HOLD_HANDLE_CALLBACK(L, handle, IDX_STREAM_LISTEN, 3);
+  HOLD_HANDLE_ITSELF(L, handle, 1);
   return 0;
 }
 
@@ -76,7 +81,8 @@ static void STREAM_CALLBACK(readStartAsync)(uv_stream_t* handle, ssize_t nread, 
     lua_pushnil(L);
   }
   (void)MEMORY_FUNCTION(buf_free)(buf);
-  CALL_LUA_FUNCTION(L, 2);
+  PUSH_HANDLE_ITSELF(L, handle);
+  CALL_LUA_FUNCTION(L, 3);
 }
 static int STREAM_FUNCTION(readStartAsync)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
@@ -85,6 +91,7 @@ static int STREAM_FUNCTION(readStartAsync)(lua_State* L) {
   int err = uv_read_start(handle, MEMORY_FUNCTION(buf_alloc), STREAM_CALLBACK(readStartAsync));
   CHECK_ERROR(L, err);
   HOLD_HANDLE_CALLBACK(L, handle, IDX_STREAM_READ_START, 2);
+  HOLD_HANDLE_ITSELF(L, handle, 1);
   return 0;
 }
 
@@ -92,6 +99,7 @@ static int STREAM_FUNCTION(readStop)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
   int err = uv_read_stop(handle);
   CHECK_ERROR(L, err);
+  UNHOLD_HANDLE_ITSELF(L, handle);
   return 0;
 }
 
@@ -99,9 +107,10 @@ static void STREAM_CALLBACK(writeAsync)(uv_write_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
   UNHOLD_REQ_PARAM(L, req, 1);
-  (void)MEMORY_FUNCTION(free_req)(req);
   lua_pushinteger(L, status);
-  CALL_LUA_FUNCTION(L, 1);
+  PUSH_REQ_PARAM_CLEAN(L, req, 2);
+  (void)MEMORY_FUNCTION(free_req)(req);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int STREAM_FUNCTION(writeAsync)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
@@ -115,6 +124,7 @@ static int STREAM_FUNCTION(writeAsync)(lua_State* L) {
   CHECK_ERROR(L, err);
   HOLD_REQ_CALLBACK(L, req, 3);
   HOLD_REQ_PARAM(L, req, 1, 2);
+  HOLD_REQ_PARAM(L, req, 2, 1);
   return 0;
 }
 
@@ -143,9 +153,10 @@ static void STREAM_CALLBACK(write2Async)(uv_write_t* req, int status) {
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
   UNHOLD_REQ_PARAM(L, req, 1);
   UNHOLD_REQ_PARAM(L, req, 2);
-  (void)MEMORY_FUNCTION(free_req)(req);
   lua_pushinteger(L, status);
-  CALL_LUA_FUNCTION(L, 1);
+  PUSH_REQ_PARAM_CLEAN(L, req, 3);
+  (void)MEMORY_FUNCTION(free_req)(req);
+  CALL_LUA_FUNCTION(L, 2);
 }
 static int STREAM_FUNCTION(write2Async)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
@@ -161,6 +172,7 @@ static int STREAM_FUNCTION(write2Async)(lua_State* L) {
   HOLD_REQ_CALLBACK(L, req, 4);
   HOLD_REQ_PARAM(L, req, 1, 2);
   HOLD_REQ_PARAM(L, req, 2, 3);
+  HOLD_REQ_PARAM(L, req, 3, 1);
   return 0;
 }
 

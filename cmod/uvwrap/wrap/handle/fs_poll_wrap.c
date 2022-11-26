@@ -10,7 +10,8 @@ static void FS_POLL_CALLBACK(startAsync)(uv_fs_poll_t* handle, int status, const
   lua_pushinteger(L, status);
   lua_pushuv_stat_t(L, prev);
   lua_pushuv_stat_t(L, curr);
-  CALL_LUA_FUNCTION(L, 3);
+  PUSH_HANDLE_ITSELF(L, handle);
+  CALL_LUA_FUNCTION(L, 4);
 }
 static int FS_POLL_FUNCTION(startAsync)(lua_State* L) {
   uv_fs_poll_t* handle = luaL_checkfs_poll(L, 1);
@@ -21,6 +22,7 @@ static int FS_POLL_FUNCTION(startAsync)(lua_State* L) {
   int err = uv_fs_poll_start(handle, FS_POLL_CALLBACK(startAsync), path, interval);
   CHECK_ERROR(L, err);
   HOLD_HANDLE_CALLBACK(L, handle, IDX_FS_POLL_START, 2);
+  HOLD_HANDLE_ITSELF(L, handle, 1);
   return 0;
 }
 
@@ -28,6 +30,7 @@ static int FS_POLL_FUNCTION(stop)(lua_State* L) {
   uv_fs_poll_t* handle = luaL_checkfs_poll(L, 1);
   int err = uv_fs_poll_stop(handle);
   CHECK_ERROR(L, err);
+  UNHOLD_HANDLE_ITSELF(L, handle);
   return 0;
 }
 
