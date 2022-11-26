@@ -11,7 +11,8 @@ static int UDP_FUNCTION(bind)(lua_State* L) {
 
   int err = uv_udp_bind(handle, addr, flags);
   CHECK_ERROR(L, err);
-  return 0;
+  lua_settop(L, 1);
+  return 1;
 }
 
 static int UDP_FUNCTION(connect)(lua_State* L) {
@@ -47,7 +48,8 @@ static int UDP_FUNCTION(setMembership)(lua_State* L) {
   uv_membership membership = (uv_membership)luaL_checkinteger(L, 4);
   int err = uv_udp_set_membership(handle, multicast_addr, interface_addr, membership);
   CHECK_ERROR(L, err);
-  return 0;
+  lua_settop(L, 1);
+  return 1;
 }
 
 static int UDP_FUNCTION(setMulticastLoop)(lua_State* L) {
@@ -56,7 +58,8 @@ static int UDP_FUNCTION(setMulticastLoop)(lua_State* L) {
   int on = lua_toboolean(L, 2);
   int err = uv_udp_set_multicast_loop(handle, on);
   CHECK_ERROR(L, err);
-  return 0;
+  lua_settop(L, 1);
+  return 1;
 }
 
 static int UDP_FUNCTION(setMulticastTtl)(lua_State* L) {
@@ -64,7 +67,8 @@ static int UDP_FUNCTION(setMulticastTtl)(lua_State* L) {
   int ttl = luaL_checkinteger(L, 2); // [1, 255]
   int err = uv_udp_set_multicast_ttl(handle, ttl);
   CHECK_ERROR(L, err);
-  return 0;
+  lua_settop(L, 1);
+  return 1;
 }
 
 static int UDP_FUNCTION(setMulticastInterface)(lua_State* L) {
@@ -72,7 +76,8 @@ static int UDP_FUNCTION(setMulticastInterface)(lua_State* L) {
   const char* interface_addr = luaL_checkstring(L, 2);
   int err = uv_udp_set_multicast_interface(handle, interface_addr);
   CHECK_ERROR(L, err);
-  return 0;
+  lua_settop(L, 1);
+  return 1;
 }
 
 static int UDP_FUNCTION(setBroadcast)(lua_State* L) {
@@ -81,7 +86,8 @@ static int UDP_FUNCTION(setBroadcast)(lua_State* L) {
   int on = lua_toboolean(L, 2);
   int err = uv_udp_set_broadcast(handle, on);
   CHECK_ERROR(L, err);
-  return 0;
+  lua_settop(L, 1);
+  return 1;
 }
 
 static int UDP_FUNCTION(setTtl)(lua_State* L) {
@@ -89,7 +95,8 @@ static int UDP_FUNCTION(setTtl)(lua_State* L) {
   int ttl = luaL_checkinteger(L, 2); // [1, 255]
   int err = uv_udp_set_ttl(handle, ttl);
   CHECK_ERROR(L, err);
-  return 0;
+  lua_settop(L, 1);
+  return 1;
 }
 
 static void UDP_CALLBACK(sendAsync)(uv_udp_send_t* req, int status) {

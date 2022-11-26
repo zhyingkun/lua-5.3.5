@@ -11,7 +11,8 @@ static int TCP_FUNCTION(bind)(lua_State* L) {
 
   int err = uv_tcp_bind(handle, addr, flags);
   CHECK_ERROR(L, err);
-  return 0;
+  lua_settop(L, 1);
+  return 1;
 }
 
 static void TCP_CALLBACK(connectAsync)(uv_connect_t* req, int status) {

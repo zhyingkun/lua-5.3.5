@@ -147,8 +147,8 @@ libuv.pipe = pipe
 ---@alias StatusPipeSignature fun(status:integer, handle:uv_pipe_t):void
 
 ---@class uv_pipe_t:uv_stream_t
----@field open fun(self:uv_pipe_t, fd:integer):void
----@field bind fun(self:uv_pipe_t, name:string):void
+---@field open fun(self:uv_pipe_t, fd:integer):uv_pipe_t
+---@field bind fun(self:uv_pipe_t, name:string):uv_pipe_t
 ---@field connectAsync fun(self:uv_pipe_t, name:string, callback:StatusPipeSignature):void
 ---@field connectAsyncWait fun(self:uv_pipe_t, name:string):integer
 ---@field getSockName fun(self:uv_pipe_t):string
@@ -207,7 +207,7 @@ libuv.tcp = tcp
 ---@alias StatusTcpSignature fun(status:integer, handle:uv_tcp_t):void
 
 ---@class uv_tcp_t:uv_stream_t
----@field bind fun(self:uv_tcp_t, addr:sockaddr, flags:libuv_tcp_flag):void
+---@field bind fun(self:uv_tcp_t, addr:sockaddr, flags:libuv_tcp_flag | nil):uv_tcp_t
 ---@field connectAsync fun(self:uv_tcp_t, addr:sockaddr, callback:StatusTcpSignature):void
 ---@field connectAsyncWait fun(self:uv_tcp_t, addr:sockaddr):integer
 ---@field noDelay fun(self:uv_tcp_t, enable:boolean):void
@@ -666,16 +666,16 @@ libuv.udp = udp
 ---@alias RecvCallbackSignature fun(nread:integer, data:string | nil, addr:sockaddr | nil, flags:libuv_udp_flag, handle:uv_udp_t):void
 
 ---@class uv_udp_t:uv_handle_t
----@field public bind fun(self:uv_udp_t, addr:sockaddr, flags:libuv_udp_flag):void
+---@field public bind fun(self:uv_udp_t, addr:sockaddr, flags:libuv_udp_flag):uv_udp_t
 ---@field public connect fun(self:uv_udp_t, addr:sockaddr):integer
 ---@field public getSockName fun(self:uv_udp_t):sockaddr
 ---@field public getPeerName fun(self:uv_udp_t):sockaddr
----@field public setMembership fun(self:uv_udp_t, multicastAddr:string, interfaceAddr:string, membership:sockaddr):void
----@field public setMulticastLoop fun(self:uv_udp_t, on:boolean):void
----@field public setMulticastTtl fun(self:uv_udp_t, ttl:integer):void
----@field public setMulticastInterface fun(self:uv_udp_t, interfaceAddr:string):void
----@field public setBroadcast fun(self:uv_udp_t, on:boolean):void
----@field public setTtl fun(self:uv_udp_t, ttl:integer):void
+---@field public setMembership fun(self:uv_udp_t, multicastAddr:string, interfaceAddr:string, membership:sockaddr):uv_udp_t
+---@field public setMulticastLoop fun(self:uv_udp_t, on:boolean):uv_udp_t
+---@field public setMulticastTtl fun(self:uv_udp_t, ttl:integer):uv_udp_t
+---@field public setMulticastInterface fun(self:uv_udp_t, interfaceAddr:string):uv_udp_t
+---@field public setBroadcast fun(self:uv_udp_t, on:boolean):uv_udp_t
+---@field public setTtl fun(self:uv_udp_t, ttl:integer):uv_udp_t
 ---@field public sendAsync fun(self:uv_udp_t, data:string, addr:sockaddr, callback:SendCallbackSignature):void
 ---@field public sendAsyncWait fun(self:uv_udp_t, data:string, addr:sockaddr):integer
 ---@field public trySend fun(self:uv_udp_t, data:string, addr:sockaddr):void

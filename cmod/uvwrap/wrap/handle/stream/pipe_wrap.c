@@ -9,7 +9,8 @@ static int PIPE_FUNCTION(open)(lua_State* L) {
   uv_file file = luaL_checkinteger(L, 2);
   int err = uv_pipe_open(handle, file);
   CHECK_ERROR(L, err);
-  return 0;
+  lua_settop(L, 1);
+  return 1;
 }
 
 static int PIPE_FUNCTION(bind)(lua_State* L) {
@@ -18,7 +19,8 @@ static int PIPE_FUNCTION(bind)(lua_State* L) {
 
   int err = uv_pipe_bind(handle, name);
   CHECK_ERROR(L, err);
-  return 0;
+  lua_settop(L, 1);
+  return 1;
 }
 
 static void PIPE_CALLBACK(connectAsync)(uv_connect_t* req, int status) {
