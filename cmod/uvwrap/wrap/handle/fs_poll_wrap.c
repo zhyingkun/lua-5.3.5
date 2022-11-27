@@ -30,6 +30,7 @@ static int FS_POLL_FUNCTION(stop)(lua_State* L) {
   uv_fs_poll_t* handle = luaL_checkfs_poll(L, 1);
   int err = uv_fs_poll_stop(handle);
   CHECK_ERROR(L, err);
+  UNHOLD_HANDLE_CALLBACK(L, handle, IDX_FS_POLL_START);
   UNHOLD_HANDLE_ITSELF(L, handle);
   return 0;
 }
@@ -60,8 +61,7 @@ static int FS_POLL_FUNCTION(getPath)(lua_State* L) {
 }
 
 static int FS_POLL_FUNCTION(__gc)(lua_State* L) {
-  uv_fs_poll_t* handle = luaL_checkfs_poll(L, 1);
-  uv_fs_poll_stop(handle);
+  // (void)FS_POLL_FUNCTION(stop)(L);
   return HANDLE_FUNCTION(__gc)(L);
 }
 

@@ -174,7 +174,7 @@ static int PM_FUNCTION(eachPacket)(lua_State* L) {
 static int PM_FUNCTION(__gc)(lua_State* L) {
   PacketManager* pm = luaL_checkpacketmanager(L, 1);
   pm_destroy(pm);
-  return 1;
+  return 0;
 }
 
 #define EMPLACE_PM_FUNCTION(name) \

@@ -198,6 +198,7 @@ static int UDP_FUNCTION(recvStop)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   int err = uv_udp_recv_stop(handle);
   CHECK_ERROR(L, err);
+  UNHOLD_HANDLE_CALLBACK(L, handle, IDX_UDP_RECV_START);
   UNHOLD_HANDLE_ITSELF(L, handle);
   return 0;
 }

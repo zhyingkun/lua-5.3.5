@@ -9,6 +9,7 @@ static void TIMER_CALLBACK(startAsync)(uv_timer_t* handle) {
   PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_TIMER_START);
   PUSH_HANDLE_ITSELF(L, handle);
   if (uv_timer_get_repeat(handle) == 0) {
+    UNHOLD_HANDLE_CALLBACK(L, handle, IDX_TIMER_START);
     UNHOLD_HANDLE_ITSELF(L, handle);
   }
   CALL_LUA_FUNCTION(L, 1);
@@ -54,6 +55,7 @@ static int TIMER_FUNCTION(stop)(lua_State* L) {
 
   int err = uv_timer_stop(handle);
   CHECK_ERROR(L, err);
+  UNHOLD_HANDLE_CALLBACK(L, handle, IDX_TIMER_START);
   UNHOLD_HANDLE_ITSELF(L, handle);
   return 0;
 }
@@ -81,8 +83,7 @@ static int TIMER_FUNCTION(getRepeat)(lua_State* L) {
 }
 
 static int TIMER_FUNCTION(__gc)(lua_State* L) {
-  uv_timer_t* handle = luaL_checktimer(L, 1);
-  uv_timer_stop(handle);
+  // (void)TIMER_FUNCTION(stop)(L);
   return HANDLE_FUNCTION(__gc)(L);
 }
 

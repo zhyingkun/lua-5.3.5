@@ -47,13 +47,13 @@ static int SIGNAL_FUNCTION(stop)(lua_State* L) {
   uv_signal_t* handle = luaL_checksignal(L, 1);
   int err = uv_signal_stop(handle);
   CHECK_ERROR(L, err);
+  UNHOLD_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START);
   UNHOLD_HANDLE_ITSELF(L, handle);
   return 0;
 }
 
 static int SIGNAL_FUNCTION(__gc)(lua_State* L) {
-  uv_signal_t* handle = luaL_checksignal(L, 1);
-  uv_signal_stop(handle);
+  // (void)SIGNAL_FUNCTION(stop)(L);
   return HANDLE_FUNCTION(__gc)(L);
 }
 

@@ -32,6 +32,7 @@ static int FS_EVENT_FUNCTION(stop)(lua_State* L) {
   uv_fs_event_t* handle = luaL_checkfs_event(L, 1);
   int err = uv_fs_event_stop(handle);
   CHECK_ERROR(L, err);
+  UNHOLD_HANDLE_CALLBACK(L, handle, IDX_FS_EVENT_START);
   UNHOLD_HANDLE_ITSELF(L, handle);
   return 0;
 }
@@ -62,8 +63,7 @@ static int FS_EVENT_FUNCTION(getPath)(lua_State* L) {
 }
 
 static int FS_EVENT_FUNCTION(__gc)(lua_State* L) {
-  uv_fs_event_t* handle = luaL_checkfs_event(L, 1);
-  uv_fs_event_stop(handle);
+  // (void)FS_EVENT_FUNCTION(stop)(L);
   return HANDLE_FUNCTION(__gc)(L);
 }
 

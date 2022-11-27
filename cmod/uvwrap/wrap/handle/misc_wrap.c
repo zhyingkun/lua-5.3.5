@@ -43,13 +43,13 @@
     uv_##name##_t* handle = luaL_check##name(L, 1); \
     int err = uv_##name##_stop(handle); \
     CHECK_ERROR(L, err); \
+    UNHOLD_HANDLE_CALLBACK(L, handle, IDX_##NAME##_START); \
     UNHOLD_HANDLE_ITSELF(L, handle); \
     return 0; \
   } \
 \
   static int UVWRAP_FUNCTION(name, __gc)(lua_State * L) { \
-    uv_##name##_t* handle = luaL_check##name(L, 1); \
-    uv_##name##_stop(handle); \
+    /* (void)UVWRAP_FUNCTION(name, stop)(L); */ \
     return HANDLE_FUNCTION(__gc)(L); \
   } \
 \

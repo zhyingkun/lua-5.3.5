@@ -99,6 +99,7 @@ static int STREAM_FUNCTION(readStop)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
   int err = uv_read_stop(handle);
   CHECK_ERROR(L, err);
+  UNHOLD_HANDLE_CALLBACK(L, handle, IDX_STREAM_READ_START);
   UNHOLD_HANDLE_ITSELF(L, handle);
   return 0;
 }
