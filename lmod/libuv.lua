@@ -1738,23 +1738,29 @@ end
 ---@field public canonname string
 ---@field public addr sockaddr
 
+---@overload fun(node:string):integer, addrinfo
+---@overload fun(node:string | nil, service:string):integer, addrinfo
+---@overload fun(node:string | nil, service:string | nil, hints:addrinfo | nil):integer, addrinfo
 ---@param node string | nil
 ---@param service string | nil
----@param hints addrinfo
+---@param hints addrinfo | nil
 ---@return integer, addrinfo @errCode, addrinfo
 function network.getAddrInfo(node, service, hints)
 	return libnetwork.getaddrinfo(loopCtx, node, service, hints)
 end
 ---@param node string | nil
 ---@param service string | nil
----@param hints addrinfo
+---@param hints addrinfo | nil
 ---@param callback fun(status:integer, res:addrinfo)
 function network.getAddrInfoAsync(node, service, hints, callback)
 	libnetwork.getaddrinfo(loopCtx, node, service, hints, callback)
 end
+---@overload fun(node:string):integer, addrinfo
+---@overload fun(node:string | nil, service:string):integer, addrinfo
+---@overload fun(node:string | nil, service:string | nil, hints:addrinfo | nil):integer, addrinfo
 ---@param node string | nil
 ---@param service string | nil
----@param hints addrinfo
+---@param hints addrinfo | nil
 ---@return integer, addrinfo @errCode, addrinfo
 function network.getAddrInfoAsyncWait(node, service, hints)
 	local co, main = running()

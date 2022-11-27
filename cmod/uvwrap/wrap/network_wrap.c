@@ -260,8 +260,8 @@ char* PHYSADDR_FUNCTION(create)(lua_State* L) {
 static void NETWORK_CALLBACK(getaddrinfo)(uv_getaddrinfo_t* req, int status, struct addrinfo* res) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
-  PUSH_GETADDRINFO_RESULT(L, res);
   lua_pushinteger(L, status);
+  PUSH_GETADDRINFO_RESULT(L, res);
   (void)MEMORY_FUNCTION(free_req)(req);
   CALL_LUA_FUNCTION(L, 2);
 }
@@ -290,9 +290,8 @@ static int NETWORK_FUNCTION(getaddrinfo)(lua_State* L) {
     HOLD_REQ_CALLBACK(L, req, 5);
     return 0;
   }
-  struct addrinfo* res = req->addrinfo;
-  PUSH_GETADDRINFO_RESULT(L, res);
   lua_pushinteger(L, err);
+  PUSH_GETADDRINFO_RESULT(L, req->addrinfo);
   (void)MEMORY_FUNCTION(free_req)(req);
   return 2;
 }
