@@ -43,7 +43,7 @@ util.setErrorMessageHandler(function(msg)
 end)
 
 libuv.setLoop()
-libuv.runDeferred()
+--libuv.runDeferred()
 
 --[[
 local AllocCount = 0
@@ -84,14 +84,12 @@ local function printerr(...)
 end
 
 function tick()
-	local counter = timer.Timer()
 	local count = 0
-	counter:startAsync(function()
+	timer.Timer():startAsync(function(handle)
 		count = count + 1
 		print("tick")
-		if count >= 10 then
-			counter:stop()
-			counter = nil
+		if count >= 3 then
+			handle:stop()
 			print("BOOM!")
 		end
 	end, 1000, 1000)
@@ -127,29 +125,26 @@ function cgi()
 			printerr("Spawn new process error %s: %s", errName(status), strError(status))
 		end
 	end
-	local server = tcp.Tcp()
-	local addr = network.SockAddr()
-	addr:ip4Addr("0.0.0.0", 7000)
-	server:bind(addr)
-	server:listenAsync(128, function(status)
+	local addr = network.SockAddr():ip4Addr("0.0.0.0", 7000)
+	---@param handle uv_tcp_t
+	tcp.Tcp():bind(addr):listenAsync(128, function(status, handle)
 		if status ~= OK then
 			print("TCP listen error:", status)
 			return
 		end
 		local client = tcp.Tcp()
-		if server:accept(client) == OK then
+		if handle:accept(client) == OK then
 			invoke_cgi_script(client)
 		else
 			client:close()
+			handle:shutdownAsync()
 		end
 	end)
 end
 
 function cgi_client()
-	local addr = network.SockAddr()
-	addr:ip4Addr("0.0.0.0", 7000)
-	local socket = tcp.Tcp()
-	local status = socket:connectAsync(addr, function(status)
+	local addr = network.SockAddr():ip4Addr("0.0.0.0", 7000)
+	local status = tcp.Tcp():connectAsync(addr, function(status, socket)
 		if status < 0 then
 			print("connect error:", status, strError(status))
 			return
@@ -235,12 +230,14 @@ end
 function idle_basic()
 	local idler = idle.Idle()
 	local counter = 0
-	local function wait_for_a_while()
+	---@param handle uv_idle_t
+	local function wait_for_a_while(handle)
 		if counter == 0 then
 			print("In wait_for_a_while")
 		end
 		counter = counter + 1
 		if counter >= 10e2 then
+			handle:stop()
 			idler:stop()
 			print("idler stop")
 		end
@@ -270,9 +267,10 @@ function idle_compute()
 		print("Computing PI...")
 		idler:stop()
 	end
-	local function on_type(result, str)
+	local function on_type(str, result)
 		if result == 0 then -- means EOF
 			print("Read EOF")
+			return
 		elseif result < 0 then
 			print("error opening file:", strError(result))
 		end
@@ -347,11 +345,9 @@ function multi_echo_server()
 
 	end
 	setup_workers()
-	local server = tcp.Tcp()
-	local addr = network.SockAddr()
-	addr:ip4Addr("0.0.0.0", 7000)
-	server:bind(addr)
-	server:listenAsync(128, function(status)
+	local addr = network.SockAddr():ip4Addr("0.0.0.0", 7000)
+	---@param server uv_tcp_t
+	tcp.Tcp():bind(addr):listenAsync(128, function(status, server)
 		if status ~= OK then
 			print("TCP listen error:", status, errName(status), strError(status))
 			return
@@ -370,31 +366,31 @@ function multi_echo_server()
 end
 
 function multi_echo_worker()
-	local pipe = pipe.Pipe(true)
-	pipe:open(0) -- stdin
-	pipe:readStartAsync(function(nread, str)
+	---@param handle uv_pipe_t
+	pipe.Pipe(true):open(0) --[[ stdin ]]:readStartAsync(function(nread, str, handle)
 		if nread < 0 then
 			if nread ~= EOF then
 				printerr("Read error %s\n", errName(nread))
 			end
-			pipe:close()
+			handle:close()
 			return
 		end
-		if pipe:pendingCount() == 0 then
+		if handle:pendingCount() == 0 then
 			printerr("No pending count\n")
 		end
-		assert(pipe:pendingType() == handle_type.TCP)
+		assert(handle:pendingType() == handle_type.TCP)
 		local client = tcp.Tcp()
-		if pipe:accept(client) == OK then
+		if handle:accept(client) == OK then
 			printerr("Worker %d: Accepted fd %d\n", process.getPid(), client:fileno())
-			client:readStartAsync(function(nread, str)
+			client:readStartAsync(function(nread, str, clientHandle)
 				if nread < 0 then
 					if nread ~= EOF then
 						printerr("Read error %s\n", errName(status))
 					end
-					client:close()
+					clientHandle:close()
+					return
 				end
-				client:writeAsync(str, function(status)
+				clientHandle:writeAsync(str, function(status, clientHandle)
 					if status ~= OK then
 						printerr("Write error %s\n", errName(status))
 					end
@@ -407,31 +403,31 @@ function multi_echo_worker()
 end
 
 function multi_echo_hammer()
-	local addr = network.SockAddr()
-	addr:ip4Addr("0.0.0.0", 7000)
+	local addr = network.SockAddr():ip4Addr("0.0.0.0", 7000)
 	local PHRASE = "hello world"
 	for i = 1, 1000, 1 do -- 3686
-		local socket = tcp.Tcp()
-		local status = socket:connectAsync(addr, function(status)
+		local status = tcp.Tcp():connectAsync(addr, function(status, socket)
 			if status < 0 then
 				print("connect error:", status, strError(status))
 				return
 			end
 			print("connect status:", status, i, socket:fileno())
-			socket:readStartAsync(function(nread, str)
+			socket:readStartAsync(function(nread, str, handle)
 				if nread < 0 then
 					if nread == EOF then
 						print("Receive EOF")
 					end
-					socket:close()
+					handle:close()
 					return
 				end
 				if str ~= PHRASE then
-					socket:close()
+					handle:close()
 					print("Error occur:", str, PHRASE)
 					return
 				end
-				socket:writeAsync(PHRASE, function(status) end)
+				--socket:writeAsync(PHRASE, function(status) end)
+				print("Receive echo succeed!", i)
+				handle:close()
 			end)
 			socket:writeAsync(PHRASE, function(status) end)
 		end)
@@ -447,11 +443,10 @@ function onchange(command, ...)
 		print(string.format("Usage: %s onchange <command> <file1> [file2 ...]", arg[0]))
 		return
 	end
-	onchange_handles = {}
+	local cnt = 0;
 	for _, file in ipairs(files) do
 		print("Adding watch on", file)
-		local handle = fsevent.FsEvent()
-		handle:startAsync(function(filename, events, status)
+		fsevent.FsEvent():startAsync(function(filename, events, status, handle)
 			local event_str = ""
 			if events & event_type.RENAME ~= 0 then
 				event_str = "renamed"
@@ -460,23 +455,23 @@ function onchange(command, ...)
 			end
 			print(string.format("Change detected in %s: %s %s", handle:getPath(), event_str, filename))
 			os.execute(command)
+			cnt = cnt + 1
+			if cnt >= 3 then handle:stop() end
 		end, file, event_flag.RECURSIVE)
-		table.insert(onchange_handles, handle)
 	end
 end
 
 local PIPENAME = os.sysname == "Windows" and "\\\\?\\pipe\\echo.sock" or "/tmp/echo.sock"
 function pipe_echo_server()
-	local server = pipe.Pipe()
-	server:bind(PIPENAME)
-	server:listenAsync(128, function(status)
+	---@param server uv_pipe_t
+	pipe.Pipe():bind(PIPENAME):listenAsync(128, function(status, server)
 		if status < 0 then
 			print("Listen error:", errName(status), strError(status))
 			return
 		end
 		local client = pipe.Pipe()
 		if server:accept(client) == OK then
-			client:readStartAsync(function(nread, str)
+			client:readStartAsync(function(nread, str, client)
 				if nread < 0 then
 					if nread == EOF then
 						print("Read EOF")
@@ -487,7 +482,7 @@ function pipe_echo_server()
 					return
 				end
 				print("Pipe read:", nread, str)
-				client:writeAsync(str, function(status)
+				client:writeAsync(str, function(status, client)
 					if status < 0 then
 						printerr("Write error %s\n", errName(nread))
 					end
@@ -547,7 +542,7 @@ function pipe_echo_client()
 		if status < 0 then
 			printerr("Write error %s\n", errName(status))
 		else
-			client:readStartAsync(function(nread, str)
+			client:readStartAsync(function(nread, str, client)
 				if nread < 0 then
 					if nread == EOF then
 						pirnt("Receive EOF")
@@ -603,26 +598,25 @@ end
 function ref_timer()
 	local gc = timer.Timer()
 	gc:unref()
-	gc:startAsync(function()
+	gc:startAsync(function(handle)
 		print("Freeing unused objects")
 	end, 0, 2000)
 	-- could actually be a TCP download or something
 	local fake_job = timer.Timer()
-	fake_job:startAsync(function()
+	fake_job:startAsync(function(handle)
 		print("Fake job done")
+		gc:stop()
 	end, 9000, 0)
 end
 
 function signal_action()
-	local siga = signal.Signal()
-	siga:startAsync(function(signum)
+	signal.Signal():startAsync(function(signum, handle)
 		print("Signal received A:", sig_name[signum])
-		siga:stop()
+		handle:stop()
 	end, sig_num.SIGUSR1)
-	local sigb = signal.Signal()
-	sigb:startAsync(function(signum)
+	signal.Signal():startAsync(function(signum, handle)
 		print("Signal received B:", sig_name[signum])
-		sigb:stop()
+		handle:stop()
 	end, sig_num.SIGUSR1)
 end
 
@@ -651,18 +645,15 @@ function spawn()
 end
 
 function tcp_echo_server()
-	local server = tcp.Tcp()
-	local addr = network.SockAddr()
-	addr:ip4Addr("0.0.0.0", 7000)
-	server:bind(addr)
-	server:listenAsync(128, function(status)
+	local addr = network.SockAddr():ip4Addr("0.0.0.0", 7000)
+	tcp.Tcp():bind(addr):listenAsync(128, function(status, server)
 		if status < OK then
 			printerr("New connection error %s\n", strError(status))
 			return
 		end
 		local client = tcp.Tcp()
 		if server:accept(client) == OK then
-			client:readStartAsync(function(nread, str)
+			client:readStartAsync(function(nread, str, client)
 				if nread < 0 then
 					if nread ~= EOF then
 						printerr("Read error %s\n", errName(status))
@@ -672,7 +663,7 @@ function tcp_echo_server()
 					client:close()
 				end
 				if nread > 0 then
-					client:writeAsync(str, function(status)
+					client:writeAsync(str, function(status, client)
 						if status ~= OK then
 							printerr("Write error %s\n", strError(status))
 						end
@@ -687,19 +678,17 @@ function tcp_echo_server()
 end
 
 function tcp_echo_client()
-	local addr = network.SockAddr()
-	addr:ip4Addr("0.0.0.0", 7000)
-	local socket = tcp.Tcp()
-	local status = socket:connectAsync(addr, function(status)
+	local addr = network.SockAddr():ip4Addr("0.0.0.0", 7000)
+	local status = tcp.Tcp():connectAsync(addr, function(status, socket)
 		if status < 0 then
 			printerr("connect failed error %s\n", errName(status))
 			return
 		end
-		socket:writeAsync("GoodGoodStudyDayDayUp", function(status)
+		socket:writeAsync("GoodGoodStudyDayDayUp", function(status, socket)
 			if status ~= OK then
 				printerr("write failed error %s\n", errName(status))
 			end
-			socket:readStartAsync(function(nread, str)
+			socket:readStartAsync(function(nread, str, socket)
 				if nread < 0 then
 					if nread ~= EOF then
 						print("Read error", errName(status))
@@ -737,27 +726,22 @@ function tty_gravity()
 	tty_handle:writeAsync("Hello TTY\n", function(status) end)
 	local pos = 0
 	local message = "  Hello TTY  "
-	local t = timer.Timer()
-	t:startAsync(function()
+	timer.Timer():startAsync(function(handle)
 		-- "\033[2J\033[H\033[%dB\033[%dC\033[42;37m%s" in c
 		local fmt = "\027[2J\027[H\027[%dB\027[%dC\027[42;37m%s"
 		local str = string.format(fmt, pos, math.floor((width - #message) / 2), message)
-		tty_handle:writeAsync(str, function(status) end)
+		tty_handle:writeAsync(str, function(status, handle) end)
 		pos = pos + 1
 		if pos > height then
 			tty.resetMode()
-			t:stop()
-			t:close()
+			handle:stop()
 		end
 	end, 200, 200)
 end
 
 function udp_dhcp()
-	local recv_socket = udp.Udp()
-	local recv_addr = network.SockAddr()
-	recv_addr:ip4Addr("0.0.0.0", 68)
-	recv_socket:bind(recv_addr, udp_flag.REUSEADDR)
-	recv_socket:recvStartAsync(function(nread, str, addr, flags)
+	local recv_addr = network.SockAddr():ip4Addr("0.0.0.0", 68)
+	udp.Udp():bind(recv_addr, udp_flag.REUSEADDR):recvStartAsync(function(nread, str, addr, flags, recv_socket)
 		if nread < 0 then
 			printerr("UDP recv Error %d %s: %s", nread, errName(nread), strError(nread))
 		elseif nread == OK then
@@ -837,15 +821,10 @@ function udp_dhcp()
 			return buffer[idx - 1]
 		end)
 	end
-	local send_socket = udp.Udp()
-	local broadcast_addr = network.SockAddr()
-	broadcast_addr:ip4Addr("0.0.0.0", 0)
-	send_socket:bind(broadcast_addr)
-	send_socket:setBroadcast(true)
+	local broadcast_addr = network.SockAddr():ip4Addr("0.0.0.0", 0)
 	local discover_msg = make_discover_msg()
-	local send_addr = network.SockAddr()
-	send_addr:ip4Addr("255.255.255.255", 67)
-	send_socket:sendAsync(discover_msg, send_addr, function(status)
+	local send_addr = network.SockAddr():ip4Addr("255.255.255.255", 67)
+	udp.Udp():bind(broadcast_addr):setBroadcast(true):sendAsync(discover_msg, send_addr, function(status, send_socket)
 		if status ~= OK then
 			printerr("Send error %s\n", strError(status))
 		end
@@ -860,7 +839,7 @@ function uvcat(filename)
 			printerr("error opening file: %s\n", strError(fd))
 			return
 		end
-		local function read_cb(result, str)
+		local function read_cb(str, result)
 			if result < 0 then
 				printerr("Read error: %s\n", strError(fd))
 			elseif result == 0 then -- EOF
@@ -881,9 +860,8 @@ function uvcat(filename)
 end
 
 function uvstop()
-	local idler = idle.Idle()
 	local counter = 0
-	idler:startAsync(function()
+	idle.Idle():startAsync(function(handle)
 		print("Idle callback")
 		counter = counter + 1
 		if counter >= 5 then
@@ -891,37 +869,35 @@ function uvstop()
 			print("uv_stop() called")
 		end
 	end)
-	local prep = prepare.Prepare()
-	prep:startAsync(function()
+	prepare.Prepare():startAsync(function(handle)
 		print("Prep callback")
 	end)
 end
 
 function uvtee(filename)
 	if not filename then return end
-	local stdin_pipe = pipe.Pipe()
-	stdin_pipe:open(0)
-	local stdout_pipe = pipe.Pipe()
-	stdout_pipe:open(1)
+	local stdin_pipe = pipe.Pipe():open(0)
+	local stdout_pipe = pipe.Pipe():open(1)
 	local fd = fs.open(filename, open_flag.CREAT | open_flag.RDWR, 6 * 64 + 4 * 8 + 4) -- 0o644
-	local file_pipe = pipe.Pipe()
-	file_pipe:open(fd)
-	stdin_pipe:readStartAsync(function(nread, str)
-		if nread < 0 then
+	local file_pipe = pipe.Pipe():open(fd)
+	stdin_pipe:readStartAsync(function(nread, str, stdin_pipe)
+		print("Callback: ", nread, stdin_pipe, stdin_pipe:isReadable())
+		if nread <= 0 then
 			if nread == EOF then
-				stdin_pipe:close()
+				print("Read EOF")
+				stdin_pipe:readStop()
 				stdout_pipe:close()
 				file_pipe:close()
 			else
-				printerr("Pipe read error:", strError(nread))
+				print("Pipe read error:", strError(nread))
 			end
 		elseif nread > 0 then
-			stdout_pipe:writeAsync(str, function(status)
+			stdout_pipe:writeAsync(str, function(status, handle)
 				if status ~= OK then
 					printerr("Pipe write error:", strError(status))
 				end
 			end)
-			file_pipe:writeAsync(str, function(status)
+			file_pipe:writeAsync(str, function(status, handle)
 				if status ~= OK then
 					printerr("Pipe write error:", strError(status))
 				end
@@ -931,6 +907,17 @@ function uvtee(filename)
 end
 
 _G[arg[1] or "hello"](table.unpack(arg, 2))
+
+libuv.run()
+collectgarbage()
+libuv.run()
+collectgarbage()
+libuv.run()
+print("All handle:")
+loop.walk(function(handle, ptr)
+	print(handle, ptr)
+end)
+libuv.close()
 
 --[[
 loop.run()
