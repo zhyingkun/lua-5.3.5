@@ -24,23 +24,43 @@ static int STDIOCONT_FUNCTION(new)(lua_State* L) {
   container->count = 0;
   return 1;
 }
-
+static void _holdInUserValue(lua_State* L, int contIdx, int ioIdx, int maxSize) {
+  contIdx = lua_absindex(L, contIdx);
+  ioIdx = lua_absindex(L, ioIdx);
+  if (maxSize == 1) {
+    lua_pushvalue(L, ioIdx);
+    lua_setuservalue(L, contIdx);
+  } else {
+    if (lua_getuservalue(L, contIdx) != LUA_TTABLE) {
+      lua_pop(L, 1);
+      lua_createtable(L, 0, maxSize);
+      lua_pushvalue(L, -1);
+      lua_setuservalue(L, contIdx);
+    }
+    lua_pushvalue(L, ioIdx);
+    lua_pushboolean(L, true);
+    lua_rawset(L, -3);
+    lua_pop(L, 1);
+  }
+}
 static int STDIOCONT_FUNCTION(add)(lua_State* L) {
   uvwrap_stdio_container_t* container = luaL_checkstdiocont(L, 1);
   if (container->count >= container->maxsz) {
     luaL_error(L, "container has no more slot");
   }
   uv_stdio_flags flags = (uv_stdio_flags)luaL_checkinteger(L, 2);
-  if (!lua_isinteger(L, 3) && !luaL_testudata_recursive(L, -1, UVWRAP_STREAM_TYPE)) {
-    luaL_error(L, "param 3 must be integer fd or uv_stream_t*");
-  }
   int i = container->count;
   container->stdio[i].flags = flags;
-  if (lua_isinteger(L, 3)) {
-    container->stdio[i].data.fd = lua_tointeger(L, 3);
+#define IO_INDEX 3
+  if (lua_isinteger(L, IO_INDEX)) {
+    container->stdio[i].data.fd = lua_tointeger(L, IO_INDEX);
+  } else if (luaL_testudata_recursive(L, IO_INDEX, UVWRAP_STREAM_TYPE)) {
+    container->stdio[i].data.stream = (uv_stream_t*)lua_touserdata(L, IO_INDEX);
+    _holdInUserValue(L, 1, IO_INDEX, container->maxsz);
   } else {
-    container->stdio[i].data.stream = (uv_stream_t*)lua_touserdata(L, 3);
+    luaL_error(L, "param 3 must be integer fd or uv_stream_t*");
   }
+#undef IO_INDEX
   container->count++;
   return 0;
 }
@@ -190,12 +210,18 @@ static int PROCESS_FUNCTION(getPid)(lua_State* L) {
   return 1;
 }
 
+static int PROCESS_FUNCTION(__gc)(lua_State* L) {
+  // uv_process_t* handle = luaL_checkprocess(L, 1);
+  return HANDLE_FUNCTION(__gc)(L);
+}
+
 #define EMPLACE_PROCESS_FUNCTION(name) \
   { #name, PROCESS_FUNCTION(name) }
 
 static const luaL_Reg PROCESS_FUNCTION(metafuncs)[] = {
     {"kill", PROCESS_FUNCTION(pkill)},
     EMPLACE_PROCESS_FUNCTION(getPid),
+    EMPLACE_PROCESS_FUNCTION(__gc),
     {NULL, NULL},
 };
 
