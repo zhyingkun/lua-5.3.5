@@ -110,7 +110,7 @@ static int GLFWRAP_FUNCTION(SetCursor)(lua_State* L) {
   return 0;
 }
 
-static void GLFWRAP_CALLBACK(SetKeyCallback)(GLFWwindow* window, int key, int scancode, int action, int mods) {
+void GLFWRAP_CALLBACK(SetKeyCallback)(GLFWwindow* window, int key, int scancode, int action, int mods) {
   WINDOW_CALLBACK_BEGIN(SetKeyCallback, key)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushinteger(L, key);
@@ -125,7 +125,7 @@ static int GLFWRAP_FUNCTION(SetKeyCallback)(lua_State* L) {
   return 0;
 }
 
-static void GLFWRAP_CALLBACK(SetCharCallback)(GLFWwindow* window, unsigned int codepoint) {
+void GLFWRAP_CALLBACK(SetCharCallback)(GLFWwindow* window, unsigned int codepoint) {
   WINDOW_CALLBACK_BEGIN(SetCharCallback, char)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushinteger(L, codepoint);
@@ -137,7 +137,7 @@ static int GLFWRAP_FUNCTION(SetCharCallback)(lua_State* L) {
   return 0;
 }
 
-static void GLFWRAP_CALLBACK(SetCharModsCallback)(GLFWwindow* window, unsigned int codepoint, int mods) {
+void GLFWRAP_CALLBACK(SetCharModsCallback)(GLFWwindow* window, unsigned int codepoint, int mods) {
   WINDOW_CALLBACK_BEGIN(SetCharModsCallback, charmods)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushinteger(L, codepoint);
@@ -150,7 +150,7 @@ static int GLFWRAP_FUNCTION(SetCharModsCallback)(lua_State* L) {
   return 0;
 }
 
-static void GLFWRAP_CALLBACK(SetMouseButtonCallback)(GLFWwindow* window, int button, int action, int mods) {
+void GLFWRAP_CALLBACK(SetMouseButtonCallback)(GLFWwindow* window, int button, int action, int mods) {
   WINDOW_CALLBACK_BEGIN(SetMouseButtonCallback, mousebutton)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushinteger(L, button);
@@ -164,7 +164,7 @@ static int GLFWRAP_FUNCTION(SetMouseButtonCallback)(lua_State* L) {
   return 0;
 }
 
-static void GLFWRAP_CALLBACK(SetCursorPosCallback)(GLFWwindow* window, double xpos, double ypos) {
+void GLFWRAP_CALLBACK(SetCursorPosCallback)(GLFWwindow* window, double xpos, double ypos) {
   WINDOW_CALLBACK_BEGIN(SetCursorPosCallback, cursorpos)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushnumber(L, xpos);
@@ -177,7 +177,7 @@ static int GLFWRAP_FUNCTION(SetCursorPosCallback)(lua_State* L) {
   return 0;
 }
 
-static void GLFWRAP_CALLBACK(SetCursorEnterCallback)(GLFWwindow* window, int entered) {
+void GLFWRAP_CALLBACK(SetCursorEnterCallback)(GLFWwindow* window, int entered) {
   WINDOW_CALLBACK_BEGIN(SetCursorEnterCallback, cursorenter)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushboolean(L, entered);
@@ -189,7 +189,7 @@ static int GLFWRAP_FUNCTION(SetCursorEnterCallback)(lua_State* L) {
   return 0;
 }
 
-static void GLFWRAP_CALLBACK(SetScrollCallback)(GLFWwindow* window, double xoffset, double yoffset) {
+void GLFWRAP_CALLBACK(SetScrollCallback)(GLFWwindow* window, double xoffset, double yoffset) {
   WINDOW_CALLBACK_BEGIN(SetScrollCallback, scroll)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushnumber(L, xoffset);
@@ -202,7 +202,7 @@ static int GLFWRAP_FUNCTION(SetScrollCallback)(lua_State* L) {
   return 0;
 }
 
-static void GLFWRAP_CALLBACK(SetDropCallback)(GLFWwindow* window, int path_count, const char* paths[]) {
+void GLFWRAP_CALLBACK(SetDropCallback)(GLFWwindow* window, int path_count, const char* paths[]) {
   WINDOW_CALLBACK_BEGIN(SetDropCallback, drop)
   PUSH_LIGHTUSERDATA(L, window);
   lua_createtable(L, path_count, 0);
@@ -294,9 +294,7 @@ static int GLFWRAP_FUNCTION(JoystickIsGamepad)(lua_State* L) {
   return 1;
 }
 
-static lua_State* StaticL;
 static void GLFWRAP_CALLBACK(SetJoystickCallback)(int jid, int event) {
-  lua_State* L = StaticL;
   GLFWRAP_CALLBACK_BEGIN(SetJoystickCallback)
   lua_pushinteger(L, jid);
   lua_pushinteger(L, event);
@@ -304,10 +302,14 @@ static void GLFWRAP_CALLBACK(SetJoystickCallback)(int jid, int event) {
   GLFWRAP_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetJoystickCallback)(lua_State* L) {
-  StaticL = L;
-  SET_GLFWRAP_CALLBACK(SetJoystickCallback, joystick, 1);
-  glfwSetJoystickCallback(callback);
+  SET_GLFWRAP_CALLBACK(SetJoystickCallback, joystick);
   return 0;
+}
+void GLFWRAP_FUNCTION(ClearJoystickCallback)(lua_State* L) {
+  PREPARE_CALL_LUA(L);
+  lua_pushcfunction(L, GLFWRAP_FUNCTION(SetJoystickCallback));
+  lua_pushnil(L);
+  CALL_LUA_FUNCTION(L, 1);
 }
 
 static int GLFWRAP_FUNCTION(UpdateGamepadMappings)(lua_State* L) {

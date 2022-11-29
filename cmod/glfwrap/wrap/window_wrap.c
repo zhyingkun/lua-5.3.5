@@ -86,14 +86,22 @@ static int GLFWRAP_FUNCTION(CreateWindow)(lua_State* L) {
   GLFWwindow* shared = (GLFWwindow*)luaL_optlightuserdata(L, 5, NULL);
 
   GLFWwindow* window = glfwCreateWindow(width, height, title, monitor, shared);
+  (void)GLFWRAP_FUNCTION(OnCreateWindow)(L, window);
   PUSH_LIGHTUSERDATA(L, (void*)window);
   return 1;
 }
 
 static int GLFWRAP_FUNCTION(DestroyWindow)(lua_State* L) {
   GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
+  (void)GLFWRAP_FUNCTION(OnDestroyWindow)(L, window);
   glfwDestroyWindow(window);
   return 0;
+}
+void GLFWRAP_FUNCTION(FireDestroyWindow)(lua_State* L, GLFWwindow* win) {
+  PREPARE_CALL_LUA(L);
+  lua_pushcfunction(L, GLFWRAP_FUNCTION(DestroyWindow));
+  PUSH_LIGHTUSERDATA(L, win);
+  CALL_LUA_FUNCTION(L, 1);
 }
 
 static int GLFWRAP_FUNCTION(WindowShouldClose)(lua_State* L) {
@@ -308,7 +316,7 @@ static int GLFWRAP_FUNCTION(SetWindowAttrib)(lua_State* L) {
   return 0;
 }
 
-static void GLFWRAP_CALLBACK(SetWindowPosCallback)(GLFWwindow* window, int xpos, int ypos) {
+void GLFWRAP_CALLBACK(SetWindowPosCallback)(GLFWwindow* window, int xpos, int ypos) {
   WINDOW_CALLBACK_BEGIN(SetWindowPosCallback, windowpos)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushinteger(L, xpos);
@@ -321,7 +329,7 @@ static int GLFWRAP_FUNCTION(SetWindowPosCallback)(lua_State* L) {
   return 0;
 }
 
-static void GLFWRAP_CALLBACK(SetWindowSizeCallback)(GLFWwindow* window, int width, int height) {
+void GLFWRAP_CALLBACK(SetWindowSizeCallback)(GLFWwindow* window, int width, int height) {
   WINDOW_CALLBACK_BEGIN(SetWindowSizeCallback, windowsize)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushinteger(L, width);
@@ -334,7 +342,7 @@ static int GLFWRAP_FUNCTION(SetWindowSizeCallback)(lua_State* L) {
   return 0;
 }
 
-static void GLFWRAP_CALLBACK(SetWindowCloseCallback)(GLFWwindow* window) {
+void GLFWRAP_CALLBACK(SetWindowCloseCallback)(GLFWwindow* window) {
   WINDOW_CALLBACK_BEGIN(SetWindowCloseCallback, windowclose)
   PUSH_LIGHTUSERDATA(L, window);
   CALL_LUA_FUNCTION(L, 1);
@@ -345,7 +353,7 @@ static int GLFWRAP_FUNCTION(SetWindowCloseCallback)(lua_State* L) {
   return 0;
 }
 
-static void GLFWRAP_CALLBACK(SetWindowRefreshCallback)(GLFWwindow* window) {
+void GLFWRAP_CALLBACK(SetWindowRefreshCallback)(GLFWwindow* window) {
   WINDOW_CALLBACK_BEGIN(SetWindowRefreshCallback, windowrefresh)
   PUSH_LIGHTUSERDATA(L, window);
   CALL_LUA_FUNCTION(L, 1);
@@ -356,7 +364,7 @@ static int GLFWRAP_FUNCTION(SetWindowRefreshCallback)(lua_State* L) {
   return 0;
 }
 
-static void GLFWRAP_CALLBACK(SetWindowFocusCallback)(GLFWwindow* window, int focused) {
+void GLFWRAP_CALLBACK(SetWindowFocusCallback)(GLFWwindow* window, int focused) {
   WINDOW_CALLBACK_BEGIN(SetWindowFocusCallback, windowfocus)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushboolean(L, focused);
@@ -368,7 +376,7 @@ static int GLFWRAP_FUNCTION(SetWindowFocusCallback)(lua_State* L) {
   return 0;
 }
 
-static void GLFWRAP_CALLBACK(SetWindowIconifyCallback)(GLFWwindow* window, int iconified) {
+void GLFWRAP_CALLBACK(SetWindowIconifyCallback)(GLFWwindow* window, int iconified) {
   WINDOW_CALLBACK_BEGIN(SetWindowIconifyCallback, windowiconify)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushboolean(L, iconified);
@@ -380,7 +388,7 @@ static int GLFWRAP_FUNCTION(SetWindowIconifyCallback)(lua_State* L) {
   return 0;
 }
 
-static void GLFWRAP_CALLBACK(SetWindowMaximizeCallback)(GLFWwindow* window, int maximized) {
+void GLFWRAP_CALLBACK(SetWindowMaximizeCallback)(GLFWwindow* window, int maximized) {
   WINDOW_CALLBACK_BEGIN(SetWindowMaximizeCallback, windowmaximize)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushboolean(L, maximized);
@@ -392,7 +400,7 @@ static int GLFWRAP_FUNCTION(SetWindowMaximizeCallback)(lua_State* L) {
   return 0;
 }
 
-static void GLFWRAP_CALLBACK(SetFramebufferSizeCallback)(GLFWwindow* window, int width, int height) {
+void GLFWRAP_CALLBACK(SetFramebufferSizeCallback)(GLFWwindow* window, int width, int height) {
   WINDOW_CALLBACK_BEGIN(SetFramebufferSizeCallback, framebuffersize)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushinteger(L, width);
@@ -405,7 +413,7 @@ static int GLFWRAP_FUNCTION(SetFramebufferSizeCallback)(lua_State* L) {
   return 0;
 }
 
-static void GLFWRAP_CALLBACK(SetWindowContentScaleCallback)(GLFWwindow* window, float xscale, float yscale) {
+void GLFWRAP_CALLBACK(SetWindowContentScaleCallback)(GLFWwindow* window, float xscale, float yscale) {
   WINDOW_CALLBACK_BEGIN(SetWindowContentScaleCallback, windowcontentscale)
   PUSH_LIGHTUSERDATA(L, window);
   lua_pushnumber(L, xscale);

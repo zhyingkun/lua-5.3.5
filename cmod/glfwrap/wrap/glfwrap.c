@@ -4,6 +4,54 @@
 
 #include <glfwrap.h>
 
+static const int CALLBACKKEY = 0;
+void GLFWRAP_FUNCTION(OnCreateWindow)(lua_State* L, GLFWwindow* win) {
+  if (lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)&CALLBACKKEY) == LUA_TTABLE) {
+    lua_pushboolean(L, true);
+    lua_rawsetp(L, -2, (void*)win);
+  }
+  lua_pop(L, 1);
+}
+void GLFWRAP_FUNCTION(OnDestroyWindow)(lua_State* L, GLFWwindow* win) {
+  if (lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)&CALLBACKKEY) == LUA_TTABLE) {
+    lua_pushnil(L);
+    lua_rawsetp(L, -2, (void*)win);
+  }
+  lua_pop(L, 1);
+  PUSH_LIGHTUSERDATA(L, win);
+  int winidx = lua_gettop(L);
+  lua_pushnil(L);
+  int cbidx = lua_gettop(L);
+#define XX(name, cbtype) SET_WINDOW_CALLBACK_INDEX(name, cbtype, winidx, cbidx);
+  WINDOW_CALLBACK_TYPE(XX)
+#undef XX
+  lua_pop(L, 2);
+}
+
+static void GLFWRAP_FUNCTION(OnInit)(lua_State* L) {
+  lua_createtable(L, 0, 8);
+  lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)&CALLBACKKEY);
+}
+static void GLFWRAP_FUNCTION(OnTerminate)(lua_State* L) {
+  (void)GLFWRAP_FUNCTION(ClearJoystickCallback)(L);
+  (void)GLFWRAP_FUNCTION(ClearMonitorCallback)(L);
+
+  int t = lua_rawgetp(L, LUA_REGISTRYINDEX, (void*)&CALLBACKKEY);
+  lua_pushnil(L);
+  lua_rawsetp(L, LUA_REGISTRYINDEX, (void*)&CALLBACKKEY);
+  if (t == LUA_TTABLE) {
+    int idx = lua_gettop(L);
+    lua_pushnil(L);
+    while (lua_next(L, idx)) {
+      GLFWwindow* win = (GLFWwindow*)lua_touserdata(L, -2);
+      GLFWRAP_FUNCTION(FireDestroyWindow)
+      (L, win);
+      lua_pop(L, 1);
+    }
+  }
+  lua_pop(L, 1);
+}
+
 /*
 ** {======================================================
 ** Initialization, version and error
@@ -17,10 +65,12 @@ static int GLFWRAP_FUNCTION(Init)(lua_State* L) {
     int code = glfwGetError(&description);
     return luaL_error(L, "GLFW Init Error: %d, %s\n", code, description);
   }
+  (void)GLFWRAP_FUNCTION(OnInit)(L);
   return 0;
 }
 
 static int GLFWRAP_FUNCTION(Terminate)(lua_State* L) {
+  (void)GLFWRAP_FUNCTION(OnTerminate)(L);
   glfwTerminate();
   return 0;
 }

@@ -104,9 +104,7 @@ static int GLFWRAP_FUNCTION(GetMonitorName)(lua_State* L) {
   return 1;
 }
 
-static lua_State* StaticL;
 static void GLFWRAP_CALLBACK(SetMonitorCallback)(GLFWmonitor* monitor, int event) {
-  lua_State* L = StaticL;
   GLFWRAP_CALLBACK_BEGIN(SetMonitorCallback)
   PUSH_LIGHTUSERDATA(L, monitor);
   lua_pushinteger(L, event);
@@ -114,10 +112,14 @@ static void GLFWRAP_CALLBACK(SetMonitorCallback)(GLFWmonitor* monitor, int event
   GLFWRAP_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetMonitorCallback)(lua_State* L) {
-  StaticL = L;
-  SET_GLFWRAP_CALLBACK(SetMonitorCallback, monitor, 1);
-  glfwSetMonitorCallback(callback);
+  SET_GLFWRAP_CALLBACK(SetMonitorCallback, monitor);
   return 0;
+}
+void GLFWRAP_FUNCTION(ClearMonitorCallback)(lua_State* L) {
+  PREPARE_CALL_LUA(L);
+  lua_pushcfunction(L, GLFWRAP_FUNCTION(SetMonitorCallback));
+  lua_pushnil(L);
+  CALL_LUA_FUNCTION(L, 1);
 }
 
 static int GLFWRAP_FUNCTION(GetVideoModes)(lua_State* L) {
