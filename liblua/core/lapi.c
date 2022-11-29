@@ -71,7 +71,7 @@ LUAI_DDEF TValue* index2addr(lua_State* L, int idx) {
   else { /* upvalues */
     // idx < LUA_REGISTRYINDEX
     idx = LUA_REGISTRYINDEX - idx;
-    // idx should <= MAXUPVAL, so why plus one?
+    // idx should <= MAXUPVAL, so why plus one? maybe for supports traverse upvalues with lua_isnoneornil
     api_check(L, idx <= MAXUPVAL + 1, "upvalue index too large");
     if (ttislcf(ci->func)) /* light C function? */
       return NONVALIDVALUE; /* it has no upvalues */
@@ -193,7 +193,10 @@ static void reverse(lua_State* L, StkId from, StkId to) {
 ** rotate x n == BA. But BA == (A^r . B^r)^r.
 */
 // (A^r . B^r)^r, the ^r means reverse, not rotate
-// the length of B is n
+// if n >= 0, n is the length of B, else -n is the length of A
+// before rotate, the last element of B is placed in the top of stack
+// after rotate, the last element of A will placed in the top of stack
+// L->top points to the first empty slot
 LUA_API void lua_rotate(lua_State* L, int idx, int n) {
   StkId p, t, m;
   lua_lock(L);

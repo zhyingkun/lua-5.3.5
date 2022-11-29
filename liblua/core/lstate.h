@@ -177,7 +177,7 @@ struct lua_State {
   StkId stack_last; /* last free slot in the stack */
   StkId stack; /* stack base */
   UpVal* openupval; /* list of open upvalues in this stack */
-  GCObject* gclist;
+  GCObject* gclist; // g->gray, g->grayagain
   struct lua_State* twups; /* list of threads with open upvalues */ // g->twups
   struct lua_longjmp* errorJmp; /* current error recover point */
   CallInfo base_ci; /* CallInfo for first level (C calling Lua) */

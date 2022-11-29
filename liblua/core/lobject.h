@@ -65,7 +65,7 @@ typedef struct GCObject GCObject;
 ** Common Header for all collectable objects (in macro form, to be
 ** included in other objects)
 */
-// next: for link to g->allgc list
+// next: for link to g->allgc list, maybe in g->finobj, g->tobefnz, g->fixedgc
 // tt: actual tag type + variant tag type
 // marked: gc colors
 #define CommonHeader \
