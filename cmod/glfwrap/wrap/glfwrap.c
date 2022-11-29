@@ -44,8 +44,7 @@ static void GLFWRAP_FUNCTION(OnTerminate)(lua_State* L) {
     lua_pushnil(L);
     while (lua_next(L, idx)) {
       GLFWwindow* win = (GLFWwindow*)lua_touserdata(L, -2);
-      GLFWRAP_FUNCTION(FireDestroyWindow)
-      (L, win);
+      (void)GLFWRAP_FUNCTION(FireDestroyWindow)(L, win);
       lua_pop(L, 1);
     }
   }
