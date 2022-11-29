@@ -115,6 +115,12 @@ static int NKSTYLEBUTTON_FUNCTION(__tostring)(lua_State* L) {
   lua_pushfstring(L, "nk_style_button: %p", styleButton);
   return 1;
 }
+static int NKSTYLEBUTTON_FUNCTION(__gc)(lua_State* L) {
+  nk_style_button* styleButton = luaL_checkstylebutton(L, 1);
+  UNHOLD_LUA_OBJECT(L, styleButton, 0);
+  UNHOLD_LUA_OBJECT(L, styleButton, 1);
+  return 0;
+}
 
 #define EMPLACE_NKSTYLEBUTTON_FUNCTION(name) \
   { #name, NKSTYLEBUTTON_FUNCTION(name) }
@@ -122,6 +128,7 @@ static const luaL_Reg metafuncs[] = {
     EMPLACE_NKSTYLEBUTTON_FUNCTION(__index),
     EMPLACE_NKSTYLEBUTTON_FUNCTION(__newindex),
     EMPLACE_NKSTYLEBUTTON_FUNCTION(__tostring),
+    EMPLACE_NKSTYLEBUTTON_FUNCTION(__gc),
     {NULL, NULL},
 };
 
