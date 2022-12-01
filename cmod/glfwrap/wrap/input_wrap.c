@@ -351,14 +351,14 @@ static int GLFWRAP_FUNCTION(GetGamepadState)(lua_State* L) {
 }
 
 static int GLFWRAP_FUNCTION(SetClipboardString)(lua_State* L) {
-  GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
+  GLFWwindow* window = luaL_optGLFWwindow(L, 1, NULL);
   const char* string = luaL_checkstring(L, 2);
   glfwSetClipboardString(window, string);
   return 0;
 }
 
 static int GLFWRAP_FUNCTION(GetClipboardString)(lua_State* L) {
-  GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
+  GLFWwindow* window = luaL_optGLFWwindow(L, 1, NULL);
   const char* string = glfwGetClipboardString(window);
   lua_pushstring(L, string);
   return 1;

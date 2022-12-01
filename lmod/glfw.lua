@@ -292,12 +292,14 @@ end
 function glfw.getGamepadState(jid)
 	return libglfw.GetGamepadState(jid)
 end
----@param window GLFWwindow
+---@param window GLFWwindow | nil
 ---@param str string
 function glfw.setClipboardString(window, str)
 	libglfw.SetClipboardString(window, str)
 end
----@param window GLFWwindow
+---@overload fun():string
+---@overload fun(window:GLFWwindow):string
+---@param window GLFWwindow | nil
 ---@return string
 function glfw.getClipboardString(window)
 	return libglfw.GetClipboardString(window)

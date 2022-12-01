@@ -46,6 +46,8 @@ DECLARE_REGISTE_FUNC(window)
 #define luaL_checkGLFWmonitor(L, idx) (GLFWmonitor*)luaL_checklightuserdata(L, idx)
 #define luaL_checkGLFWcursor(L, idx) (GLFWcursor*)luaL_checklightuserdata(L, idx)
 
+#define luaL_optGLFWwindow(L, idx, dft) (GLFWwindow*)luaL_optlightuserdata(L, idx, dft)
+
 #define GLFW_IMAGE_TYPE "GLFWimage*"
 #define luaL_checkGLFWimage(L, idx) (GLFWimage*)luaL_checkudata(L, idx, GLFW_IMAGE_TYPE)
 
