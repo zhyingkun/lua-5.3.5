@@ -1,4 +1,4 @@
-local glfw = require("libglfwrap")
+local glfw = require("glfw")
 local input_state = glfw.input_state
 local keyboard = glfw.keyboard
 local modifier_key = glfw.modifier_key
@@ -8,11 +8,7 @@ util.setErrorMessageHandler(function(msg)
 end)
 
 glfw.setErrorCallback()
-if not glfw.init() then
-	print("Failed to initialize GLFW")
-	glfw.terminate()
-	return
-end
+glfw.init()
 local window = glfw.createWindow(200, 200, "Clipboard Test")
 if not window then
 	print("Failed to open GLFW window")
