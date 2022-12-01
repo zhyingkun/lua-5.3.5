@@ -46,8 +46,7 @@ local FuncToCJson = {
 }
 local ConvertFunc
 function LuaValueToCJson(value)
-	local t = type(value)
-	local func = FuncToCJson[t]
+	local func = FuncToCJson[type(value)]
 	if not func then
 		if not ConvertFunc then return end
 		value = ConvertFunc(value)
@@ -115,7 +114,7 @@ end
 
 ---@param str string
 ---@return any
-function M.parse(str)
+function json.parse(str)
 	local item = c.parse(str)
 	if not item then return end
 	local value = CJsonToLuaValue(item)
@@ -125,13 +124,13 @@ end
 
 ---@param str string
 ---@return string
-function M.minify(str)
+function json.minify(str)
 	return c.minify(str)
 end
 
 ---@param callback MemAllocCallback | "function(oldPtr, newPtr, newSize) end"
-function M.setMemoryAllocatedCallback(callback)
+function json.setMemoryAllocatedCallback(callback)
 	c.set_realloc_cb(callback)
 end
 
-return M
+return json
