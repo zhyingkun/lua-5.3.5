@@ -140,16 +140,16 @@ typedef struct global_State {
   lu_byte gcstate; /* state of garbage collector */
   lu_byte gckind; /* kind of GC running */
   lu_byte gcrunning; /* true if GC is running */
-  GCObject* allgc; /* list of all collectable objects */
-  GCObject** sweepgc; /* current position of sweep in list */
-  GCObject* finobj; /* list of collectable objects with finalizers */
-  GCObject* gray; /* list of gray objects */
-  GCObject* grayagain; /* list of objects to be traversed atomically */
-  GCObject* weak; /* list of tables with weak values */
-  GCObject* ephemeron; /* list of ephemeron tables (weak keys) */
-  GCObject* allweak; /* list of all-weak tables */
-  GCObject* tobefnz; /* list of userdata to be GC */
-  GCObject* fixedgc; /* list of objects not to be collected */
+  GCObject* allgc; /* list of all collectable objects */ // GCObject.next, weak reference
+  GCObject** sweepgc; /* current position of sweep in list */ // GCObject.next
+  GCObject* finobj; /* list of collectable objects with finalizers */ // GCObject.next, weak reference
+  GCObject* gray; /* list of gray objects */ // ChildObject.gclist
+  GCObject* grayagain; /* list of objects to be traversed atomically */ // Table.gclist
+  GCObject* weak; /* list of tables with weak values */ // Table.gclist
+  GCObject* ephemeron; /* list of ephemeron tables (weak keys) */ // Table.gclist
+  GCObject* allweak; /* list of all-weak tables */ // Table.gclist
+  GCObject* tobefnz; /* list of userdata to be GC */ // GCObject.next, strong reference
+  GCObject* fixedgc; /* list of objects not to be collected */ // GCObject.next, strong reference
   struct lua_State* twups; /* list of threads with open upvalues */
   unsigned int gcfinnum; /* number of finalizers to call in each GC step */
   int gcpause; /* size of pause between successive GCs */

@@ -944,6 +944,12 @@ static l_mem atomic(lua_State* L) {
   global_State* g = G(L);
   l_mem work;
   GCObject *origweak, *origall;
+  // only four item will link to g->grayagain (barrierback table, weakvalue table, ephemeron table, thread)
+  // barrierback table: set table after marked, in atomic phase no set table case
+  // weakvalue table, ephemeron table: propagate mark traversal in GCSpropagate phase
+  // thread: propagate mark (maybe change reference after mark, so add to grayagain for propagate in atomic phase)
+  // so, only thread will be add to g->grayagain in atomic phase
+  // when the thread be added to g->grayagain, it must has been fully propagate mark, no need to propagate again
   GCObject* grayagain = g->grayagain; /* save original list */
   lua_assert(g->ephemeron == NULL && g->weak == NULL);
   lua_assert(!iswhite(g->mainthread));

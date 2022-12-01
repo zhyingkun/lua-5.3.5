@@ -153,10 +153,12 @@ static unsigned int arrayindex(const TValue* key) {
 ** elements in the array part, then elements in the hash part. The
 ** beginning of a traversal is signaled by 0.
 */
+// return the start index for next one
+// return [0, t->sizearray - 1] means start in array part
+// return [t->sizearray, t->sizearray + 2^t->lsizenode - 1] means start in hash part
+// return t->sizearray + 2^t->lsizenode means no more elements
+// Impossible to return [~, -1] or [t->sizearray + 2^t->lsizenode + 1, ~]
 // return 0 means get the first one of array part
-// return [0, t->sizearray - 1] means in array part
-// return [t->sizearray, t->sizearray + 2^t->lsizenode - 1] means in hash part
-// Impossible to return [~, -1] or [t->sizearray + 2^t->lsizenode, ~]
 // return t->sizearray means get the first value from hash part
 static unsigned int findindex(lua_State* L, Table* t, StkId key) {
   unsigned int i;
@@ -164,7 +166,7 @@ static unsigned int findindex(lua_State* L, Table* t, StkId key) {
     return 0; /* first iteration */
   i = arrayindex(key);
   if (i != 0 && i <= t->sizearray) /* is 'key' inside array part? */
-    return i; /* yes; that's the index */ // key is in t->array[i-1], so, i means get the next one
+    return i; /* yes; that's the index */ // key itself is i, it's index in array part is i - 1, so, i means get the next one
   else {
     int nx;
     Node* n = mainposition(t, key);
