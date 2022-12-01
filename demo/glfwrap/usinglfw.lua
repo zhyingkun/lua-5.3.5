@@ -1,5 +1,5 @@
 print("Start...")
-local glfw = require("libglfwrap")
+local glfw = require("glfw")
 local input_state = glfw.input_state
 
 util.setErrorMessageHandler(function(msg)
@@ -7,11 +7,7 @@ util.setErrorMessageHandler(function(msg)
 end)
 
 glfw.setErrorCallback()
-if not glfw.init() then
-	print("GLFW Init Error")
-	glfw.terminate()
-	return
-end
+glfw.init()
 windows = {}
 local last = nil
 for i = 1, 5, 1 do
@@ -47,6 +43,9 @@ end
 
 print(tostring(glfw.getMonitors(), 16))
 print(tostring(glfw.getVideoModes(glfw.getPrimaryMonitor()), 16))
+
+windows = nil
+window = nil
 
 glfw.terminate()
 print("End.")
