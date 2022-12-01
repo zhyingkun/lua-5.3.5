@@ -669,14 +669,34 @@ static int NKWRAP_FUNCTION(propertyd)(lua_State* L) {
 ** =======================================================
 */
 
+static nk_bool _textEditPluginFilter(const nk_text_edit* editor, nk_rune unicode) {
+  nk_bool ret = 0;
+  lua_State* L = GET_MAIN_LUA_STATE();
+  int cbidx = lua_gettop(L);
+  int edidx = cbidx - 1;
+  PREPARE_CALL_LUA(L);
+  lua_pushvalue(L, cbidx);
+  lua_pushvalue(L, edidx);
+  lua_pushinteger(L, unicode);
+  CALL_LUA(L, 2, 1);
+  ret = (nk_bool)lua_toboolean(L, -1);
+  lua_pop(L, 1);
+  POST_CALL_LUA(L);
+  return ret;
+}
 static int NKWRAP_FUNCTION(edit_string)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   nk_flags flag = luaL_checknkflags(L, 2);
   nk_buffer* buffer = luaL_checkbuffer(L, 3);
-  nk_plugin_filter filter = NULL;
+  nk_plugin_filter filter;
 #define FILTER_IDX 4
   if (lua_islightuserdata(L, FILTER_IDX)) {
     filter = (nk_plugin_filter)luaL_checklightuserdata(L, FILTER_IDX);
+  } else if (lua_isfunction(L, FILTER_IDX)) {
+    filter = _textEditPluginFilter;
+    lua_settop(L, FILTER_IDX);
+  } else {
+    filter = NULL;
   }
 #undef FILTER_IDX
   char* ptr = (char*)nk_buffer_memory(buffer);
@@ -684,21 +704,8 @@ static int NKWRAP_FUNCTION(edit_string)(lua_State* L) {
   int max = nk_buffer_total(buffer);
   nk_flags ret = nk_edit_string(ctx, flag, ptr, &len, max, filter);
   lua_pushinteger(L, (int)ret);
-  return 1;
-}
-
-static nk_bool _textEditPluginFilter(const nk_text_edit* editor, nk_rune unicode) {
-  nk_bool ret = 0;
-  lua_State* L = GET_MAIN_LUA_STATE();
-  PREPARE_CALL_LUA(L);
-  PUSH_HOLD_OBJECT(L, _textEditPluginFilter, 0);
-  PUSH_HOLD_OBJECT(L, editor, 0);
-  lua_pushinteger(L, unicode);
-  CALL_LUA(L, 2, 1);
-  ret = (nk_bool)lua_toboolean(L, -1);
-  lua_pop(L, 1);
-  POST_CALL_LUA(L);
-  return ret;
+  lua_pushinteger(L, len);
+  return 2;
 }
 static int NKWRAP_FUNCTION(edit_buffer)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
@@ -710,8 +717,7 @@ static int NKWRAP_FUNCTION(edit_buffer)(lua_State* L) {
     filter = (nk_plugin_filter)luaL_checklightuserdata(L, FILTER_IDX);
   } else if (lua_isfunction(L, FILTER_IDX)) {
     filter = _textEditPluginFilter;
-    HOLD_LUA_OBJECT(L, _textEditPluginFilter, 0, FILTER_IDX);
-    HOLD_LUA_OBJECT(L, editor, 0, 3);
+    lua_settop(L, FILTER_IDX);
   } else {
     filter = NULL;
   }

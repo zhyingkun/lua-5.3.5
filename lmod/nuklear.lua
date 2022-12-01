@@ -123,7 +123,8 @@ end
 
 ---@class nk_context:userdata
 ---@field public free fun(self:nk_context):void
----@field public setUserData fun(self:nk_context, ptr:lightuserdata):void
+---@field public clear fun(self:nk_context):void
+---@field public setUserData fun(self:nk_context, ptr:lightuserdata | integer):void
 
 ---@param font nk_font
 ---@return nk_context
@@ -1362,7 +1363,7 @@ end
 ---@param flag nuklear_edit_flag
 ---@param buffer nk_buffer
 ---@param filter FilterSignature
----@return nuklear_edit_event
+---@return nuklear_edit_event, integer
 function nk.editString(flag, buffer, filter)
 	return libnk.edit_string(curCtx, flag, buffer, filter)
 end

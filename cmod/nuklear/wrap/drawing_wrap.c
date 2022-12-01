@@ -273,6 +273,9 @@ static int NKWRAP_FUNCTION(push_custom)(lua_State* L) {
   nk_push_custom(canvas, rect, _commandCustomCallback, nk_handle_ptr(NULL));
   return 0;
 }
+void NKWRAP_FUNCTION(ClearPushCustomCallback)(lua_State* L) {
+  UNHOLD_LUA_OBJECT(L, _commandCustomCallback, 0);
+}
 
 /* }====================================================== */
 

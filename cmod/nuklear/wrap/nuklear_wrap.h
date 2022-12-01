@@ -156,4 +156,6 @@ void CUSTOM_FUNCTION(init)(lua_State* L);
 
 int nk_piemenu(nk_context* ctx, nk_vec2 pos, float radius, nk_image** icons, int item_count);
 
+void NKWRAP_FUNCTION(ClearPushCustomCallback)(lua_State* L);
+
 #endif /* _NUKLEAR_WRAP_H_ */
