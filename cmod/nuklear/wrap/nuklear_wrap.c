@@ -700,7 +700,7 @@ static int NKWRAP_FUNCTION(edit_string)(lua_State* L) {
   }
 #undef FILTER_IDX
   char* ptr = (char*)nk_buffer_memory(buffer);
-  int len;
+  int len = buffer->allocated;
   int max = nk_buffer_total(buffer);
   nk_flags ret = nk_edit_string(ctx, flag, ptr, &len, max, filter);
   lua_pushinteger(L, (int)ret);
