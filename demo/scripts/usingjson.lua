@@ -1,4 +1,4 @@
-local json = require("json.cjson")
+local json = require("json")
 
 print("json module:", tostring(json, 16))
 
