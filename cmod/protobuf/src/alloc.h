@@ -28,7 +28,7 @@ void _pbcH_delete(heap*);
 size_t _pbcH_memsize(heap* h);
 void* _pbcH_alloc(heap*, int size);
 
-#define HMALLOC(size) ((h) ? _pbcH_alloc(h, size) : _pbcM_malloc(size))
+#define HMALLOC(size) ((h) ? _pbcH_alloc(h, (int)(size)) : _pbcM_malloc(size))
 
 //#define malloc _pbcM_malloc
 //#define free _pbcM_free

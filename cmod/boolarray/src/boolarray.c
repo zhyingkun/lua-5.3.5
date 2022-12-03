@@ -143,7 +143,7 @@ static int makeunion(lua_State* L) {
 
 static int nextforarray(lua_State* L) {
   BitArray* a = CHECK_ARRAY(L, 1);
-  int index = luaL_checkinteger(L, 2);
+  int index = (int)luaL_checkinteger(L, 2);
   luaL_argcheck(L, 0 <= index && index <= a->size, 2, "index out of range");
   if (index == a->size) { // last one?
     return 0;

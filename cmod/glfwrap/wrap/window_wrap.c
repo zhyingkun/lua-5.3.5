@@ -34,10 +34,10 @@ static void init_image_metatable(lua_State* L) {
 }
 
 static int GLFWRAP_FUNCTION(GLFWimage)(lua_State* L) {
-  int width = luaL_checkinteger(L, 1);
-  int height = luaL_checkinteger(L, 2);
+  int width = (int)luaL_checkinteger(L, 1);
+  int height = (int)luaL_checkinteger(L, 2);
   unsigned char* pixels = (unsigned char*)luaL_checkstring(L, 3);
-  int len = luaL_len(L, 3);
+  int len = (int)luaL_len(L, 3);
   if (width * height * 4 != len) {
     luaL_error(L, "The length of pixels must be width * height * 4, but %d * %d * 4 != %d", width, height, len);
   }
@@ -65,22 +65,22 @@ static int GLFWRAP_FUNCTION(DefaultWindowHints)(lua_State* L) {
 }
 
 static int GLFWRAP_FUNCTION(WindowHint)(lua_State* L) {
-  int hint = luaL_checkinteger(L, 1);
-  int value = luaL_checkinteger(L, 2);
+  int hint = (int)luaL_checkinteger(L, 1);
+  int value = (int)luaL_checkinteger(L, 2);
   glfwWindowHint(hint, value);
   return 0;
 }
 
 static int GLFWRAP_FUNCTION(WindowHintString)(lua_State* L) {
-  int hint = luaL_checkinteger(L, 1);
+  int hint = (int)luaL_checkinteger(L, 1);
   const char* value = luaL_checkstring(L, 2);
   glfwWindowHintString(hint, value);
   return 0;
 }
 
 static int GLFWRAP_FUNCTION(CreateWindow)(lua_State* L) {
-  int width = luaL_checkinteger(L, 1);
-  int height = luaL_checkinteger(L, 2);
+  int width = (int)luaL_checkinteger(L, 1);
+  int height = (int)luaL_checkinteger(L, 2);
   const char* title = luaL_checkstring(L, 3);
   GLFWmonitor* monitor = (GLFWmonitor*)luaL_optlightuserdata(L, 4, NULL);
   GLFWwindow* shared = (GLFWwindow*)luaL_optlightuserdata(L, 5, NULL);
@@ -149,8 +149,8 @@ static int GLFWRAP_FUNCTION(GetWindowPos)(lua_State* L) {
 
 static int GLFWRAP_FUNCTION(SetWindowPos)(lua_State* L) {
   GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
-  int xpos = luaL_checkinteger(L, 2);
-  int ypos = luaL_checkinteger(L, 3);
+  int xpos = (int)luaL_checkinteger(L, 2);
+  int ypos = (int)luaL_checkinteger(L, 3);
   glfwSetWindowPos(window, xpos, ypos);
   return 0;
 }
@@ -167,26 +167,26 @@ static int GLFWRAP_FUNCTION(GetWindowSize)(lua_State* L) {
 
 static int GLFWRAP_FUNCTION(SetWindowSizeLimits)(lua_State* L) {
   GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
-  int minwidth = luaL_checkinteger(L, 2);
-  int minheight = luaL_checkinteger(L, 3);
-  int maxwidth = luaL_checkinteger(L, 4);
-  int maxheight = luaL_checkinteger(L, 5);
+  int minwidth = (int)luaL_checkinteger(L, 2);
+  int minheight = (int)luaL_checkinteger(L, 3);
+  int maxwidth = (int)luaL_checkinteger(L, 4);
+  int maxheight = (int)luaL_checkinteger(L, 5);
   glfwSetWindowSizeLimits(window, minwidth, minheight, maxwidth, maxheight);
   return 0;
 }
 
 static int GLFWRAP_FUNCTION(SetWindowAspectRatio)(lua_State* L) {
   GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
-  int numer = luaL_checkinteger(L, 2);
-  int denom = luaL_checkinteger(L, 3);
+  int numer = (int)luaL_checkinteger(L, 2);
+  int denom = (int)luaL_checkinteger(L, 3);
   glfwSetWindowAspectRatio(window, numer, denom);
   return 0;
 }
 
 static int GLFWRAP_FUNCTION(SetWindowSize)(lua_State* L) {
   GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
-  int width = luaL_checkinteger(L, 2);
-  int height = luaL_checkinteger(L, 3);
+  int width = (int)luaL_checkinteger(L, 2);
+  int height = (int)luaL_checkinteger(L, 3);
   glfwSetWindowSize(window, width, height);
   return 0;
 }
@@ -291,18 +291,18 @@ static int GLFWRAP_FUNCTION(GetWindowMonitor)(lua_State* L) {
 static int GLFWRAP_FUNCTION(SetWindowMonitor)(lua_State* L) {
   GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
   GLFWmonitor* monitor = luaL_checkGLFWmonitor(L, 2);
-  int xpos = luaL_checkinteger(L, 3);
-  int ypos = luaL_checkinteger(L, 4);
-  int width = luaL_checkinteger(L, 5);
-  int height = luaL_checkinteger(L, 6);
-  int refreshRate = luaL_checkinteger(L, 7);
+  int xpos = (int)luaL_checkinteger(L, 3);
+  int ypos = (int)luaL_checkinteger(L, 4);
+  int width = (int)luaL_checkinteger(L, 5);
+  int height = (int)luaL_checkinteger(L, 6);
+  int refreshRate = (int)luaL_checkinteger(L, 7);
   glfwSetWindowMonitor(window, monitor, xpos, ypos, width, height, refreshRate);
   return 0;
 }
 
 static int GLFWRAP_FUNCTION(GetWindowAttrib)(lua_State* L) {
   GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
-  int attrib = luaL_checkinteger(L, 2);
+  int attrib = (int)luaL_checkinteger(L, 2);
   int value = glfwGetWindowAttrib(window, attrib);
   lua_pushinteger(L, value);
   return 1;
@@ -310,8 +310,8 @@ static int GLFWRAP_FUNCTION(GetWindowAttrib)(lua_State* L) {
 
 static int GLFWRAP_FUNCTION(SetWindowAttrib)(lua_State* L) {
   GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
-  int attrib = luaL_checkinteger(L, 2);
-  int value = luaL_checkinteger(L, 3);
+  int attrib = (int)luaL_checkinteger(L, 2);
+  int value = (int)luaL_checkinteger(L, 3);
   glfwSetWindowAttrib(window, attrib, value);
   return 0;
 }

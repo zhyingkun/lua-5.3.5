@@ -28,7 +28,7 @@ typedef struct {
 static void _doImageDecode(ImageDecodeParam* param, ImageDecodeResult* result) {
   result->wantChannels = channels_textureFormat[param->format];
   luaL_MemBuffer* mb = &param->mb;
-  result->data = (void*)stbi_load_from_memory((const stbi_uc*)mb->ptr, mb->sz, &result->width, &result->height, &result->nrChannels, result->wantChannels);
+  result->data = (void*)stbi_load_from_memory((const stbi_uc*)mb->ptr, (int)mb->sz, &result->width, &result->height, &result->nrChannels, result->wantChannels);
   MEMBUFFER_RELEASE(mb);
 }
 static void _releaseImageSTB(void* ud, void* ptr) {
@@ -196,12 +196,12 @@ static void _doImageEncode(ImageEncodeParam* param, ImageEncodeResult* result) {
 
 static int IMAGE_FUNCTION(packImageEncodeParam)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  int width = luaL_checkinteger(L, 2);
-  int height = luaL_checkinteger(L, 3);
-  int components = luaL_checkinteger(L, 4);
+  int width = (int)luaL_checkinteger(L, 2);
+  int height = (int)luaL_checkinteger(L, 3);
+  int components = (int)luaL_checkinteger(L, 4);
   ImageType type = luaL_checkimagetype(L, 5);
-  int stride = type == IT_PNG ? luaL_checkinteger(L, 6) : 0;
-  int quality = type == IT_JPG ? luaL_checkinteger(L, 6) : 0;
+  int stride = type == IT_PNG ? (int)luaL_checkinteger(L, 6) : 0;
+  int quality = type == IT_JPG ? (int)luaL_checkinteger(L, 6) : 0;
 
   ImageEncodeParam* param = (ImageEncodeParam*)malloc(sizeof(ImageEncodeParam));
   MEMBUFFER_MOVE(mb, &param->mb);
@@ -239,12 +239,12 @@ static int IMAGE_FUNCTION(unpackImageEncodeResult)(lua_State* L) {
 
 static int IMAGE_FUNCTION(imageEncode)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  int width = luaL_checkinteger(L, 2);
-  int height = luaL_checkinteger(L, 3);
-  int components = luaL_checkinteger(L, 4);
+  int width = (int)luaL_checkinteger(L, 2);
+  int height = (int)luaL_checkinteger(L, 3);
+  int components = (int)luaL_checkinteger(L, 4);
   ImageType type = luaL_checkimagetype(L, 5);
-  int stride = type == IT_PNG ? luaL_checkinteger(L, 6) : 0;
-  int quality = type == IT_JPG ? luaL_checkinteger(L, 6) : 0;
+  int stride = type == IT_PNG ? (int)luaL_checkinteger(L, 6) : 0;
+  int quality = type == IT_JPG ? (int)luaL_checkinteger(L, 6) : 0;
 
   ImageEncodeParam param[1];
   MEMBUFFER_MOVE(mb, &param->mb);
@@ -282,7 +282,7 @@ static void _doImageFlipVertical(ImageFlipVerticalParam* param, ImageFlipVertica
   int width = param->width;
   int height = param->height;
 
-  int bytesPerPixel = mb->sz / (width * height);
+  int bytesPerPixel = (int)(mb->sz / ((size_t)width * (size_t)height));
   stbi__vertical_flip(mb->ptr, width, height, bytesPerPixel);
 
   MEMBUFFER_MOVE(mb, &result->mb);
@@ -290,8 +290,8 @@ static void _doImageFlipVertical(ImageFlipVerticalParam* param, ImageFlipVertica
 
 static int IMAGE_FUNCTION(packImageFlipVerticalParam)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  int width = luaL_checkinteger(L, 2);
-  int height = luaL_checkinteger(L, 3);
+  int width = (int)luaL_checkinteger(L, 2);
+  int height = (int)luaL_checkinteger(L, 3);
 
   ImageFlipVerticalParam* param = (ImageFlipVerticalParam*)malloc(sizeof(ImageFlipVerticalParam));
   MEMBUFFER_MOVE(mb, &param->mb);
@@ -320,8 +320,8 @@ static int IMAGE_FUNCTION(unpackImageFlipVerticalResult)(lua_State* L) {
 }
 static int IMAGE_FUNCTION(imageFlipVertical)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  int width = luaL_checkinteger(L, 2);
-  int height = luaL_checkinteger(L, 3);
+  int width = (int)luaL_checkinteger(L, 2);
+  int height = (int)luaL_checkinteger(L, 3);
 
   ImageFlipVerticalParam param[1];
   MEMBUFFER_MOVE(mb, &param->mb);

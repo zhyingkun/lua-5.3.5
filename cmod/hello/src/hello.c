@@ -156,7 +156,7 @@ static int cfunc(lua_State* L) {
     printf("lua_pcall error: %s\n", msg);
     // luaL_traceback(L, L, msg, 2);
   }
-  int myVal = lua_tointeger(L, -1);
+  int myVal = (int)lua_tointeger(L, -1);
   printf("myVal: %d\n", myVal);
   lua_getglobal(L, "lfunc");
   lua_pushnumber(L, 13);

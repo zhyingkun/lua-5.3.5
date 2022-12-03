@@ -38,7 +38,7 @@ static int NKWRAP_FUNCTION(layout_ratio_from_pixel)(lua_State* L) {
 static int NKWRAP_FUNCTION(layout_row_dynamic)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   float height = luaL_checknumber(L, 2);
-  int cols = luaL_checkinteger(L, 3);
+  int cols = (int)luaL_checkinteger(L, 3);
 
   nk_layout_row_dynamic(ctx, height, cols);
   return 0;
@@ -46,8 +46,8 @@ static int NKWRAP_FUNCTION(layout_row_dynamic)(lua_State* L) {
 static int NKWRAP_FUNCTION(layout_row_static)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   float height = luaL_checknumber(L, 2);
-  int itemWidth = luaL_checkinteger(L, 3);
-  int cols = luaL_checkinteger(L, 4);
+  int itemWidth = (int)luaL_checkinteger(L, 3);
+  int cols = (int)luaL_checkinteger(L, 4);
 
   nk_layout_row_static(ctx, height, itemWidth, cols);
   return 0;
@@ -56,7 +56,7 @@ static int NKWRAP_FUNCTION(layout_row_begin)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   nk_layout_format fmt = luaL_checknklayoutformat(L, 2);
   float rowHeight = luaL_checknumber(L, 3);
-  int cols = luaL_checkinteger(L, 4);
+  int cols = (int)luaL_checkinteger(L, 4);
 
   nk_layout_row_begin(ctx, fmt, rowHeight, cols);
   return 0;
@@ -78,7 +78,7 @@ static int NKWRAP_FUNCTION(layout_row)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   nk_layout_format fmt = luaL_checknklayoutformat(L, 2);
   float height = luaL_checknumber(L, 3);
-  int cols = luaL_checkinteger(L, 4);
+  int cols = (int)luaL_checkinteger(L, 4);
 #define RATIO_IDX 5
   luaL_checktype(L, RATIO_IDX, LUA_TTABLE);
 
@@ -129,7 +129,7 @@ static int NKWRAP_FUNCTION(layout_space_begin)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   nk_layout_format fmt = luaL_checknklayoutformat(L, 2);
   float height = luaL_checknumber(L, 3);
-  int widgetCount = luaL_checkinteger(L, 4);
+  int widgetCount = (int)luaL_checkinteger(L, 4);
 
   nk_layout_space_begin(ctx, fmt, height, widgetCount);
   return 0;

@@ -5,7 +5,7 @@
 
 static int TTY_FUNCTION(setMode)(lua_State* L) {
   uv_tty_t* handle = luaL_checktty(L, 1);
-  uv_tty_mode_t mode = luaL_checkinteger(L, 2);
+  uv_tty_mode_t mode = (uv_tty_mode_t)luaL_checkinteger(L, 2);
   int err = uv_tty_set_mode(handle, mode);
   CHECK_ERROR(L, err);
   return 0;
@@ -49,7 +49,7 @@ static void TTY_FUNCTION(init_metatable)(lua_State* L) {
 
 int TTY_FUNCTION(Tty)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
-  uv_file fd = luaL_checkinteger(L, 2);
+  uv_file fd = (uv_file)luaL_checkinteger(L, 2);
 
   uv_tty_t* handle = (uv_tty_t*)lua_newuserdata(L, sizeof(uv_tty_t));
 

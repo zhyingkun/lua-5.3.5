@@ -674,9 +674,9 @@ uint8_t* uniform_writeData(luaL_ByteBuffer* b, bcfx_Handle handle, size_t sz) {
   uint32_t* ph = (uint32_t*)luaBB_appendbytes(b, sizeof(uint32_t)); // for memory alignment
   *ph = handle;
   uint32_t* ps = (uint32_t*)luaBB_appendbytes(b, sizeof(uint32_t)); // for memory alignment
-  *ps = sz;
+  *ps = (uint32_t)sz;
   assert(sz % sizeof(float) == 0); // for memory alignment in 4 byte
-  return (uint8_t*)luaBB_appendbytes(b, sz);
+  return (uint8_t*)luaBB_appendbytes(b, (uint32_t)sz);
 }
 uint8_t* uniform_readData(luaL_ByteBuffer* b, bcfx_Handle* phandle, size_t* psize, size_t* pread) {
   uint32_t* ph = (uint32_t*)luaBB_readbytes(b, sizeof(uint32_t));
@@ -687,7 +687,7 @@ uint8_t* uniform_readData(luaL_ByteBuffer* b, bcfx_Handle* phandle, size_t* psiz
   size_t size = *ps;
   *psize = size;
   assert(size % sizeof(float) == 0);
-  uint8_t* ptr = (uint8_t*)luaBB_readbytes(b, size);
+  uint8_t* ptr = (uint8_t*)luaBB_readbytes(b, (uint32_t)size);
   assert(ptr != NULL);
   *pread += sizeof(uint32_t) + sizeof(uint32_t) + size;
   return ptr;

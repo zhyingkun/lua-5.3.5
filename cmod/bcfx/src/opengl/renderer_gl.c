@@ -380,7 +380,7 @@ static void gl_createVertexBuffer(RendererContext* ctx, bcfx_Handle handle, luaL
 static void gl_createIndexBuffer(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_EIndexType type) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
-  ib->count = mem->sz / sizeof_IndexType[type];
+  ib->count = (uint32_t)(mem->sz / (size_t)sizeof_IndexType[type]);
   ib->type = type;
   gl_createBufferGPU(&ib->buffer, mem, GL_ELEMENT_ARRAY_BUFFER);
 }
@@ -396,7 +396,7 @@ static void gl_createShader(RendererContext* ctx, bcfx_Handle handle, luaL_MemBu
     assert(type == ST_Count);
     assert(path == NULL);
   }
-  const GLint length = mem->sz;
+  const GLint length = (GLint)mem->sz;
   GL_CHECK(glShaderSource(shader->id, 1, (const GLchar* const*)&mem->ptr, &length));
   GL_CHECK(glCompileShader(shader->id));
 
@@ -671,7 +671,7 @@ static void gl_createInstanceDataBuffer(RendererContext* ctx, bcfx_Handle handle
   const uint8_t numFloatPerVec4 = 4;
   const uint8_t numBytePerVec4 = numFloatPerVec4 * numBytePerFloat;
   uint32_t numBytePerInstance = numVec4PerInstance * numBytePerVec4;
-  idb->numInstance = mem->sz / numBytePerInstance;
+  idb->numInstance = (uint32_t)(mem->sz / numBytePerInstance);
   gl_createBufferGPU(&idb->buffer, mem, GL_ARRAY_BUFFER);
 }
 static void gl_createTextureBuffer(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_ETextureFormat format) {

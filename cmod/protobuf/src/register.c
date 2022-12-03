@@ -92,15 +92,15 @@ static void _set_default(_stringpool* pool, _field* f, int ptype, const char* va
     case PTYPE_SFIXED64:
     case PTYPE_SINT64: {
       long long v = strtoll(value, NULL, 10);
-      f->default_v->integer.low = (long)v;
-      f->default_v->integer.hi = (long)(v >> 32);
+      f->default_v->integer.low = (uint32_t)v;
+      f->default_v->integer.hi = (uint32_t)(v >> 32);
       break;
     }
     case PTYPE_INT32:
     case PTYPE_FIXED32:
     case PTYPE_SFIXED32:
     case PTYPE_SINT32: {
-      int low = strtol(value, NULL, 10);
+      int low = (int)strtol(value, NULL, 10);
       f->default_v->integer.low = low;
       if (low < 0) {
         f->default_v->integer.hi = -1;
@@ -110,7 +110,7 @@ static void _set_default(_stringpool* pool, _field* f, int ptype, const char* va
       break;
     }
     case PTYPE_UINT32:
-      f->default_v->integer.low = strtoul(value, NULL, 10);
+      f->default_v->integer.low = (uint32_t)strtoul(value, NULL, 10);
       f->default_v->integer.hi = 0;
       break;
     case PTYPE_BYTES:
@@ -286,7 +286,7 @@ static int _register_no_dependency(pbc_env* p, pbc_rmessage** files, int n) {
         break;
       case CHECK_FILE_OK: {
         _stringpool* pool = _pbcS_new();
-        filename = _pbcS_build(pool, filename, strlen(filename));
+        filename = _pbcS_build(pool, filename, (int)strlen(filename));
         _pbcM_sp_insert(p->files, filename, pool);
         _register(p, files[i], pool);
         files[i] = NULL;

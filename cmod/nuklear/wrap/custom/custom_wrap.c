@@ -13,7 +13,7 @@ int CUSTOM_FUNCTION(piemenu)(lua_State* L) {
   float radius = luaL_checknumber(L, 3);
 #define ICONS_IDX 4
   luaL_checktype(L, ICONS_IDX, LUA_TTABLE);
-  int count = luaL_len(L, ICONS_IDX);
+  int count = (int)luaL_len(L, ICONS_IDX);
   if (count <= 0) {
     return luaL_error(L, "piemenu must have at least one icon");
   }

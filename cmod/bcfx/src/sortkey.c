@@ -61,11 +61,11 @@ void sortkey_decode(SortKey* key, uint64_t value) {
       case ST_Program: {
         key->blend = value >> SORTKEY_BLEND_SHIFT0;
         key->program = value >> SORTKEY_PROGRAM_SHIFT0;
-        key->depth = value >> SORTKEY_DEPTH_SHIFT0;
+        key->depth = (uint32_t)(value >> SORTKEY_DEPTH_SHIFT0);
         key->sequence = value >> SORTKEY_SEQUENCE_SHIFT0;
       } break;
       case ST_Depth: {
-        key->depth = value >> SORTKEY_DEPTH_SHIFT1;
+        key->depth = (uint32_t)(value >> SORTKEY_DEPTH_SHIFT1);
         key->blend = value >> SORTKEY_BLEND_SHIFT1;
         key->program = value >> SORTKEY_PROGRAM_SHIFT1;
         key->sequence = value >> SORTKEY_SEQUENCE_SHIFT1;

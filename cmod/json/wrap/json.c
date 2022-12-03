@@ -159,7 +159,7 @@ static int json_add_item_to_object(lua_State* L) {
 // detach_item_from_array(cJsonPtr, integer) => cJsonPtr
 static int json_detach_item_from_array(lua_State* L) {
   cJSON* array = check_cJSON_ptr(L, 1);
-  int which = luaL_checkinteger(L, 2);
+  int which = (int)luaL_checkinteger(L, 2);
   cJSON* item = cJSON_DetachItemFromArray(array, which);
   if (item == NULL) {
     return 0;
@@ -182,7 +182,7 @@ static int json_detach_item_from_object(lua_State* L) {
 // insert_item_in_array(cJsonPtr, integer, cJsonPtr) => void
 static int json_insert_item_in_array(lua_State* L) {
   cJSON* array = check_cJSON_ptr(L, 1);
-  int which = luaL_checkinteger(L, 2);
+  int which = (int)luaL_checkinteger(L, 2);
   cJSON* item = check_cJSON_ptr(L, 3);
   cJSON_InsertItemInArray(array, which, item);
   return 0;
@@ -191,7 +191,7 @@ static int json_insert_item_in_array(lua_State* L) {
 // replace_item_in_array(cJsonPtr, integer, cJsonPtr) => void
 static int json_replace_item_in_array(lua_State* L) {
   cJSON* array = check_cJSON_ptr(L, 1);
-  int which = luaL_checkinteger(L, 2);
+  int which = (int)luaL_checkinteger(L, 2);
   cJSON* item = check_cJSON_ptr(L, 3);
   cJSON_ReplaceItemInArray(array, which, item);
   return 0;

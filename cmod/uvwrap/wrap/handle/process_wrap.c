@@ -13,7 +13,7 @@ typedef struct {
 } uvwrap_stdio_container_t;
 
 static int STDIOCONT_FUNCTION(new)(lua_State* L) {
-  int maxsz = luaL_optinteger(L, 1, 3);
+  int maxsz = (int)luaL_optinteger(L, 1, 3);
   if (maxsz < 3) {
     maxsz = 3;
   }
@@ -53,7 +53,7 @@ static int STDIOCONT_FUNCTION(add)(lua_State* L) {
   container->stdio[i].flags = flags;
 #define IO_INDEX 3
   if (lua_isinteger(L, IO_INDEX)) {
-    container->stdio[i].data.fd = lua_tointeger(L, IO_INDEX);
+    container->stdio[i].data.fd = (int)lua_tointeger(L, IO_INDEX);
   } else if (luaL_testudata_recursive(L, IO_INDEX, UVWRAP_STREAM_TYPE)) {
     container->stdio[i].data.stream = (uv_stream_t*)lua_touserdata(L, IO_INDEX);
     _holdInUserValue(L, 1, IO_INDEX, container->maxsz);
@@ -199,7 +199,7 @@ int PROCESS_FUNCTION(Process)(lua_State* L) {
 
 static int PROCESS_FUNCTION(pkill)(lua_State* L) {
   uv_process_t* handle = luaL_checkprocess(L, 1);
-  int signum = luaL_checkinteger(L, 2);
+  int signum = (int)luaL_checkinteger(L, 2);
   int err = uv_process_kill(handle, signum);
   CHECK_ERROR(L, err);
   return 0;
@@ -246,15 +246,15 @@ static int PROCESS_FUNCTION(disable_stdio_inheritance)(lua_State* L) {
 }
 
 static int PROCESS_FUNCTION(kill)(lua_State* L) {
-  int pid = luaL_checkinteger(L, 1);
-  int signum = luaL_checkinteger(L, 1);
+  int pid = (int)luaL_checkinteger(L, 1);
+  int signum = (int)luaL_checkinteger(L, 1);
   int err = uv_kill(pid, signum);
   CHECK_ERROR(L, err);
   return 0;
 }
 
 static int PROCESS_FUNCTION(setup_args)(lua_State* L) {
-  int argc = luaL_checkinteger(L, 1);
+  int argc = (int)luaL_checkinteger(L, 1);
   char** argv = (char**)luaL_checklightuserdata(L, 2);
   argv = uv_setup_args(argc, argv);
   lua_pushlightuserdata(L, argv);

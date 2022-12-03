@@ -532,7 +532,7 @@ static int _pack_field(_pattern_field* pf, int ctype, pbc_slice* s, void* input)
       input_slice = (pbc_slice*)input;
       if (input_slice->len < 0) {
         string_slice.buffer = input_slice->buffer;
-        string_slice.len = strlen((const char*)string_slice.buffer) - input_slice->len;
+        string_slice.len = (int)(strlen((const char*)string_slice.buffer) - input_slice->len);
         input_slice = &string_slice;
       }
       goto _string;
@@ -767,7 +767,7 @@ int pbc_pattern_pack(pbc_pattern* pat, void* input, pbc_slice* s) {
     }
   }
   // slice.buffer points to the rest of the buffer
-  int len = (char*)slice.buffer - (char*)s->buffer;
+  int len = (int)((char*)slice.buffer - (char*)s->buffer);
   int ret = s->len - len;
   s->len = len;
   return ret;
@@ -797,7 +797,7 @@ int pbc_pattern_unpack(pbc_pattern* pat, pbc_slice* s, void* output) {
   for (i = 0; i < ctx->number; i++) {
     _pattern_field* f = bsearch_pattern(pat, ctx->a[i].wire_id >> 3);
     if (f) {
-      int index = f - pat->f;
+      int index = (int)(f - pat->f);
       if (field[index] == false) {
         field[index] = true;
         ++fc;
@@ -966,7 +966,7 @@ static int _check_ctype(_field* field, _pattern_field* f) {
 }
 
 pbc_pattern* _pattern_new(_message* m, const char* format) {
-  int len = strlen(format);
+  size_t len = strlen(format);
   char* temp = (char*)alloca(len + 1);
   int n = _scan_pattern(format, temp);
   pbc_pattern* pat = _pbcP_new(m->env, n);
@@ -1026,7 +1026,7 @@ pbc_pattern* pbc_pattern_new(pbc_env* env, const char* message, const char* form
     return _pattern_new(m, format + 1);
   }
 
-  int len = strlen(format);
+  size_t len = strlen(format);
   char* temp = (char*)alloca(len + 1);
   int n = _scan_pattern(format, temp);
   pbc_pattern* pat = _pbcP_new(env, n);

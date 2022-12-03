@@ -244,7 +244,7 @@ static void _pbcM_sp_insert_hash(map_sp* map, const char* key, size_t hash_full,
       slot->pointer = value;
       slot->hash = hash_full;
     } else {
-      int empty = (hash + 1) & (map->cap - 1);
+      int empty = (int)((hash + 1) & (map->cap - 1));
       while (map->slot[empty].key != NULL) {
         empty = (empty + 1) & (map->cap - 1);
       }
@@ -303,7 +303,7 @@ static void** _pbcM_sp_query_insert_hash(map_sp* map, const char* key, size_t ha
     if (map->cap <= map->size)
       goto _rehash;
 
-    int empty = (hash + 1) & (map->cap - 1);
+    int empty = (int)((hash + 1) & (map->cap - 1));
     while (map->slot[empty].key != NULL) {
       empty = (empty + 1) & (map->cap - 1);
     }
@@ -372,7 +372,7 @@ static int _find_first(map_sp* map) {
   size_t i;
   for (i = 0; i < map->cap; i++) {
     if (map->slot[i].pointer) {
-      return i;
+      return (int)i;
     }
   }
   return -1;
@@ -387,7 +387,7 @@ static int _find_next(map_sp* map, const char* key) {
     return -1;
   for (;;) {
     if (slot->hash == hash_full && strcmp(slot->key, key) == 0) {
-      int i = slot - map->slot + 1;
+      int i = (int)(slot - map->slot + 1);
       while (i < map->cap) {
         if (map->slot[i].pointer) {
           return i;

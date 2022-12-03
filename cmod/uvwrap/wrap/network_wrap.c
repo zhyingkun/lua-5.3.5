@@ -32,7 +32,7 @@ static int SOCKADDR_FUNCTION(family)(lua_State* L) {
 static int SOCKADDR_FUNCTION(ip4Addr)(lua_State* L) {
   struct sockaddr_in* addr = (struct sockaddr_in*)luaL_checksockaddr(L, 1);
   const char* ip = luaL_checklstring(L, 2, NULL);
-  int port = luaL_checkinteger(L, 3);
+  int port = (int)luaL_checkinteger(L, 3);
   int err = uv_ip4_addr(ip, port, addr);
   CHECK_ERROR(L, err);
   lua_settop(L, 1);
@@ -42,7 +42,7 @@ static int SOCKADDR_FUNCTION(ip4Addr)(lua_State* L) {
 static int SOCKADDR_FUNCTION(ip6Addr)(lua_State* L) {
   struct sockaddr_in6* addr = (struct sockaddr_in6*)luaL_checksockaddr(L, 1);
   const char* ip = luaL_checklstring(L, 2, NULL);
-  int port = luaL_checkinteger(L, 3);
+  int port = (int)luaL_checkinteger(L, 3);
   int err = uv_ip6_addr(ip, port, addr);
   CHECK_ERROR(L, err);
   lua_settop(L, 1);
@@ -253,7 +253,7 @@ char* PHYSADDR_FUNCTION(create)(lua_State* L) {
 #define READ_ONE_HINT_FIELD(L, idx, hints, name) \
   lua_getfield(L, idx, #name); \
   if (lua_isinteger(L, -1)) { \
-    hints->ai_##name = lua_tointeger(L, -1); \
+    hints->ai_##name = (int)lua_tointeger(L, -1); \
   } \
   lua_pop(L, 1)
 
@@ -308,7 +308,7 @@ static void NETWORK_CALLBACK(getnameinfo)(uv_getnameinfo_t* req, int status, con
 static int NETWORK_FUNCTION(getnameinfo)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
   const struct sockaddr* addr = luaL_checksockaddr(L, 2);
-  int flags = luaL_checkinteger(L, 3);
+  int flags = (int)luaL_checkinteger(L, 3);
   int async = CHECK_IS_ASYNC(L, 4);
 
   uv_getnameinfo_t* req = (uv_getnameinfo_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_getnameinfo_t));
@@ -345,7 +345,7 @@ static int NETWORK_FUNCTION(interface_addresses)(lua_State* L) {
 }
 
 static int NETWORK_FUNCTION(if_indextoname)(lua_State* L) {
-  unsigned int ifindex = luaL_checkinteger(L, 1);
+  unsigned int ifindex = (unsigned int)luaL_checkinteger(L, 1);
   char ifname[UV_IF_NAMESIZE];
   size_t size = sizeof(ifname);
   int err = uv_if_indextoname(ifindex, ifname, &size);
@@ -355,7 +355,7 @@ static int NETWORK_FUNCTION(if_indextoname)(lua_State* L) {
 }
 
 static int NETWORK_FUNCTION(if_indextoiid)(lua_State* L) {
-  unsigned int ifindex = luaL_checkinteger(L, 1);
+  unsigned int ifindex = (unsigned int)luaL_checkinteger(L, 1);
   char ifname[UV_IF_NAMESIZE];
   size_t size = sizeof(ifname);
   int err = uv_if_indextoiid(ifindex, ifname, &size);

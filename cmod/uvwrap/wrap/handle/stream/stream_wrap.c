@@ -53,7 +53,7 @@ static void STREAM_CALLBACK(listenAsync)(uv_stream_t* handle, int status) {
 }
 static int STREAM_FUNCTION(listenAsync)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
-  int backlog = luaL_checkinteger(L, 2);
+  int backlog = (int)luaL_checkinteger(L, 2);
   luaL_checktype(L, 3, LUA_TFUNCTION);
 
   int err = uv_listen(handle, backlog, STREAM_CALLBACK(listenAsync));

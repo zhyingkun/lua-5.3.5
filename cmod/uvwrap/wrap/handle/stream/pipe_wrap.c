@@ -6,7 +6,7 @@
 
 static int PIPE_FUNCTION(open)(lua_State* L) {
   uv_pipe_t* handle = luaL_checkpipe(L, 1);
-  uv_file file = luaL_checkinteger(L, 2);
+  uv_file file = (uv_file)luaL_checkinteger(L, 2);
   int err = uv_pipe_open(handle, file);
   CHECK_ERROR(L, err);
   lua_settop(L, 1);
@@ -84,7 +84,7 @@ static int PIPE_FUNCTION(getPeerName)(lua_State* L) {
 
 static int PIPE_FUNCTION(pendingInstances)(lua_State* L) {
   uv_pipe_t* handle = luaL_checkpipe(L, 1);
-  int count = luaL_checkinteger(L, 2);
+  int count = (int)luaL_checkinteger(L, 2);
   uv_pipe_pending_instances(handle, count);
   return 0;
 }
@@ -103,7 +103,7 @@ static int PIPE_FUNCTION(pendingType)(lua_State* L) {
 
 static int PIPE_FUNCTION(chmod)(lua_State* L) {
   uv_pipe_t* handle = luaL_checkpipe(L, 1);
-  int mode = luaL_checkinteger(L, 2);
+  int mode = (int)luaL_checkinteger(L, 2);
   int err = uv_pipe_chmod(handle, mode);
   CHECK_ERROR(L, err);
   return 0;

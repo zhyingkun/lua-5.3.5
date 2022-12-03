@@ -216,7 +216,7 @@ static void uv__fsevents_event_cb(ConstFSEventStreamRef streamRef, void* info, s
         continue;
 
       path = paths[i];
-      len = strlen(path);
+      len = (int)strlen(path);
 
       if (handle->realpath_len == 0)
         continue; /* This should be unreachable */
@@ -754,7 +754,7 @@ int uv__fsevents_init(uv_fs_event_t* handle) {
   handle->realpath = realpath(handle->path, NULL);
   if (handle->realpath == NULL)
     return UV__ERR(errno);
-  handle->realpath_len = strlen(handle->realpath);
+  handle->realpath_len = (int)strlen(handle->realpath);
 
   /* Initialize event queue */
   QUEUE_INIT(&handle->cf_events);

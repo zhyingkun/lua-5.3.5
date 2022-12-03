@@ -208,8 +208,8 @@ static int NKWRAP_FUNCTION(window_set_focus)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(window_set_scroll)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_uint offsetX = luaL_checkinteger(L, 2);
-  nk_uint offsetY = luaL_checkinteger(L, 3);
+  nk_uint offsetX = (nk_uint)luaL_checkinteger(L, 2);
+  nk_uint offsetY = (nk_uint)luaL_checkinteger(L, 3);
 
   nk_window_set_scroll(ctx, offsetX, offsetY);
   return 0;
@@ -233,7 +233,7 @@ static int NKWRAP_FUNCTION(window_collapse_if)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   const char* name = luaL_checkstring(L, 2);
   nk_collapse_states state = (nk_collapse_states)luaL_checkboolean(L, 3);
-  int cond = luaL_checkinteger(L, 4);
+  int cond = (int)luaL_checkinteger(L, 4);
 
   nk_window_collapse_if(ctx, name, state, cond);
   return 0;
@@ -250,7 +250,7 @@ static int NKWRAP_FUNCTION(window_show_if)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   const char* name = luaL_checkstring(L, 2);
   nk_show_states state = (nk_show_states)luaL_checkboolean(L, 3);
-  int cond = luaL_checkinteger(L, 4);
+  int cond = (int)luaL_checkinteger(L, 4);
 
   nk_window_show_if(ctx, name, state, cond);
   return 0;

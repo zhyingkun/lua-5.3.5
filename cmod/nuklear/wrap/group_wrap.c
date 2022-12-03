@@ -63,8 +63,8 @@ static int NKWRAP_FUNCTION(group_get_scroll)(lua_State* L) {
 static int NKWRAP_FUNCTION(group_set_scroll)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   const char* name = luaL_checkstring(L, 2);
-  nk_uint offsetX = luaL_checkinteger(L, 3);
-  nk_uint offsetY = luaL_checkinteger(L, 4);
+  nk_uint offsetX = (nk_uint)luaL_checkinteger(L, 3);
+  nk_uint offsetY = (nk_uint)luaL_checkinteger(L, 4);
 
   nk_group_set_scroll(ctx, name, offsetX, offsetY);
   return 0;

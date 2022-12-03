@@ -23,7 +23,7 @@ static int NKCONTEXT_FUNCTION(setUserData)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   nk_handle handle;
   if (lua_isinteger(L, 2)) {
-    handle = nk_handle_id(lua_tointeger(L, 2));
+    handle = nk_handle_id((int)lua_tointeger(L, 2));
   } else {
     handle = nk_handle_ptr(luaL_checklightuserdata(L, 2));
   }

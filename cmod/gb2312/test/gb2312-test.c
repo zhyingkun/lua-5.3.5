@@ -28,7 +28,7 @@ int main(int argc, const char* argv[]) {
       }
       if (j == 0) {
         gbcode = GB2312_Unicode[idx].gb2312;
-        unsigned int section = i + (i > 8 ? 6 : 0) + 0xA1;
+        unsigned int section = (unsigned int)(i + (i > 8 ? 6 : 0) + 0xA1);
         if (gbcode != ((section << 8) | 0xA1)) {
           fprintf(stderr, "Error => gcode: %u, section: %u, bit: 0xA1\n", gbcode, section);
           return -1;

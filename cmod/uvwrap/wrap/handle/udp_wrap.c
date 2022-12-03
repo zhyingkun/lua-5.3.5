@@ -64,7 +64,7 @@ static int UDP_FUNCTION(setMulticastLoop)(lua_State* L) {
 
 static int UDP_FUNCTION(setMulticastTtl)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
-  int ttl = luaL_checkinteger(L, 2); // [1, 255]
+  int ttl = (int)luaL_checkinteger(L, 2); // [1, 255]
   int err = uv_udp_set_multicast_ttl(handle, ttl);
   CHECK_ERROR(L, err);
   lua_settop(L, 1);
@@ -92,7 +92,7 @@ static int UDP_FUNCTION(setBroadcast)(lua_State* L) {
 
 static int UDP_FUNCTION(setTtl)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
-  int ttl = luaL_checkinteger(L, 2); // [1, 255]
+  int ttl = (int)luaL_checkinteger(L, 2); // [1, 255]
   int err = uv_udp_set_ttl(handle, ttl);
   CHECK_ERROR(L, err);
   lua_settop(L, 1);
@@ -264,7 +264,7 @@ int UDP_FUNCTION(Udp)(lua_State* L) {
 
   uv_udp_t* handle = (uv_udp_t*)lua_newuserdata(L, sizeof(uv_udp_t));
 
-  int err = uv_udp_init_ex(loop, handle, flags); // return 0 when success
+  int err = uv_udp_init_ex(loop, handle, (unsigned int)flags); // return 0 when success
   CHECK_ERROR(L, err);
 
   luaL_setmetatable(L, UVWRAP_UDP_TYPE);

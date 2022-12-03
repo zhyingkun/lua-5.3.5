@@ -310,7 +310,7 @@ static int VECTOR_FUNCTION(Vector)(lua_State* L) {
     luaL_pushvector(L, v);
     return 1;
   }
-  int count = luaL_checkinteger(L, 1);
+  int count = (int)luaL_checkinteger(L, 1);
   lua_settop(L, 2);
   Vec* vec = luaL_newvector(L, count);
 #define TABLE_IDX 2

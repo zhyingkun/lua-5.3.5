@@ -87,7 +87,7 @@ static int NKWRAP_FUNCTION(widget_has_mouse_click_down)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(spacing)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  int cols = luaL_checkinteger(L, 2);
+  int cols = (int)luaL_checkinteger(L, 2);
 
   nk_spacing(ctx, cols);
   return 0;

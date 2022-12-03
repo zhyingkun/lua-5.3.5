@@ -74,7 +74,7 @@ static int TCP_FUNCTION(keepAlive)(lua_State* L) {
   uv_tcp_t* handle = luaL_checktcp(L, 1);
   luaL_checktype(L, 2, LUA_TBOOLEAN);
   int enable = lua_toboolean(L, 2);
-  unsigned int delay = luaL_checkinteger(L, 3);
+  unsigned int delay = (unsigned int)luaL_checkinteger(L, 3);
   int err = uv_tcp_keepalive(handle, enable, delay);
   CHECK_ERROR(L, err);
   return 0;
@@ -141,7 +141,7 @@ static void TCP_FUNCTION(init_metatable)(lua_State* L) {
 
 static int TCP_FUNCTION(Tcp)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
-  unsigned int flags = luaL_optinteger(L, 2, AF_UNSPEC);
+  unsigned int flags = (unsigned int)luaL_optinteger(L, 2, AF_UNSPEC);
 
   uv_tcp_t* handle = (uv_tcp_t*)lua_newuserdata(L, sizeof(uv_tcp_t));
 

@@ -38,7 +38,7 @@ static int new_socket(uv_tcp_t* handle, int domain, unsigned long flags) {
     return err;
   sockfd = err;
 
-  err = uv__stream_open((uv_stream_t*)handle, sockfd, flags);
+  err = uv__stream_open((uv_stream_t*)handle, sockfd, (int)flags);
   if (err) {
     uv__close(sockfd);
     return err;

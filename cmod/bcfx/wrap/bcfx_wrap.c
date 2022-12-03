@@ -133,13 +133,13 @@ static int BCWRAP_FUNCTION(setFrameCompletedCallback)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(init)(lua_State* L) {
   void* mainWin = luaL_checklightuserdata(L, 1);
-  uint32_t initMask = luaL_optinteger(L, 2, 0);
+  uint32_t initMask = (uint32_t)luaL_optinteger(L, 2, 0);
 
   bcfx_init(mainWin, initMask);
   return 0;
 }
 static int BCWRAP_FUNCTION(apiFrame)(lua_State* L) {
-  uint32_t renderCount = luaL_optinteger(L, 1, -1);
+  uint32_t renderCount = (uint32_t)luaL_optinteger(L, 1, -1);
 
   bcfx_apiFrame(renderCount);
   return 0;
@@ -404,7 +404,7 @@ static int BCWRAP_FUNCTION(createUniform)(lua_State* L) {
   return 1;
 }
 static int BCWRAP_FUNCTION(createSampler)(lua_State* L) {
-  uint32_t flags = luaL_checkinteger(L, 1);
+  uint32_t flags = (uint32_t)luaL_checkinteger(L, 1);
   bcfx_Handle handle = bcfx_createSampler(SAMPLERFLAG_STRUCT(flags));
   luaL_pushhandle(L, handle);
   return 1;
@@ -429,7 +429,7 @@ static int BCWRAP_FUNCTION(createTexture1D)(lua_State* L) {
   return 1;
 }
 #define GET_MEM_ARRAY(mba, layers, idx) \
-  int layers = luaL_len(L, idx); \
+  int layers = (int)luaL_len(L, idx); \
   GET_MEM_ARRAY_LEN(mba, layers, idx)
 #define GET_MEM_ARRAY_LEN(mba, layers, idx) \
   luaL_MemBuffer* mba = (luaL_MemBuffer*)alloca(sizeof(luaL_MemBuffer) * layers); \
@@ -529,15 +529,15 @@ static int BCWRAP_FUNCTION(createFrameBuffer)(lua_State* L) {
 }
 static int BCWRAP_FUNCTION(createInstanceDataBuffer)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  uint32_t numVec4PerInstance = luaL_checkinteger(L, 2);
+  uint32_t numVec4PerInstance = (uint32_t)luaL_checkinteger(L, 2);
 
   bcfx_Handle handle = bcfx_createInstanceDataBuffer(mb, numVec4PerInstance);
   luaL_pushhandle(L, handle);
   return 1;
 }
 static int BCWRAP_FUNCTION(createDynamicInstanceDataBuffer)(lua_State* L) {
-  uint32_t numInstance = luaL_checkinteger(L, 1);
-  uint32_t numVec4PerInstance = luaL_checkinteger(L, 2);
+  uint32_t numInstance = (uint32_t)luaL_checkinteger(L, 1);
+  uint32_t numVec4PerInstance = (uint32_t)luaL_checkinteger(L, 2);
 
   bcfx_Handle handle = bcfx_createDynamicInstanceDataBuffer(numInstance, numVec4PerInstance);
   luaL_pushhandle(L, handle);
@@ -552,7 +552,7 @@ static int BCWRAP_FUNCTION(createTextureBuffer)(lua_State* L) {
   return 1;
 }
 static int BCWRAP_FUNCTION(createDynamicTextureBuffer)(lua_State* L) {
-  size_t size = luaL_checkinteger(L, 1);
+  size_t size = (size_t)luaL_checkinteger(L, 1);
   bcfx_ETextureFormat format = luaL_checktextureformat(L, 2);
 
   bcfx_Handle handle = bcfx_createDynamicTextureBuffer(size, format);
@@ -759,7 +759,7 @@ static int BCWRAP_FUNCTION(setUniform)(lua_State* L) {
   case UT_##name_: { \
     type_* arr = (type_*)alloca(num * sizeof(type_)); \
     for (uint16_t i = 0; i < num; i++) { \
-      type_ pv = luaL_check##check_(L, i + 2); \
+      type_ pv = (type_)luaL_check##check_(L, i + 2); \
       arr[i] = pv; \
     } \
     bcfx_setUniform##name_(handle, arr, num); \
@@ -797,16 +797,16 @@ static int BCWRAP_FUNCTION(touch)(lua_State* L) {
 static int BCWRAP_FUNCTION(setVertexBuffer)(lua_State* L) {
   uint8_t stream = luaL_checkinteger(L, 1);
   bcfx_Handle handle = luaL_checkhandle(L, 2);
-  uint32_t attribMask = luaL_optinteger(L, 3, VAM_All);
+  uint32_t attribMask = (uint32_t)luaL_optinteger(L, 3, VAM_All);
 
   bcfx_setVertexBuffer(stream, handle, attribMask);
   return 0;
 }
 static int BCWRAP_FUNCTION(setIndexBuffer)(lua_State* L) {
   bcfx_Handle handle = luaL_checkhandle(L, 1);
-  uint32_t start = luaL_optinteger(L, 2, 0);
-  uint32_t count = luaL_optinteger(L, 3, 0);
-  int32_t baseVertex = luaL_optinteger(L, 4, 0);
+  uint32_t start = (uint32_t)luaL_optinteger(L, 2, 0);
+  uint32_t count = (uint32_t)luaL_optinteger(L, 3, 0);
+  int32_t baseVertex = (int32_t)luaL_optinteger(L, 4, 0);
 
   bcfx_setIndexBuffer(handle, start, count, baseVertex);
   return 0;
@@ -851,9 +851,9 @@ static int BCWRAP_FUNCTION(setStencil)(lua_State* L) {
   return 0;
 }
 static int BCWRAP_FUNCTION(setInstanceDataBuffer)(lua_State* L) {
-  uint32_t numInstance = luaL_checkinteger(L, 1);
+  uint32_t numInstance = (uint32_t)luaL_checkinteger(L, 1);
   bcfx_Handle handle = luaL_opthandle(L, 2, kInvalidHandle);
-  uint32_t startInstance = luaL_optinteger(L, 3, 0);
+  uint32_t startInstance = (uint32_t)luaL_optinteger(L, 3, 0);
 
   bcfx_setInstanceDataBuffer(numInstance, handle, startInstance);
   return 0;
@@ -861,8 +861,8 @@ static int BCWRAP_FUNCTION(setInstanceDataBuffer)(lua_State* L) {
 static int BCWRAP_FUNCTION(submit)(lua_State* L) {
   ViewId id = luaL_checkviewid(L, 1);
   bcfx_Handle progHandle = luaL_checkhandle(L, 2);
-  uint32_t discardMask = luaL_optinteger(L, 3, DFM_None);
-  uint32_t sortDepth = luaL_optinteger(L, 4, 0);
+  uint32_t discardMask = (uint32_t)luaL_optinteger(L, 3, DFM_None);
+  uint32_t sortDepth = (uint32_t)luaL_optinteger(L, 4, 0);
 
   bcfx_submit(id, progHandle, discardMask, sortDepth);
   return 0;

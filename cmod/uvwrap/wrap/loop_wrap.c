@@ -153,7 +153,7 @@ static int LOOP_FUNCTION(set_data)(lua_State* L) {
 
 static int LOOP_FUNCTION(block_signal)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
-  int signum = luaL_checkinteger(L, 2);
+  int signum = (int)luaL_checkinteger(L, 2);
   int err = uv_loop_configure(loop, UV_LOOP_BLOCK_SIGNAL, signum);
   CHECK_ERROR(L, err);
   return 0;

@@ -203,7 +203,7 @@ void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderD
     } else {
       if (attr == VA_Position) {
         // glCtx->curVertexCount = vb->count;
-        glCtx->curVertexCount = vb->buffer.size / layout->stride;
+        glCtx->curVertexCount = (uint32_t)(vb->buffer.size / layout->stride);
       }
       if (curId != vb->buffer.id) {
         curId = vb->buffer.id;
@@ -561,7 +561,7 @@ static const char* readPath(luaL_ByteBuffer* b, char del, size_t* sz) {
 typedef void (*OnFindIncludePath)(void* ud, const char* path, size_t len);
 static void parseOneLine(const char* line, size_t sz, OnFindIncludePath cb, void* ud) {
   luaL_ByteBuffer b[1];
-  luaBB_static(b, (uint8_t*)line, sz, false);
+  luaBB_static(b, (uint8_t*)line, (uint32_t)sz, false);
   // include statement
   static uint32_t tokens[] = {
       '#',

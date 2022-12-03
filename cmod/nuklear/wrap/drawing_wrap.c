@@ -88,7 +88,7 @@ static int NKWRAP_FUNCTION(stroke_polyline)(lua_State* L) {
   float lineThickness = luaL_checknumber(L, 3);
   nk_color c = luaL_checknkcolor(L, 4);
 
-  int pointCount = luaL_len(L, TABLE_IDX);
+  int pointCount = (int)luaL_len(L, TABLE_IDX);
   float* points = (float*)alloca(sizeof(float) * pointCount);
   for (int i = 0; i < pointCount; i++) {
     lua_geti(L, TABLE_IDX, i + 1);
@@ -107,7 +107,7 @@ static int NKWRAP_FUNCTION(stroke_polygon)(lua_State* L) {
   float lineThickness = luaL_checknumber(L, 3);
   nk_color c = luaL_checknkcolor(L, 4);
 
-  int pointCount = luaL_len(L, TABLE_IDX);
+  int pointCount = (int)luaL_len(L, TABLE_IDX);
   float* points = (float*)alloca(sizeof(float) * pointCount);
   for (int i = 0; i < pointCount; i++) {
     lua_geti(L, TABLE_IDX, i + 1);
@@ -187,7 +187,7 @@ static int NKWRAP_FUNCTION(fill_polygon)(lua_State* L) {
   luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
   nk_color c = luaL_checknkcolor(L, 3);
 
-  int pointCount = luaL_len(L, TABLE_IDX);
+  int pointCount = (int)luaL_len(L, TABLE_IDX);
   float* points = (float*)alloca(sizeof(float) * pointCount);
   for (int i = 0; i < pointCount; i++) {
     lua_geti(L, TABLE_IDX, i + 1);
@@ -235,7 +235,7 @@ static int NKWRAP_FUNCTION(draw_text)(lua_State* L) {
   nk_color bg = luaL_checknkcolor(L, 5);
   nk_color fg = luaL_checknkcolor(L, 6);
 
-  nk_draw_text(canvas, rect, text, len, &font->handle, bg, fg);
+  nk_draw_text(canvas, rect, text, (int)len, &font->handle, bg, fg);
   return 0;
 }
 static int NKWRAP_FUNCTION(push_scissor)(lua_State* L) {

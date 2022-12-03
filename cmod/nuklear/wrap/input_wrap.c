@@ -15,8 +15,8 @@ static int NKWRAP_FUNCTION(input_begin)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(input_motion)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
-  int x = luaL_checkinteger(L, 2);
-  int y = luaL_checkinteger(L, 3);
+  int x = (int)luaL_checkinteger(L, 2);
+  int y = (int)luaL_checkinteger(L, 3);
 
   nk_input_motion(ctx, x, y);
   return 0;
@@ -32,8 +32,8 @@ static int NKWRAP_FUNCTION(input_key)(lua_State* L) {
 static int NKWRAP_FUNCTION(input_button)(lua_State* L) {
   nk_context* ctx = luaL_checkcontext(L, 1);
   nk_buttons button = luaL_checknkbuttons(L, 2);
-  int x = luaL_checkinteger(L, 3);
-  int y = luaL_checkinteger(L, 4);
+  int x = (int)luaL_checkinteger(L, 3);
+  int y = (int)luaL_checkinteger(L, 4);
   nk_bool down = luaL_checknkbool(L, 5);
 
   nk_input_button(ctx, button, x, y, down);

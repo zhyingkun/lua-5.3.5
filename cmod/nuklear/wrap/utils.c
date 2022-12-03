@@ -30,7 +30,7 @@ typedef union {
 } UnionColor;
 nk_color luaL_checknkcolor(lua_State* L, int idx) {
   UnionColor uc;
-  uc.rgba = luaL_checkinteger(L, idx);
+  uc.rgba = (uint32_t)luaL_checkinteger(L, idx);
   return uc.color;
 }
 void luaL_pushnkcolor(lua_State* L, nk_color color) {
@@ -41,7 +41,7 @@ void luaL_pushnkcolor(lua_State* L, nk_color color) {
 
 nk_colorf luaL_checknkcolorf(lua_State* L, int idx) {
   UnionColor uc;
-  uc.rgba = luaL_checkinteger(L, idx);
+  uc.rgba = (uint32_t)luaL_checkinteger(L, idx);
   nk_colorf cf;
   cf.r = (float)uc.color.r;
   cf.g = (float)uc.color.g;
@@ -76,7 +76,7 @@ static int NKWRAP_FUNCTION(rgbaToColor)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(colorToRgba)(lua_State* L) {
   UnionColor uc;
-  uc.rgba = luaL_checkinteger(L, 1);
+  uc.rgba = (uint32_t)luaL_checkinteger(L, 1);
   lua_pushinteger(L, uc.color.r);
   lua_pushinteger(L, uc.color.g);
   lua_pushinteger(L, uc.color.b);
@@ -85,7 +85,7 @@ static int NKWRAP_FUNCTION(colorToRgba)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(colorToRgbaf)(lua_State* L) {
   UnionColor uc;
-  uc.rgba = luaL_checkinteger(L, 1);
+  uc.rgba = (uint32_t)luaL_checkinteger(L, 1);
   lua_pushnumber(L, ((lua_Number)uc.color.r) / 255.0);
   lua_pushnumber(L, ((lua_Number)uc.color.g) / 255.0);
   lua_pushnumber(L, ((lua_Number)uc.color.b) / 255.0);
@@ -95,10 +95,10 @@ static int NKWRAP_FUNCTION(colorToRgbaf)(lua_State* L) {
 static int NKWRAP_FUNCTION(hsvaToColor)(lua_State* L) {
   UnionColor uc;
   if (lua_isinteger(L, 1)) {
-    int h = luaL_checkinteger(L, 1);
-    int s = luaL_checkinteger(L, 2);
-    int v = luaL_checkinteger(L, 3);
-    int a = luaL_optinteger(L, 4, 255);
+    int h = (int)luaL_checkinteger(L, 1);
+    int s = (int)luaL_checkinteger(L, 2);
+    int v = (int)luaL_checkinteger(L, 3);
+    int a = (int)luaL_optinteger(L, 4, 255);
     uc.color = nk_hsva(h, s, v, a);
   } else {
     float h = luaL_checknumber(L, 1);
@@ -112,7 +112,7 @@ static int NKWRAP_FUNCTION(hsvaToColor)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(colorToHsva)(lua_State* L) {
   UnionColor uc;
-  uc.rgba = luaL_checkinteger(L, 1);
+  uc.rgba = (uint32_t)luaL_checkinteger(L, 1);
   int h, s, v, a;
   nk_color_hsva_i(&h, &s, &v, &a, uc.color);
   lua_pushinteger(L, h);
@@ -123,7 +123,7 @@ static int NKWRAP_FUNCTION(colorToHsva)(lua_State* L) {
 }
 static int NKWRAP_FUNCTION(colorToHsvaf)(lua_State* L) {
   UnionColor uc;
-  uc.rgba = luaL_checkinteger(L, 1);
+  uc.rgba = (uint32_t)luaL_checkinteger(L, 1);
   float h, s, v, a;
   nk_color_hsva_f(&h, &s, &v, &a, uc.color);
   lua_pushnumber(L, h);
@@ -165,9 +165,9 @@ static int NKWRAP_FUNCTION(colorToRgbaHex)(lua_State* L) {
 static int NKWRAP_FUNCTION(murmur_hash)(lua_State* L) {
   size_t len;
   const char* key = luaL_checklstring(L, 1, &len);
-  nk_hash seed = luaL_checkinteger(L, 2);
+  nk_hash seed = (nk_hash)luaL_checkinteger(L, 2);
 
-  nk_hash hash = nk_murmur_hash((const void*)key, len, seed);
+  nk_hash hash = nk_murmur_hash((const void*)key, (int)len, seed);
   lua_pushinteger(L, hash);
   return 1;
 }

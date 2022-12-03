@@ -17,7 +17,7 @@
 #define MAXUNICODE 0x10FFFF
 
 static void push_unicode2gb2312(lua_State* L) {
-  lua_createtable(L, 0, GB2312_Unicode_Size - 123 + 1); // has 123 NULLs and 1 for it
+  lua_createtable(L, 0, (int)(GB2312_Unicode_Size - 123 + 1)); // has 123 NULLs and 1 for it
   for (size_t i = 0; i < GB2312_Unicode_Size; i++) {
 #ifndef NDEBUG
     lua_rawgeti(L, -1, GB2312_Unicode[i].unicode);
@@ -130,7 +130,7 @@ static int find_offset(lua_State* L, const char* s, int cnti) {
     if (s == NULL)
       return luaL_error(L, "invalid GB2312 code");
   }
-  return s - olds;
+  return (int)(s - olds);
 }
 
 /*

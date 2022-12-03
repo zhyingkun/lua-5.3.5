@@ -178,7 +178,7 @@ static int _dealWriteFileResult(lua_State* L, int err) {
 }
 static int MBIO_FUNCTION(unpackWriteFileResult)(lua_State* L) {
   void* err = luaL_checklightuserdata(L, 1);
-  return _dealWriteFileResult(L, (long)err);
+  return _dealWriteFileResult(L, (int)(long)err);
 }
 
 static int MBIO_FUNCTION(writeFile)(lua_State* L) {

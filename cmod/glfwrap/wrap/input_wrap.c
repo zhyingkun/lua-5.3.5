@@ -12,7 +12,7 @@
 
 static int GLFWRAP_FUNCTION(GetInputMode)(lua_State* L) {
   GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
-  int mode = luaL_checkinteger(L, 2);
+  int mode = (int)luaL_checkinteger(L, 2);
   int value = glfwGetInputMode(window, mode);
   lua_pushinteger(L, value);
   return 1;
@@ -20,8 +20,8 @@ static int GLFWRAP_FUNCTION(GetInputMode)(lua_State* L) {
 
 static int GLFWRAP_FUNCTION(SetInputMode)(lua_State* L) {
   GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
-  int mode = luaL_checkinteger(L, 2);
-  int value = luaL_checkinteger(L, 3);
+  int mode = (int)luaL_checkinteger(L, 2);
+  int value = (int)luaL_checkinteger(L, 3);
   glfwSetInputMode(window, mode, value);
   return 0;
 }
@@ -33,15 +33,15 @@ static int GLFWRAP_FUNCTION(RawMouseMotionSupported)(lua_State* L) {
 }
 
 static int GLFWRAP_FUNCTION(GetKeyName)(lua_State* L) {
-  int key = luaL_checkinteger(L, 1);
-  int scancode = luaL_checkinteger(L, 2);
+  int key = (int)luaL_checkinteger(L, 1);
+  int scancode = (int)luaL_checkinteger(L, 2);
   const char* name = glfwGetKeyName(key, scancode);
   lua_pushstring(L, name);
   return 1;
 }
 
 static int GLFWRAP_FUNCTION(GetKeyScancode)(lua_State* L) {
-  int key = luaL_checkinteger(L, 1);
+  int key = (int)luaL_checkinteger(L, 1);
   int scancode = glfwGetKeyScancode(key);
   lua_pushinteger(L, scancode);
   return 1;
@@ -49,7 +49,7 @@ static int GLFWRAP_FUNCTION(GetKeyScancode)(lua_State* L) {
 
 static int GLFWRAP_FUNCTION(GetKey)(lua_State* L) {
   GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
-  int key = luaL_checkinteger(L, 2);
+  int key = (int)luaL_checkinteger(L, 2);
   int ret = glfwGetKey(window, key);
   lua_pushinteger(L, ret);
   return 1;
@@ -57,7 +57,7 @@ static int GLFWRAP_FUNCTION(GetKey)(lua_State* L) {
 
 static int GLFWRAP_FUNCTION(GetMouseButton)(lua_State* L) {
   GLFWwindow* window = luaL_checkGLFWwindow(L, 1);
-  int button = luaL_checkinteger(L, 2);
+  int button = (int)luaL_checkinteger(L, 2);
   int ret = glfwGetMouseButton(window, button);
   lua_pushinteger(L, ret);
   return 1;
@@ -83,15 +83,15 @@ static int GLFWRAP_FUNCTION(SetCursorPos)(lua_State* L) {
 
 static int GLFWRAP_FUNCTION(CreateCursor)(lua_State* L) {
   const GLFWimage* image = luaL_checkGLFWimage(L, 1);
-  int xhot = luaL_checkinteger(L, 2);
-  int yhot = luaL_checkinteger(L, 3);
+  int xhot = (int)luaL_checkinteger(L, 2);
+  int yhot = (int)luaL_checkinteger(L, 3);
   GLFWcursor* cursor = glfwCreateCursor(image, xhot, yhot);
   PUSH_LIGHTUSERDATA(L, (void*)cursor);
   return 1;
 }
 
 static int GLFWRAP_FUNCTION(CreateStandardCursor)(lua_State* L) {
-  int shape = luaL_checkinteger(L, 1);
+  int shape = (int)luaL_checkinteger(L, 1);
   GLFWcursor* cursor = glfwCreateStandardCursor(shape);
   PUSH_LIGHTUSERDATA(L, (void*)cursor);
   return 1;
@@ -219,14 +219,14 @@ static int GLFWRAP_FUNCTION(SetDropCallback)(lua_State* L) {
 }
 
 static int GLFWRAP_FUNCTION(JoystickPresent)(lua_State* L) {
-  int jid = luaL_checkinteger(L, 1);
+  int jid = (int)luaL_checkinteger(L, 1);
   int ret = glfwJoystickPresent(jid);
   lua_pushboolean(L, ret);
   return 1;
 }
 
 static int GLFWRAP_FUNCTION(GetJoystickAxes)(lua_State* L) {
-  int jid = luaL_checkinteger(L, 1);
+  int jid = (int)luaL_checkinteger(L, 1);
   int count = 0;
   const float* axes = glfwGetJoystickAxes(jid, &count);
   if (axes == NULL) {
@@ -242,7 +242,7 @@ static int GLFWRAP_FUNCTION(GetJoystickAxes)(lua_State* L) {
 }
 
 static int GLFWRAP_FUNCTION(GetJoystickButtons)(lua_State* L) {
-  int jid = luaL_checkinteger(L, 1);
+  int jid = (int)luaL_checkinteger(L, 1);
   int count = 0;
   const unsigned char* buttons = glfwGetJoystickButtons(jid, &count);
   if (buttons == NULL) {
@@ -258,7 +258,7 @@ static int GLFWRAP_FUNCTION(GetJoystickButtons)(lua_State* L) {
 }
 
 static int GLFWRAP_FUNCTION(GetJoystickHats)(lua_State* L) {
-  int jid = luaL_checkinteger(L, 1);
+  int jid = (int)luaL_checkinteger(L, 1);
   int count = 0;
   const unsigned char* hats = glfwGetJoystickHats(jid, &count);
   if (hats == NULL) {
@@ -274,21 +274,21 @@ static int GLFWRAP_FUNCTION(GetJoystickHats)(lua_State* L) {
 }
 
 static int GLFWRAP_FUNCTION(GetJoystickName)(lua_State* L) {
-  int jid = luaL_checkinteger(L, 1);
+  int jid = (int)luaL_checkinteger(L, 1);
   const char* name = glfwGetJoystickName(jid);
   lua_pushstring(L, name);
   return 1;
 }
 
 static int GLFWRAP_FUNCTION(GetJoystickGUID)(lua_State* L) {
-  int jid = luaL_checkinteger(L, 1);
+  int jid = (int)luaL_checkinteger(L, 1);
   const char* guid = glfwGetJoystickGUID(jid);
   lua_pushstring(L, guid);
   return 1;
 }
 
 static int GLFWRAP_FUNCTION(JoystickIsGamepad)(lua_State* L) {
-  int jid = luaL_checkinteger(L, 1);
+  int jid = (int)luaL_checkinteger(L, 1);
   int ret = glfwJoystickIsGamepad(jid);
   lua_pushboolean(L, ret);
   return 1;
@@ -320,14 +320,14 @@ static int GLFWRAP_FUNCTION(UpdateGamepadMappings)(lua_State* L) {
 }
 
 static int GLFWRAP_FUNCTION(GetGamepadName)(lua_State* L) {
-  int jid = luaL_checkinteger(L, 1);
+  int jid = (int)luaL_checkinteger(L, 1);
   const char* name = glfwGetGamepadName(jid);
   lua_pushstring(L, name);
   return 1;
 }
 
 static int GLFWRAP_FUNCTION(GetGamepadState)(lua_State* L) {
-  int jid = luaL_checkinteger(L, 1);
+  int jid = (int)luaL_checkinteger(L, 1);
   GLFWgamepadstate state = {{0}, {0}};
   int ret = glfwGetGamepadState(jid, &state);
   if (ret == GLFW_FALSE) {

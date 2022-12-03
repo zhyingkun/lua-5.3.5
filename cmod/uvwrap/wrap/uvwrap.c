@@ -26,26 +26,26 @@ static int uvwrap_set_realloc_cb(lua_State* L) {
 }
 
 static int uvwrap_err_name(lua_State* L) {
-  int err = luaL_checkinteger(L, 1);
+  int err = (int)luaL_checkinteger(L, 1);
   const char* name = uv_err_name(err);
   lua_pushstring(L, name);
   return 1;
 }
 
 static int uvwrap_strerror(lua_State* L) {
-  int err = luaL_checkinteger(L, 1);
+  int err = (int)luaL_checkinteger(L, 1);
   const char* name = uv_strerror(err);
   lua_pushstring(L, name);
   return 1;
 }
 
 static int uvwrap_translate_sys_error(lua_State* L) {
-  lua_pushinteger(L, uv_translate_sys_error(luaL_checkinteger(L, 1)));
+  lua_pushinteger(L, uv_translate_sys_error((int)luaL_checkinteger(L, 1)));
   return 1;
 }
 
 static int uvwrap_guess_handle(lua_State* L) {
-  uv_file file = luaL_checkinteger(L, 1);
+  uv_file file = (uv_file)luaL_checkinteger(L, 1);
   uv_handle_type t = uv_guess_handle(file);
   lua_pushinteger(L, t);
   return 1;

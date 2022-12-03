@@ -13,14 +13,14 @@ static int NKTEXTEDIT_FUNCTION(text)(lua_State* L) {
   size_t len;
   const char* text = luaL_checklstring(L, 2, &len);
 
-  nk_textedit_text(editor, text, len);
+  nk_textedit_text(editor, text, (int)len);
   return 0;
 }
 static int NKTEXTEDIT_FUNCTION(delete)(lua_State* L) {
   (void)L;
   nk_text_edit* editor = luaL_checktextedit(L, 1);
-  int where = luaL_checkinteger(L, 2);
-  int len = luaL_checkinteger(L, 3);
+  int where = (int)luaL_checkinteger(L, 2);
+  int len = (int)luaL_checkinteger(L, 3);
 
   nk_textedit_delete(editor, where, len);
   return 0;
@@ -53,7 +53,7 @@ static int NKTEXTEDIT_FUNCTION(paste)(lua_State* L) {
   size_t len;
   const char* text = luaL_checklstring(L, 2, &len);
 
-  nk_bool ret = nk_textedit_paste(editor, text, len);
+  nk_bool ret = nk_textedit_paste(editor, text, (int)len);
   lua_pushboolean(L, (int)ret);
   return 1;
 }

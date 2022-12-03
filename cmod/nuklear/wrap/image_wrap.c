@@ -30,7 +30,7 @@ static int NKIMAGE_FUNCTION(Image)(lua_State* L) {
     void* ptr = lua_touserdata(L, 1);
     img = nk_subimage_ptr(ptr, w, h, subRegion);
   } else {
-    int id = luaL_checkinteger(L, 1);
+    int id = (int)luaL_checkinteger(L, 1);
     img = nk_subimage_id(id, w, h, subRegion);
   }
 
@@ -74,7 +74,7 @@ static int NKIMAGE_FUNCTION(NineSlice)(lua_State* L) {
     void* ptr = lua_touserdata(L, 1);
     ns = nk_sub9slice_ptr(ptr, w, h, subRegion, left, top, right, bottom);
   } else {
-    int id = luaL_checkinteger(L, 1);
+    int id = (int)luaL_checkinteger(L, 1);
     ns = nk_sub9slice_id(id, w, h, subRegion, left, top, right, bottom);
   }
 

@@ -84,14 +84,14 @@ static int HANDLE_FUNCTION(hasRef)(lua_State* L) {
 
 static int HANDLE_FUNCTION(sendBufferSize)(lua_State* L) {
   uv_handle_t* handle = luaL_checkhandle(L, 1);
-  int value = luaL_optinteger(L, 2, 0);
+  int value = (int)luaL_optinteger(L, 2, 0);
   lua_pushinteger(L, uv_send_buffer_size(handle, &value));
   return 1;
 }
 
 static int HANDLE_FUNCTION(recvBufferSize)(lua_State* L) {
   uv_handle_t* handle = luaL_checkhandle(L, 1);
-  int value = luaL_optinteger(L, 2, 0);
+  int value = (int)luaL_optinteger(L, 2, 0);
   lua_pushinteger(L, uv_recv_buffer_size(handle, &value));
   return 1;
 }

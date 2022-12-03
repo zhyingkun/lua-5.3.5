@@ -16,9 +16,9 @@ static int NKWRAP_FUNCTION(tree_push_hashed)(lua_State* L) {
   nk_collapse_states initialState = luaL_checknkcollapsestates(L, 4);
   size_t sz;
   const char* hash = luaL_checklstring(L, 5, &sz);
-  int seed = luaL_checkinteger(L, 6);
+  int seed = (int)luaL_checkinteger(L, 6);
 
-  nk_bool ret = nk_tree_push_hashed(ctx, type, title, initialState, hash, sz, seed);
+  nk_bool ret = nk_tree_push_hashed(ctx, type, title, initialState, hash, (int)sz, seed);
   lua_pushboolean(L, (int)ret);
   return 1;
 }
@@ -32,9 +32,9 @@ static int NKWRAP_FUNCTION(tree_image_push_hashed)(lua_State* L) {
   nk_collapse_states initialState = luaL_checknkcollapsestates(L, 5);
   size_t sz;
   const char* hash = luaL_checklstring(L, 6, &sz);
-  int seed = luaL_checkinteger(L, 7);
+  int seed = (int)luaL_checkinteger(L, 7);
 
-  nk_bool ret = nk_tree_image_push_hashed(ctx, type, *img, title, initialState, hash, sz, seed);
+  nk_bool ret = nk_tree_image_push_hashed(ctx, type, *img, title, initialState, hash, (int)sz, seed);
   lua_pushboolean(L, (int)ret);
   return 1;
 }
@@ -81,9 +81,9 @@ static int NKWRAP_FUNCTION(tree_element_push_hashed)(lua_State* L) {
   nk_bool selected = luaL_checknkbool(L, 5);
   size_t sz;
   const char* hash = luaL_checklstring(L, 6, &sz);
-  int seed = luaL_checkinteger(L, 7);
+  int seed = (int)luaL_checkinteger(L, 7);
 
-  nk_bool ret = nk_tree_element_push_hashed(ctx, type, title, initialState, &selected, hash, sz, seed);
+  nk_bool ret = nk_tree_element_push_hashed(ctx, type, title, initialState, &selected, hash, (int)sz, seed);
   lua_pushboolean(L, (int)ret);
   lua_pushboolean(L, (int)selected);
   return 2;
@@ -97,9 +97,9 @@ static int NKWRAP_FUNCTION(tree_element_image_push_hashed)(lua_State* L) {
   nk_bool selected = luaL_checknkbool(L, 6);
   size_t sz;
   const char* hash = luaL_checklstring(L, 7, &sz);
-  int seed = luaL_checkinteger(L, 8);
+  int seed = (int)luaL_checkinteger(L, 8);
 
-  nk_bool ret = nk_tree_element_image_push_hashed(ctx, type, *img, title, initialState, &selected, hash, sz, seed);
+  nk_bool ret = nk_tree_element_image_push_hashed(ctx, type, *img, title, initialState, &selected, hash, (int)sz, seed);
   lua_pushboolean(L, (int)ret);
   lua_pushboolean(L, (int)selected);
   return 2;

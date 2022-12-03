@@ -19,7 +19,7 @@ static int FS_EVENT_FUNCTION(startAsync)(lua_State* L) {
   uv_fs_event_t* handle = luaL_checkfs_event(L, 1);
   luaL_checktype(L, 2, LUA_TFUNCTION);
   const char* filepath = luaL_checkstring(L, 3);
-  unsigned int flags = luaL_checkinteger(L, 4);
+  unsigned int flags = (unsigned int)luaL_checkinteger(L, 4);
 
   int err = uv_fs_event_start(handle, FS_EVENT_CALLBACK(startAsync), filepath, flags);
   CHECK_ERROR(L, err);

@@ -75,8 +75,8 @@ static int GLFWRAP_FUNCTION(Terminate)(lua_State* L) {
 }
 
 static int GLFWRAP_FUNCTION(InitHint)(lua_State* L) {
-  int hint = luaL_checkinteger(L, 1);
-  int value = luaL_checkinteger(L, 2);
+  int hint = (int)luaL_checkinteger(L, 1);
+  int value = (int)luaL_checkinteger(L, 2);
   glfwInitHint(hint, value);
   return 0;
 }

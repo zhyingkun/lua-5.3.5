@@ -17,7 +17,7 @@ static int FS_POLL_FUNCTION(startAsync)(lua_State* L) {
   uv_fs_poll_t* handle = luaL_checkfs_poll(L, 1);
   luaL_checktype(L, 2, LUA_TFUNCTION);
   const char* path = luaL_checkstring(L, 3);
-  unsigned int interval = luaL_checkinteger(L, 4);
+  unsigned int interval = (unsigned int)luaL_checkinteger(L, 4);
 
   int err = uv_fs_poll_start(handle, FS_POLL_CALLBACK(startAsync), path, interval);
   CHECK_ERROR(L, err);

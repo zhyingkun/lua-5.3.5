@@ -24,8 +24,8 @@ static int NKWRAP_FUNCTION(draw_list_path_arc_to_fast)(lua_State* L) {
   nk_draw_list* drawList = luaL_checknkdrawlist(L, 1);
   nk_vec2 center = luaL_checknkvec2(L, 2);
   float radius = luaL_checknumber(L, 3);
-  int aMin = luaL_checkinteger(L, 4);
-  int aMax = luaL_checkinteger(L, 5);
+  int aMin = (int)luaL_checkinteger(L, 4);
+  int aMax = (int)luaL_checkinteger(L, 5);
 
   nk_draw_list_path_arc_to_fast(drawList, center, radius, aMin, aMax);
   return 0;
@@ -36,7 +36,7 @@ static int NKWRAP_FUNCTION(draw_list_path_arc_to)(lua_State* L) {
   float radius = luaL_checknumber(L, 3);
   float aMin = luaL_checknumber(L, 4);
   float aMax = luaL_checknumber(L, 5);
-  unsigned int segments = luaL_checkinteger(L, 6);
+  unsigned int segments = (unsigned int)luaL_checkinteger(L, 6);
 
   nk_draw_list_path_arc_to(drawList, center, radius, aMin, aMax, segments);
   return 0;
@@ -55,7 +55,7 @@ static int NKWRAP_FUNCTION(draw_list_path_curve_to)(lua_State* L) {
   nk_vec2 p2 = luaL_checknkvec2(L, 2);
   nk_vec2 p3 = luaL_checknkvec2(L, 3);
   nk_vec2 p4 = luaL_checknkvec2(L, 4);
-  unsigned int numSegments = luaL_checkinteger(L, 5);
+  unsigned int numSegments = (unsigned int)luaL_checkinteger(L, 5);
 
   nk_draw_list_path_curve_to(drawList, p2, p3, p4, numSegments);
   return 0;
@@ -121,7 +121,7 @@ static int NKWRAP_FUNCTION(draw_list_stroke_circle)(lua_State* L) {
   nk_vec2 center = luaL_checknkvec2(L, 2);
   float radius = luaL_checknumber(L, 3);
   nk_color color = luaL_checknkcolor(L, 4);
-  unsigned int segs = luaL_checkinteger(L, 5);
+  unsigned int segs = (unsigned int)luaL_checkinteger(L, 5);
   float thickness = luaL_checknumber(L, 6);
 
   nk_draw_list_stroke_circle(drawList, center, radius, color, segs, thickness);
@@ -134,7 +134,7 @@ static int NKWRAP_FUNCTION(draw_list_stroke_curve)(lua_State* L) {
   nk_vec2 cp1 = luaL_checknkvec2(L, 4);
   nk_vec2 p1 = luaL_checknkvec2(L, 5);
   nk_color color = luaL_checknkcolor(L, 6);
-  unsigned int segments = luaL_checkinteger(L, 7);
+  unsigned int segments = (unsigned int)luaL_checkinteger(L, 7);
   float thickness = luaL_checknumber(L, 8);
 
   nk_draw_list_stroke_curve(drawList, p0, cp0, cp1, p1, color, segments, thickness);
@@ -149,7 +149,7 @@ static int NKWRAP_FUNCTION(draw_list_stroke_poly_line)(lua_State* L) {
   float thickness = luaL_checknumber(L, 5);
   nk_anti_aliasing aliasing = luaL_checknkantialiasing(L, 6);
 
-  int pointCount = luaL_len(L, TABLE_IDX);
+  int pointCount = (int)luaL_len(L, TABLE_IDX);
   nk_vec2* points = (nk_vec2*)alloca(sizeof(nk_vec2) * pointCount);
   for (int i = 0; i < pointCount; i++) {
     lua_geti(L, TABLE_IDX, i + 1);
@@ -205,7 +205,7 @@ static int NKWRAP_FUNCTION(draw_list_fill_circle)(lua_State* L) {
   nk_vec2 center = luaL_checknkvec2(L, 2);
   float radius = luaL_checknumber(L, 3);
   nk_color col = luaL_checknkcolor(L, 4);
-  unsigned int segs = luaL_checkinteger(L, 5);
+  unsigned int segs = (unsigned int)luaL_checkinteger(L, 5);
 
   nk_draw_list_fill_circle(drawList, center, radius, col, segs);
   return 0;
@@ -217,7 +217,7 @@ static int NKWRAP_FUNCTION(draw_list_fill_poly_convex)(lua_State* L) {
   nk_color color = luaL_checknkcolor(L, 3);
   nk_anti_aliasing aliasing = luaL_checknkantialiasing(L, 4);
 
-  int pointCount = luaL_len(L, TABLE_IDX);
+  int pointCount = (int)luaL_len(L, TABLE_IDX);
   nk_vec2* points = (nk_vec2*)alloca(sizeof(nk_vec2) * pointCount);
   for (int i = 0; i < pointCount; i++) {
     lua_geti(L, TABLE_IDX, i + 1);
@@ -256,7 +256,7 @@ static int NKWRAP_FUNCTION(draw_list_add_text)(lua_State* L) {
   float fontHeight = luaL_checknumber(L, 5);
   nk_color color = luaL_checknkcolor(L, 6);
 
-  nk_draw_list_add_text(drawList, &font->handle, rect, text, len, fontHeight, color);
+  nk_draw_list_add_text(drawList, &font->handle, rect, text, (int)len, fontHeight, color);
   return 0;
 }
 // nk_draw_list_push_userdata

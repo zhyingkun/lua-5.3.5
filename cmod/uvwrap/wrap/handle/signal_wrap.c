@@ -14,7 +14,7 @@ static void SIGNAL_CALLBACK(startAsync)(uv_signal_t* handle, int signum) {
 static int SIGNAL_FUNCTION(startAsync)(lua_State* L) {
   uv_signal_t* handle = luaL_checksignal(L, 1);
   luaL_checktype(L, 2, LUA_TFUNCTION);
-  int signum = luaL_checkinteger(L, 3);
+  int signum = (int)luaL_checkinteger(L, 3);
 
   int err = uv_signal_start(handle, SIGNAL_CALLBACK(startAsync), signum);
   CHECK_ERROR(L, err);
@@ -34,7 +34,7 @@ static void SIGNAL_CALLBACK(startOneShotAsync)(uv_signal_t* handle, int signum) 
 static int SIGNAL_FUNCTION(startOneShotAsync)(lua_State* L) {
   uv_signal_t* handle = luaL_checksignal(L, 1);
   luaL_checktype(L, 2, LUA_TFUNCTION);
-  int signum = luaL_checkinteger(L, 3);
+  int signum = (int)luaL_checkinteger(L, 3);
 
   int err = uv_signal_start_oneshot(handle, SIGNAL_CALLBACK(startOneShotAsync), signum);
   CHECK_ERROR(L, err);

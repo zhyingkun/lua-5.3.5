@@ -23,7 +23,7 @@ static int GLFWRAP_FUNCTION(GetCurrentContext)(lua_State* L) {
 }
 
 static int GLFWRAP_FUNCTION(SwapInterval)(lua_State* L) {
-  int interval = luaL_checkinteger(L, 1);
+  int interval = (int)luaL_checkinteger(L, 1);
   glfwSwapInterval(interval);
   return 0;
 }

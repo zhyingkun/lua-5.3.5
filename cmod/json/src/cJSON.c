@@ -221,7 +221,7 @@ static int update(printbuffer* p) {
   if (!p || !p->buffer)
     return 0;
   str = p->buffer + p->offset;
-  return p->offset + strlen(str);
+  return p->offset + (int)strlen(str);
 }
 
 /* Render the number nicely from the given item into a string. */
@@ -413,7 +413,7 @@ static char* print_string_ptr(const char* str, printbuffer* p) {
   for (ptr = str; *ptr; ptr++)
     flag |= ((*ptr > 0 && *ptr < 32) || (*ptr == '\"') || (*ptr == '\\')) ? 1 : 0;
   if (!flag) {
-    len = ptr - str;
+    len = (int)(ptr - str);
     if (p)
       out = ensure(p, len + 3);
     else
@@ -1202,7 +1202,7 @@ void cJSON_ForEachSubItemInArray(cJSON* item, cJSON_TraverseArrayFunc func, void
   cJSON* child = item->child;
   size_t idx = 0;
   while (child) {
-    func(ud, idx, child);
+    func(ud, (int)idx, child);
     child = child->next;
     idx++;
   }

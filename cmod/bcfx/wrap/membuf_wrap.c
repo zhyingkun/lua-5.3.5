@@ -42,7 +42,7 @@ uint8_t sizeof_DataType[] = {
 #define FILL_DATA_ARRAY_TABLE(count, idx, type, totype) \
   for (size_t i = 0; i < count; i++) { \
     lua_rawgeti(L, idx, i + 1); \
-    ((type*)ptr)[i] = lua_to##totype(L, -1); \
+    ((type*)ptr)[i] = (type)lua_to##totype(L, -1); \
     lua_pop(L, 1); \
   } \
   break
@@ -64,12 +64,12 @@ static void _fillBufferFromTable(void* ptr, bcfx_EDataType dt, size_t count, lua
 // assert((((uint64_t)ptr) & sizeof(type)) == 0);
 #define FILL_DATA_ARRAY_STACK(count, base, type, totype) \
   for (size_t i = 0; i < count; i++) { \
-    ((type*)ptr)[i] = lua_to##totype(L, base + i); \
+    ((type*)ptr)[i] = (type)lua_to##totype(L, base + (int)i); \
   } \
   break
 static void _fillBufferFromStack(void* ptr, bcfx_EDataType dt, size_t count, lua_State* L) {
   // base is the first one
-  int base = lua_gettop(L) - count + 1;
+  int base = lua_gettop(L) - (int)count + 1;
   switch (dt) {
 #define XX(name, type) \
   case DT_##name: \
@@ -83,7 +83,7 @@ static void _fillBufferFromStack(void* ptr, bcfx_EDataType dt, size_t count, lua
     default:
       break;
   }
-  lua_pop(L, count);
+  lua_pop(L, (int)count);
 }
 static void _releaseMemBuffer(void* ud, void* ptr) {
   (void)ud;
