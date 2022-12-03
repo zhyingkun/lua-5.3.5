@@ -134,14 +134,14 @@ LUA_API int lua_pushstackvalue(lua_State* L, int level, int idx) {
   StkId base = NULL;
   if (lua_getstack(L, level, &ar)) {
     ci = ar.i_ci;
-    count = ci->top - ci->func;
+    count = (int)(ci->top - ci->func);
     base = ci->func;
   } else if (level == 0) {
-    count = L->top - L->stack;
+    count = (int)(L->top - L->stack);
     base = L->stack;
   } else if (lua_getstack(L, level - 1, &ar)) {
     ci = ar.i_ci;
-    count = ci->func - L->stack;
+    count = (int)(ci->func - L->stack);
     base = L->stack;
   }
   if (idx >= 0 && idx < count && base != NULL) {

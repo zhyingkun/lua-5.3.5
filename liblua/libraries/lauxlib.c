@@ -213,7 +213,7 @@ LUALIB_API void luaL_pstack(lua_State* L, int level) {
     }
     const char* name = lua_tostring(L, -1);
     int idxstart = 0;
-    int idxend = top - bottom - 1;
+    int idxend = (int)(top - bottom - 1);
     for (int idx = idxend; idx >= idxstart; idx--) {
       lua_pushstackvalue(L, l, idx);
 #define FMT_STAC "L->stack(%p) Stack[%d] = %s %s\n"
@@ -323,7 +323,7 @@ LUALIB_API void luaL_pfuncinfo(lua_State* L, int level, int idx, int recursive) 
 static int pinject(lua_State* L) {
   luaL_pstack(L, -1);
   const char* source = (const char*)luaL_checklightuserdata(L, 1);
-  int level = luaL_checkinteger(L, 2);
+  int level = (int)luaL_checkinteger(L, 2);
   aux_checklevel(L, level, 0, 0);
   luaL_inject(L, source, level);
   return 0;
@@ -1573,7 +1573,7 @@ static void insert_registry_funcs(lua_State* L, const char* name) {
     }
     lua_pop(L, 1);
   }
-  int key = lua_rawlen(L, tblIdx) + 1;
+  lua_Integer key = lua_rawlen(L, tblIdx) + 1;
   lua_pushvalue(L, funcIdx); // func, tbl, func
   lua_rawseti(L, tblIdx, key);
   lua_pop(L, 2);
@@ -2090,7 +2090,7 @@ static void proto_printconstant(const Proto* f, luaL_ByteBuffer* b, int i) {
     case LUA_TSHRSTR:
     case LUA_TLNGSTR:
       luaBB_addliteral(b, "\"");
-      luaBB_addlstringex(b, getstr(tsvalue(o)), tsslen(tsvalue(o)), 1);
+      luaBB_addlstringex(b, getstr(tsvalue(o)), (uint32_t)tsslen(tsvalue(o)), 1);
       luaBB_addliteral(b, "\"");
       break;
     default: /* cannot happen */
@@ -2273,7 +2273,7 @@ LUALIB_API int luaL_inject(lua_State* L, const char* source, int level) {
       lua_pop(L, 1);
     }
     if (lua_getfield(L, upvalue_index, name) != LUA_TNIL && lua_isinteger(L, -1)) {
-      lua_upvaluejoin(L, funcidx, i, levelfidx, lua_tointeger(L, -1));
+      lua_upvaluejoin(L, funcidx, i, levelfidx, (int)lua_tointeger(L, -1));
     }
     lua_pop(L, 1);
   }
@@ -2290,7 +2290,7 @@ LUALIB_API int luaL_inject(lua_State* L, const char* source, int level) {
   int tblidx = lua_gettop(L);
   lua_pushnil(L);
   while (lua_next(L, tblidx)) {
-    lua_setlocal(L, &ar, lua_tointeger(L, -2));
+    lua_setlocal(L, &ar, (int)lua_tointeger(L, -2));
   }
   lua_pop(L, 1);
 

@@ -111,7 +111,7 @@ LUALIB_API void luaBB_addlstringex(luaL_ByteBuffer* b, const char* str, uint32_t
   }
   if (escape) {
     uint8_t* dst = (uint8_t*)alloca(len * mul);
-    len = luaL_escape((char*)dst, str, len);
+    len = (int)luaL_escape((char*)dst, str, len);
     luaBB_addbytes(b, dst, len);
   } else {
     luaBB_addbytes(b, (const uint8_t*)str, len);
@@ -125,10 +125,10 @@ LUALIB_API void luaBB_addvalue(luaL_ByteBuffer* b, lua_State* L, int idx) {
   const char* result = luaL_tolstring(L, idx, &length); // [-0, +1]
   if (lua_type(L, idx) == LUA_TSTRING) {
     luaBB_addliteral(b, "\"");
-    luaBB_addlstringex(b, result, length, true);
+    luaBB_addlstringex(b, result, (uint32_t)length, true);
     luaBB_addliteral(b, "\"");
   } else {
-    luaBB_addlstring(b, result, length);
+    luaBB_addlstring(b, result, (uint32_t)length);
   }
   lua_pop(L, 1); // [-1, +0]
 }

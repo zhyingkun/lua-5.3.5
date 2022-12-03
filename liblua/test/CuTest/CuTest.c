@@ -17,7 +17,7 @@ char* CuStrAlloc(int size) {
 }
 
 char* CuStrCopy(const char* old) {
-  int len = strlen(old);
+  int len = (int)strlen(old);
   char* newStr = CuStrAlloc(len + 1);
   strcpy(newStr, old);
   return newStr;
@@ -62,7 +62,7 @@ void CuStringAppend(CuString* str, const char* text) {
     text = "NULL";
   }
 
-  length = strlen(text);
+  length = (int)strlen(text);
   if (str->length + length + 1 >= str->size)
     CuStringResize(str, str->length + length + 1 + STRING_INC);
   str->length += length;
@@ -86,7 +86,7 @@ void CuStringAppendFormat(CuString* str, const char* format, ...) {
 }
 
 void CuStringInsert(CuString* str, const char* text, int pos) {
-  int length = strlen(text);
+  int length = (int)strlen(text);
   if (pos > str->length)
     pos = str->length;
   if (str->length + length + 1 >= str->size)

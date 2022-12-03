@@ -402,8 +402,8 @@ static int sort(lua_State* L) {
 }
 
 static int create(lua_State* L) {
-  int narr = luaL_optinteger(L, 1, 0);
-  int nrec = luaL_optinteger(L, 2, 0);
+  int narr = (int)luaL_optinteger(L, 1, 0);
+  int nrec = (int)luaL_optinteger(L, 2, 0);
   lua_createtable(L, narr, nrec);
   return 1;
 }

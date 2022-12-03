@@ -571,7 +571,7 @@ static int db_protoinfo(lua_State* L) {
 
 static int db_inject(lua_State* L) {
   const char* source = luaL_checkstring(L, 1);
-  int level = luaL_optinteger(L, 2, 1);
+  int level = (int)luaL_optinteger(L, 2, 1);
   return luaL_inject(L, source, level);
 }
 

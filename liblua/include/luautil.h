@@ -118,7 +118,7 @@ LUALIB_API void luaBB_clear(luaL_ByteBuffer* b);
     luaBB_addstring(b, buff); \
   } while (0)
 
-#define luaBB_addlstring(b, s, l) luaBB_addlstringex(b, s, l, false)
+#define luaBB_addlstring(b, s, l) luaBB_addlstringex(b, s, (uint32_t)(l), false)
 #define luaBB_addstring(b, s) luaBB_addlstring(b, s, strlen(s))
 #define luaBB_addliteral(b, s) luaBB_addlstring(b, "" s, sizeof(s) - 1)
 #define luaBB_addnewline(b) luaBB_addliteral(b, "\n")
