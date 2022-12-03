@@ -128,7 +128,7 @@ LUALIB_API void luaBB_addvalue(luaL_ByteBuffer* b, lua_State* L, int idx) {
     luaBB_addlstringex(b, result, (uint32_t)length, true);
     luaBB_addliteral(b, "\"");
   } else {
-    luaBB_addlstring(b, result, (uint32_t)length);
+    luaBB_addlstring(b, result, length);
   }
   lua_pop(L, 1); // [-1, +0]
 }
