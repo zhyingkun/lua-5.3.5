@@ -36,6 +36,10 @@
 #include <IOKit/graphics/IOGraphicsLib.h>
 #include <ApplicationServices/ApplicationServices.h>
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_VERSION_12_0 // Before macOS 12 Monterey
+#define kIOMainPortDefault kIOMasterPortDefault
+#endif
+
 // Get the name of the specified display, or NULL
 //
 static char* getMonitorName(CGDirectDisplayID displayID, NSScreen* screen) {
@@ -54,7 +58,7 @@ static char* getMonitorName(CGDirectDisplayID displayID, NSScreen* screen) {
   io_service_t service;
   CFDictionaryRef info;
 
-  if (IOServiceGetMatchingServices(kIOMasterPortDefault,
+  if (IOServiceGetMatchingServices(kIOMainPortDefault,
                                    IOServiceMatching("IODisplayConnect"),
                                    &it) != 0) {
     // This may happen if a desktop Mac is running headless
@@ -202,7 +206,7 @@ static double getFallbackRefreshRate(CGDirectDisplayID displayID) {
   io_iterator_t it;
   io_service_t service;
 
-  if (IOServiceGetMatchingServices(kIOMasterPortDefault,
+  if (IOServiceGetMatchingServices(kIOMainPortDefault,
                                    IOServiceMatching("IOFramebuffer"),
                                    &it) != 0) {
     return refreshRate;

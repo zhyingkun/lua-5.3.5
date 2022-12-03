@@ -31,6 +31,10 @@
 #include <float.h>
 #include <string.h>
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_VERSION_12_0
+#include <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+#endif
+
 // Returns the style mask corresponding to the window settings
 //
 static NSUInteger getStyleMask(_GLFWwindow* window) {
@@ -324,7 +328,11 @@ static const NSRange kEmptyRange = {NSNotFound, 0};
     [self updateTrackingAreas];
     // NOTE: kUTTypeURL corresponds to NSPasteboardTypeURL but is available
     //       on 10.7 without having been deprecated yet
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_VERSION_12_0
+    [self registerForDraggedTypes:@[(__bridge NSString*)UTTypeURL]];
+#else
     [self registerForDraggedTypes:@[(__bridge NSString*)kUTTypeURL]];
+#endif
   }
 
   return self;

@@ -88,6 +88,11 @@ if(APPLE)
 		"-framework CoreFoundation"
 		"-framework CoreVideo"
 	)
+	if (CMAKE_HOST_SYSTEM_VERSION VERSION_GREATER_EQUAL 21) # MacOSX 12.0 is Darwin-21.0.1
+		list(APPEND glfw_LIBRARIES
+			"-framework UniformTypeIdentifiers"
+		)
+	endif()
 elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	#--------------------------------------------------------------------
 	# Use X11 for window creation
