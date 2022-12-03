@@ -65,7 +65,7 @@ static int win_chdir(const char* path, size_t len) {
 #endif
 
 static int pmain(lua_State* L) {
-  int argc = lua_tointeger(L, 1);
+  int argc = (int)lua_tointeger(L, 1);
   char** argv = (char**)lua_topointer(L, 2);
 
   lua_createtable(L, argc - 1, 1); // index 0 is not in array part

@@ -43,7 +43,7 @@ void call_va(lua_State* L, const char* func, const char* sig, ...) {
     }
   }
 endargs:
-  nres = strlen(sig); /* number of expected results */
+  nres = (int)strlen(sig); /* number of expected results */
   if (lua_pcall(L, narg, nres, 0) != 0) /* do the call */
     error(L, "error calling '%s': %s", func, lua_tostring(L, -1));
 
@@ -61,7 +61,7 @@ endargs:
       }
       case 'i': { /* int result */
         int isnum;
-        int n = lua_tointegerx(L, nres, &isnum);
+        int n = (int)lua_tointegerx(L, nres, &isnum);
         if (!isnum)
           error(L, "wrong result type");
         *va_arg(vl, int*) = n;

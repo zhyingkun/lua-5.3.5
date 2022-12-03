@@ -166,7 +166,7 @@ static int person_get(lua_State* L) {
   lua_pushvalue(L, 2);
   lua_xmove(L, p->dataL, 1);
   lua_rawget(p->dataL, 1);
-  int idx = lua_tointeger(p->dataL, -1);
+  int idx = (int)lua_tointeger(p->dataL, -1);
   lua_pop(p->dataL, 1);
   lua_pushvalue(p->dataL, idx);
   lua_xmove(p->dataL, L, 1);
@@ -179,7 +179,7 @@ static int person_set(lua_State* L) {
   lua_pushvalue(L, 2);
   lua_xmove(L, p->dataL, 1);
   lua_rawget(p->dataL, 1);
-  int idx = lua_tointeger(p->dataL, -1);
+  int idx = (int)lua_tointeger(p->dataL, -1);
   lua_pop(p->dataL, 1);
 
   lua_pushvalue(L, 3);
@@ -248,7 +248,7 @@ static void test_person(lua_State* L) {
   }
 
   const char* name = lua_tostring(p->dataL, p->idName);
-  int age = lua_tointeger(p->dataL, p->idAge);
+  int age = (int)lua_tointeger(p->dataL, p->idAge);
   const char* isS = lua_toboolean(p->dataL, p->idIsStudent) ? "true" : "false";
   printf("After access: %s, %d, %s\n", name, age, isS);
 }
