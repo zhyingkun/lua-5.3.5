@@ -200,7 +200,8 @@ typedef enum {
   OP_LT, /*	A B C	if ((RK(B) <  RK(C)) ~= A) then pc++		*/
   OP_LE, /*	A B C	if ((RK(B) <= RK(C)) ~= A) then pc++		*/
 
-  // <=> means compares in bool type
+  // <=> means compares in bool type, bool equal means true
+  // always followed by OP_JMP, OP_TEST means if R(A) bool equal C then jump to target pc
   OP_TEST, /*	A C	if not (R(A) <=> C) then pc++			*/
   OP_TESTSET, /*	A B C	if (R(B) <=> C) then R(A) := R(B) else pc++	*/
 
