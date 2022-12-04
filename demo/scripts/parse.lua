@@ -1,4 +1,10 @@
-local a, b, c = 43, "Hello", true
+local a, b, c = 43, "Hello", true, false
+local arg1, arg2 = ...
+local total, d = 6
+local e = b and c or d
+
+print(arg1, arg2)
+
 local tbl = {
     [1] = 66,
     Nice = "Good",
@@ -14,12 +20,11 @@ tbl.World:Famous {}
 tbl.World:Famous "Literal"
 
 do
-    print(a, b, c)
+    print(a, b, c, d, e)
 end
 
 ::JustDoIt::
 
-local total = tbl[1]
 for i = 1, 10, 1 do
     if i == 3 then
         break
