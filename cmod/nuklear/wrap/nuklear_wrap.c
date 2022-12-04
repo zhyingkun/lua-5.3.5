@@ -669,9 +669,10 @@ static int NKWRAP_FUNCTION(propertyd)(lua_State* L) {
 ** =======================================================
 */
 
+static lua_State* cacheL = NULL;
 static nk_bool _textEditPluginFilter(const nk_text_edit* editor, nk_rune unicode) {
   nk_bool ret = 0;
-  lua_State* L = GET_MAIN_LUA_STATE();
+  lua_State* L = cacheL;
   int cbidx = lua_gettop(L);
   int edidx = cbidx - 1;
   PREPARE_CALL_LUA(L);
@@ -694,6 +695,7 @@ static int NKWRAP_FUNCTION(edit_string)(lua_State* L) {
     filter = (nk_plugin_filter)luaL_checklightuserdata(L, FILTER_IDX);
   } else if (lua_isfunction(L, FILTER_IDX)) {
     filter = _textEditPluginFilter;
+    cacheL = L;
     lua_settop(L, FILTER_IDX);
   } else {
     filter = NULL;
@@ -717,6 +719,7 @@ static int NKWRAP_FUNCTION(edit_buffer)(lua_State* L) {
     filter = (nk_plugin_filter)luaL_checklightuserdata(L, FILTER_IDX);
   } else if (lua_isfunction(L, FILTER_IDX)) {
     filter = _textEditPluginFilter;
+    cacheL = L;
     lua_settop(L, FILTER_IDX);
   } else {
     filter = NULL;
@@ -1354,7 +1357,7 @@ static int NKWRAP_FUNCTION(menu_end)(lua_State* L) {
 */
 
 #define EMPLACE_NKWRAP_FUNCTION(name) \
-  { #name, NKWRAP_FUNCTION(name) }
+  { "" #name, NKWRAP_FUNCTION(name) }
 static const luaL_Reg wrap_funcs[] = {
     /* Drawing */
     EMPLACE_NKWRAP_FUNCTION(convert),

@@ -247,7 +247,7 @@ static int NKWRAP_FUNCTION(push_scissor)(lua_State* L) {
 }
 
 static void _commandCustomCallback(void* canvas, short x, short y, unsigned short w, unsigned short h, nk_handle callback_data) {
-  lua_State* L = GET_MAIN_LUA_STATE();
+  lua_State* L = (lua_State*)callback_data.ptr;
   PUSH_HOLD_OBJECT(L, _commandCustomCallback, 0);
   if (lua_isfunction(L, -1)) {
     int idx = lua_gettop(L);
@@ -270,7 +270,7 @@ static int NKWRAP_FUNCTION(push_custom)(lua_State* L) {
 
   HOLD_LUA_OBJECT(L, _commandCustomCallback, 0, 3);
 
-  nk_push_custom(canvas, rect, _commandCustomCallback, nk_handle_ptr(NULL));
+  nk_push_custom(canvas, rect, _commandCustomCallback, nk_handle_ptr((void*)L));
   return 0;
 }
 void NKWRAP_FUNCTION(ClearPushCustomCallback)(lua_State* L) {
@@ -280,7 +280,7 @@ void NKWRAP_FUNCTION(ClearPushCustomCallback)(lua_State* L) {
 /* }====================================================== */
 
 #define EMPLACE_NKWRAP_FUNCTION(name) \
-  { #name, NKWRAP_FUNCTION(name) }
+  { "" #name, NKWRAP_FUNCTION(name) }
 static const luaL_Reg wrap_funcs[] = {
     /* Shape Outlines */
     EMPLACE_NKWRAP_FUNCTION(stroke_line),
