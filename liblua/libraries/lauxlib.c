@@ -1623,23 +1623,26 @@ static void proto_printheaders(const Proto* f, luaL_ByteBuffer* b) {
 }
 
 // None, Value, Register, Constant, Prototype, Upvalue, Bool
-enum OpPrefix {
-  N_,
-  V_,
-  R_,
-  K_,
-  P_,
-  U_,
-  B_
-};
+typedef enum {
+  N_, // None
+  V_, // Value
+  R_, // Register
+  K_, // Constant
+  P_, // Prototype
+  U_, // Upvalue
+  B_, // Bool
+  RK, // Register or Constant
+} OpPrefix;
+static const char* OpPrefixChar[] = {" ", " ", "r", "k", "p", "u", "b", "rk"};
 
-#define PRE_POS_A 6
-#define PRE_POS_B 3
+#define PRE_BITS 5
 #define PRE_POS_C 0
-#define PRE_MASK MASK1(3, 0)
+#define PRE_POS_B (PRE_POS_C + PRE_BITS)
+#define PRE_POS_A (PRE_POS_B + PRE_BITS)
+#define PRE_MASK MASK1(PRE_BITS, 0)
 #define OPPREFIX_MASK(op, pos, mask) ((luaP_opprefixmask[op] >> (pos)) & (mask))
 
-// bit size:   1, 1, 2, 2, 2
+// bit size:     5, 5, 5
 #define opprefix(a, b, c) (((a) << PRE_POS_A) | ((b) << PRE_POS_B) | ((c) << PRE_POS_C))
 
 // clang-format off
@@ -1651,34 +1654,34 @@ static const short luaP_opprefixmask[] = {
  ,opprefix(R_, B_, B_)        /* OP_LOADBOOL */
  ,opprefix(R_, V_, N_)        /* OP_LOADNIL */
  ,opprefix(R_, U_, N_)        /* OP_GETUPVAL */
- ,opprefix(R_, U_, K_)        /* OP_GETTABUP */
- ,opprefix(R_, R_, K_)        /* OP_GETTABLE */
- ,opprefix(U_, K_, K_)        /* OP_SETTABUP */
+ ,opprefix(R_, U_, RK)        /* OP_GETTABUP */
+ ,opprefix(R_, R_, RK)        /* OP_GETTABLE */
+ ,opprefix(U_, RK, RK)        /* OP_SETTABUP */
  ,opprefix(R_, U_, N_)        /* OP_SETUPVAL */
- ,opprefix(R_, K_, K_)        /* OP_SETTABLE */
+ ,opprefix(R_, RK, RK)        /* OP_SETTABLE */
  ,opprefix(R_, V_, V_)        /* OP_NEWTABLE */
- ,opprefix(R_, R_, K_)        /* OP_SELF */
- ,opprefix(R_, K_, K_)        /* OP_ADD */
- ,opprefix(R_, K_, K_)        /* OP_SUB */
- ,opprefix(R_, K_, K_)        /* OP_MUL */
- ,opprefix(R_, K_, K_)        /* OP_MOD */
- ,opprefix(R_, K_, K_)        /* OP_POW */
- ,opprefix(R_, K_, K_)        /* OP_DIV */
- ,opprefix(R_, K_, K_)        /* OP_IDIV */
- ,opprefix(R_, K_, K_)        /* OP_BAND */
- ,opprefix(R_, K_, K_)        /* OP_BOR */
- ,opprefix(R_, K_, K_)        /* OP_BXOR */
- ,opprefix(R_, K_, K_)        /* OP_SHL */
- ,opprefix(R_, K_, K_)        /* OP_SHR */
+ ,opprefix(R_, R_, RK)        /* OP_SELF */
+ ,opprefix(R_, RK, RK)        /* OP_ADD */
+ ,opprefix(R_, RK, RK)        /* OP_SUB */
+ ,opprefix(R_, RK, RK)        /* OP_MUL */
+ ,opprefix(R_, RK, RK)        /* OP_MOD */
+ ,opprefix(R_, RK, RK)        /* OP_POW */
+ ,opprefix(R_, RK, RK)        /* OP_DIV */
+ ,opprefix(R_, RK, RK)        /* OP_IDIV */
+ ,opprefix(R_, RK, RK)        /* OP_BAND */
+ ,opprefix(R_, RK, RK)        /* OP_BOR */
+ ,opprefix(R_, RK, RK)        /* OP_BXOR */
+ ,opprefix(R_, RK, RK)        /* OP_SHL */
+ ,opprefix(R_, RK, RK)        /* OP_SHR */
  ,opprefix(R_, R_, N_)        /* OP_UNM */
  ,opprefix(R_, R_, N_)        /* OP_BNOT */
  ,opprefix(R_, R_, N_)        /* OP_NOT */
  ,opprefix(R_, R_, N_)        /* OP_LEN */
  ,opprefix(R_, R_, R_)        /* OP_CONCAT */
  ,opprefix(R_, V_, N_)        /* OP_JMP */
- ,opprefix(B_, K_, K_)        /* OP_EQ */
- ,opprefix(B_, K_, K_)        /* OP_LT */
- ,opprefix(B_, K_, K_)        /* OP_LE */
+ ,opprefix(B_, RK, RK)        /* OP_EQ */
+ ,opprefix(B_, RK, RK)        /* OP_LT */
+ ,opprefix(B_, RK, RK)        /* OP_LE */
  ,opprefix(R_, N_, V_)        /* OP_TEST */
  ,opprefix(R_, R_, V_)        /* OP_TESTSET */
  ,opprefix(R_, V_, V_)        /* OP_CALL */
@@ -1696,13 +1699,14 @@ static const short luaP_opprefixmask[] = {
 // clang-format on
 
 static const char* luaP_prefix(OpCode op, int pos, int mask, int isk) {
-  if (isk)
-    return "k";
-  static const char* prefix[] = {" ", " ", "r", "r", "p", "u", "b"};
-  return prefix[OPPREFIX_MASK(op, pos, mask)];
+  OpPrefix index = OPPREFIX_MASK(op, pos, mask);
+  if (index == RK) {
+    index = isk ? K_ : R_;
+  }
+  return OpPrefixChar[index];
 }
 
-#define Prefix_A(op, isk) luaP_prefix(op, PRE_POS_A, PRE_MASK, isk)
+#define Prefix_A(op) luaP_prefix(op, PRE_POS_A, PRE_MASK, 0)
 #define Prefix_B(op, isk) luaP_prefix(op, PRE_POS_B, PRE_MASK, isk)
 #define Prefix_C(op, isk) luaP_prefix(op, PRE_POS_C, PRE_MASK, isk)
 
@@ -1723,7 +1727,7 @@ static void proto_printinstructionmode_z(const Proto* f, luaL_ByteBuffer* sb, In
 
   switch (getOpMode(o)) {
     case iABC:
-      luaBB_addfstring(sb, "%s%d", Prefix_A(o, 0), a);
+      luaBB_addfstring(sb, "%s%d", Prefix_A(o), a);
       if (getBMode(o) != OpArgN)
         luaBB_addfstring(sb, " %s%d", Prefix_B(o, ISK(b)), INDEXK(b));
       else
@@ -1732,18 +1736,18 @@ static void proto_printinstructionmode_z(const Proto* f, luaL_ByteBuffer* sb, In
         luaBB_addfstring(sb, " %s%d", Prefix_C(o, ISK(c)), INDEXK(c));
       break;
     case iABx:
-      luaBB_addfstring(sb, "%s%d", Prefix_A(o, 0), a);
+      luaBB_addfstring(sb, "%s%d", Prefix_A(o), a);
       if (getBMode(o) == OpArgK)
         luaBB_addfstring(sb, " %s%d", Prefix_B(o, 1), bx);
       if (getBMode(o) == OpArgU)
         luaBB_addfstring(sb, " %s%d", Prefix_B(o, 0), bx);
       break;
     case iAsBx:
-      luaBB_addfstring(sb, "%s%d", Prefix_A(o, 0), a);
+      luaBB_addfstring(sb, "%s%d", Prefix_A(o), a);
       luaBB_addfstring(sb, " %s%d", Prefix_B(o, 0), sbx);
       break;
     case iAx:
-      luaBB_addfstring(sb, "%d", ax);
+      luaBB_addfstring(sb, "%s%d", Prefix_A(o), ax);
       break;
   }
 }
