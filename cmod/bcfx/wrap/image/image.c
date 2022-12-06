@@ -41,6 +41,7 @@ static int IMAGE_FUNCTION(packImageDecodeParam)(lua_State* L) {
   bcfx_ETextureFormat format = luaL_checktextureformat(L, 2);
 
   ImageDecodeParam* param = (ImageDecodeParam*)malloc(sizeof(ImageDecodeParam));
+  MEMBUFFER_INIT(&param->mb);
   MEMBUFFER_MOVE(mb, &param->mb);
   param->format = format;
 
@@ -83,6 +84,7 @@ static int IMAGE_FUNCTION(imageDecode)(lua_State* L) {
   bcfx_ETextureFormat format = luaL_checktextureformat(L, 2);
 
   ImageDecodeParam param[1];
+  MEMBUFFER_INIT(&param->mb);
   MEMBUFFER_MOVE(mb, &param->mb);
   param->format = format;
 
@@ -204,6 +206,7 @@ static int IMAGE_FUNCTION(packImageEncodeParam)(lua_State* L) {
   int quality = type == IT_JPG ? (int)luaL_checkinteger(L, 6) : 0;
 
   ImageEncodeParam* param = (ImageEncodeParam*)malloc(sizeof(ImageEncodeParam));
+  MEMBUFFER_INIT(&param->mb);
   MEMBUFFER_MOVE(mb, &param->mb);
   param->width = width;
   param->height = height;
@@ -248,6 +251,7 @@ static int IMAGE_FUNCTION(imageEncode)(lua_State* L) {
   int quality = type == IT_JPG ? (int)luaL_checkinteger(L, 6) : 0;
 
   ImageEncodeParam param[1];
+  MEMBUFFER_INIT(&param->mb);
   MEMBUFFER_MOVE(mb, &param->mb);
   param->width = width;
   param->height = height;
@@ -296,6 +300,7 @@ static int IMAGE_FUNCTION(packImageFlipVerticalParam)(lua_State* L) {
   int height = (int)luaL_checkinteger(L, 3);
 
   ImageFlipVerticalParam* param = (ImageFlipVerticalParam*)malloc(sizeof(ImageFlipVerticalParam));
+  MEMBUFFER_INIT(&param->mb);
   MEMBUFFER_MOVE(mb, &param->mb);
   param->width = width;
   param->height = height;
@@ -306,6 +311,7 @@ static int IMAGE_FUNCTION(packImageFlipVerticalParam)(lua_State* L) {
 static void* IMAGE_FUNCTION(imageFlipVerticalPtr)(void* arg) {
   ImageFlipVerticalParam* param = (ImageFlipVerticalParam*)arg;
   ImageFlipVerticalResult* result = (ImageFlipVerticalResult*)malloc(sizeof(ImageFlipVerticalResult));
+  MEMBUFFER_INIT(&result->mb);
   _doImageFlipVertical(param, result);
   free((void*)param);
   return (void*)result;
@@ -326,11 +332,13 @@ static int IMAGE_FUNCTION(imageFlipVertical)(lua_State* L) {
   int height = (int)luaL_checkinteger(L, 3);
 
   ImageFlipVerticalParam param[1];
+  MEMBUFFER_INIT(&param->mb);
   MEMBUFFER_MOVE(mb, &param->mb);
   param->width = width;
   param->height = height;
 
   ImageFlipVerticalResult result[1];
+  MEMBUFFER_INIT(&result->mb);
   _doImageFlipVertical(param, result);
   luaL_MemBuffer* membuf = luaL_newmembuffer(L);
   MEMBUFFER_MOVE(&result->mb, membuf);
