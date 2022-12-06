@@ -112,7 +112,7 @@ static int TCP_FUNCTION(__gc)(lua_State* L) {
 }
 
 #define EMPLACE_TCP_FUNCTION(name) \
-  { #name, TCP_FUNCTION(name) }
+  { "" #name, TCP_FUNCTION(name) }
 
 const luaL_Reg TCP_FUNCTION(metafuncs)[] = {
     EMPLACE_TCP_FUNCTION(bind),
@@ -151,6 +151,11 @@ static int TCP_FUNCTION(Tcp)(lua_State* L) {
   luaL_setmetatable(L, UVWRAP_TCP_TYPE);
   (void)STREAM_FUNCTION(ctor)(L, (uv_stream_t*)handle);
   return 1;
+}
+void STREAM_FUNCTION(newTcp)(lua_State* L, uv_loop_t* loop) {
+  lua_pushcfunction(L, TCP_FUNCTION(Tcp));
+  lua_pushlightuserdata(L, (void*)loop);
+  lua_call(L, 1, 1);
 }
 
 static const luaL_Reg TCP_FUNCTION(funcs)[] = {

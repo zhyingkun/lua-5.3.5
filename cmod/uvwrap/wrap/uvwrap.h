@@ -118,6 +118,9 @@ int HANDLE_FUNCTION(__gc)(lua_State* L);
 void STREAM_FUNCTION(ctor)(lua_State* L, uv_stream_t* handle);
 int STREAM_FUNCTION(__gc)(lua_State* L);
 
+void STREAM_FUNCTION(newPipe)(lua_State* L, uv_loop_t* loop);
+void STREAM_FUNCTION(newTcp)(lua_State* L, uv_loop_t* loop);
+
 #define SOCKADDR_FUNCTION(name) UVWRAP_FUNCTION(sockaddr, name)
 #define PHYSADDR_FUNCTION(name) UVWRAP_FUNCTION(physaddr, name)
 

@@ -65,10 +65,24 @@ static int STREAM_FUNCTION(listenAsync)(lua_State* L) {
 
 static int STREAM_FUNCTION(accept)(lua_State* L) {
   uv_stream_t* server = luaL_checkstream(L, 1);
-  uv_stream_t* client = luaL_checkstream(L, 2);
+#define CLIENT_IDX 2
+  if (lua_isnoneornil(L, CLIENT_IDX)) {
+    uv_handle_t* handle = (uv_handle_t*)server;
+    uv_handle_type type = uv_handle_get_type(handle);
+    uv_loop_t* loop = uv_handle_get_loop(handle);
+    lua_settop(L, CLIENT_IDX - 1);
+    if (type == UV_NAMED_PIPE) {
+      (void)STREAM_FUNCTION(newPipe)(L, loop);
+    } else if (type == UV_TCP) {
+      (void)STREAM_FUNCTION(newTcp)(L, loop);
+    }
+  }
+  uv_stream_t* client = luaL_checkstream(L, CLIENT_IDX);
   int err = uv_accept(server, client);
   lua_pushinteger(L, err);
-  return 1;
+  lua_pushvalue(L, CLIENT_IDX);
+#undef CLIENT_IDX
+  return 2;
 }
 
 static void STREAM_CALLBACK(readStartAsync)(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
@@ -241,7 +255,7 @@ int STREAM_FUNCTION(__gc)(lua_State* L) {
 }
 
 #define EMPLACE_STREAM_FUNCTION(name) \
-  { #name, STREAM_FUNCTION(name) }
+  { "" #name, STREAM_FUNCTION(name) }
 
 static const luaL_Reg uvwrap_stream_metafuncs[] = {
     EMPLACE_STREAM_FUNCTION(shutdownAsync),

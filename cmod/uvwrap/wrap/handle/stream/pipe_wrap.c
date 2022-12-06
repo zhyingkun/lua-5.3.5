@@ -114,7 +114,7 @@ static int PIPE_FUNCTION(__gc)(lua_State* L) {
 }
 
 #define EMPLACE_PIPE_FUNCTION(name) \
-  { #name, PIPE_FUNCTION(name) }
+  { "" #name, PIPE_FUNCTION(name) }
 
 static const luaL_Reg PIPE_FUNCTION(metafuncs)[] = {
     EMPLACE_PIPE_FUNCTION(open),
@@ -155,6 +155,11 @@ static int PIPE_FUNCTION(Pipe)(lua_State* L) {
   luaL_setmetatable(L, UVWRAP_PIPE_TYPE);
   (void)STREAM_FUNCTION(ctor)(L, (uv_stream_t*)handle);
   return 1;
+}
+void STREAM_FUNCTION(newPipe)(lua_State* L, uv_loop_t* loop) {
+  lua_pushcfunction(L, PIPE_FUNCTION(Pipe));
+  lua_pushlightuserdata(L, (void*)loop);
+  lua_call(L, 1, 1);
 }
 
 static const luaL_Reg PIPE_FUNCTION(funcs)[] = {

@@ -179,7 +179,7 @@ end
 ---@field shutdownAsync fun(self:uv_stream_t, callback:StatusStreamSignature):void
 ---@field shutdownAsyncWait fun(self:uv_stream_t):integer
 ---@field listenAsync fun(self:uv_stream_t, backlog:integer, callback:StatusStreamSignature):void
----@field accept fun(self:uv_stream_t, client:uv_stream_t):integer
+---@field accept fun(self:uv_stream_t, client:uv_stream_t | nil):integer, uv_stream_t
 ---@field readStartAsync fun(self:uv_stream_t, callback:ReadCallbackSignature):void
 ---@field readStop fun(self:uv_stream_t):void
 ---@field writeAsync fun(self:uv_stream_t, data:string, callback:StatusStreamSignature):void
