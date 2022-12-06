@@ -1,4 +1,5 @@
-local libuv = require("libuv")
+---@type libuv
+local libuv = nil
 
 --[[
 ** {======================================================
@@ -9,12 +10,16 @@ local libuv = require("libuv")
 local packetPBCode = { 0xA, 0x5F, 0xA, 0x12, 0x70, 0x72, 0x6F, 0x74, 0x6F, 0x2F, 0x70, 0x61, 0x63, 0x6B, 0x65, 0x74, 0x2E, 0x70, 0x72, 0x6F, 0x74, 0x6F, 0x12, 0xF, 0x5F, 0x50, 0x61, 0x63, 0x6B, 0x65, 0x74, 0x4D, 0x61, 0x6E, 0x61, 0x67, 0x65, 0x72, 0x5F, 0x22, 0x30, 0xA, 0x6, 0x50, 0x61, 0x63, 0x6B, 0x65, 0x74, 0x12, 0x12, 0xA, 0x4, 0x6E, 0x61, 0x6D, 0x65, 0x18, 0x1, 0x20, 0x1, 0x28, 0x9, 0x52, 0x4, 0x6E, 0x61, 0x6D, 0x65, 0x12, 0x12, 0xA, 0x4, 0x64, 0x61, 0x74, 0x61, 0x18, 0x2, 0x20, 0x1, 0x28, 0xC, 0x52, 0x4, 0x64, 0x61, 0x74, 0x61, 0x62, 0x6, 0x70, 0x72, 0x6F, 0x74, 0x6F, 0x33 }
 local packetPB = string.char(function(idx) return packetPBCode[idx] end)
 
+local ProtocolPacket = "_PacketManager_.Packet"
+
 local replPBCode = { 0xA, 0xBD, 0x1, 0xA, 0x10, 0x70, 0x72, 0x6F, 0x74, 0x6F, 0x2F, 0x72, 0x65, 0x70, 0x6C, 0x2E, 0x70, 0x72, 0x6F, 0x74, 0x6F, 0x12, 0x6, 0x5F, 0x52, 0x45, 0x50, 0x4C, 0x5F, 0x22, 0x2C, 0xA, 0x4, 0x52, 0x65, 0x61, 0x64, 0x12, 0x12, 0xA, 0x4, 0x63, 0x6F, 0x64, 0x65, 0x18, 0x1, 0x20, 0x1, 0x28, 0x9, 0x52, 0x4, 0x63, 0x6F, 0x64, 0x65, 0x12, 0x10, 0xA, 0x3, 0x65, 0x6F, 0x66, 0x18, 0x2, 0x20, 0x1, 0x28, 0x8, 0x52, 0x3, 0x65, 0x6F, 0x66, 0x22, 0x6B, 0xA, 0x5, 0x50, 0x72, 0x69, 0x6E, 0x74, 0x12, 0x16, 0xA, 0x6, 0x70, 0x72, 0x6F, 0x6D, 0x70, 0x74, 0x18, 0x1, 0x20, 0x1, 0x28, 0x9, 0x52, 0x6, 0x70, 0x72, 0x6F, 0x6D, 0x70, 0x74, 0x12, 0x16, 0xA, 0x6, 0x6F, 0x75, 0x74, 0x70, 0x75, 0x74, 0x18, 0x2, 0x20, 0x1, 0x28, 0x9, 0x52, 0x6, 0x6F, 0x75, 0x74, 0x70, 0x75, 0x74, 0x12, 0x18, 0xA, 0x7, 0x68, 0x69, 0x73, 0x74, 0x6F, 0x72, 0x79, 0x18, 0x3, 0x20, 0x1, 0x28, 0x9, 0x52, 0x7, 0x68, 0x69, 0x73, 0x74, 0x6F, 0x72, 0x79, 0x12, 0x18, 0xA, 0x7, 0x72, 0x75, 0x6E, 0x6E, 0x69, 0x6E, 0x67, 0x18, 0x4, 0x20, 0x1, 0x28, 0x8, 0x52, 0x7, 0x72, 0x75, 0x6E, 0x6E, 0x69, 0x6E, 0x67, 0x62, 0x6, 0x70, 0x72, 0x6F, 0x74, 0x6F, 0x33 }
 local replPB = string.char(function(idx) return replPBCode[idx] end)
 
-local pbc = require("protobuf")
-pbc.register(packetPB)
-pbc.register(replPB)
+local ProtocolRead = "_REPL_.Read"
+local ProtocolPrint = "_REPL_.Print"
+
+---@type pbc
+local pbc = nil
 
 ---@class REPLPacket
 local REPLPacket = {
@@ -25,7 +30,7 @@ REPLPacket.__index = REPLPacket
 
 function REPLPacket:packMessage(messageType, dataTable)
 	local serializedData = pbc.encode(messageType, dataTable)
-	local packet = pbc.encode("_PacketManager_.Packet", {
+	local packet = pbc.encode(ProtocolPacket, {
 		name = messageType,
 		data = serializedData
 	})
@@ -34,14 +39,14 @@ function REPLPacket:packMessage(messageType, dataTable)
 end
 
 function REPLPacket:packReadMessage(codeStr, eof)
-	return self:packMessage("_REPL_.Read", {
+	return self:packMessage(ProtocolRead, {
 		code = codeStr,
 		eof = eof,
 	})
 end
 
 function REPLPacket:packPrintMessage(running, prompt, history, output)
-	return self:packMessage("_REPL_.Print", {
+	return self:packMessage(ProtocolPrint, {
 		running = running,
 		prompt = prompt,
 		history = history,
@@ -56,8 +61,11 @@ end
 function REPLPacket:getPacket()
 	local status, str = self.packetManager:getPacket()
 	if status ~= libuv.packet_status.OK then return end
-	local packetTable = pbc.decode("_PacketManager_.Packet", str)
+	local packetTable = pbc.decode(ProtocolPacket, str)
 	return packetTable.name, pbc.decode(packetTable.name, packetTable.data)
+end
+function REPLPacket:packets()
+	return self.getPacket, self, nil
 end
 
 ---@return REPLPacket
@@ -73,15 +81,31 @@ end
 ---@class repl:table
 local repl = {}
 
+local ErrMsg = "repl must init with libuv"
+
+---@overload fun(uv:libuv):void
+---@overload fun(uv:libuv, pb:pbc):void
+---@param uv libuv
+---@param pb pbc
+function repl.init(uv, pb)
+	if type(uv) ~= "table" then error(ErrMsg) end
+	libuv = uv
+	pbc = pb or require("protobuf")
+	pbc.register(packetPB)
+	pbc.register(replPB)
+end
+
 ---@overload fun():void
 ---@overload fun(callback:REPLEvalSignature):void
 ---@param callback REPLEvalSignature
 function repl.startAsync(callback)
+	if not libuv then error(ErrMsg) end
 	libuv.replStartAsync(callback)
 end
 
 ---@type REPLEvalSignature
 function repl.evalDefault(codeStr, eof)
+	if not libuv then error(ErrMsg) end
 	return libuv.replDefault(codeStr, eof)
 end
 
@@ -148,16 +172,8 @@ function repl.evalDefaultLua(codeStr, eof)
 	return running, prompt, history
 end
 
-local tcp = libuv.tcp
-local network = libuv.network
-local err_code = libuv.err_code
-local OK = err_code.OK
-local EOF = err_code.EOF
-
-local errName = libuv.errName
-local strError = libuv.strError
 local function printError(msg, status)
-	printerr(msg, status, errName(status), strError(status))
+	printerr(msg, status, libuv.errName(status), libuv.strError(status))
 end
 
 ---@alias REPLRemoteEvalSignature fun(codeStr:string | nil, eof:boolean):boolean, string, string | nil, string | nil @running, prompt, history, output
@@ -170,18 +186,18 @@ end
 ---@param port integer
 ---@param callback REPLEvalSignature
 function repl.serverStartAsync(ip, port, callback)
-	callback = callback or repl.serverEvalDefault
-	local tcpSocket = tcp.Tcp()
-	local sockAddr = network.SockAddr()
-	sockAddr:ip4Addr(ip or "0.0.0.0", port or 1999)
-	tcpSocket:bind(sockAddr)
-	tcpSocket:listenAsync(128, function(status)
+	if not libuv then error(ErrMsg) end
+	callback = callback or repl.getServerEvalDefault()
+	local OK = libuv.err_code.OK
+	local EOF = libuv.err_code.EOF
+
+	local sockAddr = libuv.network.SockAddr():ip4Addr(ip or "0.0.0.0", port or 1999)
+	libuv.tcp.Tcp():bind(sockAddr):listenAsync(128, function(status, tcpSocket)
 		if status ~= OK then
 			printError("TCP listen error:", status)
 			return
 		end
-		local tcpConnection = tcp.Tcp()
-		status = tcpSocket:accept(tcpConnection)
+		local status, tcpConnection = tcpSocket:accept()
 		if status ~= OK then
 			printError("TCP accept error:", status)
 			return
@@ -189,7 +205,7 @@ function repl.serverStartAsync(ip, port, callback)
 		local fd = tcpConnection:fileno()
 		print("New REPL connection start:", fd)
 		local packetHandler = REPLPacketHandler()
-		tcpConnection:readStartAsync(function(nread, str)
+		tcpConnection:readStartAsync(function(nread, str, tcpConnection)
 			if nread < 0 then
 				if nread == EOF then
 					print("REPL connection end:", fd)
@@ -200,10 +216,8 @@ function repl.serverStartAsync(ip, port, callback)
 				return
 			end
 			packetHandler:addPackData(str)
-			while true do
-				local type, readTable = packetHandler:getPacket()
-				if not type then break end-- has no complete packet
-				assert(type == "_REPL_.Read")
+			for msgName, readTable in packetHandler:packets() do
+				assert(msgName == ProtocolRead)
 				local running, prompt, history, output = callback(readTable.code, readTable.eof)
 				local msg = packetHandler:packPrintMessage(running, prompt, history, output)
 				tcpConnection:writeAsync(msg, function(status)
@@ -227,8 +241,16 @@ function repl.makeServerEval(evalFunc)
 	end
 end
 
----@type REPLRemoteEvalSignature
-repl.serverEvalDefault = repl.makeServerEval(libuv.replDefault)
+local ServerEvalDefault = nil
+
+---@return REPLRemoteEvalSignature
+function repl.getServerEvalDefault()
+	if not libuv then error(ErrMsg) end
+	if not ServerEvalDefault then
+		ServerEvalDefault = repl.makeServerEval(libuv.replDefault)
+	end
+	return ServerEvalDefault
+end
 
 ---@overload fun():void
 ---@overload fun(serverIP:string):void
@@ -236,10 +258,11 @@ repl.serverEvalDefault = repl.makeServerEval(libuv.replDefault)
 ---@param serverIP string
 ---@param serverPort integer
 function repl.clientStart(serverIP, serverPort)
-	local tcpClient = tcp.Tcp()
-	local sockAddr = network.SockAddr()
-	sockAddr:ip4Addr(serverIP or "0.0.0.0", serverPort or 1999)
-	tcpClient:connectAsync(sockAddr, function(status)
+	if not libuv then error(ErrMsg) end
+	local OK = libuv.err_code.OK
+
+	local sockAddr = libuv.network.SockAddr():ip4Addr(serverIP or "0.0.0.0", serverPort or 1999)
+	libuv.tcp.Tcp():connectAsync(sockAddr, function(status, tcpClient)
 		if status < 0 then
 			printError("REPL TCP Connect error:", status)
 			return
@@ -254,16 +277,14 @@ function repl.clientStart(serverIP, serverPort)
 				end
 			end)
 		end
-		tcpClient:readStartAsync(function(nread, str)
+		tcpClient:readStartAsync(function(nread, str, tcpClient)
 			if nread < 0 then
 				printError("REPL TCP Read error:", nread)
 			else
 				packetHandler:addPackData(str)
 				local prompt
-				while true do
-					local type, printTable = packetHandler:getPacket()
-					if not type then break end-- has no complete packet
-					assert(type == "_REPL_.Print")
+				for msgName, printTable in packetHandler:packets() do
+					assert(msgName == ProtocolPrint)
 					libuv.replHistory(printTable.history)
 					prompt = printTable.prompt
 					io.stdout:write(printTable.output)
@@ -287,6 +308,7 @@ end
 ---@param serverIP string
 ---@param serverPort integer
 function repl.clientRun(serverIP, serverPort)
+	if not libuv then error(ErrMsg) end
 	libuv.setLoop()
 	repl.clientStart(serverIP, serverPort)
 	libuv.run()
