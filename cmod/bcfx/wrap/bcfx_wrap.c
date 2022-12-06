@@ -345,7 +345,7 @@ static int BCWRAP_FUNCTION(createShader)(lua_State* L) {
   if (lua_isstring(L, 1)) {
     size_t sz = 0;
     void* ptr = (void*)lua_tolstring(L, 1, &sz);
-    MEMBUFFER_SET(mb, ptr, sz, NULL, NULL);
+    MEMBUFFER_INITSET(mb, ptr, sz, NULL, NULL);
     hold_frame_resourse(L, bcfx_frameId(), 1);
   } else {
     mb = luaL_checkmembuffer(L, 1);
@@ -362,7 +362,7 @@ static int BCWRAP_FUNCTION(createIncludeShader)(lua_State* L) {
   if (lua_isstring(L, 1)) {
     size_t sz = 0;
     void* ptr = (void*)lua_tolstring(L, 1, &sz);
-    MEMBUFFER_SET(mb, ptr, sz, NULL, NULL);
+    MEMBUFFER_INITSET(mb, ptr, sz, NULL, NULL);
     hold_frame_resourse(L, bcfx_frameId(), 1);
   } else {
     mb = luaL_checkmembuffer(L, 1);
@@ -877,7 +877,7 @@ static int BCWRAP_FUNCTION(submit)(lua_State* L) {
 */
 
 #define EMPLACE_BCWRAP_FUNCTION(name) \
-  { #name, BCWRAP_FUNCTION(name) }
+  { "" #name, BCWRAP_FUNCTION(name) }
 static const luaL_Reg wrap_funcs[] = {
     /* Static Function Features */
     EMPLACE_BCWRAP_FUNCTION(setThreadFuncs),

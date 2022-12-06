@@ -40,7 +40,7 @@ static int mbio_readFile(const char* fileName, luaL_MemBuffer* mb) {
   void* buf = NULL;
   size_t sz = 0;
   int err = _readFileAllToBuffer(fileName, &buf, &sz);
-  MEMBUFFER_SET(mb, buf, sz, _releaseBuffer, NULL);
+  MEMBUFFER_SETREPLACE(mb, buf, sz, _releaseBuffer, NULL);
   return err;
 }
 
@@ -104,6 +104,7 @@ static int MBIO_FUNCTION(packReadFileParam)(lua_State* L) {
 static void* MBIO_FUNCTION(readFilePtr)(void* arg) {
   ReadFileParam* param = (ReadFileParam*)arg;
   ReadFileResult* result = (ReadFileResult*)malloc(sizeof(ReadFileResult));
+  MEMBUFFER_INIT(&result->mb);
   result->err = mbio_readFile(param->fileName, &result->mb);
   free((void*)param);
   return (void*)result;
@@ -128,7 +129,7 @@ static int MBIO_FUNCTION(unpackReadFileResult)(lua_State* L) {
 
 static int MBIO_FUNCTION(readFile)(lua_State* L) {
   const char* fileName = luaL_checkstring(L, 1);
-  luaL_MemBuffer mb[1];
+  DEFINE_LOCAL_MEMBUFFER_INIT(mb);
   int err = mbio_readFile(fileName, mb);
   return _dealReadFileResult(L, err, mb);
 }
@@ -193,7 +194,7 @@ static int MBIO_FUNCTION(writeFile)(lua_State* L) {
 /* }====================================================== */
 
 #define EMPLACE_MBIO_FUNCTION(name) \
-  { #name, MBIO_FUNCTION(name) }
+  { "" #name, MBIO_FUNCTION(name) }
 static const luaL_Reg MBIO_FUNCTION(funcs)[] = {
     EMPLACE_MBIO_FUNCTION(packReadFileParam),
     EMPLACE_MBIO_FUNCTION(unpackReadFileResult),

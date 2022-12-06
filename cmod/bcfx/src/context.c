@@ -104,7 +104,7 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
 
 /*
 ** {======================================================
-** Rendering Architecture 
+** Rendering Architecture
 ** =======================================================
 */
 
@@ -314,8 +314,8 @@ bcfx_Handle ctx_createVertexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_Verte
   return handle;
 }
 bcfx_Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size, bcfx_VertexLayout* layout) {
-  luaL_MemBuffer mb[1];
-  MEMBUFFER_SET(mb, NULL, size, NULL, NULL);
+  DEFINE_LOCAL_MEMBUFFER_INIT(mb);
+  MEMBUFFER_SETREPLACE(mb, NULL, size, NULL, NULL);
   return ctx_createVertexBuffer(ctx, mb, layout);
 }
 
@@ -327,7 +327,7 @@ bcfx_Handle ctx_createIndexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_EIndex
 }
 bcfx_Handle ctx_createDynamicIndexBuffer(Context* ctx, size_t size, bcfx_EIndexType type) {
   ADD_CMD_ALLOC_HANDLE(ctx, IndexBuffer)
-  MEMBUFFER_SET(&param->cib.mem, NULL, size, NULL, NULL);
+  MEMBUFFER_INITSET(&param->cib.mem, NULL, size, NULL, NULL);
   param->cib.type = type;
   return handle;
 }
@@ -463,8 +463,7 @@ bcfx_Handle ctx_createTexture2DMipmap(Context* ctx, bcfx_ETextureFormat format, 
 }
 
 bcfx_Handle ctx_createRenderTexture(Context* ctx, bcfx_ETextureFormat format, uint16_t width, uint16_t height) {
-  luaL_MemBuffer mb[1];
-  MEMBUFFER_CLEAR(mb);
+  DEFINE_LOCAL_MEMBUFFER_INIT(mb);
   return ctx_createTexture2D(ctx, format, mb, width, height, false);
 }
 
@@ -493,7 +492,7 @@ bcfx_Handle ctx_createDynamicInstanceDataBuffer(Context* ctx, uint32_t numInstan
   const uint8_t numFloatPerVec4 = 4;
   const uint8_t numBytePerFloat = 4;
   size_t sz = numInstance * numVec4PerInstance * numFloatPerVec4 * numBytePerFloat;
-  MEMBUFFER_SET(&param->cidb.mem, NULL, sz, NULL, NULL);
+  MEMBUFFER_INITSET(&param->cidb.mem, NULL, sz, NULL, NULL);
   param->cidb.numVec4PerInstance = numVec4PerInstance;
   return handle;
 }
@@ -506,7 +505,7 @@ bcfx_Handle ctx_createTextureBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_ETex
 }
 bcfx_Handle ctx_createDynamicTextureBuffer(Context* ctx, size_t size, bcfx_ETextureFormat format) {
   ADD_CMD_ALLOC_HANDLE(ctx, TextureBuffer)
-  MEMBUFFER_SET(&param->ctb.mem, NULL, size, NULL, NULL);
+  MEMBUFFER_INITSET(&param->ctb.mem, NULL, size, NULL, NULL);
   param->ctb.format = format;
   return handle;
 }

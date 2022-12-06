@@ -24,10 +24,10 @@ static void luaL_pushmesh(lua_State* L, Mesh* mesh) {
 
   lua_createtable(L, 0, 2);
   luaL_MemBuffer* vmb = luaL_newmembuffer(L);
-  MEMBUFFER_SET(vmb, vertexPtr, vertexSize, _freeMeshMemory, NULL);
+  MEMBUFFER_SETREPLACE(vmb, vertexPtr, vertexSize, _freeMeshMemory, NULL);
   lua_setfield(L, -2, "vertex");
   luaL_MemBuffer* imb = luaL_newmembuffer(L);
-  MEMBUFFER_SET(imb, indexPtr, indexSize, _freeMeshMemory, NULL);
+  MEMBUFFER_SETREPLACE(imb, indexPtr, indexSize, _freeMeshMemory, NULL);
   lua_setfield(L, -2, "index");
 }
 
@@ -172,7 +172,7 @@ static int MESH_FUNCTION(materialParse)(lua_State* L) {
 /* }====================================================== */
 
 #define EMPLACE_MESH_FUNCTION(name) \
-  { #name, MESH_FUNCTION(name) }
+  { "" #name, MESH_FUNCTION(name) }
 static const luaL_Reg MESH_FUNCTION(funcs)[] = {
     EMPLACE_MESH_FUNCTION(packMeshParseParam),
     EMPLACE_MESH_FUNCTION(unpackMeshParseResult),

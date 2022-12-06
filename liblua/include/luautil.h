@@ -141,23 +141,48 @@ typedef struct {
   void* ud;
 } luaL_MemBuffer;
 
-#define MEMBUFFER_SET(mb, ptr_, sz_, release_, ud_) \
+#define MEMBUFFER_SETNULL(mb) \
+  (mb)->ptr = NULL; \
+  (mb)->sz = 0; \
+  (mb)->release = NULL; \
+  (mb)->ud = NULL
+#define MEMBUFFER_CALLFREE(mb) \
+  if ((mb)->release != NULL && (mb)->ptr != NULL) { \
+    (mb)->release((mb)->ud, (mb)->ptr); \
+  }
+
+#define MEMBUFFER_INIT(mb) \
+  MEMBUFFER_SETNULL(mb)
+#define MEMBUFFER_INITSET(mb, ptr_, sz_, release_, ud_) \
+  (mb)->ptr = ptr_; \
+  (mb)->sz = sz_; \
+  (mb)->release = release_; \
+  (mb)->ud = ud_
+#define DEFINE_LOCAL_MEMBUFFER_INIT(mb) \
+  luaL_MemBuffer mb[1] = {{NULL, 0, NULL, NULL}}
+
+#define MEMBUFFER_RELEASE(mb) \
+  MEMBUFFER_CALLFREE(mb); \
+  MEMBUFFER_SETNULL(mb)
+
+#define MEMBUFFER_SETREPLACE(mb, ptr_, sz_, release_, ud_) \
+  MEMBUFFER_CALLFREE(mb); \
   (mb)->ptr = ptr_; \
   (mb)->sz = sz_; \
   (mb)->release = release_; \
   (mb)->ud = ud_
 
-#define MEMBUFFER_CLEAR(mb) \
-  MEMBUFFER_SET(mb, NULL, 0, NULL, NULL)
+#define MEMBUFFER_GETCLEAR(mb, ptr_, sz_, release_, ud_) \
+  ptr_ = (mb)->ptr; \
+  sz_ = (mb)->sz; \
+  release_ = (mb)->release; \
+  ud_ = (mb)->ud; \
+  MEMBUFFER_SETNULL(mb)
 
 #define MEMBUFFER_MOVE(src, dst) \
+  MEMBUFFER_CALLFREE(dst); \
   *(dst) = *(src); \
-  MEMBUFFER_CLEAR(src)
-
-#define MEMBUFFER_RELEASE(mb) \
-  if ((mb)->release != NULL && (mb)->ptr != NULL) \
-    (mb)->release((mb)->ud, (mb)->ptr); \
-  MEMBUFFER_CLEAR(mb)
+  MEMBUFFER_SETNULL(src)
 
 #define LUA_MEMBUFFER_TYPE "luaL_MemBuffer*"
 #define luaL_checkmembuffer(L, idx) (luaL_MemBuffer*)luaL_checkudata(L, idx, LUA_MEMBUFFER_TYPE)

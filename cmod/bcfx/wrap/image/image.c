@@ -64,7 +64,7 @@ static int _dealImageDecodeResult(lua_State* L, ImageDecodeResult* result) {
   int nrChannels = result->nrChannels;
   int wantChannels = result->wantChannels;
   luaL_MemBuffer* mb = luaL_newmembuffer(L);
-  MEMBUFFER_SET(mb, data, width * height * wantChannels, _releaseImageSTB, NULL);
+  MEMBUFFER_SETREPLACE(mb, data, width * height * wantChannels, _releaseImageSTB, NULL);
   lua_pushinteger(L, width);
   lua_pushinteger(L, height);
   lua_pushinteger(L, nrChannels);
@@ -160,7 +160,7 @@ static int _imageEncodeToMemBuffer(ImageEncodeParam* param, luaL_MemBuffer* mb) 
     if (png == NULL) {
       return 1;
     }
-    MEMBUFFER_SET(mb, png, len, _releaseSTBI, NULL);
+    MEMBUFFER_SETREPLACE(mb, png, len, _releaseSTBI, NULL);
     return 0;
   }
 
@@ -186,7 +186,7 @@ static int _imageEncodeToMemBuffer(ImageEncodeParam* param, luaL_MemBuffer* mb) 
     _releaseBuffer(NULL, wb->buf);
     return err;
   }
-  MEMBUFFER_SET(mb, wb->buf, wb->used, _releaseBuffer, NULL);
+  MEMBUFFER_SETREPLACE(mb, wb->buf, wb->used, _releaseBuffer, NULL);
   return 0;
 }
 static void _doImageEncode(ImageEncodeParam* param, ImageEncodeResult* result) {
@@ -218,6 +218,7 @@ static int IMAGE_FUNCTION(packImageEncodeParam)(lua_State* L) {
 static void* IMAGE_FUNCTION(imageEncodePtr)(void* arg) {
   ImageEncodeParam* param = (ImageEncodeParam*)arg;
   ImageEncodeResult* result = (ImageEncodeResult*)malloc(sizeof(ImageEncodeResult));
+  MEMBUFFER_INIT(&result->mb);
   _doImageEncode(param, result);
   free((void*)param);
   return (void*)result;
@@ -256,6 +257,7 @@ static int IMAGE_FUNCTION(imageEncode)(lua_State* L) {
   param->quality = quality;
 
   ImageEncodeResult result[1];
+  MEMBUFFER_INIT(&result->mb);
   _doImageEncode(param, result);
   return _dealImageEncodeResult(L, result);
 }
@@ -338,7 +340,7 @@ static int IMAGE_FUNCTION(imageFlipVertical)(lua_State* L) {
 /* }====================================================== */
 
 #define EMPLACE_IMAGE_FUNCTION(name) \
-  { #name, IMAGE_FUNCTION(name) }
+  { "" #name, IMAGE_FUNCTION(name) }
 static const luaL_Reg IMAGE_FUNCTION(funcs)[] = {
     EMPLACE_IMAGE_FUNCTION(packImageDecodeParam),
     EMPLACE_IMAGE_FUNCTION(unpackImageDecodeResult),

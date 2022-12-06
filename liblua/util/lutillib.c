@@ -57,7 +57,7 @@ static int util_MemBuffer(lua_State* L) {
   void* ud = luaL_optlightuserdata(L, 4, NULL);
 
   luaL_MemBuffer* mb = luaL_newmembuffer(L);
-  MEMBUFFER_SET(mb, ptr, sz, release, ud);
+  MEMBUFFER_SETREPLACE(mb, ptr, sz, release, ud);
   return 1;
 }
 

@@ -513,7 +513,7 @@ static void gl_createSampler(RendererContext* ctx, bcfx_Handle handle, bcfx_Samp
   // GL_CHECK(glSamplerParameterf(sampler->id, GL_TEXTURE_MAX_LOD, 1000.0f));
   // GL_CHECK(glSamplerParameterf(sampler->id, GL_TEXTURE_LOD_BIAS, 0.0f));
 }
-//luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format
+// luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format
 static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTexture* param) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   TextureGL* texture = &glCtx->textures[handle_index(handle)];
@@ -798,7 +798,7 @@ static void frameCaptureView(Frame* frame, ViewId id) {
     result->id = id;
     result->width = rect->width;
     result->height = rect->height;
-    MEMBUFFER_SET(&result->mb, data, sz, _releaseFrameCapture, NULL);
+    MEMBUFFER_INITSET(&result->mb, data, sz, _releaseFrameCapture, NULL);
   }
 }
 
