@@ -42,6 +42,7 @@ bcfx.init(window)
 libuv.setLoop()
 
 local repl = require("repl")
+repl.init(libuv)
 --repl.startAsync()
 --repl.startAsync(repl.evalDefault)
 --repl.startAsync(repl.evalDefaultLua)
