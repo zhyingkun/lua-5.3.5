@@ -76,7 +76,7 @@ local function CJsonObjectToTable(item)
 end
 local FuncToLuaValue = {
 	[0] = function(item) return false end,
-	[1] = function(item) return false end,
+	[1] = function(item) return true end,
 	[2] = function(item) return nil end,
 	[3] = c.get_value,
 	[4] = c.get_value,

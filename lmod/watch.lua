@@ -55,11 +55,11 @@ end
 ---@param callback fun(filePath:string):void
 local function onFileChanged(filePath, callback)
 	if FilePath2Handle[filePath] then return end
-	FilePath2Handle[filePath] = onFileChangedInternal(filePath, callback, function(filePath)
-		local handle = FilePath2Handle[filePath]
+	FilePath2Handle[filePath] = onFileChangedInternal(filePath, callback, function(path)
+		local handle = FilePath2Handle[path]
 		if handle then
 			handle:close()
-			FilePath2Handle[filePath] = nil
+			FilePath2Handle[path] = nil
 		end
 	end)
 end
@@ -72,12 +72,12 @@ function watch.autoReload(modName)
 	if not filePath then
 		error_msg("Error Could not find lua module: %s", modName)
 	end
-	onFileChanged(filePath, function(filePath)
+	onFileChanged(filePath, function(path)
 		local ok, msg = reload(modName)
 		if ok then
-			printerr("reload succeed:", modName)
+			printerr("reload succeed:", modName, path)
 		else
-			printerr("reload failed:", modName, msg)
+			printerr("reload failed:", modName, msg, path)
 		end
 	end)
 end

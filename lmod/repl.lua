@@ -1,5 +1,5 @@
 ---@type libuv
-local libuv = nil
+local libuv
 
 --[[
 ** {======================================================
@@ -19,7 +19,7 @@ local ProtocolRead = "_REPL_.Read"
 local ProtocolPrint = "_REPL_.Print"
 
 ---@type pbc
-local pbc = nil
+local pbc
 
 ---@class REPLPacket
 local REPLPacket = {
@@ -197,22 +197,22 @@ function repl.serverStartAsync(ip, port, callback)
 			printError("TCP listen error:", status)
 			return
 		end
-		local status, tcpConnection = tcpSocket:accept()
-		if status ~= OK then
-			printError("TCP accept error:", status)
+		local statusAccept, tcpConnection = tcpSocket:accept()
+		if statusAccept ~= OK then
+			printError("TCP accept error:", statusAccept)
 			return
 		end
 		local fd = tcpConnection:fileno()
 		print("New REPL connection start:", fd)
 		local packetHandler = REPLPacketHandler()
-		tcpConnection:readStartAsync(function(nread, str, tcpConnection)
+		tcpConnection:readStartAsync(function(nread, str, connection)
 			if nread < 0 then
 				if nread == EOF then
 					print("REPL connection end:", fd)
 				else
 					printError("REPL connection read error:", nread)
 				end
-				tcpConnection:close()
+				connection:close()
 				return
 			end
 			packetHandler:addPackData(str)
@@ -220,9 +220,9 @@ function repl.serverStartAsync(ip, port, callback)
 				assert(msgName == ProtocolRead)
 				local running, prompt, history, output = callback(readTable.code, readTable.eof)
 				local msg = packetHandler:packPrintMessage(running, prompt, history, output)
-				tcpConnection:writeAsync(msg, function(status)
-					if status ~= OK then
-						printError("REPL Server TCP Write error:", status)
+				connection:writeAsync(msg, function(statusWrite)
+					if statusWrite ~= OK then
+						printError("REPL Server TCP Write error:", statusWrite)
 					end
 				end)
 			end
@@ -241,7 +241,7 @@ function repl.makeServerEval(evalFunc)
 	end
 end
 
-local ServerEvalDefault = nil
+local ServerEvalDefault
 
 ---@return REPLRemoteEvalSignature
 function repl.getServerEvalDefault()
@@ -271,13 +271,13 @@ function repl.clientStart(serverIP, serverPort)
 		local function readTerminalCodeAndSend(prompt)
 			local codeStr = libuv.replRead(prompt or "> ")
 			local msg = packetHandler:packReadMessage(codeStr, codeStr == nil)
-			tcpClient:writeAsync(msg, function(status)
-				if status ~= OK then
-					printError("REPL TCP Write error:", status)
+			tcpClient:writeAsync(msg, function(statusWrite)
+				if statusWrite ~= OK then
+					printError("REPL TCP Write error:", statusWrite)
 				end
 			end)
 		end
-		tcpClient:readStartAsync(function(nread, str, tcpClient)
+		tcpClient:readStartAsync(function(nread, str, client)
 			if nread < 0 then
 				printError("REPL TCP Read error:", nread)
 			else
@@ -290,7 +290,7 @@ function repl.clientStart(serverIP, serverPort)
 					io.stdout:write(printTable.output)
 					if not printTable.running then
 						print("REPL Client End.")
-						tcpClient:close()
+						client:close()
 						return
 					end
 				end

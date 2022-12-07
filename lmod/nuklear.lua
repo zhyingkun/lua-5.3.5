@@ -126,10 +126,10 @@ end
 ---@field public clear fun(self:nk_context):void
 ---@field public setUserData fun(self:nk_context, ptr:lightuserdata | integer):void
 
----@param font nk_font
+---@param inFont nk_font
 ---@return nk_context
-function nk.Context(font)
-	return libnk.Context(font)
+function nk.Context(inFont)
+	return libnk.Context(inFont)
 end
 ---@type nk_context
 local curCtx
@@ -309,11 +309,11 @@ end
 ---@param canvas nk_command_buffer
 ---@param rect NuklearRect
 ---@param text string
----@param font nk_font
+---@param inFont nk_font
 ---@param bg NuklearColor
 ---@param fg NuklearColor
-function nk.drawText(canvas, rect, text, font, bg, fg)
-	libnk.draw_text(canvas, rect, text, font, bg, fg)
+function nk.drawText(canvas, rect, text, inFont, bg, fg)
+	libnk.draw_text(canvas, rect, text, inFont, bg, fg)
 end
 ---@param canvas nk_command_buffer
 ---@param rect NuklearRect
@@ -519,13 +519,13 @@ function nk.drawListAddImage(drawList, image, rect, color)
 	libnk.draw_list_add_image(drawList, image, rect, color)
 end
 ---@param drawList nk_draw_list
----@param font nk_font
+---@param inFont nk_font
 ---@param rect NuklearRect
 ---@param text string
 ---@param fontHeight number
 ---@param color NuklearColor
-function nk.drawListAddText(drawList, font, rect, text, fontHeight, color)
-	libnk.draw_list_add_text(drawList, font, rect, text, fontHeight, color)
+function nk.drawListAddText(drawList, inFont, rect, text, fontHeight, color)
+	libnk.draw_list_add_text(drawList, inFont, rect, text, fontHeight, color)
 end
 
 ---@class nuklear_anti_aliasing
@@ -2333,9 +2333,9 @@ end
 function nk.styleGetColorName(styleColor)
 	return libnk.style_get_color_name(styleColor)
 end
----@param font nk_font
-function nk.styleSetFont(font)
-	libnk.style_set_font(curCtx, font)
+---@param inFont nk_font
+function nk.styleSetFont(inFont)
+	libnk.style_set_font(curCtx, inFont)
 end
 ---@param styleCursor nuklear_style_cursor
 ---@return boolean
@@ -2348,10 +2348,10 @@ end
 function nk.styleHideCursor()
 	libnk.style_hide_cursor(curCtx)
 end
----@param font nk_font
+---@param inFont nk_font
 ---@return boolean
-function nk.stylePushFont(font)
-	return libnk.style_push_font(curCtx, font)
+function nk.stylePushFont(inFont)
+	return libnk.style_push_font(curCtx, inFont)
 end
 ---@param ptr lightuserdata
 ---@param value number

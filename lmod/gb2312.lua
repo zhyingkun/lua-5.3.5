@@ -20,18 +20,18 @@ end
 ---@param e integer
 ---@return integer, any
 function gb2312.codepoint(str, i, e)
-	return libgb2312.codepoint()
+	return libgb2312.codepoint(str, i, e)
 end
 
 ---@alias CodepointGetterSignature fun():integer
 
 ---@overload fun(getter:CodepointGetterSignature):string
----@overload fun(...):string
+---@overload fun(...:integer):string
 ---@param getter CodepointGetterSignature
 ---@vararg integer
 ---@return string
 function gb2312.char(getter, ...)
-	return libgb2312.char()
+	return libgb2312.char(getter, ...)
 end
 ---@overload fun(str:string):integer
 ---@overload fun(str:string, i:integer):integer
