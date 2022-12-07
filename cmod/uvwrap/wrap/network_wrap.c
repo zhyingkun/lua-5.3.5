@@ -154,7 +154,7 @@ static int SOCKADDR_FUNCTION(__eq)(lua_State* L) {
 }
 
 #define EMPLACE_SOCKADDR_FUNCTION(name) \
-  { #name, SOCKADDR_FUNCTION(name) }
+  { "" #name, SOCKADDR_FUNCTION(name) }
 
 const luaL_Reg SOCKADDR_FUNCTION(metafuncs)[] = {
     EMPLACE_SOCKADDR_FUNCTION(len),
@@ -299,9 +299,9 @@ static int NETWORK_FUNCTION(getaddrinfo)(lua_State* L) {
 static void NETWORK_CALLBACK(getnameinfo)(uv_getnameinfo_t* req, int status, const char* hostname, const char* service) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
+  lua_pushinteger(L, status);
   lua_pushstring(L, hostname); // hostname and service store in req
   lua_pushstring(L, service);
-  lua_pushinteger(L, status);
   (void)MEMORY_FUNCTION(free_req)(req);
   CALL_LUA_FUNCTION(L, 3);
 }
@@ -318,6 +318,7 @@ static int NETWORK_FUNCTION(getnameinfo)(lua_State* L) {
     HOLD_REQ_CALLBACK(L, req, 4);
     return 0;
   }
+  lua_pushinteger(L, err);
   if (err == UVWRAP_OK) {
     lua_pushstring(L, req->host);
     lua_pushstring(L, req->service);
@@ -325,7 +326,6 @@ static int NETWORK_FUNCTION(getnameinfo)(lua_State* L) {
     lua_pushnil(L);
     lua_pushnil(L);
   }
-  lua_pushinteger(L, err);
   (void)MEMORY_FUNCTION(free_req)(req);
   return 3;
 }
@@ -365,7 +365,7 @@ static int NETWORK_FUNCTION(if_indextoiid)(lua_State* L) {
 }
 
 #define EMPLACE_NETWORK_FUNCTION(name) \
-  { #name, NETWORK_FUNCTION(name) }
+  { "" #name, NETWORK_FUNCTION(name) }
 
 static const luaL_Reg NETWORK_FUNCTION(funcs)[] = {
     {"SockAddr", SOCKADDR_FUNCTION(SockAddr)},

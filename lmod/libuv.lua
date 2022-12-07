@@ -15,7 +15,6 @@ local libtimer = uvwrap.timer
 local libudp = uvwrap.udp
 local libdebug = uvwrap.debug
 local libfs = uvwrap.fs
-local libloop = uvwrap.loop
 local libnetwork = uvwrap.network
 local libos = uvwrap.os
 local libsys = uvwrap.sys
@@ -102,13 +101,13 @@ end
 local libloop_run = libloop.run
 local libloop_close = libloop.close
 local NOWAIT = libloop.run_mode.NOWAIT
-local function run(loopCtx, mode)
+local function run(ctx, mode)
 	delayFrameTick()
-	return libloop_run(loopCtx, mode)
+	return libloop_run(ctx, mode)
 end
-local function close(loopCtx)
+local function close(ctx)
 	delayFrameEnd()
-	return libloop_close(loopCtx)
+	return libloop_close(ctx)
 end
 
 function libuv.run()
@@ -1778,7 +1777,7 @@ function network.getNameInfo(addr, flags)
 end
 ---@param addr sockaddr
 ---@param flags libuv_nameinfo_flag
----@param callback fun(status:integer, integer:string | nil, service:string | nil):void
+---@param callback fun(status:integer, host:string | nil, service:string | nil):void
 function network.getNameInfoAsync(addr, flags, callback)
 	libnetwork.getnameinfo(loopCtx, addr, flags, callback)
 end
@@ -1788,7 +1787,7 @@ end
 function network.getNameInfoAsyncWait(addr, flags)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libnetwork.getnameinfo(loopCtx, addr, flags, function(status, res, hostname, service)
+	libnetwork.getnameinfo(loopCtx, addr, flags, function(status, hostname, service)
 		resume(co, status, hostname, service)
 	end)
 	return yield()
@@ -2301,6 +2300,7 @@ end
 function mbio.readFileAsync(fileName, callback)
 	local ptr = libmbio.packReadFileParam(fileName)
 	queueWorkAsync(libmbio.readFilePtr, ptr, function(result, status)
+		if status ~= OK then printerr("mbio.readFileAsync callback error: ", status) end
 		callback(libmbio.unpackReadFileResult(result))
 	end)
 end
@@ -2332,6 +2332,7 @@ end
 function mbio.writeFileAsync(fileName, mb, callback)
 	local ptr = libmbio.packWriteFileParam(fileName, mb)
 	queueWorkAsync(libmbio.writeFilePtr, ptr, function(result, status)
+		if status ~= OK then printerr("mbio.writeFileAsync callback error: ", status) end
 		callback(libmbio.unpackWriteFileResult(result))
 	end)
 end
