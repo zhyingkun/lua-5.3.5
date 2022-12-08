@@ -34,13 +34,12 @@ static void HANDLE_CALLBACK(close)(uv_handle_t* handle) {
     lua_pop(L, 2); // pop the value and msgh
   }
 }
-static int HANDLE_FUNCTION(close)(lua_State* L) {
+static int HANDLE_FUNCTION(closeAsync)(lua_State* L) {
   uv_handle_t* handle = luaL_checkhandle(L, 1);
   if (!uv_is_closing(handle)) {
-    lua_settop(L, 2);
     if (!lua_isfunction(L, 2)) {
+      lua_settop(L, 1);
       lua_pushnil(L);
-      lua_replace(L, 2);
     }
     HOLD_HANDLE_CLOSE_CALLBACK(L, handle, 2);
     HOLD_HANDLE_ITSELF(L, handle, 1);
@@ -123,13 +122,12 @@ static int HANDLE_FUNCTION(getType)(lua_State* L) {
 }
 
 #define EMPLACE_HANDLE_FUNCTION(name) \
-  { #name, HANDLE_FUNCTION(name) }
+  { "" #name, HANDLE_FUNCTION(name) }
 
 static const luaL_Reg HANDLE_FUNCTION(metafuncs)[] = {
     EMPLACE_HANDLE_FUNCTION(isActive),
     EMPLACE_HANDLE_FUNCTION(isClosing),
-    EMPLACE_HANDLE_FUNCTION(close),
-    {"closeAsync", HANDLE_FUNCTION(close)},
+    EMPLACE_HANDLE_FUNCTION(closeAsync),
     EMPLACE_HANDLE_FUNCTION(ref),
     EMPLACE_HANDLE_FUNCTION(unref),
     EMPLACE_HANDLE_FUNCTION(hasRef),
