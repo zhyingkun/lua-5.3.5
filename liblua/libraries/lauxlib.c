@@ -1678,7 +1678,7 @@ static const short luaP_opprefixmask[] = {
  ,opprefix(R_, R_, N_)        /* OP_NOT */
  ,opprefix(R_, R_, N_)        /* OP_LEN */
  ,opprefix(R_, R_, R_)        /* OP_CONCAT */
- ,opprefix(R_, V_, N_)        /* OP_JMP */
+ ,opprefix(V_, V_, N_)        /* OP_JMP */
  ,opprefix(B_, RK, RK)        /* OP_EQ */
  ,opprefix(B_, RK, RK)        /* OP_LT */
  ,opprefix(B_, RK, RK)        /* OP_LE */
@@ -1801,10 +1801,12 @@ static void proto_printinstructionadditions_z(const Proto* f, luaL_ByteBuffer* s
       luaBB_addliteral(sb, "\t; ");
       proto_printconstant(f, sb, bx);
       break;
+      /* // print at OP_EXTRAARG
     case OP_LOADKX:
       luaBB_addliteral(sb, "\t; ");
       proto_printconstant(f, sb, GETARG_Ax((int)code[pc + 1]));
       break;
+       */
     case OP_LOADBOOL:
       luaBB_addfstring(sb, "\t; to %d", pc + 1 + (c ? 1 : 0));
       break;
@@ -1824,13 +1826,19 @@ static void proto_printinstructionadditions_z(const Proto* f, luaL_ByteBuffer* s
       break;
     case OP_SETTABUP:
       luaBB_addfstring(sb, "\t; %s", UPVALNAME(a));
-      if (ISK(b)) {
+      if (ISK(b) || ISK(c)) {
         luaBB_addliteral(sb, " ");
-        proto_printconstant(f, sb, INDEXK(b));
-      }
-      if (ISK(c)) {
+        if (ISK(b)) {
+          proto_printconstant(f, sb, INDEXK(b));
+        } else {
+          luaBB_addliteral(sb, "_");
+        }
         luaBB_addliteral(sb, " ");
-        proto_printconstant(f, sb, INDEXK(c));
+        if (ISK(c)) {
+          proto_printconstant(f, sb, INDEXK(c));
+        } else {
+          luaBB_addliteral(sb, "_");
+        }
       }
       break;
     case OP_GETTABLE:
@@ -1839,6 +1847,11 @@ static void proto_printinstructionadditions_z(const Proto* f, luaL_ByteBuffer* s
         luaBB_addliteral(sb, "\t; ");
         proto_printconstant(f, sb, INDEXK(c));
       }
+      break;
+    case OP_NEWTABLE:
+#define LUAO_FB2INT(x) (x < 8) ? x : ((x & 7) + 8) << ((x >> 3) - 1)
+      luaBB_addfstring(sb, "\t; size: %d %d", LUAO_FB2INT(b), LUAO_FB2INT(c));
+#undef LUAO_FB2INT
       break;
     case OP_SETTABLE:
     case OP_ADD:
@@ -1861,52 +1874,22 @@ static void proto_printinstructionadditions_z(const Proto* f, luaL_ByteBuffer* s
         if (ISK(b))
           proto_printconstant(f, sb, INDEXK(b));
         else
-          luaBB_addliteral(sb, "-");
+          luaBB_addliteral(sb, "_");
         luaBB_addliteral(sb, " ");
         if (ISK(c))
           proto_printconstant(f, sb, INDEXK(c));
         else
-          luaBB_addliteral(sb, "-");
+          luaBB_addliteral(sb, "_");
       }
+      break;
+    case OP_CONCAT:
+      luaBB_addfstring(sb, "\t; range: [%d, %d]", b, c);
       break;
     case OP_JMP:
       luaBB_addfstring(sb, "\t; to %d", sbx + pc + 1 + 0);
       if (a) {
         luaBB_addfstring(sb, ", close upvalues: [%d, ~)", a - 1);
       }
-      break;
-    case OP_FORLOOP:
-    case OP_FORPREP:
-    case OP_TFORLOOP:
-      // origin plus one for real pc
-      luaBB_addfstring(sb, "\t; to %d", sbx + pc + 1 + 0);
-      break;
-    case OP_CLOSURE:
-      luaBB_addfstring(sb, "\t; %p", f->p[bx]);
-      break;
-    case OP_SETLIST:
-      if (c == 0)
-        c = GETARG_Ax((int)code[pc + 1]);
-      int idx = (c - 1) * LFIELDS_PER_FLUSH;
-      if (b == 0) {
-        luaBB_addfstring(sb, "\t; index: [%d, multi]", idx + 1);
-        luaBB_addfstring(sb, ", reg: [%d, multi]", a + 1);
-      } else {
-        luaBB_addfstring(sb, "\t; index: [%d, %d]", idx + 1, idx + b);
-        luaBB_addfstring(sb, ", reg: [%d, %d]", a + 1, a + b);
-      }
-      break;
-    case OP_EXTRAARG:
-      luaBB_addliteral(sb, "\t; ");
-      proto_printconstant(f, sb, ax);
-      break;
-    case OP_NEWTABLE:
-#define LUAO_FB2INT(x) (x < 8) ? x : ((x & 7) + 8) << ((x >> 3) - 1)
-      luaBB_addfstring(sb, "\t; size: %d %d", LUAO_FB2INT(b), LUAO_FB2INT(c));
-#undef LUAO_FB2INT
-      break;
-    case OP_CONCAT:
-      luaBB_addfstring(sb, "\t; range: [%d, %d]", b, c);
       break;
     case OP_CALL:
       if (b == 0)
@@ -1926,15 +1909,43 @@ static void proto_printinstructionadditions_z(const Proto* f, luaL_ByteBuffer* s
       break;
     case OP_RETURN:
       if (b == 0)
-        luaBB_addliteral(sb, ", ret: multi");
+        luaBB_addliteral(sb, "\t; ret: multi");
       else
-        luaBB_addfstring(sb, ", ret: %d", b - 1);
+        luaBB_addfstring(sb, "\t; ret: %d", b - 1);
+      break;
+    case OP_FORLOOP:
+    case OP_FORPREP:
+    case OP_TFORLOOP:
+      // origin plus one for real pc
+      luaBB_addfstring(sb, "\t; to %d", sbx + pc + 1 + 0);
+      break;
+    case OP_TFORCALL:
+      luaBB_addfstring(sb, "\t; next ret: %d", c);
+      break;
+    case OP_SETLIST:
+      if (c == 0)
+        c = GETARG_Ax((int)code[pc + 1]);
+      int idx = (c - 1) * LFIELDS_PER_FLUSH;
+      if (b == 0) {
+        luaBB_addfstring(sb, "\t; index: [%d, multi]", idx + 1);
+        luaBB_addfstring(sb, ", reg: [%d, multi]", a + 1);
+      } else {
+        luaBB_addfstring(sb, "\t; index: [%d, %d]", idx + 1, idx + b);
+        luaBB_addfstring(sb, ", reg: [%d, %d]", a + 1, a + b);
+      }
+      break;
+    case OP_CLOSURE:
+      luaBB_addfstring(sb, "\t; %p", f->p[bx]);
       break;
     case OP_VARARG:
       if (b == 0)
         luaBB_addfstring(sb, "\t; range: [%d, multi]", a);
       else
         luaBB_addfstring(sb, "\t; range: [%d, %d]", a, a + b - 2);
+      break;
+    case OP_EXTRAARG:
+      luaBB_addliteral(sb, "\t; ");
+      proto_printconstant(f, sb, ax);
       break;
     default:
       break;
