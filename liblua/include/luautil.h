@@ -79,10 +79,11 @@ typedef struct {
   uint32_t n; /* number of characters in buffer */
   uint32_t hadRead;
   bool bStatic;
+  bool bConst;
 } luaL_ByteBuffer;
 
 LUALIB_API void luaBB_init(luaL_ByteBuffer* b, uint32_t size);
-LUALIB_API void luaBB_static(luaL_ByteBuffer* b, uint8_t* ptr, uint32_t size, bool bClear);
+LUALIB_API void luaBB_static(luaL_ByteBuffer* b, uint8_t* ptr, uint32_t size, bool bConst, bool bClear);
 
 LUALIB_API void luaBB_destroy(luaL_ByteBuffer* b);
 LUALIB_API const uint8_t* luaBB_movebuffer(luaL_ByteBuffer* b, uint32_t* plen);
@@ -99,6 +100,8 @@ LUALIB_API void luaBB_unreadbytes(luaL_ByteBuffer* b, uint32_t len);
 LUALIB_API void luaBB_flushread(luaL_ByteBuffer* b);
 
 LUALIB_API void luaBB_clear(luaL_ByteBuffer* b);
+
+LUALIB_API uint32_t luaBB_getremainforwrite(luaL_ByteBuffer* b);
 
 #define luaBB_undoread(b) luaBB_setread(b, 0)
 #define luaBB_isemptyforread(b) ((b)->hadRead >= (b)->n)
