@@ -71,6 +71,7 @@ static void pm_addPackData(PacketManager* pm, const uint8_t* data, size_t len) {
 static PacketStatus pm_nextPacket(PacketManager* pm, const uint8_t** pptr, size_t* plen) {
   size_t len;
   const uint8_t* ptr;
+  luaBB_flushread(pm->b);
   PacketStatus status = _unpackLengthFromBuffer(pm->b, &len);
   switch (status) {
     case PS_OK:
@@ -79,7 +80,6 @@ static PacketStatus pm_nextPacket(PacketManager* pm, const uint8_t** pptr, size_
         status = PS_NeedMore;
         luaBB_undoread(pm->b);
       } else {
-        luaBB_flushread(pm->b);
         if (pptr) {
           *pptr = ptr;
         }
@@ -171,6 +171,11 @@ static int PM_FUNCTION(eachPacket)(lua_State* L) {
   lua_pushvalue(L, 1);
   return 2;
 }
+static int PM_FUNCTION(getRemainForRead)(lua_State* L) {
+  PacketManager* pm = luaL_checkpacketmanager(L, 1);
+  lua_pushinteger(L, luaBB_getremainforread(pm->b));
+  return 1;
+}
 static int PM_FUNCTION(__gc)(lua_State* L) {
   PacketManager* pm = luaL_checkpacketmanager(L, 1);
   pm_destroy(pm);
@@ -178,12 +183,13 @@ static int PM_FUNCTION(__gc)(lua_State* L) {
 }
 
 #define EMPLACE_PM_FUNCTION(name) \
-  { #name, PM_FUNCTION(name) }
+  { "" #name, PM_FUNCTION(name) }
 static const luaL_Reg PM_FUNCTION(metafuncs)[] = {
     EMPLACE_PM_FUNCTION(packPacket),
     EMPLACE_PM_FUNCTION(addPackData),
     EMPLACE_PM_FUNCTION(getPacket),
     EMPLACE_PM_FUNCTION(eachPacket),
+    EMPLACE_PM_FUNCTION(getRemainForRead),
     EMPLACE_PM_FUNCTION(__gc),
     {NULL, NULL},
 };
