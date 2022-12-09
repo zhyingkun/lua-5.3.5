@@ -60,9 +60,14 @@ end
 
 function REPLPacket:getPacket()
 	local status, str = self.packetManager:getPacket()
-	if status ~= libuv.packet_status.OK then return end
-	local packetTable = pbc.decode(ProtocolPacket, str)
-	return packetTable.name, pbc.decode(packetTable.name, packetTable.data)
+	if status == libuv.packet_status.OK then
+		local packetTable = pbc.decode(ProtocolPacket, str)
+		return packetTable.name, pbc.decode(packetTable.name, packetTable.data)
+	elseif status == libuv.packet_status.NeedMore then
+		return
+	else -- libuv.packet_status.ErrorLength
+		error("Parse Packet Error")
+	end
 end
 function REPLPacket:packets()
 	return self.getPacket, self, nil
@@ -108,6 +113,12 @@ function repl.evalDefault(codeStr, eof)
 	if not libuv then error(ErrMsg) end
 	return libuv.replDefault(codeStr, eof)
 end
+
+--[[
+** {======================================================
+** Eval default implementation in Lua
+** =======================================================
+--]]
 
 local firstLine = true
 local codeCache
@@ -172,6 +183,8 @@ function repl.evalDefaultLua(codeStr, eof)
 	return running, prompt, history
 end
 
+-- }======================================================
+
 local function printError(msg, status)
 	printerr(msg, status, libuv.errName(status), libuv.strError(status))
 end
@@ -212,7 +225,7 @@ function repl.serverStartAsync(ip, port, callback)
 				else
 					printError("REPL connection read error:", nread)
 				end
-				connection:close()
+				connection:closeAsync()
 				return
 			end
 			packetHandler:addPackData(str)
@@ -290,7 +303,7 @@ function repl.clientStart(serverIP, serverPort)
 					io.stdout:write(printTable.output)
 					if not printTable.running then
 						print("REPL Client End.")
-						client:close()
+						client:closeAsync()
 						return
 					end
 				end

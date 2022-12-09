@@ -15,6 +15,7 @@ local function error_msg(...)
 	error(string.format(...))
 end
 
+---@type table<string, uv_fs_event_t>
 local FilePath2Handle = {}
 local function onFileChangedInternal(filePath, callback, onError)
 	local lastTime = sys.hrTime()
@@ -27,7 +28,7 @@ local function onFileChangedInternal(filePath, callback, onError)
 		return false
 	end
 	local handle = fsevent.FsEvent()
-	handle:startAsync(function(fileName, events, status)
+	handle:startAsync(function(fileName, events, status, fsHandle)
 		if status == OK then
 			if events & CHANGE ~= 0 then
 				if not skip() then
@@ -37,7 +38,7 @@ local function onFileChangedInternal(filePath, callback, onError)
 				error_msg("Error RENAME filePath: %s, fileName: %s", filePath, fileName)
 			end
 		else
-			local handleStr = tostring(handle)
+			local handleStr = tostring(fsHandle)
 			onError(filePath)
 			error_msg(
 				"Watch filePath error: %s, fileName: %s, handle: %s, status: %s",
@@ -58,7 +59,7 @@ local function onFileChanged(filePath, callback)
 	FilePath2Handle[filePath] = onFileChangedInternal(filePath, callback, function(path)
 		local handle = FilePath2Handle[path]
 		if handle then
-			handle:close()
+			handle:closeAsync()
 			FilePath2Handle[path] = nil
 		end
 	end)

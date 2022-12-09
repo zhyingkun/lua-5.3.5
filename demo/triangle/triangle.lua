@@ -317,7 +317,7 @@ local function setup(mainWin)
 			timer:startAsyncWait(1000)
 			print("Hello Timer:", i)
 		end
-		timer:close()
+		timer:closeAsync()
 		print("frame:", bcfx.frameId())
 		libuv.delayFrameAsyncWait(1)
 		print("frame:", bcfx.frameId())

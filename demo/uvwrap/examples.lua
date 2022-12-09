@@ -96,6 +96,7 @@ function tick()
 end
 
 function cgi()
+	---@param client uv_tcp_t
 	local function invoke_cgi_script(client)
 		local exe_path = arg[0]
 		if exe_path:sub(1, 1) ~= "." then
@@ -115,7 +116,7 @@ function cgi()
 			stdio = child_stdio,
 			exitCallback = function(exit_status, term_signal)
 				print("cgi child exit:", exit_status, term_signal)
-				client:close()
+				client:closeAsync()
 				child_handle = nil
 			end,
 		})
@@ -132,11 +133,11 @@ function cgi()
 			print("TCP listen error:", status)
 			return
 		end
-		local client = tcp.Tcp()
-		if handle:accept(client) == OK then
+		local ret, client = handle:accept()
+		if ret == OK then
 			invoke_cgi_script(client)
 		else
-			client:close()
+			client:closeAsync()
 			handle:shutdownAsync()
 		end
 	end)
@@ -150,12 +151,12 @@ function cgi_client()
 			return
 		end
 		print("connect status:", status, i, socket:fileno())
-		socket:readStartAsync(function(nread, str)
+		socket:readStartAsync(function(nread, str, handle)
 			if nread < 0 then
 				if nread == EOF then
 					print("Receive EOF")
 				end
-				socket:close()
+				handle:closeAsync()
 				return
 			end
 			print("Receive:", nread, str)
@@ -202,17 +203,17 @@ function dns()
 		local addr = addrinfo.addr
 		print(addr)
 		local socket = tcp.Tcp()
-		local status = socket:connectAsync(addr, function(status)
+		local status = socket:connectAsync(addr, function(status, handle)
 			if status < 0 then
 				print("connect failed error", errName(status))
 				return
 			end
-			socket:readStartAsync(function(nread, str)
+			handle:readStartAsync(function(nread, str, h)
 				if nread < 0 then
 					if nread ~= EOF then
 						print("Read error", errName(status))
 					end
-					socket:close()
+					h:closeAsync()
 				end
 				print(str)
 			end)
@@ -327,7 +328,7 @@ function multi_echo_server()
 				stdio = child_stdio,
 				exit_cb = function(exit_status, term_signal)
 					printerr("Process exited with status %d, signal %d\n", exit_status, term_signal)
-					child_handle:close()
+					child_handle:closeAsync()
 					child_handle = nil
 				end,
 			})
@@ -360,7 +361,7 @@ function multi_echo_server()
 			p:write2Async("a", client, function(status) end)
 			round_robin_counter = (round_robin_counter % child_worker_count) + 1
 		else
-			client:close()
+			client:closeAsync()
 		end
 	end)
 end
@@ -372,7 +373,7 @@ function multi_echo_worker()
 			if nread ~= EOF then
 				printerr("Read error %s\n", errName(nread))
 			end
-			handle:close()
+			handle:closeAsync()
 			return
 		end
 		if handle:pendingCount() == 0 then
@@ -387,7 +388,7 @@ function multi_echo_worker()
 					if nread ~= EOF then
 						printerr("Read error %s\n", errName(status))
 					end
-					clientHandle:close()
+					clientHandle:closeAsync()
 					return
 				end
 				clientHandle:writeAsync(str, function(status, clientHandle)
@@ -397,7 +398,7 @@ function multi_echo_worker()
 				end)
 			end)
 		else
-			client:close()
+			client:closeAsync()
 		end
 	end)
 end
@@ -417,17 +418,17 @@ function multi_echo_hammer()
 					if nread == EOF then
 						print("Receive EOF")
 					end
-					handle:close()
+					handle:closeAsync()
 					return
 				end
 				if str ~= PHRASE then
-					handle:close()
+					handle:closeAsync()
 					print("Error occur:", str, PHRASE)
 					return
 				end
 				--socket:writeAsync(PHRASE, function(status) end)
 				print("Receive echo succeed!", i)
-				handle:close()
+				handle:closeAsync()
 			end)
 			socket:writeAsync(PHRASE, function(status) end)
 		end)
@@ -478,7 +479,7 @@ function pipe_echo_server()
 					else
 						printerr("Read error %s\n", errName(nread))
 					end
-					client:close()
+					client:closeAsync()
 					return
 				end
 				print("Pipe read:", nread, str)
@@ -490,7 +491,7 @@ function pipe_echo_server()
 			end)
 		else
 			print("Accept failed")
-			client:close()
+			client:closeAsync()
 		end
 	end)
 end
@@ -523,7 +524,7 @@ function pipe_echo_client()
 					else
 						print("Read from Server:", nread, str)
 					end
-					client:close()
+					client:closeAsync()
 				end)
 			end
 		end)
@@ -552,7 +553,7 @@ function pipe_echo_client()
 				else
 					print("Read from Server:", nread, str)
 				end
-				client:close()
+				client:closeAsync()
 			end)
 		end
 	end)
@@ -584,7 +585,7 @@ function proc_streams()
 		stdio = child_stdio,
 		exitCallback = function(exit_status, term_signal)
 			printerr("Process exited with status %d, signal %d\n", exit_status, term_signal)
-			child_handle:close()
+			child_handle:closeAsync()
 			child_handle = nil
 		end,
 	})
@@ -633,7 +634,7 @@ function spawn()
 		},
 		exitCallback = function(exit_status, term_signal)
 			printerr("Process exited with status %d, signal %d\n", exit_status, term_signal)
-			child_handle:close()
+			child_handle:closeAsync()
 			child_handle = nil
 		end,
 	})
@@ -660,7 +661,7 @@ function tcp_echo_server()
 					else
 						print("Receive EOF")
 					end
-					client:close()
+					client:closeAsync()
 				end
 				if nread > 0 then
 					client:writeAsync(str, function(status, client)
@@ -672,7 +673,7 @@ function tcp_echo_server()
 				end
 			end)
 		else
-			client:close()
+			client:closeAsync()
 		end
 	end)
 end
@@ -693,11 +694,11 @@ function tcp_echo_client()
 					if nread ~= EOF then
 						print("Read error", errName(status))
 					end
-					socket:close()
+					socket:closeAsync()
 					return
 				end
 				print(str)
-				socket:close()
+				socket:closeAsync()
 			end)
 		end)
 	end)
@@ -886,8 +887,8 @@ function uvtee(filename)
 			if nread == EOF then
 				print("Read EOF")
 				stdin_pipe:readStop()
-				stdout_pipe:close()
-				file_pipe:close()
+				stdout_pipe:closeAsync()
+				file_pipe:closeAsync()
 			else
 				print("Pipe read error:", strError(nread))
 			end
