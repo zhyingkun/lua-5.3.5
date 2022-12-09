@@ -542,8 +542,8 @@ bcfx.mesh = mesh
 --]]
 
 ---@class Mesh:table
----@field vertex luaL_MemBuffer
----@field index luaL_MemBuffer
+---@field public vertex luaL_MemBuffer
+---@field public index luaL_MemBuffer
 
 ---@param mb luaL_MemBuffer
 ---@return Mesh[], string[]
@@ -576,20 +576,20 @@ end
 --]]
 
 ---@class Material:table
----@field name string
----@field ka Vec3
----@field kd Vec3
----@field ks Vec3
----@field ns number
----@field ni number
----@field d number
----@field illum integer
----@field mapKa string
----@field mapKd string
----@field mapKs string
----@field mapNs string
----@field mapD string
----@field mapBump string
+---@field public name string
+---@field public ka Vec3
+---@field public kd Vec3
+---@field public ks Vec3
+---@field public ns number
+---@field public ni number
+---@field public d number
+---@field public illum integer
+---@field public mapKa string
+---@field public mapKd string
+---@field public mapKs string
+---@field public mapNs string
+---@field public mapD string
+---@field public mapBump string
 
 ---@param mb luaL_MemBuffer
 ---@return Material[]
@@ -1073,10 +1073,10 @@ function bcfx.setStencil(enable, front, back)
 end
 
 ---@class bcfx_InstanceDataBuffer:table
----@field handle Handle
----@field bufferOffset integer @ skip num of bytes, for multi instance data using the same vertex buffer
----@field numAttrib integer @ num of vec4 per instance
----@field numInstance integer
+---@field public handle Handle
+---@field public bufferOffset integer @ skip num of bytes, for multi instance data using the same vertex buffer
+---@field public numAttrib integer @ num of vec4 per instance
+---@field public numInstance integer
 
 ---@overload fun(numInstance:integer):void
 ---@overload fun(numInstance:integer, handle:Handle):void

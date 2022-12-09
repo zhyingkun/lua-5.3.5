@@ -284,8 +284,8 @@ function glfw.getGamepadName(jid)
 end
 
 ---@class GLFWgamepadstate:table
----@field buttons glfw_input_state[]
----@field axes number[]
+---@field public buttons glfw_input_state[]
+---@field public axes number[]
 
 ---@param jid glfw_joystick
 ---@return nil | GLFWgamepadstate
@@ -635,12 +635,12 @@ function glfw.setMonitorCallback(callback)
 end
 
 ---@class GLFWvidmode:table
----@field width integer
----@field height integer
----@field redBits integer
----@field greenBits integer
----@field blueBits integer
----@field refreshRate integer
+---@field public width integer
+---@field public height integer
+---@field public redBits integer
+---@field public greenBits integer
+---@field public blueBits integer
+---@field public refreshRate integer
 
 ---@param monitor GLFWmonitor
 ---@return GLFWvidmode[]
@@ -687,7 +687,7 @@ glfw.device_event = libglfw.device_event
 --]]
 
 ---@class GLFWimage:userdata
----@field getValue fun(self:GLFWimage):integer, integer, string
+---@field public getValue fun(self:GLFWimage):integer, integer, string
 
 ---@param width integer
 ---@param height integer

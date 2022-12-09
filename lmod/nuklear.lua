@@ -19,12 +19,12 @@ nk.font = font
 ---@class nk_draw_null_texture:userdata
 
 ---@class nk_font_atlas:userdata
----@field begin fun(self:nk_font_atlas):void
----@field add fun(self:nk_font_atlas, mem:string, height:number, cfg:nk_font_config):nk_font
----@field addDefault fun(self:nk_font_atlas, height:number, cfg:nk_font_config):nk_font
----@field bake fun(self:nk_font_atlas, format:nuklear_atlas_format):lightuserdata, lightuserdata, lightuserdata, integer, integer
----@field endAtlas fun(self:nk_font_atlas, handleId:integer):nk_draw_null_texture
----@field cleanup fun(self:nk_font_atlas):void
+---@field public begin fun(self:nk_font_atlas):void
+---@field public add fun(self:nk_font_atlas, mem:string, height:number, cfg:nk_font_config):nk_font
+---@field public addDefault fun(self:nk_font_atlas, height:number, cfg:nk_font_config):nk_font
+---@field public bake fun(self:nk_font_atlas, format:nuklear_atlas_format):lightuserdata, lightuserdata, lightuserdata, integer, integer
+---@field public endAtlas fun(self:nk_font_atlas, handleId:integer):nk_draw_null_texture
+---@field public cleanup fun(self:nk_font_atlas):void
 
 ---@return nk_font_atlas
 function font.Atlas()
@@ -589,7 +589,7 @@ end
 --]]
 
 ---@class nk_image:userdata
----@field isSubImage(self:isSubImage):boolean
+---@field public isSubImage fun(self:isSubImage):boolean
 
 ---@param handle integer | lightuserdata
 ---@param w integer
@@ -601,7 +601,7 @@ function nk.Image(handle, w, h, subRegion)
 end
 
 ---@class nk_nine_slice:userdata
----@field isSubNineSlice(self:isSubImage):boolean
+---@field public isSubNineSlice fun(self:isSubImage):boolean
 
 ---@param handle integer | lightuserdata
 ---@param w integer

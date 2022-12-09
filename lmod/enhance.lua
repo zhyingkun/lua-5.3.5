@@ -51,8 +51,8 @@ function printerr(...) end
 NULL = nil
 
 ---@type table
----@field argc integer
----@field argv lightuserdata
+---@field public argc integer
+---@field public argv lightuserdata
 arg = nil
 
 -- }======================================================
@@ -64,26 +64,26 @@ arg = nil
 --]]
 
 ---@class SpecialKeys:table
----@field CLIBS lightuserdata
----@field HOOKKEY lightuserdata
+---@field public CLIBS lightuserdata
+---@field public HOOKKEY lightuserdata
 
 ---@return SpecialKeys
 function debug.getspecialkeys() end
 
 ---@class SizeOfStruct:table
----@field global_State integer
----@field lua_State integer
----@field Table integer
----@field TKey integer
----@field TValue integer
----@field Node integer
----@field UTString integer
----@field UUdata integer
----@field LClosure integer
----@field CClosure integer
----@field Proto integer
----@field CallInfo integer
----@field luaL_Stream integer
+---@field public global_State integer
+---@field public lua_State integer
+---@field public Table integer
+---@field public TKey integer
+---@field public TValue integer
+---@field public Node integer
+---@field public UTString integer
+---@field public UUdata integer
+---@field public LClosure integer
+---@field public CClosure integer
+---@field public Proto integer
+---@field public CallInfo integer
+---@field public luaL_Stream integer
 
 ---@return SizeOfStruct
 function debug.sizeofstruct() end
