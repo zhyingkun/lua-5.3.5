@@ -38,6 +38,7 @@ static CommandParam* ctx_addCommand(Context* ctx, CommandType type, bcfx_Handle 
   Command* cmd = cmdbuf_next(cmdbuf);
   cmd->type = type;
   cmd->handle = handle;
+  memset(&cmd->param, 0, sizeof(CommandParam));
   return &cmd->param;
 }
 
@@ -297,7 +298,8 @@ void ctx_shutdowm(Context* ctx) {
 
 #define ADD_CMD_ALLOC_HANDLE(ctx, name) \
   bcfx_Handle handle = HANDLE_ALLOC(name); \
-  CommandParam* param = ctx_addCommand(ctx, CT_Create##name, handle);
+  CommandParam* param = ctx_addCommand(ctx, CT_Create##name, handle); \
+  memset(param, 0, sizeof(CommandParam));
 
 static void _releaseVertexLayout(void* ud, bcfx_VertexLayout* layout) {
   (void)ud;
