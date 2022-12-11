@@ -58,6 +58,10 @@ function REPLPacket:addPackData(data)
 	self.packetManager:addPackData(data)
 end
 
+function REPLPacket:getRemainForRead()
+	return self.packetManager:getRemainForRead()
+end
+
 function REPLPacket:getPacket()
 	local status, str = self.packetManager:getPacket()
 	if status == libuv.packet_status.OK then
@@ -260,7 +264,7 @@ local ServerEvalDefault
 function repl.getServerEvalDefault()
 	if not libuv then error(ErrMsg) end
 	if not ServerEvalDefault then
-		ServerEvalDefault = repl.makeServerEval(libuv.replDefault)
+		ServerEvalDefault = repl.makeServerEval(libuv.replDefaultEval)
 	end
 	return ServerEvalDefault
 end
@@ -281,37 +285,37 @@ function repl.clientStart(serverIP, serverPort)
 			return
 		end
 		local packetHandler = REPLPacketHandler()
-		local function readTerminalCodeAndSend(prompt)
-			local codeStr = libuv.replRead(prompt or "> ")
-			local msg = packetHandler:packReadMessage(codeStr, codeStr == nil)
-			tcpClient:writeAsync(msg, function(statusWrite)
-				if statusWrite ~= OK then
-					printError("REPL TCP Write error:", statusWrite)
-				end
-			end)
-		end
 		tcpClient:readStartAsync(function(nread, str, client)
 			if nread < 0 then
 				printError("REPL TCP Read error:", nread)
 			else
 				packetHandler:addPackData(str)
-				local prompt
+				local bRunning, history, prompt = true, "", "> "
 				for msgName, printTable in packetHandler:packets() do
 					assert(msgName == ProtocolPrint)
-					libuv.replHistory(printTable.history)
+					-- libuv.replHistory(printTable.history)
+					bRunning = printTable.running
+					history = printTable.history
 					prompt = printTable.prompt
 					io.stdout:write(printTable.output)
-					if not printTable.running then
+				end
+				if packetHandler:getRemainForRead() == 0 then
+					if not libuv.replNext(bRunning, history, prompt) then
 						print("REPL Client End.")
 						client:closeAsync()
-						return
 					end
 				end
-				readTerminalCodeAndSend(prompt)
 			end
 		end)
 		print("REPL Client Start...")
-		readTerminalCodeAndSend()
+		libuv.replStartOneShotAsync(function(codeStr, bEOF)
+			local msg = packetHandler:packReadMessage(codeStr, bEOF)
+			tcpClient:writeAsync(msg, function(statusWrite, handle)
+				if statusWrite ~= OK then
+					printError("REPL TCP Write error:", statusWrite)
+				end
+			end)
+		end)
 	end)
 end
 
