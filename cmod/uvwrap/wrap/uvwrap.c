@@ -101,16 +101,21 @@ static void callback_queue_work(uv_work_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
   UNHOLD_REQ_PARAM(L, req, 1);
-  lua_pushlightuserdata(L, result);
-  lua_pushinteger(L, status);
-  (void)MEMORY_FUNCTION(free_req)(req);
-  CALL_LUA_FUNCTION(L, 2);
+  if (lua_isfunction(L, -1)) {
+    lua_pushlightuserdata(L, result);
+    lua_pushinteger(L, status);
+    (void)MEMORY_FUNCTION(free_req)(req);
+    CALL_LUA_FUNCTION(L, 2);
+  } else {
+    (void)MEMORY_FUNCTION(free_req)(req);
+    lua_pop(L, 2); // pop the value and msgh
+  }
 }
 static int uvwrap_queue_work(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
   uvwrap_worker_t work_cb = (uvwrap_worker_t)luaL_checklightuserdata(L, 2);
   const void* arg = luaL_checkarg(L, 3);
-  luaL_checktype(L, 4, LUA_TFUNCTION);
+  IS_FUNCTION_OR_MAKE_NIL(L, 4);
 
   uvwrap_work_t* req = (uvwrap_work_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uvwrap_work_t));
   req->worker = work_cb;

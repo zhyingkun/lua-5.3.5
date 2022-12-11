@@ -314,6 +314,14 @@ extern lua_State* staticL;
     fprintf(stderr, #name " resume coroutine error: %s", lua_tostring(co, -1)); \
   }
 
+#define IS_FUNCTION_OR_MAKE_NIL(L, idx) \
+  do { \
+    if (!lua_isfunction(L, idx)) { \
+      lua_pushnil(L); \
+      lua_replace(L, idx); \
+    } \
+  } while (0)
+
 /* }====================================================== */
 
 /*

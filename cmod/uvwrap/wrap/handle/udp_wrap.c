@@ -103,17 +103,23 @@ static void UDP_CALLBACK(sendAsync)(uv_udp_send_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
   UNHOLD_REQ_PARAM(L, req, 1);
-  lua_pushinteger(L, status);
-  PUSH_REQ_PARAM_CLEAN(L, req, 2);
-  (void)MEMORY_FUNCTION(free_req)(req);
-  CALL_LUA_FUNCTION(L, 2);
+  if (lua_isfunction(L, -1)) {
+    lua_pushinteger(L, status);
+    PUSH_REQ_PARAM_CLEAN(L, req, 2);
+    (void)MEMORY_FUNCTION(free_req)(req);
+    CALL_LUA_FUNCTION(L, 2);
+  } else {
+    UNHOLD_REQ_PARAM(L, req, 2);
+    (void)MEMORY_FUNCTION(free_req)(req);
+    lua_pop(L, 2); // pop the value and msgh
+  }
 }
 static int UDP_FUNCTION(sendAsync)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   size_t len;
   const char* data = luaL_checklstring(L, 2, &len);
   struct sockaddr* addr = luaL_checksockaddr(L, 3);
-  luaL_checktype(L, 4, LUA_TFUNCTION);
+  IS_FUNCTION_OR_MAKE_NIL(L, 4);
 
   uv_udp_send_t* req = (uv_udp_send_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_udp_send_t));
   BUFS_INIT(data, len);
@@ -222,7 +228,7 @@ static int UDP_FUNCTION(__gc)(lua_State* L) {
 }
 
 #define EMPLACE_UDP_FUNCTION(name) \
-  { #name, UDP_FUNCTION(name) }
+  { "" #name, UDP_FUNCTION(name) }
 
 const luaL_Reg UDP_FUNCTION(metafuncs)[] = {
     EMPLACE_UDP_FUNCTION(bind),
