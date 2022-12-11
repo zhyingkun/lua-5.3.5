@@ -144,18 +144,26 @@ local pipe = {}
 libuv.pipe = pipe
 
 ---@alias StatusPipeSignature fun(status:integer, handle:uv_pipe_t):void
+---@alias PipeReadSignature fun(nread:integer, str:string | nil, handle:uv_pipe_t):void
 
 ---@class uv_pipe_t:uv_stream_t
----@field open fun(self:uv_pipe_t, fd:integer):uv_pipe_t
----@field bind fun(self:uv_pipe_t, name:string):uv_pipe_t
----@field connectAsync fun(self:uv_pipe_t, name:string, callback:StatusPipeSignature):void
----@field connectAsyncWait fun(self:uv_pipe_t, name:string):integer
----@field getSockName fun(self:uv_pipe_t):string
----@field getPeerName fun(self:uv_pipe_t):string
----@field pendingInstances fun(self:uv_pipe_t, count:integer):void
----@field pendingCount fun(self:uv_pipe_t):integer
----@field pendingType fun(self:uv_pipe_t):libuv_handle_type
----@field chmod fun(self:uv_pipe_t, mode:integer):void
+---@field public open fun(self:uv_pipe_t, fd:integer):uv_pipe_t
+---@field public bind fun(self:uv_pipe_t, name:string):uv_pipe_t
+---@field public connectAsync fun(self:uv_pipe_t, name:string, callback:StatusPipeSignature):void
+---@field public connectAsyncWait fun(self:uv_pipe_t, name:string):integer
+---@field public getSockName fun(self:uv_pipe_t):string
+---@field public getPeerName fun(self:uv_pipe_t):string
+---@field public pendingInstances fun(self:uv_pipe_t, count:integer):void
+---@field public pendingCount fun(self:uv_pipe_t):integer
+---@field public pendingType fun(self:uv_pipe_t):libuv_handle_type
+---@field public chmod fun(self:uv_pipe_t, mode:integer):void
+---@field public closeAsync fun(self:uv_pipe_t, callback:fun(handle:uv_pipe_t):void):void @uv_handle_t
+---@field public shutdownAsync fun(self:uv_pipe_t, callback:StatusPipeSignature):void @uv_stream_t
+---@field public listenAsync fun(self:uv_pipe_t, backlog:integer, callback:StatusPipeSignature):void @uv_stream_t
+---@field public accept fun(self:uv_pipe_t, client:uv_pipe_t | nil):integer, uv_pipe_t @uv_stream_t
+---@field public readStartAsync fun(self:uv_pipe_t, callback:PipeReadSignature):void @uv_stream_t
+---@field public writeAsync fun(self:uv_pipe_t, data:string, callback:StatusPipeSignature):void @uv_stream_t
+---@field public write2Async fun(self:uv_pipe_t, data:string, sendHandle:uv_stream_t, callback:StatusPipeSignature):void @uv_stream_t
 
 ---@param ipc boolean
 ---@return uv_pipe_t
@@ -175,21 +183,21 @@ end
 ---@alias StatusStreamSignature fun(status:integer, handle:uv_stream_t):void
 
 ---@class uv_stream_t:uv_handle_t
----@field shutdownAsync fun(self:uv_stream_t, callback:StatusStreamSignature):void
----@field shutdownAsyncWait fun(self:uv_stream_t):integer
----@field listenAsync fun(self:uv_stream_t, backlog:integer, callback:StatusStreamSignature):void
----@field accept fun(self:uv_stream_t, client:uv_stream_t | nil):integer, uv_stream_t
----@field readStartAsync fun(self:uv_stream_t, callback:ReadCallbackSignature):void
----@field readStop fun(self:uv_stream_t):void
----@field writeAsync fun(self:uv_stream_t, data:string, callback:StatusStreamSignature):void
----@field writeAsyncWait fun(self:uv_stream_t, data:string):integer
----@field write2Async fun(self:uv_stream_t, data:string, sendHandle:uv_stream_t, callback:StatusStreamSignature):void
----@field write2AsyncWait fun(self:uv_stream_t, data:string, sendHandle:uv_stream_t):integer
----@field tryWrite fun(self:uv_stream_t, data:string):integer
----@field isReadable fun(self:uv_stream_t):boolean
----@field isWritable fun(self:uv_stream_t):boolean
----@field setBlocking fun(self:uv_stream_t, block:boolean):void
----@field getWriteQueueSize fun(self:uv_stream_t):integer
+---@field public shutdownAsync fun(self:uv_stream_t, callback:StatusStreamSignature | nil):void @callback version in child class
+---@field public shutdownAsyncWait fun(self:uv_stream_t):integer
+---@field public listenAsync fun(self:uv_stream_t, backlog:integer, callback:StatusStreamSignature):void
+---@field public accept fun(self:uv_stream_t, client:uv_stream_t | nil):integer, uv_stream_t
+---@field public readStartAsync fun(self:uv_stream_t, callback:ReadCallbackSignature):void
+---@field public readStop fun(self:uv_stream_t):void
+---@field public writeAsync fun(self:uv_stream_t, data:string, callback:StatusStreamSignature | nil):void @callback version in child class
+---@field public writeAsyncWait fun(self:uv_stream_t, data:string):integer
+---@field public write2Async fun(self:uv_stream_t, data:string, sendHandle:uv_stream_t, callback:StatusStreamSignature | nil):void @callback version in child class
+---@field public write2AsyncWait fun(self:uv_stream_t, data:string, sendHandle:uv_stream_t):integer
+---@field public tryWrite fun(self:uv_stream_t, data:string):integer
+---@field public isReadable fun(self:uv_stream_t):boolean
+---@field public isWritable fun(self:uv_stream_t):boolean
+---@field public setBlocking fun(self:uv_stream_t, block:boolean):void
+---@field public getWriteQueueSize fun(self:uv_stream_t):integer
 
 -- }======================================================
 
@@ -204,16 +212,24 @@ local tcp = {}
 libuv.tcp = tcp
 
 ---@alias StatusTcpSignature fun(status:integer, handle:uv_tcp_t):void
+---@alias TcpReadSignature fun(nread:integer, str:string | nil, handle:uv_tcp_t):void
 
 ---@class uv_tcp_t:uv_stream_t
----@field bind fun(self:uv_tcp_t, addr:sockaddr, flags:libuv_tcp_flag | nil):uv_tcp_t
----@field connectAsync fun(self:uv_tcp_t, addr:sockaddr, callback:StatusTcpSignature):void
----@field connectAsyncWait fun(self:uv_tcp_t, addr:sockaddr):integer
----@field noDelay fun(self:uv_tcp_t, enable:boolean):void
----@field keepAlive fun(self:uv_tcp_t, enable:boolean, delay:integer):void
----@field simultaneousAccepts fun(self:uv_tcp_t, enable:boolean):void
----@field getSockName fun(self:uv_tcp_t):sockaddr
----@field getPeerName fun(self:uv_tcp_t):sockaddr
+---@field public bind fun(self:uv_tcp_t, addr:sockaddr, flags:libuv_tcp_flag | nil):uv_tcp_t
+---@field public connectAsync fun(self:uv_tcp_t, addr:sockaddr, callback:StatusTcpSignature):void
+---@field public connectAsyncWait fun(self:uv_tcp_t, addr:sockaddr):integer
+---@field public noDelay fun(self:uv_tcp_t, enable:boolean):void
+---@field public keepAlive fun(self:uv_tcp_t, enable:boolean, delay:integer):void
+---@field public simultaneousAccepts fun(self:uv_tcp_t, enable:boolean):void
+---@field public getSockName fun(self:uv_tcp_t):sockaddr
+---@field public getPeerName fun(self:uv_tcp_t):sockaddr
+---@field public closeAsync fun(self:uv_tcp_t, callback:fun(handle:uv_tcp_t):void):void @uv_handle_t
+---@field public shutdownAsync fun(self:uv_tcp_t, callback:StatusTcpSignature):void @uv_stream_t
+---@field public listenAsync fun(self:uv_tcp_t, backlog:integer, callback:StatusTcpSignature):void @uv_stream_t
+---@field public accept fun(self:uv_tcp_t, client:uv_tcp_t | nil):integer, uv_tcp_t @uv_stream_t
+---@field public readStartAsync fun(self:uv_tcp_t, callback:TcpReadSignature):void @uv_stream_t
+---@field public writeAsync fun(self:uv_tcp_t, data:string, callback:StatusTcpSignature):void @uv_stream_t
+---@field public write2Async fun(self:uv_tcp_t, data:string, sendHandle:uv_stream_t, callback:StatusTcpSignature):void @uv_stream_t
 
 ---@overload fun():uv_tcp_t
 ---@overload fun(flags:libuv_address_family):uv_tcp_t
@@ -241,9 +257,19 @@ tcp.tcp_flag = libtcp.tcp_flag
 local tty = {}
 libuv.tty = tty
 
+---@alias TtyReadSignature fun(nread:integer, str:string | nil, handle:uv_tty_t):void
+---@alias StatusTtySignature fun(status:integer, handle:uv_tty_t):void
+
 ---@class uv_tty_t:uv_stream_t
----@field setMode fun(self:uv_tty_t, mode:libuv_tty_mode):void
----@field getWinSize fun(self:uv_tty_t):integer, integer @width, height
+---@field public setMode fun(self:uv_tty_t, mode:libuv_tty_mode):void
+---@field public getWinSize fun(self:uv_tty_t):integer, integer @width, height
+---@field public closeAsync fun(self:uv_tty_t, callback:fun(handle:uv_tty_t):void):void @uv_handle_t
+---@field public shutdownAsync fun(self:uv_tty_t, callback:StatusTtySignature):void @uv_stream_t
+---@field public listenAsync fun(self:uv_tty_t, backlog:integer, callback:StatusTtySignature):void @uv_stream_t
+---@field public accept fun(self:uv_tty_t, client:uv_tty_t | nil):integer, uv_tty_t @uv_stream_t
+---@field public readStartAsync fun(self:uv_tty_t, callback:TtyReadSignature):void @uv_stream_t
+---@field public writeAsync fun(self:uv_tty_t, data:string, callback:StatusTtySignature):void @uv_stream_t
+---@field public write2Async fun(self:uv_tty_t, data:string, sendHandle:uv_stream_t, callback:StatusTtySignature):void @uv_stream_t
 
 ---@param fd integer
 ---@return uv_tty_t
@@ -275,8 +301,9 @@ local async = {}
 libuv.async = async
 
 ---@class uv_async_t:uv_handle_t
+---@field public closeAsync fun(self:uv_async_t, callback:fun(handle:uv_async_t):void):void @uv_handle_t
 
----@callback fun():void
+---@param callback fun():void
 ---@return uv_async_t
 function async.AsyncEvent(callback)
 	return libasync.AsyncEvent(loopCtx, callback)
@@ -300,9 +327,10 @@ libuv.fsevent = fsevent
 ---@alias FsEventSignature fun(filename:string, event:libuv_event_type, status:integer, handle:uv_fs_event_t):void
 
 ---@class uv_fs_event_t:uv_handle_t
----@field startAsync fun(self:uv_fs_event_t, callback:FsEventSignature, filePath:string, flags:libuv_event_flag):void
----@field stop fun(self:uv_fs_event_t):void
----@field getPath fun(self:uv_fs_event_t):string | nil, nil | integer @path, errCode
+---@field public startAsync fun(self:uv_fs_event_t, callback:FsEventSignature, filePath:string, flags:libuv_event_flag):void
+---@field public stop fun(self:uv_fs_event_t):void
+---@field public getPath fun(self:uv_fs_event_t):string | nil, nil | integer @path, errCode
+---@field public closeAsync fun(self:uv_fs_event_t, callback:fun(handle:uv_fs_event_t):void):void @uv_handle_t
 
 ---@return uv_fs_event_t
 function fsevent.FsEvent()
@@ -361,9 +389,10 @@ libuv.fspoll = fspoll
 ---@alias FsPollSignature fun(status:integer, prev:uv_stat_t, curr:uv_stat_t, handle:uv_fs_poll_t):void
 
 ---@class uv_fs_poll_t:uv_handle_t
----@field startAsync fun(self:uv_fs_poll_t, callback:FsPollSignature, path:string, interval:integer):void
----@field stop fun(self:uv_fs_poll_t):void
----@field getPath fun(self:uv_fs_poll_t):string | nil, nil | integer @path, errCode
+---@field public startAsync fun(self:uv_fs_poll_t, callback:FsPollSignature, path:string, interval:integer):void
+---@field public stop fun(self:uv_fs_poll_t):void
+---@field public getPath fun(self:uv_fs_poll_t):string | nil, nil | integer @path, errCode
+---@field public closeAsync fun(self:uv_fs_poll_t, callback:fun(handle:uv_fs_poll_t):void):void @uv_handle_t
 
 ---@return uv_fs_poll_t
 function fspoll.FsPoll()
@@ -378,22 +407,21 @@ end
 ** =======================================================
 --]]
 
----@alias CloseCallbackSignature fun(handle:uv_handle_t):void
+---@alias StatusHandleSignature fun(handle:uv_handle_t):void
 
 ---@class uv_handle_t:userdata
----@field isActive fun(self:uv_handle_t):boolean
----@field isClosing fun(self:uv_handle_t):boolean
----@field close fun(self:uv_handle_t):void
----@field closeAsync fun(self:uv_handle_t, callback:CloseCallbackSignature):void
----@field closeAsyncWait fun(self:uv_handle_t):void
----@field ref fun(self:uv_handle_t):void
----@field unref fun(self:uv_handle_t):void
----@field hasRef fun(self:uv_handle_t):boolean
----@field sendBufferSize fun(self:uv_handle_t, value:integer | nil):integer
----@field recvBufferSize fun(self:uv_handle_t, value:integer | nil):integer
----@field fileno fun(self:uv_handle_t):integer | nil, nil | integer @fd, errCode
----@field getLoop fun(self:uv_handle_t):uv_loop_t
----@field getType fun(self:uv_handle_t):libuv_handle_type
+---@field public isActive fun(self:uv_handle_t):boolean
+---@field public isClosing fun(self:uv_handle_t):boolean
+---@field public closeAsync fun(self:uv_handle_t, callback:StatusHandleSignature | nil):void @callback version in child class
+---@field public closeAsyncWait fun(self:uv_handle_t):void
+---@field public ref fun(self:uv_handle_t):void
+---@field public unref fun(self:uv_handle_t):void
+---@field public hasRef fun(self:uv_handle_t):boolean
+---@field public sendBufferSize fun(self:uv_handle_t, value:integer | nil):integer
+---@field public recvBufferSize fun(self:uv_handle_t, value:integer | nil):integer
+---@field public fileno fun(self:uv_handle_t):integer | nil, nil | integer @fd, errCode
+---@field public getLoop fun(self:uv_handle_t):uv_loop_t
+---@field public getType fun(self:uv_handle_t):libuv_handle_type
 
 -- }======================================================
 
@@ -412,6 +440,7 @@ libuv.prepare = prepare
 ---@class uv_prepare_t:uv_handle_t
 ---@field public startAsync fun(self:uv_prepare_t, callback:PrepareCallbackSignature):void
 ---@field public stop fun(self:uv_prepare_t):void
+---@field public closeAsync fun(self:uv_prepare_t, callback:fun(handle:uv_prepare_t):void):void @uv_handle_t
 
 ---@return uv_prepare_t
 function prepare.Prepare()
@@ -427,6 +456,7 @@ libuv.check = check
 ---@class uv_check_t:uv_handle_t
 ---@field public startAsync fun(self:uv_check_t, callback:CheckCallbackSignature):void
 ---@field public stop fun(self:uv_check_t):void
+---@field public closeAsync fun(self:uv_check_t, callback:fun(handle:uv_check_t):void):void @uv_handle_t
 
 ---@return uv_check_t
 function check.Check()
@@ -442,6 +472,7 @@ libuv.idle = idle
 ---@class uv_idle_t:uv_handle_t
 ---@field public startAsync fun(self:uv_idle_t, callback:IdleCallbackSignature):void
 ---@field public stop fun(self:uv_idle_t):void
+---@field public closeAsync fun(self:uv_idle_t, callback:fun(handle:uv_idle_t):void):void @uv_handle_t
 
 ---@return uv_idle_t
 function idle.Idle()
@@ -463,6 +494,7 @@ libuv.process = process
 ---@class uv_process_t:uv_handle_t
 ---@field public kill fun(self:uv_process_t, signum:integer):void
 ---@field public getPid fun(self:uv_process_t):integer
+---@field public closeAsync fun(self:uv_process_t, callback:fun(handle:uv_process_t):void):void @uv_handle_t
 
 ---@class uv_process_config:table
 ---@field public file string
@@ -576,6 +608,7 @@ libuv.signal = signal
 ---@field public startAsync fun(self:uv_signal_t, callback:SignalCallbackSignature, sigNum:integer):void
 ---@field public startOneShotAsync fun(self:uv_signal_t, callback:SignalCallbackSignature, sigNum:integer):void
 ---@field public stop fun(self:uv_signal_t):void
+---@field public closeAsync fun(self:uv_signal_t, callback:fun(handle:uv_signal_t):void):void @uv_handle_t
 
 ---@return uv_signal_t
 function signal.Signal()
@@ -643,6 +676,7 @@ libuv.timer = timer
 ---@field public again fun(self:uv_timer_t):void
 ---@field public setRepeat fun(self:uv_timer_t, repeat:integer):void
 ---@field public getRepeat fun(self:uv_timer_t):integer
+---@field public closeAsync fun(self:uv_timer_t, callback:fun(handle:uv_timer_t):void):void @uv_handle_t
 
 ---@return uv_timer_t
 function timer.Timer()
@@ -675,13 +709,14 @@ libuv.udp = udp
 ---@field public setMulticastInterface fun(self:uv_udp_t, interfaceAddr:string):uv_udp_t
 ---@field public setBroadcast fun(self:uv_udp_t, on:boolean):uv_udp_t
 ---@field public setTtl fun(self:uv_udp_t, ttl:integer):uv_udp_t
----@field public sendAsync fun(self:uv_udp_t, data:string, addr:sockaddr, callback:SendCallbackSignature):void
+---@field public sendAsync fun(self:uv_udp_t, data:string, addr:sockaddr, callback:SendCallbackSignature | nil):void
 ---@field public sendAsyncWait fun(self:uv_udp_t, data:string, addr:sockaddr):integer
 ---@field public trySend fun(self:uv_udp_t, data:string, addr:sockaddr):void
 ---@field public recvStartAsync fun(self:uv_udp_t, callback:RecvCallbackSignature):void
 ---@field public recvStop fun(self:uv_udp_t):void
 ---@field public getSendQueueSize fun(self:uv_udp_t):integer
 ---@field public getSendQueueCount fun(self:uv_udp_t):integer
+---@field public closeAsync fun(self:uv_udp_t, callback:fun(handle:uv_udp_t):void):void @uv_handle_t
 
 ---@overload fun():uv_udp_t
 ---@overload fun(flags:libuv_address_family):uv_udp_t
@@ -2103,12 +2138,12 @@ function libuv.guessHandle(fd)
 end
 ---@param worker lightuserdata
 ---@param arg nil | boolean | integer | lightuserdata
----@param callback fun(result:lightuserdata, status:integer):void
+---@param callback (fun(result:lightuserdata, status:integer):void) | nil
 function libuv.queueWorkAsync(worker, arg, callback)
-	queueWork(loopCtx, worker, arg, function(result, status)
+	queueWork(loopCtx, worker, arg, callback and function(result, status)
 		if status ~= OK then printerr("queueWorkAsync callback error: ", status) end
 		callback(result, status)
-	end)
+	end or nil)
 end
 ---@param worker lightuserdata
 ---@param arg nil | boolean | integer | lightuserdata
@@ -2307,6 +2342,8 @@ end
 ---@param fileName string
 ---@return luaL_MemBuffer | nil, nil | integer, nil | string
 function mbio.readFileAsyncWait(fileName)
+	local _, main = running()
+	if main then error(ASYNC_WAIT_MSG) end
 	local ptr = libmbio.packReadFileParam(fileName)
 	local result = queueWorkAsyncWait(libmbio.readFilePtr, ptr)
 	return libmbio.unpackReadFileResult(result)
@@ -2326,20 +2363,25 @@ end
 function mbio.writeFile(fileName, mb)
 	libmbio.writeFile(fileName, mb)
 end
+---@alias MBIOWriteCallback fun(ret:boolean, errCode:nil | integer, errStr:nil | string):void
+---@overload fun(fileName:string, mb:luaL_MemBuffer):void
+---@overload fun(fileName:string, mb:luaL_MemBuffer, callback:MBIOWriteCallback):void
 ---@param fileName string
 ---@param mb luaL_MemBuffer
----@param callback fun(ret:boolean, errCode:nil | integer, errStr:nil | string):void
+---@param callback MBIOWriteCallback | nil
 function mbio.writeFileAsync(fileName, mb, callback)
 	local ptr = libmbio.packWriteFileParam(fileName, mb)
-	queueWorkAsync(libmbio.writeFilePtr, ptr, function(result, status)
+	queueWorkAsync(libmbio.writeFilePtr, ptr, callback and function(result, status)
 		if status ~= OK then printerr("mbio.writeFileAsync callback error: ", status) end
 		callback(libmbio.unpackWriteFileResult(result))
-	end)
+	end or nil)
 end
 ---@param fileName string
 ---@param mb luaL_MemBuffer
 ---@return boolean, nil | integer, nil | string
 function mbio.writeFileAsyncWait(fileName, mb)
+	local _, main = running()
+	if main then error(ASYNC_WAIT_MSG) end
 	local ptr = libmbio.packWriteFileParam(fileName, mb)
 	local result = queueWorkAsyncWait(libmbio.writeFilePtr, ptr)
 	return libmbio.unpackWriteFileResult(result)
@@ -2360,6 +2402,7 @@ end
 ---@field public addPackData fun(self:PacketManager, packData:string):void
 ---@field public getPacket fun(self:PacketManager):libuv_packet_status, string
 ---@field public eachPacket fun(self:PacketManager):NextPacketSignature, PacketManager
+---@field public getRemainForRead fun(self:PacketManager):integer
 
 ---@type PacketManager
 function libuv.PacketManager()
