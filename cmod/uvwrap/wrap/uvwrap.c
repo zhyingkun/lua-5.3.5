@@ -141,10 +141,13 @@ static const luaL_Reg uvwrap_funcs[] = {
     {"translate_sys_error", uvwrap_translate_sys_error},
     {"guess_handle", uvwrap_guess_handle},
     {"queue_work", uvwrap_queue_work},
-    {"repl_start", uvwrap_repl_start},
-    {"repl_read", uvwrap_repl_read},
-    {"repl_history", uvwrap_repl_history},
-    {"repl_default", uvwrap_repl_default},
+    {"replStart", uvwrap_replStart},
+    {"replShutdown", uvwrap_replShutdown},
+    {"replNext", uvwrap_replNext},
+    {"replIsOneShot", uvwrap_replIsOneShot},
+    {"replDefaultEval", uvwrap_replDefaultEval},
+    {"replRead", uvwrap_replRead},
+    {"replHistory", uvwrap_replHistory},
     /* placeholders */
     {"err_code", NULL},
     {"version", NULL},
@@ -239,6 +242,8 @@ LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
   INVOKE_MODULE_INIT(os);
   INVOKE_MODULE_INIT(sys);
   INVOKE_MODULE_INIT(thread);
+
+  uvwrap_replInitMetatable(L);
 
   return 1;
 }

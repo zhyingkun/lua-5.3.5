@@ -393,10 +393,16 @@ extern lua_State* staticL;
 ** =======================================================
 */
 
-int uvwrap_repl_start(lua_State* L);
-int uvwrap_repl_read(lua_State* L);
-int uvwrap_repl_history(lua_State* L);
-int uvwrap_repl_default(lua_State* L);
+int uvwrap_replStart(lua_State* L);
+int uvwrap_replShutdown(lua_State* L);
+int uvwrap_replNext(lua_State* L);
+int uvwrap_replIsOneShot(lua_State* L);
+int uvwrap_replDefaultEval(lua_State* L);
+
+int uvwrap_replRead(lua_State* L);
+int uvwrap_replHistory(lua_State* L);
+
+void uvwrap_replInitMetatable(lua_State* L);
 
 /* }====================================================== */
 

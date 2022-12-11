@@ -2164,23 +2164,45 @@ end
 ---@overload fun(callback:REPLEvalSignature):void
 ---@param callback REPLEvalSignature
 function libuv.replStartAsync(callback)
-	uvwrap.repl_start(loopCtx, callback)
+	uvwrap.replStart(loopCtx, false, callback)
 end
+---@param callback fun(codeStr:string | nil, eof:boolean):void
+function libuv.replStartOneShotAsync(callback)
+	uvwrap.replStart(loopCtx, true, callback)
+end
+function libuv.replShutdown()
+	uvwrap.replShutdown()
+end
+---@overload fun(bRunning:boolean):void
+---@overload fun(bRunning:boolean, prompt:string):void
+---@overload fun(bRunning:boolean, prompt:string, history:string):void
+---@param bRunning boolean
 ---@param prompt string
----@return string
-function libuv.replRead(prompt)
-	return uvwrap.repl_read(prompt)
-end
 ---@param history string
-function libuv.replHistory(history)
-	uvwrap.repl_history(history)
+---@return boolean @running
+function libuv.replNext(bRunning, prompt, history)
+	return uvwrap.replNext(bRunning, prompt, history)
+end
+---@return boolean
+function libuv.replIsOneShot()
+	return uvwrap.replIsOneShot()
 end
 ---@param codeStr string | nil
 ---@param eof boolean
 ---@return boolean, string, string | nil @running, prompt, history
-function libuv.replDefault(codeStr, eof)
+function libuv.replDefaultEval(codeStr, eof)
 	-- warning: does not support multi instance
-	return uvwrap.repl_default(codeStr, eof)
+	return uvwrap.replDefaultEval(codeStr, eof)
+end
+
+---@param prompt string
+---@return string
+function libuv.replRead(prompt)
+	return uvwrap.replRead(prompt)
+end
+---@param history string
+function libuv.replHistory(history)
+	uvwrap.replHistory(history)
 end
 
 ---@type integer
