@@ -14,6 +14,7 @@ local libuv = require("libuv")
 local queueWorkAsync = libuv.queueWorkAsync
 local queueWorkAsyncWait = libuv.queueWorkAsyncWait
 local OK = libuv.err_code.OK
+local ASYNC_WAIT_MSG = "AsyncWait api must running in coroutine"
 
 ---@class bcfx:table
 local bcfx = {}
@@ -48,6 +49,8 @@ end
 ---@param format bcfx_texture_format
 ---@return luaL_MemBuffer, integer, integer, integer, integer @ data, w, h, nrChannels, wantChannels
 function image.imageDecodeAsyncWait(mb, format)
+	local _, main = running()
+	if main then error(ASYNC_WAIT_MSG) end
 	local ptr = libimage.packImageDecodeParam(mb, format)
 	local result = queueWorkAsyncWait(libimage.imageDecodePtr, ptr)
 	return libimage.unpackImageDecodeResult(result)
@@ -96,6 +99,8 @@ end
 ---@param sorq integer @ stride or quality, stride in bytes for png, quality for jpg
 ---@return luaL_MemBuffer
 function image.imageEncodeAsyncWait(mb, x, y, comp, type, sorq)
+	local _, main = running()
+	if main then error(ASYNC_WAIT_MSG) end
 	local ptr = libimage.packImageEncodeParam(mb, x, y, comp, type, sorq)
 	local result = queueWorkAsyncWait(libimage.imageEncodePtr, ptr)
 	return libimage.unpackImageEncodeResult(result)
@@ -132,6 +137,8 @@ end
 ---@param height integer
 ---@return luaL_MemBuffer
 function image.imageFlipVerticalAsyncWait(mb, width, height)
+	local _, main = running()
+	if main then error(ASYNC_WAIT_MSG) end
 	local ptr = libimage.packImageFlipVerticalParam(mb, width, height);
 	local result = queueWorkAsyncWait(libimage.imageFlipVerticalPtr, ptr)
 	return libimage.unpackImageFlipVerticalResult(result)
@@ -562,6 +569,8 @@ end
 ---@param mb luaL_MemBuffer
 ---@return Mesh[], string[]
 function mesh.meshParseAsyncWait(mb)
+	local _, main = running()
+	if main then error(ASYNC_WAIT_MSG) end
 	local ptr = libmesh.packMeshParseParam(mb);
 	local result = queueWorkAsyncWait(libmesh.meshParsePtr, ptr)
 	return libmesh.unpackMeshParseResult(result)
@@ -608,6 +617,8 @@ end
 ---@param mb luaL_MemBuffer
 ---@return Material[]
 function mesh.materialParseAsyncWait(mb)
+	local _, main = running()
+	if main then error(ASYNC_WAIT_MSG) end
 	local ptr = libmesh.packMaterialParseParam(mb);
 	local result = queueWorkAsyncWait(libmesh.materialParsePtr, ptr)
 	return libmesh.unpackMaterialParseResult(result)
