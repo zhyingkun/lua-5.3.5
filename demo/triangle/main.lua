@@ -105,32 +105,37 @@ bcfx.setFrameViewCaptureCallback(function(frameId, viewId, width, height, mb)
 	end)
 end)
 
-local lastTime = 0.0
-while not glfw.windowShouldClose(window) do
-	libuv.runNoWait()
+local function Tick()
+	local lastTime = 0.0
+	while not glfw.windowShouldClose(window) do
+		libuv.runNoWait()
 
-	input.ImGUIPrePollEvent()
-	glfw.pollEvents() -- will fire user input, keyboard or mouse
-	input.ImGUIPostPollEvent()
+		input.ImGUIPrePollEvent()
+		glfw.pollEvents() -- will fire user input, keyboard or mouse
+		input.ImGUIPostPollEvent()
 
-	local time = glfw.getTime()
-	local delta = time - lastTime
-	lastTime = time
+		local time = glfw.getTime()
+		local delta = time - lastTime
+		lastTime = time
 
-	triangle.tick(delta)
-	-- colorcircle.tick(delta)
-	imgui.tick(delta)
+		triangle.tick(delta)
+		-- colorcircle.tick(delta)
+		imgui.tick(delta)
 
-	if bcfx.frameId() == 60 and false then
-		bcfx.requestCurrentFrameViewCapture(0)
-		bcfx.requestCurrentFrameViewCapture(1)
-		bcfx.requestCurrentFrameViewCapture(2)
-		bcfx.requestCurrentFrameViewCapture(255)
+		if bcfx.frameId() == 60 and false then
+			bcfx.requestCurrentFrameViewCapture(0)
+			bcfx.requestCurrentFrameViewCapture(1)
+			bcfx.requestCurrentFrameViewCapture(2)
+			bcfx.requestCurrentFrameViewCapture(255)
+		end
+
+		bcfx.apiFrame()
+		collectgarbage()
 	end
-
-	bcfx.apiFrame()
-	collectgarbage()
 end
+
+local ret, msg = pcall(Tick)
+if not ret then printerr(msg) end
 
 -- libuv.repl_stop()
 
