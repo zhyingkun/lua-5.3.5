@@ -508,6 +508,7 @@ int uvwrap_replStart(lua_State* L) {
   } else if (bOneShot) {
     return luaL_error(L, "One shot REPL must has a callback function");
   } else {
+    firstline = true; // Used for firstline check
     eval = repl_defaultEval;
     prompt = get_prompt_hold(L, true);
   }
@@ -545,7 +546,7 @@ int uvwrap_replDefaultEval(lua_State* L) {
   bool bEOF = luaL_checkboolean(L, 2);
   const char* pPrompt;
   const char* pHistory;
-  bool running = repl_defaultEval(NULL, code, bEOF, &pPrompt, &pHistory);
+  bool running = repl_defaultEval(NULL, code, bEOF, &pPrompt, &pHistory); // maybe error with firstline
   lua_pushboolean(L, running);
   lua_pushstring(L, pPrompt);
   lua_pushstring(L, pHistory);
