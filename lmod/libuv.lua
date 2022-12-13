@@ -2161,14 +2161,16 @@ end
 ---@alias REPLEvalSignature fun(codeStr:string | nil, eof:boolean):boolean, string, string | nil @running, prompt, history
 
 ---@overload fun():void
----@overload fun(callback:REPLEvalSignature):void
+---@overload fun(callback:REPLEvalSignature, firstPrompt:string):void
 ---@param callback REPLEvalSignature
-function libuv.replStartAsync(callback)
-	uvwrap.replStart(loopCtx, false, callback)
+---@param firstPrompt string
+function libuv.replStartAsync(callback, firstPrompt)
+	uvwrap.replStart(loopCtx, false, callback, firstPrompt)
 end
 ---@param callback fun(codeStr:string | nil, eof:boolean):void
-function libuv.replStartOneShotAsync(callback)
-	uvwrap.replStart(loopCtx, true, callback)
+---@param firstPrompt string
+function libuv.replStartOneShotAsync(callback, firstPrompt)
+	uvwrap.replStart(loopCtx, true, callback, firstPrompt)
 end
 function libuv.replShutdown()
 	uvwrap.replShutdown()

@@ -105,17 +105,18 @@ function repl.init(uv, pb)
 end
 
 ---@overload fun():void
----@overload fun(callback:REPLEvalSignature):void
+---@overload fun(callback:REPLEvalSignature, firstPrompt:string):void
 ---@param callback REPLEvalSignature
-function repl.startAsync(callback)
+---@param firstPrompt string
+function repl.startAsync(callback, firstPrompt)
 	if not libuv then error(ErrMsg) end
-	libuv.replStartAsync(callback)
+	libuv.replStartAsync(callback, firstPrompt)
 end
 
 ---@type REPLEvalSignature
 function repl.evalDefault(codeStr, eof)
 	if not libuv then error(ErrMsg) end
-	return libuv.replDefault(codeStr, eof)
+	return libuv.replDefaultEval(codeStr, eof)
 end
 
 --[[
@@ -290,17 +291,17 @@ function repl.clientStart(serverIP, serverPort)
 				printError("REPL TCP Read error:", nread)
 			else
 				packetHandler:addPackData(str)
-				local bRunning, history, prompt = true, "", "> "
+				local bRunning, prompt, history = true, "> ", ""
 				for msgName, printTable in packetHandler:packets() do
 					assert(msgName == ProtocolPrint)
 					-- libuv.replHistory(printTable.history)
 					bRunning = printTable.running
-					history = printTable.history
 					prompt = printTable.prompt
+					history = printTable.history
 					io.stdout:write(printTable.output)
 				end
 				if packetHandler:getRemainForRead() == 0 then
-					if not libuv.replNext(bRunning, history, prompt) then
+					if not libuv.replNext(bRunning, prompt, history) then
 						print("REPL Client End.")
 						client:closeAsync()
 					end
@@ -315,7 +316,7 @@ function repl.clientStart(serverIP, serverPort)
 					printError("REPL TCP Write error:", statusWrite)
 				end
 			end)
-		end)
+		end, "> ")
 	end)
 end
 

@@ -203,7 +203,7 @@ static void save_history(const char* line) {
 ** =======================================================
 */
 
-typedef bool (*lua_Eval)(void* ud, const char* code, bool bEOF, const char** pHistory, const char** pPrompt);
+typedef bool (*lua_Eval)(void* ud, const char* code, bool bEOF, const char** pPrompt, const char** pHistory);
 typedef void (*lua_Shutdown)(void* ud);
 typedef struct {
   /* Context */
@@ -218,18 +218,18 @@ typedef struct {
   uv_async_t async[1];
   uv_sem_t sem[1];
   /* Read */
-  const char* code;
+  const char* code; // Set by readline thread, clear by itself, used by eval callback
   bool bEOF;
   /* Print */
-  const char* prompt;
-  const char* history;
+  const char* prompt; // Set by init or eval
+  const char* history; // Set by eval
 } lua_REPL;
 void repl_init(lua_REPL* repl, uv_loop_t* loop, const char* firstPrompt, bool bOneShot, lua_Eval eval, lua_Shutdown shutdown, void* ud);
 void repl_shutdown(lua_REPL* repl);
-bool repl_next(lua_REPL* repl, bool bRunning, const char* history, const char* prompt);
+bool repl_next(lua_REPL* repl, bool bRunning, const char* prompt, const char* history);
 bool repl_isOneShot(lua_REPL* repl);
 
-bool repl_defaultEval(void* ud, const char* code, bool eof, const char** phistory, const char** pprompt);
+bool repl_defaultEval(void* ud, const char* code, bool bEOF, const char** pPrompt, const char** pHistory);
 
 #define MSG_START "Multi thread REPL starting...\n"
 #define MSG_STOP "Multi thread REPL end.\n"
@@ -246,17 +246,18 @@ static void thread_readLine(void* arg) {
     uv_async_send(repl->async);
     uv_sem_wait(repl->sem);
 
+    repl->code = NULL;
     FREELINE(buffer);
     save_history(repl->history);
   }
   lua_flushstring(MSG_STOP, sizeof(MSG_STOP));
   RESTTERM();
 }
-static void repl_nextInternal(lua_REPL* repl, bool bRunning, const char* history, const char* prompt) {
+static void repl_nextInternal(lua_REPL* repl, bool bRunning, const char* prompt, const char* history) {
   assert(repl->bRunning);
   repl->bRunning = bRunning;
-  repl->history = history;
   repl->prompt = prompt;
+  repl->history = history;
   if (repl->bRunning) {
     uv_sem_post(repl->sem); // Fire next readline
   } else {
@@ -265,12 +266,12 @@ static void repl_nextInternal(lua_REPL* repl, bool bRunning, const char* history
 }
 static void async_doREPL(uv_async_t* handle) {
   lua_REPL* repl = uv_handle_get_data((const uv_handle_t*)handle);
-  const char* history;
   const char* prompt;
-  bool bRunning = repl->eval(repl->ud, repl->code, repl->bEOF, &history, &prompt);
+  const char* history;
+  bool bRunning = repl->eval(repl->ud, repl->code, repl->bEOF, &prompt, &history);
   if (repl->bOneShot) {
   } else {
-    repl_nextInternal(repl, bRunning, history, prompt);
+    repl_nextInternal(repl, bRunning, prompt, history);
   }
 }
 void repl_init(lua_REPL* repl, uv_loop_t* loop, const char* firstPrompt, bool bOneShot, lua_Eval eval, lua_Shutdown shutdown, void* ud) {
@@ -311,7 +312,7 @@ void repl_shutdown(lua_REPL* repl) {
 }
 bool repl_next(lua_REPL* repl, bool bRunning, const char* prompt, const char* history) {
   if (repl->bRunning && repl->bOneShot) {
-    repl_nextInternal(repl, bRunning, history, prompt);
+    repl_nextInternal(repl, bRunning, prompt, history);
   }
   return repl->bRunning;
 }
@@ -387,18 +388,18 @@ int compile_source_code(lua_State* L, const char* code, const char** phistory) {
   return luaL_loadbuffer(L, line, len, "=stdin"); /* try it */
 }
 
-bool repl_defaultEval(void* ud, const char* code, bool eof, const char** phistory, const char** pprompt) {
+bool repl_defaultEval(void* ud, const char* code, bool bEOF, const char** pPrompt, const char** pHistory) {
   (void)ud;
   lua_State* L = GET_MAIN_LUA_STATE();
   bool running = true;
-  *phistory = NULL;
-  if (eof) { // Ctrl-D or Ctrl-Z+Enter
+  *pHistory = NULL;
+  if (bEOF) { // Ctrl-D or Ctrl-Z+Enter
     if (firstline) {
       running = false;
     } else {
       firstline = true; // end multi line
       GET_REGISTRY_FIELD(REPL_HISTORY);
-      *phistory = lua_tostring(L, -1);
+      *pHistory = lua_tostring(L, -1);
       lua_pop(L, 1);
     }
     lua_getglobal(L, "print");
@@ -419,7 +420,7 @@ bool repl_defaultEval(void* ud, const char* code, bool eof, const char** phistor
       firstline = false;
     } else {
       firstline = true;
-      *phistory = history;
+      *pHistory = history;
       if (status == LUA_OK) {
         if (lua_gettop(L) != 1) {
           lua_replace(L, 1);
@@ -434,7 +435,7 @@ bool repl_defaultEval(void* ud, const char* code, bool eof, const char** phistor
       call_registry_funcs(L, LUA_ATREPL, "Call atrepl failed: %s\n");
     }
   }
-  *pprompt = get_prompt_hold(L, firstline);
+  *pPrompt = get_prompt_hold(L, firstline);
   return running;
 }
 
@@ -447,8 +448,9 @@ bool repl_defaultEval(void* ud, const char* code, bool eof, const char** phistor
 */
 
 #define REPL_TYPE "lua_REPL*"
-static bool uvwrap_onEval(void* ud, const char* code, bool bEOF, const char** pHistory, const char** pPrompt) {
+static bool uvwrap_onEval(void* ud, const char* code, bool bEOF, const char** pPrompt, const char** pHistory) {
   lua_State* L = GET_MAIN_LUA_STATE();
+  int top = lua_gettop(L);
   bool bOneShot = repl_isOneShot((lua_REPL*)ud);
   GET_REGISTRY_FIELD(REPL_ONEVAL);
   lua_pushstring(L, code);
@@ -458,9 +460,9 @@ static bool uvwrap_onEval(void* ud, const char* code, bool bEOF, const char** pH
     if (bOneShot) {
       return true;
     }
-    bool bRunning = lua_toboolean(L, 1);
-    *pPrompt = lua_tostring(L, 2);
-    *pHistory = lua_tostring(L, 3);
+    bool bRunning = lua_toboolean(L, top + 1);
+    *pPrompt = lua_tostring(L, top + 2);
+    *pHistory = lua_tostring(L, top + 3);
     if (*pHistory != NULL) { // for using REPL_HISTORY to cache multiline in default implementationÏ
       SET_REGISTRY_FIELD(REPL_HISTORY);
     } else {
@@ -471,8 +473,8 @@ static bool uvwrap_onEval(void* ud, const char* code, bool bEOF, const char** pH
     return bRunning;
   } else {
     report(L, status);
-    *pHistory = NULL;
     *pPrompt = NULL;
+    *pHistory = NULL;
     return false;
   }
 }
@@ -494,18 +496,22 @@ int uvwrap_replStart(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
   int bOneShot = luaL_checkboolean(L, 2);
   lua_Eval eval;
+  const char* prompt;
 #define EVAL_IDX 3
   if (lua_isfunction(L, EVAL_IDX)) {
     lua_pushvalue(L, EVAL_IDX);
     SET_REGISTRY_FIELD(REPL_ONEVAL);
     eval = uvwrap_onEval;
+    prompt = luaL_checkstring(L, EVAL_IDX + 1);
+    lua_pushvalue(L, EVAL_IDX + 1);
+    SET_REGISTRY_FIELD(REPL_PROMPT);
   } else if (bOneShot) {
     return luaL_error(L, "One shot REPL must has a callback function");
   } else {
     eval = repl_defaultEval;
+    prompt = get_prompt_hold(L, true);
   }
 #undef EVAL_IDX
-  const char* prompt = get_prompt_hold(L, true);
   repl_init(repl, loop, prompt, bOneShot, eval, uvwrap_onClose, (void*)repl);
   luaL_setmetatable(L, REPL_TYPE);
   SET_REGISTRY_FIELD(REPL_OBJECT);
@@ -523,7 +529,7 @@ int uvwrap_replNext(lua_State* L) {
   const char* pHistory = luaL_checkstring(L, 3);
   GET_REGISTRY_FIELD(REPL_OBJECT);
   lua_REPL* repl = (lua_REPL*)luaL_checkudata_recursive(L, -1, REPL_TYPE);
-  bool ret = repl_next(repl, bRunning, pHistory, pPrompt);
+  bool ret = repl_next(repl, bRunning, pPrompt, pHistory);
   lua_pushboolean(L, ret);
   return 1;
 }
@@ -537,9 +543,9 @@ int uvwrap_replIsOneShot(lua_State* L) {
 int uvwrap_replDefaultEval(lua_State* L) {
   const char* code = luaL_optstring(L, 1, NULL);
   bool bEOF = luaL_checkboolean(L, 2);
-  const char* pHistory;
   const char* pPrompt;
-  bool running = repl_defaultEval(NULL, code, bEOF, &pHistory, &pPrompt);
+  const char* pHistory;
+  bool running = repl_defaultEval(NULL, code, bEOF, &pPrompt, &pHistory);
   lua_pushboolean(L, running);
   lua_pushstring(L, pPrompt);
   lua_pushstring(L, pHistory);
