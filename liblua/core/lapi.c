@@ -674,6 +674,45 @@ LUA_API void lua_createtable(lua_State* L, int narray, int nrec) {
   lua_unlock(L);
 }
 
+LUA_API void lua_copytable(lua_State* L, int idx, int copykv) {
+  lua_lock(L);
+  StkId value = index2addr(L, idx);
+  api_check(L, ttistable(value), "table expected");
+  Table* oldt = hvalue(value);
+  int asize = oldt->sizearray;
+  int hsize = allocsizenode(oldt);
+
+  Table* newt = luaH_new(L);
+  sethvalue(L, L->top, newt);
+  api_incr_top(L); // push the t to lua stack
+  if (asize > 0 || hsize > 0) {
+    luaH_resize(L, newt, asize, hsize);
+  }
+
+  if (copykv) {
+    setnilvalue(L->top);
+    api_incr_top(L);
+    while (luaH_next(L, oldt, L->top - 1)) {
+      api_incr_top(L);
+      TValue* slot = luaH_set(L, newt, L->top - 2);
+      setobj2t(L, slot, L->top - 1);
+      luaC_barrierback(L, newt, L->top - 1);
+      L->top -= 1;
+    }
+    L->top -= 1; /* remove key */
+    invalidateTMcache(newt);
+  }
+
+  newt->metatable = oldt->metatable;
+  if (newt->metatable) {
+    luaC_objbarrier(L, obj2gco(newt), newt->metatable);
+    luaC_checkfinalizer(L, obj2gco(newt), newt->metatable);
+  }
+
+  luaC_checkGC(L);
+  lua_unlock(L);
+}
+
 // [-0, +(0|1)], need 1 slot
 LUA_API int lua_getmetatable(lua_State* L, int objindex) {
   const TValue* obj;
