@@ -800,7 +800,7 @@ void luaV_execute(lua_State* L) {
   LClosure* cl;
   TValue* k;
   StkId base; // point to stack, affected by stack reallocation
-      // after any function call, we should correct this pointer
+              // after any function call, we should correct this pointer
   ci->callstatus |= CIST_FRESH; /* fresh invocation of 'luaV_execute" */
 newframe: /* reentry point when frame changes (call/return) */
   lua_assert(ci == L->ci);
@@ -850,7 +850,7 @@ newframe: /* reentry point when frame changes (call/return) */
       vmcase(OP_GETTABUP) {
         TValue* upval = cl->upvals[GETARG_B(i)]->v;
         TValue* rc = RKC(i);
-        gettableProtected(L, upval, rc, ra);
+        gettableProtected(L, upval, rc, ra); // may fire meta function, reallocate stack, and invalidates 'ra' 'rc'
         vmbreak;
       }
       vmcase(OP_GETTABLE) {
