@@ -188,6 +188,15 @@ static void reverse(lua_State* L, StkId from, StkId to) {
   }
 }
 
+LUA_API void lua_reverse(lua_State* L, int s, int e) {
+  StkId from, to;
+  lua_lock(L);
+  from = index2addr(L, s); /* start of segment */
+  to = index2addr(L, e); /* end of segment */
+  reverse(L, from, to); /* reverse the entire segment */
+  lua_unlock(L);
+}
+
 /*
 ** Let x = AB, where A is a prefix of length 'n'. Then,
 ** rotate x n == BA. But BA == (A^r . B^r)^r.
