@@ -410,7 +410,8 @@ static int create(lua_State* L) {
 
 static int copy(lua_State* L) {
   luaL_checktype(L, 1, LUA_TTABLE);
-  lua_copytable(L, 1, 1);
+  int copykv = luaL_optboolean(L, 2, 1);
+  lua_copytable(L, 1, copykv);
   return 1;
 }
 
