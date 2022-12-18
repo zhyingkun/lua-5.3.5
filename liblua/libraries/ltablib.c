@@ -408,6 +408,239 @@ static int create(lua_State* L) {
   return 1;
 }
 
+static int copy(lua_State* L) {
+  luaL_checktype(L, 1, LUA_TTABLE);
+  lua_copytable(L, 1, 1);
+  return 1;
+}
+
+static int every(lua_State* L) {
+#define TABLE_IDX 1
+#define FUNC_IDX 2
+  luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
+  lua_pushnil(L);
+  int keyIdx = lua_gettop(L);
+  int ret = 1;
+  while (lua_next(L, TABLE_IDX)) {
+    lua_pushvalue(L, FUNC_IDX);
+    lua_pushvalue(L, keyIdx + 1);
+    lua_pushvalue(L, keyIdx);
+    lua_call(L, 2, 1);
+    ret = lua_toboolean(L, -1);
+    if (!ret) {
+      lua_pop(L, 3); // pop the ret, key and value
+      break;
+    }
+    lua_pop(L, 2); // pop the ret and value
+  }
+  lua_pushboolean(L, ret);
+  return 1;
+#undef FUNC_IDX
+#undef TABLE_IDX
+}
+
+static int filter(lua_State* L) {
+#define TABLE_IDX 1
+#define FUNC_IDX 2
+  luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
+  int bList = luaL_optboolean(L, 3, 0);
+  lua_copytable(L, TABLE_IDX, 0);
+  int newIdx = lua_gettop(L);
+  if (bList) {
+    lua_Integer len = luaL_len(L, TABLE_IDX);
+    lua_Integer idx = 1;
+    for (lua_Integer i = 1; i <= len; i++) {
+      lua_rawgeti(L, TABLE_IDX, i);
+      lua_pushvalue(L, FUNC_IDX);
+      lua_pushvalue(L, -2);
+      lua_pushinteger(L, i);
+      lua_call(L, 2, 1);
+      if (lua_toboolean(L, -1)) {
+        lua_pop(L, 1); // pop the return boolean
+        lua_rawseti(L, newIdx, idx++);
+      } else {
+        lua_pop(L, 2); // pop the return boolean and value
+      }
+    }
+  } else {
+    lua_pushnil(L);
+    int cacheIdx = lua_gettop(L);
+    lua_pushnil(L);
+    int keyIdx = lua_gettop(L);
+    while (lua_next(L, TABLE_IDX)) {
+      lua_pushvalue(L, FUNC_IDX);
+      lua_pushvalue(L, keyIdx + 1);
+      lua_pushvalue(L, keyIdx);
+      lua_call(L, 2, 1);
+      if (lua_toboolean(L, -1)) {
+        lua_pop(L, 1); // pop the return boolean
+        lua_copy(L, keyIdx, cacheIdx);
+        lua_rawset(L, newIdx);
+        lua_pushvalue(L, cacheIdx);
+      } else {
+        lua_pop(L, 2); // pop the ret and value
+      }
+    }
+    lua_pop(L, 1); // pop the cache
+  }
+  return 1;
+#undef FUNC_IDX
+#undef TABLE_IDX
+}
+
+static int indexOf(lua_State* L) {
+#define TABLE_IDX 1
+#define ITEM_IDX 2
+  luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
+  if (lua_isnoneornil(L, ITEM_IDX)) {
+    return luaL_argerror(L, ITEM_IDX, "value expected");
+  }
+  lua_pushnil(L);
+  while (lua_next(L, TABLE_IDX)) {
+    if (lua_rawequal(L, ITEM_IDX, -1)) {
+      lua_pop(L, 1);
+      return 1;
+    }
+  }
+  return 0;
+#undef ITEM_IDX
+#undef TABLE_IDX
+}
+
+static int map(lua_State* L) {
+#define TABLE_IDX 1
+#define FUNC_IDX 2
+  luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
+  lua_copytable(L, TABLE_IDX, 0);
+  int newIdx = lua_gettop(L);
+  lua_pushnil(L);
+  int keyIdx = lua_gettop(L);
+  while (lua_next(L, TABLE_IDX)) {
+    lua_pushvalue(L, keyIdx);
+    lua_pushvalue(L, FUNC_IDX);
+    lua_pushvalue(L, keyIdx + 1);
+    lua_pushvalue(L, keyIdx);
+    lua_call(L, 2, 1);
+    lua_rawset(L, newIdx);
+    lua_pop(L, 1);
+  }
+  return 1;
+#undef FUNC_IDX
+#undef TABLE_IDX
+}
+
+static int reduce(lua_State* L) {
+#define LIST_IDX 1
+#define FUNC_IDX 2
+#define ACC_IDX 3 // accumulator
+  lua_Integer start = 1;
+  lua_settop(L, 3);
+  if (lua_isnoneornil(L, ACC_IDX)) {
+    lua_geti(L, LIST_IDX, start);
+    start++;
+    lua_replace(L, ACC_IDX);
+  }
+  lua_Integer cnt = luaL_len(L, LIST_IDX);
+  for (lua_Integer idx = start; idx <= cnt; idx++) {
+    lua_pushvalue(L, FUNC_IDX);
+    lua_pushvalue(L, ACC_IDX);
+    lua_geti(L, LIST_IDX, idx);
+    lua_pushinteger(L, idx);
+    lua_pushvalue(L, LIST_IDX);
+    lua_call(L, 4, 1);
+    lua_replace(L, ACC_IDX);
+  }
+  return 1;
+#undef ACC_IDX
+#undef FUNC_IDX
+#undef LIST_IDX
+}
+
+static int reverse(lua_State* L) {
+#define TABLE_IDX 1
+  luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
+  lua_copytable(L, TABLE_IDX, 0);
+  int newIdx = lua_gettop(L);
+
+  lua_Integer len = luaL_len(L, TABLE_IDX);
+  for (lua_Integer i = 1, j = len; i <= len; i++, j--) {
+    lua_rawgeti(L, TABLE_IDX, j);
+    lua_rawseti(L, newIdx, i);
+  }
+  return 1;
+#undef TABLE_IDX
+}
+
+#define INC_BETWEEN(x, a, b) ((a) <= (x) && (x) <= (b))
+static lua_Integer findAbsIndex(lua_Integer len, lua_Integer idx, int bStart) {
+  if (INC_BETWEEN(idx, -len, -1)) {
+    return idx + len + 1;
+  } else if (INC_BETWEEN(idx, 1, len)) {
+    return idx;
+  }
+  lua_Integer add = bStart ? 1 : 0;
+  if (idx < -len || idx == 0) { // left
+    return add;
+  } else { // right
+    return len + add;
+  }
+}
+static int slice(lua_State* L) {
+#define TABLE_IDX 1
+  luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
+  lua_Integer len = luaL_len(L, TABLE_IDX);
+  lua_Integer s = luaL_optinteger(L, 2, 1);
+  lua_Integer e = luaL_optinteger(L, 3, len);
+  s = findAbsIndex(len, s, 1);
+  e = findAbsIndex(len, e, 0);
+
+  lua_copytable(L, TABLE_IDX, 0);
+  int newIdx = lua_gettop(L);
+  for (lua_Integer i = s, j = 1; i <= e; i++, j++) {
+    lua_rawgeti(L, TABLE_IDX, i);
+    lua_rawseti(L, newIdx, j);
+  }
+  return 1;
+#undef TABLE_IDX
+}
+
+#define CLAMP(val, min, max) (val < min ? min : (val > max ? max : val))
+static int splice(lua_State* L) {
+#define TABLE_IDX 1
+#define START_IDX 4
+  luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
+  lua_Integer len = luaL_len(L, TABLE_IDX);
+  lua_Integer start = findAbsIndex(len, luaL_optinteger(L, 2, 1), 1);
+  lua_Integer max = len - start + 1;
+  lua_Integer cnt = luaL_optinteger(L, 3, max);
+  cnt = CLAMP(cnt, 0, max);
+  int endIdx = lua_gettop(L);
+
+  lua_copytable(L, TABLE_IDX, 0);
+  int newIdx = endIdx + 1;
+  if (START_IDX <= endIdx) {
+    lua_reverse(L, START_IDX, endIdx + 1);
+    newIdx = START_IDX;
+  }
+
+  lua_Integer j = 1;
+  for (lua_Integer i = 1; i < start; i++, j++) {
+    lua_rawgeti(L, TABLE_IDX, i);
+    lua_rawseti(L, newIdx, j);
+  }
+  for (lua_Integer i = START_IDX; i <= endIdx; i++, j++) {
+    lua_rawseti(L, newIdx, j);
+  }
+  assert(newIdx == lua_gettop(L));
+  for (lua_Integer i = start + cnt; i <= len; i++, j++) {
+    lua_rawgeti(L, TABLE_IDX, i);
+    lua_rawseti(L, newIdx, j);
+  }
+  return 1;
+#undef START_IDX
+#undef TABLE_IDX
+}
+
 /* }====================================================== */
 
 static const luaL_Reg tab_funcs[] = {
@@ -422,6 +655,15 @@ static const luaL_Reg tab_funcs[] = {
     {"move", tmove},
     {"sort", sort},
     {"create", create},
+    {"copy", copy},
+    {"every", every},
+    {"filter", filter},
+    {"indexOf", indexOf},
+    {"map", map},
+    {"reduce", reduce},
+    {"reverse", reverse},
+    {"slice", slice},
+    {"splice", splice},
     {NULL, NULL},
 };
 
