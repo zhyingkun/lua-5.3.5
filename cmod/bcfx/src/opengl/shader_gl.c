@@ -493,7 +493,7 @@ typedef enum {
   TK_PRAGMA = 257,
   TK_INCLUDE,
   TK_OTHER,
-  TK_EOS,
+  TK_END,
 } Token;
 
 static String StrPragma[1] = {STRING_LITERAL("pragma")};
@@ -537,7 +537,7 @@ static uint32_t nextToken(luaL_ByteBuffer* b) {
       }
     }
   }
-  return TK_EOS;
+  return TK_END;
 }
 static const char* readPath(luaL_ByteBuffer* b, char del, size_t* sz) {
   const uint8_t* pCh = luaBB_readbytes(b, 1);
@@ -568,9 +568,9 @@ static void parseOneLine(const char* line, size_t sz, OnFindIncludePath cb, void
       TK_PRAGMA,
       TK_INCLUDE,
       '<',
-      TK_EOS,
+      TK_END,
   };
-  for (int i = 0; tokens[i] != TK_EOS; i++) {
+  for (int i = 0; tokens[i] != TK_END; i++) {
     if (nextToken(b) != tokens[i]) {
       return; // not a include statement
     }
