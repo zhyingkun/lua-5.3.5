@@ -1811,7 +1811,7 @@ static void proto_printinstructionadditions_z(const Proto* f, luaL_ByteBuffer* s
       luaBB_addfstring(sb, "\t; to %d", pc + 1 + (c ? 1 : 0));
       break;
     case OP_LOADNIL:
-      luaBB_addfstring(sb, "\t; range: [%d, %d]", a, a + b);
+      luaBB_addfstring(sb, "\t; range: [r%d, r%d]", a, a + b);
       break;
     case OP_GETUPVAL:
     case OP_SETUPVAL:
@@ -1883,13 +1883,16 @@ static void proto_printinstructionadditions_z(const Proto* f, luaL_ByteBuffer* s
       }
       break;
     case OP_CONCAT:
-      luaBB_addfstring(sb, "\t; range: [%d, %d]", b, c);
+      luaBB_addfstring(sb, "\t; range: [r%d, r%d]", b, c);
       break;
     case OP_JMP:
       luaBB_addfstring(sb, "\t; to %d", sbx + pc + 1 + 0);
       if (a) {
         luaBB_addfstring(sb, ", close upvalues: [%d, ~)", a - 1);
       }
+      break;
+    case OP_TESTSET:
+      luaBB_addfstring(sb, "\t; test r%d", b);
       break;
     case OP_CALL:
       if (b == 0)
@@ -1914,13 +1917,17 @@ static void proto_printinstructionadditions_z(const Proto* f, luaL_ByteBuffer* s
         luaBB_addfstring(sb, "\t; ret: %d", b - 1);
       break;
     case OP_FORLOOP:
-    case OP_FORPREP:
-    case OP_TFORLOOP:
       // origin plus one for real pc
       luaBB_addfstring(sb, "\t; to %d", sbx + pc + 1 + 0);
       break;
+    case OP_FORPREP:
+      luaBB_addfstring(sb, "\t; range: [r%d, r%d], to %d", a, a + 2, sbx + pc + 1 + 0);
+      break;
+    case OP_TFORLOOP:
+      luaBB_addfstring(sb, "\t; test r%d, to %d", a + 1, sbx + pc + 1 + 0);
+      break;
     case OP_TFORCALL:
-      luaBB_addfstring(sb, "\t; next ret: %d", c);
+      luaBB_addfstring(sb, "\t; range [r%d, r%d], next ret: %d in [r%d, r%d]", a, a + 2, c, a + 3, a + 3 + c - 1);
       break;
     case OP_SETLIST:
       if (c == 0)
@@ -1928,10 +1935,10 @@ static void proto_printinstructionadditions_z(const Proto* f, luaL_ByteBuffer* s
       int idx = (c - 1) * LFIELDS_PER_FLUSH;
       if (b == 0) {
         luaBB_addfstring(sb, "\t; index: [%d, multi]", idx + 1);
-        luaBB_addfstring(sb, ", reg: [%d, multi]", a + 1);
+        luaBB_addfstring(sb, ", reg: [r%d, multi]", a + 1);
       } else {
         luaBB_addfstring(sb, "\t; index: [%d, %d]", idx + 1, idx + b);
-        luaBB_addfstring(sb, ", reg: [%d, %d]", a + 1, a + b);
+        luaBB_addfstring(sb, ", reg: [r%d, r%d]", a + 1, a + b);
       }
       break;
     case OP_CLOSURE:
@@ -1939,9 +1946,9 @@ static void proto_printinstructionadditions_z(const Proto* f, luaL_ByteBuffer* s
       break;
     case OP_VARARG:
       if (b == 0)
-        luaBB_addfstring(sb, "\t; range: [%d, multi]", a);
+        luaBB_addfstring(sb, "\t; range: [r%d, multi]", a);
       else
-        luaBB_addfstring(sb, "\t; range: [%d, %d]", a, a + b - 2);
+        luaBB_addfstring(sb, "\t; range: [r%d, r%d]", a, a + b - 2);
       break;
     case OP_EXTRAARG:
       luaBB_addliteral(sb, "\t; ");
@@ -2127,23 +2134,35 @@ static void proto_printconstants(const Proto* f, luaL_ByteBuffer* b, int iszero)
   }
 }
 
-static void proto_printlocals(const Proto* f, luaL_ByteBuffer* b, int iszero) {
-  int i, n, z;
+static void proto_printlocals(const Proto* f, luaL_ByteBuffer* b, int z) {
+  int i, n;
   n = f->sizelocvars;
-  z = iszero ? 0 : 1;
   luaBB_addfstring(b, "locals (%d) for %p:\n", n, f);
   for (i = 0; i < n; i++) {
     luaBB_addfstring(b, "\t%d\t%s", i, getstr(f->locvars[i].varname));
-    luaBB_addfstring(b, "\t%d\t%d\n", f->locvars[i].startpc + z, f->locvars[i].endpc + z);
+    if (z) {
+      int startpc = f->locvars[i].startpc;
+      int endpc = f->locvars[i].endpc;
+      luaBB_addfstring(b, "\t%d\t%d\t; pc scope: [%d, %d]\n", startpc, endpc, startpc, endpc - 1);
+    } else {
+      luaBB_addfstring(b, "\t%d\t%d\n", f->locvars[i].startpc + 1, f->locvars[i].endpc + 1);
+    }
   }
 }
 
-static void proto_printupvalues(const Proto* f, luaL_ByteBuffer* b) {
+static void proto_printupvalues(const Proto* f, luaL_ByteBuffer* b, int z) {
   int i, n;
   n = f->sizeupvalues;
   luaBB_addfstring(b, "upvalues (%d) for %p:\n", n, f);
   for (i = 0; i < n; i++) {
-    luaBB_addfstring(b, "\t%d\t%s\t%d\t%d\n", i, UPVALNAME(i), f->upvalues[i].instack, f->upvalues[i].idx);
+    if (z) {
+      lu_byte instack = f->upvalues[i].instack;
+      lu_byte idx = f->upvalues[i].idx;
+      const char* str = instack ? "in stack: r" : "in outer upvalue: u";
+      luaBB_addfstring(b, "\t%d\t%s\t%d\t%d\t; %s%d\n", i, UPVALNAME(i), instack, idx, str, idx);
+    } else {
+      luaBB_addfstring(b, "\t%d\t%s\t%d\t%d\n", i, UPVALNAME(i), f->upvalues[i].instack, f->upvalues[i].idx);
+    }
   }
 }
 
@@ -2170,7 +2189,7 @@ static void proto_printproto(const Proto* f, luaL_ByteBuffer* b, const char* opt
     proto_printlocals(f, b, z);
   }
   if (strchr(options, 'u')) {
-    proto_printupvalues(f, b);
+    proto_printupvalues(f, b, z);
   }
   if (strchr(options, 'p')) {
     proto_printsubprotos(f, b);
