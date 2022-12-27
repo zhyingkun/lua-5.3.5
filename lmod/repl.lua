@@ -114,7 +114,7 @@ function repl.startAsync(callback, firstPrompt)
 end
 
 ---@type REPLEvalSignature
-function repl.evalDefault(codeStr, eof)
+function repl.defaultEval(codeStr, eof)
 	if not libuv then error(ErrMsg) end
 	return libuv.replDefaultEval(codeStr, eof)
 end
@@ -148,7 +148,7 @@ local function inComplete(loader)
 	return type(loader) == "string" and loader:sub(-5, -1) == "<eof>"
 end
 ---@type REPLEvalSignature
-function repl.evalDefaultLua(codeStr, eof)
+function repl.defaultEvalLua(codeStr, eof)
 	local running = true
 	local history
 	if eof then
@@ -205,7 +205,7 @@ end
 ---@param callback REPLEvalSignature
 function repl.serverStartAsync(ip, port, callback)
 	if not libuv then error(ErrMsg) end
-	callback = callback or repl.getServerEvalDefault()
+	callback = callback or repl.getServerDefaultEval()
 	local OK = libuv.err_code.OK
 	local EOF = libuv.err_code.EOF
 
@@ -259,15 +259,15 @@ function repl.makeServerEval(evalFunc)
 	end
 end
 
-local ServerEvalDefault
+local ServerDefaultEval
 
 ---@return REPLRemoteEvalSignature
-function repl.getServerEvalDefault()
+function repl.getServerDefaultEval()
 	if not libuv then error(ErrMsg) end
-	if not ServerEvalDefault then
-		ServerEvalDefault = repl.makeServerEval(libuv.replDefaultEval)
+	if not ServerDefaultEval then
+		ServerDefaultEval = repl.makeServerEval(libuv.replDefaultEval)
 	end
-	return ServerEvalDefault
+	return ServerDefaultEval
 end
 
 ---@overload fun():void
