@@ -629,9 +629,9 @@ static int splice(lua_State* L) {
 #define START_IDX 4
   luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
   lua_Integer len = luaL_len(L, TABLE_IDX);
-  lua_Integer start = findAbsIndex(len, luaL_optinteger(L, 2, 1), 1);
+  lua_Integer start = findAbsIndex(len, luaL_optinteger(L, 2, len), 1);
+  lua_Integer cnt = luaL_optinteger(L, 3, 1);
   lua_Integer max = len - start + 1;
-  lua_Integer cnt = luaL_optinteger(L, 3, max);
   cnt = CLAMP(cnt, 0, max);
   int endIdx = lua_gettop(L);
 
