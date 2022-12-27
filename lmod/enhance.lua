@@ -230,6 +230,81 @@ function io.writefile(fileName, data) end
 ---@return table
 function table.create(narr, nrec) end
 
+---@overload fun(tbl:table):table
+---@overload fun(tbl:table, copykv:boolean):table
+---@param tbl table
+---@param copykv boolean @default is true
+---@return table
+function table.copy(tbl, copykv) end
+
+---@overload fun(tbl:table, callback:(fun(value:any, key:any):boolean)):boolean
+---@overload fun(tbl:table, callback:(fun(value:any, key:any):boolean), bList:boolean):boolean
+---@param tbl table
+---@param callback fun(value:any, key:any):boolean
+---@param bList boolean @default is true
+---@return boolean
+function table.every(tbl, callback, bList) end
+
+---@overload fun(tbl:table, callback:(fun(value:any, key:any):boolean)):table
+---@overload fun(tbl:table, callback:(fun(value:any, key:any):boolean), bList:boolean):table
+---@param tbl table
+---@param callback fun(value:any, key:any):boolean
+---@param bList boolean @default is true
+---@return table
+function table.filter(tbl, callback, bList) end
+
+---@overload fun(tbl:table, value:any):any
+---@overload fun(tbl:table, value:any, bList:boolean):any
+---@param tbl table
+---@param value any
+---@param bList boolean @default is true
+---@return any @the key
+function table.indexOf(tbl, value, bList) end
+
+---@param tbl table
+---@param callback fun(value:any, key:any):any
+---@return table
+function table.map(tbl, callback) end
+
+---@alias ReduceCallback fun(acc:any, value:any, key:any, list:table):any
+---@overload fun(tbl:table, callback:ReduceCallback):any
+---@overload fun(tbl:table, callback:ReduceCallback, init:any):any
+---@param tbl table<integer, any>
+---@param callback ReduceCallback
+---@param init any
+---@return any
+function table.reduce(tbl, callback, init) end
+
+---@overload fun(tbl:table):table
+---@overload fun(tbl:table, first:integer):table
+---@overload fun(tbl:table, first:integer, last:integer):table
+---@overload fun(tbl:table, first:integer, last:integer, dst:table):table
+---@param tbl table
+---@param first integer
+---@param last integer
+---@param dst table
+---@return table
+function table.reverse(tbl, first, last, dst) end
+
+---@overload fun(tbl:table):table
+---@overload fun(tbl:table, first:integer):table
+---@overload fun(tbl:table, first:integer, last:integer):table
+---@param tbl table
+---@param first integer
+---@param last integer
+---@return table
+function table.slice(tbl, first, last) end
+
+---@overload fun(tbl:table, first:integer):boolean
+---@overload fun(tbl:table, first:integer, count:integer):boolean
+---@overload fun(tbl:table, first:integer, count:integer, ...:any):boolean
+---@param tbl table
+---@param first integer
+---@param count integer
+---@vararg any
+---@return boolean
+function table.splice(tbl, first, count, ...) end
+
 -- }======================================================
 
 --[[
