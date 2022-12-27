@@ -416,35 +416,44 @@ static int copy(lua_State* L) {
 }
 
 static int every(lua_State* L) {
-#define TABLE_IDX 1
-#define FUNC_IDX 2
-  luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
-  lua_pushnil(L);
-  int keyIdx = lua_gettop(L);
-  int ret = 1;
-  while (lua_next(L, TABLE_IDX)) {
-    lua_pushvalue(L, FUNC_IDX);
-    lua_pushvalue(L, keyIdx + 1);
-    lua_pushvalue(L, keyIdx);
-    lua_call(L, 2, 1);
-    ret = lua_toboolean(L, -1);
-    if (!ret) {
-      lua_pop(L, 3); // pop the ret, key and value
-      break;
+  lua_settop(L, 3);
+  int bList = luaL_optboolean(L, 3, 1);
+  if (bList) {
+    lua_Integer last = aux_getn(L, 1, TAB_R);
+    for (lua_Integer i = 1; i <= last; i++) {
+      lua_pushvalue(L, 2);
+      lua_geti(L, 1, i);
+      lua_pushinteger(L, i);
+      lua_call(L, 2, 1);
+      if (!lua_toboolean(L, -1)) {
+        return 1;
+      }
+      lua_pop(L, 1);
     }
-    lua_pop(L, 2); // pop the ret and value
+  } else {
+    luaL_checktype(L, 1, LUA_TTABLE);
+    lua_pushnil(L);
+    int keyIdx = lua_gettop(L);
+    while (lua_next(L, 1)) {
+      lua_pushvalue(L, 2);
+      lua_pushvalue(L, keyIdx + 1);
+      lua_pushvalue(L, keyIdx);
+      lua_call(L, 2, 1);
+      if (!lua_toboolean(L, -1)) {
+        return 1;
+      }
+      lua_pop(L, 2); // pop the ret and value
+    }
   }
-  lua_pushboolean(L, ret);
+  lua_pushboolean(L, 1);
   return 1;
-#undef FUNC_IDX
-#undef TABLE_IDX
 }
 
 static int filter(lua_State* L) {
 #define TABLE_IDX 1
 #define FUNC_IDX 2
   luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
-  int bList = luaL_optboolean(L, 3, 0);
+  int bList = luaL_optboolean(L, 3, 1);
   lua_copytable(L, TABLE_IDX, 0);
   int newIdx = lua_gettop(L);
   if (bList) {
@@ -490,22 +499,33 @@ static int filter(lua_State* L) {
 }
 
 static int indexOf(lua_State* L) {
-#define TABLE_IDX 1
-#define ITEM_IDX 2
-  luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
-  if (lua_isnoneornil(L, ITEM_IDX)) {
-    return luaL_argerror(L, ITEM_IDX, "value expected");
+  if (lua_isnoneornil(L, 2)) {
+    return luaL_argerror(L, 2, "value expected");
   }
-  lua_pushnil(L);
-  while (lua_next(L, TABLE_IDX)) {
-    if (lua_rawequal(L, ITEM_IDX, -1)) {
+  lua_settop(L, 3);
+  int bList = luaL_optboolean(L, 3, 1);
+  if (bList) {
+    lua_Integer last = aux_getn(L, 1, TAB_R);
+    for (lua_Integer i = 1; i <= last; i++) {
+      lua_geti(L, 1, i);
+      if (lua_compare(L, 2, -1, LUA_OPEQ)) {
+        lua_pushinteger(L, i);
+        return 1;
+      }
       lua_pop(L, 1);
-      return 1;
+    }
+  } else {
+    luaL_checktype(L, 1, LUA_TTABLE);
+    lua_pushnil(L);
+    while (lua_next(L, 1)) {
+      if (lua_compare(L, 2, -1, LUA_OPEQ)) {
+        lua_pop(L, 1);
+        return 1;
+      }
+      lua_pop(L, 1);
     }
   }
   return 0;
-#undef ITEM_IDX
-#undef TABLE_IDX
 }
 
 static int map(lua_State* L) {
@@ -531,45 +551,24 @@ static int map(lua_State* L) {
 }
 
 static int reduce(lua_State* L) {
-#define LIST_IDX 1
-#define FUNC_IDX 2
-#define ACC_IDX 3 // accumulator
+  lua_Integer cnt = aux_getn(L, 1, TAB_R);
   lua_Integer start = 1;
   lua_settop(L, 3);
-  if (lua_isnoneornil(L, ACC_IDX)) {
-    lua_geti(L, LIST_IDX, start);
+  if (lua_isnoneornil(L, 3)) { // accumulator
+    lua_geti(L, 1, start);
     start++;
-    lua_replace(L, ACC_IDX);
+    lua_replace(L, 3);
   }
-  lua_Integer cnt = luaL_len(L, LIST_IDX);
   for (lua_Integer idx = start; idx <= cnt; idx++) {
-    lua_pushvalue(L, FUNC_IDX);
-    lua_pushvalue(L, ACC_IDX);
-    lua_geti(L, LIST_IDX, idx);
+    lua_pushvalue(L, 2);
+    lua_pushvalue(L, 3); // accumulator
+    lua_geti(L, 1, idx);
     lua_pushinteger(L, idx);
-    lua_pushvalue(L, LIST_IDX);
+    lua_pushvalue(L, 1);
     lua_call(L, 4, 1);
-    lua_replace(L, ACC_IDX);
+    lua_replace(L, 3);
   }
   return 1;
-#undef ACC_IDX
-#undef FUNC_IDX
-#undef LIST_IDX
-}
-
-static int reverse(lua_State* L) {
-#define TABLE_IDX 1
-  luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
-  lua_copytable(L, TABLE_IDX, 0);
-  int newIdx = lua_gettop(L);
-
-  lua_Integer len = luaL_len(L, TABLE_IDX);
-  for (lua_Integer i = 1, j = len; i <= len; i++, j--) {
-    lua_rawgeti(L, TABLE_IDX, j);
-    lua_rawseti(L, newIdx, i);
-  }
-  return 1;
-#undef TABLE_IDX
 }
 
 #define INC_BETWEEN(x, a, b) ((a) <= (x) && (x) <= (b))
@@ -586,6 +585,25 @@ static lua_Integer findAbsIndex(lua_Integer len, lua_Integer idx, int bStart) {
     return len + add;
   }
 }
+
+static int reverse(lua_State* L) {
+  lua_Integer n = aux_getn(L, 1, TAB_R);
+  lua_Integer f = luaL_optinteger(L, 2, 1);
+  lua_Integer e = luaL_optinteger(L, 3, n);
+  int tt = !lua_isnoneornil(L, 4) ? 4 : 1; /* destination table */
+  checktab(L, tt, TAB_W);
+  f = findAbsIndex(n, f, 1);
+  e = findAbsIndex(n, e, 0);
+  for (; f < e; f++, e--) {
+    lua_geti(L, 1, f);
+    lua_geti(L, 1, e);
+    lua_seti(L, tt, f);
+    lua_seti(L, tt, e);
+  }
+  lua_pushvalue(L, tt); /* return destination table */
+  return 1;
+}
+
 static int slice(lua_State* L) {
 #define TABLE_IDX 1
   luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
