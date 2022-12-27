@@ -185,6 +185,7 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 27. 增加 atrepl 函数，用于注册一个函数给 lua 交互式命令执行一句脚本之后调用
 28. 扩展 math.tointeger，支持将 lightuserdata 强转为整数
 29. 新增 \_G.printerr 函数，用于输出到标准错误流
+30. table 表中新增功能方法：create、copy、every、filter、indexOf、map、reduce、reverse、slice、splice
 
 ---
 
@@ -208,6 +209,8 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 16. 增加 `luaL_Enum` 结构体、`luaL_newenum`、`luaL_newenum_r`，用于支持 C 模块快速注入枚举数值
 17. 扩展 `lua_tointegerx` 函数，支持将 lightuserdata 强转为整数
 18. 增加 `luaL_checklightuserdata`、`luaL_optlightuserdata`、`luaL_checkboolean`、`luaL_optboolean`，方便对函数参数进行检查
+19. 增加 `lua_copytable` 方法，用来复制一个 Table，支持配置是否复制其键值对
+20. 增加 `lua_reverse` 方法，翻转 Lua 栈中指定区间的内容顺序
 
 ---
 
