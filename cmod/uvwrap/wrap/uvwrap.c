@@ -79,7 +79,7 @@ static const void* luaL_checkarg(lua_State* L, int idx) {
       }
     case LUA_TNUMBER:
       if (lua_isinteger(L, idx)) {
-        return (void*)lua_tointeger(L, idx);
+        return (void*)(long)lua_tointeger(L, idx);
       }
       break;
     case LUA_TLIGHTUSERDATA:

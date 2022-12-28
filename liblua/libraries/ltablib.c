@@ -650,7 +650,7 @@ static int splice(lua_State* L) {
   for (lua_Integer i = START_IDX; i <= endIdx; i++, j++) {
     lua_rawseti(L, newIdx, j);
   }
-  assert(newIdx == lua_gettop(L));
+  lua_assert(newIdx == lua_gettop(L));
   for (lua_Integer i = start + cnt; i <= len; i++, j++) {
     lua_rawgeti(L, TABLE_IDX, i);
     lua_rawseti(L, newIdx, j);

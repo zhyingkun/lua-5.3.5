@@ -98,7 +98,7 @@ again:
     *p = ivalue(obj);
     return 1;
   } else if (ttislightuserdata(obj)) {
-    *p = (lua_Integer)pvalue(obj);
+    *p = (lua_Integer)(long)pvalue(obj);
     return 1;
   } else if (cvt2num(obj) && luaO_str2num(svalue(obj), &v) == vslen(obj) + 1) {
     obj = &v;

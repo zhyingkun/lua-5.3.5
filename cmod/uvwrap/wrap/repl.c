@@ -254,7 +254,7 @@ static void thread_readLine(void* arg) {
   RESTTERM();
 }
 static void repl_nextInternal(lua_REPL* repl, bool bRunning, const char* prompt, const char* history) {
-  assert(repl->bRunning);
+  lua_assert(repl->bRunning);
   repl->bRunning = bRunning;
   repl->prompt = prompt;
   repl->history = history;
