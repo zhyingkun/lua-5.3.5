@@ -499,7 +499,7 @@ static void print_lua_registry_table(lua_State* L) {
   lua_pushvalue(L, LUA_REGISTRYINDEX);
   size_t length = 0;
   const char* str = luaL_tolstringex(L, -1, &length, 10);
-  printf("String type: %d, NonCollectable: %d, Length: %u\n", L->top[-1].tt_, L->top[-1].value_.gc->tt, length);
+  printf("String type: %d, NonCollectable: %d, Length: %zu\n", L->top[-1].tt_, L->top[-1].value_.gc->tt, length);
   printf("Registry => %s\n", str);
   lua_pop(L, 2);
   printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
