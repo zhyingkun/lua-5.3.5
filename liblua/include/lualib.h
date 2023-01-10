@@ -47,6 +47,9 @@ LUAMOD_API int(luaopen_package)(lua_State* L);
 #define LUA_UTILLIBNAME "util"
 LUAMOD_API int(luaopen_util)(lua_State* L);
 
+#define LUA_ASMLIBNAME "asm"
+LUAMOD_API int(luaopen_asm)(lua_State* L);
+
 /* open all previous libraries */
 LUALIB_API void(luaL_openlibs)(lua_State* L);
 
