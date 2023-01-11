@@ -338,3 +338,78 @@ function util.printBuffer() end
 function util.printFinish() end
 
 -- }======================================================
+
+--[[
+** {======================================================
+** asm
+** =======================================================
+--]]
+
+---@class PrototypeManipulator:table
+---@field public constant fun(pm:PrototypeManipulator, value:any):void
+---@field public upvalue fun(pm:PrototypeManipulator, instack:boolean, idx:integer):void
+---@field public proto fun(pm:PrototypeManipulator, numParam:integer, isVararg:boolean, fill:lua_FillPrototype):void
+---@field public V fun(x:integer):integer
+---@field public R fun(x:integer):integer
+---@field public K fun(x:integer):integer
+---@field public U fun(x:integer):integer
+---@field public P fun(x:integer):integer
+---@field public RK_R fun(x:integer):integer
+---@field public RK_K fun(x:integer):integer
+---@field public     MOVE fun(pm:PrototypeManipulator, ra:integer, rb:integer):void
+---@field public    LOADK fun(pm:PrototypeManipulator, ra:integer, kbx:integer):void
+---@field public   LOADKX fun(pm:PrototypeManipulator, ra:integer):void
+---@field public LOADBOOL fun(pm:PrototypeManipulator, ra:integer, vb:integer, vc:integer):void
+---@field public  LOADNIL fun(pm:PrototypeManipulator, ra:integer, vb:integer):void
+---@field public GETUPVAL fun(pm:PrototypeManipulator, ra:integer, ub:integer):void
+---@field public GETTABUP fun(pm:PrototypeManipulator, ra:integer, ub:integer, rkc:integer):void
+---@field public GETTABLE fun(pm:PrototypeManipulator, ra:integer, rb:integer, rkc:integer):void
+---@field public SETTABUP fun(pm:PrototypeManipulator, ua:integer, rkb:integer, rkc:integer):void
+---@field public SETUPVAL fun(pm:PrototypeManipulator, ra:integer, ub:integer):void
+---@field public SETTABLE fun(pm:PrototypeManipulator, ra:integer, rkb:integer, rkc:integer):void
+---@field public NEWTABLE fun(pm:PrototypeManipulator, ra:integer, vb:integer, vc:integer):void
+---@field public     SELF fun(pm:PrototypeManipulator, ra:integer, rb:integer, rkc:integer):void
+---@field public      ADD fun(pm:PrototypeManipulator, ra:integer, rkb:integer, rkc:integer):void
+---@field public      SUB fun(pm:PrototypeManipulator, ra:integer, rkb:integer, rkc:integer):void
+---@field public      MUL fun(pm:PrototypeManipulator, ra:integer, rkb:integer, rkc:integer):void
+---@field public      MOD fun(pm:PrototypeManipulator, ra:integer, rkb:integer, rkc:integer):void
+---@field public      POW fun(pm:PrototypeManipulator, ra:integer, rkb:integer, rkc:integer):void
+---@field public      DIV fun(pm:PrototypeManipulator, ra:integer, rkb:integer, rkc:integer):void
+---@field public     IDIV fun(pm:PrototypeManipulator, ra:integer, rkb:integer, rkc:integer):void
+---@field public     BAND fun(pm:PrototypeManipulator, ra:integer, rkb:integer, rkc:integer):void
+---@field public      BOR fun(pm:PrototypeManipulator, ra:integer, rkb:integer, rkc:integer):void
+---@field public     BXOR fun(pm:PrototypeManipulator, ra:integer, rkb:integer, rkc:integer):void
+---@field public      SHL fun(pm:PrototypeManipulator, ra:integer, rkb:integer, rkc:integer):void
+---@field public      SHR fun(pm:PrototypeManipulator, ra:integer, rkb:integer, rkc:integer):void
+---@field public      UNM fun(pm:PrototypeManipulator, ra:integer, rb:integer):void
+---@field public     BNOT fun(pm:PrototypeManipulator, ra:integer, rb:integer):void
+---@field public      NOT fun(pm:PrototypeManipulator, ra:integer, rb:integer):void
+---@field public      LEN fun(pm:PrototypeManipulator, ra:integer, rb:integer):void
+---@field public   CONCAT fun(pm:PrototypeManipulator, ra:integer, rb:integer, rc:integer):void
+---@field public      JMP fun(pm:PrototypeManipulator, ra:integer, sbx:integer):void
+---@field public       EQ fun(pm:PrototypeManipulator, va:integer, rkb:integer, rkc:integer):void
+---@field public       LT fun(pm:PrototypeManipulator, va:integer, rkb:integer, rkc:integer):void
+---@field public       LE fun(pm:PrototypeManipulator, va:integer, rkb:integer, rkc:integer):void
+---@field public     TEST fun(pm:PrototypeManipulator, ra:integer, vc:integer):void
+---@field public  TESTSET fun(pm:PrototypeManipulator, ra:integer, rb:integer, vc:integer):void
+---@field public     CALL fun(pm:PrototypeManipulator, ra:integer, vb:integer, vc:integer):void
+---@field public TAILCALL fun(pm:PrototypeManipulator, ra:integer, vb:integer):void
+---@field public   RETURN fun(pm:PrototypeManipulator, ra:integer, vb:integer):void
+---@field public  FORLOOP fun(pm:PrototypeManipulator, ra:integer, sbx:integer):void
+---@field public  FORPREP fun(pm:PrototypeManipulator, ra:integer, sbx:integer):void
+---@field public TFORCALL fun(pm:PrototypeManipulator, ra:integer, vc:integer):void
+---@field public TFORLOOP fun(pm:PrototypeManipulator, ra:integer, sbx:integer):void
+---@field public  SETLIST fun(pm:PrototypeManipulator, ra:integer, vb:integer, vc:integer):void
+---@field public  CLOSURE fun(pm:PrototypeManipulator, ra:integer, pbx:integer):void
+---@field public   VARARG fun(pm:PrototypeManipulator, ra:integer, vb:integer):void
+---@field public EXTRAARG fun(pm:PrototypeManipulator, rax:integer):void
+
+---@alias lua_FillPrototype fun(proto:PrototypeManipulator):void
+
+---@param numParam integer
+---@param isVararg boolean
+---@param fillPrototype lua_FillPrototype
+---@return fun(any):any
+function asm.closure(numParam, isVararg, fillPrototype) end
+
+-- }======================================================
