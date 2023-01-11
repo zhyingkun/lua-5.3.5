@@ -165,13 +165,13 @@ typedef enum {
 ** =======================================================
 */
 
-typedef void (*lua_FillClosure)(lua_State* L, void* ud);
+typedef void (*lua_FillPrototype)(lua_State* L, void* ud);
 
-LUA_API void lua_newlclosure(lua_State* L, int param, int vararg, lua_FillClosure fill);
+LUA_API void lua_newlclosure(lua_State* L, int param, int vararg, lua_FillPrototype fill);
 LUA_API void lua_asmcode(lua_State* L, void* ud, lua_Instruction i);
 LUA_API void lua_asmconstant(lua_State* L, void* ud, int idx);
 LUA_API void lua_asmupvalue(lua_State* L, void* ud, int instack, int idx);
-LUA_API void lua_asmproto(lua_State* L, void* ud, int param, int vararg, lua_FillClosure fill);
+LUA_API void lua_asmproto(lua_State* L, void* ud, int param, int vararg, lua_FillPrototype fill);
 LUA_API int lua_opcodeint(const char* name);
 
 /* }====================================================== */
@@ -182,11 +182,42 @@ LUA_API int lua_opcodeint(const char* name);
 ** =======================================================
 */
 
-#define R(x) (x)
-#define K(x) (x)
-#define U(x) (x)
-#define RK_R(x) (x)
-#define RK_K(x) ((x) | LUA_BITRK)
+typedef enum {
+  OT_Value,
+  OT_Register,
+  OT_Constant,
+  OT_Upvalue,
+  OT_Prototype,
+  OT_RegisterConstant,
+} OperandType;
+#define OperandBits LUA_SIZE_Ax
+#define OpTypeBits LUA_SIZE_OP
+#define OperandPos 0
+#define OpTypePos OperandBits
+
+/* creates a mask with 'n' 1 bits at position 'p' */
+#define LUA_MASK1(n, p) ((~((~(lua_Instruction)0) << (n))) << (p))
+
+#define OpType(x) (l_cast(lua_Instruction, ((x) >> OpTypePos) & LUA_MASK1(OpTypeBits, 0)))
+#define Operand(x) (l_cast(lua_Instruction, ((x) >> OperandPos) & LUA_MASK1(OperandBits, 0)))
+
+#define OperandWithType(x, t) ((l_cast(lua_Instruction, x) << OperandPos) | (l_cast(lua_Instruction, t) << OpTypePos))
+#define OperandWithoutType(x, t) (OpType(x) == (t) ? Operand(x) : (luaL_error(L, "Operand type does not match, want %d, but got %d", t, OpType(x))))
+
+#define V(x) OperandWithType(x, OT_Value)
+#define R(x) OperandWithType(x, OT_Register)
+#define K(x) OperandWithType(x, OT_Constant)
+#define U(x) OperandWithType(x, OT_Upvalue)
+#define P(x) OperandWithType(x, OT_Prototype)
+#define RK_R(x) OperandWithType(x, OT_RegisterConstant)
+#define RK_K(x) OperandWithType(((x) | LUA_BITRK), OT_RegisterConstant)
+
+#define _V(x) OperandWithoutType(x, OT_Value)
+#define _R(x) OperandWithoutType(x, OT_Register)
+#define _K(x) OperandWithoutType(x, OT_Constant)
+#define _U(x) OperandWithoutType(x, OT_Upvalue)
+#define _P(x) OperandWithoutType(x, OT_Prototype)
+#define _RK(x) OperandWithoutType(x, OT_RegisterConstant)
 
 // clang-format off
 
@@ -194,53 +225,54 @@ LUA_API int lua_opcodeint(const char* name);
 #define CREATE_ASM_ABx(o, a, bx)   lua_asmcode(L, ud, LUA_CREATE_ABx(o, a, bx))
 #define  CREATE_ASM_Ax(o, ax)      lua_asmcode(L, ud, LUA_CREATE_Ax (o, ax))
 
-#define     MOVE(ra, rb)       CREATE_ASM_ABC(LOP_MOVE,     ra, rb, 0)
-#define    LOADK(ra, kbx)      CREATE_ASM_ABx(LOP_LOADK,    ra, kbx)
-#define   LOADKX(ra)           CREATE_ASM_ABx(LOP_LOADKX,   ra, 0)
-#define LOADBOOL(ra, vb, vc)   CREATE_ASM_ABC(LOP_LOADBOOL, ra, vb, vc)
-#define  LOADNIL(ra, vb)       CREATE_ASM_ABC(LOP_LOADNIL,  ra, vb, 0)
-#define GETUPVAL(ra, ub)       CREATE_ASM_ABC(LOP_GETUPVAL, ra, ub, 0)
-#define GETTABUP(ra, ub, rkc)  CREATE_ASM_ABC(LOP_GETTABUP, ra, ub, rkc)
-#define GETTABLE(ra, rb, rkc)  CREATE_ASM_ABC(LOP_GETTABLE, ra, rb, rkc)
-#define SETTABUP(ua, rkb, rkc) CREATE_ASM_ABC(LOP_SETTABUP, ua, rkb, rkc)
-#define SETUPVAL(ra, ub)       CREATE_ASM_ABC(LOP_SETUPVAL, ra, ub, 0)
-#define SETTABLE(ra, rkb, rkc) CREATE_ASM_ABC(LOP_SETTABLE, ra, rkb, rkc)
-#define NEWTABLE(ra, vb, vc)   CREATE_ASM_ABC(LOP_NEWTABLE, ra, vb, vc)
-#define     SELF(ra, rb, rkc)  CREATE_ASM_ABC(LOP_SELF,     ra, rb, rkc)
-#define      ADD(ra, rkb, rkc) CREATE_ASM_ABC(LOP_ADD,      ra, rkb, rkc)
-#define      SUB(ra, rkb, rkc) CREATE_ASM_ABC(LOP_SUB,      ra, rkb, rkc)
-#define      MUL(ra, rkb, rkc) CREATE_ASM_ABC(LOP_MUL,      ra, rkb, rkc)
-#define      MOD(ra, rkb, rkc) CREATE_ASM_ABC(LOP_MOD,      ra, rkb, rkc)
-#define      POW(ra, rkb, rkc) CREATE_ASM_ABC(LOP_POW,      ra, rkb, rkc)
-#define      DIV(ra, rkb, rkc) CREATE_ASM_ABC(LOP_DIV,      ra, rkb, rkc)
-#define     IDIV(ra, rkb, rkc) CREATE_ASM_ABC(LOP_IDIV,     ra, rkb, rkc)
-#define     BAND(ra, rkb, rkc) CREATE_ASM_ABC(LOP_BAND,     ra, rkb, rkc)
-#define      BOR(ra, rkb, rkc) CREATE_ASM_ABC(LOP_BOR,      ra, rkb, rkc)
-#define     BXOR(ra, rkb, rkc) CREATE_ASM_ABC(LOP_BXOR,     ra, rkb, rkc)
-#define      SHL(ra, rkb, rkc) CREATE_ASM_ABC(LOP_SHL,      ra, rkb, rkc)
-#define      SHR(ra, rkb, rkc) CREATE_ASM_ABC(LOP_SHR,      ra, rkb, rkc)
-#define      UNM(ra, rb)       CREATE_ASM_ABC(LOP_UNM,      ra, rb, 0)
-#define     BNOT(ra, rb)       CREATE_ASM_ABC(LOP_BNOT,     ra, rb, 0)
-#define      NOT(ra, rb)       CREATE_ASM_ABC(LOP_NOT,      ra, rb, 0)
-#define      LEN(ra, rb)       CREATE_ASM_ABC(LOP_LEN,      ra, rb, 0)
-#define   CONCAT(ra, rb, rc)   CREATE_ASM_ABC(LOP_CONCAT,   ra, rb, rc)
-#define      JMP(ra, sbx)      CREATE_ASM_ABx(LOP_JMP,      ra, sbx + LUA_MAXARG_sBx)
-#define       EQ(va, rkb, rkc) CREATE_ASM_ABC(LOP_EQ,       va, rkb, rkc)
-#define       LT(va, rkb, rkc) CREATE_ASM_ABC(LOP_LT,       va, rkb, rkc)
-#define       LE(va, rkb, rkc) CREATE_ASM_ABC(LOP_LE,       va, rkb, rkc)
-#define     TEST(ra, vc)       CREATE_ASM_ABC(LOP_TEST,     ra, 0, vc)
-#define  TESTSET(ra, rb, vc)   CREATE_ASM_ABC(LOP_TESTSET,  ra, rb, vc)
-#define     CALL(ra, vb, vc)   CREATE_ASM_ABC(LOP_CALL,     ra, vb, vc)
-#define TAILCALL(ra, vb)       CREATE_ASM_ABC(LOP_TAILCALL, ra, vb, 0)
-#define   RETURN(ra, vb)       CREATE_ASM_ABC(LOP_RETURN,   ra, vb, 0)
-#define  FORLOOP(ra, sbx)      CREATE_ASM_ABx(LOP_FORLOOP,  ra, sbx + LUA_MAXARG_sBx)
-#define  FORPREP(ra, sbx)      CREATE_ASM_ABx(LOP_FORPREP,  ra, sbx + LUA_MAXARG_sBx)
-#define TFORCALL(ra, vc)       CREATE_ASM_ABC(LOP_TFORCALL, ra, 0, vc)
-#define TFORLOOP(ra, sbx)      CREATE_ASM_ABx(LOP_TFORLOOP, ra, sbx + LUA_MAXARG_sBx)
-#define  SETLIST(ra, vb, vc)   CREATE_ASM_ABC(LOP_SETLIST,  ra, vb, vc)
-#define  CLOSURE(ra, pbx)      CREATE_ASM_ABx(LOP_CLOSURE,  ra, pbx)
-#define   VARARG(ra, vb)       CREATE_ASM_ABC(LOP_VARARG,   ra, vb, 0)
-#define EXTRAARG(rax)          CREATE_ASM_Ax(LOP_EXTRAARG,  rax)
+#define     MOVE(ra, rb)       CREATE_ASM_ABC(LOP_MOVE,     _R(ra), _R(rb), 0               )
+#define    LOADK(ra, kbx)      CREATE_ASM_ABx(LOP_LOADK,    _R(ra), _K(kbx)                 )
+#define   LOADKX(ra)           CREATE_ASM_ABx(LOP_LOADKX,   _R(ra), 0                       )
+#define LOADBOOL(ra, vb, vc)   CREATE_ASM_ABC(LOP_LOADBOOL, _R(ra), _V(vb), _V(vc)          )
+#define  LOADNIL(ra, vb)       CREATE_ASM_ABC(LOP_LOADNIL,  _R(ra), _V(vb), 0               )
+#define GETUPVAL(ra, ub)       CREATE_ASM_ABC(LOP_GETUPVAL, _R(ra), _U(ub), 0               )
+#define GETTABUP(ra, ub, rkc)  CREATE_ASM_ABC(LOP_GETTABUP, _R(ra), _U(ub), _RK(rkc)        )
+#define GETTABLE(ra, rb, rkc)  CREATE_ASM_ABC(LOP_GETTABLE, _R(ra), _R(rb), _RK(rkc)        )
+#define SETTABUP(ua, rkb, rkc) CREATE_ASM_ABC(LOP_SETTABUP, _U(ua), _RK(rkb), _RK(rkc)      )
+#define SETUPVAL(ra, ub)       CREATE_ASM_ABC(LOP_SETUPVAL, _R(ra), _U(ub), 0               )
+#define SETTABLE(ra, rkb, rkc) CREATE_ASM_ABC(LOP_SETTABLE, _R(ra), _RK(rkb), _RK(rkc)      )
+#define NEWTABLE(ra, vb, vc)   CREATE_ASM_ABC(LOP_NEWTABLE, _R(ra), _V(vb), _V(vc)          )
+#define     SELF(ra, rb, rkc)  CREATE_ASM_ABC(LOP_SELF,     _R(ra), _R(rb), _RK(rkc)        )
+#define      ADD(ra, rkb, rkc) CREATE_ASM_ABC(LOP_ADD,      _R(ra), _RK(rkb), _RK(rkc)      )
+#define      SUB(ra, rkb, rkc) CREATE_ASM_ABC(LOP_SUB,      _R(ra), _RK(rkb), _RK(rkc)      )
+#define      MUL(ra, rkb, rkc) CREATE_ASM_ABC(LOP_MUL,      _R(ra), _RK(rkb), _RK(rkc)      )
+#define      MOD(ra, rkb, rkc) CREATE_ASM_ABC(LOP_MOD,      _R(ra), _RK(rkb), _RK(rkc)      )
+#define      POW(ra, rkb, rkc) CREATE_ASM_ABC(LOP_POW,      _R(ra), _RK(rkb), _RK(rkc)      )
+#define      DIV(ra, rkb, rkc) CREATE_ASM_ABC(LOP_DIV,      _R(ra), _RK(rkb), _RK(rkc)      )
+#define     IDIV(ra, rkb, rkc) CREATE_ASM_ABC(LOP_IDIV,     _R(ra), _RK(rkb), _RK(rkc)      )
+#define     BAND(ra, rkb, rkc) CREATE_ASM_ABC(LOP_BAND,     _R(ra), _RK(rkb), _RK(rkc)      )
+#define      BOR(ra, rkb, rkc) CREATE_ASM_ABC(LOP_BOR,      _R(ra), _RK(rkb), _RK(rkc)      )
+#define     BXOR(ra, rkb, rkc) CREATE_ASM_ABC(LOP_BXOR,     _R(ra), _RK(rkb), _RK(rkc)      )
+#define      SHL(ra, rkb, rkc) CREATE_ASM_ABC(LOP_SHL,      _R(ra), _RK(rkb), _RK(rkc)      )
+#define      SHR(ra, rkb, rkc) CREATE_ASM_ABC(LOP_SHR,      _R(ra), _RK(rkb), _RK(rkc)      )
+#define      UNM(ra, rb)       CREATE_ASM_ABC(LOP_UNM,      _R(ra), _R(rb), 0               )
+#define     BNOT(ra, rb)       CREATE_ASM_ABC(LOP_BNOT,     _R(ra), _R(rb), 0               )
+#define      NOT(ra, rb)       CREATE_ASM_ABC(LOP_NOT,      _R(ra), _R(rb), 0               )
+#define      LEN(ra, rb)       CREATE_ASM_ABC(LOP_LEN,      _R(ra), _R(rb), 0               )
+#define   CONCAT(ra, rb, rc)   CREATE_ASM_ABC(LOP_CONCAT,   _R(ra), _R(rb), _R(rc)          )
+#define      JMP(ra, sbx)      CREATE_ASM_ABx(LOP_JMP,      _R(ra), _V(sbx) + LUA_MAXARG_sBx)
+#define       EQ(va, rkb, rkc) CREATE_ASM_ABC(LOP_EQ,       _V(va), _RK(rkb), _RK(rkc)      )
+#define       LT(va, rkb, rkc) CREATE_ASM_ABC(LOP_LT,       _V(va), _RK(rkb), _RK(rkc)      )
+#define       LE(va, rkb, rkc) CREATE_ASM_ABC(LOP_LE,       _V(va), _RK(rkb), _RK(rkc)      )
+#define     TEST(ra, vc)       CREATE_ASM_ABC(LOP_TEST,     _R(ra), 0, _V(vc)               )
+#define  TESTSET(ra, rb, vc)   CREATE_ASM_ABC(LOP_TESTSET,  _R(ra), _R(rb), _V(vc)          )
+#define     CALL(ra, vb, vc)   CREATE_ASM_ABC(LOP_CALL,     _R(ra), _V(vb), _V(vc)          )
+#define TAILCALL(ra, vb)       CREATE_ASM_ABC(LOP_TAILCALL, _R(ra), _V(vb), 0               )
+#define   RETURN(ra, vb)       CREATE_ASM_ABC(LOP_RETURN,   _R(ra), _V(vb), 0               )
+#define  FORLOOP(ra, sbx)      CREATE_ASM_ABx(LOP_FORLOOP,  _R(ra), _V(sbx) + LUA_MAXARG_sBx)
+#define  FORPREP(ra, sbx)      CREATE_ASM_ABx(LOP_FORPREP,  _R(ra), _V(sbx) + LUA_MAXARG_sBx)
+#define TFORCALL(ra, vc)       CREATE_ASM_ABC(LOP_TFORCALL, _R(ra), 0, _V(vc)               )
+#define TFORLOOP(ra, sbx)      CREATE_ASM_ABx(LOP_TFORLOOP, _R(ra), _V(sbx) + LUA_MAXARG_sBx)
+#define  SETLIST(ra, vb, vc)   CREATE_ASM_ABC(LOP_SETLIST,  _R(ra), _V(vb), _V(vc)          )
+#define  CLOSURE(ra, pbx)      CREATE_ASM_ABx(LOP_CLOSURE,  _R(ra), _P(pbx)                 )
+#define   VARARG(ra, vb)       CREATE_ASM_ABC(LOP_VARARG,   _R(ra), _V(vb), 0               )
+#define EXTRAARG(vax)          CREATE_ASM_Ax(LOP_EXTRAARG,  _V(vax)                         )
+
 // clang-format on
 
 #define CONSTANT_LITERAL(l) \

@@ -19,6 +19,6 @@ void luaA_constant(AsmState* as, TValue* v);
 void luaA_upvalue(AsmState* as, lu_byte instack, lu_byte idx);
 void luaA_proto(AsmState* as, Proto* clp);
 
-void luaA_dofill(lua_State* L, Proto* clp, lua_FillClosure fill, lu_byte ismain);
+void luaA_dofill(lua_State* L, Proto* clp, lua_FillPrototype fill, lu_byte ismain);
 
 #endif /* lasm_h */

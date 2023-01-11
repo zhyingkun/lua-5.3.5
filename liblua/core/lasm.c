@@ -180,7 +180,7 @@ static void luaA_finish(AsmState* as) {
   updateMaxStackSize(f);
 }
 
-void luaA_dofill(lua_State* L, Proto* clp, lua_FillClosure fill, lu_byte ismain) {
+void luaA_dofill(lua_State* L, Proto* clp, lua_FillPrototype fill, lu_byte ismain) {
   AsmState as[1];
   luaA_init(as, L, clp, ismain);
   if (ismain) {
@@ -232,7 +232,7 @@ static Proto* createProto(lua_State* L, int param, int vararg) {
   clp->maxstacksize = param > 2 ? param : 2;
   return clp;
 }
-LUA_API void lua_newlclosure(lua_State* L, int param, int vararg, lua_FillClosure fill) {
+LUA_API void lua_newlclosure(lua_State* L, int param, int vararg, lua_FillPrototype fill) {
   LClosure* empty = findEmptyClosure(L);
   Proto* clp = createProto(L, param, vararg);
   empty->p = clp; // anchor clp to empty closure
@@ -263,7 +263,7 @@ LUA_API void lua_asmupvalue(lua_State* L, void* ud, int instack, int idx) {
   }
 }
 
-LUA_API void lua_asmproto(lua_State* L, void* ud, int param, int vararg, lua_FillClosure fill) {
+LUA_API void lua_asmproto(lua_State* L, void* ud, int param, int vararg, lua_FillPrototype fill) {
   Proto* clp = createProto(L, param, vararg);
   luaA_proto((AsmState*)ud, clp); // anchor clp to parent proto
   luaA_dofill(L, clp, fill, 0);
