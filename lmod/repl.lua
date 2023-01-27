@@ -332,4 +332,55 @@ function repl.clientRun(serverIP, serverPort)
 	libuv.run()
 end
 
+function repl.clientOneShotAsync(serverIP, serverPort, codeStr, callback)
+	if not libuv then error(ErrMsg) end
+	local OK = libuv.err_code.OK
+
+	local sockAddr = libuv.network.SockAddr():ip4Addr(serverIP or "0.0.0.0", serverPort or 1999)
+	libuv.tcp.Tcp():connectAsync(sockAddr, function(status, tcpClient)
+		if status < 0 then
+			printError("REPL TCP Connect error:", status)
+			return
+		end
+		local packetHandler = REPLPacketHandler()
+		tcpClient:readStartAsync(function(nread, str, client)
+			if nread < 0 then
+				printError("REPL TCP Read error:", nread)
+			else
+				packetHandler:addPackData(str)
+				for msgName, printTable in packetHandler:packets() do
+					assert(msgName == ProtocolPrint)
+					callback(printTable.output)
+				end
+				if packetHandler:getRemainForRead() == 0 then
+					client:closeAsync()
+				end
+			end
+		end)
+		local msg = packetHandler:packReadMessage(codeStr, false)
+		tcpClient:writeAsync(msg, function(statusWrite, handle)
+			if statusWrite ~= OK then
+				printError("REPL TCP Write error:", statusWrite)
+			end
+		end)
+	end)
+end
+
+local ASYNC_WAIT_MSG = "AsyncWait api must running in coroutine"
+local running = coroutine.running
+local yield = coroutine.yield
+local resumeOrigin = coroutine.resume
+local function resume(...)
+	local status, msg = resumeOrigin(...)
+	if not status then printerr("libuv lua module resume coroutine error: ", msg) end
+end
+function repl.clientOneShotAsyncWait(serverIP, serverPort, codeStr)
+	local co, main = running()
+	if main then error(ASYNC_WAIT_MSG) end
+	repl.clientOneShotAsync(serverIP, serverPort, codeStr, function(output)
+		resume(co, output)
+	end)
+	return yield()
+end
+
 return repl
