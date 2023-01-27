@@ -40,65 +40,67 @@ static int maxInt(unsigned int count, const int first, ...) {
 #define MAX3(a, b, c) maxInt(3, a, b, c)
 #define RK2R(x) (ISK(x) ? 0 : x)
 static lu_byte findMaxSize(Instruction i) {
-  int a, b, c, ax, bx, sbx;
   // clang-format off
+#define A(var) int var = GETARG_A(i)
+#define B(var) int var = GETARG_B(i)
+#define C(var) int var = GETARG_C(i)
+#define BR(var) int var = GETARG_B(i); var = RK2R(var)
+#define CR(var) int var = GETARG_C(i); var = RK2R(var)
   switch (GET_OPCODE(i)) {
-    case OP_MOVE:
-      { a = GETARG_A(i); b = GETARG_B(i); return MAX(a, b); }
-    case OP_LOADK:
-    case OP_LOADKX:
-    case OP_LOADBOOL:
-    case OP_GETUPVAL:
-    case OP_SETUPVAL:
-    case OP_NEWTABLE:
-      { a = GETARG_A(i); return a; }
-    case OP_LOADNIL:
-      { a = GETARG_A(i); b = GETARG_B(i); return a + b; }
-    case OP_GETTABUP:
-      { a = GETARG_A(i); c = GETARG_C(i); c = RK2R(c); return MAX(a, c); }
-    case OP_GETTABLE:
-      { a = GETARG_A(i); b = GETARG_B(i); c = GETARG_C(i); c = RK2R(c); return MAX3(a, b, c); }
-    case OP_SETTABUP:
-      { b = GETARG_B(i); c = GETARG_C(i); b = RK2R(b); c = RK2R(c); return MAX(b, c); }
-    case OP_SETTABLE:
-      { a = GETARG_A(i); b = GETARG_B(i); c = GETARG_C(i); b = RK2R(b); c = RK2R(c); return MAX3(a, b, c); }
-    case OP_SELF:
-    case OP_ADD:
-    case OP_SUB:
-    case OP_MUL:
-    case OP_MOD:
-    case OP_POW:
-    case OP_DIV:
-    case OP_IDIV:
-    case OP_BAND:
-    case OP_BOR:
-    case OP_BXOR:
-    case OP_SHL:
-    case OP_SHR:
-    case OP_UNM:
-    case OP_BNOT:
-    case OP_NOT:
-    case OP_LEN:
-    case OP_CONCAT:
-    case OP_JMP:
-    case OP_EQ:
-    case OP_LT:
-    case OP_LE:
-    case OP_TEST:
-    case OP_TESTSET:
-    case OP_CALL:
-    case OP_TAILCALL:
-    case OP_RETURN:
-    case OP_FORLOOP:
-    case OP_FORPREP:
-    case OP_TFORCALL:
-    case OP_TFORLOOP:
-    case OP_SETLIST:
-    case OP_CLOSURE:
-    case OP_VARARG:
-    case OP_EXTRAARG:
+    case LOP_MOVE:     { A(ra); B(rb);            return MAX(ra, rb);         }
+    case LOP_LOADK:    { A(ra);                   return ra;                  }
+    case LOP_LOADKX:   { A(ra);                   return ra;                  }
+    case LOP_LOADBOOL: { A(ra);                   return ra;                  }
+    case LOP_LOADNIL:  { A(ra); B(vb);            return ra+vb;               }
+    case LOP_GETUPVAL: { A(ra);                   return ra;                  }
+    case LOP_GETTABUP: { A(ra);          CR(rkc); return MAX(ra, rkc);        }
+    case LOP_GETTABLE: { A(ra); B(rb);   CR(rkc); return MAX3(ra, rb, rkc);   }
+    case LOP_SETTABUP: {        BR(rkb); CR(rkc); return MAX(rkb, rkc);       }
+    case LOP_SETUPVAL: { A(ra);                   return ra;                  }
+    case LOP_SETTABLE: { A(ra); BR(rkb); CR(rkc); return MAX3(ra, rkb, rkc);  }
+    case LOP_NEWTABLE: { A(ra);                   return ra;                  }
+    case LOP_SELF:     { A(ra); B(rb);   CR(rkc); return MAX3(ra+1, rb, rkc); }
+    case LOP_ADD:      { A(ra); BR(rkb); CR(rkc); return MAX3(ra, rkb, rkc);  }
+    case LOP_SUB:      { A(ra); BR(rkb); CR(rkc); return MAX3(ra, rkb, rkc);  }
+    case LOP_MUL:      { A(ra); BR(rkb); CR(rkc); return MAX3(ra, rkb, rkc);  }
+    case LOP_MOD:      { A(ra); BR(rkb); CR(rkc); return MAX3(ra, rkb, rkc);  }
+    case LOP_POW:      { A(ra); BR(rkb); CR(rkc); return MAX3(ra, rkb, rkc);  }
+    case LOP_DIV:      { A(ra); BR(rkb); CR(rkc); return MAX3(ra, rkb, rkc);  }
+    case LOP_IDIV:     { A(ra); BR(rkb); CR(rkc); return MAX3(ra, rkb, rkc);  }
+    case LOP_BAND:     { A(ra); BR(rkb); CR(rkc); return MAX3(ra, rkb, rkc);  }
+    case LOP_BOR:      { A(ra); BR(rkb); CR(rkc); return MAX3(ra, rkb, rkc);  }
+    case LOP_BXOR:     { A(ra); BR(rkb); CR(rkc); return MAX3(ra, rkb, rkc);  }
+    case LOP_SHL:      { A(ra); BR(rkb); CR(rkc); return MAX3(ra, rkb, rkc);  }
+    case LOP_SHR:      { A(ra); BR(rkb); CR(rkc); return MAX3(ra, rkb, rkc);  }
+    case LOP_UNM:      { A(ra); B(rb);            return MAX(ra, rb);         }
+    case LOP_BNOT:     { A(ra); B(rb);            return MAX(ra, rb);         }
+    case LOP_NOT:      { A(ra); B(rb);            return MAX(ra, rb);         }
+    case LOP_LEN:      { A(ra); B(rb);            return MAX(ra, rb);         }
+    case LOP_CONCAT:   { A(ra);          C(rc);   return MAX(ra, rc);         }
+    case LOP_JMP:      {                          return 0;                   }
+    case LOP_EQ:       {        BR(rkb); CR(rkc); return MAX(rkb, rkc);       }
+    case LOP_LT:       {        BR(rkb); CR(rkc); return MAX(rkb, rkc);       }
+    case LOP_LE:       {        BR(rkb); CR(rkc); return MAX(rkb, rkc);       }
+    case LOP_TEST:     { A(ra);                   return ra;                  }
+    case LOP_TESTSET:  { A(ra); B(rb);            return MAX(ra, rb);         }
+    case LOP_CALL:     { A(ra);          C(vc);   return MAX(ra, ra+vc-2);    }
+    case LOP_TAILCALL: {                          return 0;                   }
+    case LOP_RETURN:   {                          return 0;                   }
+    case LOP_FORLOOP:  { A(ra);                   return ra+3;                }
+    case LOP_FORPREP:  { A(ra);                   return ra+2;                }
+    case LOP_TFORCALL: { A(ra); B(vc);            return MAX(ra+2, ra+2+vc);  }
+    case LOP_TFORLOOP: { A(ra);                   return ra+1;                }
+    case LOP_SETLIST:  { A(ra); B(vb);            return ra+vb;               }
+    case LOP_CLOSURE:  { A(ra);                   return ra;                  }
+    case LOP_VARARG:   { A(ra); B(vb);            return ra+vb-2;             }
+    case LOP_EXTRAARG: {                          return 0;                   }
     default: break;
   }
+#undef A
+#undef B
+#undef C
+#undef BR
+#undef CR
   // clang-format on
   return 0;
 }
