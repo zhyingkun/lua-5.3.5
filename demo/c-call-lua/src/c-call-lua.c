@@ -513,6 +513,21 @@ function main_coroutine(who) \
 end \
 ";
 
+#include <lasmlib.h>
+static void fillPrototype(lua_State* L, void* ud) {
+  CONSTANT_LITERAL("print");
+  CONSTANT_LITERAL("HelloWorld");
+
+  GETTABUP(R(0), U(0), RK_K(0));
+  LOADK   (R(1), K(1));
+  CALL    (R(0), 2, 1);
+  RETURN  (R(0), 1);
+}
+static void testAsm(lua_State* L) {
+  lua_newlclosure(L, 0, 0, fillPrototype);
+  lua_call(L, 0, 0);
+}
+
 int main(int argc, char const* argv[]) {
   lua_State* L = luaL_newstate();
   // lua_gc(L, LUA_GCCOLLECT, 0);
@@ -522,6 +537,7 @@ int main(int argc, char const* argv[]) {
     return EXIT_FAILURE;
   }
   luaL_openlibs(L);
+  testAsm(L);
 
   printf("lua_ident: %s\n", lua_ident);
   printf("top: %d, L->stack: %p, L->top: %p\n", lua_gettop(L), L->stack, L->top);
