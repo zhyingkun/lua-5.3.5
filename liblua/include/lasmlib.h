@@ -202,7 +202,7 @@ typedef enum {
 #define Operand(x) (l_cast(lua_Instruction, ((x) >> OperandPos) & LUA_MASK1(OperandBits, 0)))
 
 #define OperandWithType(x, t) ((l_cast(lua_Instruction, x) << OperandPos) | (l_cast(lua_Instruction, t) << OpTypePos))
-#define OperandWithoutType(x, t) (OpType(x) == (t) ? Operand(x) : (luaL_error(L, "Operand type does not match, want %d, but got %d", t, OpType(x))))
+#define OperandWithoutType(x, t) (OpType(x) == (t) ? Operand(x) : (l_cast(lua_Instruction, luaL_error(L, "Operand type does not match, want %d, but got %d", t, OpType(x)))))
 
 #define V(x) OperandWithType(x, OT_Value)
 #define R(x) OperandWithType(x, OT_Register)
