@@ -234,13 +234,28 @@ static Proto* createProto(lua_State* L, int param, int vararg) {
   clp->maxstacksize = param > 2 ? param : 2;
   return clp;
 }
-LUA_API void lua_newlclosure(lua_State* L, int param, int vararg, lua_FillPrototype fill) {
+static int fillPrototype(lua_State* L) {
+  Proto* clp = (Proto*)lua_topointer(L, 1);
+  lua_FillPrototype fill = (lua_FillPrototype)lua_topointer(L, 1);
+  luaA_dofill(L, clp, fill, 1);
+  return 0;
+}
+LUA_API int lua_newlclosure(lua_State* L, int param, int vararg, lua_FillPrototype fill) {
   LClosure* empty = findEmptyClosure(L);
   Proto* clp = createProto(L, param, vararg);
   empty->p = clp; // anchor clp to empty closure
-  luaA_dofill(L, clp, fill, 1);
-  createMainLclosure(L, clp);
+  luaC_objbarrier(L, empty, clp);
+  empty = NULL;
+
+  lua_pushcfunction(L, fillPrototype);
+  lua_pushlightuserdata(L, (void*)clp);
+  lua_pushlightuserdata(L, (void*)fill);
+  int ret = lua_pcall(L, 2, 0, 0);
+  if (ret == LUA_OK) {
+    createMainLclosure(L, clp);
+  }
   findEmptyClosure(L)->p = NULL; // undo the anchor
+  return ret;
 }
 
 LUA_API void lua_asmcode(lua_State* L, void* ud, lua_Instruction i) {

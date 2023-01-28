@@ -190,7 +190,9 @@ static int asm_closure(lua_State* L) {
   int isVararg = luaL_checkboolean(L, 2);
   lua_copy(L, 3, 1);
   lua_settop(L, 1);
-  lua_newlclosure(L, numParam, isVararg, _fillPrototype);
+  if (lua_newlclosure(L, numParam, isVararg, _fillPrototype) != LUA_OK) {
+    lua_error(L);
+  }
   return 1;
 }
 

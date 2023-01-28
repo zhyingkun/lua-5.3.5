@@ -167,7 +167,7 @@ typedef enum {
 
 typedef void (*lua_FillPrototype)(lua_State* L, void* ud);
 
-LUA_API void lua_newlclosure(lua_State* L, int param, int vararg, lua_FillPrototype fill);
+LUA_API int lua_newlclosure(lua_State* L, int param, int vararg, lua_FillPrototype fill);
 LUA_API void lua_asmcode(lua_State* L, void* ud, lua_Instruction i);
 LUA_API void lua_asmconstant(lua_State* L, void* ud, int idx);
 LUA_API void lua_asmupvalue(lua_State* L, void* ud, int instack, int idx);
