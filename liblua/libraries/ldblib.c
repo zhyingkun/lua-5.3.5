@@ -496,6 +496,12 @@ static int db_traceback(lua_State* L) {
   return 1;
 }
 
+static int db_breakpoint(lua_State* L) {
+  luaL_breakpoint(L);
+  // you should add breakpoint after this line
+  return 0;
+}
+
 static int db_getspecialkeys(lua_State* L) {
   lua_createtable(L, 0, 2); // [-0, +1]
   int idx = lua_gettop(L);
@@ -592,6 +598,7 @@ static const luaL_Reg dblib[] = {
     {"setmetatable", db_setmetatable},
     {"setupvalue", db_setupvalue},
     {"traceback", db_traceback},
+    {"breakpoint", db_breakpoint},
     {"getspecialkeys", db_getspecialkeys},
     {"sizeofstruct", db_sizeofstruct},
     {"tablemem", db_tablemem},
