@@ -186,6 +186,7 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 28. 扩展 math.tointeger，支持将 lightuserdata 强转为整数
 29. 新增 \_G.printerr 函数，用于输出到标准错误流
 30. table 表中新增功能方法：create、copy、every、filter、indexOf、map、reduce、reverse、slice、splice
+31. 新增 asm.closure 函数，支持直接编写 Lua 汇编构建闭包
 
 ---
 
@@ -211,6 +212,7 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 18. 增加 `luaL_checklightuserdata`、`luaL_optlightuserdata`、`luaL_checkboolean`、`luaL_optboolean`，方便对函数参数进行检查
 19. 增加 `lua_copytable` 方法，用来复制一个 Table，支持配置是否复制其键值对
 20. 增加 `lua_reverse` 方法，翻转 Lua 栈中指定区间的内容顺序
+21. 增加 `lua_newlclosure`、`lua_asmcode`、`lua_asmconstant`、`lua_asmupvalue`、`lua_asmproto`、`lua_opcodeint`，支持在 C 端直接编写 Lua 汇编，并构建对应的 Lua 闭包
 
 ---
 
