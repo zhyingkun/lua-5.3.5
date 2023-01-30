@@ -261,10 +261,15 @@ function table.filter(tbl, callback, bList) end
 ---@return any @the key
 function table.indexOf(tbl, value, bList) end
 
+---@alias MapSignature fun(value:any, key:any):any
+
+---@overload fun(tbl:table, callback:MapSignature):table
+---@overload fun(tbl:table, callback:MapSignature, dst:table):table
 ---@param tbl table
----@param callback fun(value:any, key:any):any
+---@param callback MapSignature
+---@param dst table
 ---@return table
-function table.map(tbl, callback) end
+function table.map(tbl, callback, dst) end
 
 ---@alias ReduceCallback fun(acc:any, value:any, key:any, list:table):any
 ---@overload fun(tbl:table, callback:ReduceCallback):any

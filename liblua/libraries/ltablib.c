@@ -529,25 +529,27 @@ static int indexOf(lua_State* L) {
 }
 
 static int map(lua_State* L) {
-#define TABLE_IDX 1
-#define FUNC_IDX 2
-  luaL_checktype(L, TABLE_IDX, LUA_TTABLE);
-  lua_copytable(L, TABLE_IDX, 0);
-  int newIdx = lua_gettop(L);
+  luaL_checktype(L, 1, LUA_TTABLE);
+  lua_settop(L, 3);
+  if (lua_isnoneornil(L, 3)) {
+    lua_copytable(L, 1, 0);
+    lua_replace(L, 3);
+  } else {
+    checktab(L, 3, TAB_W);
+  }
+
   lua_pushnil(L);
   int keyIdx = lua_gettop(L);
-  while (lua_next(L, TABLE_IDX)) {
+  while (lua_next(L, 1)) {
     lua_pushvalue(L, keyIdx);
-    lua_pushvalue(L, FUNC_IDX);
+    lua_pushvalue(L, 2); // push the callback function
     lua_pushvalue(L, keyIdx + 1);
     lua_pushvalue(L, keyIdx);
-    lua_call(L, 2, 1);
-    lua_rawset(L, newIdx);
-    lua_pop(L, 1);
+    lua_call(L, 2, 1); // key value key func value key
+    lua_rawset(L, 3); // set to the dst
+    lua_pop(L, 1); // pop the value
   }
   return 1;
-#undef FUNC_IDX
-#undef TABLE_IDX
 }
 
 static int reduce(lua_State* L) {
