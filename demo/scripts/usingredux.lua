@@ -70,8 +70,8 @@ actionCreators.setPhoneNumber("188 8888 8888")
 
 ---[[
 local function functionMiddleware(store)
-    return function(dispatch) -- new dispatch
-        return function(action)
+    return function(dispatch) -- dispatch enhancer
+        return function(action) -- new dispatch
             print("from functionMiddleware: ", type(action))
             if type(action) == "function" then
                 return action(dispatch)
@@ -82,8 +82,8 @@ local function functionMiddleware(store)
     end
 end
 local function coroutineMiddleware(store)
-    return function(dispatch) -- new dispatch
-        return function(action)
+    return function(dispatch) -- dispatch enhancer
+        return function(action) -- new dispatch
             print("from coroutineMiddleware: ", type(action))
             if type(action) == "thread" then
                 return coroutine.resume(action, dispatch)
@@ -94,16 +94,16 @@ local function coroutineMiddleware(store)
     end
 end
 local function loggerMiddleware(store)
-    return function(dispatch) -- new dispatch
-        return function(action)
+    return function(dispatch) -- dispatch enhancer
+        return function(action) -- new dispatch
             print("from loggerMiddleware: ", tostring(action, 1), tostring(store.getState(), 2))
             return dispatch(action)
         end
     end
 end
 local function dateMiddleware(store)
-    return function(dispatch) -- new dispatch
-        return function(action)
+    return function(dispatch) -- dispatch enhancer
+        return function(action) -- new dispatch
             print("from dateMiddleware")
             return dispatch(action)
         end
