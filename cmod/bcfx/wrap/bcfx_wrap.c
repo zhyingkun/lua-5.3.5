@@ -863,8 +863,9 @@ static int BCWRAP_FUNCTION(submit)(lua_State* L) {
   bcfx_Handle progHandle = luaL_checkhandle(L, 2);
   uint32_t discardMask = (uint32_t)luaL_optinteger(L, 3, DFM_None);
   uint32_t sortDepth = (uint32_t)luaL_optinteger(L, 4, 0);
+  bcfx_EPrimitiveType primitiveType = luaL_optprimitivetype(L, 5, PT_Default);
 
-  bcfx_submit(id, progHandle, discardMask, sortDepth);
+  bcfx_submit(id, progHandle, discardMask, sortDepth, primitiveType);
   return 0;
 }
 
@@ -1138,6 +1139,12 @@ static const luaL_Enum BCWRAP_ENUM(discard_flag_mask)[] = {
     {"All", DFM_All},
     {NULL, 0},
 };
+static const luaL_Enum BCWRAP_ENUM(primitive_type)[] = {
+#define XX(name) {#name, PT_##name},
+    PRIMITIVE_TYPE(XX)
+#undef XX
+    {NULL, 0},
+};
 // clang-format on
 static const luaL_Enum BCWRAP_ENUM(texture_format)[] = {
     /* unsigned integer */
@@ -1205,6 +1212,7 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   REGISTE_ENUM_BCWRAP(debug_flag_mask);
   REGISTE_ENUM_BCWRAP(discard_flag);
   REGISTE_ENUM_BCWRAP(discard_flag_mask);
+  REGISTE_ENUM_BCWRAP(primitive_type);
   REGISTE_ENUM_BCWRAP(texture_format);
   REGISTE_ENUM_BCWRAP(uniform_type);
 

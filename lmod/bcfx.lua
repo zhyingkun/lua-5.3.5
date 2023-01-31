@@ -694,6 +694,7 @@ end
 ** =======================================================
 --]]
 
+---@return integer
 function bcfx.frameId()
 	return libbcfx.frameId()
 end
@@ -1101,12 +1102,14 @@ end
 ---@overload fun(id:ViewId, handle:Handle):void
 ---@overload fun(id:ViewId, handle:Handle, flags:bcfx_discard_flag_mask):void
 ---@overload fun(id:ViewId, handle:Handle, flags:bcfx_discard_flag_mask, sortDepth:integer):void
+---@overload fun(id:ViewId, handle:Handle, flags:bcfx_discard_flag_mask, sortDepth:integer, primitiveType:bcfx_primitive_type):void
 ---@param id ViewId
 ---@param handle Handle @ shader program
 ---@param discardMask bcfx_discard_flag_mask @ combining bcfx_discard_flag_mask with '|'
 ---@param sortDepth integer @ [0, 2^24-1], 24bit in sortkey
-function bcfx.submit(id, handle, discardMask, sortDepth)
-	libbcfx.submit(id, handle, discardMask, sortDepth)
+---@param primitiveType bcfx_primitive_type
+function bcfx.submit(id, handle, discardMask, sortDepth, primitiveType)
+	libbcfx.submit(id, handle, discardMask, sortDepth, primitiveType)
 end
 
 -- }======================================================
@@ -1342,12 +1345,14 @@ bcfx.view_mode = libbcfx.view_mode
 
 ---@class bcfx_debug_flag
 ---@field public Wireframe integer
+---@field public Pointset integer
 
 ---@type bcfx_debug_flag
 bcfx.debug_flag = libbcfx.debug_flag
 
 ---@class bcfx_debug_flag_mask
 ---@field public Wireframe integer
+---@field public Pointset integer
 
 ---@type bcfx_debug_flag_mask
 bcfx.debug_flag_mask = libbcfx.debug_flag_mask
@@ -1376,6 +1381,19 @@ bcfx.discard_flag = libbcfx.discard_flag
 
 ---@type bcfx_discard_flag_mask
 bcfx.discard_flag_mask = libbcfx.discard_flag_mask
+
+---@class bcfx_primitive_type
+---@field public Default integer
+---@field public Points integer
+---@field public Lines integer
+---@field public LineStrip integer
+---@field public LineLoop integer
+---@field public Triangles integer
+---@field public TriangleStrip integer
+---@field public TriangleFan integer
+
+---@type bcfx_primitive_type
+bcfx.primitive_type = libbcfx.primitive_type
 
 ---@class bcfx_texture_format
 ---@field public R8 integer

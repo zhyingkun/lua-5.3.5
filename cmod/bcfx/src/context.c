@@ -788,10 +788,10 @@ void ctx_setInstanceDataBuffer(Context* ctx, uint32_t numInstance, bcfx_Handle h
   encoder_setInstanceDataBuffer(ctx->encoder, numInstance, handle, startInstance);
 }
 
-void ctx_submit(Context* ctx, ViewId id, bcfx_Handle handle, uint32_t discardMask, uint32_t sortDepth) {
+void ctx_submit(Context* ctx, ViewId id, bcfx_Handle handle, uint32_t discardMask, uint32_t sortDepth, bcfx_EPrimitiveType primitiveType) {
   CHECK_VIEWID(id);
   CHECK_HANDLE(handle, HT_Program);
-  encoder_submit(ctx->encoder, id, handle, discardMask, sortDepth, ctx->views[id].mode, true);
+  encoder_submit(ctx->encoder, id, handle, discardMask, sortDepth, primitiveType, ctx->views[id].mode, true);
 }
 
 /* }====================================================== */

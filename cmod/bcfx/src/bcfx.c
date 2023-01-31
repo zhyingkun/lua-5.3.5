@@ -376,8 +376,8 @@ BCFX_API void bcfx_setInstanceDataBuffer(uint32_t numInstance, bcfx_Handle handl
   ctx_setInstanceDataBuffer(s_ctx, numInstance, handle, startInstance);
 }
 
-BCFX_API void bcfx_submit(ViewId id, bcfx_Handle handle, uint32_t discardMask, uint32_t sortDepth) {
-  ctx_submit(s_ctx, id, handle, discardMask, sortDepth);
+BCFX_API void bcfx_submit(ViewId id, bcfx_Handle handle, uint32_t discardMask, uint32_t sortDepth, bcfx_EPrimitiveType primitiveType) {
+  ctx_submit(s_ctx, id, handle, discardMask, sortDepth, primitiveType);
 }
 
 /* }====================================================== */

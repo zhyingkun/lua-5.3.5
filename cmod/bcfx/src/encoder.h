@@ -35,7 +35,7 @@ void encoder_setState(Encoder* encoder, bcfx_RenderState state, uint32_t blendCo
 void encoder_setStencil(Encoder* encoder, bool enable, bcfx_StencilState front, bcfx_StencilState back);
 void encoder_setInstanceDataBuffer(Encoder* encoder, uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance);
 
-void encoder_submit(Encoder* encoder, ViewId id, bcfx_Handle program, uint32_t discardMask, uint32_t depth, ViewMode mode, bool notTouch);
+void encoder_submit(Encoder* encoder, ViewId id, bcfx_Handle program, uint32_t discardMask, uint32_t depth, bcfx_EPrimitiveType primitiveType, ViewMode mode, bool notTouch);
 
 /* }====================================================== */
 

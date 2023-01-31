@@ -65,7 +65,7 @@ void encoder_end(Encoder* encoder) {
 }
 
 void encoder_touch(Encoder* encoder, ViewId id) {
-  encoder_submit(encoder, id, kInvalidHandle, DFM_All, 0, VM_Default, false);
+  encoder_submit(encoder, id, kInvalidHandle, DFM_All, 0, PT_Default, VM_Default, false);
 }
 
 void encoder_setVertexBuffer(Encoder* encoder, uint8_t stream, bcfx_Handle vertexBuffer, uint32_t attribMask) {
@@ -113,7 +113,7 @@ void encoder_setInstanceDataBuffer(Encoder* encoder, uint32_t numInstance, bcfx_
   draw->startInstance = startInstance;
 }
 
-void encoder_submit(Encoder* encoder, ViewId id, bcfx_Handle program, uint32_t discardMask, uint32_t sortDepth, ViewMode mode, bool notTouch) {
+void encoder_submit(Encoder* encoder, ViewId id, bcfx_Handle program, uint32_t discardMask, uint32_t sortDepth, bcfx_EPrimitiveType primitiveType, ViewMode mode, bool notTouch) {
   Frame* frame = encoder->frame;
   RenderDraw* draw = &encoder->draw;
   RenderBind* bind = &encoder->bind;
@@ -121,6 +121,8 @@ void encoder_submit(Encoder* encoder, ViewId id, bcfx_Handle program, uint32_t d
   draw->uniformStartByte = encoder->uniformStartByte;
   draw->uniformSizeByte = frame->uniformDataBuffer->n - encoder->uniformStartByte;
   encoder->uniformStartByte = frame->uniformDataBuffer->n;
+
+  draw->primitiveType = primitiveType;
 
   uint16_t index = frame_newRenderItemIndex(frame);
   frame_setRenderItem(frame, index, (RenderItem*)draw);

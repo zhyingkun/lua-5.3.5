@@ -448,7 +448,8 @@ typedef enum {
 // clang-format on
 
 #define DEBUG_FLAG(XX) \
-  XX(Wireframe)
+  XX(Wireframe) \
+  XX(Pointset)
 
 typedef enum {
 #define XX(name) DF_##name,
@@ -680,6 +681,25 @@ typedef enum {
 } bcfx_EDiscardFlagMask;
 // clang-format on
 
+#define PRIMITIVE_TYPE(XX) \
+  XX(Default) \
+  XX(Points) \
+  XX(Lines) \
+  XX(LineStrip) \
+  XX(LineLoop) \
+  XX(Triangles) \
+  XX(TriangleStrip) \
+  XX(TriangleFan)
+
+// clang-format off
+// WARNING: Change bcfx_EPrimitiveType must Update primitive_glType
+typedef enum {
+#define XX(name) PT_##name,
+  PRIMITIVE_TYPE(XX)
+#undef XX
+} bcfx_EPrimitiveType;
+// clang-format on
+
 BCFX_API void bcfx_setUniformFloat(bcfx_Handle handle, float* val, uint16_t num);
 BCFX_API void bcfx_setUniformInt(bcfx_Handle handle, int* val, uint16_t num);
 BCFX_API void bcfx_setUniformBool(bcfx_Handle handle, bool* val, uint16_t num);
@@ -702,7 +722,7 @@ BCFX_API void bcfx_setStencil(bool enable, bcfx_StencilState front, bcfx_Stencil
 BCFX_API void bcfx_setInstanceDataBuffer(uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance);
 
 // discardMask: combine bcfx_EDiscardFlagMask with '|'
-BCFX_API void bcfx_submit(ViewId id, bcfx_Handle handle, uint32_t discardMask, uint32_t depth);
+BCFX_API void bcfx_submit(ViewId id, bcfx_Handle handle, uint32_t discardMask, uint32_t depth, bcfx_EPrimitiveType primitiveType);
 
 /* }====================================================== */
 

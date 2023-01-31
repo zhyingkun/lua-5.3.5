@@ -124,7 +124,7 @@ void ctx_setState(Context* ctx, bcfx_RenderState state, uint32_t blendColor);
 void ctx_setStencil(Context* ctx, bool enable, bcfx_StencilState front, bcfx_StencilState back);
 void ctx_setInstanceDataBuffer(Context* ctx, uint32_t numInstance, bcfx_Handle handle, uint32_t startInstance);
 
-void ctx_submit(Context* ctx, ViewId id, bcfx_Handle handle, uint32_t discardMask, uint32_t depth);
+void ctx_submit(Context* ctx, ViewId id, bcfx_Handle handle, uint32_t discardMask, uint32_t depth, bcfx_EPrimitiveType primitiveType);
 
 /* }====================================================== */
 

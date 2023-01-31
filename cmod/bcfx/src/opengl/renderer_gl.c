@@ -204,6 +204,18 @@ const GLenum shader_glType[] = {
     GL_FRAGMENT_SHADER,
 };
 
+// According to bcfx_EPrimitiveType
+const GLenum primitive_glType[] = {
+    GL_TRIANGLES, // default primitive type is Triangle for draw mode
+    GL_POINTS,
+    GL_LINES,
+    GL_LINE_STRIP,
+    GL_LINE_LOOP,
+    GL_TRIANGLES,
+    GL_TRIANGLE_STRIP,
+    GL_TRIANGLE_FAN,
+};
+
 /* }====================================================== */
 
 static WindowSwapper* gl_getWindowSwapper(RendererContextGL* glCtx, Window win) {
@@ -821,6 +833,15 @@ static void updateRenderScissor(View* view, RenderDraw* draw) {
     GL_CHECK(glDisable(GL_SCISSOR_TEST));
   }
 }
+static GLenum getPolygonMode(View* view) {
+  if (HAS_BIT(view->debugMask, DF_Wireframe)) {
+    return GL_LINE;
+  }
+  if (HAS_BIT(view->debugMask, DF_Pointset)) {
+    return GL_POINT;
+  }
+  return GL_FILL;
+}
 
 static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw* draw, RenderBind* bind, View* view) {
   updateRenderScissor(view, draw);
@@ -832,6 +853,8 @@ static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw
   gl_bindProgramAttributes(glCtx, prog, draw);
   gl_setProgramUniforms(glCtx, prog, draw, view, bind);
 
+  GLenum primitiveType = primitive_glType[draw->primitiveType];
+
   if (draw->indexBuffer == kInvalidHandle) {
     // Vertex Count
     GLint total = glCtx->curVertexCount;
@@ -839,10 +862,10 @@ static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw
     GLsizei count = draw->indexCount == 0 ? (GLsizei)total : (GLsizei)draw->indexCount;
     CLAMP_OFFSET_COUNT(total, start, count);
     if (draw->numInstance == 0) {
-      GL_CHECK(glDrawArrays(GL_TRIANGLES, start, count));
+      GL_CHECK(glDrawArrays(primitiveType, start, count));
     } else {
       gl_bindInstanceAttributes(glCtx, prog, draw);
-      GL_CHECK(glDrawArraysInstanced(GL_TRIANGLES, start, count, draw->numInstance));
+      GL_CHECK(glDrawArraysInstanced(primitiveType, start, count, draw->numInstance));
     }
   } else {
     IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(draw->indexBuffer)];
@@ -854,10 +877,10 @@ static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw
     CLAMP_OFFSET_COUNT(total, start, count);
     const void* indices = (const void*)(long)((uint64_t)start * sizeof_IndexType[ib->type]); // offset in byte
     if (draw->numInstance == 0) {
-      GL_CHECK(glDrawElementsBaseVertex(GL_TRIANGLES, count, index_glType[ib->type], indices, draw->baseVertex));
+      GL_CHECK(glDrawElementsBaseVertex(primitiveType, count, index_glType[ib->type], indices, draw->baseVertex));
     } else {
       gl_bindInstanceAttributes(glCtx, prog, draw);
-      GL_CHECK(glDrawElementsInstancedBaseVertex(GL_TRIANGLES, count, index_glType[ib->type], indices, draw->numInstance, draw->baseVertex));
+      GL_CHECK(glDrawElementsInstancedBaseVertex(primitiveType, count, index_glType[ib->type], indices, draw->numInstance, draw->baseVertex));
     }
   }
 }
@@ -882,7 +905,7 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
       curViewId = id;
       gl_MakeViewCurrent(glCtx, view);
 
-      GLenum polMod = (HAS_BIT(view->debugMask, DF_Wireframe)) ? GL_LINE : GL_FILL;
+      GLenum polMod = getPolygonMode(view);
       if (IS_VALUE_CHANGED(curPolMod, polMod)) {
         GL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, curPolMod));
       }

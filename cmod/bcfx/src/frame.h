@@ -35,6 +35,8 @@ typedef struct {
   bcfx_Handle instanceDataBuffer;
   uint32_t startInstance; // skip num of instance
 
+  bcfx_EPrimitiveType primitiveType;
+
   Mat4x4 model;
   uint32_t uniformStartByte;
   uint32_t uniformSizeByte;
