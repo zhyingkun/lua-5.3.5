@@ -85,7 +85,7 @@ end
 
 local function CreateCubeBuffer()
 	local layout = bcfx.VertexLayout()
-	layout:add(vertex_attrib.Position, 3, attrib_type.Float, false)
+	layout:add(vertex_attrib.Position, 3, attrib_type.Half, false)
 	local vertexTbl = {
 	   -0.5, -0.5,  0.5, -- In OpenGL: front
 		0.5, -0.5,  0.5, -- In Unity : back
@@ -112,11 +112,11 @@ local function CreateCubeBuffer()
 		0.5, -0.5, -0.5,
 		0.5, -0.5,  0.5,
 	 }
-	local mem = bcfx.makeMemBuffer(data_type.Float, vertexTbl)
+	local mem = bcfx.makeMemBuffer(data_type.Half, vertexTbl)
 	local vertexHandle = bcfx.createVertexBuffer(mem, layout)
 
 	local layout = bcfx.VertexLayout()
-	layout:add(vertex_attrib.TexCoord0, 2, attrib_type.Float, false)
+	layout:add(vertex_attrib.TexCoord0, 2, attrib_type.Half, false)
 	local texCoordTbl = {
 		0.0, 0.0, -- In OpenGL: front
 		1.0, 0.0, -- In Unity : back
@@ -143,7 +143,7 @@ local function CreateCubeBuffer()
 		1.0, 1.0,
 		0.0, 1.0,
 	  }
-	local mem = bcfx.makeMemBuffer(data_type.Float, texCoordTbl)
+	local mem = bcfx.makeMemBuffer(data_type.Half, texCoordTbl)
 	local texCoordHandle = bcfx.createVertexBuffer(mem, layout)
 
 	local indexTbl = {
@@ -359,11 +359,11 @@ local function tick(delta)
 	bcfx.setInstanceDataBuffer(3, instanceBuffer)
 	bcfx.submit(0, triangle.shader, discard.All)
 
-	-- bcfx.setVertexBuffer(0, cube.vertex)
-	-- bcfx.setVertexBuffer(1, cube.texCoord)
-	-- bcfx.setIndexBuffer(cube.index)
-	bcfx.setVertexBuffer(0, spot.vertex)
-	bcfx.setIndexBuffer(spot.index)
+	bcfx.setVertexBuffer(0, cube.vertex)
+	bcfx.setVertexBuffer(1, cube.texCoord)
+	bcfx.setIndexBuffer(cube.index)
+	-- bcfx.setVertexBuffer(0, spot.vertex)
+	-- bcfx.setIndexBuffer(spot.index)
 
 	angle = (angle + 1) % 360
 	local matScale = graphics3d.scale(vector.Vec3(1.5, 1.5, 1.5))
