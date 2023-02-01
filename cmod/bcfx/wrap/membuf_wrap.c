@@ -44,7 +44,7 @@
 #define IS_NAN(x) (((x)&MASK_NOSIGN) > MASK_EXPO)
 #define IS_INF(x) (((x)&MASK_NOSIGN) == MASK_EXPO)
 
-#define CREATE_HALF(sign, expo, mant) (((sign) << POS_SIGN) | ((expo) << POS_EXPO) | ((mant) << POS_MANT))
+#define CREATE_HALF(sign, expo, mant) ((((sign)&MASK_ONE(BITS_SIGN, 0)) << POS_SIGN) | (((expo)&MASK_ONE(BITS_EXPO, 0)) << POS_EXPO) | (((mant)&MASK_ONE(BITS_MANT, 0)) << POS_MANT))
 
 typedef unsigned short half;
 
@@ -95,6 +95,7 @@ typedef unsigned short half;
 // DEFINE_HALF_TO_OTHER(double, 2.0, halfFloatToDouble)
 
 DEFINE_HALF_FROM_OTHER(lua_Number, 0.0, 2.0, halfFloatFromLuaNumber)
+// DEFINE_HALF_TO_OTHER(lua_Number, 2.0, halfFloatToLuaNumber)
 
 static half lua_tohalf(lua_State* L, int idx) {
   lua_Number num = lua_tonumber(L, idx);
@@ -134,7 +135,7 @@ uint8_t sizeof_DataType[] = {
 #define XX(name, type) sizeof(type),
     DATA_TYPE_MAP(XX)
 #undef XX
-    2,
+    sizeof(half),
     sizeof(float),
 };
 // clang-format on
