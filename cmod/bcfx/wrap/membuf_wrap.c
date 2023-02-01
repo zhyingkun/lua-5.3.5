@@ -9,6 +9,106 @@
 ** =======================================================
 */
 
+#define BITS_SIGN 1
+#define BITS_EXPO 5
+#define BITS_MANT 10
+
+#define POS_MANT 0
+#define POS_EXPO (POS_MANT + BITS_MANT)
+#define POS_SIGN (POS_EXPO + BITS_EXPO)
+
+/* creates a mask with 'n' 1 bits at position 'p' */
+#define MASK_ONE(n, p) (((unsigned short)~(((unsigned short)~(unsigned short)0) << (n))) << (p))
+/* creates a mask with 'n' 0 bits at position 'p' */
+#define MASK_ZERO(n, p) (~MASK_ONE(n, p))
+
+#define MASK_SIGN MASK_ONE(BITS_SIGN, POS_SIGN)
+#define MASK_EXPO MASK_ONE(BITS_EXPO, POS_EXPO)
+#define MASK_MANT MASK_ONE(BITS_MANT, POS_MANT)
+
+#define BITS_NOSIGN (BITS_EXPO + BITS_MANT)
+#define POS_NOSIGN POS_MANT
+#define MASK_NOSIGN MASK_ONE(BITS_NOSIGN, POS_NOSIGN)
+
+#define SIGN(x) (((x)&MASK_SIGN) >> POS_SIGN)
+#define EXPO(x) (((x)&MASK_EXPO) >> POS_EXPO)
+#define MANT(x) (((x)&MASK_MANT) >> POS_MANT)
+
+#define MANTISSA(x) (MANT(x) | (EXPO(x) == 0 ? 0 : MASK_ONE(1, BITS_MANT)))
+#define SIGNED_INF_VALUE(sign) ((((sign) << POS_SIGN) & MASK_SIGN) | MASK_EXPO)
+
+#define NAN_VALUE MASK_NOSIGN
+
+#define IS_ZERO(x) (((x)&MASK_NOSIGN) == 0)
+#define IS_INVALID(x) (((x)&MASK_EXPO) == MASK_EXPO)
+#define IS_NAN(x) (((x)&MASK_NOSIGN) > MASK_EXPO)
+#define IS_INF(x) (((x)&MASK_NOSIGN) == MASK_EXPO)
+
+#define CREATE_HALF(sign, expo, mant) (((sign) << POS_SIGN) | ((expo) << POS_EXPO) | ((mant) << POS_MANT))
+
+typedef unsigned short half;
+
+#define DEFINE_HALF_FROM_OTHER(TYPE, ZERO, TWO, halfFloatFromOther) \
+  half halfFloatFromOther(TYPE x) { \
+    if (x == ZERO) { \
+      return 0; \
+    } \
+    unsigned short sign = x < ZERO ? 1 : 0; \
+    if (sign) { \
+      x = -x; \
+    } \
+    unsigned short expo = 25; \
+    for (; x >= 2048; x /= TWO) { \
+      expo++; \
+      if (expo >= 31) { \
+        return SIGNED_INF_VALUE(sign); \
+      } \
+    } \
+    for (; x < 1024 && expo > 0; x *= TWO) { \
+      expo--; \
+    } \
+    unsigned short mant = (unsigned short)x; \
+    return CREATE_HALF(sign, expo, mant); \
+  }
+
+#define DEFINE_HALF_TO_OTHER(TYPE, TWO, halfFloatToOther) \
+  TYPE halfFloatToOther(half argx) { \
+    unsigned short x = argx; \
+    unsigned short mantissa = MANTISSA(x); \
+    short exponent = EXPO(x) - 25; \
+    TYPE value = (TYPE)mantissa; \
+    for (short i = 0; i < exponent; i++) { \
+      value *= TWO; \
+    } \
+    for (short i = 0; i > exponent; i--) { \
+      value /= TWO; \
+    } \
+    if (SIGN(x)) { \
+      return -value; \
+    } \
+    return value; \
+  }
+
+// DEFINE_HALF_FROM_OTHER(int32_t, 0, 2, halfFloatFromInt32)
+// DEFINE_HALF_FROM_OTHER(double, 0.0, 2.0, halfFloatFromDouble)
+// DEFINE_HALF_TO_OTHER(int32_t, 2, halfFloatToInt32)
+// DEFINE_HALF_TO_OTHER(double, 2.0, halfFloatToDouble)
+
+DEFINE_HALF_FROM_OTHER(lua_Number, 0.0, 2.0, halfFloatFromLuaNumber)
+
+static half lua_tohalf(lua_State* L, int idx) {
+  lua_Number num = lua_tonumber(L, idx);
+  return halfFloatFromLuaNumber(num);
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Pack lua data to MemBuffer
+** =======================================================
+*/
+
 #define DATA_TYPE_MAP(XX) \
   XX(Uint8, uint8_t) \
   XX(Uint16, uint16_t) \
@@ -54,7 +154,7 @@ static void _fillBufferFromTable(void* ptr, bcfx_EDataType dt, size_t count, lua
     DATA_TYPE_MAP(XX)
 #undef XX
     case DT_Half:
-      break;
+      FILL_DATA_ARRAY_TABLE(count, idx, half, half);
     case DT_Float:
       FILL_DATA_ARRAY_TABLE(count, idx, float, number);
     default:
@@ -77,7 +177,7 @@ static void _fillBufferFromStack(void* ptr, bcfx_EDataType dt, size_t count, lua
     DATA_TYPE_MAP(XX)
 #undef XX
     case DT_Half:
-      break;
+      FILL_DATA_ARRAY_STACK(count, base, half, half);
     case DT_Float:
       FILL_DATA_ARRAY_STACK(count, base, float, number);
     default:
@@ -151,7 +251,9 @@ _READ_END_:
 /* }====================================================== */
 
 #define EMPLACE_MEMBUF_FUNCTION(name) \
-  { #name, MEMBUF_FUNCTION(name) }
+  { \
+#name, MEMBUF_FUNCTION(name) \
+  }
 static const luaL_Reg membuf_funcs[] = {
     EMPLACE_MEMBUF_FUNCTION(makeMemBuffer),
     {NULL, NULL},
