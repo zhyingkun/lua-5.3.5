@@ -434,8 +434,9 @@ static int BCWRAP_FUNCTION(createTexture1D)(lua_State* L) {
 #define GET_MEM_ARRAY_LEN(mba, layers, idx) \
   luaL_MemBuffer* mba = (luaL_MemBuffer*)alloca(sizeof(luaL_MemBuffer) * layers); \
   for (int layer = 0; layer < layers; layer++) { \
-    lua_geti(L, idx, layer); \
+    lua_geti(L, idx, layer + 1); \
     luaL_MemBuffer* mb = luaL_checkmembuffer(L, -1); \
+    MEMBUFFER_INIT(&mba[layer]); \
     MEMBUFFER_MOVE(mb, &mba[layer]); \
     lua_pop(L, 1); \
   }
@@ -991,10 +992,14 @@ static const luaL_Enum BCWRAP_ENUM(vertex_attrib_mask)[] = {
 // clang-format on
 static const luaL_Enum BCWRAP_ENUM(attrib_type)[] = {
     {"Uint8", AT_Uint8},
-    {"Uint10", AT_Uint10},
+    {"Uint16", AT_Uint16},
+    {"Uint32", AT_Uint32},
+    {"Int8", AT_Int8},
     {"Int16", AT_Int16},
+    {"Int32", AT_Int32},
     {"Half", AT_Half},
     {"Float", AT_Float},
+    {"Uint_2_10_10_10_Rev", AT_Uint_2_10_10_10_Rev},
     {NULL, 0},
 };
 static const luaL_Enum BCWRAP_ENUM(index_type)[] = {

@@ -53,10 +53,14 @@ const GLenum index_glType[] = {
 // According to bcfx_EAttribType
 const GLenum attrib_glType[] = {
     GL_UNSIGNED_BYTE, // Uint8
-    GL_UNSIGNED_INT_10_10_10_2, // Uint10
+    GL_UNSIGNED_SHORT, // Uint16
+    GL_UNSIGNED_INT, // Uint32
+    GL_BYTE, // Int8
     GL_SHORT, // Int16
+    GL_INT, // Int32
     GL_HALF_FLOAT, // Half
     GL_FLOAT, // Float
+    GL_UNSIGNED_INT_10_10_10_2, // Uint_2_10_10_10_Rev
 };
 // According to bcfx_EUniformType
 const GLenum uniform_glType[] = {

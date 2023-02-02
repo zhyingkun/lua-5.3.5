@@ -86,10 +86,14 @@ typedef enum {
 // WARNING: Change bcfx_EAttribType must Update sizeof_AttribType and attrib_glType
 typedef enum {
   AT_Uint8,
-  AT_Uint10,
+  AT_Uint16,
+  AT_Uint32,
+  AT_Int8,
   AT_Int16,
+  AT_Int32,
   AT_Half,
   AT_Float,
+  AT_Uint_2_10_10_10_Rev,
 } bcfx_EAttribType;
 BCFX_API uint8_t sizeof_AttribType[];
 
@@ -107,7 +111,7 @@ typedef struct {
 } bcfx_VertexLayout;
 
 BCFX_API void bcfx_vertexLayoutInit(bcfx_VertexLayout* layout);
-BCFX_API void bcfx_vertexLayoutAdd(bcfx_VertexLayout* layout, bcfx_EVertexAttrib attrib, uint8_t num, bcfx_EAttribType type, bool normalized);
+BCFX_API void bcfx_vertexLayoutAdd(bcfx_VertexLayout* layout, bcfx_EVertexAttrib attrib, uint8_t compNum, bcfx_EAttribType compType, bool normalized);
 BCFX_API void bcfx_vertexLayoutSkip(bcfx_VertexLayout* layout, uint8_t numByte);
 BCFX_API void bcfx_vertexLayoutClear(bcfx_VertexLayout* layout);
 
