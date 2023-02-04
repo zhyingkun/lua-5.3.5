@@ -11,7 +11,6 @@ BCFX_API uint32_t bcfx_packColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
   bcfx_Color c = {r, g, b, a};
   return COLOR_UINT32(c);
 }
-
 BCFX_API void bcfx_unpackColor(uint32_t rgba, uint8_t* r, uint8_t* g, uint8_t* b, uint8_t* a) {
   bcfx_Color c = COLOR_STRUCT(rgba);
   *r = c.r;
@@ -19,13 +18,31 @@ BCFX_API void bcfx_unpackColor(uint32_t rgba, uint8_t* r, uint8_t* g, uint8_t* b
   *b = c.b;
   *a = c.a;
 }
-
 BCFX_API void bcfx_unpackColorNF(uint32_t rgba, float* r, float* g, float* b, float* a) {
   bcfx_Color c = COLOR_STRUCT(rgba);
   *r = ((float)c.r) / 255.0f;
   *g = ((float)c.g) / 255.0f;
   *b = ((float)c.b) / 255.0f;
   *a = ((float)c.a) / 255.0f;
+}
+
+BCFX_API uint32_t bcfx_packColorA2BGR10(uint16_t r, uint16_t g, uint16_t b, uint8_t a) {
+  bcfx_ColorA2BGR10 c = {r, g, b, a};
+  return COLOR_UINT32(c);
+}
+BCFX_API void bcfx_unpackColorA2BGR10(uint32_t rgba, uint16_t* r, uint16_t* g, uint16_t* b, uint8_t* a) {
+  bcfx_ColorA2BGR10 c = COLOR_STRUCT_A2BGR10(rgba);
+  *r = c.r;
+  *g = c.g;
+  *b = c.b;
+  *a = c.a;
+}
+BCFX_API void bcfx_unpackColorA2BGR10NF(uint32_t rgba, float* r, float* g, float* b, float* a) {
+  bcfx_ColorA2BGR10 c = COLOR_STRUCT_A2BGR10(rgba);
+  *r = ((float)c.r) / 1023.0f;
+  *g = ((float)c.g) / 1023.0f;
+  *b = ((float)c.b) / 1023.0f;
+  *a = ((float)c.a) / 3.0f;
 }
 
 /* }====================================================== */

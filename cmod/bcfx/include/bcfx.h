@@ -17,14 +17,22 @@
 */
 
 typedef struct {
-  uint8_t r, g, b, a;
-} bcfx_Color;
+  uint8_t r, g, b, a; // first byte is r, second byte is g, last byte is a
+} bcfx_Color; // for uint32_t, a is in most significant bits, A8B8G8R8,
+typedef struct {
+  uint32_t r : 10; // least significant bit
+  uint32_t g : 10;
+  uint32_t b : 10;
+  uint32_t a : 2; // most significant bit
+} bcfx_ColorA2BGR10; // A2B10G10R10
 typedef union {
   uint32_t colorUINT32;
   bcfx_Color colorStruct;
+  bcfx_ColorA2BGR10 colorStructA2BGR10;
 } bcfx_UColor;
 #define COLOR_UINT32(col) (((bcfx_UColor*)&(col))->colorUINT32)
 #define COLOR_STRUCT(col) (((bcfx_UColor*)&(col))->colorStruct)
+#define COLOR_STRUCT_A2BGR10(col) (((bcfx_UColor*)&(col))->colorStructA2BGR10)
 
 BCFX_API uint32_t bcfx_packColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 BCFX_API void bcfx_unpackColor(uint32_t rgba, uint8_t* r, uint8_t* g, uint8_t* b, uint8_t* a);
@@ -33,6 +41,10 @@ BCFX_API void bcfx_unpackColorNF(uint32_t rgba, float* r, float* g, float* b, fl
 #define bcfx_packColorArray(arr_) bcfx_packColor((arr_)[0], (arr_)[1], (arr_)[2], (arr_)[3]);
 #define bcfx_unpackColorArray(rgba_, arr_) bcfx_unpackColor(rgba_, &(arr_)[0], &(arr_)[1], &(arr_)[2], &(arr_)[3]);
 #define bcfx_unpackColorNFArray(rgba_, arr_) bcfx_unpackColorNF(rgba_, &(arr_)[0], &(arr_)[1], &(arr_)[2], &(arr_)[3]);
+
+BCFX_API uint32_t bcfx_packColorA2BGR10(uint16_t r, uint16_t g, uint16_t b, uint8_t a);
+BCFX_API void bcfx_unpackColorA2BGR10(uint32_t rgba, uint16_t* r, uint16_t* g, uint16_t* b, uint8_t* a);
+BCFX_API void bcfx_unpackColorA2BGR10NF(uint32_t rgba, float* r, float* g, float* b, float* a); // NF is Normalized Float
 
 /* }====================================================== */
 
