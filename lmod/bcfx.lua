@@ -1615,8 +1615,9 @@ end
 --]]
 
 ---@class bcfx_VertexLayout:userdata
----@field public add fun(self:bcfx_VertexLayout, attrib:bcfx_vertex_attrib, num:integer, type:bcfx_attrib_type, normalized:boolean):void
----@field public skip fun(self:bcfx_VertexLayout, numByte:integer):void
+---@field public nextGroup fun(self:bcfx_VertexLayout, bufferOffset:integer):void
+---@field public addAttrib fun(self:bcfx_VertexLayout, attrib:bcfx_vertex_attrib, num:integer, type:bcfx_attrib_type, normalized:boolean):void
+---@field public skipAttrib fun(self:bcfx_VertexLayout, numByte:integer):void
 ---@field public clear fun(self:bcfx_VertexLayout):void
 
 ---@return bcfx_VertexLayout
