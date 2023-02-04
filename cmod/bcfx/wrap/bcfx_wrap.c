@@ -997,9 +997,9 @@ static const luaL_Enum BCWRAP_ENUM(attrib_type)[] = {
     {"Int8", AT_Int8},
     {"Int16", AT_Int16},
     {"Int32", AT_Int32},
+    {"Uint_2_10_10_10_Rev", AT_Uint_2_10_10_10_Rev},
     {"Half", AT_Half},
     {"Float", AT_Float},
-    {"Uint_2_10_10_10_Rev", AT_Uint_2_10_10_10_Rev},
     {NULL, 0},
 };
 static const luaL_Enum BCWRAP_ENUM(index_type)[] = {

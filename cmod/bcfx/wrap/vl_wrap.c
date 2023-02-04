@@ -7,7 +7,15 @@
 ** =======================================================
 */
 
-static int VL_FUNCTION(add)(lua_State* L) {
+static int VL_FUNCTION(nextGroup)(lua_State* L) {
+  bcfx_VertexLayout* layout = luaL_checkvertexlayout(L, 1);
+  uint32_t bufferOffset = (uint32_t)luaL_checkinteger(L, 2);
+
+  bcfx_vertexLayoutNextGroup(layout, bufferOffset);
+  return 0;
+}
+
+static int VL_FUNCTION(addAttrib)(lua_State* L) {
   bcfx_VertexLayout* layout = luaL_checkvertexlayout(L, 1);
   bcfx_EVertexAttrib attrib = luaL_checkvertexattrib(L, 2);
   uint8_t num = (uint8_t)luaL_checkinteger(L, 3);
@@ -17,15 +25,15 @@ static int VL_FUNCTION(add)(lua_State* L) {
   bcfx_EAttribType type = luaL_checkattribtype(L, 4);
   bool normalized = (bool)luaL_checkboolean(L, 5);
 
-  bcfx_vertexLayoutAdd(layout, attrib, num, type, normalized);
+  bcfx_vertexLayoutAddAttrib(layout, attrib, num, type, normalized);
   return 0;
 }
 
-static int VL_FUNCTION(skip)(lua_State* L) {
+static int VL_FUNCTION(skipAttrib)(lua_State* L) {
   bcfx_VertexLayout* layout = luaL_checkvertexlayout(L, 1);
   uint8_t numbyte = (uint8_t)luaL_checkinteger(L, 2);
 
-  bcfx_vertexLayoutSkip(layout, numbyte);
+  bcfx_vertexLayoutSkipAttrib(layout, numbyte);
   return 0;
 }
 
@@ -39,8 +47,9 @@ static int VL_FUNCTION(clear)(lua_State* L) {
 #define EMPLACE_VL_FUNCTION(name) \
   { #name, VL_FUNCTION(name) }
 static const luaL_Reg vl_metafuncs[] = {
-    EMPLACE_VL_FUNCTION(add),
-    EMPLACE_VL_FUNCTION(skip),
+    EMPLACE_VL_FUNCTION(nextGroup),
+    EMPLACE_VL_FUNCTION(addAttrib),
+    EMPLACE_VL_FUNCTION(skipAttrib),
     EMPLACE_VL_FUNCTION(clear),
     {NULL, NULL},
 };

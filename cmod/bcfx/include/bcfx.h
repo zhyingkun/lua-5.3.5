@@ -91,28 +91,29 @@ typedef enum {
   AT_Int8,
   AT_Int16,
   AT_Int32,
+  AT_Uint_2_10_10_10_Rev,
   AT_Half,
   AT_Float,
-  AT_Uint_2_10_10_10_Rev,
 } bcfx_EAttribType;
 BCFX_API uint8_t sizeof_AttribType[];
 
 typedef struct {
-  uint8_t normal : 1;
-  uint8_t type : 3;
+  uint8_t type : 4;
   uint8_t num : 3;
-  uint8_t reserved : 1;
+  uint8_t normal : 1;
 } bcfx_Attrib;
 
 typedef struct {
   uint8_t stride;
-  uint8_t offset[VA_Count];
+  uint32_t bufferOffset;
+  uint32_t offset[VA_Count];
   bcfx_Attrib attributes[VA_Count];
 } bcfx_VertexLayout;
 
 BCFX_API void bcfx_vertexLayoutInit(bcfx_VertexLayout* layout);
-BCFX_API void bcfx_vertexLayoutAdd(bcfx_VertexLayout* layout, bcfx_EVertexAttrib attrib, uint8_t compNum, bcfx_EAttribType compType, bool normalized);
-BCFX_API void bcfx_vertexLayoutSkip(bcfx_VertexLayout* layout, uint8_t numByte);
+BCFX_API void bcfx_vertexLayoutNextGroup(bcfx_VertexLayout* layout, uint32_t bufferOffset); // Start next attribute group with vertex buffer offset
+BCFX_API void bcfx_vertexLayoutAddAttrib(bcfx_VertexLayout* layout, bcfx_EVertexAttrib attrib, uint8_t num, bcfx_EAttribType type, bool normalized);
+BCFX_API void bcfx_vertexLayoutSkipAttrib(bcfx_VertexLayout* layout, uint8_t numByte); // Skip some attribute in current group
 BCFX_API void bcfx_vertexLayoutClear(bcfx_VertexLayout* layout);
 
 /* }====================================================== */

@@ -17,26 +17,31 @@ uint8_t sizeof_AttribType[] = {
     sizeof(int8_t), // GL_BYTE
     sizeof(int16_t), // GL_SHORT
     sizeof(int32_t), // GL_INT
+    sizeof(uint32_t), // GL_UNSIGNED_INT_10_10_10_2
     sizeof(uint16_t), // GL_HALF_FLOAT
     sizeof(float), // GL_FLOAT
-    sizeof(uint32_t), // GL_UNSIGNED_INT_10_10_10_2
 };
 
 BCFX_API void bcfx_vertexLayoutInit(bcfx_VertexLayout* layout) {
   memset((void*)layout, 0, sizeof(bcfx_VertexLayout));
 }
 
-BCFX_API void bcfx_vertexLayoutAdd(bcfx_VertexLayout* layout, bcfx_EVertexAttrib attrib, uint8_t compNum, bcfx_EAttribType compType, bool normalized) {
+BCFX_API void bcfx_vertexLayoutNextGroup(bcfx_VertexLayout* layout, uint32_t bufferOffset) {
+  layout->stride = 0;
+  layout->bufferOffset = bufferOffset;
+}
+
+BCFX_API void bcfx_vertexLayoutAddAttrib(bcfx_VertexLayout* layout, bcfx_EVertexAttrib attrib, uint8_t compNum, bcfx_EAttribType compType, bool normalized) {
   assert(compNum >= 1 && compNum <= 4);
   bcfx_Attrib* att = &layout->attributes[attrib];
   att->num = compNum;
   att->type = compType;
   att->normal = normalized;
-  layout->offset[attrib] = layout->stride;
+  layout->offset[attrib] = layout->bufferOffset + layout->stride;
   layout->stride += sizeof_AttribType[compType] * compNum;
 }
 
-BCFX_API void bcfx_vertexLayoutSkip(bcfx_VertexLayout* layout, uint8_t numByte) {
+BCFX_API void bcfx_vertexLayoutSkipAttrib(bcfx_VertexLayout* layout, uint8_t numByte) {
   layout->stride += numByte;
 }
 

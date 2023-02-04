@@ -211,9 +211,9 @@ void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderD
       }
       GL_CHECK(glEnableVertexAttribArray(loc));
       GL_CHECK(glVertexAttribDivisor(loc, 0)); // indicated it's per vertex, not per instance
-      uint8_t offset = layout->offset[attr];
+      uint32_t offset = layout->offset[attr];
       bcfx_Attrib* attrib = &layout->attributes[attr];
-      if (attrib->normal == 0 && (attrib->type == AT_Uint8 || attrib->type == AT_Int16)) {
+      if (attrib->normal == 0 && attrib->type < AT_Half) {
         GL_CHECK(glVertexAttribIPointer(loc, attrib->num, attrib_glType[attrib->type], layout->stride, (void*)(long)offset));
       } else {
         GL_CHECK(glVertexAttribPointer(loc, attrib->num, attrib_glType[attrib->type], attrib->normal, layout->stride, (void*)(long)offset));
