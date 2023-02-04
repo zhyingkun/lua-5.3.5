@@ -21,9 +21,9 @@ local function setup(glfw, bcfx, win)
     bcfx.setViewTransform(viewID, lookAt, graphics3d.perspective(45, 16/9, 0.1))
 
     local layout = bcfx.VertexLayout()
-    layout:add(bcfx.vertex_attrib.Position, 3, bcfx.attrib_type.Float, false)
-    layout:add(bcfx.vertex_attrib.Normal, 3, bcfx.attrib_type.Float, false)
-    layout:add(bcfx.vertex_attrib.TexCoord0, 2, bcfx.attrib_type.Float, false)
+    layout:addAttrib(bcfx.vertex_attrib.Position, 3, bcfx.attrib_type.Float, false)
+    layout:addAttrib(bcfx.vertex_attrib.Normal, 3, bcfx.attrib_type.Float, false)
+    layout:addAttrib(bcfx.vertex_attrib.TexCoord0, 2, bcfx.attrib_type.Float, false)
 
     local fileData = require("libuv").mbio.readFile("resources/spot_quadrangulated.obj")
     local meshs = bcfx.mesh.meshParse(fileData)

@@ -37,7 +37,7 @@ local function setup(glfw, bcfx, win)
     bcfx.setViewClear(viewID2, bcfx.clear_flag_mask.Color, bcfx.color.black, 1.0, 0)
 
     local layout = bcfx.VertexLayout()
-    layout:add(bcfx.vertex_attrib.Position, 3, bcfx.attrib_type.Float, false)
+    layout:addAttrib(bcfx.vertex_attrib.Position, 3, bcfx.attrib_type.Float, false)
     local vertexData = bcfx.makeMemBuffer(bcfx.data_type.Float, {
         -0.5, -0.5,  0.0,
         0.5, -0.5,  0.0,
@@ -63,8 +63,8 @@ void main() {
     bcfx.destroy(vs, fs)
 
     local layout = bcfx.VertexLayout()
-    layout:add(bcfx.vertex_attrib.Position, 2, bcfx.attrib_type.Float, false)
-    layout:add(bcfx.vertex_attrib.TexCoord0, 2, bcfx.attrib_type.Float, false)
+    layout:addAttrib(bcfx.vertex_attrib.Position, 2, bcfx.attrib_type.Float, false)
+    layout:addAttrib(bcfx.vertex_attrib.TexCoord0, 2, bcfx.attrib_type.Float, false)
     local vertexTbl = {
         -1.0, -1.0, 0.0, 0.0,
         1.0, -1.0, 1.0, 0.0,

@@ -23,9 +23,9 @@ function imgui:setup(glfw, bcfx, mainWin)
     local esize = 4 * 1024 * 1024
 
     local layout = bcfx.VertexLayout()
-    layout:add(bcfx.vertex_attrib.Position, 2, bcfx.attrib_type.Float, false)
-    layout:add(bcfx.vertex_attrib.TexCoord0, 2, bcfx.attrib_type.Float, false)
-    layout:add(bcfx.vertex_attrib.Color0, 4, bcfx.attrib_type.Uint8, true)
+    layout:addAttrib(bcfx.vertex_attrib.Position, 2, bcfx.attrib_type.Float, false)
+    layout:addAttrib(bcfx.vertex_attrib.TexCoord0, 2, bcfx.attrib_type.Float, false)
+    layout:addAttrib(bcfx.vertex_attrib.Color0, 4, bcfx.attrib_type.Uint8, true)
     self.vertexHandle = bcfx.createDynamicVertexBuffer(vsize, layout)
     self.indexHandle = bcfx.createDynamicIndexBuffer(esize, bcfx.index_type.Uint16)
     self.vertexMemBuffer = util.MemBuffer()

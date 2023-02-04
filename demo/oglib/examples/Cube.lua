@@ -17,7 +17,7 @@ local function setup(glfw, bcfx, win)
     bcfx.setViewTransform(viewID, lookAtMat, projMat)
 
     local layout = bcfx.VertexLayout()
-    layout:add(bcfx.vertex_attrib.Position, 3, bcfx.attrib_type.Float, false)
+    layout:addAttrib(bcfx.vertex_attrib.Position, 3, bcfx.attrib_type.Float, false)
     local vertexData = bcfx.makeMemBuffer(bcfx.data_type.Float, {
         -0.5, -0.5,  0.5, -- In OpenGL: front
         0.5, -0.5,  0.5, -- In Unity : back

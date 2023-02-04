@@ -48,7 +48,7 @@ end)()
 
 local function CreateTriangleBuffer()
 	local layout = bcfx.VertexLayout()
-	layout:add(vertex_attrib.Position, 3, attrib_type.Float, false)
+	layout:addAttrib(vertex_attrib.Position, 3, attrib_type.Float, false)
 	local vertexTbl = {
 		-1.0, -1.0, 0.0,
 		1.0, -1.0, 0.0,
@@ -58,7 +58,7 @@ local function CreateTriangleBuffer()
 	local vertexHandle = bcfx.createVertexBuffer(mem, layout)
 
 	local layout = bcfx.VertexLayout()
-	layout:add(vertex_attrib.Color0, 3, attrib_type.Float, false)
+	layout:addAttrib(vertex_attrib.Color0, 3, attrib_type.Float, false)
 	local colorTbl = {
 		1.0, 0.0, 0.0,
 		0.0, 1.0, 0.0,
@@ -85,7 +85,7 @@ end
 
 local function CreateCubeBuffer()
 	local layout = bcfx.VertexLayout()
-	layout:add(vertex_attrib.Position, 3, attrib_type.Half, false)
+	layout:addAttrib(vertex_attrib.Position, 3, attrib_type.Half, false)
 	local vertexTbl = {
 	   -0.5, -0.5,  0.5, -- In OpenGL: front
 		0.5, -0.5,  0.5, -- In Unity : back
@@ -116,7 +116,7 @@ local function CreateCubeBuffer()
 	local vertexHandle = bcfx.createVertexBuffer(mem, layout)
 
 	local layout = bcfx.VertexLayout()
-	layout:add(vertex_attrib.TexCoord0, 2, attrib_type.Half, false)
+	layout:addAttrib(vertex_attrib.TexCoord0, 2, attrib_type.Half, false)
 	local texCoordTbl = {
 		0.0, 0.0, -- In OpenGL: front
 		1.0, 0.0, -- In Unity : back
@@ -176,9 +176,9 @@ end
 local function CreateSpotBuffer()
 	local vbMB, ibMB = loader.loadMesh("spot_quadrangulated.obj")
 	local layout = bcfx.VertexLayout()
-	layout:add(vertex_attrib.Position, 3, attrib_type.Float, false)
-	layout:add(vertex_attrib.Normal, 3, attrib_type.Float, false)
-	layout:add(vertex_attrib.TexCoord0, 2, attrib_type.Float, false)
+	layout:addAttrib(vertex_attrib.Position, 3, attrib_type.Float, false)
+	layout:addAttrib(vertex_attrib.Normal, 3, attrib_type.Float, false)
+	layout:addAttrib(vertex_attrib.TexCoord0, 2, attrib_type.Float, false)
 	local vertexHandle = bcfx.createVertexBuffer(vbMB, layout)
 	local idxHandle = bcfx.createIndexBuffer(ibMB, index_type.Uint32)
 
@@ -195,8 +195,8 @@ end
 
 local function CreateBlitBuffer()
 	local layout = bcfx.VertexLayout()
-	layout:add(vertex_attrib.Position, 2, attrib_type.Float, false)
-	layout:add(vertex_attrib.TexCoord0, 2, attrib_type.Float, false)
+	layout:addAttrib(vertex_attrib.Position, 2, attrib_type.Float, false)
+	layout:addAttrib(vertex_attrib.TexCoord0, 2, attrib_type.Float, false)
 	local vertexTbl = {
 		-1.0, -1.0, 0.0, 0.0,
 		1.0, -1.0, 1.0, 0.0,

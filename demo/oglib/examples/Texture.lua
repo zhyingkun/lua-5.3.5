@@ -13,8 +13,8 @@ local function setup(glfw, bcfx, win)
     bcfx.setViewClear(viewID, bcfx.clear_flag_mask.Color, bcfx.color.cyan, 1.0, 0)
 
     local layout = bcfx.VertexLayout()
-    layout:add(bcfx.vertex_attrib.Position, 3, bcfx.attrib_type.Float, false)
-    layout:add(bcfx.vertex_attrib.TexCoord0, 2, bcfx.attrib_type.Float, false)
+    layout:addAttrib(bcfx.vertex_attrib.Position, 3, bcfx.attrib_type.Float, false)
+    layout:addAttrib(bcfx.vertex_attrib.TexCoord0, 2, bcfx.attrib_type.Float, false)
     local vertexData = bcfx.makeMemBuffer(bcfx.data_type.Float, {
         -0.5, -0.5, 0.0, 0.0, 0.0,
         0.5, -0.5, 0.0, 1.0, 0.0,
