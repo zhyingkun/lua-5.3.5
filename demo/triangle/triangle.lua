@@ -46,6 +46,65 @@ local AddOneFrame = (function()
 	end
 end)()
 
+local function CreateSkyboxBuffer()
+	local skyboxVertices = {
+		-1.0,  1.0, -1.0,
+		-1.0, -1.0, -1.0,
+		1.0, -1.0, -1.0,
+		1.0, -1.0, -1.0,
+		1.0,  1.0, -1.0,
+		-1.0,  1.0, -1.0,
+
+		-1.0, -1.0,  1.0,
+		-1.0, -1.0, -1.0,
+		-1.0,  1.0, -1.0,
+		-1.0,  1.0, -1.0,
+		-1.0,  1.0,  1.0,
+		-1.0, -1.0,  1.0,
+
+		1.0, -1.0, -1.0,
+		1.0, -1.0,  1.0,
+		1.0,  1.0,  1.0,
+		1.0,  1.0,  1.0,
+		1.0,  1.0, -1.0,
+		1.0, -1.0, -1.0,
+
+		-1.0, -1.0,  1.0,
+		-1.0,  1.0,  1.0,
+		1.0,  1.0,  1.0,
+		1.0,  1.0,  1.0,
+		1.0, -1.0,  1.0,
+		-1.0, -1.0,  1.0,
+
+		-1.0,  1.0, -1.0,
+		1.0,  1.0, -1.0,
+		1.0,  1.0,  1.0,
+		1.0,  1.0,  1.0,
+		-1.0,  1.0,  1.0,
+		-1.0,  1.0, -1.0,
+
+		-1.0, -1.0, -1.0,
+		-1.0, -1.0,  1.0,
+		1.0, -1.0, -1.0,
+		1.0, -1.0, -1.0,
+		-1.0, -1.0,  1.0,
+		1.0, -1.0,  1.0,
+	}
+	local mb = bcfx.makeMemBuffer(data_type.Half, skyboxVertices)
+	local layout = bcfx.VertexLayout()
+	layout:addAttrib(vertex_attrib.Position, 3, attrib_type.Half, false)
+	local vertex = bcfx.createVertexBuffer(mb, layout)
+	local cubeMapHandle = loader.LoadTextureCubeMap("SunnySkyBox")
+	local uniformHandle = bcfx.createUniform("CubeMapSampler", bcfx.uniform_type.SamplerCubeMap)
+	local shaderProgramHandle = loader.LoadProgram("skybox")
+	return {
+		vertex = vertex,
+		cubeMap = cubeMapHandle,
+		uniform = uniformHandle,
+		shader = shaderProgramHandle,
+	}
+end
+
 local function CreateTriangleBuffer()
 	local layout = bcfx.VertexLayout()
 	layout:addAttrib(vertex_attrib.Position, 3, attrib_type.Float, false)
@@ -245,7 +304,7 @@ local function SetupFrameBufferView(viewID, fb, width, height)
 		vector.Vec3(0.0, 0.0, 0.0), -- center
 		vector.Vec3(0.0, 1.0, 0.0) -- up
 	)
-	local projMat = graphics3d.perspective(
+	projMat = graphics3d.perspective(
 		45.0, -- fovy
 		width / height, -- aspect
 		0.1, -- zNear
@@ -273,6 +332,7 @@ local function SetupAnotherView(viewID, mainWin)
 	end)
 end
 
+local skybox
 local triangle
 local cube
 local spot
@@ -287,6 +347,7 @@ local blit
 
 local timer
 local function setup(mainWin)
+	skybox = CreateSkyboxBuffer()
 	triangle = CreateTriangleBuffer()
 	cube = CreateCubeBuffer()
 	spot = CreateSpotBuffer()
@@ -299,6 +360,8 @@ local function setup(mainWin)
 	local pixelw, pixelh = glfw.getFramebufferSize(mainWin)
 	SetupViewFull(0, mainWin, pixelw, pixelh)
 
+	SetupViewFull(1, mainWin, pixelw, pixelh)
+
 	local fbWidth = pixelw // 2
 	local fbHeight = pixelh // 2
 	colorRT = bcfx.createRenderTexture(texture_format.RGBA8, fbWidth, fbHeight)
@@ -307,11 +370,11 @@ local function setup(mainWin)
 	blit = CreateBlitBuffer()
 	blit.texture = colorRT
 	_imgRT_ = colorRT
-	SetupFrameBufferView(1, frameBuffer, fbWidth, fbHeight)
+	SetupFrameBufferView(2, frameBuffer, fbWidth, fbHeight)
 
-	SetupViewHalf(2, mainWin, fbWidth, fbHeight)
+	SetupViewHalf(3, mainWin, fbWidth, fbHeight)
 
-	-- SetupAnotherView(3, mainWin)
+	-- SetupAnotherView(4, mainWin)
 
 	-- timer = libuv.timer.new()
 	-- timer:start(function()
@@ -349,25 +412,42 @@ local function setup(mainWin)
 	bcfx.updateDynamicBuffer(instanceBuffer, 0, instanceData)
 
 	local flags = bcfx.utils.packSamplerFlags({
-		wrapU = texture_wrap.Repeat,
-		wrapV = texture_wrap.Repeat,
+		wrapU = texture_wrap.ClampToEdge,
+		wrapV = texture_wrap.ClampToEdge,
+		wrapW = texture_wrap.ClampToEdge,
 		filterMin = texture_filter.Linear,
 		filterMag = texture_filter.Linear,
 	})
 	samplerHandle = bcfx.createSampler(flags)
 end
 
+local tmpAngle = 0.0
 local angle = 0
 local function tick(delta)
 	AddOneFrame(delta)
+	bcfx.setVertexBuffer(0, skybox.vertex)
+	bcfx.setTexture(0, skybox.uniform, skybox.cubeMap, samplerHandle)
 
+	tmpAngle = tmpAngle + 0.1
+	tmpAngle = tmpAngle % 360.0
+	local viewMat = graphics3d.lookAt(
+			vector.Vec3(0.5 * math.sin(math.rad(tmpAngle)), 0.0, 0.5 * math.cos(math.rad(tmpAngle))), -- eye
+			vector.Vec3(0.0, 0.0, 0.0), -- center
+			vector.Vec3(0.0, 1.0, 0.0) -- up
+	)
+	bcfx.setViewTransform(0, viewMat, projMat)
+
+	bcfx.submit(0, skybox.shader, discard.All)
+
+	--[[
 	bcfx.setVertexBuffer(0, triangle.vertex)
 	bcfx.setVertexBuffer(1, triangle.color)
 	bcfx.setIndexBuffer(triangle.index)
 	local mat = graphics3d.scale(vector.Vec3(0.5, 0.5, 0.5))
 	bcfx.setTransform(mat)
 	bcfx.setInstanceDataBuffer(3, instanceBuffer)
-	bcfx.submit(0, triangle.shader, discard.All)
+	bcfx.submit(1, triangle.shader, discard.All)
+	--]]
 
 	bcfx.setVertexBuffer(0, cube.vertex)
 	bcfx.setIndexBuffer(cube.index)
@@ -391,16 +471,16 @@ local function tick(delta)
 	bcfx.setState(state, bcfx.color.black)
 
 	-- bcfx.setViewDebug(1, bcfx.debug.WIREFRAME)
-	bcfx.submit(1, cube.shader, discard.All)
+	bcfx.submit(2, cube.shader, discard.All)
 
 	bcfx.setVertexBuffer(0, blit.vertex)
 	bcfx.setTexture(0, blit.uniform, blit.texture, samplerHandle)
-	bcfx.submit(2, blit.shader, discard.All)
-
+	bcfx.submit(3, blit.shader, discard.All)
+--]]
 	-- bcfx.setVertexBuffer(0, vertexHandle)
 	-- bcfx.setVertexBuffer(1, colorHandle)
 	-- bcfx.setIndexBuffer(idxHandle)
-	-- bcfx.submit(3, shaderProgramHandle, discard.All)
+	-- bcfx.submit(4, shaderProgramHandle, discard.All)
 
 	-- local color = bcfx.color.pack(255, 255, 0, 255)
 	-- bcfx.setViewClear(3, clear_flag.COLOR, color, 0.0, 0)

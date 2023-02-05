@@ -50,4 +50,33 @@ function loader.loadMesh(fileName)
 	return meshs[1].vertex, meshs[1].index
 end
 
+local FaceNameList = {
+	"x_positive_right",
+	"x_negative_left",
+	"y_positive_top",
+	"y_negative_bottom",
+	"z_positive_back",
+	"z_negative_front",
+}
+function loader.LoadTextureCubeMap(folderName)
+	local filePrefix = (pathPrefix .. "Resource/Texture") / folderName
+	local fileDataMB = {}
+	local width, height
+	for idx, faceName in ipairs(FaceNameList) do
+		local filePath = filePrefix / (faceName .. ".jpg")
+		local fileData, err, str = mbio.readFile(filePath)
+		if not fileData then
+			printerr("LoadTextureCubeMap error: ", err, str, filePath)
+		end
+		local parseMB, w, h = image.imageDecode(fileData, texture_format.RGB8)
+		fileDataMB[idx] = parseMB
+		if not width and not height then
+			width, height = w, h
+		else
+			assert(width == w and height == h)
+		end
+	end
+	return bcfx.createTextureCubeMap(texture_format.RGB8, fileDataMB, width, height, false)
+end
+
 return loader
