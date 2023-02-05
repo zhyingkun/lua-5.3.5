@@ -58,7 +58,7 @@ const GLenum attrib_glType[] = {
     GL_BYTE, // Int8
     GL_SHORT, // Int16
     GL_INT, // Int32
-    GL_UNSIGNED_INT_10_10_10_2, // Uint_2_10_10_10_Rev
+    GL_UNSIGNED_INT_2_10_10_10_REV, // Uint_2_10_10_10_Rev
     GL_HALF_FLOAT, // Half
     GL_FLOAT, // Float
 };
