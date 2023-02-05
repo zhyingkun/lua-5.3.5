@@ -113,12 +113,17 @@ typedef struct {
   uint8_t type : 4;
   uint8_t num : 3;
   uint8_t normal : 1;
+  uint8_t group;
 } bcfx_Attrib;
 
+#define MAX_GROUP VA_Count
+
 typedef struct {
-  uint8_t stride;
-  uint32_t bufferOffset;
-  uint32_t offset[VA_Count];
+  uint8_t strideTotal;
+  uint8_t currentGroupCache;
+  uint8_t groupStrides[MAX_GROUP];
+  uint32_t bufferOffsetCache;
+  uint32_t offsets[VA_Count];
   bcfx_Attrib attributes[VA_Count];
 } bcfx_VertexLayout;
 

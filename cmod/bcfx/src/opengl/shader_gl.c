@@ -203,7 +203,7 @@ void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderD
     } else {
       if (attr == VA_Position) {
         // glCtx->curVertexCount = vb->count;
-        glCtx->curVertexCount = (uint32_t)(vb->buffer.size / layout->stride);
+        glCtx->curVertexCount = (uint32_t)(vb->buffer.size / layout->strideTotal);
       }
       if (curId != vb->buffer.id) {
         curId = vb->buffer.id;
@@ -211,12 +211,13 @@ void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderD
       }
       GL_CHECK(glEnableVertexAttribArray(loc));
       GL_CHECK(glVertexAttribDivisor(loc, 0)); // indicated it's per vertex, not per instance
-      uint32_t offset = layout->offset[attr];
+      uint32_t offset = layout->offsets[attr];
       bcfx_Attrib* attrib = &layout->attributes[attr];
+      uint8_t stride = layout->groupStrides[attrib->group];
       if (attrib->normal == 0 && attrib->type < AT_Half) {
-        GL_CHECK(glVertexAttribIPointer(loc, attrib->num, attrib_glType[attrib->type], layout->stride, (void*)(long)offset));
+        GL_CHECK(glVertexAttribIPointer(loc, attrib->num, attrib_glType[attrib->type], stride, (void*)(long)offset));
       } else {
-        GL_CHECK(glVertexAttribPointer(loc, attrib->num, attrib_glType[attrib->type], attrib->normal, layout->stride, (void*)(long)offset));
+        GL_CHECK(glVertexAttribPointer(loc, attrib->num, attrib_glType[attrib->type], attrib->normal, stride, (void*)(long)offset));
       }
     }
   }

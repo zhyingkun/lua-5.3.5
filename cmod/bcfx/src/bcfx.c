@@ -27,22 +27,27 @@ BCFX_API void bcfx_vertexLayoutInit(bcfx_VertexLayout* layout) {
 }
 
 BCFX_API void bcfx_vertexLayoutNextGroup(bcfx_VertexLayout* layout, uint32_t bufferOffset) {
-  layout->stride = 0;
-  layout->bufferOffset = bufferOffset;
+  layout->currentGroupCache++;
+  layout->bufferOffsetCache = bufferOffset;
 }
 
 BCFX_API void bcfx_vertexLayoutAddAttrib(bcfx_VertexLayout* layout, bcfx_EVertexAttrib attrib, uint8_t compNum, bcfx_EAttribType compType, bool normalized) {
   assert(compNum >= 1 && compNum <= 4);
+  uint8_t attSize = sizeof_AttribType[compType] * compNum;
+  uint8_t group = layout->currentGroupCache;
   bcfx_Attrib* att = &layout->attributes[attrib];
   att->num = compNum;
   att->type = compType;
   att->normal = normalized;
-  layout->offset[attrib] = layout->bufferOffset + layout->stride;
-  layout->stride += sizeof_AttribType[compType] * compNum;
+  att->group = group;
+  layout->offsets[attrib] = layout->bufferOffsetCache + layout->groupStrides[group];
+  layout->groupStrides[group] += attSize;
+  layout->strideTotal += attSize;
 }
 
 BCFX_API void bcfx_vertexLayoutSkipAttrib(bcfx_VertexLayout* layout, uint8_t numByte) {
-  layout->stride += numByte;
+  layout->groupStrides[layout->currentGroupCache] += numByte;
+  layout->strideTotal += numByte;
 }
 
 BCFX_API void bcfx_vertexLayoutClear(bcfx_VertexLayout* layout) {
