@@ -65,6 +65,14 @@ local function CreateTriangleBuffer()
 		0.0, 0.0, 1.0,
 	}
 	local mem = bcfx.makeMemBuffer(data_type.Float, colorTbl)
+	layout:clear()
+	layout:addAttrib(vertex_attrib.Color0, 4, attrib_type.Uint_2_10_10_10_Rev, true)
+	local colorTbl = {
+		bcfx.color.pack(1023, 0, 0, nil, bcfx.color.pack_type.A2BGR10),
+		bcfx.color.pack(0, 1023, 0, nil, bcfx.color.pack_type.A2BGR10),
+		bcfx.color.pack(0, 0, 1023, nil, bcfx.color.pack_type.A2BGR10),
+	}
+	local mem = bcfx.makeMemBuffer(data_type.Uint32, colorTbl)
 	local colorHandle = bcfx.createVertexBuffer(mem, layout)
 
 	local indexTbl = {
