@@ -119,6 +119,7 @@ typedef struct {
 } SamplerGL;
 typedef struct {
   GLuint id;
+  bcfx_ETextureType type;
   bcfx_ETextureFormat format;
 } TextureGL;
 typedef struct {
@@ -255,6 +256,7 @@ void gl_destroyBufferGPU(BufferGL* buf);
 extern const GLenum data_glType[];
 extern const GLenum attrib_glType[];
 extern const GLenum uniform_glType[];
+extern const GLenum texture_glType[];
 extern const GLenum textureWrap_glType[];
 extern const GLenum textureFilter_glType[];
 extern const GLenum frontFace_glType[];

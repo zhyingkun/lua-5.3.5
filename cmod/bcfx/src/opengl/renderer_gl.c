@@ -78,6 +78,16 @@ const GLenum uniform_glType[] = {
     GL_SAMPLER_CUBE,
     GL_SAMPLER_BUFFER,
 };
+// According to bcfx_ETextureType
+const GLenum texture_glType[] = {
+    GL_TEXTURE_1D,
+    GL_TEXTURE_1D_ARRAY,
+    GL_TEXTURE_2D,
+    GL_TEXTURE_2D_ARRAY,
+    GL_TEXTURE_3D,
+    GL_TEXTURE_CUBE_MAP,
+    GL_TEXTURE_2D,
+};
 // According to bcfx_ETextureWrap
 const GLenum textureWrap_glType[] = {
     GL_REPEAT,
@@ -533,6 +543,7 @@ static void gl_createSampler(RendererContext* ctx, bcfx_Handle handle, bcfx_Samp
 static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTexture* param) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   TextureGL* texture = &glCtx->textures[handle_index(handle)];
+  texture->type = param->type;
   texture->format = param->format;
   const TextureFormatInfo* fi = &textureFormat_glType[texture->format];
 

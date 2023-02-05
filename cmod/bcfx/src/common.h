@@ -92,7 +92,7 @@ size_t uniform_getSize(UniformBase* u);
 uint8_t* uniform_writeData(luaL_ByteBuffer* b, bcfx_Handle handle, size_t sz);
 uint8_t* uniform_readData(luaL_ByteBuffer* b, bcfx_Handle* phandle, size_t* psize, size_t* pread);
 
-// WARNING: Change bcfx_EIndexType must Update texture_ToUniformType
+// WARNING: Change bcfx_EIndexType must Update texture_ToUniformType and texture_glType
 typedef enum {
   TT_Texture1D,
   TT_Texture1DArray,

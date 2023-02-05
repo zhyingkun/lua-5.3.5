@@ -356,7 +356,7 @@ static void gl_bindTextureUnit(RendererContextGL* glCtx, RenderBind* bind, uint8
   if (b->handle != kInvalidHandle) {
     TextureGL* texture = &glCtx->textures[handle_index(b->handle)];
     GL_CHECK(glActiveTexture(GL_TEXTURE0 + stage));
-    GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
+    GL_CHECK(glBindTexture(texture_glType[texture->type], texture->id));
 
     SamplerGL* sampler = &glCtx->samplers[handle_index(b->sampler)];
     GL_CHECK(glBindSampler(stage, sampler->id));
