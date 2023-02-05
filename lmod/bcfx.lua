@@ -1473,25 +1473,40 @@ color.black = libcolor.black
 ---@type Color
 color.white = libcolor.white
 
+---@class bcfx_color_pack_type
+---@field public ABGR8 integer
+---@field public A2BGR10 integer
+
+---@type bcfx_color_pack_type
+color.pack_type = libcolor.pack_type
+
 ---@overload fun(r:integer | number, g:integer | number, b:integer | number):Color
 ---@overload fun(r:integer | number, g:integer | number, b:integer | number, a:integer | number):Color
+---@overload fun(r:integer | number, g:integer | number, b:integer | number, a:integer | number, t:bcfx_color_pack_type):Color
 ---@param r integer | number
 ---@param g integer | number
 ---@param b integer | number
 ---@param a integer | number
+---@param t bcfx_color_pack_type
 ---@return Color
-function color.pack(r, g, b, a)
-	return libcolor.pack(r, g, b, a)
+function color.pack(r, g, b, a, t)
+	return libcolor.pack(r, g, b, a, t)
 end
+---@overload fun(rgba:Color):integer, integer, integer, integer
+---@overload fun(rgba:Color, t:bcfx_color_pack_type):integer, integer, integer, integer
 ---@param rgba Color
+---@param t bcfx_color_pack_type
 ---@return integer, integer, integer, integer @r, g, b, a
-function color.unpack(rgba)
-	return libcolor.unpack(rgba)
+function color.unpack(rgba, t)
+	return libcolor.unpack(rgba, t)
 end
+---@overload fun(rgba:Color):number, number, number, number
+---@overload fun(rgba:Color, t:bcfx_color_pack_type):number, number, number, number
 ---@param rgba Color
+---@param t bcfx_color_pack_type
 ---@return number, number, number, number @r, g, b, a
-function color.unpackNF(rgba)
-	return libcolor.unpackNF(rgba)
+function color.unpackNF(rgba, t)
+	return libcolor.unpackNF(rgba, t)
 end
 
 -- }======================================================
