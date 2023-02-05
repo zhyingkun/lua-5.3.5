@@ -325,6 +325,8 @@ function util.setErrorMessageHandler(callback) end
 ---@field public getClear fun(self:luaL_MemBuffer):lightuserdata, integer, lightuserdata, lightuserdata
 ---@field public setReplace fun(self:luaL_MemBuffer, ptr:lightuserdata, sz:integer, release:lightuserdata, ud:lightuserdata):void
 ---@field public release fun(self:luaL_MemBuffer):void
+---@field public moveTo fun(self:luaL_MemBuffer, dst:luaL_MemBuffer):void
+---@field public getSize fun(self:luaL_MemBuffer):integer
 
 ---@overload fun():luaL_MemBuffer
 ---@overload fun(ptr:lightuserdata, sz:integer):luaL_MemBuffer
@@ -335,7 +337,7 @@ function util.setErrorMessageHandler(callback) end
 ---@param release lightuserdata
 ---@param ud lightuserdata
 ---@return luaL_MemBuffer
-function util.luaL_MemBuffer(ptr, sz, release, ud) end
+function util.MemBuffer(ptr, sz, release, ud) end
 
 function util.printBuffer() end
 

@@ -46,6 +46,12 @@ static int MEMBUF_FUNCTION(moveTo)(lua_State* L) {
   return 0;
 }
 
+static int MEMBUF_FUNCTION(getSize)(lua_State* L) {
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  lua_pushinteger(L, mb->sz);
+  return 1;
+}
+
 static int MEMBUF_FUNCTION(__gc)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   MEMBUFFER_RELEASE(mb);
@@ -59,6 +65,7 @@ static const luaL_Reg membuf_metafuncs[] = {
     EMPLACE_MEMBUF_FUNCTION(setReplace),
     EMPLACE_MEMBUF_FUNCTION(release),
     EMPLACE_MEMBUF_FUNCTION(moveTo),
+    EMPLACE_MEMBUF_FUNCTION(getSize),
     EMPLACE_MEMBUF_FUNCTION(__gc),
     {NULL, NULL},
 };
