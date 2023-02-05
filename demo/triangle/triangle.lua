@@ -84,8 +84,6 @@ local function CreateTriangleBuffer()
 end
 
 local function CreateCubeBuffer()
-	local layout = bcfx.VertexLayout()
-	layout:addAttrib(vertex_attrib.Position, 3, attrib_type.Half, false)
 	local vertexTbl = {
 	   -0.5, -0.5,  0.5, -- In OpenGL: front
 		0.5, -0.5,  0.5, -- In Unity : back
@@ -112,11 +110,7 @@ local function CreateCubeBuffer()
 		0.5, -0.5, -0.5,
 		0.5, -0.5,  0.5,
 	 }
-	local mem = bcfx.makeMemBuffer(data_type.Half, vertexTbl)
-	local vertexHandle = bcfx.createVertexBuffer(mem, layout)
-
-	local layout = bcfx.VertexLayout()
-	layout:addAttrib(vertex_attrib.TexCoord0, 2, attrib_type.Half, false)
+	local vertexMB = bcfx.makeMemBuffer(data_type.Half, vertexTbl)
 	local texCoordTbl = {
 		0.0, 0.0, -- In OpenGL: front
 		1.0, 0.0, -- In Unity : back
@@ -143,8 +137,17 @@ local function CreateCubeBuffer()
 		1.0, 1.0,
 		0.0, 1.0,
 	  }
-	local mem = bcfx.makeMemBuffer(data_type.Half, texCoordTbl)
-	local texCoordHandle = bcfx.createVertexBuffer(mem, layout)
+	local texCoordMB = bcfx.makeMemBuffer(data_type.Half, texCoordTbl)
+
+	local lenVMB, lenTCMB = vertexMB:getSize(), texCoordMB:getSize()
+
+	local layout = bcfx.VertexLayout()
+	layout:addAttrib(vertex_attrib.Position, 3, attrib_type.Half, false)
+	layout:nextGroup(lenVMB)
+	layout:addAttrib(vertex_attrib.TexCoord0, 2, attrib_type.Half, false)
+	local vertexHandle = bcfx.createDynamicVertexBuffer(lenVMB + lenTCMB, layout)
+	bcfx.updateDynamicBuffer(vertexHandle, 0, vertexMB)
+	bcfx.updateDynamicBuffer(vertexHandle, lenVMB, texCoordMB)
 
 	local indexTbl = {
 		0,  1,  2,  0,  2,  3, -- In OpenGL: front, In Unity: back
@@ -157,7 +160,7 @@ local function CreateCubeBuffer()
 	local mem = bcfx.makeMemBuffer(data_type.Uint8, indexTbl)
 	local idxHandle = bcfx.createIndexBuffer(mem, index_type.Uint8)
 
-	uniformHandle = bcfx.createUniform("my_texture", bcfx.uniform_type.Sampler2D)
+	local uniformHandle = bcfx.createUniform("my_texture", bcfx.uniform_type.Sampler2D)
 
 	local shaderProgramHandle = loader.LoadProgram("cube")
 
@@ -165,7 +168,6 @@ local function CreateCubeBuffer()
 
 	return {
 		vertex = vertexHandle,
-		texCoord = texCoordHandle,
 		index = idxHandle,
 		uniform = uniformHandle,
 		shader = shaderProgramHandle,
@@ -360,7 +362,6 @@ local function tick(delta)
 	bcfx.submit(0, triangle.shader, discard.All)
 
 	bcfx.setVertexBuffer(0, cube.vertex)
-	bcfx.setVertexBuffer(1, cube.texCoord)
 	bcfx.setIndexBuffer(cube.index)
 	-- bcfx.setVertexBuffer(0, spot.vertex)
 	-- bcfx.setIndexBuffer(spot.index)
