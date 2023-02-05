@@ -17,7 +17,7 @@ uint8_t sizeof_AttribType[] = {
     sizeof(int8_t), // GL_BYTE
     sizeof(int16_t), // GL_SHORT
     sizeof(int32_t), // GL_INT
-    sizeof(uint32_t), // GL_UNSIGNED_INT_10_10_10_2
+    sizeof(uint8_t), // GL_UNSIGNED_INT_2_10_10_10_REV
     sizeof(uint16_t), // GL_HALF_FLOAT
     sizeof(float), // GL_FLOAT
 };
