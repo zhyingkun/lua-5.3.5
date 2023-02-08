@@ -131,12 +131,14 @@ static void renderstate_updateCull(RenderStateGL* stateGL, bcfx_RenderState stat
   if (IS_STATE_CHANGED(enableCull)) {
     if (enableCull) {
       GL_CHECK(glEnable(GL_CULL_FACE));
-      GLenum cullFace = cullFace_glType[state.cullFace];
-      if (IS_STATE_CHANGED(cullFace)) {
-        GL_CHECK(glCullFace(cullFace));
-      }
     } else {
       GL_CHECK(glDisable(GL_CULL_FACE));
+    }
+  }
+  if (enableCull) {
+    GLenum cullFace = cullFace_glType[state.cullFace];
+    if (IS_STATE_CHANGED(cullFace)) {
+      GL_CHECK(glCullFace(cullFace));
     }
   }
 }
