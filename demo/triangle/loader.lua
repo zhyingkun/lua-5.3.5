@@ -66,7 +66,7 @@ left back right front
 function loader.LoadTextureCubeMap(folderName)
 	local filePrefix = (pathPrefix .. "Resource/Texture") / folderName
 	local fileDataMB = {}
-	local width, height
+	local width
 	for idx, faceName in ipairs(FaceNameList) do
 		local filePath = filePrefix / (faceName .. ".jpg")
 		local fileData, err, str = mbio.readFile(filePath)
@@ -75,13 +75,14 @@ function loader.LoadTextureCubeMap(folderName)
 		end
 		local parseMB, w, h = image.imageDecode(fileData, texture_format.RGB8)
 		fileDataMB[idx] = parseMB
-		if not width and not height then
-			width, height = w, h
+		assert(w == h)
+		if not width then
+			width = w
 		else
-			assert(width == w and height == h)
+			assert(width == w)
 		end
 	end
-	return bcfx.createTextureCubeMap(texture_format.RGB8, fileDataMB, width, height, false)
+	return bcfx.createTextureCubeMap(texture_format.RGB8, fileDataMB, width, false)
 end
 
 return loader
