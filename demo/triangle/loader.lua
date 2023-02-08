@@ -51,13 +51,18 @@ function loader.loadMesh(fileName)
 end
 
 local FaceNameList = {
-	"x_positive_right",
-	"x_negative_left",
-	"y_positive_top",
-	"y_negative_bottom",
-	"z_positive_back",
-	"z_negative_front",
+	"right",  -- +x
+	"left",   -- -x
+	"bottom", -- +y
+	"top",    -- -y
+	"back",   -- +z
+	"front",  -- -z
 }
+--[[
+     top
+left back right front
+    bottom
+]]
 function loader.LoadTextureCubeMap(folderName)
 	local filePrefix = (pathPrefix .. "Resource/Texture") / folderName
 	local fileDataMB = {}

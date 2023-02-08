@@ -94,7 +94,7 @@ local function CreateSkyboxBuffer()
 	local layout = bcfx.VertexLayout()
 	layout:addAttrib(vertex_attrib.Position, 3, attrib_type.Half, false)
 	local vertex = bcfx.createVertexBuffer(mb, layout)
-	local cubeMapHandle = loader.LoadTextureCubeMap("SunnySkyBox")
+	local cubeMapHandle = loader.LoadTextureCubeMap("Yokohama3Skybox")--("SunnySkyBox")--
 	local uniformHandle = bcfx.createUniform("CubeMapSampler", bcfx.uniform_type.SamplerCubeMap)
 	local shaderProgramHandle = loader.LoadProgram("skybox")
 	return {
@@ -305,7 +305,7 @@ local function SetupFrameBufferView(viewID, fb, width, height)
 		vector.Vec3(0.0, 1.0, 0.0) -- up
 	)
 	projMat = graphics3d.perspective(
-		45.0, -- fovy
+		90.0, -- fovy
 		width / height, -- aspect
 		0.1, -- zNear
 		40.0 -- zFar
@@ -427,14 +427,21 @@ local function tick(delta)
 	AddOneFrame(delta)
 	bcfx.setVertexBuffer(0, skybox.vertex)
 	bcfx.setTexture(0, skybox.uniform, skybox.cubeMap, samplerHandle)
+	bcfx.setState(bcfx.utils.packRenderState({
+		enableCull = true,
+		cullFace = bcfx.cull_face.Back,
+	}))
 
 	tmpAngle = tmpAngle + 0.1
 	tmpAngle = tmpAngle % 360.0
 	local viewMat = graphics3d.lookAt(
-			vector.Vec3(0.5 * math.sin(math.rad(tmpAngle)), 0.0, 0.5 * math.cos(math.rad(tmpAngle))), -- eye
-			vector.Vec3(0.0, 0.0, 0.0), -- center
-			vector.Vec3(0.0, 1.0, 0.0) -- up
+			vector.Vec3(0.0, 0.0, 0.0), -- eye
+			vector.Vec3(0.5 * math.sin(math.rad(tmpAngle)), 0.5 * math.cos(math.rad(tmpAngle)), 0.0), -- center
+			--vector.forward,
+			--vector.backward,
+			vector.Vec3(0.0, 0.0, 1.0) -- up
 	)
+	--local viewMat = graphics3d.rotate(tmpAngle, vector.Vec3(0.0, 1.0, 0.0))
 	bcfx.setViewTransform(0, viewMat, projMat)
 
 	bcfx.submit(0, skybox.shader, discard.All)
@@ -448,7 +455,7 @@ local function tick(delta)
 	bcfx.setInstanceDataBuffer(3, instanceBuffer)
 	bcfx.submit(1, triangle.shader, discard.All)
 	--]]
-
+--[[
 	bcfx.setVertexBuffer(0, cube.vertex)
 	bcfx.setIndexBuffer(cube.index)
 	-- bcfx.setVertexBuffer(0, spot.vertex)
