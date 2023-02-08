@@ -70,7 +70,7 @@ bcfx_Handle ctx_createTexture1DArray(Context* ctx, bcfx_ETextureFormat format, l
 bcfx_Handle ctx_createTexture2D(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bool bGenMipmap);
 bcfx_Handle ctx_createTexture2DArray(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t layers, bool bGenMipmap);
 bcfx_Handle ctx_createTexture3D(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t depth, bool bGenMipmap);
-bcfx_Handle ctx_createTextureCubeMap(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mb6, uint16_t width, uint16_t height, bool bGenMipmap);
+bcfx_Handle ctx_createTextureCubeMap(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mb6, uint16_t width, bool bGenMipmap);
 bcfx_Handle ctx_createTexture2DMipmap(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t levels);
 
 bcfx_Handle ctx_createRenderTexture(Context* ctx, bcfx_ETextureFormat format, uint16_t width, uint16_t height);

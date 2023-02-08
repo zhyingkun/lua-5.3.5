@@ -402,7 +402,7 @@ BCFX_API bcfx_Handle bcfx_createTexture1DArray(bcfx_ETextureFormat format, luaL_
 BCFX_API bcfx_Handle bcfx_createTexture2D(bcfx_ETextureFormat format, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bool bGenMipmap);
 BCFX_API bcfx_Handle bcfx_createTexture2DArray(bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t layers, bool bGenMipmap);
 BCFX_API bcfx_Handle bcfx_createTexture3D(bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t depth, bool bGenMipmap);
-BCFX_API bcfx_Handle bcfx_createTextureCubeMap(bcfx_ETextureFormat format, luaL_MemBuffer* mb6, uint16_t width, uint16_t height, bool bGenMipmap);
+BCFX_API bcfx_Handle bcfx_createTextureCubeMap(bcfx_ETextureFormat format, luaL_MemBuffer* mb6, uint16_t width, bool bGenMipmap);
 BCFX_API bcfx_Handle bcfx_createTexture2DMipmap(bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t levels);
 
 BCFX_API bcfx_Handle bcfx_createRenderTexture(bcfx_ETextureFormat format, uint16_t width, uint16_t height);

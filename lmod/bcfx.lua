@@ -833,16 +833,15 @@ end
 function bcfx.createTexture3D(format, mba, width, height, bGenMipmap)
 	return libbcfx.createTexture3D(format, mba, width, height, bGenMipmap)
 end
----@overload fun(format:bcfx_texture_format, mb6:luaL_MemBuffer[], width:integer, height:integer):Handle
----@overload fun(format:bcfx_texture_format, mb6:luaL_MemBuffer[], width:integer, height:integer, bGenMipmap:boolean):Handle
+---@overload fun(format:bcfx_texture_format, mb6:luaL_MemBuffer[], width:integer):Handle
+---@overload fun(format:bcfx_texture_format, mb6:luaL_MemBuffer[], width:integer, bGenMipmap:boolean):Handle
 ---@param format bcfx_texture_format
 ---@param mb6 luaL_MemBuffer[]
 ---@param width integer
----@param height integer
 ---@param bGenMipmap boolean
 ---@return Handle
-function bcfx.createTextureCubeMap(format, mb6, width, height, bGenMipmap)
-	return libbcfx.createTextureCubeMap(format, mb6, width, height, bGenMipmap)
+function bcfx.createTextureCubeMap(format, mb6, width, bGenMipmap)
+	return libbcfx.createTextureCubeMap(format, mb6, width, bGenMipmap)
 end
 ---@param format bcfx_texture_format
 ---@param mba luaL_MemBuffer[]

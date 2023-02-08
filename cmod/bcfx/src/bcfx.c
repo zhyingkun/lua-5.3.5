@@ -208,8 +208,8 @@ BCFX_API bcfx_Handle bcfx_createTexture3D(bcfx_ETextureFormat format, luaL_MemBu
   return ctx_createTexture3D(s_ctx, format, mba, width, height, depth, bGenMipmap);
 }
 
-BCFX_API bcfx_Handle bcfx_createTextureCubeMap(bcfx_ETextureFormat format, luaL_MemBuffer* mb6, uint16_t width, uint16_t height, bool bGenMipmap) {
-  return ctx_createTextureCubeMap(s_ctx, format, mb6, width, height, bGenMipmap);
+BCFX_API bcfx_Handle bcfx_createTextureCubeMap(bcfx_ETextureFormat format, luaL_MemBuffer* mb6, uint16_t width, bool bGenMipmap) {
+  return ctx_createTextureCubeMap(s_ctx, format, mb6, width, bGenMipmap);
 }
 
 BCFX_API bcfx_Handle bcfx_createTexture2DMipmap(bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t levels) {

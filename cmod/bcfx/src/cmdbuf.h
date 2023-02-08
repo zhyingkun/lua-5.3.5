@@ -93,7 +93,6 @@ typedef struct {
 typedef struct {
   luaL_MemBuffer* mb6;
   uint16_t width;
-  uint16_t height;
   bool bGenMipmap;
 } ParamTextureCubeMap;
 typedef struct {

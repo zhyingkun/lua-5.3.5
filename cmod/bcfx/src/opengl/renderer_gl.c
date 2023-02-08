@@ -622,8 +622,8 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
       ParamTextureCubeMap* p = &param->value.tcm;
       GL_CHECK(glBindTexture(GL_TEXTURE_CUBE_MAP, texture->id));
       for (uint8_t side = 0; side < 6; side++) { // +X, -X, +Y, -Y, +Z, -Z
-        assert(p->mb6[side].sz == (size_t)(p->width * p->height * fi->pixelSizeByte));
-        GL_CHECK(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, fi->internalFormat, p->width, p->height, 0, fi->format, fi->type, p->mb6[side].ptr));
+        assert(p->mb6[side].sz == (size_t)(p->width * p->width * fi->pixelSizeByte));
+        GL_CHECK(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, fi->internalFormat, p->width, p->width, 0, fi->format, fi->type, p->mb6[side].ptr));
         MEMBUFFER_RELEASE(&p->mb6[side]);
       }
       mem_free((void*)p->mb6);

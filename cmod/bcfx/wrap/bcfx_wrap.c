@@ -487,10 +487,9 @@ static int BCWRAP_FUNCTION(createTextureCubeMap)(lua_State* L) {
   bcfx_ETextureFormat format = luaL_checktextureformat(L, 1);
   GET_MEM_ARRAY_LEN(mb6, 6, 2);
   uint16_t width = luaL_checkinteger(L, 3);
-  uint16_t height = luaL_checkinteger(L, 4);
-  bool bGenMipmap = luaL_optboolean(L, 5, 0);
+  bool bGenMipmap = luaL_optboolean(L, 4, 0);
 
-  bcfx_Handle handle = bcfx_createTextureCubeMap(format, mb6, width, height, bGenMipmap);
+  bcfx_Handle handle = bcfx_createTextureCubeMap(format, mb6, width, bGenMipmap);
   luaL_pushhandle(L, handle);
   return 1;
 }

@@ -437,7 +437,7 @@ bcfx_Handle ctx_createTexture3D(Context* ctx, bcfx_ETextureFormat format, luaL_M
   t3d->bGenMipmap = bGenMipmap;
   return handle;
 }
-bcfx_Handle ctx_createTextureCubeMap(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mb6, uint16_t width, uint16_t height, bool bGenMipmap) {
+bcfx_Handle ctx_createTextureCubeMap(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mb6, uint16_t width, bool bGenMipmap) {
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   INIT_TEXTURE_PARAM(TextureCubeMap);
   ParamTextureCubeMap* tcm = &ct->value.tcm;
@@ -446,7 +446,6 @@ bcfx_Handle ctx_createTextureCubeMap(Context* ctx, bcfx_ETextureFormat format, l
     MEMBUFFER_MOVE(&mb6[side], &tcm->mb6[side]);
   }
   tcm->width = width;
-  tcm->height = height;
   tcm->bGenMipmap = bGenMipmap;
   return handle;
 }
