@@ -201,7 +201,7 @@ static int MATRIX_FUNCTION(__tostring)(lua_State* L) {
 }
 
 #define EMPLACE_MATRIX_FUNCTION(name) \
-  { #name, MATRIX_FUNCTION(name) }
+  { "" #name, MATRIX_FUNCTION(name) }
 static const luaL_Reg MATRIX_FUNCTION(metafuncs)[] = {
     EMPLACE_MATRIX_FUNCTION(set),
     EMPLACE_MATRIX_FUNCTION(get),
@@ -274,6 +274,11 @@ static int MATRIX_FUNCTION(Matrix)(lua_State* L) {
 }
 
 static int MATRIX_FUNCTION(Mat3x3)(lua_State* L) {
+  if (lua_gettop(L) == 0) {
+    Mat3x3* mat = luaL_newmat3x3(L);
+    MAT_IDENTITY(mat);
+    return 1;
+  }
   Mat3x3* mat3 = luaL_testmat3x3(L, 1);
   if (mat3 != NULL) {
     Mat3x3* mat = luaL_newmat3x3(L);
@@ -287,6 +292,11 @@ static int MATRIX_FUNCTION(Mat3x3)(lua_State* L) {
 }
 
 static int MATRIX_FUNCTION(Mat4x4)(lua_State* L) {
+  if (lua_gettop(L) == 0) {
+    Mat4x4* mat = luaL_newmat4x4(L);
+    MAT_IDENTITY(mat);
+    return 1;
+  }
   Mat4x4* mat4 = luaL_testmat4x4(L, 1);
   if (mat4 != NULL) {
     Mat4x4* mat = luaL_newmat4x4(L);
