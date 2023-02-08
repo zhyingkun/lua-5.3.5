@@ -10,9 +10,9 @@
 ** =======================================================
 */
 
-static void _freeMeshMemory(void* ud, void* ptr) {
+static void* _reallocMeshMemory(void* ud, void* ptr, size_t nsz) {
   (void)ud;
-  free(ptr);
+  return realloc(ptr, nsz);
 }
 static void luaL_pushmesh(lua_State* L, Mesh* mesh) {
   void* vertexPtr = (void*)mesh->vertexArray.arr;
@@ -24,10 +24,10 @@ static void luaL_pushmesh(lua_State* L, Mesh* mesh) {
 
   lua_createtable(L, 0, 2);
   luaL_MemBuffer* vmb = luaL_newmembuffer(L);
-  MEMBUFFER_SETREPLACE(vmb, vertexPtr, vertexSize, _freeMeshMemory, NULL);
+  MEMBUFFER_SETREPLACE(vmb, vertexPtr, vertexSize, _reallocMeshMemory, NULL);
   lua_setfield(L, -2, "vertex");
   luaL_MemBuffer* imb = luaL_newmembuffer(L);
-  MEMBUFFER_SETREPLACE(imb, indexPtr, indexSize, _freeMeshMemory, NULL);
+  MEMBUFFER_SETREPLACE(imb, indexPtr, indexSize, _reallocMeshMemory, NULL);
   lua_setfield(L, -2, "index");
 }
 

@@ -135,31 +135,31 @@ LUALIB_API uint32_t luaBB_getremainforwrite(luaL_ByteBuffer* b);
 ** =======================================================
 */
 
-typedef void (*luaL_MemRelease)(void* ud, void* ptr);
+typedef void* (*luaL_MemRealloc)(void* ud, void* ptr, size_t nsz);
 
 typedef struct {
   void* ptr;
   size_t sz;
-  luaL_MemRelease release;
+  luaL_MemRealloc realloc;
   void* ud;
 } luaL_MemBuffer;
 
 #define MEMBUFFER_SETNULL(mb) \
   (mb)->ptr = NULL; \
   (mb)->sz = 0; \
-  (mb)->release = NULL; \
+  (mb)->realloc = NULL; \
   (mb)->ud = NULL
 #define MEMBUFFER_CALLFREE(mb) \
-  if ((mb)->release != NULL && (mb)->ptr != NULL) { \
-    (mb)->release((mb)->ud, (mb)->ptr); \
+  if ((mb)->realloc != NULL && (mb)->ptr != NULL) { \
+    (mb)->realloc((mb)->ud, (mb)->ptr, 0); \
   }
 
 #define MEMBUFFER_INIT(mb) \
   MEMBUFFER_SETNULL(mb)
-#define MEMBUFFER_INITSET(mb, ptr_, sz_, release_, ud_) \
+#define MEMBUFFER_INITSET(mb, ptr_, sz_, realloc_, ud_) \
   (mb)->ptr = ptr_; \
   (mb)->sz = sz_; \
-  (mb)->release = release_; \
+  (mb)->realloc = realloc_; \
   (mb)->ud = ud_
 #define DEFINE_LOCAL_MEMBUFFER_INIT(mb) \
   luaL_MemBuffer mb[1] = {{NULL, 0, NULL, NULL}}
@@ -168,17 +168,17 @@ typedef struct {
   MEMBUFFER_CALLFREE(mb); \
   MEMBUFFER_SETNULL(mb)
 
-#define MEMBUFFER_SETREPLACE(mb, ptr_, sz_, release_, ud_) \
+#define MEMBUFFER_SETREPLACE(mb, ptr_, sz_, realloc_, ud_) \
   MEMBUFFER_CALLFREE(mb); \
   (mb)->ptr = ptr_; \
   (mb)->sz = sz_; \
-  (mb)->release = release_; \
+  (mb)->realloc = realloc_; \
   (mb)->ud = ud_
 
-#define MEMBUFFER_GETCLEAR(mb, ptr_, sz_, release_, ud_) \
+#define MEMBUFFER_GETCLEAR(mb, ptr_, sz_, realloc_, ud_) \
   ptr_ = (mb)->ptr; \
   sz_ = (mb)->sz; \
-  release_ = (mb)->release; \
+  realloc_ = (mb)->realloc; \
   ud_ = (mb)->ud; \
   MEMBUFFER_SETNULL(mb)
 

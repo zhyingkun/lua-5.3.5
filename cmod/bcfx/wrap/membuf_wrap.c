@@ -186,9 +186,9 @@ static void _fillBufferFromStack(void* ptr, bcfx_EDataType dt, size_t count, lua
   }
   lua_pop(L, (int)count);
 }
-static void _releaseMemBuffer(void* ud, void* ptr) {
+static void* _reallocMemBuffer(void* ud, void* ptr, size_t nsz) {
   (void)ud;
-  free(ptr);
+  return realloc(ptr, nsz);
 }
 static int MEMBUF_FUNCTION(makeMemBuffer)(lua_State* L) {
   int num = lua_gettop(L);
@@ -201,14 +201,14 @@ static int MEMBUF_FUNCTION(makeMemBuffer)(lua_State* L) {
     size_t count = luaL_len(L, 2);
     mb->sz = sizeof_DataType[type] * count;
     mb->ptr = malloc(mb->sz);
-    mb->release = _releaseMemBuffer;
+    mb->realloc = _reallocMemBuffer;
     mb->ud = NULL;
     _fillBufferFromTable(mb->ptr, type, count, L, 2);
   } else {
     mb->sz = 0;
     size_t msz = 1024;
     mb->ptr = malloc(msz);
-    mb->release = _releaseMemBuffer;
+    mb->realloc = _reallocMemBuffer;
     mb->ud = NULL;
     int cnt = num / 2;
     int* counts = (int*)alloca(sizeof(int) * cnt + sizeof(bcfx_EDataType) * cnt);

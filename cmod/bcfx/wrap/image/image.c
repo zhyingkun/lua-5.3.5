@@ -31,9 +31,9 @@ static void _doImageDecode(ImageDecodeParam* param, ImageDecodeResult* result) {
   result->data = (void*)stbi_load_from_memory((const stbi_uc*)mb->ptr, (int)mb->sz, &result->width, &result->height, &result->nrChannels, result->wantChannels);
   MEMBUFFER_RELEASE(mb);
 }
-static void _releaseImageSTB(void* ud, void* ptr) {
+static void* _reallocImageSTB(void* ud, void* ptr, size_t nsz) {
   (void)ud;
-  stbi_image_free((stbi_uc*)ptr);
+  return stbi_image_realloc(ptr, nsz);
 }
 
 static int IMAGE_FUNCTION(packImageDecodeParam)(lua_State* L) {
@@ -65,7 +65,7 @@ static int _dealImageDecodeResult(lua_State* L, ImageDecodeResult* result) {
   int nrChannels = result->nrChannels;
   int wantChannels = result->wantChannels;
   luaL_MemBuffer* mb = luaL_newmembuffer(L);
-  MEMBUFFER_SETREPLACE(mb, data, width * height * wantChannels, _releaseImageSTB, NULL);
+  MEMBUFFER_SETREPLACE(mb, data, width * height * wantChannels, _reallocImageSTB, NULL);
   lua_pushinteger(L, width);
   lua_pushinteger(L, height);
   lua_pushinteger(L, nrChannels);
@@ -122,10 +122,6 @@ typedef struct {
   int err;
 } ImageEncodeResult;
 
-static void _releaseSTBI(void* ud, void* ptr) {
-  (void)ud;
-  STBIW_FREE(ptr);
-}
 typedef struct {
   uint8_t* buf;
   size_t sz;
@@ -145,9 +141,9 @@ static void _writeToMemory(void* context, void* data, int size) {
   memcpy(wb->buf + wb->used, data, size);
   wb->used = want;
 }
-static void _releaseBuffer(void* ud, void* ptr) {
+static void* _reallocBuffer(void* ud, void* ptr, size_t nsz) {
   (void)ud;
-  free(ptr);
+  return realloc(ptr, nsz);
 }
 static int _imageEncodeToMemBuffer(ImageEncodeParam* param, luaL_MemBuffer* mb) {
   const void* data = param->mb.ptr;
@@ -162,7 +158,7 @@ static int _imageEncodeToMemBuffer(ImageEncodeParam* param, luaL_MemBuffer* mb) 
     if (png == NULL) {
       return 1;
     }
-    MEMBUFFER_SETREPLACE(mb, png, len, _releaseSTBI, NULL);
+    MEMBUFFER_SETREPLACE(mb, png, len, _reallocImageSTB, NULL);
     return 0;
   }
 
@@ -185,10 +181,10 @@ static int _imageEncodeToMemBuffer(ImageEncodeParam* param, luaL_MemBuffer* mb) 
       break;
   }
   if (err != 0) {
-    _releaseBuffer(NULL, wb->buf);
+    _reallocBuffer(NULL, wb->buf, 0);
     return err;
   }
-  MEMBUFFER_SETREPLACE(mb, wb->buf, wb->used, _releaseBuffer, NULL);
+  MEMBUFFER_SETREPLACE(mb, wb->buf, wb->used, _reallocBuffer, NULL);
   return 0;
 }
 static void _doImageEncode(ImageEncodeParam* param, ImageEncodeResult* result) {

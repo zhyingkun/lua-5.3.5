@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <string.h>
 
 #define MEMBUF_FUNCTION(name) membuf_##name
 
@@ -14,7 +15,7 @@ static int MEMBUF_FUNCTION(getClear)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   lua_pushlightuserdata(L, mb->ptr);
   lua_pushinteger(L, mb->sz);
-  lua_pushlightuserdata(L, mb->release);
+  lua_pushlightuserdata(L, mb->realloc);
   lua_pushlightuserdata(L, mb->ud);
   MEMBUFFER_SETNULL(mb);
   return 4;
@@ -28,7 +29,7 @@ static int MEMBUF_FUNCTION(setReplace)(lua_State* L) {
   MEMBUFFER_RELEASE(mb);
   CHECK_AND_SET(2, ptr, void*, lightuserdata);
   CHECK_AND_SET(3, sz, size_t, integer);
-  CHECK_AND_SET(4, release, luaL_MemRelease, lightuserdata);
+  CHECK_AND_SET(4, realloc, luaL_MemRealloc, lightuserdata);
   CHECK_AND_SET(5, ud, void*, lightuserdata);
   return 0;
 }
@@ -43,6 +44,20 @@ static int MEMBUF_FUNCTION(moveTo)(lua_State* L) {
   luaL_MemBuffer* src = luaL_checkmembuffer(L, 1);
   luaL_MemBuffer* dst = luaL_checkmembuffer(L, 2);
   MEMBUFFER_MOVE(src, dst);
+  return 0;
+}
+
+static int MEMBUF_FUNCTION(makeCopy)(lua_State* L) {
+  luaL_MemBuffer* src = luaL_checkmembuffer(L, 1);
+  if (src->realloc != NULL && src->ptr != NULL && src->sz != 0) {
+    void* ptr = src->realloc(src->ud, NULL, src->sz);
+    if (ptr != NULL) {
+      memcpy(ptr, src->ptr, src->sz);
+      luaL_MemBuffer* dst = luaL_newmembuffer(L);
+      MEMBUFFER_SETREPLACE(dst, ptr, src->sz, src->realloc, src->ud);
+      return 1;
+    }
+  }
   return 0;
 }
 
@@ -65,6 +80,7 @@ static const luaL_Reg membuf_metafuncs[] = {
     EMPLACE_MEMBUF_FUNCTION(setReplace),
     EMPLACE_MEMBUF_FUNCTION(release),
     EMPLACE_MEMBUF_FUNCTION(moveTo),
+    EMPLACE_MEMBUF_FUNCTION(makeCopy),
     EMPLACE_MEMBUF_FUNCTION(getSize),
     EMPLACE_MEMBUF_FUNCTION(__gc),
     {NULL, NULL},

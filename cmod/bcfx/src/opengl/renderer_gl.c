@@ -807,9 +807,9 @@ static inline bool shouldCaptureView(Frame* frame, ViewId id) {
   return (frame->numVCR < BCFX_CONFIG_MAX_VIEW_CAPTURE) &&
          (frame->viewCapture[VIEW_UINT64_INDEX(id)] & VIEW_OFFSET_BIT(id)) != 0;
 }
-static void _releaseFrameCapture(void* ud, void* ptr) {
+static void* _reallocFrameCapture(void* ud, void* ptr, size_t nsz) {
   (void)ud;
-  mem_free(ptr);
+  return mem_realloc(ptr, nsz);
 }
 static void frameCaptureView(Frame* frame, ViewId id) {
   if (IS_VIEWID_VALID(id) && shouldCaptureView(frame, id)) {
@@ -825,7 +825,7 @@ static void frameCaptureView(Frame* frame, ViewId id) {
     result->id = id;
     result->width = rect->width;
     result->height = rect->height;
-    MEMBUFFER_INITSET(&result->mb, data, sz, _releaseFrameCapture, NULL);
+    MEMBUFFER_INITSET(&result->mb, data, sz, _reallocFrameCapture, NULL);
   }
 }
 
