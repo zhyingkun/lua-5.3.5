@@ -62,6 +62,9 @@ local FaceNameList = {
      top
 left back right front
     bottom
+OpenGL CubeMapSpace: +x to right, +y to bottom, +z to back, we look at -z, left handedness
+the texture we save should be the version seen from the outside
+When sample CubeMap, we should convert position from WorldSpace to CubeMapSpace, and it will sample inside the cube
 ]]
 function loader.LoadTextureCubeMap(folderName)
 	local filePrefix = (pathPrefix .. "Resource/Texture") / folderName
