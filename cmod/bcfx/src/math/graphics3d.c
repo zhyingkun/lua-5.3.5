@@ -290,7 +290,6 @@ BCFX_API void g3d_lookAt(const Vec3* eye, const Vec3* center, const Vec3* up, Ma
   we stand at 'eye', look at 'center', 'up' is the direction points to the top of camera
   x, y, z are three vec3 for camera coordinate, according to the world coordinate (in WorldSpace)
   x, y, z will make a new coordinate, we call it ViewSpace
-  we use CrossProduct to generate ViewSpace, so ViewSpace's handedness equals WorldSpace's handedness
 
   ASpace translate to BSpace, we should find 4 vectors according to BSpace:
   AOrigin, AX, AY, AZ
@@ -309,6 +308,17 @@ BCFX_API void g3d_lookAt(const Vec3* eye, const Vec3* center, const Vec3* up, Ma
 
   RotateMatrix is a Orthogonal Matrix, so its Inverse equals its Transpose
   TranslateMatrix is (I, I, I, eye), so its Inverse is (I, I, I, -eye)
+
+  For OpenGL, ViewSpace is RightHand coordinate system, +x to right, +y to top, +z to back, front is -z, we have:
+  front = center - eye, so z = normalize(eye - center), in WorldSpace
+  For RightHandSystem: right = cross(top, back), so x = normalize(cross(up, z)), in WorldSpace
+                       top = cross(back, right), so y = normalize(cross(z, x)), in WorldSpace
+
+  No matter of left-handedness or right-handedness, cross production will make Z = cross(X, Y)
+  We don't care about WorldSpace's handedness, because we construct three vector for new ViewSpace which handedness
+  just according to the value of thess vectors in WorldSpace
+
+  cross(a, b) = -cross(b, a), For LeftHand coordinate system: right = cross(top, front)
   */
   ALLOCA_VEC3(z);
   VEC_SUBTRACT(eye, center, z);
