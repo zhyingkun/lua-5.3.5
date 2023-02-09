@@ -390,7 +390,7 @@ bcfx_Handle ctx_createTexture1DArray(Context* ctx, bcfx_ETextureFormat format, l
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   INIT_TEXTURE_PARAM(Texture1DArray);
   ParamTexture1DArray* t1da = &ct->value.t1da;
-  t1da->mba = (luaL_MemBuffer*)mem_malloc(sizeof(luaL_MemBuffer) * layers);
+  t1da->mba = (luaL_MemBuffer*)mem_calloc(layers, sizeof(luaL_MemBuffer));
   for (uint16_t layer = 0; layer < layers; layer++) {
     MEMBUFFER_MOVE(&mba[layer], &t1da->mba[layer]);
   }
@@ -413,7 +413,7 @@ bcfx_Handle ctx_createTexture2DArray(Context* ctx, bcfx_ETextureFormat format, l
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   INIT_TEXTURE_PARAM(Texture2DArray);
   ParamTexture2DArray* t2da = &ct->value.t2da;
-  t2da->mba = (luaL_MemBuffer*)mem_malloc(sizeof(luaL_MemBuffer) * layers);
+  t2da->mba = (luaL_MemBuffer*)mem_calloc(layers, sizeof(luaL_MemBuffer));
   for (uint16_t layer = 0; layer < layers; layer++) {
     MEMBUFFER_MOVE(&mba[layer], &t2da->mba[layer]);
   }
@@ -427,7 +427,7 @@ bcfx_Handle ctx_createTexture3D(Context* ctx, bcfx_ETextureFormat format, luaL_M
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   INIT_TEXTURE_PARAM(Texture3D);
   ParamTexture3D* t3d = &ct->value.t3d;
-  t3d->mba = (luaL_MemBuffer*)mem_malloc(sizeof(luaL_MemBuffer) * depth);
+  t3d->mba = (luaL_MemBuffer*)mem_calloc(depth, sizeof(luaL_MemBuffer));
   for (uint16_t d = 0; d < depth; d++) {
     MEMBUFFER_MOVE(&mba[d], &t3d->mba[d]);
   }
@@ -441,7 +441,7 @@ bcfx_Handle ctx_createTextureCubeMap(Context* ctx, bcfx_ETextureFormat format, l
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   INIT_TEXTURE_PARAM(TextureCubeMap);
   ParamTextureCubeMap* tcm = &ct->value.tcm;
-  tcm->mb6 = (luaL_MemBuffer*)mem_malloc(sizeof(luaL_MemBuffer) * 6);
+  tcm->mb6 = (luaL_MemBuffer*)mem_calloc(6, sizeof(luaL_MemBuffer));
   for (uint16_t side = 0; side < 6; side++) {
     MEMBUFFER_MOVE(&mb6[side], &tcm->mb6[side]);
   }
@@ -453,7 +453,7 @@ bcfx_Handle ctx_createTexture2DMipmap(Context* ctx, bcfx_ETextureFormat format, 
   ADD_CMD_ALLOC_HANDLE(ctx, Texture)
   INIT_TEXTURE_PARAM(Texture2DMipmap);
   ParamTexture2DMipmap* t2dm = &ct->value.t2dm;
-  t2dm->mba = (luaL_MemBuffer*)mem_malloc(sizeof(luaL_MemBuffer) * levels);
+  t2dm->mba = (luaL_MemBuffer*)mem_calloc(levels, sizeof(luaL_MemBuffer));
   for (uint16_t d = 0; d < levels; d++) {
     MEMBUFFER_MOVE(&mba[d], &t2dm->mba[d]);
   }

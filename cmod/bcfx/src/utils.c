@@ -65,6 +65,10 @@ void mem_free(void* ptr) {
   free(ptr);
 }
 
+void* mem_calloc(size_t cnt, size_t sz) {
+  return calloc(cnt, sz);
+}
+
 /* }====================================================== */
 
 /*

@@ -12,6 +12,7 @@
 void* mem_malloc(size_t sz);
 void* mem_realloc(void* ptr, size_t new_sz);
 void mem_free(void* ptr);
+void* mem_calloc(size_t cnt, size_t sz);
 
 /* }====================================================== */
 
