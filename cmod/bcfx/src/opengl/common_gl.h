@@ -76,6 +76,7 @@ typedef struct {
   GLenum type;
   uint16_t numDep;
   bcfx_Handle depend[BCFX_SHADER_DEPEND_COUNT];
+  const String* headerCode;
 } ShaderGL;
 
 typedef struct {
@@ -317,6 +318,8 @@ void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw
 ** Shader Dependence
 ** =======================================================
 */
+
+void gl_skipFirstVersionLine(const char** pptr, size_t* psz);
 
 void gl_initShaderInclude(RendererContextGL* glCtx);
 void gl_destroyShaderInclude(RendererContextGL* glCtx);

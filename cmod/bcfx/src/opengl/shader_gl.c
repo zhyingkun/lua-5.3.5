@@ -493,12 +493,27 @@ void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw
 typedef enum {
   TK_PRAGMA = 257,
   TK_INCLUDE,
+  TK_HEADER,
+  TK_START,
+  TK_FINISH,
+  TK_VERSION,
   TK_OTHER,
   TK_END,
 } Token;
 
-static String StrPragma[1] = {STRING_LITERAL("pragma")};
-static String StrInclude[1] = {STRING_LITERAL("include")};
+typedef struct {
+  String str;
+  Token token;
+} TokenString;
+static TokenString TokenStringList[] = {
+    {STRING_LITERAL("pragma"), TK_PRAGMA},
+    {STRING_LITERAL("include"), TK_INCLUDE},
+    {STRING_LITERAL("header"), TK_HEADER},
+    {STRING_LITERAL("start"), TK_START},
+    {STRING_LITERAL("finish"), TK_FINISH},
+    {STRING_LITERAL("version"), TK_VERSION},
+    {STRING_LITERAL_NULL(), TK_END},
+};
 
 static uint32_t nextToken(luaL_ByteBuffer* b) {
   const uint8_t* pCh = luaBB_readbytes(b, 1);
@@ -527,11 +542,10 @@ static uint32_t nextToken(luaL_ByteBuffer* b) {
           if (pCh != NULL) {
             luaBB_unreadbytes(b, 1);
           }
-          if (str_isEqual(tmp, StrPragma)) {
-            return TK_PRAGMA;
-          }
-          if (str_isEqual(tmp, StrInclude)) {
-            return TK_INCLUDE;
+          for (uint32_t i = 0; TokenStringList[i].token != TK_END; i++) {
+            if (str_isEqual(tmp, &TokenStringList[i].str)) {
+              return TokenStringList[i].token;
+            }
           }
         }
         return TK_OTHER;
@@ -560,38 +574,104 @@ static const char* readPath(luaL_ByteBuffer* b, char del, size_t* sz) {
   return NULL;
 }
 typedef void (*OnFindIncludePath)(void* ud, const char* path, size_t len);
-static void parseOneLine(const char* line, size_t sz, OnFindIncludePath cb, void* ud) {
+typedef void (*OnFindHeaderCode)(void* ud, const char* path, size_t len);
+typedef struct {
+  OnFindIncludePath onFindIncludePath;
+  OnFindHeaderCode onFindHeaderCode;
+  void* ud;
+  const char* currentLineStart;
+  const char* nextLineStart;
+  const char* headerCodeStart;
+} ParserContext;
+
+static void parseOneLine(ParserContext* ctx) {
+  size_t size = ctx->nextLineStart - ctx->currentLineStart;
   luaL_ByteBuffer b[1];
-  luaBB_static(b, (uint8_t*)line, (uint32_t)sz, true, false);
-  // include statement
+  luaBB_static(b, (uint8_t*)ctx->currentLineStart, (uint32_t)size, true, false);
+  // pragma statement
   static uint32_t tokens[] = {
       '#',
       TK_PRAGMA,
-      TK_INCLUDE,
-      '<',
       TK_END,
   };
   for (int i = 0; tokens[i] != TK_END; i++) {
     if (nextToken(b) != tokens[i]) {
-      return; // not a include statement
+      return; // not a pragma statement
     }
   }
-  size_t len = 0;
-  const char* path = readPath(b, '>', &len);
-  if (path != NULL && len != 0) {
-    cb(ud, path, len);
+  switch (nextToken(b)) {
+    case TK_INCLUDE: {
+      if (nextToken(b) == '<') {
+        size_t len = 0;
+        const char* path = readPath(b, '>', &len);
+        if (path != NULL && len != 0) {
+          ctx->onFindIncludePath(ctx->ud, path, len);
+        }
+      }
+    } break;
+    case TK_HEADER: {
+      switch (nextToken(b)) {
+        case TK_START:
+          if (ctx->headerCodeStart != NULL) {
+            // TODO: error with multi header start
+          }
+          ctx->headerCodeStart = ctx->nextLineStart;
+          break;
+        case TK_FINISH:
+          if (ctx->headerCodeStart == NULL) {
+            // TODO: error with no header start
+          }
+          if (ctx->headerCodeStart > ctx->currentLineStart) {
+            // TODO: error with header code count is minus
+          }
+          ctx->onFindHeaderCode(ctx->ud, ctx->headerCodeStart, ctx->currentLineStart - ctx->headerCodeStart);
+          break;
+      }
+    } break;
   }
 }
-static void parseShaderSource(const char* buf, size_t sz, OnFindIncludePath cb, void* ud) {
-  size_t lineIdx = 0;
-  for (size_t i = 0; i < sz; i++) {
-    const char ch = buf[i];
+
+static bool isOneNewLine(const char first, const char second) {
+  return (first == '\r' && second == '\n') || (first == '\n' && second == '\r');
+}
+static const char* findNextLineStart(const char* ptr, const char* endNotInclude) {
+  for (const char* p = ptr; p < endNotInclude; p++) {
+    const char ch = *p;
     if (ch == '\r' || ch == '\n') {
-      if (lineIdx < i) {
-        parseOneLine(&buf[lineIdx], i - lineIdx, cb, ud);
+      p++;
+      if (p < endNotInclude && isOneNewLine(ch, *p)) {
+        p++;
       }
-      lineIdx = i + 1;
+      return p;
     }
+  }
+  return endNotInclude;
+}
+static void parseShaderSource(const char* buf, size_t sz, OnFindIncludePath onFindIncludePath, OnFindHeaderCode onFindHeaderCode, void* ud) {
+  ParserContext ctx;
+  ctx.onFindIncludePath = onFindIncludePath;
+  ctx.onFindHeaderCode = onFindHeaderCode;
+  ctx.ud = ud;
+  ctx.headerCodeStart = NULL;
+  const char* endNotInclude = buf + sz;
+
+  ctx.nextLineStart = buf;
+  do {
+    ctx.currentLineStart = ctx.nextLineStart;
+    ctx.nextLineStart = findNextLineStart(ctx.currentLineStart, endNotInclude);
+    parseOneLine(&ctx);
+  } while (ctx.nextLineStart < endNotInclude);
+}
+
+void gl_skipFirstVersionLine(const char** pptr, size_t* psz) {
+  luaL_ByteBuffer b[1];
+  luaBB_static(b, (uint8_t*)*pptr, (uint32_t)*psz, true, false);
+  if (nextToken(b) == '#' && nextToken(b) == TK_VERSION) {
+    const char* endNotInclude = *pptr + *psz;
+    const char* nextStart = findNextLineStart(*pptr, endNotInclude);
+    *pptr = nextStart;
+    *psz = endNotInclude - nextStart;
+    // TODO: Check version number and profile type
   }
 }
 
@@ -670,51 +750,71 @@ static void _onFindIncludePath(void* ud, const char* str, size_t sz) {
   shader->depend[shader->numDep] = handle;
   shader->numDep++;
 }
+
+static void _onFindHeaderCode(void* ud, const char* str, size_t sz) {
+  Param* p = (Param*)ud;
+  p->shader->headerCode = str_create(str, sz);
+}
 void gl_scanShaderDependence(RendererContextGL* glCtx, ShaderGL* shader, const char* source, size_t len) {
   Param p[1];
   p->glCtx = glCtx;
   p->shader = shader;
-  parseShaderSource(source, len, _onFindIncludePath, (void*)p);
+  if (shader->headerCode != NULL) {
+    str_destroy(shader->headerCode);
+    shader->headerCode = NULL;
+  }
+  shader->numDep = 0;
+  parseShaderSource(source, len, _onFindIncludePath, _onFindHeaderCode, (void*)p);
 }
 
-typedef void (*OnFindShader)(void* ud, bcfx_Handle handle, ShaderGL* s);
-static void _forEachDependShader(RendererContextGL* glCtx, bcfx_Handle handle, OnFindShader callback, void* ud) {
+typedef void (*OnFindShader)(RendererContextGL* glCtx, void* ud, bcfx_Handle shaderHandle);
+static void _forEachDependShader(RendererContextGL* glCtx, bcfx_Handle handle, bool recursive, OnFindShader callback, void* ud) {
   // TODO: check handle invalid
   ShaderGL* shader = &glCtx->shaders[handle_index(handle)];
-  callback(ud, handle, shader);
   for (uint16_t i = 0; i < shader->numDep; i++) {
-    _forEachDependShader(glCtx, shader->depend[i], callback, ud);
+    bcfx_Handle dep = shader->depend[i];
+    callback(glCtx, ud, dep);
+    if (recursive) {
+      _forEachDependShader(glCtx, dep, recursive, callback, ud);
+    }
   }
 }
 
-static void _doAttachShader(void* ud, bcfx_Handle handle, ShaderGL* shader) {
+static void _doAttachShader(RendererContextGL* glCtx, void* ud, bcfx_Handle shaderHandle) {
   ProgramGL* prog = (ProgramGL*)ud;
-  (void)handle;
+  ShaderGL* shader = &glCtx->shaders[handle_index(shaderHandle)];
   GL_CHECK(glAttachShader(prog->id, shader->id));
 }
 void gl_attachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle) {
-  _forEachDependShader(glCtx, handle, _doAttachShader, (void*)prog);
+  _doAttachShader(glCtx, (void*)prog, handle);
+  _forEachDependShader(glCtx, handle, true, _doAttachShader, (void*)prog);
 }
 
-static void _doDetachShader(void* ud, bcfx_Handle handle, ShaderGL* shader) {
+static void _doDetachShader(RendererContextGL* glCtx, void* ud, bcfx_Handle shaderHandle) {
   ProgramGL* prog = (ProgramGL*)ud;
-  (void)handle;
+  ShaderGL* shader = &glCtx->shaders[handle_index(shaderHandle)];
   GL_CHECK(glDetachShader(prog->id, shader->id));
 }
 void gl_detachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle) {
-  _forEachDependShader(glCtx, handle, _doDetachShader, (void*)prog);
+  _doDetachShader(glCtx, (void*)prog, handle);
+  _forEachDependShader(glCtx, handle, true, _doDetachShader, (void*)prog);
 }
 
 static bool bHasDepend = false;
-static void _doDependenceCheck(void* ud, bcfx_Handle handle, ShaderGL* shader) {
+static void _doDependenceCheck(RendererContextGL* glCtx, void* ud, bcfx_Handle handle) {
   bcfx_Handle shaderHandle = *(bcfx_Handle*)ud;
   if (shaderHandle == handle) {
     bHasDepend = true;
   }
 }
-static bool gl_isProgramDependsShader(RendererContextGL* glCtx, bcfx_Handle prog, bcfx_Handle shaderHandle) {
+static bool gl_isProgramDependsShader(RendererContextGL* glCtx, bcfx_Handle progHandle, bcfx_Handle shaderHandle) {
+  ProgramGL* prog = &glCtx->programs[handle_index(progHandle)];
   bHasDepend = false;
-  _forEachDependShader(glCtx, prog, _doDependenceCheck, (void*)&shaderHandle);
+  _forEachDependShader(glCtx, prog->vs, true, _doDependenceCheck, (void*)&shaderHandle);
+  if (bHasDepend) {
+    return true;
+  }
+  _forEachDependShader(glCtx, prog->fs, true, _doDependenceCheck, (void*)&shaderHandle);
   return bHasDepend;
 }
 void gl_updateAllProgram(RendererContextGL* glCtx, bcfx_Handle shaderHandle) {

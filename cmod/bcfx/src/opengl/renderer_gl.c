@@ -422,8 +422,27 @@ static void gl_createShader(RendererContext* ctx, bcfx_Handle handle, luaL_MemBu
     assert(type == ST_Count);
     assert(path == NULL);
   }
-  const GLint length = (GLint)mem->sz;
-  GL_CHECK(glShaderSource(shader->id, 1, (const GLchar* const*)&mem->ptr, &length));
+  gl_scanShaderDependence(glCtx, shader, mem->ptr, mem->sz);
+  const char* ptrCode = mem->ptr;
+  size_t szCode = mem->sz;
+  gl_skipFirstVersionLine(&ptrCode, &szCode);
+
+#define ADD_SOURCE_CODE(ptr_, sz_) source[count] = (const GLchar*)(ptr_), length[count] = (GLint)(sz_), count++
+  GLsizei count = 0;
+  const GLchar* source[3 + BCFX_SHADER_DEPEND_COUNT];
+  GLint length[3 + BCFX_SHADER_DEPEND_COUNT];
+  ADD_SOURCE_CODE("#version 410 core\n#line 0 1\n", -1);
+  for (uint16_t i = 0; i < shader->numDep; i++) {
+    ShaderGL* dep = &glCtx->shaders[handle_index(shader->depend[i])];
+    if (dep->headerCode != NULL) {
+      ADD_SOURCE_CODE(dep->headerCode->str, dep->headerCode->sz);
+    }
+  }
+  ADD_SOURCE_CODE("#line 1 0\n", -1);
+  ADD_SOURCE_CODE(ptrCode, szCode);
+#undef ADD_SOURCE_CODE
+
+  GL_CHECK(glShaderSource(shader->id, count, source, length));
   GL_CHECK(glCompileShader(shader->id));
 
   GLint success;
@@ -435,8 +454,6 @@ static void gl_createShader(RendererContext* ctx, bcfx_Handle handle, luaL_MemBu
     GL_CHECK(glGetShaderInfoLog(shader->id, logLen, NULL, infoLog));
     printf_err("Shader compile error: %s\n", infoLog);
   } else {
-    shader->numDep = 0;
-    gl_scanShaderDependence(glCtx, shader, mem->ptr, mem->sz);
     if (bCreate) {
       if (path != NULL) {
         gl_addShaderIncludeHandle(glCtx, path, handle);
@@ -960,6 +977,8 @@ static void gl_destroyShader(RendererContext* ctx, bcfx_Handle handle) {
   GL_CHECK(glDeleteShader(shader->id));
   shader->id = 0;
   shader->numDep = 0;
+  str_destroy(shader->headerCode);
+  shader->headerCode = NULL;
 }
 static void gl_destroyProgram(RendererContext* ctx, bcfx_Handle handle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
