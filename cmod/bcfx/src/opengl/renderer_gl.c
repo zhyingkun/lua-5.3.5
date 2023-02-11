@@ -653,7 +653,6 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
     case TT_Texture2DMipmap: {
       ParamTexture2DMipmap* p = &param->value.t2dm;
       GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
-      GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
       assert(p->levels <= log2(MAX(p->width, p->height)) + 1);
       uint16_t width = p->width;
       uint16_t height = p->height;
