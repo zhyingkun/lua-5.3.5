@@ -193,4 +193,58 @@ LUALIB_API luaL_MemBuffer* luaL_newmembuffer(lua_State* L);
 
 /* }====================================================== */
 
+/*
+** {======================================================
+** Array
+** =======================================================
+*/
+
+#define DECLARE_ARRAY(Type, TypeArray, prefix) \
+  typedef struct { \
+    uint32_t capacity; \
+    uint32_t size; \
+    Type* arrayPtr; \
+  } TypeArray; \
+\
+  void prefix##_init(TypeArray* arr); \
+  void prefix##_destroy(TypeArray* arr); \
+  Type* prefix##_addUninitialized(TypeArray* arr); \
+  bool prefix##_find(TypeArray* arr, Type value); \
+  void prefix##_empty(TypeArray* arr);
+
+#define DEFINE_ARRAY(Type, TypeArray, prefix, dftSize) \
+  void prefix##_init(TypeArray* arr) { \
+    arr->capacity = dftSize; \
+    arr->size = 0; \
+    arr->arrayPtr = calloc(arr->capacity, sizeof(Type)); \
+  } \
+  void prefix##_destroy(TypeArray* arr) { \
+    free(arr->arrayPtr); \
+    arr->capacity = 0; \
+    arr->size = 0; \
+    arr->arrayPtr = NULL; \
+  } \
+  Type* prefix##_addUninitialized(TypeArray* arr) { \
+    if (arr->size == arr->capacity) { \
+      arr->capacity *= 2; \
+      arr->arrayPtr = realloc(arr->arrayPtr, arr->capacity * sizeof(Type)); \
+    } \
+    Type* ret = &arr->arrayPtr[arr->size]; \
+    arr->size++; \
+    return ret; \
+  } \
+  bool prefix##_find(TypeArray* arr, Type value) { \
+    for (uint32_t i = 0; i < arr->size; i++) { \
+      if (arr->arrayPtr[i] == value) { \
+        return true; \
+      } \
+    } \
+    return false; \
+  } \
+  void prefix##_empty(TypeArray* arr) { \
+    arr->size = 0; \
+  }
+
+/* }====================================================== */
+
 #endif /* luautil_h */

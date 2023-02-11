@@ -554,17 +554,18 @@ static uint32_t nextToken(luaL_ByteBuffer* b) {
   }
   return TK_END;
 }
-static const char* readPath(luaL_ByteBuffer* b, char del, size_t* sz) {
+static const char* readPath(luaL_ByteBuffer* b, char pre, char del, size_t* sz) {
+  if (nextToken(b) != (uint32_t)pre) {
+    return NULL;
+  }
   const uint8_t* pCh = luaBB_readbytes(b, 1);
   const char* path = (const char*)pCh;
   while (pCh != NULL && *pCh != del) {
-    switch (*pCh) {
-      case '\n':
-      case '\r':
-        return NULL; // unfinished path
-      default:
-        pCh = luaBB_readbytes(b, 1);
-        break;
+    char ch = *pCh;
+    if (isalpha(ch) || ch == '_' || ch == '/') {
+      pCh = luaBB_readbytes(b, 1);
+    } else {
+      return NULL; // unfinished path
     }
   }
   if (pCh != NULL && *pCh == del) {
@@ -584,29 +585,22 @@ typedef struct {
   const char* headerCodeStart;
 } ParserContext;
 
+#define isMatchNextToken(b, tk) (nextToken(b) == (tk))
+#define isMatchNextToken2(b, tk1, tk2) (nextToken(b) == (tk1) && nextToken(b) == (tk2))
 static void parseOneLine(ParserContext* ctx) {
   size_t size = ctx->nextLineStart - ctx->currentLineStart;
   luaL_ByteBuffer b[1];
   luaBB_static(b, (uint8_t*)ctx->currentLineStart, (uint32_t)size, true, false);
-  // pragma statement
-  static uint32_t tokens[] = {
-      '#',
-      TK_PRAGMA,
-      TK_END,
-  };
-  for (int i = 0; tokens[i] != TK_END; i++) {
-    if (nextToken(b) != tokens[i]) {
-      return; // not a pragma statement
-    }
+
+  if (!isMatchNextToken2(b, '#', TK_PRAGMA)) {
+    return; // not a pragma statement
   }
   switch (nextToken(b)) {
     case TK_INCLUDE: {
-      if (nextToken(b) == '<') {
-        size_t len = 0;
-        const char* path = readPath(b, '>', &len);
-        if (path != NULL && len != 0) {
-          ctx->onFindIncludePath(ctx->ud, path, len);
-        }
+      size_t len = 0;
+      const char* path = readPath(b, '<', '>', &len);
+      if (path != NULL && len != 0) {
+        ctx->onFindIncludePath(ctx->ud, path, len);
       }
     } break;
     case TK_HEADER: {
@@ -616,6 +610,9 @@ static void parseOneLine(ParserContext* ctx) {
             // TODO: error with multi header start
           }
           ctx->headerCodeStart = ctx->nextLineStart;
+          if (!isMatchNextToken(b, TK_END)) {
+            // TODO: error with not empty after header
+          }
           break;
         case TK_FINISH:
           if (ctx->headerCodeStart == NULL) {
@@ -625,6 +622,9 @@ static void parseOneLine(ParserContext* ctx) {
             // TODO: error with header code count is minus
           }
           ctx->onFindHeaderCode(ctx->ud, ctx->headerCodeStart, ctx->currentLineStart - ctx->headerCodeStart);
+          if (!isMatchNextToken(b, TK_END)) {
+            // TODO: error with not empty after header
+          }
           break;
       }
     } break;
@@ -666,7 +666,7 @@ static void parseShaderSource(const char* buf, size_t sz, OnFindIncludePath onFi
 void gl_skipFirstVersionLine(const char** pptr, size_t* psz) {
   luaL_ByteBuffer b[1];
   luaBB_static(b, (uint8_t*)*pptr, (uint32_t)*psz, true, false);
-  if (nextToken(b) == '#' && nextToken(b) == TK_VERSION) {
+  if (isMatchNextToken2(b, '#', TK_VERSION)) {
     const char* endNotInclude = *pptr + *psz;
     const char* nextStart = findNextLineStart(*pptr, endNotInclude);
     *pptr = nextStart;
@@ -767,17 +767,41 @@ void gl_scanShaderDependence(RendererContextGL* glCtx, ShaderGL* shader, const c
   parseShaderSource(source, len, _onFindIncludePath, _onFindHeaderCode, (void*)p);
 }
 
+DECLARE_ARRAY(bcfx_Handle, HandleArray, ha)
+DEFINE_ARRAY(bcfx_Handle, HandleArray, ha, 128)
+
 typedef void (*OnFindShader)(RendererContextGL* glCtx, void* ud, bcfx_Handle shaderHandle);
-static void _forEachDependShader(RendererContextGL* glCtx, bcfx_Handle handle, bool recursive, OnFindShader callback, void* ud) {
-  // TODO: check handle invalid
-  ShaderGL* shader = &glCtx->shaders[handle_index(handle)];
+typedef struct {
+  RendererContextGL* glCtx;
+  bool recursive;
+  OnFindShader callback;
+  void* ud;
+  HandleArray cache[1];
+} TraverseContext;
+static void _forEachDependShaderInternal(TraverseContext* tc, bcfx_Handle handle) {
+  if (ha_find(tc->cache, handle)) {
+    return;
+  }
+  *ha_addUninitialized(tc->cache) = handle;
+  ShaderGL* shader = &tc->glCtx->shaders[handle_index(handle)];
   for (uint16_t i = 0; i < shader->numDep; i++) {
     bcfx_Handle dep = shader->depend[i];
-    callback(glCtx, ud, dep);
-    if (recursive) {
-      _forEachDependShader(glCtx, dep, recursive, callback, ud);
+    tc->callback(tc->glCtx, tc->ud, dep);
+    if (tc->recursive) {
+      _forEachDependShaderInternal(tc, dep);
     }
   }
+}
+static void _forEachDependShader(RendererContextGL* glCtx, bcfx_Handle handle, bool recursive, OnFindShader callback, void* ud) {
+  // TODO: check handle invalid
+  TraverseContext tc[1];
+  tc->glCtx = glCtx;
+  tc->recursive = recursive;
+  tc->callback = callback;
+  tc->ud = ud;
+  ha_init(tc->cache);
+  _forEachDependShaderInternal(tc, handle);
+  ha_destroy(tc->cache);
 }
 
 static void _doAttachShader(RendererContextGL* glCtx, void* ud, bcfx_Handle shaderHandle) {
