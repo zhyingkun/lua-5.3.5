@@ -574,7 +574,7 @@ static const char* readPath(luaL_ByteBuffer* b, char pre, char del, size_t* sz) 
   }
   return NULL;
 }
-typedef void (*OnFindIncludePath)(void* ud, const char* path, size_t len);
+typedef void (*OnFindIncludePath)(void* ud, const char* path, size_t len, size_t lineNumber);
 typedef void (*OnFindHeaderCode)(void* ud, const char* path, size_t len);
 typedef struct {
   OnFindIncludePath onFindIncludePath;
@@ -583,6 +583,7 @@ typedef struct {
   const char* currentLineStart;
   const char* nextLineStart;
   const char* headerCodeStart;
+  size_t currentLineNumber;
 } ParserContext;
 
 #define isMatchNextToken(b, tk) (nextToken(b) == (tk))
@@ -599,8 +600,8 @@ static void parseOneLine(ParserContext* ctx) {
     case TK_INCLUDE: {
       size_t len = 0;
       const char* path = readPath(b, '<', '>', &len);
-      if (path != NULL && len != 0) {
-        ctx->onFindIncludePath(ctx->ud, path, len);
+      if (path != NULL && len != 0 && ctx->onFindIncludePath != NULL) {
+        ctx->onFindIncludePath(ctx->ud, path, len, ctx->currentLineNumber);
       }
     } break;
     case TK_HEADER: {
@@ -621,7 +622,10 @@ static void parseOneLine(ParserContext* ctx) {
           if (ctx->headerCodeStart > ctx->currentLineStart) {
             // TODO: error with header code count is minus
           }
-          ctx->onFindHeaderCode(ctx->ud, ctx->headerCodeStart, ctx->currentLineStart - ctx->headerCodeStart);
+          if (ctx->onFindHeaderCode != NULL) {
+            size_t len = ctx->currentLineStart - ctx->headerCodeStart;
+            ctx->onFindHeaderCode(ctx->ud, ctx->headerCodeStart, len);
+          }
           if (!isMatchNextToken(b, TK_END)) {
             // TODO: error with not empty after header
           }
@@ -656,9 +660,11 @@ static void parseShaderSource(const char* buf, size_t sz, OnFindIncludePath onFi
   const char* endNotInclude = buf + sz;
 
   ctx.nextLineStart = buf;
+  ctx.currentLineNumber = 0;
   do {
     ctx.currentLineStart = ctx.nextLineStart;
     ctx.nextLineStart = findNextLineStart(ctx.currentLineStart, endNotInclude);
+    ctx.currentLineNumber++;
     parseOneLine(&ctx);
   } while (ctx.nextLineStart < endNotInclude);
 }
@@ -723,7 +729,7 @@ typedef struct {
   RendererContextGL* glCtx;
   ShaderGL* shader;
 } Param;
-static void _onFindIncludePath(void* ud, const char* str, size_t sz) {
+static void _onFindIncludePath(void* ud, const char* str, size_t sz, size_t lineNumber) {
   String path[1];
   path->str = str;
   path->sz = sz;
@@ -734,7 +740,7 @@ static void _onFindIncludePath(void* ud, const char* str, size_t sz) {
     char* tmp = (char*)alloca(sz + 1);
     strncpy(tmp, str, sz);
     tmp[sz] = '\0';
-    printf_err("Error: could not find shader include file: %s\n", tmp);
+    printf_err("Error: 0:%zu: '%s' : shader include file could not found\n", lineNumber, tmp);
     return;
   }
   ShaderGL* shader = p->shader;
