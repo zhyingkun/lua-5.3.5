@@ -411,3 +411,25 @@ BCFX_API bcfx_EUniformType bcfx_uniformInfo(bcfx_Handle handle, uint16_t* num) {
 }
 
 /* }====================================================== */
+
+/*
+** {======================================================
+** Builtin
+** =======================================================
+*/
+
+BCFX_API bcfx_BuiltinMesh bcfx_getBuiltinMesh(bcfx_EBuiltinMeshType type) {
+  if (s_ctx->builtinMesh[type].vertex == kInvalidHandle) {
+    s_ctx->builtinMesh[type] = builtin_createMesh(type);
+  }
+  return s_ctx->builtinMesh[type];
+}
+
+BCFX_API bcfx_Handle bcfx_getBuiltinShaderProgram(bcfx_EBuiltinShaderType type) {
+  if (s_ctx->builtinShader[type] == kInvalidHandle) {
+    s_ctx->builtinShader[type] = builtin_createShader(type);
+  }
+  return s_ctx->builtinShader[type];
+}
+
+/* }====================================================== */

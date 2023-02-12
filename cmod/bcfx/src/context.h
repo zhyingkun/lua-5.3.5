@@ -43,6 +43,9 @@ typedef struct {
 
   UniformBase uniforms[BCFX_CONFIG_MAX_UNIFORM];
   TextureBase textures[BCFX_CONFIG_MAX_TEXTURE];
+
+  bcfx_BuiltinMesh builtinMesh[BMT_Count];
+  bcfx_Handle builtinShader[BST_Count];
 } Context;
 
 uint32_t ctx_frameId(Context* ctx);

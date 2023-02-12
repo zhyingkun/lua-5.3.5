@@ -235,6 +235,7 @@ static void DestroyRenderer(RendererContext* renderer) {
 
 void ctx_init(Context* ctx, Window mainWin, uint32_t initMask) {
   assert(mainWin != NULL);
+  memset(ctx, 0, sizeof(Context));
   ctx->running = true;
   ctx->mainWin = mainWin;
   ctx->initMask = initMask;

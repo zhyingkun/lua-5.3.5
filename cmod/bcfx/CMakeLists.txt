@@ -35,6 +35,7 @@ set(
 	MODULE_DIRS
 	include
 	src
+	src/builtin
 	src/math
 	src/opengl
 	src/opengl/glad

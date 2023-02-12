@@ -758,4 +758,53 @@ BCFX_API bcfx_EUniformType bcfx_uniformInfo(bcfx_Handle handle, uint16_t* num);
 
 /* }====================================================== */
 
+/*
+** {======================================================
+** Builtin
+** =======================================================
+*/
+
+#define BUILTIN_MESH_TYPE(XX) \
+  XX(Triangle) \
+  XX(Square) \
+  XX(Circle) \
+  XX(Tetrahedron) \
+  XX(Cube) \
+  XX(Sphere) \
+  XX(Cylinder) \
+  XX(Cone)
+
+// clang-format off
+typedef enum {
+#define XX(name) BMT_##name,
+  BUILTIN_MESH_TYPE(XX)
+#undef XX
+  BMT_Count,
+} bcfx_EBuiltinMeshType;
+// clang-format on
+
+typedef struct {
+  bcfx_Handle vertex;
+  bcfx_Handle index;
+  bcfx_EPrimitiveType primitive;
+} bcfx_BuiltinMesh;
+
+BCFX_API bcfx_BuiltinMesh bcfx_getBuiltinMesh(bcfx_EBuiltinMeshType type);
+
+#define BUILTIN_SHADER_TYPE(XX) \
+  XX(Default)
+
+// clang-format off
+typedef enum {
+#define XX(name) BST_##name,
+  BUILTIN_SHADER_TYPE(XX)
+#undef XX
+  BST_Count,
+} bcfx_EBuiltinShaderType;
+// clang-format on
+
+BCFX_API bcfx_Handle bcfx_getBuiltinShaderProgram(bcfx_EBuiltinShaderType type);
+
+/* }====================================================== */
+
 #endif /* _BCFX_H_ */

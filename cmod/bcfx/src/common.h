@@ -107,4 +107,15 @@ typedef struct {
   bcfx_ETextureType type;
 } TextureBase;
 
+/*
+** {======================================================
+** Built-in
+** =======================================================
+*/
+
+bcfx_BuiltinMesh builtin_createMesh(bcfx_EBuiltinMeshType type);
+bcfx_Handle builtin_createShader(bcfx_EBuiltinShaderType type);
+
+/* }====================================================== */
+
 #endif /* _COMMON_H_ */
