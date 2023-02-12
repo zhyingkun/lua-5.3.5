@@ -212,13 +212,19 @@ LUALIB_API luaL_MemBuffer* luaL_newmembuffer(lua_State* L);
   bool prefix##_find(TypeArray* arr, Type value); \
   void prefix##_empty(TypeArray* arr);
 
+#define Nothing(x)
 #define DEFINE_ARRAY(Type, TypeArray, prefix, dftSize) \
+  DEFINE_ARRAY_EX(Type, TypeArray, prefix, dftSize, Nothing)
+#define DEFINE_ARRAY_EX(Type, TypeArray, prefix, dftSize, destructor) \
   void prefix##_init(TypeArray* arr) { \
     arr->capacity = dftSize; \
     arr->size = 0; \
     arr->arrayPtr = calloc(arr->capacity, sizeof(Type)); \
   } \
   void prefix##_destroy(TypeArray* arr) { \
+    for (uint32_t i = 0; i < arr->size; i++) { \
+      destructor(&arr->arrayPtr[i]); \
+    } \
     free(arr->arrayPtr); \
     arr->capacity = 0; \
     arr->size = 0; \
