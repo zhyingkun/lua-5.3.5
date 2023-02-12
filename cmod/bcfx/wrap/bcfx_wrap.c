@@ -873,6 +873,30 @@ static int BCWRAP_FUNCTION(submit)(lua_State* L) {
 
 /*
 ** {======================================================
+** Builtin
+** =======================================================
+*/
+
+static int BCWRAP_FUNCTION(getBuiltinMesh)(lua_State* L) {
+  bcfx_EBuiltinMeshType type = luaL_checkbuiltinmeshtype(L, 1);
+  bcfx_BuiltinMesh mesh = bcfx_getBuiltinMesh(type);
+  luaL_pushhandle(L, mesh.vertex);
+  luaL_pushhandle(L, mesh.index);
+  luaL_pushprimitivetype(L, mesh.primitive);
+  return 3;
+}
+
+static int BCWRAP_FUNCTION(getBuiltinShaderProgram)(lua_State* L) {
+  bcfx_EBuiltinShaderType type = luaL_checkbuiltinshadertype(L, 1);
+  bcfx_Handle prog = bcfx_getBuiltinShaderProgram(type);
+  luaL_pushhandle(L, prog);
+  return 1;
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** Function Table for Lua
 ** =======================================================
 */
@@ -945,6 +969,9 @@ static const luaL_Reg wrap_funcs[] = {
     EMPLACE_BCWRAP_FUNCTION(setStencil),
     EMPLACE_BCWRAP_FUNCTION(setInstanceDataBuffer),
     EMPLACE_BCWRAP_FUNCTION(submit),
+    /* Builtin */
+    EMPLACE_BCWRAP_FUNCTION(getBuiltinMesh),
+    EMPLACE_BCWRAP_FUNCTION(getBuiltinShaderProgram),
 
     {NULL, NULL},
 };
@@ -1188,6 +1215,22 @@ static const luaL_Enum BCWRAP_ENUM(uniform_type)[] = {
     {"SamplerBuffer", UT_SamplerBuffer},
     {NULL, 0},
 };
+// clang-format off
+static const luaL_Enum BCWRAP_ENUM(builtin_mesh_type)[] = {
+#define XX(name) {#name, BMT_##name},
+    BUILTIN_MESH_TYPE(XX)
+#undef XX
+    {"Count", BMT_Count},
+    {NULL, 0},
+};
+static const luaL_Enum BCWRAP_ENUM(builtin_shader_type)[] = {
+#define XX(name) {#name, BST_##name},
+    BUILTIN_SHADER_TYPE(XX)
+#undef XX
+    {"Count", BST_Count},
+    {NULL, 0},
+};
+// clang-format on
 
 /* }====================================================== */
 
@@ -1219,6 +1262,8 @@ LUAMOD_API int luaopen_libbcfx(lua_State* L) {
   REGISTE_ENUM_BCWRAP(primitive_type);
   REGISTE_ENUM_BCWRAP(texture_format);
   REGISTE_ENUM_BCWRAP(uniform_type);
+  REGISTE_ENUM_BCWRAP(builtin_mesh_type);
+  REGISTE_ENUM_BCWRAP(builtin_shader_type);
 
   (void)VL_FUNCTION(init_metatable)(L);
   (void)COLOR_FUNCTION(init)(L);

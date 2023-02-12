@@ -1113,6 +1113,25 @@ end
 
 -- }======================================================
 
+--[[
+** {======================================================
+** Builtin
+** =======================================================
+--]]
+
+---@param type bcfx_builtin_mesh_type
+---@return Handle, Handle, bcfx_primitive_type @ vertex, index, primitive
+function bcfx.getBuiltinMesh(type)
+	return libbcfx.getBuiltinMesh(type)
+end
+---@param type bcfx_builtin_shader_type
+---@return Handle @ shader program
+function bcfx.getBuiltinShaderProgram(type)
+	return libbcfx.getBuiltinShaderProgram(type)
+end
+
+-- }======================================================
+
 ---@class bcfx_init_flag
 ---@field public FramebufferSRGB integer
 
@@ -1430,6 +1449,25 @@ bcfx.texture_format = libbcfx.texture_format
 
 ---@type bcfx_uniform_type
 bcfx.uniform_type = libbcfx.uniform_type
+
+---@class bcfx_builtin_mesh_type
+---@field public Triangle integer
+---@field public Square integer
+---@field public Circle integer
+---@field public Tetrahedron integer
+---@field public Cube integer
+---@field public Sphere integer
+---@field public Cylinder integer
+---@field public Cone integer
+
+---@type bcfx_builtin_mesh_type
+bcfx.builtin_mesh_type = libbcfx.builtin_mesh_type
+
+---@class bcfx_builtin_shader_type
+---@field public Default integer
+
+---@type bcfx_builtin_shader_type
+bcfx.builtin_shader_type = libbcfx.builtin_shader_type
 
 --[[
 ** {======================================================

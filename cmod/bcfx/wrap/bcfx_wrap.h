@@ -169,11 +169,14 @@ void QUATERNION_FUNCTION(init)(lua_State* L);
 #define luaL_checkvertexattrib(L, idx) ((bcfx_EVertexAttrib)luaL_checkinteger(L, idx))
 #define luaL_checkattribtype(L, idx) ((bcfx_EAttribType)luaL_checkinteger(L, idx))
 #define luaL_checkimagetype(L, idx) ((ImageType)luaL_checkinteger(L, idx))
+#define luaL_checkbuiltinmeshtype(L, idx) ((bcfx_EBuiltinMeshType)luaL_checkinteger(L, idx))
+#define luaL_checkbuiltinshadertype(L, idx) ((bcfx_EBuiltinShaderType)luaL_checkinteger(L, idx))
 
 #define luaL_opthandle(L, idx, dft) ((bcfx_Handle)luaL_optinteger(L, idx, dft))
 #define luaL_optprimitivetype(L, idx, dft) ((bcfx_EPrimitiveType)luaL_optinteger(L, idx, dft))
 
 #define luaL_pushhandle(L, handle) lua_pushinteger(L, handle);
+#define luaL_pushprimitivetype(L, primitive) lua_pushinteger(L, primitive);
 
 /* }====================================================== */
 
