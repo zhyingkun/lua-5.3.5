@@ -729,6 +729,10 @@ typedef struct {
   RendererContextGL* glCtx;
   ShaderGL* shader;
 } Param;
+#define STR_DUP_ALLOCA(var, str, len) \
+  char* var = (char*)alloca(len + 1); \
+  strncpy(var, str, len); \
+  var[len] = '\0'
 static void _onFindIncludePath(void* ud, const char* str, size_t sz, size_t lineNumber) {
   String path[1];
   path->str = str;
@@ -737,20 +741,25 @@ static void _onFindIncludePath(void* ud, const char* str, size_t sz, size_t line
   RendererContextGL* glCtx = p->glCtx;
   bcfx_Handle handle = gl_findShaderIncludeHandle(glCtx, path);
   if (handle == kInvalidHandle) {
-    char* tmp = (char*)alloca(sz + 1);
-    strncpy(tmp, str, sz);
-    tmp[sz] = '\0';
+    STR_DUP_ALLOCA(tmp, str, sz);
     printf_err("Error: 0:%zu: '%s' : shader include file could not found\n", lineNumber, tmp);
     return;
   }
   ShaderGL* shader = p->shader;
   if (shader->numDep >= BCFX_SHADER_DEPEND_COUNT) {
-    printf_err("Error: shader include dependence more than max limit");
+    STR_DUP_ALLOCA(tmp, str, sz);
+    printf_err("Error: 0:%zu: '%s' : shader include dependence more than max limit", lineNumber, tmp);
     return;
   }
   ShaderGL* depShader = &glCtx->shaders[handle_index(handle)];
+  if (shader == depShader) {
+    STR_DUP_ALLOCA(tmp, str, sz);
+    printf_err("Error: 0:%zu: '%s' : shader include itself\n", lineNumber, tmp);
+    return;
+  }
   if (shader->type != depShader->type) {
-    printf_err("Error: shader include dependence has different shader type");
+    STR_DUP_ALLOCA(tmp, str, sz);
+    printf_err("Error: 0:%zu: '%s' : shader include dependence has different shader type", lineNumber, tmp);
     return;
   }
   shader->depend[shader->numDep] = handle;
