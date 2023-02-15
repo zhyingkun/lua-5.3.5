@@ -62,6 +62,7 @@ void square_makeVertexBuffer(luaL_MemBuffer* mb, bcfx_VertexLayout* vl) {
 ** Cube
 ** =======================================================
 */
+
 typedef enum {
   X,
   Y,
@@ -148,6 +149,59 @@ void cube_makeVertexBuffer(luaL_MemBuffer* mb, bcfx_VertexLayout* vl) {
 
 /* }====================================================== */
 
+/*
+** {======================================================
+** Tetrahedron
+** =======================================================
+*/
+
+#define SQRT3 1.7321f
+#define SQRT6 2.4495f
+#define SET_VEC3(vec) SET_BUFFER3(VEC3_X(vec), VEC3_Y(vec), VEC3_Z(vec))
+// clang-format off
+#define TetrahedronFace(p1, p2, p3) \
+  do { \
+    ALLOCA_VEC3(n); \
+    ALLOCA_VEC3(s); \
+    ALLOCA_VEC3(t); \
+    VEC_SUBTRACT(p2, p1, s); \
+    VEC_SUBTRACT(p3, p1, t); \
+    VEC3_CROSS_PRODUCT(s, t, n); \
+    VEC_NORMALIZE_(n); \
+    SET_VEC3(p1); SET_VEC3(n); SET_BUFFER2(0.0f, 0.0f); \
+    SET_VEC3(p2); SET_VEC3(n); SET_BUFFER2(1.0f, 0.0f); \
+    SET_VEC3(p3); SET_VEC3(n); SET_BUFFER2(0.5f, 1.0f); \
+  } while(0)
+// clang-format on
+static void FillTetrahedron(float* buffer) {
+  /*
+   *    b
+   *    d(top)
+   *  c    a
+   */
+  static Vec3 a[1] = {VEC3(1.0f, -SQRT3 / 3.0f, 0.0f)};
+  static Vec3 b[1] = {VEC3(0.0f, SQRT3 * 2.0f / 3.0f, 0.0f)};
+  static Vec3 c[1] = {VEC3(-1.0f, -SQRT3 / 3.0f, 0.0f)};
+  static Vec3 d[1] = {VEC3(0.0f, 0.0f, SQRT6 * 2.0f / 3.0f)};
+  TetrahedronFace(a, b, d);
+  TetrahedronFace(b, c, d);
+  TetrahedronFace(c, a, d);
+  TetrahedronFace(c, b, a);
+}
+void tetrahedron_makeVertexBuffer(luaL_MemBuffer* mb, bcfx_VertexLayout* vl) {
+  bcfx_vertexLayoutInit(vl);
+  bcfx_vertexLayoutAddAttrib(vl, VA_Position, 3, AT_Float, false);
+  bcfx_vertexLayoutAddAttrib(vl, VA_Normal, 3, AT_Float, false);
+  bcfx_vertexLayoutAddAttrib(vl, VA_TexCoord0, 2, AT_Float, false);
+
+  // WorldSpace: +x to right, +y to front, +z to top, LocalSpace equals WorldSpace
+  static float Vertex[(3 + 3 + 2) * 3 * 4];
+  FillTetrahedron(Vertex);
+  MEMBUFFER_SETREPLACE(mb, Vertex, sizeof(Vertex), NULL, NULL);
+}
+
+/* }====================================================== */
+
 typedef void (*MakeMeshVertexBuffer)(luaL_MemBuffer* mb, bcfx_VertexLayout* vl);
 typedef bcfx_EIndexType (*MakeMeshIndexBuffer)(luaL_MemBuffer* mb);
 typedef struct {
@@ -160,12 +214,12 @@ const MeshConfig BuiltinMeshList[] = {
     {PT_Triangles, triangle_makeVertexBuffer, NULL}, // Triangle
     {PT_Triangles, square_makeVertexBuffer, NULL}, // Square
     {PT_Triangles, NULL, NULL}, // Circle
-    {PT_Triangles, NULL, NULL}, // Tetrahedron
+    {PT_Triangles, tetrahedron_makeVertexBuffer, NULL}, // Tetrahedron
     {PT_Triangles, cube_makeVertexBuffer, NULL}, // Cube
     {PT_Triangles, NULL, NULL}, // Sphere
     {PT_Triangles, NULL, NULL}, // Cylinder
     {PT_Triangles, NULL, NULL}, // Cone
-    {PT_Default, NULL, NULL}, // Cone
+    {PT_Default, NULL, NULL}, // None
 };
 
 bcfx_BuiltinMesh builtin_createMesh(bcfx_EBuiltinMeshType type) {

@@ -109,14 +109,14 @@ typedef struct {
 #define IS_VEC2(vec) IS_VEC_COUNT(vec, 2)
 
 BCFX_API void vec2_init(Vec2* vec);
-#define VEC2(v) \
+#define VEC2(x, y) \
   { \
     2, { \
-      v, v \
+      x, y \
     } \
   }
-#define VEC2_ZERO() VEC2(0.0)
-#define VEC2_ONE() VEC2(1.0)
+#define VEC2_ZERO() VEC2(0.0f, 0.0f)
+#define VEC2_ONE() VEC2(1.0f, 1.0f)
 #define ALLOCA_VEC2(var) Vec2 var[1] = {VEC2_ZERO()}
 #define NEW_VEC2(var) \
   Vec2* var = (Vec2*)malloc(VEC_SIZE(2)); \
@@ -133,14 +133,14 @@ typedef struct {
 #define IS_VEC3(vec) IS_VEC_COUNT(vec, 3)
 
 BCFX_API void vec3_init(Vec3* vec);
-#define VEC3(v) \
+#define VEC3(x, y, z) \
   { \
     3, { \
-      v, v, v \
+      x, y, z \
     } \
   }
-#define VEC3_ZERO() VEC3(0.0)
-#define VEC3_ONE() VEC3(1.0)
+#define VEC3_ZERO() VEC3(0.0f, 0.0f, 0.0f)
+#define VEC3_ONE() VEC3(1.0f, 1.0f, 1.0f)
 #define ALLOCA_VEC3(var) Vec3 var[1] = {VEC3_ZERO()}
 #define NEW_VEC3(var) \
   Vec3* var = (Vec3*)malloc(VEC_SIZE(3)); \
@@ -149,19 +149,16 @@ BCFX_API void vec3_init(Vec3* vec);
 #define VEC3_Y(vec) VEC_ELEMENT(vec, 1)
 #define VEC3_Z(vec) VEC_ELEMENT(vec, 2)
 
-#define VEC3_DIRECTION(x, y, z) \
-  { \
-    3, { \
-      x, y, z \
-    } \
-  }
+#define VEC3_DIRECTION(x, y, z) VEC3(x, y, z)
 
-#define VEC3_UP() VEC3_DIRECTION(0.0, 0.0, 1.0)
-#define VEC3_DOWN() VEC3_DIRECTION(0.0, 0.0, -1.0)
-#define VEC3_FORWARD() VEC3_DIRECTION(0.0, 1.0, 0.0)
-#define VEC3_BACKWARD() VEC3_DIRECTION(0.0, -1.0, 0.0)
-#define VEC3_RIGHT() VEC3_DIRECTION(1.0, 0.0, 0.0)
-#define VEC3_LEFT() VEC3_DIRECTION(-1.0, 0.0, 0.0)
+// clang-format off
+#define VEC3_UP()       VEC3_DIRECTION( 0.0f,  0.0f,  1.0f)
+#define VEC3_DOWN()     VEC3_DIRECTION( 0.0f,  0.0f, -1.0f)
+#define VEC3_FORWARD()  VEC3_DIRECTION( 0.0f,  1.0f,  0.0f)
+#define VEC3_BACKWARD() VEC3_DIRECTION( 0.0f, -1.0f,  0.0f)
+#define VEC3_RIGHT()    VEC3_DIRECTION( 1.0f,  0.0f,  0.0f)
+#define VEC3_LEFT()     VEC3_DIRECTION(-1.0f,  0.0f,  0.0f)
+// clang-format on
 
 #define VEC3_CROSS_PRODUCT(src1, src2, dst) vec3_crossProduct(src1, src2, dst)
 
@@ -176,14 +173,14 @@ typedef struct {
 #define IS_VEC4(vec) IS_VEC_COUNT(vec, 4)
 
 BCFX_API void vec4_init(Vec4* vec);
-#define VEC4(v) \
+#define VEC4(x, y, z, w) \
   { \
     4, { \
-      v, v, v, v \
+      x, y, z, w \
     } \
   }
-#define VEC4_ZERO() VEC4(0.0)
-#define VEC4_ONE() VEC4(1.0)
+#define VEC4_ZERO() VEC4(0.0f, 0.0f, 0.0f, 0.0f)
+#define VEC4_ONE() VEC4(1.0f, 1.0f, 1.0f, 1.0f)
 #define ALLOCA_VEC4(var) Vec4 var[1] = {VEC4_ZERO()}
 #define NEW_VEC4(var) \
   Vec4* var = (Vec4*)malloc(VEC_SIZE(4)); \
