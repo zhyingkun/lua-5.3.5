@@ -725,14 +725,19 @@ bcfx_Handle gl_findShaderIncludeHandle(RendererContextGL* glCtx, const String* p
   return kInvalidHandle;
 }
 
-typedef struct {
-  RendererContextGL* glCtx;
-  ShaderGL* shader;
-} Param;
 #define STR_DUP_ALLOCA(var, str, len) \
   char* var = (char*)alloca(len + 1); \
   strncpy(var, str, len); \
   var[len] = '\0'
+static void printShaderIncludeError(size_t lineNumber, String* path, const char* message) {
+  STR_DUP_ALLOCA(tmp, path->str, path->sz);
+  printf_err("Error: 0:%zu: '%s' : %s\n", lineNumber, tmp, message);
+}
+
+typedef struct {
+  RendererContextGL* glCtx;
+  ShaderGL* shader;
+} Param;
 static void _onFindIncludePath(void* ud, const char* str, size_t sz, size_t lineNumber) {
   String path[1];
   path->str = str;
@@ -741,25 +746,21 @@ static void _onFindIncludePath(void* ud, const char* str, size_t sz, size_t line
   RendererContextGL* glCtx = p->glCtx;
   bcfx_Handle handle = gl_findShaderIncludeHandle(glCtx, path);
   if (handle == kInvalidHandle) {
-    STR_DUP_ALLOCA(tmp, str, sz);
-    printf_err("Error: 0:%zu: '%s' : shader include file could not found\n", lineNumber, tmp);
+    printShaderIncludeError(lineNumber, path, "shader include file could not found");
     return;
   }
   ShaderGL* shader = p->shader;
   if (shader->numDep >= BCFX_SHADER_DEPEND_COUNT) {
-    STR_DUP_ALLOCA(tmp, str, sz);
-    printf_err("Error: 0:%zu: '%s' : shader include dependence more than max limit", lineNumber, tmp);
+    printShaderIncludeError(lineNumber, path, "shader include dependence more than max limit");
     return;
   }
   ShaderGL* depShader = &glCtx->shaders[handle_index(handle)];
   if (shader == depShader) {
-    STR_DUP_ALLOCA(tmp, str, sz);
-    printf_err("Error: 0:%zu: '%s' : shader include itself\n", lineNumber, tmp);
+    printShaderIncludeError(lineNumber, path, "shader include itself");
     return;
   }
   if (shader->type != depShader->type) {
-    STR_DUP_ALLOCA(tmp, str, sz);
-    printf_err("Error: 0:%zu: '%s' : shader include dependence has different shader type", lineNumber, tmp);
+    printShaderIncludeError(lineNumber, path, "shader include dependence has different shader type");
     return;
   }
   shader->depend[shader->numDep] = handle;
