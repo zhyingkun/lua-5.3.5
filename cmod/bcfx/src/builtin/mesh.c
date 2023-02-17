@@ -1,6 +1,9 @@
 #define _mesh_c_
 #include <common.h>
 
+#define SET_BUFFER2(a, b) *(buffer++) = a, *(buffer++) = b
+#define SET_BUFFER3(a, b, c) *(buffer++) = a, *(buffer++) = b, *(buffer++) = c
+
 /*
 ** {======================================================
 ** Triangle
@@ -59,91 +62,33 @@ void square_makeVertexBuffer(luaL_MemBuffer* mb, bcfx_VertexLayout* vl) {
 
 /*
 ** {======================================================
-** Cube
+** Circle
 ** =======================================================
 */
 
-typedef enum {
-  X,
-  Y,
-  Z,
-} Axis;
-typedef enum {
-  Positive,
-  Negative,
-} Sign;
-typedef struct {
-  Axis axis;
-  Sign sign;
-} CubeFace;
-static CubeFace CubeFaceList[] = {
-    {X, Positive},
-    {X, Negative},
-    {Y, Positive},
-    {Y, Negative},
-    {Z, Positive},
-    {Z, Negative},
-};
-typedef struct {
-  float posU;
-  float posV;
-  float u;
-  float v;
-} FacePointAttrib;
-// clang-format off
-static FacePointAttrib FacePointAttribList[] = {
-    {-1.0f, -1.0f,  0.0f, 0.0f},
-    { 1.0f, -1.0f,  1.0f, 0.0f},
-    { 1.0f,  1.0f,  1.0f, 1.0f},
-    {-1.0f, -1.0f,  0.0f, 0.0f},
-    { 1.0f,  1.0f,  1.0f, 1.0f},
-    {-1.0f,  1.0f,  0.0f, 1.0f},
-};
-// clang-format on
-#define SET_BUFFER2(a, b) *(buffer++) = a, *(buffer++) = b
-#define SET_BUFFER3(a, b, c) *(buffer++) = a, *(buffer++) = b, *(buffer++) = c
-#define SET_VECTOR3(face, u, v) \
-  do { \
-    switch (axis) { \
-      case X: \
-        SET_BUFFER3(face, posU, posV); \
-        break; \
-      case Y: \
-        SET_BUFFER3(posU, face, posV); \
-        break; \
-      case Z: \
-        SET_BUFFER3(posU, posV, face); \
-        break; \
-    } \
-  } while (0)
-static float* FillFace(Axis axis, Sign sign, float* buffer) {
-  float face = sign == Positive ? 1.0f : -1.0f;
-  for (int i = 0; i < 6; i++) { // 6 vertex point per face
-    float posU = face * FacePointAttribList[i].posU;
-    float posV = face * FacePointAttribList[i].posV;
-    SET_VECTOR3(face, posU, posV); // Position
-    SET_VECTOR3(face, 0.0f, 0.0f); // Normal
-    float u = FacePointAttribList[i].u;
-    float v = FacePointAttribList[i].v;
-    SET_BUFFER2(u, v);
-  }
-  return buffer;
-}
-static void FillCube(float* buffer) {
-  for (int i = 0; i < 6; i++) { // 6 face per cube
-    CubeFace cf = CubeFaceList[i];
-    buffer = FillFace(cf.axis, cf.sign, buffer);
+#define CirclePointCount 360
+#define SET_ONE_VERTEX(x, y) \
+  SET_BUFFER3((x), (y), 0.0f); \
+  SET_BUFFER3(0.0f, 0.0f, 1.0f); \
+  SET_BUFFER2(((x) + 1.0f) / 2.0f, ((y) + 1.0f) / 2.0f)
+static void FillCircle(float* buffer) {
+  SET_ONE_VERTEX(0.0f, 0.0f);
+  for (int i = 0; i < CirclePointCount; i++) {
+    float radian = 2.0f * M_PI * i / CirclePointCount;
+    float x = sinf(radian);
+    float y = cosf(radian);
+    SET_ONE_VERTEX(x, y);
   }
 }
-void cube_makeVertexBuffer(luaL_MemBuffer* mb, bcfx_VertexLayout* vl) {
+void circle_makeVertexBuffer(luaL_MemBuffer* mb, bcfx_VertexLayout* vl) {
   bcfx_vertexLayoutInit(vl);
   bcfx_vertexLayoutAddAttrib(vl, VA_Position, 3, AT_Float, false);
   bcfx_vertexLayoutAddAttrib(vl, VA_Normal, 3, AT_Float, false);
   bcfx_vertexLayoutAddAttrib(vl, VA_TexCoord0, 2, AT_Float, false);
 
   // WorldSpace: +x to right, +y to front, +z to top, Current LocalSpace equals WorldSpace
-  static float Vertex[(3 + 3 + 2) * 6 * 6];
-  FillCube(Vertex);
+  static float Vertex[(3 + 3 + 2) * 360];
+  FillCircle(Vertex);
   MEMBUFFER_SETREPLACE(mb, Vertex, sizeof(Vertex), NULL, NULL);
 }
 
@@ -202,6 +147,96 @@ void tetrahedron_makeVertexBuffer(luaL_MemBuffer* mb, bcfx_VertexLayout* vl) {
 
 /* }====================================================== */
 
+/*
+** {======================================================
+** Cube
+** =======================================================
+*/
+
+typedef enum {
+  X,
+  Y,
+  Z,
+} Axis;
+typedef enum {
+  Positive,
+  Negative,
+} Sign;
+typedef struct {
+  Axis axis;
+  Sign sign;
+} CubeFace;
+static CubeFace CubeFaceList[] = {
+    {X, Positive},
+    {X, Negative},
+    {Y, Positive},
+    {Y, Negative},
+    {Z, Positive},
+    {Z, Negative},
+};
+typedef struct {
+  float posU;
+  float posV;
+  float u;
+  float v;
+} FacePointAttrib;
+// clang-format off
+static FacePointAttrib FacePointAttribList[] = {
+    {-1.0f, -1.0f,  0.0f, 0.0f},
+    { 1.0f, -1.0f,  1.0f, 0.0f},
+    { 1.0f,  1.0f,  1.0f, 1.0f},
+    {-1.0f, -1.0f,  0.0f, 0.0f},
+    { 1.0f,  1.0f,  1.0f, 1.0f},
+    {-1.0f,  1.0f,  0.0f, 1.0f},
+};
+// clang-format on
+#define SET_VECTOR3(face, u, v) \
+  do { \
+    switch (axis) { \
+      case X: \
+        SET_BUFFER3(face, posU, posV); \
+        break; \
+      case Y: \
+        SET_BUFFER3(posU, face, posV); \
+        break; \
+      case Z: \
+        SET_BUFFER3(posU, posV, face); \
+        break; \
+    } \
+  } while (0)
+static float* FillFace(Axis axis, Sign sign, float* buffer) {
+  float face = sign == Positive ? 1.0f : -1.0f;
+  for (int i = 0; i < 6; i++) { // 6 vertex point per face
+    float posU = face * FacePointAttribList[i].posU;
+    float posV = face * FacePointAttribList[i].posV;
+    SET_VECTOR3(face, posU, posV); // Position
+    SET_VECTOR3(face, 0.0f, 0.0f); // Normal
+    float u = FacePointAttribList[i].u;
+    float v = FacePointAttribList[i].v;
+    SET_BUFFER2(u, v);
+  }
+  return buffer;
+}
+static void FillCube(float* buffer) {
+  for (int i = 0; i < 6; i++) { // 6 face per cube
+    CubeFace cf = CubeFaceList[i];
+    buffer = FillFace(cf.axis, cf.sign, buffer);
+  }
+}
+void cube_makeVertexBuffer(luaL_MemBuffer* mb, bcfx_VertexLayout* vl) {
+  bcfx_vertexLayoutInit(vl);
+  bcfx_vertexLayoutAddAttrib(vl, VA_Position, 3, AT_Float, false);
+  bcfx_vertexLayoutAddAttrib(vl, VA_Normal, 3, AT_Float, false);
+  bcfx_vertexLayoutAddAttrib(vl, VA_TexCoord0, 2, AT_Float, false);
+
+  // WorldSpace: +x to right, +y to front, +z to top, Current LocalSpace equals WorldSpace
+  static float Vertex[(3 + 3 + 2) * 6 * 6];
+  FillCube(Vertex);
+  MEMBUFFER_SETREPLACE(mb, Vertex, sizeof(Vertex), NULL, NULL);
+}
+
+/* }====================================================== */
+
 typedef void (*MakeMeshVertexBuffer)(luaL_MemBuffer* mb, bcfx_VertexLayout* vl);
 typedef bcfx_EIndexType (*MakeMeshIndexBuffer)(luaL_MemBuffer* mb);
 typedef struct {
@@ -213,7 +248,7 @@ typedef struct {
 const MeshConfig BuiltinMeshList[] = {
     {PT_Triangles, triangle_makeVertexBuffer, NULL}, // Triangle
     {PT_Triangles, square_makeVertexBuffer, NULL}, // Square
-    {PT_Triangles, NULL, NULL}, // Circle
+    {PT_TriangleFan, circle_makeVertexBuffer, NULL}, // Circle
     {PT_Triangles, tetrahedron_makeVertexBuffer, NULL}, // Tetrahedron
     {PT_Triangles, cube_makeVertexBuffer, NULL}, // Cube
     {PT_Triangles, NULL, NULL}, // Sphere
