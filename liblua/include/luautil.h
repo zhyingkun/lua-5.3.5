@@ -156,24 +156,19 @@ typedef struct {
 
 #define MEMBUFFER_INIT(mb) \
   MEMBUFFER_SETNULL(mb)
-#define MEMBUFFER_INITSET(mb, ptr_, sz_, realloc_, ud_) \
-  (mb)->ptr = ptr_; \
-  (mb)->sz = sz_; \
-  (mb)->realloc = realloc_; \
-  (mb)->ud = ud_
-#define DEFINE_LOCAL_MEMBUFFER_INIT(mb) \
-  luaL_MemBuffer mb[1] = {{NULL, 0, NULL, NULL}}
 
 #define MEMBUFFER_RELEASE(mb) \
   MEMBUFFER_CALLFREE(mb); \
   MEMBUFFER_SETNULL(mb)
 
-#define MEMBUFFER_SETREPLACE(mb, ptr_, sz_, realloc_, ud_) \
-  MEMBUFFER_CALLFREE(mb); \
+#define MEMBUFFER_SETINIT(mb, ptr_, sz_, realloc_, ud_) \
   (mb)->ptr = ptr_; \
   (mb)->sz = sz_; \
   (mb)->realloc = realloc_; \
   (mb)->ud = ud_
+#define MEMBUFFER_SETREPLACE(mb, ptr_, sz_, realloc_, ud_) \
+  MEMBUFFER_CALLFREE(mb); \
+  MEMBUFFER_SETINIT(mb, ptr_, sz_, realloc_, ud_)
 
 #define MEMBUFFER_GETCLEAR(mb, ptr_, sz_, realloc_, ud_) \
   ptr_ = (mb)->ptr; \
@@ -182,10 +177,12 @@ typedef struct {
   ud_ = (mb)->ud; \
   MEMBUFFER_SETNULL(mb)
 
-#define MEMBUFFER_MOVE(src, dst) \
-  MEMBUFFER_CALLFREE(dst); \
+#define MEMBUFFER_MOVEINIT(src, dst) \
   *(dst) = *(src); \
   MEMBUFFER_SETNULL(src)
+#define MEMBUFFER_MOVEREPLACE(src, dst) \
+  MEMBUFFER_CALLFREE(dst); \
+  MEMBUFFER_MOVEINIT(src, dst)
 
 #define LUA_MEMBUFFER_TYPE "luaL_MemBuffer*"
 #define luaL_checkmembuffer(L, idx) (luaL_MemBuffer*)luaL_checkudata(L, idx, LUA_MEMBUFFER_TYPE)

@@ -117,7 +117,7 @@ static int _dealReadFileResult(lua_State* L, int err, luaL_MemBuffer* mb) {
     return 3;
   }
   luaL_MemBuffer* newMB = luaL_newmembuffer(L);
-  MEMBUFFER_MOVE(mb, newMB);
+  MEMBUFFER_MOVEINIT(mb, newMB);
   return 1;
 }
 static int MBIO_FUNCTION(unpackReadFileResult)(lua_State* L) {
@@ -129,7 +129,7 @@ static int MBIO_FUNCTION(unpackReadFileResult)(lua_State* L) {
 
 static int MBIO_FUNCTION(readFile)(lua_State* L) {
   const char* fileName = luaL_checkstring(L, 1);
-  DEFINE_LOCAL_MEMBUFFER_INIT(mb);
+  luaL_MemBuffer mb[1] = {{0}};
   int err = mbio_readFile(fileName, mb);
   return _dealReadFileResult(L, err, mb);
 }
@@ -155,7 +155,7 @@ static int MBIO_FUNCTION(packWriteFileParam)(lua_State* L) {
   WriteFileParam* param = (WriteFileParam*)malloc(sizeof(WriteFileParam) + sizeof(char) * size);
   memcpy(param->fileName, fileName, size);
   param->fileName[size] = '\0';
-  MEMBUFFER_MOVE(mb, &param->mb);
+  MEMBUFFER_MOVEINIT(mb, &param->mb);
 
   lua_pushlightuserdata(L, (void*)param);
   return 1;

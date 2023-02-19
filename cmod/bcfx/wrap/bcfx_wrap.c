@@ -345,7 +345,7 @@ static int BCWRAP_FUNCTION(createShader)(lua_State* L) {
   if (lua_isstring(L, 1)) {
     size_t sz = 0;
     void* ptr = (void*)lua_tolstring(L, 1, &sz);
-    MEMBUFFER_INITSET(mb, ptr, sz, NULL, NULL);
+    MEMBUFFER_SETINIT(mb, ptr, sz, NULL, NULL);
     hold_frame_resourse(L, bcfx_frameId(), 1);
   } else {
     mb = luaL_checkmembuffer(L, 1);
@@ -362,7 +362,7 @@ static int BCWRAP_FUNCTION(createIncludeShader)(lua_State* L) {
   if (lua_isstring(L, 1)) {
     size_t sz = 0;
     void* ptr = (void*)lua_tolstring(L, 1, &sz);
-    MEMBUFFER_INITSET(mb, ptr, sz, NULL, NULL);
+    MEMBUFFER_SETINIT(mb, ptr, sz, NULL, NULL);
     hold_frame_resourse(L, bcfx_frameId(), 1);
   } else {
     mb = luaL_checkmembuffer(L, 1);
@@ -436,8 +436,7 @@ static int BCWRAP_FUNCTION(createTexture1D)(lua_State* L) {
   for (int layer = 0; layer < layers; layer++) { \
     lua_geti(L, idx, layer + 1); \
     luaL_MemBuffer* mb = luaL_checkmembuffer(L, -1); \
-    MEMBUFFER_INIT(&mba[layer]); \
-    MEMBUFFER_MOVE(mb, &mba[layer]); \
+    MEMBUFFER_MOVEINIT(mb, &mba[layer]); \
     lua_pop(L, 1); \
   }
 static int BCWRAP_FUNCTION(createTexture1DArray)(lua_State* L) {
@@ -715,7 +714,7 @@ static void _onFrameViewCapture(void* ud, uint32_t frameId, bcfx_FrameViewCaptur
     lua_pushinteger(L, result->width);
     lua_pushinteger(L, result->height);
     luaL_MemBuffer* mb = luaL_newmembuffer(L);
-    MEMBUFFER_MOVE(&result->mb, mb);
+    MEMBUFFER_MOVEINIT(&result->mb, mb);
     CALL_LUA_FUNCTION(L, 5);
   }
   lua_pop(L, 1);

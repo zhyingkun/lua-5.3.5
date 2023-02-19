@@ -43,7 +43,7 @@ static int MEMBUF_FUNCTION(release)(lua_State* L) {
 static int MEMBUF_FUNCTION(moveTo)(lua_State* L) {
   luaL_MemBuffer* src = luaL_checkmembuffer(L, 1);
   luaL_MemBuffer* dst = luaL_checkmembuffer(L, 2);
-  MEMBUFFER_MOVE(src, dst);
+  MEMBUFFER_MOVEREPLACE(src, dst);
   return 0;
 }
 
@@ -54,7 +54,7 @@ static int MEMBUF_FUNCTION(makeCopy)(lua_State* L) {
     if (ptr != NULL) {
       memcpy(ptr, src->ptr, src->sz);
       luaL_MemBuffer* dst = luaL_newmembuffer(L);
-      MEMBUFFER_SETREPLACE(dst, ptr, src->sz, src->realloc, src->ud);
+      MEMBUFFER_SETINIT(dst, ptr, src->sz, src->realloc, src->ud);
       return 1;
     }
   }

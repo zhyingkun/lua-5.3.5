@@ -35,7 +35,7 @@ static int MESH_FUNCTION(packMeshParseParam)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
 
   luaL_MemBuffer* membuf = (luaL_MemBuffer*)malloc(sizeof(luaL_MemBuffer));
-  MEMBUFFER_MOVE(mb, membuf);
+  MEMBUFFER_MOVEINIT(mb, membuf);
 
   lua_pushlightuserdata(L, (void*)membuf);
   return 1;
@@ -130,7 +130,7 @@ static int MESH_FUNCTION(packMaterialParseParam)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
 
   luaL_MemBuffer* membuf = (luaL_MemBuffer*)malloc(sizeof(luaL_MemBuffer));
-  MEMBUFFER_MOVE(mb, membuf);
+  MEMBUFFER_MOVEINIT(mb, membuf);
 
   lua_pushlightuserdata(L, (void*)membuf);
   return 1;

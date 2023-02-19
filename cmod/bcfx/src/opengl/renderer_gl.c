@@ -844,7 +844,7 @@ static void frameCaptureView(Frame* frame, ViewId id) {
     result->id = id;
     result->width = rect->width;
     result->height = rect->height;
-    MEMBUFFER_INITSET(&result->mb, data, sz, _reallocFrameCapture, NULL);
+    MEMBUFFER_SETINIT(&result->mb, data, sz, _reallocFrameCapture, NULL);
   }
 }
 
