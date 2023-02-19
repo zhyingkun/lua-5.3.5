@@ -795,7 +795,7 @@ typedef struct {
   HandleArray cache[1];
 } TraverseContext;
 static void _forEachDependShaderInternal(TraverseContext* tc, bcfx_Handle handle) {
-  if (ha_find(tc->cache, handle)) {
+  if (ha_contains(tc->cache, handle)) {
     return;
   }
   *ha_addUninitialized(tc->cache) = handle;

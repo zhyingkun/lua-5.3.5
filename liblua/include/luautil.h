@@ -206,7 +206,11 @@ LUALIB_API luaL_MemBuffer* luaL_newmembuffer(lua_State* L);
   void prefix##_init(TypeArray* arr); \
   void prefix##_destroy(TypeArray* arr); \
   Type* prefix##_addUninitialized(TypeArray* arr); \
-  bool prefix##_find(TypeArray* arr, Type value); \
+  Type* prefix##_get(TypeArray* arr, uint32_t idx); \
+  bool prefix##_contains(TypeArray* arr, Type value); \
+  void prefix##_remove(TypeArray* arr, uint32_t idx); \
+  uint32_t prefix##_num(TypeArray* arr); \
+  bool prefix##_isValidIndex(TypeArray* arr, uint32_t idx); \
   void prefix##_empty(TypeArray* arr);
 
 #define Nothing(x)
@@ -236,7 +240,13 @@ LUALIB_API luaL_MemBuffer* luaL_newmembuffer(lua_State* L);
     arr->size++; \
     return ret; \
   } \
-  bool prefix##_find(TypeArray* arr, Type value) { \
+  Type* prefix##_get(TypeArray* arr, uint32_t idx) { \
+    if (idx < arr->size) { \
+      return &arr->arrayPtr[idx]; \
+    } \
+    return NULL; \
+  } \
+  bool prefix##_contains(TypeArray* arr, Type value) { \
     for (uint32_t i = 0; i < arr->size; i++) { \
       if (arr->arrayPtr[i] == value) { \
         return true; \
@@ -244,9 +254,25 @@ LUALIB_API luaL_MemBuffer* luaL_newmembuffer(lua_State* L);
     } \
     return false; \
   } \
+  void prefix##_remove(TypeArray* arr, uint32_t idx) { \
+    if (idx < arr->size) { \
+      arr->size--; \
+      if (idx < arr->size) { \
+        arr->arrayPtr[idx] = arr->arrayPtr[arr->size]; \
+      } \
+    } \
+  } \
+  uint32_t prefix##_num(TypeArray* arr) { \
+    return arr->size; \
+  } \
+  bool prefix##_isValidIndex(TypeArray* arr, uint32_t idx) { \
+    return idx < arr->size; \
+  } \
   void prefix##_empty(TypeArray* arr) { \
     arr->size = 0; \
   }
+
+#define ForEachArrayElement(ObjType, obj, arr) for (uint32_t i = 0, ObjType *obj = &arr->arrayPtr[i]; i < arr->size; i++)
 
 /* }====================================================== */
 
