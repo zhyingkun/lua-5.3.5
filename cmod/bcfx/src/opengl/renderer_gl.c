@@ -608,9 +608,12 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
     case TT_Texture2DArray: {
       ParamTexture2DArray* p = &param->value.t2da;
       GL_CHECK(glBindTexture(GL_TEXTURE_2D_ARRAY, texture->id));
+      GLint mipmapLevel = 0;
+      GLint border = 0;
+      GL_CHECK(glTexImage3D(GL_TEXTURE_2D_ARRAY, mipmapLevel, fi->internalFormat, p->width, p->height, p->layers, border, fi->format, fi->type, NULL));
       for (uint16_t layer = 0; layer < p->layers; layer++) {
         assert(p->mba[layer].sz == (size_t)(p->width * p->height * fi->pixelSizeByte));
-        GL_CHECK(glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, fi->internalFormat, p->width, p->height, layer, 0, fi->format, fi->type, p->mba[layer].ptr));
+        GL_CHECK(glTexSubImage3D(GL_TEXTURE_2D_ARRAY, mipmapLevel, 0, 0, layer, p->width, p->height, 1, fi->format, fi->type, p->mba[layer].ptr));
         MEMBUFFER_RELEASE(&p->mba[layer]);
       }
       mem_free((void*)p->mba);
