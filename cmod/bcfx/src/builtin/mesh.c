@@ -194,13 +194,13 @@ static FacePointAttrib FacePointAttribList[] = {
   do { \
     switch (axis) { \
       case X: \
-        SET_BUFFER3(face, posU, posV); \
+        SET_BUFFER3(face, u, v); \
         break; \
       case Y: \
-        SET_BUFFER3(posU, face, posV); \
+        SET_BUFFER3(u, face, v); \
         break; \
       case Z: \
-        SET_BUFFER3(posU, posV, face); \
+        SET_BUFFER3(u, v, face); \
         break; \
     } \
   } while (0)
