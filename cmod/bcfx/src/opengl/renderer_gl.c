@@ -567,6 +567,8 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
   // Specifies the alignment requirements for the start of each pixel row in memory. The allowable values are 1/2/4/8, default is 4
   GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
   GL_CHECK(glGenTextures(1, &texture->id));
+  const GLint mipmapLevel = 0;
+  const GLint border = 0;
   switch (param->type) {
     case TT_Texture1D: {
       ParamTexture1D* p = &param->value.t1d;
@@ -582,9 +584,12 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
     case TT_Texture1DArray: {
       ParamTexture1DArray* p = &param->value.t1da;
       GL_CHECK(glBindTexture(GL_TEXTURE_1D_ARRAY, texture->id));
+      // glTexImage2D will allocate GPU memory, (maybe transfer data from CPU memory to GPU memory)
+      GL_CHECK(glTexImage2D(GL_TEXTURE_1D_ARRAY, mipmapLevel, fi->internalFormat, p->width, p->layers, border, fi->format, fi->type, NULL));
       for (uint16_t layer = 0; layer < p->layers; layer++) {
         assert(p->mba[layer].sz == p->width * fi->pixelSizeByte);
-        GL_CHECK(glTexImage2D(GL_TEXTURE_1D_ARRAY, 0, fi->internalFormat, p->width, layer, 0, fi->format, fi->type, p->mba[layer].ptr));
+        // glTexSubImage2D only transfer data to GPU memory, no memory allocated
+        GL_CHECK(glTexSubImage2D(GL_TEXTURE_1D_ARRAY, mipmapLevel, 0, layer, p->width, 1, fi->format, fi->type, p->mba[layer].ptr));
         MEMBUFFER_RELEASE(&p->mba[layer]);
       }
       mem_free((void*)p->mba);
@@ -608,8 +613,6 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
     case TT_Texture2DArray: {
       ParamTexture2DArray* p = &param->value.t2da;
       GL_CHECK(glBindTexture(GL_TEXTURE_2D_ARRAY, texture->id));
-      GLint mipmapLevel = 0;
-      GLint border = 0;
       GL_CHECK(glTexImage3D(GL_TEXTURE_2D_ARRAY, mipmapLevel, fi->internalFormat, p->width, p->height, p->layers, border, fi->format, fi->type, NULL));
       for (uint16_t layer = 0; layer < p->layers; layer++) {
         assert(p->mba[layer].sz == (size_t)(p->width * p->height * fi->pixelSizeByte));
@@ -626,9 +629,10 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
     case TT_Texture3D: {
       ParamTexture3D* p = &param->value.t3d;
       GL_CHECK(glBindTexture(GL_TEXTURE_3D, texture->id));
+      GL_CHECK(glTexImage3D(GL_TEXTURE_3D, mipmapLevel, fi->internalFormat, p->width, p->height, p->depth, border, fi->format, fi->type, NULL));
       for (uint16_t depth = 0; depth < p->depth; depth++) {
         assert(p->mba[depth].sz == (size_t)(p->width * p->height * fi->pixelSizeByte));
-        GL_CHECK(glTexImage3D(GL_TEXTURE_3D, 0, fi->internalFormat, p->width, p->height, depth, 0, fi->format, fi->type, p->mba[depth].ptr));
+        GL_CHECK(glTexSubImage3D(GL_TEXTURE_3D, mipmapLevel, 0, 0, depth, p->width, p->height, 1, fi->format, fi->type, p->mba[depth].ptr));
         MEMBUFFER_RELEASE(&p->mba[depth]);
       }
       mem_free((void*)p->mba);
