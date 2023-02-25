@@ -129,7 +129,7 @@ static int MBIO_FUNCTION(unpackReadFileResult)(lua_State* L) {
 
 static int MBIO_FUNCTION(readFile)(lua_State* L) {
   const char* fileName = luaL_checkstring(L, 1);
-  luaL_MemBuffer mb[1] = {{0}};
+  luaL_MemBuffer mb[1] = {MEMBUFFER_NULL};
   int err = mbio_readFile(fileName, mb);
   return _dealReadFileResult(L, err, mb);
 }

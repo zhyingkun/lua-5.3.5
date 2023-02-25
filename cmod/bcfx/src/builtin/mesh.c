@@ -263,13 +263,13 @@ bcfx_BuiltinMesh builtin_createMesh(bcfx_EBuiltinMeshType type) {
   bcfx_BuiltinMesh mesh = {0};
   mesh.primitive = config->primitive;
   if (config->makeVertexBuffer) {
-    luaL_MemBuffer VertexBuffer = {0};
+    luaL_MemBuffer VertexBuffer = MEMBUFFER_NULL;
     bcfx_VertexLayout VertexLayout = {0};
     config->makeVertexBuffer(&VertexBuffer, &VertexLayout);
     mesh.vertex = bcfx_createVertexBuffer(&VertexBuffer, &VertexLayout);
   }
   if (config->makeIndexBuffer) {
-    luaL_MemBuffer IndexBuffer = {0};
+    luaL_MemBuffer IndexBuffer = MEMBUFFER_NULL;
     bcfx_EIndexType type = config->makeIndexBuffer(&IndexBuffer);
     mesh.index = bcfx_createIndexBuffer(&IndexBuffer, type);
   }

@@ -317,7 +317,7 @@ bcfx_Handle ctx_createVertexBuffer(Context* ctx, luaL_MemBuffer* mem, bcfx_Verte
   return handle;
 }
 bcfx_Handle ctx_createDynamicVertexBuffer(Context* ctx, size_t size, bcfx_VertexLayout* layout) {
-  luaL_MemBuffer mb[1] = {{0}};
+  luaL_MemBuffer mb[1] = {MEMBUFFER_NULL};
   MEMBUFFER_SETREPLACE(mb, NULL, size, NULL, NULL);
   return ctx_createVertexBuffer(ctx, mb, layout);
 }
@@ -465,7 +465,7 @@ bcfx_Handle ctx_createTexture2DMipmap(Context* ctx, bcfx_ETextureFormat format, 
 }
 
 bcfx_Handle ctx_createRenderTexture(Context* ctx, bcfx_ETextureFormat format, uint16_t width, uint16_t height) {
-  luaL_MemBuffer mb[1] = {{0}};
+  luaL_MemBuffer mb[1] = {MEMBUFFER_NULL};
   return ctx_createTexture2D(ctx, format, mb, width, height, false);
 }
 
