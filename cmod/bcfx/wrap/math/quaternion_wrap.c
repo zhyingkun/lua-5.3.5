@@ -121,37 +121,26 @@ static int QUATERNION_FUNCTION(rotateVec3)(lua_State* L) {
   return 1;
 }
 
-#define STRLEN(str_) (sizeof(#str_) - 1)
-#define PUSH_VALUE_IF_MATCH(field_, type_) \
-  if (len == STRLEN(field_) && strcmp(key, #field_) == 0) { \
-    lua_push##type_(L, quat->field_); \
-    return 1; \
-  }
 static int QUATERNION_FUNCTION(__index)(lua_State* L) {
   Quaternion* quat = luaL_checkquaternion(L, 1);
   size_t len = 0;
   const char* key = luaL_checklstring(L, 2, &len);
-  PUSH_VALUE_IF_MATCH(w, number);
-  PUSH_VALUE_IF_MATCH(x, number);
-  PUSH_VALUE_IF_MATCH(y, number);
-  PUSH_VALUE_IF_MATCH(z, number);
+  INDEX_IF_IN_METATABLE();
+  INDEX_IF_MATCH(quat, w, number);
+  INDEX_IF_MATCH(quat, x, number);
+  INDEX_IF_MATCH(quat, y, number);
+  INDEX_IF_MATCH(quat, z, number);
   return luaL_error(L, "EulerAngle has no such field: %s", key);
 }
 
-#define SET_VALUE_IF_MATCH(field_, type_) \
-  if (len == STRLEN(field_) && strcmp(key, #field_) == 0) { \
-    quat->field_ = value; \
-    return 0; \
-  }
 static int QUATERNION_FUNCTION(__newindex)(lua_State* L) {
   Quaternion* quat = luaL_checkquaternion(L, 1);
   size_t len = 0;
   const char* key = luaL_checklstring(L, 2, &len);
-  float value = luaL_checknumber(L, 3);
-  SET_VALUE_IF_MATCH(w, number);
-  SET_VALUE_IF_MATCH(x, number);
-  SET_VALUE_IF_MATCH(y, number);
-  SET_VALUE_IF_MATCH(z, number);
+  NEWINDEX_IF_MATCH(quat, w, number);
+  NEWINDEX_IF_MATCH(quat, x, number);
+  NEWINDEX_IF_MATCH(quat, y, number);
+  NEWINDEX_IF_MATCH(quat, z, number);
   return luaL_error(L, "EulerAngle has no such field: %s", key);
 }
 
@@ -190,7 +179,7 @@ static int QUATERNION_FUNCTION(__tostring)(lua_State* L) {
 }
 
 #define EMPLACE_QUATERNION_FUNCTION(name) \
-  { #name, QUATERNION_FUNCTION(name) }
+  { "" #name, QUATERNION_FUNCTION(name) }
 static const luaL_Reg QUATERNION_FUNCTION(metafuncs)[] = {
     EMPLACE_QUATERNION_FUNCTION(imaginary),
     EMPLACE_QUATERNION_FUNCTION(toEulerAngle),

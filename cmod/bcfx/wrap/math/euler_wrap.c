@@ -14,7 +14,7 @@ EulerAngle* luaL_neweuler(lua_State* L) {
   luaL_setmetatable(L, BCFX_EULER_TYPE);
   return ea;
 }
-void luaL_pusheuler(lua_State* L, const EulerAngle* ea) {
+void lua_pusheuler(lua_State* L, const EulerAngle* ea) {
   EulerAngle* nea = luaL_neweuler(L);
   *nea = *ea;
 }
@@ -59,40 +59,29 @@ static int EULER_FUNCTION(getVec3)(lua_State* L) {
   return 1;
 }
 
-#define STRLEN(str_) (sizeof(#str_) - 1)
-#define PUSH_VALUE_IF_MATCH(field_, type_) \
-  if (len == STRLEN(field_) && strcmp(key, #field_) == 0) { \
-    lua_push##type_(L, ea->field_); \
-    return 1; \
-  }
 static int EULER_FUNCTION(__index)(lua_State* L) {
   EulerAngle* ea = luaL_checkeuler(L, 1);
   size_t len = 0;
   const char* key = luaL_checklstring(L, 2, &len);
-  PUSH_VALUE_IF_MATCH(pitch, number);
-  PUSH_VALUE_IF_MATCH(roll, number);
-  PUSH_VALUE_IF_MATCH(yaw, number);
+  INDEX_IF_IN_METATABLE();
+  INDEX_IF_MATCH(ea, pitch, number);
+  INDEX_IF_MATCH(ea, roll, number);
+  INDEX_IF_MATCH(ea, yaw, number);
   return luaL_error(L, "EulerAngle has no such field: %s", key);
 }
 
-#define SET_VALUE_IF_MATCH(field_, type_) \
-  if (len == STRLEN(field_) && strcmp(key, #field_) == 0) { \
-    ea->field_ = value; \
-    return 0; \
-  }
 static int EULER_FUNCTION(__newindex)(lua_State* L) {
   EulerAngle* ea = luaL_checkeuler(L, 1);
   size_t len = 0;
   const char* key = luaL_checklstring(L, 2, &len);
-  float value = luaL_checknumber(L, 3);
-  SET_VALUE_IF_MATCH(pitch, number);
-  SET_VALUE_IF_MATCH(roll, number);
-  SET_VALUE_IF_MATCH(yaw, number);
+  NEWINDEX_IF_MATCH(ea, pitch, number);
+  NEWINDEX_IF_MATCH(ea, roll, number);
+  NEWINDEX_IF_MATCH(ea, yaw, number);
   return luaL_error(L, "EulerAngle has no such field: %s", key);
 }
 
 #define EMPLACE_EULER_FUNCTION(name) \
-  { #name, EULER_FUNCTION(name) }
+  { "" #name, EULER_FUNCTION(name) }
 static const luaL_Reg EULER_FUNCTION(metafuncs)[] = {
     EMPLACE_EULER_FUNCTION(direction),
     EMPLACE_EULER_FUNCTION(toQuaternion),
@@ -107,7 +96,7 @@ static const luaL_Reg EULER_FUNCTION(metafuncs)[] = {
 static int EULER_FUNCTION(EulerAngle)(lua_State* L) {
   EulerAngle* ea = luaL_testeuler(L, 1);
   if (ea != NULL) {
-    luaL_pusheuler(L, ea);
+    lua_pusheuler(L, ea);
     return 1;
   }
 

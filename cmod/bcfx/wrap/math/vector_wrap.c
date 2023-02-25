@@ -236,6 +236,7 @@ static int VECTOR_FUNCTION(__index)(lua_State* L) {
   Vec* vec = luaL_checkvector(L, 1);
   size_t len = 0;
   const char* key = luaL_checklstring(L, 2, &len);
+  INDEX_IF_IN_METATABLE();
   int idx = find_idx(key, len);
   if (idx < 0 || idx >= VEC_COUNT(vec)) {
     return luaL_error(L, "Vector has no such field: %s", key);
@@ -274,7 +275,7 @@ static int VECTOR_FUNCTION(__tostring)(lua_State* L) {
 }
 
 #define EMPLACE_VECTOR_FUNCTION(name) \
-  { #name, VECTOR_FUNCTION(name) }
+  { "" #name, VECTOR_FUNCTION(name) }
 static const luaL_Reg VECTOR_FUNCTION(metafuncs)[] = {
     EMPLACE_VECTOR_FUNCTION(add),
     EMPLACE_VECTOR_FUNCTION(subtract),
@@ -307,7 +308,7 @@ static const luaL_Reg VECTOR_FUNCTION(metafuncs)[] = {
 static int VECTOR_FUNCTION(Vector)(lua_State* L) {
   Vec* v = luaL_testvector(L, 1);
   if (v != NULL) {
-    luaL_pushvector(L, v);
+    lua_pushvector(L, v);
     return 1;
   }
   int count = (int)luaL_checkinteger(L, 1);
@@ -331,7 +332,7 @@ static int VECTOR_FUNCTION(Vector)(lua_State* L) {
 static int VECTOR_FUNCTION(Vec2)(lua_State* L) {
   Vec2* v = luaL_testvec2(L, 1);
   if (v != NULL) {
-    luaL_pushvector(L, v);
+    lua_pushvector(L, v);
     return 1;
   }
   lua_settop(L, 2);
@@ -344,7 +345,7 @@ static int VECTOR_FUNCTION(Vec2)(lua_State* L) {
 static int VECTOR_FUNCTION(Vec3)(lua_State* L) {
   Vec3* v = luaL_testvec3(L, 1);
   if (v != NULL) {
-    luaL_pushvector(L, v);
+    lua_pushvector(L, v);
     return 1;
   }
   Vec2* v2 = luaL_testvec2(L, 1);
@@ -353,7 +354,7 @@ static int VECTOR_FUNCTION(Vec3)(lua_State* L) {
     VEC3_X(v3) = VEC2_X(v2);
     VEC3_Y(v3) = VEC2_Y(v2);
     VEC3_Z(v3) = luaL_optnumber(L, 2, 0.0);
-    luaL_pushvector(L, v3);
+    lua_pushvector(L, v3);
     return 1;
   }
   lua_settop(L, 3);
@@ -367,7 +368,7 @@ static int VECTOR_FUNCTION(Vec3)(lua_State* L) {
 static int VECTOR_FUNCTION(Vec4)(lua_State* L) {
   Vec4* v = luaL_testvec4(L, 1);
   if (v != NULL) {
-    luaL_pushvector(L, v);
+    lua_pushvector(L, v);
     return 1;
   }
   Vec3* v3 = luaL_testvec3(L, 1);
@@ -377,7 +378,7 @@ static int VECTOR_FUNCTION(Vec4)(lua_State* L) {
     VEC4_Y(v4) = VEC3_Y(v3);
     VEC4_Z(v4) = VEC3_Z(v3);
     VEC4_W(v4) = luaL_optnumber(L, 2, 0.0);
-    luaL_pushvector(L, v4);
+    lua_pushvector(L, v4);
     return 1;
   }
   Vec2* v2 = luaL_testvec2(L, 1);
@@ -387,7 +388,7 @@ static int VECTOR_FUNCTION(Vec4)(lua_State* L) {
     VEC4_Y(v4) = VEC2_Y(v2);
     VEC4_Z(v4) = luaL_optnumber(L, 2, 0.0);
     VEC4_W(v4) = luaL_optnumber(L, 3, 0.0);
-    luaL_pushvector(L, v4);
+    lua_pushvector(L, v4);
     return 1;
   }
   lua_settop(L, 4);
@@ -414,15 +415,15 @@ typedef struct {
   Vec3 vec;
 } PresetVec3;
 static const PresetVec3 VECTOR_FUNCTION(preset)[] = {
-    {"zero", VEC3_ZERO()},
-    {"one", VEC3_ONE()},
-    {"up", VEC3_UP()},
-    {"down", VEC3_DOWN()},
-    {"forward", VEC3_FORWARD()},
-    {"backward", VEC3_BACKWARD()},
-    {"right", VEC3_RIGHT()},
-    {"left", VEC3_LEFT()},
-    {NULL, VEC3_ZERO()},
+    {"zero", VEC3_ZERO},
+    {"one", VEC3_ONE},
+    {"up", VEC3_UP},
+    {"down", VEC3_DOWN},
+    {"forward", VEC3_FORWARD},
+    {"backward", VEC3_BACKWARD},
+    {"right", VEC3_RIGHT},
+    {"left", VEC3_LEFT},
+    {NULL, VEC3_ZERO},
 };
 
 static const luaL_Reg VECTOR_FUNCTION(funcs)[] = {
@@ -445,7 +446,7 @@ void VECTOR_FUNCTION(init)(lua_State* L) {
   luaL_newlib(L, VECTOR_FUNCTION(funcs));
 
   for (int i = 0; VECTOR_FUNCTION(preset)[i].Name != NULL; i++) {
-    luaL_pushvec3(L, &VECTOR_FUNCTION(preset)[i].vec);
+    lua_pushvec3(L, &VECTOR_FUNCTION(preset)[i].vec);
     lua_setfield(L, -2, VECTOR_FUNCTION(preset)[i].Name);
   }
 

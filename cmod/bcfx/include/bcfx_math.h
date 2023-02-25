@@ -115,9 +115,9 @@ BCFX_API void vec2_init(Vec2* vec);
       x, y \
     } \
   }
-#define VEC2_ZERO() VEC2(0.0f, 0.0f)
-#define VEC2_ONE() VEC2(1.0f, 1.0f)
-#define ALLOCA_VEC2(var) Vec2 var[1] = {VEC2_ZERO()}
+#define VEC2_ZERO VEC2(0.0f, 0.0f)
+#define VEC2_ONE VEC2(1.0f, 1.0f)
+#define ALLOCA_VEC2(var) Vec2 var[1] = {VEC2_ZERO}
 #define NEW_VEC2(var) \
   Vec2* var = (Vec2*)malloc(VEC_SIZE(2)); \
   VEC2_INIT(var)
@@ -139,9 +139,9 @@ BCFX_API void vec3_init(Vec3* vec);
       x, y, z \
     } \
   }
-#define VEC3_ZERO() VEC3(0.0f, 0.0f, 0.0f)
-#define VEC3_ONE() VEC3(1.0f, 1.0f, 1.0f)
-#define ALLOCA_VEC3(var) Vec3 var[1] = {VEC3_ZERO()}
+#define VEC3_ZERO VEC3(0.0f, 0.0f, 0.0f)
+#define VEC3_ONE VEC3(1.0f, 1.0f, 1.0f)
+#define ALLOCA_VEC3(var) Vec3 var[1] = {VEC3_ZERO}
 #define NEW_VEC3(var) \
   Vec3* var = (Vec3*)malloc(VEC_SIZE(3)); \
   VEC3_INIT(var)
@@ -152,12 +152,12 @@ BCFX_API void vec3_init(Vec3* vec);
 #define VEC3_DIRECTION(x, y, z) VEC3(x, y, z)
 
 // clang-format off
-#define VEC3_UP()       VEC3_DIRECTION( 0.0f,  0.0f,  1.0f)
-#define VEC3_DOWN()     VEC3_DIRECTION( 0.0f,  0.0f, -1.0f)
-#define VEC3_FORWARD()  VEC3_DIRECTION( 0.0f,  1.0f,  0.0f)
-#define VEC3_BACKWARD() VEC3_DIRECTION( 0.0f, -1.0f,  0.0f)
-#define VEC3_RIGHT()    VEC3_DIRECTION( 1.0f,  0.0f,  0.0f)
-#define VEC3_LEFT()     VEC3_DIRECTION(-1.0f,  0.0f,  0.0f)
+#define VEC3_UP       VEC3_DIRECTION( 0.0f,  0.0f,  1.0f)
+#define VEC3_DOWN     VEC3_DIRECTION( 0.0f,  0.0f, -1.0f)
+#define VEC3_FORWARD  VEC3_DIRECTION( 0.0f,  1.0f,  0.0f)
+#define VEC3_BACKWARD VEC3_DIRECTION( 0.0f, -1.0f,  0.0f)
+#define VEC3_RIGHT    VEC3_DIRECTION( 1.0f,  0.0f,  0.0f)
+#define VEC3_LEFT     VEC3_DIRECTION(-1.0f,  0.0f,  0.0f)
 // clang-format on
 
 #define VEC3_CROSS_PRODUCT(src1, src2, dst) vec3_crossProduct(src1, src2, dst)
@@ -179,9 +179,9 @@ BCFX_API void vec4_init(Vec4* vec);
       x, y, z, w \
     } \
   }
-#define VEC4_ZERO() VEC4(0.0f, 0.0f, 0.0f, 0.0f)
-#define VEC4_ONE() VEC4(1.0f, 1.0f, 1.0f, 1.0f)
-#define ALLOCA_VEC4(var) Vec4 var[1] = {VEC4_ZERO()}
+#define VEC4_ZERO VEC4(0.0f, 0.0f, 0.0f, 0.0f)
+#define VEC4_ONE VEC4(1.0f, 1.0f, 1.0f, 1.0f)
+#define ALLOCA_VEC4(var) Vec4 var[1] = {VEC4_ZERO}
 #define NEW_VEC4(var) \
   Vec4* var = (Vec4*)malloc(VEC_SIZE(4)); \
   VEC4_INIT(var)
@@ -311,6 +311,9 @@ typedef struct {
 ** =======================================================
 */
 
+#define EULER_ZERO \
+  { 0.0f, 0.0f, 0.0f }
+
 BCFX_API void euler_init(EulerAngle* ea, const Vec3* vec);
 BCFX_API void euler_direction(const EulerAngle* ea, Vec3* direction);
 BCFX_API void euler_toQuaternion(const EulerAngle* ea, Quaternion* quat);
@@ -368,6 +371,29 @@ BCFX_API void g3d_reflection(const Vec3* normal, float delta, Mat4x4* mat);
 BCFX_API void g3d_projection(const Vec* axis, Mat* mat);
 BCFX_API void g3d_perpendicular(const Vec* axis, Mat* mat);
 BCFX_API void g3d_crossProduct(const Vec3* A, Mat3x3* matCA);
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Transform
+** =======================================================
+*/
+
+typedef struct {
+  Vec3 location;
+  EulerAngle rotation;
+  Vec3 scale;
+} Transform;
+
+#define TRANSFORM_DEFAULT \
+  { VEC3_ZERO, EULER_ZERO, VEC3_ONE }
+
+BCFX_API void transform_init(Transform* trans);
+BCFX_API void transform_toMatrix(const Transform* trans, Mat4x4* dst);
+BCFX_API void transform_fromMatrix(Transform* trans, const Mat4x4* src);
+BCFX_API void transform_multiply(const Transform* relative, const Transform* base, const Transform* dst);
+BCFX_API void transform_divide(const Transform* trans, const Transform* base, const Transform* dst);
 
 /* }====================================================== */
 

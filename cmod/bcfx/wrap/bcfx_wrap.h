@@ -79,14 +79,14 @@ Vec* luaL_newvector(lua_State* L, uint8_t cnt);
 #define luaL_newvec2(L) (Vec2*)luaL_newvector(L, 2)
 #define luaL_newvec3(L) (Vec3*)luaL_newvector(L, 3)
 #define luaL_newvec4(L) (Vec4*)luaL_newvector(L, 4)
-#define luaL_pushvector(L, vec) \
+#define lua_pushvector(L, vec) \
   do { \
     Vec* _v_ = luaL_newvector(L, ((Vec*)vec)->count); \
     VEC_COPY(((Vec*)(vec)), _v_); \
   } while (0)
-#define luaL_pushvec2(L, vec) *(luaL_newvec2(L)) = *((Vec2*)vec)
-#define luaL_pushvec3(L, vec) *(luaL_newvec3(L)) = *((Vec3*)vec)
-#define luaL_pushvec4(L, vec) *(luaL_newvec4(L)) = *((Vec4*)vec)
+#define lua_pushvec2(L, vec) *(luaL_newvec2(L)) = *((Vec2*)vec)
+#define lua_pushvec3(L, vec) *(luaL_newvec3(L)) = *((Vec3*)vec)
+#define lua_pushvec4(L, vec) *(luaL_newvec4(L)) = *((Vec4*)vec)
 
 void VECTOR_FUNCTION(init)(lua_State* L);
 
@@ -128,7 +128,7 @@ void MATRIX_FUNCTION(init)(lua_State* L);
 #define luaL_opteuler(L, idx, dft) luaL_opt(L, luaL_checkeulue, idx, dft)
 #define luaL_testeuler(L, idx) (EulerAngle*)luaL_testudata_recursive(L, idx, BCFX_EULER_TYPE)
 EulerAngle* luaL_neweuler(lua_State* L);
-void luaL_pusheuler(lua_State* L, const EulerAngle* ea);
+void lua_pusheuler(lua_State* L, const EulerAngle* ea);
 
 void EULER_FUNCTION(init)(lua_State* L);
 
@@ -149,6 +149,24 @@ Quaternion* luaL_newquaternion(lua_State* L);
 void luaL_pushquaternion(lua_State* L, const Quaternion* ea);
 
 void QUATERNION_FUNCTION(init)(lua_State* L);
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Transform
+** =======================================================
+*/
+
+#define TRANSFORM_FUNCTION(name) bcfx_wrap_transform_##name
+#define BCFX_TRANSFORM_TYPE "Transform*"
+#define luaL_checktransform(L, idx) (Transform*)luaL_checkudata(L, idx, BCFX_TRANSFORM_TYPE)
+#define luaL_opttransform(L, idx, dft) luaL_opt(L, luaL_checktransform, idx, dft)
+#define luaL_testtransform(L, idx) (Transform*)luaL_testudata_recursive(L, idx, BCFX_TRANSFORM_TYPE)
+Transform* luaL_newtransform(lua_State* L);
+void luaL_pushtransform(lua_State* L, const Transform* ea);
+
+void TRANSFORM_FUNCTION(init)(lua_State* L);
 
 /* }====================================================== */
 

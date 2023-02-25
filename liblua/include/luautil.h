@@ -14,6 +14,40 @@
   lua_pushlightuserdata(L, (void*)(lightuserdata_)); \
   lua_setfield(L, -2, #name_)
 
+#define INDEX_IF_IN_METATABLE() \
+  if (lua_getmetatable(L, 1) == 1) { \
+    lua_pushvalue(L, 2); /* push the key */ \
+    if (lua_rawget(L, -2) != LUA_TNIL) { \
+      return 1; \
+    } \
+    lua_pop(L, 2); /* pop the nil value and metatable */ \
+  }
+#define STRLEN(str_) (sizeof(#str_) - 1)
+#define EMPTY_PREFIX
+#define INDEX_IF_MATCH_PREFIX(obj_, field_, type_, prefix_) \
+  if (len == STRLEN(field_) && strcmp(key, #field_) == 0) { \
+    lua_push##type_(L, prefix_ obj_->field_); \
+    return 1; \
+  }
+#define INDEX_IF_MATCH(obj_, field_, type_) \
+  INDEX_IF_MATCH_PREFIX(obj_, field_, type_, EMPTY_PREFIX)
+#define INDEX_IF_MATCH_PTR(obj_, field_, type_) \
+  INDEX_IF_MATCH_PREFIX(obj_, field_, type_, &)
+#define INDEX_IF_MATCH_CAST(obj_, field_, type_, cast_) \
+  INDEX_IF_MATCH_PREFIX(obj_, field_, type_, (cast_))
+
+#define NEWINDEX_IF_MATCH_PREFIX(obj_, field_, type_, prefix_) \
+  if (len == STRLEN(field_) && strcmp(key, #field_) == 0) { \
+    obj_->field_ = prefix_ luaL_check##type_(L, 3); \
+    return 0; \
+  }
+#define NEWINDEX_IF_MATCH(obj_, field_, type_) \
+  NEWINDEX_IF_MATCH_PREFIX(obj_, field_, type_, EMPTY_PREFIX)
+#define NEWINDEX_IF_MATCH_REF(obj_, field_, type_) \
+  NEWINDEX_IF_MATCH_PREFIX(obj_, field_, type_, *)
+#define NEWINDEX_IF_MATCH_CAST(obj_, field_, type_, cast_) \
+  NEWINDEX_IF_MATCH_PREFIX(obj_, field_, type_, (cast_))
+
 /*
 ** {======================================================
 ** Lua Callback
@@ -144,6 +178,9 @@ typedef struct {
   void* ud;
 } luaL_MemBuffer;
 
+#define MEMBUFFER_NULL \
+  { NULL, 0, NULL, NULL }
+
 #define MEMBUFFER_SETNULL(mb) \
   (mb)->ptr = NULL; \
   (mb)->sz = 0; \
@@ -213,9 +250,9 @@ LUALIB_API luaL_MemBuffer* luaL_newmembuffer(lua_State* L);
   bool prefix##_isValidIndex(TypeArray* arr, uint32_t idx); \
   void prefix##_empty(TypeArray* arr);
 
-#define Nothing(x)
+#define EMPTY_DESTRUCTOR(X)
 #define DEFINE_ARRAY(Type, TypeArray, prefix, dftSize) \
-  DEFINE_ARRAY_EX(Type, TypeArray, prefix, dftSize, Nothing)
+  DEFINE_ARRAY_EX(Type, TypeArray, prefix, dftSize, EMPTY_DESTRUCTOR)
 #define DEFINE_ARRAY_EX(Type, TypeArray, prefix, dftSize, destructor) \
   void prefix##_init(TypeArray* arr) { \
     arr->capacity = dftSize; \
