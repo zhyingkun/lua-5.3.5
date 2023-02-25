@@ -37,7 +37,7 @@ static void _drawEnd(nk_command_buffer* cmds, nk_handle ud) {
 #define PUSH_FUNCTION_IF_MATCH(field_, key_, num_, callback_) \
   if (strcmp(key, #key_) == 0) { \
     if (styleButton->field_ == callback_) { \
-      PUSH_HOLD_OBJECT(L, styleButton, 0); \
+      PUSH_HOLD_OBJECT(L, styleButton, num_); \
     } else { \
       lua_pushnil(L); \
     } \
