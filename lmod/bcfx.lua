@@ -1,13 +1,16 @@
 local libbcfx = require("libbcfx")
-local libimage = libbcfx.image
-local libeuler = libbcfx.euler
-local libgraphics3d = libbcfx.math.graphics3d
-local libmatrix = libbcfx.math.matrix
-local libquaternion = libbcfx.math.quaternion
+
 local libvector = libbcfx.math.vector
-local libmesh = libbcfx.mesh
-local libcolor = libbcfx.color
+local libmatrix = libbcfx.math.matrix
+local libeuler = libbcfx.math.euler
+local libquaternion = libbcfx.math.quaternion
+local libgraphics3d = libbcfx.math.graphics3d
+local libtransform = libbcfx.math.transform
+
 local libutils = libbcfx.utils
+local libcolor = libbcfx.color
+local libimage = libbcfx.image
+local libmesh = libbcfx.mesh
 
 local libuv = require("libuv")
 
@@ -281,6 +284,38 @@ end
 ---@return Mat3x3
 function graphics3d.crossProduct(vec)
 	return libgraphics3d.crossProduct(vec)
+end
+
+-- }======================================================
+
+--[[
+** {======================================================
+** Transform
+** =======================================================
+--]]
+
+---@class bcfx_math_transform:table
+local transform = {}
+math.transform = transform
+
+---@class Transform:userdata
+---@field public getLocation fun(self:Transform):Vec3
+---@field public getRotation fun(self:Transform):EulerAngle
+---@field public getScale fun(src:Transform):Vec3
+---@field public setLocation fun(src:Transform, location:Vec3):void
+---@field public setRotation fun(src:Transform, rotation:EulerAngle):void
+---@field public setScale fun(src:Transform, scale:Vec3):void
+---@field public toMatrix fun(src:Transform):Mat4x4
+---@field public location Vec3
+---@field public rotation EulerAngle
+---@field public scale Vec3
+
+---@param location Vec3
+---@param rotation EulerAngle
+---@param scale Vec3
+---@return Transform
+function transform.Transform(location, rotation, scale)
+	return libtransform.Transform(location, rotation, scale)
 end
 
 -- }======================================================

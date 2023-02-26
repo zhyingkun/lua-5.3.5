@@ -150,7 +150,7 @@ void TRANSFORM_FUNCTION(init)(lua_State* L) {
   lua_pop(L, 1);
 
   luaL_newlib(L, TRANSFORM_FUNCTION(funcs));
-  lua_setfield(L, -2, "quaternion");
+  lua_setfield(L, -2, "transform");
 }
 
 /* }====================================================== */
