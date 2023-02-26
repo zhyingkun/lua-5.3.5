@@ -133,16 +133,17 @@ static void print_usage(const char* badoption) {
   else
     lua_printf_err("unrecognized option '%s'\n", badoption);
   lua_printf_err("usage: %s [options] [script [args]]\n"
-                       "Available options are:\n"
-                       "  -e stat  execute string 'stat'\n"
-                       "  -i       enter interactive mode after executing 'script'\n"
-                       "  -l name  require library 'name' into global 'name'\n"
-                       "  -v       show version information\n"
-                       "  -E       ignore environment variables\n"
-                       "  --       stop handling options\n"
-                       "  -        stop handling options and execute stdin\n"
-                       "  -d       ignore EOF, for debug attaching in MacOSX\n",
-                       progname);
+                 "Available options are:\n"
+                 "  -e stat  execute string 'stat'\n"
+                 "  -i       enter interactive mode after executing 'script'\n"
+                 "  -l name  require library 'name' into global 'name'\n"
+                 "  -v       show version information\n"
+                 "  -E       ignore environment variables\n"
+                 "  --       stop handling options\n"
+                 "  -        stop handling options and execute stdin\n"
+                 "  -d       ignore EOF, for debug attaching in MacOSX\n",
+                 "  -a list  pass arg list for '-e' option\n",
+                 progname);
 }
 
 /*
@@ -232,18 +233,38 @@ static void createargtable(lua_State* L, char** argv, int argc, int script) {
   lua_setglobal(L, "arg");
 }
 
-static int dochunk(lua_State* L, int status) {
-  if (status == LUA_OK)
-    status = docall(L, 0, 0);
+typedef int (*PushArgs)();
+static int dochunk(lua_State* L, int status, PushArgs pushArgs) {
+  if (status == LUA_OK) {
+    int arg = pushArgs != NULL ? pushArgs() : 0;
+    status = docall(L, arg, 0);
+  }
   return report(L, status);
 }
 
 static int dofile(lua_State* L, const char* name) {
-  return dochunk(L, luaL_loadfile(L, name));
+  return dochunk(L, luaL_loadfile(L, name), NULL);
 }
 
 static int dostring(lua_State* L, const char* s, const char* name) {
-  return dochunk(L, luaL_loadbuffer(L, s, strlen(s), name));
+  return dochunk(L, luaL_loadbuffer(L, s, strlen(s), name), NULL);
+}
+
+static char** argEval = NULL;
+static lua_State* argL = NULL;
+static int pushArgs() {
+  int arg = 0;
+  if (argEval != NULL) {
+    for (arg = 0; argEval[arg] != NULL; arg++) {
+      lua_pushstring(argL, argEval[arg]);
+    }
+  }
+  return arg;
+}
+static int doeval(lua_State* L, const char* s, const char* name, char** arge) {
+  argEval = arge;
+  argL = L;
+  return dochunk(L, luaL_loadbuffer(L, s, strlen(s), name), pushArgs);
 }
 
 /*
@@ -467,6 +488,7 @@ static int handle_script(lua_State* L, char** argv) {
 #define has_e 8 /* -e */
 #define has_E 16 /* -E */
 #define has_d 32 /* -d */
+#define has_a 64 /* -a */
 
 /*
 ** Traverses all arguments from 'argv', returning a mask with those
@@ -513,6 +535,16 @@ static int collectargs(char** argv, int* first) {
             return has_error; /* no next argument or it is another option */
         }
         break;
+      case 'a':
+        if (argv[i][2] != '\0') {
+          return has_error;
+        }
+        args |= has_a;
+        while (argv[i] != NULL) {
+          i++;
+        }
+        *first = i;
+        return args;
       default: /* invalid option */
         return has_error;
     }
@@ -521,22 +553,38 @@ static int collectargs(char** argv, int* first) {
   return args;
 }
 
+// arguments for eval
+static char** findarge(char** argv, int hasa) {
+  if (hasa) {
+    for (int i = 1; argv[i] != NULL; i++) {
+      if (argv[i][0] == '-' && argv[i][1] == 'a' && argv[i][2] == '\0') {
+        return argv + i + 1;
+      }
+    }
+  }
+  return NULL;
+}
+
 /*
 ** Processes options 'e' and 'l', which involve running Lua code.
 ** Returns 0 if some code raises an error.
 */
-static int runargs(lua_State* L, char** argv, int n) {
+static int runargs(lua_State* L, char** argv, int n, int hasa) {
   int i;
+  char** arge = findarge(argv, hasa);
   for (i = 1; i < n; i++) {
     int option = argv[i][1];
     lua_assert(argv[i][0] == '-'); /* already checked */
+    if (option == 'a') {
+      return 1;
+    }
     if (option == 'e' || option == 'l') {
       int status;
       const char* extra = argv[i] + 2; /* both options need an argument */
       if (*extra == '\0')
         extra = argv[++i];
       lua_assert(extra != NULL);
-      status = (option == 'e') ? dostring(L, extra, "=(command line)") : dolibrary(L, extra);
+      status = (option == 'e') ? doeval(L, extra, "=(command line)", arge) : dolibrary(L, extra);
       if (status != LUA_OK)
         return 0;
     }
@@ -588,7 +636,7 @@ static int pmain(lua_State* L) {
     if (handle_luainit(L) != LUA_OK) /* run LUA_INIT */
       return 0; /* error running LUA_INIT */
   }
-  if (!runargs(L, argv, script)) /* execute arguments -e and -l */
+  if (!runargs(L, argv, script, args & has_a)) /* execute arguments -e and -l */
     return 0; /* something failed */
   if (script < argc && /* execute main script (if there is one) */
       handle_script(L, argv + script) != LUA_OK)
