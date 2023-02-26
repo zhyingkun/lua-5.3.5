@@ -279,10 +279,13 @@ function repl.clientStart(serverIP, serverPort)
 	if not libuv then error(ErrMsg) end
 	local OK = libuv.err_code.OK
 
-	local sockAddr = libuv.network.SockAddr():ip4Addr(serverIP or "0.0.0.0", serverPort or 1999)
+	serverIP = serverIP or "0.0.0.0"
+	serverPort = serverPort or 1999
+	local sockAddr = libuv.network.SockAddr():ip4Addr(serverIP, serverPort)
 	libuv.tcp.Tcp():connectAsync(sockAddr, function(status, tcpClient)
 		if status < 0 then
-			printError("REPL TCP Connect error:", status)
+			local msg = string.format("REPL TCP Connect to %s:%d failed:", serverIP, serverPort)
+			printError(msg, status)
 			return
 		end
 		local packetHandler = REPLPacketHandler()
@@ -322,13 +325,13 @@ end
 
 ---@overload fun():void
 ---@overload fun(serverIP:string):void
----@overload fun(serverIP:string, serverPort:integer):void
+---@overload fun(serverIP:string, serverPort:string):void
 ---@param serverIP string
----@param serverPort integer
-function repl.clientRun(serverIP, serverPort)
-	if not libuv then error(ErrMsg) end
+---@param serverPort string
+function repl.cmdClientRun(serverIP, serverPort)
+	repl.init(require("libuv"), require("protobuf"))
 	libuv.setLoop()
-	repl.clientStart(serverIP, serverPort)
+	repl.clientStart(serverIP, serverPort and math.tointeger(serverPort))
 	libuv.run()
 end
 
