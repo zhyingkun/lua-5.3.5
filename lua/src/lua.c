@@ -141,7 +141,7 @@ static void print_usage(const char* badoption) {
                  "  -E       ignore environment variables\n"
                  "  --       stop handling options\n"
                  "  -        stop handling options and execute stdin\n"
-                 "  -d       ignore EOF, for debug attaching in MacOSX\n",
+                 "  -d       ignore EOF, for debug attaching in MacOSX\n"
                  "  -a list  pass arg list for '-e' option\n",
                  progname);
 }
