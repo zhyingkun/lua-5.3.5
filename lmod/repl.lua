@@ -273,7 +273,7 @@ end
 ---@overload fun():void
 ---@overload fun(serverIP:string):void
 ---@overload fun(serverIP:string, serverPort:integer):void
----@param serverIP string
+---@param serverIP string @ Server IP or Domain Name
 ---@param serverPort integer
 function repl.clientStart(serverIP, serverPort)
 	if not libuv then error(ErrMsg) end
@@ -281,7 +281,14 @@ function repl.clientStart(serverIP, serverPort)
 
 	serverIP = serverIP or "0.0.0.0"
 	serverPort = serverPort or 1999
-	local sockAddr = libuv.network.SockAddr():ip4Addr(serverIP, serverPort)
+	-- local sockAddr = libuv.network.SockAddr():ip4Addr(serverIP, serverPort)
+	local addrInfo, errCode = libuv.network.getAddrInfo(serverIP, serverPort)
+	if not addrInfo then
+		local msg = string.format("ServerIP or DomainName '%s:%d' error:", serverIP, serverPort)
+		printError(msg, errCode)
+		return
+	end
+	local sockAddr = addrInfo.addr
 	libuv.tcp.Tcp():connectAsync(sockAddr, function(status, tcpClient)
 		if status < 0 then
 			local msg = string.format("REPL TCP Connect to %s:%d failed:", serverIP, serverPort)
@@ -326,7 +333,7 @@ end
 ---@overload fun():void
 ---@overload fun(serverIP:string):void
 ---@overload fun(serverIP:string, serverPort:string):void
----@param serverIP string
+---@param serverIP string @ Server IP or Domain Name
 ---@param serverPort string
 function repl.cmdClientRun(serverIP, serverPort)
 	repl.init(require("libuv"), require("protobuf"))
