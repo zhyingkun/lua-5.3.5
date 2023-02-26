@@ -144,8 +144,6 @@ static const luaL_Reg TRANSFORM_FUNCTION(funcs)[] = {
 void TRANSFORM_FUNCTION(init)(lua_State* L) {
   luaL_newmetatable(L, BCFX_TRANSFORM_TYPE);
   luaL_setfuncs(L, TRANSFORM_FUNCTION(metafuncs), 0);
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
   lua_pop(L, 1);
 
   luaL_newlib(L, TRANSFORM_FUNCTION(funcs));

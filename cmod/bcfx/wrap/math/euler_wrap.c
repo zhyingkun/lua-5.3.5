@@ -128,8 +128,6 @@ static const luaL_Reg EULER_FUNCTION(funcs)[] = {
 void EULER_FUNCTION(init)(lua_State* L) {
   luaL_newmetatable(L, BCFX_EULER_TYPE);
   luaL_setfuncs(L, EULER_FUNCTION(metafuncs), 0);
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
   lua_pop(L, 1);
 
   luaL_newlib(L, EULER_FUNCTION(funcs));
