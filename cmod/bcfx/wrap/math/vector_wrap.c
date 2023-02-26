@@ -45,6 +45,13 @@ Vec* luaL_newvector(lua_State* L, uint8_t cnt) {
   return vec;
 }
 
+static int VECTOR_FUNCTION(abs)(lua_State* L) {
+  Vec* src = luaL_checkvector(L, 1);
+  Vec* dst = luaL_newvector(L, VEC_COUNT(src));
+  VEC_ABS(src, dst);
+  return 1;
+}
+
 #define TWO_SRC_ONE_DST(_op_) \
   Vec* src1 = luaL_checkvector(L, 1); \
   Vec* src2 = luaL_checkvector(L, 2); \
@@ -277,6 +284,7 @@ static int VECTOR_FUNCTION(__tostring)(lua_State* L) {
 #define EMPLACE_VECTOR_FUNCTION(name) \
   { "" #name, VECTOR_FUNCTION(name) }
 static const luaL_Reg VECTOR_FUNCTION(metafuncs)[] = {
+    EMPLACE_VECTOR_FUNCTION(abs),
     EMPLACE_VECTOR_FUNCTION(add),
     EMPLACE_VECTOR_FUNCTION(subtract),
     EMPLACE_VECTOR_FUNCTION(componentWiseProduct),

@@ -23,6 +23,12 @@ BCFX_API void vec_one(Vec* vec) {
   }
 }
 
+BCFX_API void vec_abs(const Vec* src, Vec* dst) {
+  for (uint8_t i = 0; i < src->count; i++) {
+    VEC_ELEMENT(dst, i) = fabsf(VEC_ELEMENT(src, i));
+  }
+}
+
 // src and dst can be the same
 BCFX_API void vec_add(const Vec* src1, const Vec* src2, Vec* dst) {
   assert(src1->count == src2->count &&
