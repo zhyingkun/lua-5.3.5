@@ -12,8 +12,8 @@ typedef enum {
   CPT_A2BGR10,
 } ColorPackType;
 
-#define GET_INTEGER(L, idx, n) (lua_isinteger(L, idx) ? lua_tointeger(L, idx) : (lua_Integer)(lua_tonumber(L, idx) * (2 ^ n - 1)))
-#define OPT_INTEGER(L, idx, n) (lua_type(L, idx) == LUA_TNUMBER ? GET_INTEGER(L, idx, n) : (2 ^ n - 1))
+#define GET_INTEGER(L, idx, n) (lua_isinteger(L, idx) ? lua_tointeger(L, idx) : (lua_Integer)(lua_tonumber(L, idx) * ((2 ^ (n)) - 1)))
+#define OPT_INTEGER(L, idx, n) (lua_type(L, idx) == LUA_TNUMBER ? GET_INTEGER(L, idx, n) : ((2 ^ (n)) - 1))
 
 #define GET_UINT8(L, idx) ((uint8_t)GET_INTEGER(L, idx, 8))
 #define GET_UINT10(L, idx) ((uint16_t)GET_INTEGER(L, idx, 10))
