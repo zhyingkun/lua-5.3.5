@@ -1170,6 +1170,41 @@ static const char* tab_str = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
 #define MAX_TAB_SIZE 16
 #define TABLE_HEAD_SIZE 32
 
+#define IS_NEWLINE(c) ((c) == '\r' || (c) == '\n')
+#define IS_ONELINE(p, c) (((p) == '\r' && (c) == '\n') || ((p) == '\n' && (c) == '\r'))
+void luaBB_addvalue_tab(luaL_ByteBuffer* b, lua_State* L, int idx, int level) {
+  idx = lua_absindex(L, idx);
+  size_t length = 0;
+  const char* result = luaL_tolstring(L, idx, &length); // [-0, +1]
+  if (lua_type(L, idx) == LUA_TSTRING) {
+    luaBB_addliteral(b, "\"");
+    luaBB_addlstringex(b, result, (uint32_t)length, true);
+    luaBB_addliteral(b, "\"");
+  } else {
+    const char* finish = result + length;
+    const char* str = result;
+    size_t len = 0;
+    for (size_t i = 0; i < length; i++, len++) {
+      if (IS_NEWLINE(result[i])) {
+        i++, len++;
+        if (IS_ONELINE(result[i], result[i + 1])) {
+          i++, len++;
+        }
+        luaBB_addlstring(b, str, len);
+        str += len;
+        len = 0;
+        if (str < finish) {
+          luaBB_addlstring(b, tab_str, level);
+        }
+      }
+    }
+    if (str < finish) {
+      luaBB_addlstring(b, str, len);
+    }
+  }
+  lua_pop(L, 1); // [-1, +0]
+}
+
 // idx points to a table, detail->level > 0
 static void recursive_tostring(DetailStr* detail, int idx) {
   lua_State* L = detail->L;
@@ -1201,7 +1236,7 @@ static void recursive_tostring(DetailStr* detail, int idx) {
         ds_checktable(detail, -1) == 0) {
       recursive_tostring(detail, -1);
     } else {
-      luaBB_addvalue(b, L, -1);
+      luaBB_addvalue_tab(b, L, -1, detail->current_level);
     }
     luaBB_addnewline(b);
     lua_pop(L, 1);
