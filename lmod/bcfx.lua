@@ -310,6 +310,10 @@ math.transform = transform
 ---@field public rotation EulerAngle
 ---@field public scale Vec3
 
+---@overload fun():Transform
+---@overload fun(location:Vec3):Transform
+---@overload fun(location:Vec3, rotation:EulerAngle):Transform
+---@overload fun(location:Vec3, rotation:EulerAngle, scale:Vec3):Transform
 ---@param location Vec3
 ---@param rotation EulerAngle
 ---@param scale Vec3
@@ -347,9 +351,9 @@ math.matrix = matrix
 ---@field public adjoint Matrix1Src1DstSignature
 ---@field public inverse fun(src:Mat):(nil | Mat)
 
----overload fun(mat:Mat):Mat
----overload fun(row:integer, col:integer):Mat
----overload fun(row:integer, col:integer, values:number[]):Mat
+---@overload fun(mat:Mat):Mat
+---@overload fun(row:integer, col:integer):Mat
+---@overload fun(row:integer, col:integer, values:number[]):Mat
 ---@param row integer
 ---@param col integer
 ---@param values number[]
@@ -360,8 +364,8 @@ end
 
 ---@class Mat3x3:Mat
 
----overload fun(mat:Mat3x3):Mat3x3
----overload fun(...:number):Mat3x3
+---@overload fun(mat:Mat3x3):Mat3x3
+---@overload fun(...:number):Mat3x3
 ---@vararg number
 ---@return Mat3x3
 function matrix.Mat3x3(...)
@@ -370,9 +374,9 @@ end
 
 ---@class Mat4x4:Mat
 
----overload fun(mat:Mat3x3):Mat4x4
----overload fun(mat:Mat4x4):Mat4x4
----overload fun(...:number):Mat4x4
+---@overload fun(mat:Mat3x3):Mat4x4
+---@overload fun(mat:Mat4x4):Mat4x4
+---@overload fun(...:number):Mat4x4
 ---@vararg number
 ---@return Mat4x4
 function matrix.Mat4x4(...)

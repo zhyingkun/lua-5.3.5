@@ -122,15 +122,14 @@ static const luaL_Reg TRANSFORM_FUNCTION(metafuncs)[] = {
 };
 
 static int TRANSFORM_FUNCTION(Transform)(lua_State* L) {
-  int count = lua_gettop(L);
   Transform* trans = luaL_newtransform(L);
-  if (count >= 1) {
+  if (!lua_isnoneornil(L, 1)) {
     trans->location = *luaL_checkvec3(L, 1);
   }
-  if (count >= 2) {
+  if (!lua_isnoneornil(L, 2)) {
     trans->rotation = *luaL_checkeuler(L, 2);
   }
-  if (count >= 3) {
+  if (!lua_isnoneornil(L, 3)) {
     trans->scale = *luaL_checkvec3(L, 3);
   }
   return 1;
