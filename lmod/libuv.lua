@@ -1776,16 +1776,16 @@ end
 ---@overload fun(node:string | nil, service:string):integer, addrinfo
 ---@overload fun(node:string | nil, service:string | nil, hints:addrinfo | nil):integer, addrinfo
 ---@param node string | nil
----@param service string | nil
+---@param service integer | string | nil
 ---@param hints addrinfo | nil
----@return integer, addrinfo @errCode, addrinfo
+---@return addrinfo, integer @addrinfo, errCode
 function network.getAddrInfo(node, service, hints)
 	return libnetwork.getaddrinfo(loopCtx, node, service, hints)
 end
 ---@param node string | nil
----@param service string | nil
+---@param service integer | string | nil
 ---@param hints addrinfo | nil
----@param callback fun(status:integer, res:addrinfo)
+---@param callback fun(res:addrinfo, status:integer)
 function network.getAddrInfoAsync(node, service, hints, callback)
 	libnetwork.getaddrinfo(loopCtx, node, service, hints, callback)
 end
@@ -1793,37 +1793,37 @@ end
 ---@overload fun(node:string | nil, service:string):integer, addrinfo
 ---@overload fun(node:string | nil, service:string | nil, hints:addrinfo | nil):integer, addrinfo
 ---@param node string | nil
----@param service string | nil
+---@param service integer | string | nil
 ---@param hints addrinfo | nil
----@return integer, addrinfo @errCode, addrinfo
+---@return addrinfo, integer @addrinfo, errCode
 function network.getAddrInfoAsyncWait(node, service, hints)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libnetwork.getaddrinfo(loopCtx, node, service, hints, function(status, res)
-		resume(co, status, res)
+	libnetwork.getaddrinfo(loopCtx, node, service, hints, function(res, status)
+		resume(co, res, status)
 	end)
 	return yield()
 end
 ---@param addr sockaddr
 ---@param flags libuv_nameinfo_flag
----@return integer, string | nil, string | nil @errCode, host, service
+---@return string | nil, string | nil, integer @host, service, errCode
 function network.getNameInfo(addr, flags)
 	return libnetwork.getnameinfo(loopCtx, addr, flags)
 end
 ---@param addr sockaddr
 ---@param flags libuv_nameinfo_flag
----@param callback fun(status:integer, host:string | nil, service:string | nil):void
+---@param callback fun(host:string | nil, service:string | nil, status:integer):void
 function network.getNameInfoAsync(addr, flags, callback)
 	libnetwork.getnameinfo(loopCtx, addr, flags, callback)
 end
 ---@param addr sockaddr
 ---@param flags libuv_nameinfo_flag
----@return integer, string | nil, string | nil @errCode, host, service
+---@return string | nil, string | nil, integer @host, service, errCode
 function network.getNameInfoAsyncWait(addr, flags)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libnetwork.getnameinfo(loopCtx, addr, flags, function(status, hostname, service)
-		resume(co, status, hostname, service)
+	libnetwork.getnameinfo(loopCtx, addr, flags, function(hostname, service, status)
+		resume(co, hostname, service, status)
 	end)
 	return yield()
 end

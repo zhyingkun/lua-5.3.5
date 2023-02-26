@@ -260,9 +260,9 @@ char* PHYSADDR_FUNCTION(create)(lua_State* L) {
 static void NETWORK_CALLBACK(getaddrinfo)(uv_getaddrinfo_t* req, int status, struct addrinfo* res) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
-  lua_pushinteger(L, status);
   PUSH_GETADDRINFO_RESULT(L, res);
   (void)MEMORY_FUNCTION(free_req)(req);
+  lua_pushinteger(L, status);
   CALL_LUA_FUNCTION(L, 2);
 }
 static int NETWORK_FUNCTION(getaddrinfo)(lua_State* L) {
@@ -290,19 +290,19 @@ static int NETWORK_FUNCTION(getaddrinfo)(lua_State* L) {
     HOLD_REQ_CALLBACK(L, req, 5);
     return 0;
   }
-  lua_pushinteger(L, err);
   PUSH_GETADDRINFO_RESULT(L, req->addrinfo);
   (void)MEMORY_FUNCTION(free_req)(req);
+  lua_pushinteger(L, err);
   return 2;
 }
 
 static void NETWORK_CALLBACK(getnameinfo)(uv_getnameinfo_t* req, int status, const char* hostname, const char* service) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
-  lua_pushinteger(L, status);
   lua_pushstring(L, hostname); // hostname and service store in req
   lua_pushstring(L, service);
   (void)MEMORY_FUNCTION(free_req)(req);
+  lua_pushinteger(L, status);
   CALL_LUA_FUNCTION(L, 3);
 }
 static int NETWORK_FUNCTION(getnameinfo)(lua_State* L) {
@@ -318,7 +318,6 @@ static int NETWORK_FUNCTION(getnameinfo)(lua_State* L) {
     HOLD_REQ_CALLBACK(L, req, 4);
     return 0;
   }
-  lua_pushinteger(L, err);
   if (err == UVWRAP_OK) {
     lua_pushstring(L, req->host);
     lua_pushstring(L, req->service);
@@ -327,6 +326,7 @@ static int NETWORK_FUNCTION(getnameinfo)(lua_State* L) {
     lua_pushnil(L);
   }
   (void)MEMORY_FUNCTION(free_req)(req);
+  lua_pushinteger(L, err);
   return 3;
 }
 
