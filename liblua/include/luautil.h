@@ -24,29 +24,35 @@
   }
 #define STRLEN(str_) (sizeof(#str_) - 1)
 #define EMPTY_PREFIX
-#define INDEX_IF_MATCH_PREFIX(obj_, field_, type_, prefix_) \
-  if (len == STRLEN(field_) && strcmp(key, #field_) == 0) { \
+#define INDEX_IF_MATCH_INTERNAL(obj_, field_, type_, key_, prefix_) \
+  if (len == STRLEN(key_) && strcmp(key, #key_) == 0) { \
     lua_push##type_(L, prefix_ obj_->field_); \
     return 1; \
   }
 #define INDEX_IF_MATCH(obj_, field_, type_) \
-  INDEX_IF_MATCH_PREFIX(obj_, field_, type_, EMPTY_PREFIX)
+  INDEX_IF_MATCH_INTERNAL(obj_, field_, type_, field_, EMPTY_PREFIX)
 #define INDEX_IF_MATCH_PTR(obj_, field_, type_) \
-  INDEX_IF_MATCH_PREFIX(obj_, field_, type_, &)
+  INDEX_IF_MATCH_INTERNAL(obj_, field_, type_, field_, &)
 #define INDEX_IF_MATCH_CAST(obj_, field_, type_, cast_) \
-  INDEX_IF_MATCH_PREFIX(obj_, field_, type_, (cast_))
+  INDEX_IF_MATCH_INTERNAL(obj_, field_, type_, field_, (cast_))
+#define INDEX_IF_MATCH_KEY(obj_, field_, type_, key_) \
+  INDEX_IF_MATCH_INTERNAL(obj_, field_, type_, key_, EMPTY_PREFIX)
 
-#define NEWINDEX_IF_MATCH_PREFIX(obj_, field_, type_, prefix_) \
-  if (len == STRLEN(field_) && strcmp(key, #field_) == 0) { \
+#define NEWINDEX_IF_MATCH_INTERNAL(obj_, field_, type_, key_, prefix_) \
+  if (len == STRLEN(key_) && strcmp(key, #key_) == 0) { \
     obj_->field_ = prefix_ luaL_check##type_(L, 3); \
     return 0; \
   }
 #define NEWINDEX_IF_MATCH(obj_, field_, type_) \
-  NEWINDEX_IF_MATCH_PREFIX(obj_, field_, type_, EMPTY_PREFIX)
+  NEWINDEX_IF_MATCH_INTERNAL(obj_, field_, type_, field_, EMPTY_PREFIX)
 #define NEWINDEX_IF_MATCH_REF(obj_, field_, type_) \
-  NEWINDEX_IF_MATCH_PREFIX(obj_, field_, type_, *)
+  NEWINDEX_IF_MATCH_INTERNAL(obj_, field_, type_, field_, *)
 #define NEWINDEX_IF_MATCH_CAST(obj_, field_, type_, cast_) \
-  NEWINDEX_IF_MATCH_PREFIX(obj_, field_, type_, (cast_))
+  NEWINDEX_IF_MATCH_INTERNAL(obj_, field_, type_, field_, (cast_))
+#define NEWINDEX_IF_MATCH_KEY(obj_, field_, type_, key_) \
+  NEWINDEX_IF_MATCH_INTERNAL(obj_, field_, type_, key_, EMPTY_PREFIX)
+#define NEWINDEX_IF_MATCH_KEY_CAST(obj_, field_, type_, key_, cast_) \
+  NEWINDEX_IF_MATCH_INTERNAL(obj_, field_, type_, key_, (cast_))
 
 /*
 ** {======================================================

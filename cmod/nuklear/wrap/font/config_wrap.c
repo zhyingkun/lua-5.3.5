@@ -9,58 +9,50 @@
 ** =======================================================
 */
 
-#define PUSH_VALUE_IF_MATCH(field_, key_, type_) \
-  if (strcmp(key, #key_) == 0) { \
-    lua_push##type_(L, cfg->field_); \
-    return 1; \
-  }
-#define PUSH_VALUE_IF_MATCH_CAST(field_, key_, type_, cast_) \
-  if (strcmp(key, #key_) == 0) { \
-    lua_push##type_(L, (cast_)cfg->field_); \
-    return 1; \
-  }
 static int NKFONTCFG_FUNCTION(__index)(lua_State* L) {
   nk_font_config* cfg = luaL_checknkfontconfig(L, 1);
-  const char* key = luaL_checkstring(L, 2);
-  PUSH_VALUE_IF_MATCH(merge_mode, mergeMode, boolean)
-  PUSH_VALUE_IF_MATCH(pixel_snap, pixelSnap, boolean)
-  PUSH_VALUE_IF_MATCH(oversample_v, overSampleV, integer)
-  PUSH_VALUE_IF_MATCH(oversample_h, overSampleH, integer)
-  PUSH_VALUE_IF_MATCH(size, pixelHeight, number)
-  PUSH_VALUE_IF_MATCH(coord_type, coordType, nkfontcoordtype)
-  PUSH_VALUE_IF_MATCH(spacing, spacing, nkvec2)
-  PUSH_VALUE_IF_MATCH_CAST(range, range, lightuserdata, void*)
-  PUSH_VALUE_IF_MATCH(fallback_glyph, fallbackGlyph, nkrune)
+  size_t len = 0;
+  const char* key = luaL_checklstring(L, 2, &len);
+  INDEX_IF_IN_METATABLE();
+  INDEX_IF_MATCH_KEY(cfg, merge_mode, boolean, mergeMode)
+  INDEX_IF_MATCH_KEY(cfg, pixel_snap, boolean, pixelSnap)
+  INDEX_IF_MATCH_KEY(cfg, oversample_v, integer, overSampleV)
+  INDEX_IF_MATCH_KEY(cfg, oversample_h, integer, overSampleH)
+  INDEX_IF_MATCH_KEY(cfg, size, number, pixelHeight)
+  INDEX_IF_MATCH_KEY(cfg, coord_type, nkfontcoordtype, coordType)
+
+  INDEX_IF_MATCH(cfg, spacing, nkvec2)
+  INDEX_IF_MATCH_CAST(cfg, range, lightuserdata, void*)
+
+  INDEX_IF_MATCH_KEY(cfg, fallback_glyph, nkrune, fallbackGlyph)
   return luaL_error(L, "nk_font_config has no such field: %s", key);
 }
 
-#define SET_VALUE_IF_MATCH(field_, key_, type_) \
-  if (strcmp(key, #key_) == 0) { \
-    cfg->field_ = luaL_check##type_(L, 3); \
-    return 0; \
-  }
-#define SET_VALUE_IF_MATCH_CAST(field_, key_, type_, cast_) \
-  if (strcmp(key, #key_) == 0) { \
-    cfg->field_ = (cast_)luaL_check##type_(L, 3); \
-    return 0; \
-  }
 static int NKFONTCFG_FUNCTION(__newindex)(lua_State* L) {
   nk_font_config* cfg = luaL_checknkfontconfig(L, 1);
-  const char* key = luaL_checkstring(L, 2);
-  SET_VALUE_IF_MATCH_CAST(merge_mode, mergeMode, boolean, unsigned char);
-  SET_VALUE_IF_MATCH_CAST(pixel_snap, pixelSnap, boolean, unsigned char);
-  SET_VALUE_IF_MATCH_CAST(oversample_v, overSampleV, integer, unsigned char);
-  SET_VALUE_IF_MATCH_CAST(oversample_h, overSampleH, integer, unsigned char);
-  SET_VALUE_IF_MATCH_CAST(size, pixelHeight, number, float);
-  SET_VALUE_IF_MATCH(coord_type, coordType, nkfontcoordtype);
-  SET_VALUE_IF_MATCH(spacing, spacing, nkvec2);
-  SET_VALUE_IF_MATCH_CAST(range, range, lightuserdata, const nk_rune*);
-  SET_VALUE_IF_MATCH(fallback_glyph, fallbackGlyph, nkrune);
+  size_t len = 0;
+  const char* key = luaL_checklstring(L, 2, &len);
+  NEWINDEX_IF_MATCH_KEY_CAST(cfg, merge_mode, boolean, mergeMode, unsigned char);
+  NEWINDEX_IF_MATCH_KEY_CAST(cfg, pixel_snap, boolean, pixelSnap, unsigned char);
+  NEWINDEX_IF_MATCH_KEY_CAST(cfg, oversample_v, integer, overSampleV, unsigned char);
+  NEWINDEX_IF_MATCH_KEY_CAST(cfg, oversample_h, integer, overSampleH, unsigned char);
+  NEWINDEX_IF_MATCH_KEY_CAST(cfg, size, number, pixelHeight, float);
+
+  NEWINDEX_IF_MATCH_KEY(cfg, coord_type, nkfontcoordtype, coordType);
+
+  NEWINDEX_IF_MATCH(cfg, spacing, nkvec2);
+
+  NEWINDEX_IF_MATCH_CAST(cfg, range, lightuserdata, const nk_rune*);
+
+  NEWINDEX_IF_MATCH_KEY(cfg, fallback_glyph, nkrune, fallbackGlyph);
+
   return luaL_error(L, "nk_font_config has no such field: %s", key);
 }
 
 #define EMPLACE_NKFONTCFG_FUNCTION(name) \
-  { #name, NKFONTCFG_FUNCTION(name) }
+  { \
+#name, NKFONTCFG_FUNCTION(name) \
+  }
 static const luaL_Reg metafuncs[] = {
     EMPLACE_NKFONTCFG_FUNCTION(__index),
     EMPLACE_NKFONTCFG_FUNCTION(__newindex),
