@@ -253,18 +253,23 @@ static int dostring(lua_State* L, const char* s, const char* name) {
 static char** argEval = NULL;
 static lua_State* argL = NULL;
 static int pushArgs() {
+  lua_assert(argEval != NULL && argL != NULL);
   int arg = 0;
-  if (argEval != NULL) {
-    for (arg = 0; argEval[arg] != NULL; arg++) {
-      lua_pushstring(argL, argEval[arg]);
-    }
+  for (; argEval[arg] != NULL; arg++) {
+    lua_pushstring(argL, argEval[arg]);
   }
   return arg;
 }
+static PushArgs getPushArgs(lua_State* L, char** arge) {
+  if (arge != NULL) {
+    argEval = arge;
+    argL = L;
+    return pushArgs;
+  }
+  return NULL;
+}
 static int doeval(lua_State* L, const char* s, const char* name, char** arge) {
-  argEval = arge;
-  argL = L;
-  return dochunk(L, luaL_loadbuffer(L, s, strlen(s), name), pushArgs);
+  return dochunk(L, luaL_loadbuffer(L, s, strlen(s), name), getPushArgs(L, arge));
 }
 
 /*
@@ -553,11 +558,13 @@ static int collectargs(char** argv, int* first) {
   return args;
 }
 
+#define EqualByte(str1, str2, idx) ((str1)[idx] == (str2)[idx])
+#define Equal3Byte(str1, str2) (EqualByte(str1, str2, 0) && EqualByte(str1, str2, 1) && EqualByte(str1, str2, 2))
 // arguments for eval
 static char** findarge(char** argv, int hasa) {
   if (hasa) {
     for (int i = 1; argv[i] != NULL; i++) {
-      if (argv[i][0] == '-' && argv[i][1] == 'a' && argv[i][2] == '\0') {
+      if (Equal3Byte(argv[i], "-a")) {
         return argv + i + 1;
       }
     }
