@@ -97,7 +97,15 @@ static int TRANSFORM_FUNCTION(__tostring)(lua_State* L) {
   Vec3* l = &trans->location;
   EulerAngle* r = &trans->rotation;
   Vec3* s = &trans->scale;
-  lua_pushfstring(L, "Transform*:\n\tlocation: (x: %f, y: %f, z: %f)\n\trotation: (pitch: %f, roll: %f, yaw: %f)\n\tscale: (x: %f, y: %f, z: %f)", VEC3_X(l), VEC3_Y(l), VEC3_Z(l), r->pitch, r->roll, r->yaw, VEC3_X(s), VEC3_Y(s), VEC3_Z(s));
+  // clang-format off
+  lua_pushfstring(L, "Transform*:\n"
+                     "\tlocation: (x:     %f, y:    %f, z:   %f)\n"
+                     "\trotation: (pitch: %f, roll: %f, yaw: %f)\n"
+                     "\tscale:    (x:     %f, y:    %f, z:   %f)\n",
+                  VEC3_X(l), VEC3_Y(l), VEC3_Z(l),
+                  r->pitch, r->roll, r->yaw,
+                  VEC3_X(s), VEC3_Y(s), VEC3_Z(s));
+  // clang-format on
   return 1;
 }
 

@@ -39,8 +39,7 @@ BCFX_API void euler_toQuaternion(const EulerAngle* ea, Quaternion* quat) {
   Quaternion qZ[1];
   quat_init(qZ, cosf(radHalfYaw), 0.0, 0.0, sinf(radHalfYaw));
   // rotate order: x->y->z in extrinsic rotations
-  quat_multiply(qY, qX, quat);
-  quat_multiply(qZ, quat, quat);
+  quat_multiply3(qZ, qY, qX, quat);
 }
 
 BCFX_API void euler_toMatrix(const EulerAngle* ea, Mat4x4* mat) {
@@ -90,11 +89,9 @@ BCFX_API void euler_toMatrix(const EulerAngle* ea, Mat4x4* mat) {
   // here we using:
   // rotate direction: all three axis are right hand spiral rule
   // rotate order: x->y->z in extrinsic rotations
-  ALLOCA_MAT3x3(rotXY);
-  MAT_MULTIPLY(rotY, rotX, rotXY);
-  ALLOCA_MAT3x3(rotXYZ);
-  MAT_MULTIPLY(rotZ, rotXY, rotXYZ);
-  MAT4x4_INIT_MAT3x3(mat, rotXYZ);
+  ALLOCA_MAT3x3(dst);
+  MAT_MULTIPLY3(rotZ, rotY, rotX, dst);
+  MAT4x4_INIT_MAT3x3(mat, dst);
 }
 
 /* }====================================================== */

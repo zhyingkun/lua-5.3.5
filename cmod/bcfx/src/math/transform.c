@@ -24,9 +24,7 @@ BCFX_API void transform_toMatrix(const Transform* trans, Mat4x4* dst) {
   ALLOCA_MAT4x4(scale);
   g3d_scale(&trans->scale, scale);
   // Usually scale first, then rotate and finally translate
-  ALLOCA_MAT4x4(tmp);
-  MAT_MULTIPLY(rotate, scale, tmp);
-  MAT_MULTIPLY(translate, tmp, dst);
+  MAT_MULTIPLY3(translate, rotate, scale, dst);
 }
 
 BCFX_API void transform_fromMatrix(Transform* trans, const Mat4x4* src) {

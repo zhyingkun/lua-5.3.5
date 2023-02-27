@@ -234,6 +234,8 @@ typedef struct {
 #define MAT_COMPONENT_WISE_PRODUCT(src1, src2, dst) mat_componentWiseProduct((Mat*)src1, (Mat*)src2, (Mat*)dst)
 #define MAT_COMPONENT_WISE_PRODUCT_(dst, src2) mat_componentWiseProduct((Mat*)dst, (Mat*)src2, (Mat*)dst)
 #define MAT_MULTIPLY(src1, src2, dst) mat_multiply((Mat*)src1, (Mat*)src2, (Mat*)dst)
+#define MAT_MULTIPLY3(src1, src2, src3, dst) mat_multiplyMore((Mat*)dst, 3, (const Mat*)src1, (const Mat*)src2, (const Mat*)src3)
+#define MAT_MULTIPLY4(src1, src2, src3, src4, dst) mat_multiplyMore((Mat*)dst, 4, (const Mat*)src1, (const Mat*)src2, (const Mat*)src3, (const Mat*)src4)
 #define MAT_MULTIPLY_VEC(mat, src, dst) mat_multiplyVec((Mat*)mat, (Vec*)src, (Vec*)dst)
 #define MAT_TRANSPOSE(src, dst) mat_transpose((Mat*)src, (Mat*)dst)
 #define MAT_COPY(src, dst) mat_copy((Mat*)src, (Mat*)dst)
@@ -249,6 +251,7 @@ BCFX_API void mat_subtract(const Mat* src1, const Mat* src2, Mat* dst);
 BCFX_API void mat_scale(const Mat* src, float scale, Mat* dst);
 BCFX_API void mat_componentWiseProduct(const Mat* src1, const Mat* src2, Mat* dst);
 BCFX_API void mat_multiply(const Mat* src1, const Mat* src2, Mat* dst);
+BCFX_API void mat_multiplyMore(Mat* dst, uint8_t count, const Mat* src1, const Mat* src2, ...);
 BCFX_API void mat_multiplyVec(const Mat* mat, const Vec* vec, Vec* dst);
 BCFX_API void mat_transpose(const Mat* src, Mat* dst);
 BCFX_API void mat_copy(const Mat* src, Mat* dst);
@@ -340,6 +343,7 @@ BCFX_API void quat_toAngleAxis(const Quaternion* quat, float* angle, Vec3* axis)
 BCFX_API void quat_add(const Quaternion* src1, const Quaternion* src2, Quaternion* dst);
 BCFX_API void quat_subtract(const Quaternion* src1, const Quaternion* src2, Quaternion* dst);
 BCFX_API void quat_multiply(const Quaternion* src1, const Quaternion* src2, Quaternion* dst);
+BCFX_API void quat_multiplyMore(Quaternion* dst, uint8_t count, const Quaternion* src1, const Quaternion* src2, ...);
 BCFX_API void quat_scale(const Quaternion* src, float scale, Quaternion* dst);
 BCFX_API void quat_conjugate(const Quaternion* src, Quaternion* dst);
 BCFX_API void quat_normalize(const Quaternion* src, Quaternion* dst);
@@ -352,6 +356,8 @@ BCFX_API void quat_slerp(const Quaternion* s, const Quaternion* e, float t, Quat
 BCFX_API void quat_fromTo(const Vec3* from, const Vec3* to, Quaternion* quat);
 
 #define quat_multiply_(dst, src) quat_multiply(dst, src, dst)
+#define quat_multiply3(src1, src2, src3, dst) quat_multiplyMore(dst, 3, src1, src2, src3)
+#define quat_multiply4(src1, src2, src3, src4, dst) quat_multiplyMore(dst, 4, src1, src2, src3, src4)
 
 /* }====================================================== */
 

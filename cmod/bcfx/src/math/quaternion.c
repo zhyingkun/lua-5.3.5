@@ -227,6 +227,28 @@ BCFX_API void quat_multiply(const Quaternion* src1, const Quaternion* src2, Quat
 }
 
 // src and dst can be the same
+BCFX_API void quat_multiplyMore(Quaternion* dst, uint8_t count, const Quaternion* src1, const Quaternion* src2, ...) {
+  assert(count >= 3);
+  Quaternion tmp1, *quat1 = &tmp1;
+  quat_multiply(src1, src2, quat1); // the result always in quat1
+  va_list argp;
+  va_start(argp, src2);
+  count -= 2; // for src1 and src2
+  count -= 1; // for the last one
+  if (count > 0) {
+    Quaternion tmp2, *quat2 = &tmp2;
+    for (uint8_t i = 0; i < count; i++) {
+      const Quaternion* src = va_arg(argp, Quaternion*);
+      quat_multiply(quat1, src, quat2); // now the result in quat2
+      POINTER_SWAP(Quaternion, quat1, quat2); // swap them, the result return to quat1
+    }
+  }
+  const Quaternion* src = va_arg(argp, Quaternion*);
+  quat_multiply(quat1, src, dst);
+  va_end(argp);
+}
+
+// src and dst can be the same
 BCFX_API void quat_scale(const Quaternion* src, float scale, Quaternion* dst) {
   dst->w = src->w * scale;
   dst->x = src->x * scale;
@@ -284,10 +306,10 @@ BCFX_API void quat_rotateVec3(const Quaternion* quat, const Vec3* src, Vec3* dst
   quat_inverse(quat, quatInverse); // for unit quaternion, inverse equals conjugate
   Quaternion quatSrc[1];
   quat_initImaginary(quatSrc, src);
-  quat_multiply(quatSrc, quatInverse, quatSrc);
-  quat_multiply(quat, quatSrc, quatSrc);
-  assert(EQUAL(quatSrc->w, 0.0));
-  quat_imaginary(quatSrc, dst);
+  Quaternion quatDst[1];
+  quat_multiply3(quat, quatSrc, quatInverse, quatDst);
+  assert(EQUAL(quatDst->w, 0.0));
+  quat_imaginary(quatDst, dst);
 }
 
 // s and e can be the same
@@ -359,8 +381,8 @@ BCFX_API void quat_fromTo(const Vec3* from, const Vec3* to, Quaternion* quat) {
   ALLOCA_VEC3(w);
   if (realPart < 1.e-6f * normFnormT) {
     /* If 'from' and 'to' are exactly opposite, rotate 180 degrees
-    * around an arbitrary orthogonal axis. Axis normalisation
-    * can happen later, when we normalise the quaternion. */
+     * around an arbitrary orthogonal axis. Axis normalisation
+     * can happen later, when we normalise the quaternion. */
     realPart = 0.0f;
     if (fabsf(VEC3_X(from)) > fabsf(VEC3_Z(from))) {
       VEC3_X(w) = -VEC3_Y(from);

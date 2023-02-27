@@ -65,6 +65,12 @@
 #define CHECK_TEXTURE_UNIT(stage) assert(stage < BCFX_CONFIG_MAX_TEXTURE_UNIT)
 
 #define printf_err(...) (fprintf(stderr, ##__VA_ARGS__), fflush(stderr))
+#define POINTER_SWAP(type_, var1_, var2_) \
+  do { \
+    type_* tmp = (var1_); \
+    (var1_) = (var2_); \
+    (var2_) = (tmp); \
+  } while (false)
 
 typedef enum {
   UB_ViewRect,

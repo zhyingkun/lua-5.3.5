@@ -424,10 +424,8 @@ void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw
         GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, modelView->element));
       } break;
       case UB_ModelViewProj: {
-        ALLOCA_MAT4x4(modelView);
-        MAT_MULTIPLY(&view->viewMat, &draw->model, modelView);
         ALLOCA_MAT4x4(modelViewProj);
-        MAT_MULTIPLY(&view->projMat, modelView, modelViewProj);
+        MAT_MULTIPLY3(&view->projMat, &view->viewMat, &draw->model, modelViewProj);
         GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, modelViewProj->element));
       } break;
       case UB_AlphaRef: {

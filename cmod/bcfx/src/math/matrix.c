@@ -94,6 +94,27 @@ BCFX_API void mat_multiply(const Mat* src1, const Mat* src2, Mat* dst) {
   }
 }
 
+BCFX_API void mat_multiplyMore(Mat* dst, uint8_t count, const Mat* src1, const Mat* src2, ...) {
+  assert(count >= 3);
+  ALLOCA_MAT(mat1, dst->row, dst->col);
+  mat_multiply(src1, src2, mat1); // the result always in mat1
+  va_list argp;
+  va_start(argp, src2);
+  count -= 2; // for src1 and src2
+  count -= 1; // for the last one
+  if (count > 0) {
+    ALLOCA_MAT(mat2, dst->row, dst->col);
+    for (uint8_t i = 0; i < count; i++) {
+      const Mat* src = va_arg(argp, Mat*);
+      mat_multiply(mat1, src, mat2); // now the result in mat2
+      POINTER_SWAP(Mat, mat1, mat2); // swap them, the result return to mat1
+    }
+  }
+  const Mat* src = va_arg(argp, Mat*);
+  mat_multiply(mat1, src, dst);
+  va_end(argp);
+}
+
 // src and dst can be the same
 BCFX_API void mat_multiplyVec(const Mat* mat, const Vec* src, Vec* dst) {
   assert(mat->col == src->count &&
@@ -144,7 +165,7 @@ static void permutation(uint8_t list[], uint8_t k, uint8_t m, uint8_t* p, const 
     }
     if (*p % 2) { // odd is negative
       *det -= res;
-    } else { //even is positive
+    } else { // even is positive
       *det += res;
     }
   } else {
