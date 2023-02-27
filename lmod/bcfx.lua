@@ -473,6 +473,7 @@ math.vector = vector
 ---@alias Vector1Src1DstSignature fun(src:Vector):Vector
 
 ---@class Vector:userdata
+---@field public abs Vector1Src1DstSignature
 ---@field public add Vector2Src1DstSignature
 ---@field public subtract Vector2Src1DstSignature
 ---@field public componentWiseProduct Vector2Src1DstSignature
