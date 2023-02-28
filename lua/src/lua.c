@@ -233,43 +233,35 @@ static void createargtable(lua_State* L, char** argv, int argc, int script) {
   lua_setglobal(L, "arg");
 }
 
-typedef int (*PushArgs)();
-static int dochunk(lua_State* L, int status, PushArgs pushArgs) {
+typedef int (*PushArgs)(lua_State* L, void* ud);
+static int dochunk(lua_State* L, int status, PushArgs pushArgs, void* ud) {
   if (status == LUA_OK) {
-    int arg = pushArgs != NULL ? pushArgs() : 0;
+    int arg = pushArgs != NULL ? pushArgs(L, ud) : 0;
     status = docall(L, arg, 0);
   }
   return report(L, status);
 }
 
 static int dofile(lua_State* L, const char* name) {
-  return dochunk(L, luaL_loadfile(L, name), NULL);
+  return dochunk(L, luaL_loadfile(L, name), NULL, NULL);
 }
 
 static int dostring(lua_State* L, const char* s, const char* name) {
-  return dochunk(L, luaL_loadbuffer(L, s, strlen(s), name), NULL);
+  return dochunk(L, luaL_loadbuffer(L, s, strlen(s), name), NULL, NULL);
 }
 
-static char** argEval = NULL;
-static lua_State* argL = NULL;
-static int pushArgs() {
-  lua_assert(argEval != NULL && argL != NULL);
+static int pushArgs(lua_State* L, void* ud) {
+  char** arge = (char**)ud;
   int arg = 0;
-  for (; argEval[arg] != NULL; arg++) {
-    lua_pushstring(argL, argEval[arg]);
+  if (arge != NULL) {
+    for (; arge[arg] != NULL; arg++) {
+      lua_pushstring(L, arge[arg]);
+    }
   }
   return arg;
 }
-static PushArgs getPushArgs(lua_State* L, char** arge) {
-  if (arge != NULL) {
-    argEval = arge;
-    argL = L;
-    return pushArgs;
-  }
-  return NULL;
-}
 static int doeval(lua_State* L, const char* s, const char* name, char** arge) {
-  return dochunk(L, luaL_loadbuffer(L, s, strlen(s), name), getPushArgs(L, arge));
+  return dochunk(L, luaL_loadbuffer(L, s, strlen(s), name), pushArgs, (void*)arge);
 }
 
 /*
