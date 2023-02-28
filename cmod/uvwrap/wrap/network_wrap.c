@@ -270,7 +270,7 @@ static int NETWORK_FUNCTION(getaddrinfo)(lua_State* L) {
   const char* node = luaL_optstring(L, 2, NULL);
   const char* service = luaL_optstring(L, 3, NULL);
   if (node == NULL && service == NULL) {
-    return luaL_error(L, "At least one of hostname and servname must be non-nil");
+    return luaL_error(L, "At least one of HostName and ServiceName must be non-nil");
   }
   struct addrinfo info[1];
   struct addrinfo* hints = NULL;
