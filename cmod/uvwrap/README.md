@@ -17,7 +17,13 @@
 2. 对于 handle 触发的异步过程需要 hold 住 lua 对象的话，需要保证多个 hold 住的 lua 对象之间不会互相覆盖，handle 关闭的时候统一清理掉（用 handle 结构指针+固定用途的偏移 来作为 key）
 3. 在 libuv 回调函数中调用 Lua 的函数必须要用 pcall，如果用 call，抛异常会破坏 libuv 的上下文
 4. libuv 异步回调在将数据压入 Lua 栈之前都要先检查槽位是否足够
-5. 函数名包含 Async 表示任务被异步处理，反之则同步，有些 Async 任务允许无回调，做完收工；函数名包含 AsyncWait 表示协程中等异步任务，做完自动唤醒协程
+
+## 函数名后缀含义：
+
+1. 'StartAsync'：call back multiple times (no version StartAsyncWait)
+2. 'Async'：表示任务被异步处理，有些 Async 任务允许无回调，做完收工
+3. 'AsyncWait'：表示协程中等异步任务，做完自动唤醒协程，必须在协程中才能调用
+4. 其他：表示同步阻塞
 
 ## 其他
 
