@@ -39,6 +39,14 @@ end
 local libuv = {}
 
 --[[
+	The meaning of the asynchronous function suffix:
+	'StartAsync': call back multiple times (no version StartAsyncWait)
+	'Async': call back only once
+	'AsyncWait': return until done, must be used in coroutines
+	No Suffix: it is a synchronous function
+]]
+
+--[[
 ** {======================================================
 ** Delay Multi Frames
 ** =======================================================
@@ -2158,55 +2166,6 @@ function libuv.queueWorkAsyncWait(worker, arg)
 	return yield()
 end
 
----@alias REPLEvalSignature fun(codeStr:string | nil, eof:boolean):boolean, string, string | nil @running, prompt, history
-
----@overload fun():void
----@overload fun(callback:REPLEvalSignature, firstPrompt:string):void
----@param callback REPLEvalSignature
----@param firstPrompt string
-function libuv.replStartAsync(callback, firstPrompt)
-	uvwrap.replStart(loopCtx, false, callback, firstPrompt)
-end
----@param callback fun(codeStr:string | nil, eof:boolean):void
----@param firstPrompt string
-function libuv.replStartOneShotAsync(callback, firstPrompt)
-	uvwrap.replStart(loopCtx, true, callback, firstPrompt)
-end
-function libuv.replShutdown()
-	uvwrap.replShutdown()
-end
----@overload fun(bRunning:boolean):void
----@overload fun(bRunning:boolean, prompt:string):void
----@overload fun(bRunning:boolean, prompt:string, history:string):void
----@param bRunning boolean
----@param prompt string
----@param history string
----@return boolean @running
-function libuv.replNext(bRunning, prompt, history)
-	return uvwrap.replNext(bRunning, prompt, history)
-end
----@return boolean
-function libuv.replIsOneShot()
-	return uvwrap.replIsOneShot()
-end
----@param codeStr string | nil
----@param eof boolean
----@return boolean, string, string | nil @running, prompt, history
-function libuv.replDefaultEval(codeStr, eof)
-	-- warning: does not support multi instance
-	return uvwrap.replDefaultEval(codeStr, eof)
-end
-
----@param prompt string
----@return string
-function libuv.replRead(prompt)
-	return uvwrap.replRead(prompt)
-end
----@param history string
-function libuv.replHistory(history)
-	uvwrap.replHistory(history)
-end
-
 ---@type integer
 libuv.version = uvwrap.version
 ---@type string
@@ -2335,6 +2294,70 @@ libuv.alloc_type = uvwrap.alloc_type
 
 -- }======================================================
 
+--[[
+** {======================================================
+** REPL
+** =======================================================
+--]]
+
+---@alias REPLEvalSignature fun(codeStr:string | nil, eof:boolean):boolean, string, string | nil @running, prompt, history
+---@alias REPLShotSignature fun(codeStr:string | nil, eof:boolean):void
+
+---@overload fun():void
+---@overload fun(callback:REPLEvalSignature):void
+---@overload fun(callback:REPLEvalSignature, firstPrompt:string):void
+---@param callback REPLEvalSignature
+---@param firstPrompt string
+function libuv.replStartAsync(callback, firstPrompt)
+	uvwrap.replStart(loopCtx, callback, firstPrompt)
+end
+
+function libuv.replInitOneShot()
+	uvwrap.replInitOneShot(loopCtx)
+end
+---@param prompt string | nil
+---@param history string | nil
+---@param callback REPLShotSignature
+function libuv.replNextAsync(prompt, history, callback)
+	uvwrap.replNext(prompt, history, callback)
+end
+---@param prompt string | nil
+---@param history string | nil
+---@return string | nil, boolean @codeStr, eof
+function libuv.replNextAsyncWait(prompt, history)
+	local co, main = running()
+	if main then error(ASYNC_WAIT_MSG) end
+	uvwrap.replNext(prompt, history, function(codeStr, eof)
+		resume(co, codeStr, eof)
+	end)
+	return yield()
+end
+function libuv.replShutdown()
+	uvwrap.replShutdown()
+end
+---@return boolean
+function libuv.replIsOneShot()
+	return uvwrap.replIsOneShot()
+end
+---@param codeStr string | nil
+---@param eof boolean
+---@return boolean, string, string | nil @running, prompt, history
+function libuv.replDefaultEval(codeStr, eof)
+	-- warning: does not support multi instance
+	return uvwrap.replDefaultEval(codeStr, eof)
+end
+
+---@param prompt string
+---@return string
+function libuv.replRead(prompt)
+	return uvwrap.replRead(prompt)
+end
+---@param history string
+function libuv.replHistory(history)
+	uvwrap.replHistory(history)
+end
+
+-- }======================================================
 
 ---@class libuv_mbio:table
 local mbio = {}

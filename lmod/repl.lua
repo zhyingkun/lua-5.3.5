@@ -272,62 +272,180 @@ end
 
 ---@overload fun():void
 ---@overload fun(serverIP:string):void
----@overload fun(serverIP:string, serverPort:integer):void
+---@overload fun(serverIP:string, serverPort:integer | string):void
 ---@param serverIP string @ Server IP or Domain Name
----@param serverPort integer
+---@param serverPort integer | string
 function repl.clientStart(serverIP, serverPort)
 	if not libuv then error(ErrMsg) end
 	local OK = libuv.err_code.OK
 
 	serverIP = serverIP or "0.0.0.0"
-	serverPort = serverPort or 1999
+	serverPort = serverPort or "1999"
+	--[[
 	-- local sockAddr = libuv.network.SockAddr():ip4Addr(serverIP, serverPort)
-	local addrInfo, errCode = libuv.network.getAddrInfo(serverIP, serverPort)
-	if not addrInfo then
-		local msg = string.format("ServerIP or DomainName '%s:%d' error:", serverIP, serverPort)
-		printError(msg, errCode)
-		return
-	end
-	local sockAddr = addrInfo.addr
-	libuv.tcp.Tcp():connectAsync(sockAddr, function(status, tcpClient)
-		if status < 0 then
-			local msg = string.format("REPL TCP Connect to %s:%d failed:", serverIP, serverPort)
+	-- local addrInfo, errCode = libuv.network.getAddrInfo(serverIP, serverPort)
+	libuv.network.getAddrInfoAsync(serverIP, serverPort, nil, function(addrInfo, status)
+		if not addrInfo then
+			local msg = string.format("ServerIP or DomainName '%s:%d' error:", serverIP, serverPort)
 			printError(msg, status)
 			return
 		end
-		local packetHandler = REPLPacketHandler()
+		local sockAddr = addrInfo.addr
+		local status = libuv.tcp.Tcp():connectAsync(sockAddr, function(status, tcpClient)
+			if status < 0 then
+				local msg = string.format("REPL TCP Connect to %s:%d failed:", serverIP, serverPort)
+				printError(msg, status)
+				return
+			end
+			local packetHandler = REPLPacketHandler()
+			local function sendStrToServer(codeStr, bEOF)
+				local msg = packetHandler:packReadMessage(codeStr, bEOF)
+				tcpClient:writeAsync(msg, function(statusWrite, handle)
+					if statusWrite ~= OK then
+						printError("REPL TCP Write error:", statusWrite)
+					end
+				end)
+			end
+			tcpClient:readStartAsync(function(nread, str, client)
+				if nread < 0 then
+					printError("REPL TCP Read error:", nread)
+				else
+					packetHandler:addPackData(str)
+					local tbl
+					for msgName, printTable in packetHandler:packets() do
+						assert(msgName == ProtocolPrint)
+						-- libuv.replHistory(printTable.history)
+						io.stdout:write(printTable.output)
+						if tbl then 
+							print("Receive multi packet more than one")
+						end
+						tbl = printTable
+					end
+					if packetHandler:getRemainForRead() == 0 then
+						if tbl then
+							if tbl.running then
+								libuv.replNextAsync(tbl.prompt, tbl.history, sendStrToServer)
+							else
+								libuv.replShutdown()
+								print("REPL Client End.")
+								client:closeAsync()
+							end
+						end
+					else
+						if tbl then
+							print("Receive complete packet and incomplete packet")
+							tbl = nil
+						else
+							print("Receive incomplete packet")
+						end
+					end
+				end
+			end)
+			print("REPL Client Start...")
+			libuv.replInitOneShot()
+			libuv.replNextAsync(nil, nil, sendStrToServer)
+		end)
+		if status ~= OK then
+			local msg = string.format("REPL TCP Connect to '%s:%d' error:", serverIP, serverPort)
+			printError(msg, status)
+		end
+	end)
+	--]]
+
+	---[[
+	local function getSockAddr(serverIP, serverPort)
+		local addrInfo, errCode = libuv.network.getAddrInfoAsyncWait(serverIP, serverPort);
+		if addrInfo then
+			return addrInfo.addr
+		end
+		local msg = string.format("ServerIP or DomainName '%s:%d' error:", serverIP, serverPort)
+		printError(msg, status)
+	end
+	local function makeTcpConnection(sockAddr)
+		local tcpClient = libuv.tcp.Tcp()
+		local status = tcpClient:connectAsyncWait(sockAddr)
+		if status == OK then
+			return tcpClient
+		end
+		local msg = string.format("REPL TCP Connect to %s:%d failed:", serverIP, serverPort)
+		printError(msg, status)
+	end
+	local function runInCoroutine(func)
+		coroutine.wrap(func)()
+	end	
+	runInCoroutine(function()
+		local sockAddr = getSockAddr(serverIP, serverPort)
+		if not sockAddr then return end
+		local tcpClient = makeTcpConnection(sockAddr)
+		if not tcpClient then return end
+
+		local thread = coroutine.running();
+		local bCanResume = false;
 		tcpClient:readStartAsync(function(nread, str, client)
 			if nread < 0 then
 				printError("REPL TCP Read error:", nread)
-			else
-				packetHandler:addPackData(str)
-				local bRunning, prompt, history = true, "> ", ""
-				for msgName, printTable in packetHandler:packets() do
-					assert(msgName == ProtocolPrint)
-					-- libuv.replHistory(printTable.history)
-					bRunning = printTable.running
-					prompt = printTable.prompt
-					history = printTable.history
-					io.stdout:write(printTable.output)
-				end
-				if packetHandler:getRemainForRead() == 0 then
-					if not libuv.replNext(bRunning, prompt, history) then
-						print("REPL Client End.")
-						client:closeAsync()
-					end
+			elseif nread > 0 then
+				if bCanResume then
+					bCanResume = false
+					coroutine.resume(thread, str)
+				else
+					printerr("Error: Resume coroutine too quickly", str)
 				end
 			end
 		end)
-		print("REPL Client Start...")
-		libuv.replStartOneShotAsync(function(codeStr, bEOF)
-			local msg = packetHandler:packReadMessage(codeStr, bEOF)
+		local function readAsyncWait()
+			bCanResume = true
+			return coroutine.yield()
+		end
+		local function sendToServer(msg)
 			tcpClient:writeAsync(msg, function(statusWrite, handle)
 				if statusWrite ~= OK then
 					printError("REPL TCP Write error:", statusWrite)
 				end
 			end)
-		end, "> ")
+		end
+		local packetHandler = REPLPacketHandler()
+		local function remoteREPL(codeStr, bEOF)
+			local msg = packetHandler:packReadMessage(codeStr, bEOF)
+			sendToServer(msg)
+			local tbl
+			repeat
+				local str = readAsyncWait()
+				packetHandler:addPackData(str)
+				for msgName, printTable in packetHandler:packets() do
+					assert(msgName == ProtocolPrint)
+					io.stdout:write(printTable.output)
+					if tbl then 
+						print("Receive multi packet more than one")
+					end
+					tbl = printTable
+				end
+				if packetHandler:getRemainForRead() ~= 0 then
+					if tbl then
+						print("Receive complete packet and incomplete packet")
+						tbl = nil
+					else
+						print("Receive incomplete packet")
+					end
+				end
+			until tbl
+			return tbl.running, tbl.prompt, tbl.history
+		end
+
+		print("REPL Client Start...")
+		libuv.replInitOneShot()
+		local bRunning = true
+		local prompt, history, output
+		while bRunning do
+			local codeStr, bEOF = libuv.replNextAsyncWait(prompt, history)
+			bRunning, prompt, history = remoteREPL(codeStr, bEOF)
+		end
+		libuv.replShutdown()
+		print("REPL Client End.")
+
+		tcpClient:closeAsync()
 	end)
+	--]]
 end
 
 ---@overload fun():void
