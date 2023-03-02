@@ -236,6 +236,8 @@ typedef struct {
 #define LUA_MEMBUFFER_TYPE "luaL_MemBuffer*"
 #define luaL_checkmembuffer(L, idx) (luaL_MemBuffer*)luaL_checkudata(L, idx, LUA_MEMBUFFER_TYPE)
 LUALIB_API luaL_MemBuffer* luaL_newmembuffer(lua_State* L);
+LUALIB_API const void* luaL_checklbuffer(lua_State* L, int arg, size_t* len);
+LUALIB_API void luaL_releasebuffer(lua_State* L, int arg);
 
 /* }====================================================== */
 

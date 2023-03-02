@@ -67,6 +67,12 @@ static int MEMBUF_FUNCTION(getSize)(lua_State* L) {
   return 1;
 }
 
+static int MEMBUF_FUNCTION(toString)(lua_State* L) {
+  const luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  lua_pushlstring(L, (const char*)mb->ptr, mb->sz);
+  return 1;
+}
+
 static int MEMBUF_FUNCTION(__gc)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   MEMBUFFER_RELEASE(mb);
@@ -82,6 +88,7 @@ static const luaL_Reg membuf_metafuncs[] = {
     EMPLACE_MEMBUF_FUNCTION(moveTo),
     EMPLACE_MEMBUF_FUNCTION(makeCopy),
     EMPLACE_MEMBUF_FUNCTION(getSize),
+    EMPLACE_MEMBUF_FUNCTION(toString),
     EMPLACE_MEMBUF_FUNCTION(__gc),
     {NULL, NULL},
 };
@@ -99,6 +106,21 @@ LUALIB_API luaL_MemBuffer* luaL_newmembuffer(lua_State* L) {
   luaL_setmetatable(L, LUA_MEMBUFFER_TYPE);
   MEMBUFFER_INIT(mb);
   return mb;
+}
+LUALIB_API const void* luaL_checklbuffer(lua_State* L, int arg, size_t* len) {
+  if (lua_isstring(L, arg)) {
+    return lua_tolstring(L, arg, len);
+  }
+  const luaL_MemBuffer* mb = luaL_checkmembuffer(L, arg);
+  *len = mb->sz;
+  return (const void*)mb->ptr;
+}
+LUALIB_API void luaL_releasebuffer(lua_State* L, int arg) {
+  if (lua_isstring(L, arg)) {
+    return;
+  }
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, arg);
+  MEMBUFFER_RELEASE(mb);
 }
 
 /* }====================================================== */
