@@ -484,7 +484,7 @@ static int luaB_xpcall(lua_State* L) {
 static int luaB_tostring(lua_State* L) {
   luaL_checkany(L, 1);
   // luaL_tolstring(L, 1, NULL);
-  int level = (int)lua_tointeger(L, 2); // support string, when the second parament is nil, the level will be 0
+  int level = (int)luaL_optinteger(L, 2, 0); // when the second parameter is nil, the level will be 0
   luaL_tolstringex(L, 1, NULL, level);
   return 1;
 }
