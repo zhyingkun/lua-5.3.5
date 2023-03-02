@@ -190,6 +190,25 @@ typedef struct {
   void* ud;
 } luaL_MemBuffer;
 
+typedef enum {
+  MT_Null,
+  MT_Static,
+  MT_Dynamic,
+  MT_Reference,
+} luaL_MemType;
+
+#define MEMBUFFER_IS_NULL(mb) ((mb)->ptr == NULL)
+#define MEMBUFFER_IS_STATIC(mb) ((mb)->ptr != NULL && (mb)->realloc == luaL_staticMemBuffer)
+#define MEMBUFFER_IS_DYNAMIC(mb) ((mb)->ptr != NULL && (mb)->realloc != NULL && (mb)->realloc != luaL_staticMemBuffer)
+#define MEMBUFFER_IS_REFERENCE(mb) ((mb)->ptr != NULL && (mb)->realloc == NULL)
+
+#define MEMBUFFER_TYPE(mb) ((mb)->ptr == NULL                     ? MT_Null : \
+                            (mb)->realloc == NULL                 ? MT_Reference : \
+                            (mb)->realloc == luaL_staticMemBuffer ? MT_Static : \
+                                                                    MT_Dynamic)
+
+LUALIB_API void* luaL_staticMemBuffer(void* ud, void* ptr, size_t nsz);
+
 #define MEMBUFFER_NULL \
   { NULL, 0, NULL, NULL }
 
@@ -199,7 +218,7 @@ typedef struct {
   (mb)->realloc = NULL; \
   (mb)->ud = NULL
 #define MEMBUFFER_CALLFREE(mb) \
-  if ((mb)->realloc != NULL && (mb)->ptr != NULL) { \
+  if (MEMBUFFER_IS_DYNAMIC(mb)) { \
     (mb)->realloc((mb)->ud, (mb)->ptr, 0); \
   }
 
@@ -211,10 +230,10 @@ typedef struct {
   MEMBUFFER_SETNULL(mb)
 
 #define MEMBUFFER_SETINIT(mb, ptr_, sz_, realloc_, ud_) \
-  (mb)->ptr = ptr_; \
-  (mb)->sz = sz_; \
-  (mb)->realloc = realloc_; \
-  (mb)->ud = ud_
+  (mb)->ptr = (void*)(ptr_); \
+  (mb)->sz = (size_t)(sz_); \
+  (mb)->realloc = (realloc_); \
+  (mb)->ud = (void*)(ud_)
 #define MEMBUFFER_SETREPLACE(mb, ptr_, sz_, realloc_, ud_) \
   MEMBUFFER_CALLFREE(mb); \
   MEMBUFFER_SETINIT(mb, ptr_, sz_, realloc_, ud_)
@@ -232,6 +251,16 @@ typedef struct {
 #define MEMBUFFER_MOVEREPLACE(src, dst) \
   MEMBUFFER_CALLFREE(dst); \
   MEMBUFFER_MOVEINIT(src, dst)
+
+#define MEMBUFFER_SETINIT_STATIC(mb, ptr_, sz_) MEMBUFFER_SETINIT(mb, ptr_, sz_, luaL_staticMemBuffer, NULL)
+#define MEMBUFFER_SETREPLACE_STATIC(mb, ptr_, sz_) \
+  MEMBUFFER_CALLFREE(mb); \
+  MEMBUFFER_SETINIT_STATIC(mb, ptr_, sz_)
+
+#define MEMBUFFER_SETINIT_REF(mb, ptr_, sz_) MEMBUFFER_SETINIT(mb, ptr_, sz_, NULL, NULL)
+#define MEMBUFFER_SETREPLACE_REF(mb, ptr_, sz_) \
+  MEMBUFFER_CALLFREE(mb); \
+  MEMBUFFER_SETINIT_REF(mb, ptr_, sz_)
 
 #define LUA_MEMBUFFER_TYPE "luaL_MemBuffer*"
 #define luaL_checkmembuffer(L, idx) (luaL_MemBuffer*)luaL_checkudata(L, idx, LUA_MEMBUFFER_TYPE)
