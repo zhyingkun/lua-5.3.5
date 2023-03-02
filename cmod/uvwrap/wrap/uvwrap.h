@@ -215,6 +215,7 @@ void MEMORY_FUNCTION(free_buf)(void* ptr);
 
 void MEMORY_FUNCTION(buf_alloc)(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf);
 void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf);
+void MEMORY_FUNCTION(buf_moveToMemBuffer)(uv_buf_t* buf, luaL_MemBuffer* mb);
 
 /* }====================================================== */
 

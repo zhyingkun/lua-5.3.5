@@ -137,6 +137,22 @@ void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf) {
   (void)MEMORY_FUNCTION(free_buf)(buf->base);
 }
 
+static void* MEMORY_FUNCTION(mb_realloc_buf)(void* ud, void* ptr, size_t nsz) {
+  if (ptr == NULL) {
+    return MEMORY_FUNCTION(malloc_buf)(nsz);
+  }
+  if (nsz == 0) {
+    MEMORY_FUNCTION(free_buf)
+    (ptr);
+  }
+  // MemBuffer do not support reallocate an old buffer, just for malloc and free
+  return NULL;
+}
+void MEMORY_FUNCTION(buf_moveToMemBuffer)(uv_buf_t* buf, luaL_MemBuffer* mb) {
+  MEMBUFFER_SETREPLACE(mb, (void*)buf->base, buf->len, MEMORY_FUNCTION(mb_realloc_buf), NULL);
+  *buf = uv_buf_init(NULL, 0);
+}
+
 /* }====================================================== */
 
 /*
