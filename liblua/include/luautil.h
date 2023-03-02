@@ -112,12 +112,18 @@ LUALIB_API int luaL_msgh(lua_State* L);
 */
 
 #define BASE_BUFFER_SIZE 1024
-
+/*
+ * ByteBuffer field meaning:
+ * |----------------size----------------|
+ * |-deleted-|---------n---------|-rest-|
+ * |-deleted-|-hadRead-|-canRead-|
+ */
 typedef struct {
   uint8_t* b;
   uint32_t size; /* buffer size */
   uint32_t n; /* number of characters in buffer */
   uint32_t hadRead;
+  uint32_t deleted;
   bool bStatic;
   bool bConst;
 } luaL_ByteBuffer;
@@ -178,9 +184,9 @@ LUALIB_API uint32_t luaBB_getremainforwrite(luaL_ByteBuffer* b);
 typedef void* (*luaL_MemRealloc)(void* ud, void* ptr, size_t nsz);
 
 typedef struct {
-  void* ptr;
-  size_t sz;
-  luaL_MemRealloc realloc;
+  void* ptr; // constant buffer, do not change data in the buffer memory
+  size_t sz; // how many 'byte' in 'ptr', maybe 'sz' less than 'the real allocate size'
+  luaL_MemRealloc realloc; // using 'realloc' instead of 'free' just for duplicate itself
   void* ud;
 } luaL_MemBuffer;
 

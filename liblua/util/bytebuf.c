@@ -30,16 +30,17 @@ static void luaBB_free(uint8_t* ptr) {
   free(ptr);
 }
 
-#define luaBB_set(b_, buf_, sz_, n_, r_, s_, c_) \
+#define luaBB_set(b_, buf_, sz_, n_, r_, d_, s_, c_) \
   do { \
     b_->b = buf_; \
     b_->size = sz_; \
     b_->n = n_; \
     b_->hadRead = r_; \
+    b_->deleted = d_; \
     b_->bStatic = s_; \
     b_->bConst = c_; \
   } while (0)
-#define luaBB_setnull(b) luaBB_set(b, NULL, 0, 0, 0, false, false)
+#define luaBB_setnull(b) luaBB_set(b, NULL, 0, 0, 0, 0, false, false)
 
 static uint32_t _findNiceSize(uint32_t current, uint32_t minisize) {
   while (current < minisize && current <= (uint32_t)(LUA_MAXINTEGER) / 2) {
@@ -54,12 +55,12 @@ static uint32_t _findNiceSize(uint32_t current, uint32_t minisize) {
 LUALIB_API void luaBB_init(luaL_ByteBuffer* b, uint32_t size) {
   size = _findNiceSize(BASE_BUFFER_SIZE, size);
   uint8_t* ptr = luaBB_malloc(size);
-  luaBB_set(b, ptr, size, 0, 0, false, false);
+  luaBB_set(b, ptr, size, 0, 0, 0, false, false);
 }
 
 LUALIB_API void luaBB_static(luaL_ByteBuffer* b, uint8_t* ptr, uint32_t size, bool bConst, bool bClear) {
   uint32_t n = (!bConst && bClear) ? 0 : size;
-  luaBB_set(b, ptr, size, n, 0, true, bConst);
+  luaBB_set(b, ptr, size, n, 0, 0, true, bConst);
 }
 
 LUALIB_API void luaBB_destroy(luaL_ByteBuffer* b) {
@@ -85,11 +86,24 @@ LUALIB_API void luaBB_destroybuffer(uint8_t* ptr) {
   luaBB_free(ptr);
 }
 
+static void _reuseDeletedSpace(luaL_ByteBuffer* b) {
+  if (b->deleted == 0) {
+    return;
+  }
+  uint8_t* dst = b->b;
+  uint8_t* src = b->b + b->deleted;
+  uint32_t i;
+  for (i = 0; i < b->n; i++) {
+    dst[i] = src[i];
+  }
+  b->deleted = 0;
+}
 LUALIB_API uint8_t* luaBB_appendbytes(luaL_ByteBuffer* b, uint32_t len) {
   if (b->bConst) {
     return NULL;
   }
   luaBB_flushread(b);
+  _reuseDeletedSpace(b);
   uint32_t minisize = b->n + len;
   if (minisize > b->size) {
     if (b->bStatic) {
@@ -145,10 +159,10 @@ LUALIB_API void luaBB_setread(luaL_ByteBuffer* b, uint32_t read) {
 }
 
 LUALIB_API const uint8_t* luaBB_readbytes(luaL_ByteBuffer* b, uint32_t len) {
-  if (b->hadRead + len > b->n) {
+  if (luaBB_getremainforread(b) < len) {
     return NULL;
   }
-  uint8_t* s = b->b + b->hadRead;
+  uint8_t* s = b->b + b->deleted + b->hadRead;
   b->hadRead += len;
   return s;
 }
@@ -164,14 +178,8 @@ LUALIB_API void luaBB_flushread(luaL_ByteBuffer* b) {
   if (b->bConst || b->hadRead == 0) {
     return;
   }
-  uint32_t realn = b->n - b->hadRead;
-  uint8_t* dst = b->b;
-  uint8_t* src = b->b + b->hadRead;
-  uint32_t i;
-  for (i = 0; i < realn; i++) {
-    dst[i] = src[i];
-  }
-  b->n = realn;
+  b->n -= b->hadRead;
+  b->deleted += b->hadRead;
   b->hadRead = 0;
 }
 
@@ -181,6 +189,7 @@ LUALIB_API void luaBB_clear(luaL_ByteBuffer* b) {
   }
   b->n = 0;
   b->hadRead = 0;
+  b->deleted = 0;
 }
 
 LUALIB_API uint32_t luaBB_getremainforwrite(luaL_ByteBuffer* b) {
@@ -188,7 +197,7 @@ LUALIB_API uint32_t luaBB_getremainforwrite(luaL_ByteBuffer* b) {
     if (b->bConst) {
       return 0;
     }
-    return b->size - b->n;
+    return b->size - b->n; // deleted + rest
   }
   return -1;
 }
