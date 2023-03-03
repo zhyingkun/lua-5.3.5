@@ -110,15 +110,15 @@ static const luaL_Reg funcs[] = {
 void NKTEXTEDIT_FUNCTION(init)(lua_State* L) {
   luaL_setfuncs(L, funcs, 0);
 
-  REGISTE_LIGHTUSERDATA(filterDefaultPtr, nk_filter_default);
-  REGISTE_LIGHTUSERDATA(filterAsciiPtr, nk_filter_ascii);
-  REGISTE_LIGHTUSERDATA(filterFloatPtr, nk_filter_float);
-  REGISTE_LIGHTUSERDATA(filterDecimalPtr, nk_filter_decimal);
-  REGISTE_LIGHTUSERDATA(filterHexPtr, nk_filter_hex);
-  REGISTE_LIGHTUSERDATA(filterOctPtr, nk_filter_oct);
-  REGISTE_LIGHTUSERDATA(filterBinaryPtr, nk_filter_binary);
+  REGISTER_LIGHTUSERDATA(filterDefaultPtr, nk_filter_default);
+  REGISTER_LIGHTUSERDATA(filterAsciiPtr, nk_filter_ascii);
+  REGISTER_LIGHTUSERDATA(filterFloatPtr, nk_filter_float);
+  REGISTER_LIGHTUSERDATA(filterDecimalPtr, nk_filter_decimal);
+  REGISTER_LIGHTUSERDATA(filterHexPtr, nk_filter_hex);
+  REGISTER_LIGHTUSERDATA(filterOctPtr, nk_filter_oct);
+  REGISTER_LIGHTUSERDATA(filterBinaryPtr, nk_filter_binary);
 
-  REGISTE_METATABLE(NUKLEAR_TEXTEDIT_TYPE, metafuncs);
+  REGISTER_METATABLE(NUKLEAR_TEXTEDIT_TYPE, metafuncs);
 }
 
 /* }====================================================== */

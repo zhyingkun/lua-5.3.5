@@ -1491,16 +1491,16 @@ LUAMOD_API int luaopen_libnuklear(lua_State* L) {
 
   luaL_newlib(L, wrap_funcs);
 
-  REGISTE_ENUM_NKWRAP(text_align);
-  REGISTE_ENUM_NKWRAP(text_alignment);
-  REGISTE_ENUM_NKWRAP(symbol_type);
-  REGISTE_ENUM_NKWRAP(button_behavior);
-  REGISTE_ENUM_NKWRAP(color_format);
-  REGISTE_ENUM_NKWRAP(chart_type);
-  REGISTE_ENUM_NKWRAP(edit_flag);
-  REGISTE_ENUM_NKWRAP(edit_type);
-  REGISTE_ENUM_NKWRAP(edit_event);
-  REGISTE_ENUM_NKWRAP(popup_type);
+  REGISTER_ENUM_NKWRAP(text_align);
+  REGISTER_ENUM_NKWRAP(text_alignment);
+  REGISTER_ENUM_NKWRAP(symbol_type);
+  REGISTER_ENUM_NKWRAP(button_behavior);
+  REGISTER_ENUM_NKWRAP(color_format);
+  REGISTER_ENUM_NKWRAP(chart_type);
+  REGISTER_ENUM_NKWRAP(edit_flag);
+  REGISTER_ENUM_NKWRAP(edit_type);
+  REGISTER_ENUM_NKWRAP(edit_event);
+  REGISTER_ENUM_NKWRAP(popup_type);
 
   lua_createtable(L, 0, 2);
   (void)NKFONTATLAS_FUNCTION(init)(L);

@@ -47,9 +47,9 @@
 #define INVOKE_INIT_METATABLE(module) \
   (void)UVWRAP_FUNCTION(module, init_metatable)(L)
 
-#define REGISTE_ENUM_UVWRAP(name) REGISTE_ENUM(name, UVWRAP_ENUM(name))
+#define REGISTER_ENUM_UVWRAP(name) REGISTER_ENUM(name, UVWRAP_ENUM(name))
 
-#define REGISTE_ENUM_R(name, name_r) \
+#define REGISTER_ENUM_R(name, name_r) \
   luaL_newenum_r(L, UVWRAP_ENUM(name)); \
   lua_setfield(L, -2, #name_r)
 

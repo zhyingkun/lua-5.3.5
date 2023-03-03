@@ -132,15 +132,7 @@ static const luaL_Reg PIPE_FUNCTION(metafuncs)[] = {
 };
 
 static void PIPE_FUNCTION(init_metatable)(lua_State* L) {
-  luaL_newmetatable(L, UVWRAP_PIPE_TYPE);
-  luaL_setfuncs(L, PIPE_FUNCTION(metafuncs), 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  luaL_setmetatable(L, UVWRAP_STREAM_TYPE);
-
-  lua_pop(L, 1);
+  REGISTER_METATABLE_INHERIT(UVWRAP_PIPE_TYPE, PIPE_FUNCTION(metafuncs), UVWRAP_STREAM_TYPE);
 }
 
 static int PIPE_FUNCTION(Pipe)(lua_State* L) {

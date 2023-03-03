@@ -35,20 +35,20 @@ static void wrap_sem_destroy(void* sem) {
   (void)MEMORY_FUNCTION(free)((void*)sem);
 }
 
-#define REGISTE_FUNC_WRAP(name) \
-  REGISTE_LIGHTUSERDATA(name, wrap_##name)
+#define REGISTER_FUNC_WRAP(name) \
+  REGISTER_LIGHTUSERDATA(name, wrap_##name)
 
-#define REGISTE_FUNC_UV(name) \
-  REGISTE_LIGHTUSERDATA(name, uv_##name)
+#define REGISTER_FUNC_UV(name) \
+  REGISTER_LIGHTUSERDATA(name, uv_##name)
 
 static void registe_sem(lua_State* L) {
   lua_createtable(L, 0, 16);
 
-  REGISTE_FUNC_WRAP(sem_init);
-  REGISTE_FUNC_WRAP(sem_destroy);
-  REGISTE_FUNC_UV(sem_post);
-  REGISTE_FUNC_UV(sem_wait);
-  REGISTE_FUNC_UV(sem_trywait);
+  REGISTER_FUNC_WRAP(sem_init);
+  REGISTER_FUNC_WRAP(sem_destroy);
+  REGISTER_FUNC_UV(sem_post);
+  REGISTER_FUNC_UV(sem_wait);
+  REGISTER_FUNC_UV(sem_trywait);
 
   lua_setfield(L, -2, "sem");
 }
@@ -57,11 +57,11 @@ void THREAD_FUNCTION(init)(lua_State* L) {
   luaL_checkversion(L);
   lua_createtable(L, 0, 16);
 
-  REGISTE_FUNC_WRAP(thread_create);
-  REGISTE_FUNC_WRAP(thread_invalid);
-  REGISTE_FUNC_WRAP(thread_self);
-  REGISTE_FUNC_UV(thread_join);
-  REGISTE_FUNC_UV(thread_equal);
+  REGISTER_FUNC_WRAP(thread_create);
+  REGISTER_FUNC_WRAP(thread_invalid);
+  REGISTER_FUNC_WRAP(thread_self);
+  REGISTER_FUNC_UV(thread_join);
+  REGISTER_FUNC_UV(thread_equal);
 
   registe_sem(L);
 

@@ -360,17 +360,17 @@ static const luaL_Enum BCWRAP_ENUM(image_type)[] = {
     {NULL, 0},
 };
 
-#define REGISTE_FUNC_IMAGE(name) \
-  REGISTE_LIGHTUSERDATA(name, IMAGE_FUNCTION(name))
+#define REGISTER_FUNC_IMAGE(name) \
+  REGISTER_LIGHTUSERDATA(name, IMAGE_FUNCTION(name))
 
 void IMAGE_FUNCTION(init)(lua_State* L) {
   luaL_newlib(L, IMAGE_FUNCTION(funcs));
 
-  REGISTE_FUNC_IMAGE(imageDecodePtr);
-  REGISTE_FUNC_IMAGE(imageEncodePtr);
-  REGISTE_FUNC_IMAGE(imageFlipVerticalPtr);
+  REGISTER_FUNC_IMAGE(imageDecodePtr);
+  REGISTER_FUNC_IMAGE(imageEncodePtr);
+  REGISTER_FUNC_IMAGE(imageFlipVerticalPtr);
 
-  REGISTE_ENUM_BCWRAP(image_type);
+  REGISTER_ENUM_BCWRAP(image_type);
 
   lua_setfield(L, -2, "image");
 

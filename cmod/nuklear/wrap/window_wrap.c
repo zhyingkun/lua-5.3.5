@@ -314,5 +314,5 @@ static const luaL_Enum NKWRAP_ENUM(panel_flag)[] = {
 void NKWRAP_FUNCTION(init_window)(lua_State* L) {
   luaL_setfuncs(L, wrap_funcs, 0);
 
-  REGISTE_ENUM_NKWRAP(panel_flag);
+  REGISTER_ENUM_NKWRAP(panel_flag);
 }

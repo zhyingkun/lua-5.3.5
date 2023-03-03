@@ -122,5 +122,5 @@ static const luaL_Enum NKWRAP_ENUM(widget_layout_state)[] = {
 void NKWRAP_FUNCTION(init_widget)(lua_State* L) {
   luaL_setfuncs(L, wrap_funcs, 0);
 
-  REGISTE_ENUM_NKWRAP(widget_layout_state);
+  REGISTER_ENUM_NKWRAP(widget_layout_state);
 }

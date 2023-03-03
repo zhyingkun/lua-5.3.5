@@ -118,8 +118,8 @@ static const luaL_Enum NKWRAP_ENUM(atlas_format)[] = {
 void NKFONTATLAS_FUNCTION(init)(lua_State* L) {
   luaL_setfuncs(L, funcs, 0);
 
-  REGISTE_ENUM_NKWRAP(atlas_format);
+  REGISTER_ENUM_NKWRAP(atlas_format);
 
-  REGISTE_METATABLE(NUKLEAR_FONTATLAS_TYPE, metafuncs);
-  REGISTE_METATABLE(NUKLEAR_DRAWNULLTEXTURE_TYPE, draw_null_texture_metafuncs);
+  REGISTER_METATABLE(NUKLEAR_FONTATLAS_TYPE, metafuncs);
+  REGISTER_METATABLE(NUKLEAR_DRAWNULLTEXTURE_TYPE, draw_null_texture_metafuncs);
 }

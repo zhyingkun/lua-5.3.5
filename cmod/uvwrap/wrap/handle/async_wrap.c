@@ -34,5 +34,5 @@ static const luaL_Reg ASYNC_FUNCTION(funcs)[] = {
 
 DEFINE_INIT_API_BEGIN(async)
 PUSH_LIB_TABLE(async);
-REGISTE_LIGHTUSERDATA(fireAsyncPtr, uv_async_send);
+REGISTER_LIGHTUSERDATA(fireAsyncPtr, uv_async_send);
 DEFINE_INIT_API_END(async)

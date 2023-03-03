@@ -125,6 +125,6 @@ LUAMOD_API int luaopen_libnfd(lua_State* L) {
   // 1. version number in the module
   // 2. version pointer in the lua_State *L, passed from caller
   // 3. version pointer in the dylib the module dylink with
-  REGISTE_ENUM(result, nfdw_result);
+  REGISTER_ENUM(result, nfdw_result);
   return 1;
 }

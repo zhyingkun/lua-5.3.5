@@ -128,15 +128,7 @@ const luaL_Reg TCP_FUNCTION(metafuncs)[] = {
 };
 
 static void TCP_FUNCTION(init_metatable)(lua_State* L) {
-  luaL_newmetatable(L, UVWRAP_TCP_TYPE);
-  luaL_setfuncs(L, TCP_FUNCTION(metafuncs), 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  luaL_setmetatable(L, UVWRAP_STREAM_TYPE);
-
-  lua_pop(L, 1);
+  REGISTER_METATABLE_INHERIT(UVWRAP_TCP_TYPE, TCP_FUNCTION(metafuncs), UVWRAP_STREAM_TYPE);
 }
 
 static int TCP_FUNCTION(Tcp)(lua_State* L) {
@@ -170,6 +162,6 @@ static const luaL_Enum UVWRAP_ENUM(tcp_flag)[] = {
 
 DEFINE_INIT_API_BEGIN(tcp)
 PUSH_LIB_TABLE(tcp);
-REGISTE_ENUM_UVWRAP(tcp_flag);
+REGISTER_ENUM_UVWRAP(tcp_flag);
 INVOKE_INIT_METATABLE(tcp);
 DEFINE_INIT_API_END(tcp)

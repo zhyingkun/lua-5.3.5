@@ -188,6 +188,6 @@ static const luaL_Enum GLFWRAP_ENUM(device_event)[] = {
     {NULL, 0},
 };
 
-DEFINE_REGISTE_FUNC_BEGIN(monitor)
-REGISTE_ENUM_GLFWRAP(device_event);
-DEFINE_REGISTE_FUNC_END()
+DEFINE_REGISTER_FUNC_BEGIN(monitor)
+REGISTER_ENUM_GLFWRAP(device_event);
+DEFINE_REGISTER_FUNC_END()

@@ -205,14 +205,14 @@ static const luaL_Reg MBIO_FUNCTION(funcs)[] = {
     {NULL, NULL},
 };
 
-#define REGISTE_FUNC_MBIO(name) \
-  REGISTE_LIGHTUSERDATA(name, MBIO_FUNCTION(name))
+#define REGISTER_FUNC_MBIO(name) \
+  REGISTER_LIGHTUSERDATA(name, MBIO_FUNCTION(name))
 
 void MBIO_FUNCTION(init)(lua_State* L) {
   luaL_newlib(L, MBIO_FUNCTION(funcs));
 
-  REGISTE_FUNC_MBIO(readFilePtr);
-  REGISTE_FUNC_MBIO(writeFilePtr);
+  REGISTER_FUNC_MBIO(readFilePtr);
+  REGISTER_FUNC_MBIO(writeFilePtr);
 
   lua_setfield(L, -2, "mbio");
 }

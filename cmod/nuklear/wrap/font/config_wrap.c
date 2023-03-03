@@ -128,9 +128,9 @@ static const luaL_Enum NKWRAP_ENUM(coord_type)[] = {
 void NKFONTCFG_FUNCTION(init)(lua_State* L) {
   luaL_setfuncs(L, funcs, 0);
 
-  REGISTE_ENUM_NKWRAP(coord_type);
+  REGISTER_ENUM_NKWRAP(coord_type);
 
-  REGISTE_METATABLE(NUKLEAR_FONTCFG_TYPE, metafuncs);
+  REGISTER_METATABLE(NUKLEAR_FONTCFG_TYPE, metafuncs);
 }
 
 /* }====================================================== */

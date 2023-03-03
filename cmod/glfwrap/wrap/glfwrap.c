@@ -178,18 +178,18 @@ static const luaL_Enum GLFWRAP_ENUM(init_hint)[] = {
     {NULL, 0},
 };
 
-#define REGISTE_FUNC_GLFW(name) REGISTE_LIGHTUSERDATA(name, glfw##name)
+#define REGISTER_FUNC_GLFW(name) REGISTER_LIGHTUSERDATA(name, glfw##name)
 
 void registe_function_pointer(lua_State* L) {
   lua_createtable(L, 0, 2);
 
-  REGISTE_FUNC_GLFW(MakeContextCurrent);
-  REGISTE_FUNC_GLFW(SwapBuffers);
-  REGISTE_FUNC_GLFW(SwapInterval);
-  REGISTE_FUNC_GLFW(GetProcAddress);
-  REGISTE_FUNC_GLFW(GetFramebufferSize);
+  REGISTER_FUNC_GLFW(MakeContextCurrent);
+  REGISTER_FUNC_GLFW(SwapBuffers);
+  REGISTER_FUNC_GLFW(SwapInterval);
+  REGISTER_FUNC_GLFW(GetProcAddress);
+  REGISTER_FUNC_GLFW(GetFramebufferSize);
 
-  REGISTE_FUNC_GLFW(GetTime);
+  REGISTER_FUNC_GLFW(GetTime);
 
   lua_setfield(L, -2, "func_ptr");
 }
@@ -206,13 +206,13 @@ LUAMOD_API int luaopen_libglfwrap(lua_State* L) {
 
   luaL_newlib(L, glfwrap_funcs);
 
-  REGISTE_FUNCTIONS(context);
-  REGISTE_FUNCTIONS(input);
-  REGISTE_FUNCTIONS(monitor);
-  REGISTE_FUNCTIONS(window);
+  REGISTER_FUNCTIONS(context);
+  REGISTER_FUNCTIONS(input);
+  REGISTER_FUNCTIONS(monitor);
+  REGISTER_FUNCTIONS(window);
 
-  REGISTE_ENUM_GLFWRAP(err_code);
-  REGISTE_ENUM_GLFWRAP(init_hint);
+  REGISTER_ENUM_GLFWRAP(err_code);
+  REGISTER_ENUM_GLFWRAP(init_hint);
 
   registe_function_pointer(L);
 

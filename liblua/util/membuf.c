@@ -94,11 +94,7 @@ static const luaL_Reg membuf_metafuncs[] = {
 };
 
 void membuf_init(lua_State* L) {
-  luaL_newmetatable(L, LUA_MEMBUFFER_TYPE);
-  luaL_setfuncs(L, membuf_metafuncs, 0);
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-  lua_pop(L, 1);
+  REGISTER_METATABLE(LUA_MEMBUFFER_TYPE, membuf_metafuncs);
 }
 
 LUALIB_API luaL_MemBuffer* luaL_newmembuffer(lua_State* L) {

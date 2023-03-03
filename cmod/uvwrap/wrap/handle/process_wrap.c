@@ -71,13 +71,7 @@ static const luaL_Reg STDIOCONT_FUNCTION(metafuncs)[] = {
 };
 
 static void STDIOCONT_FUNCTION(init_metatable)(lua_State* L) {
-  luaL_newmetatable(L, UVWRAP_STDIOCONT_TYPE);
-  luaL_setfuncs(L, STDIOCONT_FUNCTION(metafuncs), 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  lua_pop(L, 1);
+  REGISTER_METATABLE(UVWRAP_STDIOCONT_TYPE, STDIOCONT_FUNCTION(metafuncs));
 }
 
 static void PROCESS_CALLBACK(Process)(uv_process_t* handle, int64_t exit_status, int term_signal) {
@@ -218,7 +212,7 @@ static int PROCESS_FUNCTION(__gc)(lua_State* L) {
 }
 
 #define EMPLACE_PROCESS_FUNCTION(name) \
-  { #name, PROCESS_FUNCTION(name) }
+  { "" #name, PROCESS_FUNCTION(name) }
 
 static const luaL_Reg PROCESS_FUNCTION(metafuncs)[] = {
     {"kill", PROCESS_FUNCTION(pkill)},
@@ -228,15 +222,7 @@ static const luaL_Reg PROCESS_FUNCTION(metafuncs)[] = {
 };
 
 static void PROCESS_FUNCTION(init_metatable)(lua_State* L) {
-  luaL_newmetatable(L, UVWRAP_PROCESS_TYPE);
-  luaL_setfuncs(L, PROCESS_FUNCTION(metafuncs), 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  luaL_setmetatable(L, UVWRAP_HANDLE_TYPE);
-
-  lua_pop(L, 1);
+  REGISTER_METATABLE_INHERIT(UVWRAP_PROCESS_TYPE, PROCESS_FUNCTION(metafuncs), UVWRAP_HANDLE_TYPE);
 }
 
 static int PROCESS_FUNCTION(disable_stdio_inheritance)(lua_State* L) {
@@ -353,8 +339,8 @@ static const luaL_Enum UVWRAP_ENUM(stdio_flag)[] = {
 
 DEFINE_INIT_API_BEGIN(process)
 PUSH_LIB_TABLE(process);
-REGISTE_ENUM_UVWRAP(process_flag);
-REGISTE_ENUM_UVWRAP(stdio_flag);
+REGISTER_ENUM_UVWRAP(process_flag);
+REGISTER_ENUM_UVWRAP(stdio_flag);
 INVOKE_INIT_METATABLE(process);
 INVOKE_INIT_METATABLE(stdiocont);
 DEFINE_INIT_API_END(process)

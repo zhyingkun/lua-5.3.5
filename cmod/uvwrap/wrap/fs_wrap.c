@@ -1009,10 +1009,10 @@ static const luaL_Enum UVWRAP_ENUM(symlink_flag)[] = {
 void FS_FUNCTION(init)(lua_State* L) {
   luaL_newlib(L, FS_FUNCTION(funcs));
 
-  REGISTE_ENUM_UVWRAP(open_flag);
-  REGISTE_ENUM_UVWRAP(dirent_type);
-  REGISTE_ENUM_UVWRAP(copyfile_flag);
-  REGISTE_ENUM_UVWRAP(symlink_flag);
+  REGISTER_ENUM_UVWRAP(open_flag);
+  REGISTER_ENUM_UVWRAP(dirent_type);
+  REGISTER_ENUM_UVWRAP(copyfile_flag);
+  REGISTER_ENUM_UVWRAP(symlink_flag);
 
   lua_setfield(L, -2, "fs");
 }

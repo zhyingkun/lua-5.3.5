@@ -21,7 +21,7 @@
 #define BCWRAP_FUNCTION(name) bcfx_wrap_##name
 #define BCWRAP_ENUM(name) bcfx_enum_##name
 
-#define REGISTE_ENUM_BCWRAP(name) REGISTE_ENUM(name, BCWRAP_ENUM(name))
+#define REGISTER_ENUM_BCWRAP(name) REGISTER_ENUM(name, BCWRAP_ENUM(name))
 
 /*
 ** {======================================================

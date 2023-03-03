@@ -6,11 +6,34 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define REGISTE_ENUM(name_, enum_) \
+#define METATABLE_INDEX_TO_SELF(idx_) \
+  do { \
+    int idx = lua_absindex(L, idx_); \
+    lua_pushvalue(L, idx); \
+    lua_setfield(L, idx, "__index"); \
+  } while (false)
+
+#define REGISTER_METATABLE(name_, metafuncs_) \
+  do { \
+    luaL_newmetatable(L, name_); \
+    luaL_setfuncs(L, metafuncs_, 0); \
+    METATABLE_INDEX_TO_SELF(-1); \
+    lua_pop(L, 1); /* pop the metatable */ \
+  } while (0)
+#define REGISTER_METATABLE_INHERIT(name_, metafuncs_, parent_) \
+  do { \
+    luaL_newmetatable(L, name_); \
+    luaL_setfuncs(L, metafuncs_, 0); \
+    METATABLE_INDEX_TO_SELF(-1); \
+    luaL_setmetatable(L, parent_); \
+    lua_pop(L, 1); /* pop the metatable */ \
+  } while (0)
+
+#define REGISTER_ENUM(name_, enum_) \
   luaL_newenum(L, enum_); \
   lua_setfield(L, -2, #name_)
 
-#define REGISTE_LIGHTUSERDATA(name_, lightuserdata_) \
+#define REGISTER_LIGHTUSERDATA(name_, lightuserdata_) \
   lua_pushlightuserdata(L, (void*)(lightuserdata_)); \
   lua_setfield(L, -2, #name_)
 

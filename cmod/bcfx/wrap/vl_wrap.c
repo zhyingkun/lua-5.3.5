@@ -45,7 +45,7 @@ static int VL_FUNCTION(clear)(lua_State* L) {
 }
 
 #define EMPLACE_VL_FUNCTION(name) \
-  { #name, VL_FUNCTION(name) }
+  { "" #name, VL_FUNCTION(name) }
 static const luaL_Reg vl_metafuncs[] = {
     EMPLACE_VL_FUNCTION(nextGroup),
     EMPLACE_VL_FUNCTION(addAttrib),
@@ -62,13 +62,7 @@ static int VL_FUNCTION(VertexLayout)(lua_State* L) {
 }
 
 void VL_FUNCTION(init_metatable)(lua_State* L) {
-  luaL_newmetatable(L, BCFX_VERTEXLAYOUT_TYPE);
-  luaL_setfuncs(L, vl_metafuncs, 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  lua_pop(L, 1); // pop the metatable
+  REGISTER_METATABLE(BCFX_VERTEXLAYOUT_TYPE, vl_metafuncs);
 
   lua_pushcfunction(L, VL_FUNCTION(VertexLayout));
   lua_setfield(L, -2, "VertexLayout");

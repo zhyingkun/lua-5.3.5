@@ -303,6 +303,6 @@ void NKWRAP_FUNCTION(init_input)(lua_State* L) {
   lua_pushinteger(L, NK_INPUT_MAX);
   lua_setfield(L, -2, "INPUT_MAX");
 
-  REGISTE_ENUM_NKWRAP(keyboard);
-  REGISTE_ENUM_NKWRAP(mouse_button);
+  REGISTER_ENUM_NKWRAP(keyboard);
+  REGISTER_ENUM_NKWRAP(mouse_button);
 }

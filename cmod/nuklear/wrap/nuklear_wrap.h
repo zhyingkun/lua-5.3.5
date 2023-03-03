@@ -24,17 +24,8 @@
 #define NKWRAP_FUNCTION(name) nuklear_wrap_##name
 #define NKWRAP_ENUM(name) nuklear_enum_##name
 
-#define REGISTE_ENUM_NKWRAP(name) \
-  REGISTE_ENUM(name, NKWRAP_ENUM(name))
-
-#define REGISTE_METATABLE(name_, metafuncs_) \
-  do { \
-    luaL_newmetatable(L, name_); \
-    luaL_setfuncs(L, metafuncs_, 0); \
-    lua_pushvalue(L, -1); \
-    lua_setfield(L, -2, "__index"); \
-    lua_pop(L, 1); /* pop the metatable */ \
-  } while (0)
+#define REGISTER_ENUM_NKWRAP(name) \
+  REGISTER_ENUM(name, NKWRAP_ENUM(name))
 
 extern lua_State* staticL;
 #define GET_MAIN_LUA_STATE() staticL

@@ -677,16 +677,16 @@ static const luaL_Enum GLFWRAP_ENUM(input_state)[] = {
     {NULL, 0},
 };
 
-DEFINE_REGISTE_FUNC_BEGIN(input)
-REGISTE_ENUM_GLFWRAP(gamepad_axis);
-REGISTE_ENUM_GLFWRAP(gamepad_button);
-REGISTE_ENUM_GLFWRAP(joystick_hat);
-REGISTE_ENUM_GLFWRAP(joystick);
-REGISTE_ENUM_GLFWRAP(keyboard);
-REGISTE_ENUM_GLFWRAP(modifier_key);
-REGISTE_ENUM_GLFWRAP(mouse_button);
-REGISTE_ENUM_GLFWRAP(standard_cursor_shape);
-REGISTE_ENUM_GLFWRAP(input_mode);
-REGISTE_ENUM_GLFWRAP(cursor_mode);
-REGISTE_ENUM_GLFWRAP(input_state);
-DEFINE_REGISTE_FUNC_END()
+DEFINE_REGISTER_FUNC_BEGIN(input)
+REGISTER_ENUM_GLFWRAP(gamepad_axis);
+REGISTER_ENUM_GLFWRAP(gamepad_button);
+REGISTER_ENUM_GLFWRAP(joystick_hat);
+REGISTER_ENUM_GLFWRAP(joystick);
+REGISTER_ENUM_GLFWRAP(keyboard);
+REGISTER_ENUM_GLFWRAP(modifier_key);
+REGISTER_ENUM_GLFWRAP(mouse_button);
+REGISTER_ENUM_GLFWRAP(standard_cursor_shape);
+REGISTER_ENUM_GLFWRAP(input_mode);
+REGISTER_ENUM_GLFWRAP(cursor_mode);
+REGISTER_ENUM_GLFWRAP(input_state);
+DEFINE_REGISTER_FUNC_END()

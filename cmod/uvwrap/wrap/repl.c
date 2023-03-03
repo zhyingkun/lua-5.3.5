@@ -639,13 +639,7 @@ static const luaL_Reg uvwrap_replMetaFuncs[] = {
     {NULL, NULL},
 };
 void uvwrap_replInitMetatable(lua_State* L) {
-  luaL_newmetatable(L, REPL_TYPE);
-  luaL_setfuncs(L, uvwrap_replMetaFuncs, 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  lua_pop(L, 1);
+  REGISTER_METATABLE(REPL_TYPE, uvwrap_replMetaFuncs);
 }
 
 /* }====================================================== */

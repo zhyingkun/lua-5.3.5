@@ -137,5 +137,5 @@ static const luaL_Enum NKWRAP_ENUM(tree_type)[] = {
 void NKWRAP_FUNCTION(init_tree)(lua_State* L) {
   luaL_setfuncs(L, wrap_funcs, 0);
 
-  REGISTE_ENUM_NKWRAP(tree_type);
+  REGISTER_ENUM_NKWRAP(tree_type);
 }

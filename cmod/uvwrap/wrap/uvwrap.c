@@ -203,10 +203,10 @@ LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
   luaL_newlib(L, uvwrap_funcs);
   (void)MEMORY_FUNCTION(init)();
 
-  REGISTE_ENUM_UVWRAP(err_code);
-  REGISTE_ENUM_UVWRAP(handle_type);
-  REGISTE_ENUM_R(handle_type, handle_name);
-  REGISTE_ENUM_UVWRAP(alloc_type);
+  REGISTER_ENUM_UVWRAP(err_code);
+  REGISTER_ENUM_UVWRAP(handle_type);
+  REGISTER_ENUM_R(handle_type, handle_name);
+  REGISTER_ENUM_UVWRAP(alloc_type);
 
   lua_pushinteger(L, uv_version());
   lua_setfield(L, -2, "version");

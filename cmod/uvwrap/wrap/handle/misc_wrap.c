@@ -60,15 +60,7 @@
       {NULL, NULL}, \
   }; \
   static void UVWRAP_FUNCTION(name, init_metatable)(lua_State * L) { \
-    luaL_newmetatable(L, UVWRAP_##NAME##_TYPE); \
-    luaL_setfuncs(L, UVWRAP_FUNCTION(name, metafuncs), 0); \
-\
-    lua_pushvalue(L, -1); \
-    lua_setfield(L, -2, "__index"); \
-\
-    luaL_setmetatable(L, UVWRAP_HANDLE_TYPE); \
-\
-    lua_pop(L, 1); \
+    REGISTER_METATABLE_INHERIT(UVWRAP_##NAME##_TYPE, UVWRAP_FUNCTION(name, metafuncs), UVWRAP_HANDLE_TYPE); \
   } \
 \
   static const luaL_Reg UVWRAP_FUNCTION(name, funcs)[] = { \
@@ -78,7 +70,7 @@
 
 // lua_pushcfunction(L, UVWRAP_FUNCTION(name, new));
 
-#define REGISTE_MISC_HANDLE(name) \
+#define REGISTER_MISC_HANDLE(name) \
   PUSH_LIB_TABLE(name); \
   lua_setfield(L, -2, #name); \
   (void)UVWRAP_FUNCTION(name, init_metatable)(L)
@@ -90,7 +82,7 @@ UVWRAP_MISC_HANDLE_DEFINE(check, CHECK, Check)
 UVWRAP_MISC_HANDLE_DEFINE(idle, IDLE, Idle)
 
 void uvwrap_misc_init(lua_State* L) {
-  REGISTE_MISC_HANDLE(prepare);
-  REGISTE_MISC_HANDLE(check);
-  REGISTE_MISC_HANDLE(idle);
+  REGISTER_MISC_HANDLE(prepare);
+  REGISTER_MISC_HANDLE(check);
+  REGISTER_MISC_HANDLE(idle);
 }

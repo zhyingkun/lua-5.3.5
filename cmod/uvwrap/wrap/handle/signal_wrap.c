@@ -58,7 +58,7 @@ static int SIGNAL_FUNCTION(__gc)(lua_State* L) {
 }
 
 #define EMPLACE_SIGNAL_FUNCTION(name) \
-  { #name, SIGNAL_FUNCTION(name) }
+  { "" #name, SIGNAL_FUNCTION(name) }
 
 static const luaL_Reg SIGNAL_FUNCTION(metafuncs)[] = {
     EMPLACE_SIGNAL_FUNCTION(startAsync),
@@ -69,15 +69,7 @@ static const luaL_Reg SIGNAL_FUNCTION(metafuncs)[] = {
 };
 
 static void SIGNAL_FUNCTION(init_metatable)(lua_State* L) {
-  luaL_newmetatable(L, UVWRAP_SIGNAL_TYPE);
-  luaL_setfuncs(L, SIGNAL_FUNCTION(metafuncs), 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  luaL_setmetatable(L, UVWRAP_HANDLE_TYPE);
-
-  lua_pop(L, 1);
+  REGISTER_METATABLE_INHERIT(UVWRAP_SIGNAL_TYPE, SIGNAL_FUNCTION(metafuncs), UVWRAP_HANDLE_TYPE);
 }
 
 int SIGNAL_FUNCTION(Signal)(lua_State* L) {
@@ -157,7 +149,7 @@ static const luaL_Enum UVWRAP_ENUM(sig_num)[] = {
 
 DEFINE_INIT_API_BEGIN(signal)
 PUSH_LIB_TABLE(signal);
-REGISTE_ENUM_UVWRAP(sig_num);
-REGISTE_ENUM_R(sig_num, sig_name);
+REGISTER_ENUM_UVWRAP(sig_num);
+REGISTER_ENUM_R(sig_num, sig_name);
 INVOKE_INIT_METATABLE(signal);
 DEFINE_INIT_API_END(signal)

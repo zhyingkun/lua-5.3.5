@@ -273,5 +273,5 @@ static const luaL_Enum BCWRAP_ENUM(data_type)[] = {
 
 void MEMBUF_FUNCTION(init)(lua_State* L) {
   luaL_setfuncs(L, membuf_funcs, 0);
-  REGISTE_ENUM_BCWRAP(data_type);
+  REGISTER_ENUM_BCWRAP(data_type);
 }

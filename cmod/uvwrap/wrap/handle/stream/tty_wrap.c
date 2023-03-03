@@ -26,7 +26,7 @@ static int TTY_FUNCTION(__gc)(lua_State* L) {
 }
 
 #define EMPLACE_TTY_FUNCTION(name) \
-  { #name, TTY_FUNCTION(name) }
+  { "" #name, TTY_FUNCTION(name) }
 
 static const luaL_Reg TTY_FUNCTION(metafuncs)[] = {
     EMPLACE_TTY_FUNCTION(setMode),
@@ -36,15 +36,7 @@ static const luaL_Reg TTY_FUNCTION(metafuncs)[] = {
 };
 
 static void TTY_FUNCTION(init_metatable)(lua_State* L) {
-  luaL_newmetatable(L, UVWRAP_TTY_TYPE);
-  luaL_setfuncs(L, TTY_FUNCTION(metafuncs), 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  luaL_setmetatable(L, UVWRAP_STREAM_TYPE);
-
-  lua_pop(L, 1);
+  REGISTER_METATABLE_INHERIT(UVWRAP_TTY_TYPE, TTY_FUNCTION(metafuncs), UVWRAP_STREAM_TYPE);
 }
 
 int TTY_FUNCTION(Tty)(lua_State* L) {
@@ -82,6 +74,6 @@ static const luaL_Enum UVWRAP_ENUM(tty_mode)[] = {
 
 DEFINE_INIT_API_BEGIN(tty)
 PUSH_LIB_TABLE(tty);
-REGISTE_ENUM_UVWRAP(tty_mode);
+REGISTER_ENUM_UVWRAP(tty_mode);
 INVOKE_INIT_METATABLE(tty);
 DEFINE_INIT_API_END(tty)

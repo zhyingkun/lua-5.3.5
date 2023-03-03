@@ -88,7 +88,7 @@ static int TIMER_FUNCTION(__gc)(lua_State* L) {
 }
 
 #define EMPLACE_TIMER_FUNCTION(name) \
-  { #name, TIMER_FUNCTION(name) }
+  { "" #name, TIMER_FUNCTION(name) }
 
 static const luaL_Reg TIMER_FUNCTION(metafuncs)[] = {
     EMPLACE_TIMER_FUNCTION(startAsync),
@@ -102,15 +102,7 @@ static const luaL_Reg TIMER_FUNCTION(metafuncs)[] = {
 };
 
 static void TIMER_FUNCTION(init_metatable)(lua_State* L) {
-  luaL_newmetatable(L, UVWRAP_TIMER_TYPE);
-  luaL_setfuncs(L, TIMER_FUNCTION(metafuncs), 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  luaL_setmetatable(L, UVWRAP_HANDLE_TYPE);
-
-  lua_pop(L, 1);
+  REGISTER_METATABLE_INHERIT(UVWRAP_TIMER_TYPE, TIMER_FUNCTION(metafuncs), UVWRAP_HANDLE_TYPE);
 }
 
 int TIMER_FUNCTION(Timer)(lua_State* L) {

@@ -96,6 +96,6 @@ static const luaL_Reg funcs[] = {
 void NKIMAGE_FUNCTION(init)(lua_State* L) {
   luaL_setfuncs(L, funcs, 0);
 
-  REGISTE_METATABLE(NUKLEAR_IMAGE_TYPE, metafuncs);
-  REGISTE_METATABLE(NUKLEAR_NINESLICE_TYPE, nine_slice_metafuncs);
+  REGISTER_METATABLE(NUKLEAR_IMAGE_TYPE, metafuncs);
+  REGISTER_METATABLE(NUKLEAR_NINESLICE_TYPE, nine_slice_metafuncs);
 }

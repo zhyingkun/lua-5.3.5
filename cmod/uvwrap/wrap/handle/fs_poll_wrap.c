@@ -66,7 +66,7 @@ static int FS_POLL_FUNCTION(__gc)(lua_State* L) {
 }
 
 #define EMPLACE_FS_POLL_FUNCTION(name) \
-  { #name, FS_POLL_FUNCTION(name) }
+  { "" #name, FS_POLL_FUNCTION(name) }
 
 static const luaL_Reg FS_POLL_FUNCTION(metafuncs)[] = {
     EMPLACE_FS_POLL_FUNCTION(startAsync),
@@ -77,15 +77,7 @@ static const luaL_Reg FS_POLL_FUNCTION(metafuncs)[] = {
 };
 
 static void FS_POLL_FUNCTION(init_metatable)(lua_State* L) {
-  luaL_newmetatable(L, UVWRAP_FS_POLL_TYPE);
-  luaL_setfuncs(L, FS_POLL_FUNCTION(metafuncs), 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  luaL_setmetatable(L, UVWRAP_HANDLE_TYPE);
-
-  lua_pop(L, 1);
+  REGISTER_METATABLE_INHERIT(UVWRAP_FS_POLL_TYPE, FS_POLL_FUNCTION(metafuncs), UVWRAP_HANDLE_TYPE);
 }
 
 int FS_POLL_FUNCTION(FsPoll)(lua_State* L) {

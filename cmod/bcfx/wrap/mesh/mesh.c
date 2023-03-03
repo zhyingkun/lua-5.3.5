@@ -183,14 +183,14 @@ static const luaL_Reg MESH_FUNCTION(funcs)[] = {
     {NULL, NULL},
 };
 
-#define REGISTE_FUNC_MESH(name) \
-  REGISTE_LIGHTUSERDATA(name, MESH_FUNCTION(name))
+#define REGISTER_FUNC_MESH(name) \
+  REGISTER_LIGHTUSERDATA(name, MESH_FUNCTION(name))
 
 void MESH_FUNCTION(init)(lua_State* L) {
   luaL_newlib(L, MESH_FUNCTION(funcs));
 
-  REGISTE_FUNC_MESH(meshParsePtr);
-  REGISTE_FUNC_MESH(materialParsePtr);
+  REGISTER_FUNC_MESH(meshParsePtr);
+  REGISTER_FUNC_MESH(materialParsePtr);
 
   lua_setfield(L, -2, "mesh");
 }

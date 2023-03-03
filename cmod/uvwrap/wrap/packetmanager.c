@@ -195,13 +195,7 @@ static const luaL_Reg PM_FUNCTION(metafuncs)[] = {
 };
 
 static void PM_FUNCTION(init_metatable)(lua_State* L) {
-  luaL_newmetatable(L, PACKET_MANATER_TYPE);
-  luaL_setfuncs(L, PM_FUNCTION(metafuncs), 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  lua_pop(L, 1);
+  REGISTER_METATABLE(PACKET_MANATER_TYPE, PM_FUNCTION(metafuncs));
 }
 
 static int PM_FUNCTION(PacketManager)(lua_State* L) {
@@ -225,7 +219,7 @@ static const luaL_Enum UVWRAP_ENUM(packet_status)[] = {
 
 void PM_FUNCTION(init)(lua_State* L) {
   luaL_setfuncs(L, PM_FUNCTION(funcs), 0);
-  REGISTE_ENUM_UVWRAP(packet_status);
+  REGISTER_ENUM_UVWRAP(packet_status);
   INVOKE_INIT_METATABLE(pm);
 }
 

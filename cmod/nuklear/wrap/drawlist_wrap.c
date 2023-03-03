@@ -304,5 +304,5 @@ static const luaL_Enum NKWRAP_ENUM(anti_aliasing)[] = {
 void NKWRAP_FUNCTION(init_drawlist)(lua_State* L) {
   luaL_setfuncs(L, wrap_funcs, 0);
 
-  REGISTE_ENUM_NKWRAP(anti_aliasing);
+  REGISTER_ENUM_NKWRAP(anti_aliasing);
 }

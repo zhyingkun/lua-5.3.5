@@ -295,15 +295,7 @@ static const luaL_Reg uvwrap_stream_metafuncs[] = {
 };
 
 static void STREAM_FUNCTION(init_metatable)(lua_State* L) {
-  luaL_newmetatable(L, UVWRAP_STREAM_TYPE);
-  luaL_setfuncs(L, uvwrap_stream_metafuncs, 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  luaL_setmetatable(L, UVWRAP_HANDLE_TYPE);
-
-  lua_pop(L, 1);
+  REGISTER_METATABLE_INHERIT(UVWRAP_STREAM_TYPE, uvwrap_stream_metafuncs, UVWRAP_HANDLE_TYPE);
 }
 
 void STREAM_FUNCTION(init)(lua_State* L) {

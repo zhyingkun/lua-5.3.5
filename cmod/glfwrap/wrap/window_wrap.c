@@ -24,13 +24,7 @@ static const luaL_Reg image_metafuncs[] = {
 };
 
 static void init_image_metatable(lua_State* L) {
-  luaL_newmetatable(L, GLFW_IMAGE_TYPE);
-  luaL_setfuncs(L, image_metafuncs, 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  lua_pop(L, 1);
+  REGISTER_METATABLE(GLFW_IMAGE_TYPE, image_metafuncs);
 }
 
 static int GLFWRAP_FUNCTION(GLFWimage)(lua_State* L) {
@@ -597,9 +591,9 @@ static const luaL_Enum GLFWRAP_ENUM(hint_value)[] = {
     {NULL, 0},
 };
 
-DEFINE_REGISTE_FUNC_BEGIN(window)
-REGISTE_ENUM_GLFWRAP(window_hint);
-REGISTE_ENUM_GLFWRAP(window_attribute);
-REGISTE_ENUM_GLFWRAP(hint_value);
+DEFINE_REGISTER_FUNC_BEGIN(window)
+REGISTER_ENUM_GLFWRAP(window_hint);
+REGISTER_ENUM_GLFWRAP(window_attribute);
+REGISTER_ENUM_GLFWRAP(hint_value);
 init_image_metatable(L);
-DEFINE_REGISTE_FUNC_END()
+DEFINE_REGISTER_FUNC_END()

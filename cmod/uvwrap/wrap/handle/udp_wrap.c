@@ -253,15 +253,7 @@ const luaL_Reg UDP_FUNCTION(metafuncs)[] = {
 };
 
 static void UDP_FUNCTION(init_metatable)(lua_State* L) {
-  luaL_newmetatable(L, UVWRAP_UDP_TYPE);
-  luaL_setfuncs(L, UDP_FUNCTION(metafuncs), 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  luaL_setmetatable(L, UVWRAP_HANDLE_TYPE);
-
-  lua_pop(L, 1);
+  REGISTER_METATABLE_INHERIT(UVWRAP_UDP_TYPE, UDP_FUNCTION(metafuncs), UVWRAP_HANDLE_TYPE);
 }
 
 int UDP_FUNCTION(Udp)(lua_State* L) {
@@ -297,7 +289,7 @@ static const luaL_Enum UVWRAP_ENUM(udp_flag)[] = {
 
 DEFINE_INIT_API_BEGIN(udp)
 PUSH_LIB_TABLE(udp);
-REGISTE_ENUM_UVWRAP(membership);
-REGISTE_ENUM_UVWRAP(udp_flag);
+REGISTER_ENUM_UVWRAP(membership);
+REGISTER_ENUM_UVWRAP(udp_flag);
 INVOKE_INIT_METATABLE(udp);
 DEFINE_INIT_API_END(udp)

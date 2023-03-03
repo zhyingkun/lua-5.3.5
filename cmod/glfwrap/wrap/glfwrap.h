@@ -24,23 +24,23 @@
 #define EMPLACE_GLFWRAP_ENUM_VALUE(name) \
   { #name, GLFW_##name }
 
-#define DECLARE_REGISTE_FUNC(module) \
+#define DECLARE_REGISTER_FUNC(module) \
   void GLFWRAP_FUNCTION(registe_##module##_funcs)(lua_State * L);
-#define DEFINE_REGISTE_FUNC_BEGIN(module) \
+#define DEFINE_REGISTER_FUNC_BEGIN(module) \
   void GLFWRAP_FUNCTION(registe_##module##_funcs)(lua_State * L) { \
     luaL_setfuncs(L, GLFWRAP_FUNCTION(module##_funcs), 0);
 
-#define DEFINE_REGISTE_FUNC_END() \
+#define DEFINE_REGISTER_FUNC_END() \
   }
-#define REGISTE_FUNCTIONS(module) \
+#define REGISTER_FUNCTIONS(module) \
   (void)GLFWRAP_FUNCTION(registe_##module##_funcs)(L)
 
-DECLARE_REGISTE_FUNC(context)
-DECLARE_REGISTE_FUNC(input)
-DECLARE_REGISTE_FUNC(monitor)
-DECLARE_REGISTE_FUNC(window)
+DECLARE_REGISTER_FUNC(context)
+DECLARE_REGISTER_FUNC(input)
+DECLARE_REGISTER_FUNC(monitor)
+DECLARE_REGISTER_FUNC(window)
 
-#define REGISTE_ENUM_GLFWRAP(name) REGISTE_ENUM(name, GLFWRAP_ENUM(name))
+#define REGISTER_ENUM_GLFWRAP(name) REGISTER_ENUM(name, GLFWRAP_ENUM(name))
 
 #define luaL_checkGLFWwindow(L, idx) (GLFWwindow*)luaL_checklightuserdata(L, idx)
 #define luaL_checkGLFWmonitor(L, idx) (GLFWmonitor*)luaL_checklightuserdata(L, idx)

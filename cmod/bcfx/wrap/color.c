@@ -152,7 +152,7 @@ void COLOR_FUNCTION(init)(lua_State* L) {
     lua_setfield(L, -2, cd->name);
   }
 
-  REGISTE_ENUM_BCWRAP(pack_type);
+  REGISTER_ENUM_BCWRAP(pack_type);
 
   lua_setfield(L, -2, "color");
 }

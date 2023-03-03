@@ -137,13 +137,7 @@ static const luaL_Reg HANDLE_FUNCTION(metafuncs)[] = {
 };
 
 static void HANDLE_FUNCTION(init_metatable)(lua_State* L) {
-  luaL_newmetatable(L, UVWRAP_HANDLE_TYPE);
-  luaL_setfuncs(L, HANDLE_FUNCTION(metafuncs), 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  lua_pop(L, 1);
+  REGISTER_METATABLE(UVWRAP_HANDLE_TYPE, HANDLE_FUNCTION(metafuncs));
 }
 
 void HANDLE_FUNCTION(init)(lua_State* L) {

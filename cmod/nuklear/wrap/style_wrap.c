@@ -17,54 +17,54 @@ static void stylePtr_findTable(lua_State* L, const char* key) {
     SET_PUSH_TABLE(8, key);
   }
 }
-#define STYLE_REGISTE_BEGIN(type_, count_) \
+#define STYLE_REGISTER_BEGIN(type_, count_) \
   stylePtr_findTable(L, #type_); \
   SET_PUSH_TABLE(count_, instanceName)
-#define STYLE_REGISTE_PTR(field_) \
+#define STYLE_REGISTER_PTR(field_) \
   lua_pushlightuserdata(L, (void*)(&(style->field_))); \
   lua_setfield(L, -2, #field_)
-#define STYLE_REGISTE_END() lua_pop(L, 2)
+#define STYLE_REGISTER_END() lua_pop(L, 2)
 static void stylePtr_text(lua_State* L, const char* instanceName, nk_style_text* style) {
-  STYLE_REGISTE_BEGIN(color, 1);
-  STYLE_REGISTE_PTR(color);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(vec2, 1);
-  STYLE_REGISTE_PTR(padding);
-  STYLE_REGISTE_END();
+  STYLE_REGISTER_BEGIN(color, 1);
+  STYLE_REGISTER_PTR(color);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(vec2, 1);
+  STYLE_REGISTER_PTR(padding);
+  STYLE_REGISTER_END();
 }
 
 static void stylePtr_buttonStyleItem(lua_State* L, const char* fieldName, nk_style_button* style) {
   lua_createtable(L, 0, 3);
-  STYLE_REGISTE_PTR(normal);
-  STYLE_REGISTE_PTR(hover);
-  STYLE_REGISTE_PTR(active);
+  STYLE_REGISTER_PTR(normal);
+  STYLE_REGISTER_PTR(hover);
+  STYLE_REGISTER_PTR(active);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_buttonColor(lua_State* L, const char* fieldName, nk_style_button* style) {
   lua_createtable(L, 0, 5);
-  STYLE_REGISTE_PTR(border_color);
-  STYLE_REGISTE_PTR(text_background);
-  STYLE_REGISTE_PTR(text_normal);
-  STYLE_REGISTE_PTR(text_hover);
-  STYLE_REGISTE_PTR(text_active);
+  STYLE_REGISTER_PTR(border_color);
+  STYLE_REGISTER_PTR(text_background);
+  STYLE_REGISTER_PTR(text_normal);
+  STYLE_REGISTER_PTR(text_hover);
+  STYLE_REGISTER_PTR(text_active);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_buttonFlags(lua_State* L, const char* fieldName, nk_style_button* style) {
   lua_createtable(L, 0, 1);
-  STYLE_REGISTE_PTR(text_alignment);
+  STYLE_REGISTER_PTR(text_alignment);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_buttonFloat(lua_State* L, const char* fieldName, nk_style_button* style) {
   lua_createtable(L, 0, 2);
-  STYLE_REGISTE_PTR(border);
-  STYLE_REGISTE_PTR(rounding);
+  STYLE_REGISTER_PTR(border);
+  STYLE_REGISTER_PTR(rounding);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_buttonVec2(lua_State* L, const char* fieldName, nk_style_button* style) {
   lua_createtable(L, 0, 3);
-  STYLE_REGISTE_PTR(padding);
-  STYLE_REGISTE_PTR(image_padding);
-  STYLE_REGISTE_PTR(touch_padding);
+  STYLE_REGISTER_PTR(padding);
+  STYLE_REGISTER_PTR(image_padding);
+  STYLE_REGISTER_PTR(touch_padding);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_button(lua_State* L, const char* instanceName, nk_style_button* style) {
@@ -84,173 +84,173 @@ static void stylePtr_button(lua_State* L, const char* instanceName, nk_style_but
   stylePtr_buttonVec2(L, instanceName, style);
   lua_pop(L, 1);
 }
-#define STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(field_) stylePtr_buttonStyleItem(L, #field_, &style->field_)
-#define STYLE_REGISTE_PTR_BUTTON_COLOR(field_) stylePtr_buttonColor(L, #field_, &style->field_)
-#define STYLE_REGISTE_PTR_BUTTON_FLAGS(field_) stylePtr_buttonFlags(L, #field_, &style->field_)
-#define STYLE_REGISTE_PTR_BUTTON_FLOAT(field_) stylePtr_buttonFloat(L, #field_, &style->field_)
-#define STYLE_REGISTE_PTR_BUTTON_VEC2(field_) stylePtr_buttonVec2(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(field_) stylePtr_buttonStyleItem(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_BUTTON_COLOR(field_) stylePtr_buttonColor(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_BUTTON_FLAGS(field_) stylePtr_buttonFlags(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_BUTTON_FLOAT(field_) stylePtr_buttonFloat(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_BUTTON_VEC2(field_) stylePtr_buttonVec2(L, #field_, &style->field_)
 
 static void stylePtr_toggle(lua_State* L, const char* instanceName, nk_style_toggle* style) {
-  STYLE_REGISTE_BEGIN(style_item, 5);
-  STYLE_REGISTE_PTR(normal);
-  STYLE_REGISTE_PTR(hover);
-  STYLE_REGISTE_PTR(active);
-  STYLE_REGISTE_PTR(cursor_normal);
-  STYLE_REGISTE_PTR(cursor_hover);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(color, 5);
-  STYLE_REGISTE_PTR(border_color);
-  STYLE_REGISTE_PTR(text_normal);
-  STYLE_REGISTE_PTR(text_hover);
-  STYLE_REGISTE_PTR(text_active);
-  STYLE_REGISTE_PTR(text_background);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(flags, 1);
-  STYLE_REGISTE_PTR(text_alignment);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(vec2, 2);
-  STYLE_REGISTE_PTR(padding);
-  STYLE_REGISTE_PTR(touch_padding);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(float, 2);
-  STYLE_REGISTE_PTR(spacing);
-  STYLE_REGISTE_PTR(border);
-  STYLE_REGISTE_END();
+  STYLE_REGISTER_BEGIN(style_item, 5);
+  STYLE_REGISTER_PTR(normal);
+  STYLE_REGISTER_PTR(hover);
+  STYLE_REGISTER_PTR(active);
+  STYLE_REGISTER_PTR(cursor_normal);
+  STYLE_REGISTER_PTR(cursor_hover);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(color, 5);
+  STYLE_REGISTER_PTR(border_color);
+  STYLE_REGISTER_PTR(text_normal);
+  STYLE_REGISTER_PTR(text_hover);
+  STYLE_REGISTER_PTR(text_active);
+  STYLE_REGISTER_PTR(text_background);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(flags, 1);
+  STYLE_REGISTER_PTR(text_alignment);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(vec2, 2);
+  STYLE_REGISTER_PTR(padding);
+  STYLE_REGISTER_PTR(touch_padding);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(float, 2);
+  STYLE_REGISTER_PTR(spacing);
+  STYLE_REGISTER_PTR(border);
+  STYLE_REGISTER_END();
 }
 static void stylePtr_selectable(lua_State* L, const char* instanceName, nk_style_selectable* style) {
-  STYLE_REGISTE_BEGIN(style_item, 6);
-  STYLE_REGISTE_PTR(normal);
-  STYLE_REGISTE_PTR(hover);
-  STYLE_REGISTE_PTR(pressed);
-  STYLE_REGISTE_PTR(normal_active);
-  STYLE_REGISTE_PTR(hover_active);
-  STYLE_REGISTE_PTR(pressed_active);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(color, 7);
-  STYLE_REGISTE_PTR(text_normal);
-  STYLE_REGISTE_PTR(text_hover);
-  STYLE_REGISTE_PTR(text_pressed);
-  STYLE_REGISTE_PTR(text_normal_active);
-  STYLE_REGISTE_PTR(text_hover_active);
-  STYLE_REGISTE_PTR(text_pressed_active);
-  STYLE_REGISTE_PTR(text_background);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(flags, 1);
-  STYLE_REGISTE_PTR(text_alignment);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(float, 1);
-  STYLE_REGISTE_PTR(rounding);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(vec2, 3);
-  STYLE_REGISTE_PTR(padding);
-  STYLE_REGISTE_PTR(touch_padding);
-  STYLE_REGISTE_PTR(image_padding);
-  STYLE_REGISTE_END();
+  STYLE_REGISTER_BEGIN(style_item, 6);
+  STYLE_REGISTER_PTR(normal);
+  STYLE_REGISTER_PTR(hover);
+  STYLE_REGISTER_PTR(pressed);
+  STYLE_REGISTER_PTR(normal_active);
+  STYLE_REGISTER_PTR(hover_active);
+  STYLE_REGISTER_PTR(pressed_active);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(color, 7);
+  STYLE_REGISTER_PTR(text_normal);
+  STYLE_REGISTER_PTR(text_hover);
+  STYLE_REGISTER_PTR(text_pressed);
+  STYLE_REGISTER_PTR(text_normal_active);
+  STYLE_REGISTER_PTR(text_hover_active);
+  STYLE_REGISTER_PTR(text_pressed_active);
+  STYLE_REGISTER_PTR(text_background);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(flags, 1);
+  STYLE_REGISTER_PTR(text_alignment);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(float, 1);
+  STYLE_REGISTER_PTR(rounding);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(vec2, 3);
+  STYLE_REGISTER_PTR(padding);
+  STYLE_REGISTER_PTR(touch_padding);
+  STYLE_REGISTER_PTR(image_padding);
+  STYLE_REGISTER_END();
 }
 static void stylePtr_slider(lua_State* L, const char* instanceName, nk_style_slider* style) {
-  STYLE_REGISTE_BEGIN(style_item, 8);
-  STYLE_REGISTE_PTR(normal);
-  STYLE_REGISTE_PTR(hover);
-  STYLE_REGISTE_PTR(active);
-  STYLE_REGISTE_PTR(cursor_normal);
-  STYLE_REGISTE_PTR(cursor_hover);
-  STYLE_REGISTE_PTR(cursor_active);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(inc_button);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(dec_button);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(color, 7);
-  STYLE_REGISTE_PTR(border_color);
-  STYLE_REGISTE_PTR(bar_normal);
-  STYLE_REGISTE_PTR(bar_hover);
-  STYLE_REGISTE_PTR(bar_active);
-  STYLE_REGISTE_PTR(bar_filled);
-  STYLE_REGISTE_PTR_BUTTON_COLOR(inc_button);
-  STYLE_REGISTE_PTR_BUTTON_COLOR(dec_button);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(flags, 2);
-  STYLE_REGISTE_PTR_BUTTON_FLAGS(inc_button);
-  STYLE_REGISTE_PTR_BUTTON_FLAGS(dec_button);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(float, 5);
-  STYLE_REGISTE_PTR(border);
-  STYLE_REGISTE_PTR(rounding);
-  STYLE_REGISTE_PTR(bar_height);
-  STYLE_REGISTE_PTR_BUTTON_FLOAT(inc_button);
-  STYLE_REGISTE_PTR_BUTTON_FLOAT(dec_button);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(vec2, 5);
-  STYLE_REGISTE_PTR(padding);
-  STYLE_REGISTE_PTR(spacing);
-  STYLE_REGISTE_PTR(cursor_size);
-  STYLE_REGISTE_PTR_BUTTON_VEC2(inc_button);
-  STYLE_REGISTE_PTR_BUTTON_VEC2(dec_button);
-  STYLE_REGISTE_END();
+  STYLE_REGISTER_BEGIN(style_item, 8);
+  STYLE_REGISTER_PTR(normal);
+  STYLE_REGISTER_PTR(hover);
+  STYLE_REGISTER_PTR(active);
+  STYLE_REGISTER_PTR(cursor_normal);
+  STYLE_REGISTER_PTR(cursor_hover);
+  STYLE_REGISTER_PTR(cursor_active);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(inc_button);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(dec_button);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(color, 7);
+  STYLE_REGISTER_PTR(border_color);
+  STYLE_REGISTER_PTR(bar_normal);
+  STYLE_REGISTER_PTR(bar_hover);
+  STYLE_REGISTER_PTR(bar_active);
+  STYLE_REGISTER_PTR(bar_filled);
+  STYLE_REGISTER_PTR_BUTTON_COLOR(inc_button);
+  STYLE_REGISTER_PTR_BUTTON_COLOR(dec_button);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(flags, 2);
+  STYLE_REGISTER_PTR_BUTTON_FLAGS(inc_button);
+  STYLE_REGISTER_PTR_BUTTON_FLAGS(dec_button);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(float, 5);
+  STYLE_REGISTER_PTR(border);
+  STYLE_REGISTER_PTR(rounding);
+  STYLE_REGISTER_PTR(bar_height);
+  STYLE_REGISTER_PTR_BUTTON_FLOAT(inc_button);
+  STYLE_REGISTER_PTR_BUTTON_FLOAT(dec_button);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(vec2, 5);
+  STYLE_REGISTER_PTR(padding);
+  STYLE_REGISTER_PTR(spacing);
+  STYLE_REGISTER_PTR(cursor_size);
+  STYLE_REGISTER_PTR_BUTTON_VEC2(inc_button);
+  STYLE_REGISTER_PTR_BUTTON_VEC2(dec_button);
+  STYLE_REGISTER_END();
 }
 static void stylePtr_progress(lua_State* L, const char* instanceName, nk_style_progress* style) {
-  STYLE_REGISTE_BEGIN(style_item, 6);
-  STYLE_REGISTE_PTR(normal);
-  STYLE_REGISTE_PTR(hover);
-  STYLE_REGISTE_PTR(active);
-  STYLE_REGISTE_PTR(cursor_normal);
-  STYLE_REGISTE_PTR(cursor_hover);
-  STYLE_REGISTE_PTR(cursor_active);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(color, 2);
-  STYLE_REGISTE_PTR(border_color);
-  STYLE_REGISTE_PTR(cursor_border_color);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(float, 4);
-  STYLE_REGISTE_PTR(rounding);
-  STYLE_REGISTE_PTR(border);
-  STYLE_REGISTE_PTR(cursor_border);
-  STYLE_REGISTE_PTR(cursor_rounding);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(vec2, 1);
-  STYLE_REGISTE_PTR(padding);
-  STYLE_REGISTE_END();
+  STYLE_REGISTER_BEGIN(style_item, 6);
+  STYLE_REGISTER_PTR(normal);
+  STYLE_REGISTER_PTR(hover);
+  STYLE_REGISTER_PTR(active);
+  STYLE_REGISTER_PTR(cursor_normal);
+  STYLE_REGISTER_PTR(cursor_hover);
+  STYLE_REGISTER_PTR(cursor_active);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(color, 2);
+  STYLE_REGISTER_PTR(border_color);
+  STYLE_REGISTER_PTR(cursor_border_color);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(float, 4);
+  STYLE_REGISTER_PTR(rounding);
+  STYLE_REGISTER_PTR(border);
+  STYLE_REGISTER_PTR(cursor_border);
+  STYLE_REGISTER_PTR(cursor_rounding);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(vec2, 1);
+  STYLE_REGISTER_PTR(padding);
+  STYLE_REGISTER_END();
 }
 
 static void stylePtr_scrollbarStyleItem(lua_State* L, const char* fieldName, nk_style_scrollbar* style) {
   lua_createtable(L, 0, 8);
-  STYLE_REGISTE_PTR(normal);
-  STYLE_REGISTE_PTR(hover);
-  STYLE_REGISTE_PTR(active);
-  STYLE_REGISTE_PTR(cursor_normal);
-  STYLE_REGISTE_PTR(cursor_hover);
-  STYLE_REGISTE_PTR(cursor_active);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(inc_button);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(dec_button);
+  STYLE_REGISTER_PTR(normal);
+  STYLE_REGISTER_PTR(hover);
+  STYLE_REGISTER_PTR(active);
+  STYLE_REGISTER_PTR(cursor_normal);
+  STYLE_REGISTER_PTR(cursor_hover);
+  STYLE_REGISTER_PTR(cursor_active);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(inc_button);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(dec_button);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_scrollbarColor(lua_State* L, const char* fieldName, nk_style_scrollbar* style) {
   lua_createtable(L, 0, 4);
-  STYLE_REGISTE_PTR(border_color);
-  STYLE_REGISTE_PTR(cursor_border_color);
-  STYLE_REGISTE_PTR_BUTTON_COLOR(inc_button);
-  STYLE_REGISTE_PTR_BUTTON_COLOR(dec_button);
+  STYLE_REGISTER_PTR(border_color);
+  STYLE_REGISTER_PTR(cursor_border_color);
+  STYLE_REGISTER_PTR_BUTTON_COLOR(inc_button);
+  STYLE_REGISTER_PTR_BUTTON_COLOR(dec_button);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_scrollbarFlags(lua_State* L, const char* fieldName, nk_style_scrollbar* style) {
   lua_createtable(L, 0, 2);
-  STYLE_REGISTE_PTR_BUTTON_FLAGS(inc_button);
-  STYLE_REGISTE_PTR_BUTTON_FLAGS(dec_button);
+  STYLE_REGISTER_PTR_BUTTON_FLAGS(inc_button);
+  STYLE_REGISTER_PTR_BUTTON_FLAGS(dec_button);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_scrollbarFloat(lua_State* L, const char* fieldName, nk_style_scrollbar* style) {
   lua_createtable(L, 0, 6);
-  STYLE_REGISTE_PTR(border);
-  STYLE_REGISTE_PTR(rounding);
-  STYLE_REGISTE_PTR(border_cursor);
-  STYLE_REGISTE_PTR(rounding_cursor);
-  STYLE_REGISTE_PTR_BUTTON_FLOAT(inc_button);
-  STYLE_REGISTE_PTR_BUTTON_FLOAT(dec_button);
+  STYLE_REGISTER_PTR(border);
+  STYLE_REGISTER_PTR(rounding);
+  STYLE_REGISTER_PTR(border_cursor);
+  STYLE_REGISTER_PTR(rounding_cursor);
+  STYLE_REGISTER_PTR_BUTTON_FLOAT(inc_button);
+  STYLE_REGISTER_PTR_BUTTON_FLOAT(dec_button);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_scrollbarVec2(lua_State* L, const char* fieldName, nk_style_scrollbar* style) {
   lua_createtable(L, 0, 3);
-  STYLE_REGISTE_PTR(padding);
-  STYLE_REGISTE_PTR_BUTTON_VEC2(inc_button);
-  STYLE_REGISTE_PTR_BUTTON_VEC2(dec_button);
+  STYLE_REGISTER_PTR(padding);
+  STYLE_REGISTER_PTR_BUTTON_VEC2(inc_button);
+  STYLE_REGISTER_PTR_BUTTON_VEC2(dec_button);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_scrollbar(lua_State* L, const char* instanceName, nk_style_scrollbar* style) {
@@ -270,56 +270,56 @@ static void stylePtr_scrollbar(lua_State* L, const char* instanceName, nk_style_
   stylePtr_scrollbarVec2(L, instanceName, style);
   lua_pop(L, 1);
 }
-#define STYLE_REGISTE_PTR_SCROLLBAR_STYLE_ITEM(field_) stylePtr_scrollbarStyleItem(L, #field_, &style->field_)
-#define STYLE_REGISTE_PTR_SCROLLBAR_COLOR(field_) stylePtr_scrollbarColor(L, #field_, &style->field_)
-#define STYLE_REGISTE_PTR_SCROLLBAR_FLAGS(field_) stylePtr_scrollbarFlags(L, #field_, &style->field_)
-#define STYLE_REGISTE_PTR_SCROLLBAR_FLOAT(field_) stylePtr_scrollbarFloat(L, #field_, &style->field_)
-#define STYLE_REGISTE_PTR_SCROLLBAR_VEC2(field_) stylePtr_scrollbarVec2(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_SCROLLBAR_STYLE_ITEM(field_) stylePtr_scrollbarStyleItem(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_SCROLLBAR_COLOR(field_) stylePtr_scrollbarColor(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_SCROLLBAR_FLAGS(field_) stylePtr_scrollbarFlags(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_SCROLLBAR_FLOAT(field_) stylePtr_scrollbarFloat(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_SCROLLBAR_VEC2(field_) stylePtr_scrollbarVec2(L, #field_, &style->field_)
 
 static void stylePtr_editStyleItem(lua_State* L, const char* fieldName, nk_style_edit* style) {
   lua_createtable(L, 0, 4);
-  STYLE_REGISTE_PTR(normal);
-  STYLE_REGISTE_PTR(hover);
-  STYLE_REGISTE_PTR(active);
-  STYLE_REGISTE_PTR_SCROLLBAR_STYLE_ITEM(scrollbar);
+  STYLE_REGISTER_PTR(normal);
+  STYLE_REGISTER_PTR(hover);
+  STYLE_REGISTER_PTR(active);
+  STYLE_REGISTER_PTR_SCROLLBAR_STYLE_ITEM(scrollbar);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_editColor(lua_State* L, const char* fieldName, nk_style_edit* style) {
   lua_createtable(L, 0, 13);
-  STYLE_REGISTE_PTR(border_color);
-  STYLE_REGISTE_PTR(cursor_normal);
-  STYLE_REGISTE_PTR(cursor_hover);
-  STYLE_REGISTE_PTR(cursor_text_normal);
-  STYLE_REGISTE_PTR(cursor_text_hover);
-  STYLE_REGISTE_PTR(text_normal);
-  STYLE_REGISTE_PTR(text_hover);
-  STYLE_REGISTE_PTR(text_active);
-  STYLE_REGISTE_PTR(selected_normal);
-  STYLE_REGISTE_PTR(selected_hover);
-  STYLE_REGISTE_PTR(selected_text_normal);
-  STYLE_REGISTE_PTR(selected_text_hover);
-  STYLE_REGISTE_PTR_SCROLLBAR_COLOR(scrollbar);
+  STYLE_REGISTER_PTR(border_color);
+  STYLE_REGISTER_PTR(cursor_normal);
+  STYLE_REGISTER_PTR(cursor_hover);
+  STYLE_REGISTER_PTR(cursor_text_normal);
+  STYLE_REGISTER_PTR(cursor_text_hover);
+  STYLE_REGISTER_PTR(text_normal);
+  STYLE_REGISTER_PTR(text_hover);
+  STYLE_REGISTER_PTR(text_active);
+  STYLE_REGISTER_PTR(selected_normal);
+  STYLE_REGISTER_PTR(selected_hover);
+  STYLE_REGISTER_PTR(selected_text_normal);
+  STYLE_REGISTER_PTR(selected_text_hover);
+  STYLE_REGISTER_PTR_SCROLLBAR_COLOR(scrollbar);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_editFlags(lua_State* L, const char* fieldName, nk_style_edit* style) {
   lua_createtable(L, 0, 1);
-  STYLE_REGISTE_PTR_SCROLLBAR_FLAGS(scrollbar);
+  STYLE_REGISTER_PTR_SCROLLBAR_FLAGS(scrollbar);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_editFloat(lua_State* L, const char* fieldName, nk_style_edit* style) {
   lua_createtable(L, 0, 5);
-  STYLE_REGISTE_PTR(border);
-  STYLE_REGISTE_PTR(rounding);
-  STYLE_REGISTE_PTR(cursor_size);
-  STYLE_REGISTE_PTR(row_padding);
-  STYLE_REGISTE_PTR_SCROLLBAR_FLOAT(scrollbar);
+  STYLE_REGISTER_PTR(border);
+  STYLE_REGISTER_PTR(rounding);
+  STYLE_REGISTER_PTR(cursor_size);
+  STYLE_REGISTER_PTR(row_padding);
+  STYLE_REGISTER_PTR_SCROLLBAR_FLOAT(scrollbar);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_editVec2(lua_State* L, const char* fieldName, nk_style_edit* style) {
   lua_createtable(L, 0, 3);
-  STYLE_REGISTE_PTR(scrollbar_size);
-  STYLE_REGISTE_PTR(padding);
-  STYLE_REGISTE_PTR_SCROLLBAR_VEC2(scrollbar);
+  STYLE_REGISTER_PTR(scrollbar_size);
+  STYLE_REGISTER_PTR(padding);
+  STYLE_REGISTER_PTR_SCROLLBAR_VEC2(scrollbar);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_edit(lua_State* L, const char* instanceName, nk_style_edit* style) {
@@ -339,229 +339,229 @@ static void stylePtr_edit(lua_State* L, const char* instanceName, nk_style_edit*
   stylePtr_editVec2(L, instanceName, style);
   lua_pop(L, 1);
 }
-#define STYLE_REGISTE_PTR_EDIT_STYLE_ITEM(field_) stylePtr_editStyleItem(L, #field_, &style->field_)
-#define STYLE_REGISTE_PTR_EDIT_COLOR(field_) stylePtr_editColor(L, #field_, &style->field_)
-#define STYLE_REGISTE_PTR_EDIT_FLAGS(field_) stylePtr_editFlags(L, #field_, &style->field_)
-#define STYLE_REGISTE_PTR_EDIT_FLOAT(field_) stylePtr_editFloat(L, #field_, &style->field_)
-#define STYLE_REGISTE_PTR_EDIT_VEC2(field_) stylePtr_editVec2(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_EDIT_STYLE_ITEM(field_) stylePtr_editStyleItem(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_EDIT_COLOR(field_) stylePtr_editColor(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_EDIT_FLAGS(field_) stylePtr_editFlags(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_EDIT_FLOAT(field_) stylePtr_editFloat(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_EDIT_VEC2(field_) stylePtr_editVec2(L, #field_, &style->field_)
 
 static void stylePtr_property(lua_State* L, const char* instanceName, nk_style_property* style) {
-  STYLE_REGISTE_BEGIN(style_item, 6);
-  STYLE_REGISTE_PTR(normal);
-  STYLE_REGISTE_PTR(hover);
-  STYLE_REGISTE_PTR(active);
-  STYLE_REGISTE_PTR_EDIT_STYLE_ITEM(edit);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(inc_button);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(dec_button);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(color, 7);
-  STYLE_REGISTE_PTR(border_color);
-  STYLE_REGISTE_PTR(label_normal);
-  STYLE_REGISTE_PTR(label_hover);
-  STYLE_REGISTE_PTR(label_active);
-  STYLE_REGISTE_PTR_EDIT_COLOR(edit);
-  STYLE_REGISTE_PTR_BUTTON_COLOR(inc_button);
-  STYLE_REGISTE_PTR_BUTTON_COLOR(dec_button);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(flags, 3);
-  STYLE_REGISTE_PTR_EDIT_FLAGS(edit);
-  STYLE_REGISTE_PTR_BUTTON_FLAGS(inc_button);
-  STYLE_REGISTE_PTR_BUTTON_FLAGS(dec_button);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(float, 5);
-  STYLE_REGISTE_PTR(border);
-  STYLE_REGISTE_PTR(rounding);
-  STYLE_REGISTE_PTR_EDIT_FLOAT(edit);
-  STYLE_REGISTE_PTR_BUTTON_FLOAT(inc_button);
-  STYLE_REGISTE_PTR_BUTTON_FLOAT(dec_button);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(vec2, 4);
-  STYLE_REGISTE_PTR(padding);
-  STYLE_REGISTE_PTR_EDIT_VEC2(edit);
-  STYLE_REGISTE_PTR_BUTTON_VEC2(inc_button);
-  STYLE_REGISTE_PTR_BUTTON_VEC2(dec_button);
-  STYLE_REGISTE_END();
+  STYLE_REGISTER_BEGIN(style_item, 6);
+  STYLE_REGISTER_PTR(normal);
+  STYLE_REGISTER_PTR(hover);
+  STYLE_REGISTER_PTR(active);
+  STYLE_REGISTER_PTR_EDIT_STYLE_ITEM(edit);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(inc_button);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(dec_button);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(color, 7);
+  STYLE_REGISTER_PTR(border_color);
+  STYLE_REGISTER_PTR(label_normal);
+  STYLE_REGISTER_PTR(label_hover);
+  STYLE_REGISTER_PTR(label_active);
+  STYLE_REGISTER_PTR_EDIT_COLOR(edit);
+  STYLE_REGISTER_PTR_BUTTON_COLOR(inc_button);
+  STYLE_REGISTER_PTR_BUTTON_COLOR(dec_button);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(flags, 3);
+  STYLE_REGISTER_PTR_EDIT_FLAGS(edit);
+  STYLE_REGISTER_PTR_BUTTON_FLAGS(inc_button);
+  STYLE_REGISTER_PTR_BUTTON_FLAGS(dec_button);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(float, 5);
+  STYLE_REGISTER_PTR(border);
+  STYLE_REGISTER_PTR(rounding);
+  STYLE_REGISTER_PTR_EDIT_FLOAT(edit);
+  STYLE_REGISTER_PTR_BUTTON_FLOAT(inc_button);
+  STYLE_REGISTER_PTR_BUTTON_FLOAT(dec_button);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(vec2, 4);
+  STYLE_REGISTER_PTR(padding);
+  STYLE_REGISTER_PTR_EDIT_VEC2(edit);
+  STYLE_REGISTER_PTR_BUTTON_VEC2(inc_button);
+  STYLE_REGISTER_PTR_BUTTON_VEC2(dec_button);
+  STYLE_REGISTER_END();
 }
 static void stylePtr_chart(lua_State* L, const char* instanceName, nk_style_chart* style) {
-  STYLE_REGISTE_BEGIN(style_item, 1);
-  STYLE_REGISTE_PTR(background);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(color, 3);
-  STYLE_REGISTE_PTR(border_color);
-  STYLE_REGISTE_PTR(selected_color);
-  STYLE_REGISTE_PTR(color);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(float, 2);
-  STYLE_REGISTE_PTR(border);
-  STYLE_REGISTE_PTR(rounding);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(vec2, 1);
-  STYLE_REGISTE_PTR(padding);
-  STYLE_REGISTE_END();
+  STYLE_REGISTER_BEGIN(style_item, 1);
+  STYLE_REGISTER_PTR(background);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(color, 3);
+  STYLE_REGISTER_PTR(border_color);
+  STYLE_REGISTER_PTR(selected_color);
+  STYLE_REGISTER_PTR(color);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(float, 2);
+  STYLE_REGISTER_PTR(border);
+  STYLE_REGISTER_PTR(rounding);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(vec2, 1);
+  STYLE_REGISTER_PTR(padding);
+  STYLE_REGISTER_END();
 }
 static void stylePtr_combo(lua_State* L, const char* instanceName, nk_style_combo* style) {
-  STYLE_REGISTE_BEGIN(style_item, 4);
-  STYLE_REGISTE_PTR(normal);
-  STYLE_REGISTE_PTR(hover);
-  STYLE_REGISTE_PTR(active);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(button);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(color, 8);
-  STYLE_REGISTE_PTR(border_color);
-  STYLE_REGISTE_PTR(label_normal);
-  STYLE_REGISTE_PTR(label_hover);
-  STYLE_REGISTE_PTR(label_active);
-  STYLE_REGISTE_PTR(symbol_normal);
-  STYLE_REGISTE_PTR(symbol_hover);
-  STYLE_REGISTE_PTR(symbol_active);
-  STYLE_REGISTE_PTR_BUTTON_COLOR(button);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(flags, 1);
-  STYLE_REGISTE_PTR_BUTTON_FLAGS(button);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(float, 3);
-  STYLE_REGISTE_PTR(border);
-  STYLE_REGISTE_PTR(rounding);
-  STYLE_REGISTE_PTR_BUTTON_FLOAT(button);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(vec2, 4);
-  STYLE_REGISTE_PTR(content_padding);
-  STYLE_REGISTE_PTR(button_padding);
-  STYLE_REGISTE_PTR(spacing);
-  STYLE_REGISTE_PTR_BUTTON_VEC2(button);
-  STYLE_REGISTE_END();
+  STYLE_REGISTER_BEGIN(style_item, 4);
+  STYLE_REGISTER_PTR(normal);
+  STYLE_REGISTER_PTR(hover);
+  STYLE_REGISTER_PTR(active);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(button);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(color, 8);
+  STYLE_REGISTER_PTR(border_color);
+  STYLE_REGISTER_PTR(label_normal);
+  STYLE_REGISTER_PTR(label_hover);
+  STYLE_REGISTER_PTR(label_active);
+  STYLE_REGISTER_PTR(symbol_normal);
+  STYLE_REGISTER_PTR(symbol_hover);
+  STYLE_REGISTER_PTR(symbol_active);
+  STYLE_REGISTER_PTR_BUTTON_COLOR(button);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(flags, 1);
+  STYLE_REGISTER_PTR_BUTTON_FLAGS(button);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(float, 3);
+  STYLE_REGISTER_PTR(border);
+  STYLE_REGISTER_PTR(rounding);
+  STYLE_REGISTER_PTR_BUTTON_FLOAT(button);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(vec2, 4);
+  STYLE_REGISTER_PTR(content_padding);
+  STYLE_REGISTER_PTR(button_padding);
+  STYLE_REGISTER_PTR(spacing);
+  STYLE_REGISTER_PTR_BUTTON_VEC2(button);
+  STYLE_REGISTER_END();
 }
 static void stylePtr_tab(lua_State* L, const char* instanceName, nk_style_tab* style) {
-  STYLE_REGISTE_BEGIN(style_item, 5);
-  STYLE_REGISTE_PTR(background);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(tab_maximize_button);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(tab_minimize_button);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(node_maximize_button);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(node_minimize_button);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(color, 6);
-  STYLE_REGISTE_PTR(border_color);
-  STYLE_REGISTE_PTR(text);
-  STYLE_REGISTE_PTR_BUTTON_COLOR(tab_maximize_button);
-  STYLE_REGISTE_PTR_BUTTON_COLOR(tab_minimize_button);
-  STYLE_REGISTE_PTR_BUTTON_COLOR(node_maximize_button);
-  STYLE_REGISTE_PTR_BUTTON_COLOR(node_minimize_button);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(flags, 4);
-  STYLE_REGISTE_PTR_BUTTON_FLAGS(tab_maximize_button);
-  STYLE_REGISTE_PTR_BUTTON_FLAGS(tab_minimize_button);
-  STYLE_REGISTE_PTR_BUTTON_FLAGS(node_maximize_button);
-  STYLE_REGISTE_PTR_BUTTON_FLAGS(node_minimize_button);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(float, 7);
-  STYLE_REGISTE_PTR(border);
-  STYLE_REGISTE_PTR(rounding);
-  STYLE_REGISTE_PTR(indent);
-  STYLE_REGISTE_PTR_BUTTON_FLOAT(tab_maximize_button);
-  STYLE_REGISTE_PTR_BUTTON_FLOAT(tab_minimize_button);
-  STYLE_REGISTE_PTR_BUTTON_FLOAT(node_maximize_button);
-  STYLE_REGISTE_PTR_BUTTON_FLOAT(node_minimize_button);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(vec2, 6);
-  STYLE_REGISTE_PTR(padding);
-  STYLE_REGISTE_PTR(spacing);
-  STYLE_REGISTE_PTR_BUTTON_VEC2(tab_maximize_button);
-  STYLE_REGISTE_PTR_BUTTON_VEC2(tab_minimize_button);
-  STYLE_REGISTE_PTR_BUTTON_VEC2(node_maximize_button);
-  STYLE_REGISTE_PTR_BUTTON_VEC2(node_minimize_button);
-  STYLE_REGISTE_END();
+  STYLE_REGISTER_BEGIN(style_item, 5);
+  STYLE_REGISTER_PTR(background);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(tab_maximize_button);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(tab_minimize_button);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(node_maximize_button);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(node_minimize_button);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(color, 6);
+  STYLE_REGISTER_PTR(border_color);
+  STYLE_REGISTER_PTR(text);
+  STYLE_REGISTER_PTR_BUTTON_COLOR(tab_maximize_button);
+  STYLE_REGISTER_PTR_BUTTON_COLOR(tab_minimize_button);
+  STYLE_REGISTER_PTR_BUTTON_COLOR(node_maximize_button);
+  STYLE_REGISTER_PTR_BUTTON_COLOR(node_minimize_button);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(flags, 4);
+  STYLE_REGISTER_PTR_BUTTON_FLAGS(tab_maximize_button);
+  STYLE_REGISTER_PTR_BUTTON_FLAGS(tab_minimize_button);
+  STYLE_REGISTER_PTR_BUTTON_FLAGS(node_maximize_button);
+  STYLE_REGISTER_PTR_BUTTON_FLAGS(node_minimize_button);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(float, 7);
+  STYLE_REGISTER_PTR(border);
+  STYLE_REGISTER_PTR(rounding);
+  STYLE_REGISTER_PTR(indent);
+  STYLE_REGISTER_PTR_BUTTON_FLOAT(tab_maximize_button);
+  STYLE_REGISTER_PTR_BUTTON_FLOAT(tab_minimize_button);
+  STYLE_REGISTER_PTR_BUTTON_FLOAT(node_maximize_button);
+  STYLE_REGISTER_PTR_BUTTON_FLOAT(node_minimize_button);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(vec2, 6);
+  STYLE_REGISTER_PTR(padding);
+  STYLE_REGISTER_PTR(spacing);
+  STYLE_REGISTER_PTR_BUTTON_VEC2(tab_maximize_button);
+  STYLE_REGISTER_PTR_BUTTON_VEC2(tab_minimize_button);
+  STYLE_REGISTER_PTR_BUTTON_VEC2(node_maximize_button);
+  STYLE_REGISTER_PTR_BUTTON_VEC2(node_minimize_button);
+  STYLE_REGISTER_END();
 }
 
 static void stylePtr_windowHeaderStyleItem(lua_State* L, const char* fieldName, nk_style_window_header* style) {
   lua_createtable(L, 0, 5);
-  STYLE_REGISTE_PTR(normal);
-  STYLE_REGISTE_PTR(hover);
-  STYLE_REGISTE_PTR(active);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(close_button);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(minimize_button);
+  STYLE_REGISTER_PTR(normal);
+  STYLE_REGISTER_PTR(hover);
+  STYLE_REGISTER_PTR(active);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(close_button);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(minimize_button);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_windowHeaderColor(lua_State* L, const char* fieldName, nk_style_window_header* style) {
   lua_createtable(L, 0, 5);
-  STYLE_REGISTE_PTR(label_normal);
-  STYLE_REGISTE_PTR(label_hover);
-  STYLE_REGISTE_PTR(label_active);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(close_button);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(minimize_button);
+  STYLE_REGISTER_PTR(label_normal);
+  STYLE_REGISTER_PTR(label_hover);
+  STYLE_REGISTER_PTR(label_active);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(close_button);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(minimize_button);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_windowHeaderFlags(lua_State* L, const char* fieldName, nk_style_window_header* style) {
   lua_createtable(L, 0, 2);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(close_button);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(minimize_button);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(close_button);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(minimize_button);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_windowHeaderFloat(lua_State* L, const char* fieldName, nk_style_window_header* style) {
   lua_createtable(L, 0, 2);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(close_button);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(minimize_button);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(close_button);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(minimize_button);
   lua_setfield(L, -2, fieldName);
 }
 static void stylePtr_windowHeaderVec2(lua_State* L, const char* fieldName, nk_style_window_header* style) {
   lua_createtable(L, 0, 5);
-  STYLE_REGISTE_PTR(padding);
-  STYLE_REGISTE_PTR(label_padding);
-  STYLE_REGISTE_PTR(spacing);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(close_button);
-  STYLE_REGISTE_PTR_BUTTON_STYLE_ITEM(minimize_button);
+  STYLE_REGISTER_PTR(padding);
+  STYLE_REGISTER_PTR(label_padding);
+  STYLE_REGISTER_PTR(spacing);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(close_button);
+  STYLE_REGISTER_PTR_BUTTON_STYLE_ITEM(minimize_button);
   lua_setfield(L, -2, fieldName);
 }
-#define STYLE_REGISTE_PTR_WINDOW_HEADER_STYLE_ITEM(field_) stylePtr_windowHeaderStyleItem(L, #field_, &style->field_)
-#define STYLE_REGISTE_PTR_WINDOW_HEADER_COLOR(field_) stylePtr_windowHeaderColor(L, #field_, &style->field_)
-#define STYLE_REGISTE_PTR_WINDOW_HEADER_FLAGS(field_) stylePtr_windowHeaderFlags(L, #field_, &style->field_)
-#define STYLE_REGISTE_PTR_WINDOW_HEADER_FLOAT(field_) stylePtr_windowHeaderFloat(L, #field_, &style->field_)
-#define STYLE_REGISTE_PTR_WINDOW_HEADER_VEC2(field_) stylePtr_windowHeaderVec2(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_WINDOW_HEADER_STYLE_ITEM(field_) stylePtr_windowHeaderStyleItem(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_WINDOW_HEADER_COLOR(field_) stylePtr_windowHeaderColor(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_WINDOW_HEADER_FLAGS(field_) stylePtr_windowHeaderFlags(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_WINDOW_HEADER_FLOAT(field_) stylePtr_windowHeaderFloat(L, #field_, &style->field_)
+#define STYLE_REGISTER_PTR_WINDOW_HEADER_VEC2(field_) stylePtr_windowHeaderVec2(L, #field_, &style->field_)
 
 static void stylePtr_window(lua_State* L, const char* instanceName, nk_style_window* style) {
-  STYLE_REGISTE_BEGIN(style_item, 3);
-  STYLE_REGISTE_PTR(fixed_background);
-  STYLE_REGISTE_PTR(scaler);
-  STYLE_REGISTE_PTR_WINDOW_HEADER_STYLE_ITEM(header);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(color, 9);
-  STYLE_REGISTE_PTR(background);
-  STYLE_REGISTE_PTR(border_color);
-  STYLE_REGISTE_PTR(popup_border_color);
-  STYLE_REGISTE_PTR(combo_border_color);
-  STYLE_REGISTE_PTR(contextual_border_color);
-  STYLE_REGISTE_PTR(menu_border_color);
-  STYLE_REGISTE_PTR(group_border_color);
-  STYLE_REGISTE_PTR(tooltip_border_color);
-  STYLE_REGISTE_PTR_WINDOW_HEADER_COLOR(header);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(flags, 1);
-  STYLE_REGISTE_PTR_WINDOW_HEADER_FLAGS(header);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(float, 10);
-  STYLE_REGISTE_PTR(border);
-  STYLE_REGISTE_PTR(combo_border);
-  STYLE_REGISTE_PTR(contextual_border);
-  STYLE_REGISTE_PTR(menu_border);
-  STYLE_REGISTE_PTR(group_border);
-  STYLE_REGISTE_PTR(tooltip_border);
-  STYLE_REGISTE_PTR(popup_border);
-  STYLE_REGISTE_PTR(min_row_height_padding);
-  STYLE_REGISTE_PTR(rounding);
-  STYLE_REGISTE_PTR_WINDOW_HEADER_FLOAT(header);
-  STYLE_REGISTE_END();
-  STYLE_REGISTE_BEGIN(vec2, 11);
-  STYLE_REGISTE_PTR(spacing);
-  STYLE_REGISTE_PTR(scrollbar_size);
-  STYLE_REGISTE_PTR(min_size);
-  STYLE_REGISTE_PTR(padding);
-  STYLE_REGISTE_PTR(group_padding);
-  STYLE_REGISTE_PTR(popup_padding);
-  STYLE_REGISTE_PTR(combo_padding);
-  STYLE_REGISTE_PTR(contextual_padding);
-  STYLE_REGISTE_PTR(menu_padding);
-  STYLE_REGISTE_PTR(tooltip_padding);
-  STYLE_REGISTE_PTR_WINDOW_HEADER_VEC2(header);
-  STYLE_REGISTE_END();
+  STYLE_REGISTER_BEGIN(style_item, 3);
+  STYLE_REGISTER_PTR(fixed_background);
+  STYLE_REGISTER_PTR(scaler);
+  STYLE_REGISTER_PTR_WINDOW_HEADER_STYLE_ITEM(header);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(color, 9);
+  STYLE_REGISTER_PTR(background);
+  STYLE_REGISTER_PTR(border_color);
+  STYLE_REGISTER_PTR(popup_border_color);
+  STYLE_REGISTER_PTR(combo_border_color);
+  STYLE_REGISTER_PTR(contextual_border_color);
+  STYLE_REGISTER_PTR(menu_border_color);
+  STYLE_REGISTER_PTR(group_border_color);
+  STYLE_REGISTER_PTR(tooltip_border_color);
+  STYLE_REGISTER_PTR_WINDOW_HEADER_COLOR(header);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(flags, 1);
+  STYLE_REGISTER_PTR_WINDOW_HEADER_FLAGS(header);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(float, 10);
+  STYLE_REGISTER_PTR(border);
+  STYLE_REGISTER_PTR(combo_border);
+  STYLE_REGISTER_PTR(contextual_border);
+  STYLE_REGISTER_PTR(menu_border);
+  STYLE_REGISTER_PTR(group_border);
+  STYLE_REGISTER_PTR(tooltip_border);
+  STYLE_REGISTER_PTR(popup_border);
+  STYLE_REGISTER_PTR(min_row_height_padding);
+  STYLE_REGISTER_PTR(rounding);
+  STYLE_REGISTER_PTR_WINDOW_HEADER_FLOAT(header);
+  STYLE_REGISTER_END();
+  STYLE_REGISTER_BEGIN(vec2, 11);
+  STYLE_REGISTER_PTR(spacing);
+  STYLE_REGISTER_PTR(scrollbar_size);
+  STYLE_REGISTER_PTR(min_size);
+  STYLE_REGISTER_PTR(padding);
+  STYLE_REGISTER_PTR(group_padding);
+  STYLE_REGISTER_PTR(popup_padding);
+  STYLE_REGISTER_PTR(combo_padding);
+  STYLE_REGISTER_PTR(contextual_padding);
+  STYLE_REGISTER_PTR(menu_padding);
+  STYLE_REGISTER_PTR(tooltip_padding);
+  STYLE_REGISTER_PTR_WINDOW_HEADER_VEC2(header);
+  STYLE_REGISTER_END();
 }
 
 #define STYLE_GENERATE(widget_, field_) stylePtr_##widget_(L, #field_, &style->field_)
@@ -823,7 +823,7 @@ static const luaL_Reg funcs[] = {
 void NKSTYLEITEM_FUNCTION(init)(lua_State* L) {
   luaL_setfuncs(L, funcs, 0);
 
-  REGISTE_METATABLE(NUKLEAR_STYLEITEM_TYPE, metafuncs);
+  REGISTER_METATABLE(NUKLEAR_STYLEITEM_TYPE, metafuncs);
 }
 
 /* }====================================================== */
@@ -908,6 +908,6 @@ static const luaL_Enum NKWRAP_ENUM(style_cursor)[] = {
 void NKWRAP_FUNCTION(init_style)(lua_State* L) {
   luaL_setfuncs(L, wrap_funcs, 0);
 
-  REGISTE_ENUM_NKWRAP(style_color);
-  REGISTE_ENUM_NKWRAP(style_cursor);
+  REGISTER_ENUM_NKWRAP(style_color);
+  REGISTER_ENUM_NKWRAP(style_cursor);
 }

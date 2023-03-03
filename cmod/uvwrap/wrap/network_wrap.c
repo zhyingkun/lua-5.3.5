@@ -173,13 +173,7 @@ const luaL_Reg SOCKADDR_FUNCTION(metafuncs)[] = {
 };
 
 static void SOCKADDR_FUNCTION(init_metatable)(lua_State* L) {
-  luaL_newmetatable(L, UVWRAP_SOCKADDR_TYPE);
-  luaL_setfuncs(L, SOCKADDR_FUNCTION(metafuncs), 0);
-
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "__index");
-
-  lua_pop(L, 1);
+  REGISTER_METATABLE(UVWRAP_SOCKADDR_TYPE, SOCKADDR_FUNCTION(metafuncs));
 }
 
 struct sockaddr_storage* SOCKADDR_FUNCTION(create)(lua_State* L) {
@@ -444,11 +438,11 @@ static const luaL_Enum UVWRAP_ENUM(nameinfo_flag)[] = {
 void NETWORK_FUNCTION(init)(lua_State* L) {
   luaL_newlib(L, NETWORK_FUNCTION(funcs));
 
-  REGISTE_ENUM_UVWRAP(address_family);
-  REGISTE_ENUM_UVWRAP(protocol);
-  REGISTE_ENUM_UVWRAP(socktype);
-  REGISTE_ENUM_UVWRAP(addrinfo_flag);
-  REGISTE_ENUM_UVWRAP(nameinfo_flag);
+  REGISTER_ENUM_UVWRAP(address_family);
+  REGISTER_ENUM_UVWRAP(protocol);
+  REGISTER_ENUM_UVWRAP(socktype);
+  REGISTER_ENUM_UVWRAP(addrinfo_flag);
+  REGISTER_ENUM_UVWRAP(nameinfo_flag);
 
   lua_setfield(L, -2, "network");
 

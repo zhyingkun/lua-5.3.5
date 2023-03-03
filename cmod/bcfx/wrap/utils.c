@@ -98,8 +98,8 @@ static const luaL_Reg utils_funcs[] = {
     {NULL, NULL},
 };
 
-#define REGISTE_FUNC_UTILS(name) \
-  REGISTE_LIGHTUSERDATA(name, utils_##name)
+#define REGISTER_FUNC_UTILS(name) \
+  REGISTER_LIGHTUSERDATA(name, utils_##name)
 
 void UTILS_FUNCTION(init)(lua_State* L) {
   luaL_newlib(L, utils_funcs);
