@@ -167,7 +167,7 @@ libuv.pipe = pipe
 ---@field public chmod fun(self:uv_pipe_t, mode:integer):void
 ---@field public closeAsync fun(self:uv_pipe_t, callback:fun(handle:uv_pipe_t):void):void @uv_handle_t
 ---@field public shutdownAsync fun(self:uv_pipe_t, callback:StatusPipeSignature):void @uv_stream_t
----@field public listenAsync fun(self:uv_pipe_t, backlog:integer, callback:StatusPipeSignature):void @uv_stream_t
+---@field public listenStartAsync fun(self:uv_pipe_t, backlog:integer, callback:StatusPipeSignature):void @uv_stream_t
 ---@field public accept fun(self:uv_pipe_t, client:uv_pipe_t | nil):integer, uv_pipe_t @uv_stream_t
 ---@field public readStartAsync fun(self:uv_pipe_t, callback:PipeReadSignature):void @uv_stream_t
 ---@field public writeAsync fun(self:uv_pipe_t, data:string, callback:StatusPipeSignature):void @uv_stream_t
@@ -193,7 +193,7 @@ end
 ---@class uv_stream_t:uv_handle_t
 ---@field public shutdownAsync fun(self:uv_stream_t, callback:StatusStreamSignature | nil):void @callback version in child class
 ---@field public shutdownAsyncWait fun(self:uv_stream_t):integer
----@field public listenAsync fun(self:uv_stream_t, backlog:integer, callback:StatusStreamSignature):void
+---@field public listenStartAsync fun(self:uv_stream_t, backlog:integer, callback:StatusStreamSignature):void
 ---@field public accept fun(self:uv_stream_t, client:uv_stream_t | nil):integer, uv_stream_t
 ---@field public readStartAsync fun(self:uv_stream_t, callback:ReadCallbackSignature):void
 ---@field public readStop fun(self:uv_stream_t):void
@@ -233,7 +233,7 @@ libuv.tcp = tcp
 ---@field public getPeerName fun(self:uv_tcp_t):sockaddr
 ---@field public closeAsync fun(self:uv_tcp_t, callback:fun(handle:uv_tcp_t):void):void @uv_handle_t
 ---@field public shutdownAsync fun(self:uv_tcp_t, callback:StatusTcpSignature):void @uv_stream_t
----@field public listenAsync fun(self:uv_tcp_t, backlog:integer, callback:StatusTcpSignature):void @uv_stream_t
+---@field public listenStartAsync fun(self:uv_tcp_t, backlog:integer, callback:StatusTcpSignature):void @uv_stream_t
 ---@field public accept fun(self:uv_tcp_t, client:uv_tcp_t | nil):integer, uv_tcp_t @uv_stream_t
 ---@field public readStartAsync fun(self:uv_tcp_t, callback:TcpReadSignature):void @uv_stream_t
 ---@field public writeAsync fun(self:uv_tcp_t, data:string, callback:StatusTcpSignature):void @uv_stream_t
@@ -273,7 +273,7 @@ libuv.tty = tty
 ---@field public getWinSize fun(self:uv_tty_t):integer, integer @width, height
 ---@field public closeAsync fun(self:uv_tty_t, callback:fun(handle:uv_tty_t):void):void @uv_handle_t
 ---@field public shutdownAsync fun(self:uv_tty_t, callback:StatusTtySignature):void @uv_stream_t
----@field public listenAsync fun(self:uv_tty_t, backlog:integer, callback:StatusTtySignature):void @uv_stream_t
+---@field public listenStartAsync fun(self:uv_tty_t, backlog:integer, callback:StatusTtySignature):void @uv_stream_t
 ---@field public accept fun(self:uv_tty_t, client:uv_tty_t | nil):integer, uv_tty_t @uv_stream_t
 ---@field public readStartAsync fun(self:uv_tty_t, callback:TtyReadSignature):void @uv_stream_t
 ---@field public writeAsync fun(self:uv_tty_t, data:string, callback:StatusTtySignature):void @uv_stream_t
@@ -902,122 +902,122 @@ end
 ---@param filePath string
 ---@param mode integer
 ---@return integer
-function fs.mkdir(filePath, mode)
-	return libfs.mkdir(loopCtx, filePath, mode)
+function fs.makeDir(filePath, mode)
+	return libfs.makeDir(loopCtx, filePath, mode)
 end
 ---@param filePath string
 ---@param mode integer
 ---@param callback StatusCallbackSignature
-function fs.mkdirAsync(filePath, mode, callback)
-	libfs.mkdir(loopCtx, filePath, mode, callback)
+function fs.makeDirAsync(filePath, mode, callback)
+	libfs.makeDir(loopCtx, filePath, mode, callback)
 end
 ---@param filePath string
 ---@param mode integer
 ---@return integer
-function fs.mkdirAsyncWait(filePath, mode)
+function fs.makeDirAsyncWait(filePath, mode)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.mkdir(loopCtx, filePath, mode, function(ret)
+	libfs.makeDir(loopCtx, filePath, mode, function(ret)
 		resume(co, ret)
 	end)
 	return yield()
 end
 ---@param template string
 ---@return string | nil, integer
-function fs.mkdtemp(template)
-	return libfs.mkdtemp(loopCtx, template)
+function fs.makeDirTemp(template)
+	return libfs.makeDirTemp(loopCtx, template)
 end
 ---@param template string
 ---@param callback fun(path:string | nil, ret:integer):void
-function fs.mkdtempAsync(template, callback)
-	libfs.mkdtemp(loopCtx, template, callback)
+function fs.makeDirTempAsync(template, callback)
+	libfs.makeDirTemp(loopCtx, template, callback)
 end
 ---@param template string
 ---@return string | nil, integer
-function fs.mkdtempAsyncWait(template)
+function fs.makeDirTempAsyncWait(template)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.mkdtemp(loopCtx, template, function(path, ret)
+	libfs.makeDirTemp(loopCtx, template, function(path, ret)
 		resume(co, path, ret)
 	end)
 	return yield()
 end
 ---@param path string
 ---@return integer
-function fs.rmdir(path)
-	return libfs.rmdir(loopCtx, path)
+function fs.removeDir(path)
+	return libfs.removeDir(loopCtx, path)
 end
 ---@param path string
 ---@param callback StatusCallbackSignature
-function fs.rmdirAsync(path, callback)
-	libfs.rmdir(loopCtx, path, callback)
+function fs.removeDirAsync(path, callback)
+	libfs.removeDir(loopCtx, path, callback)
 end
 ---@param path string
 ---@return integer
-function fs.rmdirAsyncWait(path)
+function fs.removeDirAsyncWait(path)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.rmdir(loopCtx, path, function(ret)
+	libfs.removeDir(loopCtx, path, function(ret)
 		resume(co, ret)
 	end)
 	return yield()
 end
 ---@param path string
 ---@return lightuserdata | nil, integer
-function fs.opendir(path)
-	return libfs.opendir(loopCtx, path)
+function fs.openDir(path)
+	return libfs.openDir(loopCtx, path)
 end
 ---@param path string
 ---@param callback fun(ret:integer, str:string | nil):void
-function fs.opendirAsync(path, callback)
-	libfs.opendir(loopCtx, path, callback)
+function fs.openDirAsync(path, callback)
+	libfs.openDir(loopCtx, path, callback)
 end
 ---@param path string
 ---@return lightuserdata | nil, integer
-function fs.opendirAsyncWait(path)
+function fs.openDirAsyncWait(path)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.opendir(loopCtx, path, function(err, dir)
+	libfs.openDir(loopCtx, path, function(err, dir)
 		resume(co, dir, err)
 	end)
 	return yield()
 end
 ---@param dir lightuserdata
 ---@return integer
-function fs.closedir(dir)
-	return libfs.closedir(loopCtx, dir)
+function fs.closeDir(dir)
+	return libfs.closeDir(loopCtx, dir)
 end
 ---@param dir lightuserdata
 ---@param callback StatusCallbackSignature
-function fs.closedirAsync(dir, callback)
-	libfs.closedir(loopCtx, dir, callback)
+function fs.closeDirAsync(dir, callback)
+	libfs.closeDir(loopCtx, dir, callback)
 end
 ---@param dir lightuserdata
 ---@return integer
-function fs.closedirAsyncWait(dir)
+function fs.closeDirAsyncWait(dir)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.closedir(loopCtx, dir, function(ret)
+	libfs.closeDir(loopCtx, dir, function(ret)
 		resume(co, ret)
 	end)
 	return yield()
 end
 ---@param dir lightuserdata
 ---@return string | nil, libuv_dirent_type | nil, integer
-function fs.readdir(dir)
-	return libfs.readdir(loopCtx, dir)
+function fs.readDir(dir)
+	return libfs.readDir(loopCtx, dir)
 end
 ---@param dir lightuserdata
 ---@param callback fun(name:string | nil, type:libuv_dirent_type | nil, ret:integer):void
-function fs.readdirAsync(dir, callback)
-	libfs.readdir(loopCtx, dir, callback)
+function fs.readDirAsync(dir, callback)
+	libfs.readDir(loopCtx, dir, callback)
 end
 ---@param dir lightuserdata
 ---@return string | nil, libuv_dirent_type | nil, integer
-function fs.readdirAsyncWait(dir)
+function fs.readDirAsyncWait(dir)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.readdir(loopCtx, dir, function(name, type, ret)
+	libfs.readDir(loopCtx, dir, function(name, type, ret)
 		resume(co, name, type, ret)
 	end)
 	return yield()
@@ -1025,22 +1025,22 @@ end
 ---@param path string
 ---@param flags integer
 ---@return table<string, libuv_dirent_type> | nil, integer
-function fs.scandir(path, flags)
-	return libfs.scandir(loopCtx, path, flags)
+function fs.scanDir(path, flags)
+	return libfs.scanDir(loopCtx, path, flags)
 end
 ---@param path string
 ---@param flags integer
 ---@param callback fun(ents:table<string, libuv_dirent_type> | nil, ret:integer):void
-function fs.scandirAsync(path, flags, callback)
-	libfs.scandir(loopCtx, path, flags, callback)
+function fs.scanDirAsync(path, flags, callback)
+	libfs.scanDir(loopCtx, path, flags, callback)
 end
 ---@param path string
 ---@param flags integer
 ---@return table<string, libuv_dirent_type> | nil, integer
-function fs.scandirAsyncWait(path, flags)
+function fs.scanDirAsyncWait(path, flags)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.scandir(loopCtx, path, flags, function(ents, ret)
+	libfs.scanDir(loopCtx, path, flags, function(ents, ret)
 		resume(co, ents, ret)
 	end)
 	return yield()
@@ -1068,40 +1068,40 @@ function fs.statAsyncWait(path)
 end
 ---@param fd integer
 ---@return uv_stat_t | nil, integer
-function fs.fstat(fd)
-	return libfs.fstat(loopCtx, fd)
+function fs.fdStat(fd)
+	return libfs.fdStat(loopCtx, fd)
 end
 ---@param fd integer
 ---@param callback fun(stat:uv_stat_t | nil, ret:integer):void
-function fs.fstatAsync(fd, callback)
-	libfs.fstat(loopCtx, fd, callback)
+function fs.fdStatAsync(fd, callback)
+	libfs.fdStat(loopCtx, fd, callback)
 end
 ---@param fd integer
 ---@return uv_stat_t | nil, integer
-function fs.fstatAsyncWait(fd)
+function fs.fdStatAsyncWait(fd)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.fstat(loopCtx, fd, function(stat, ret)
+	libfs.fdStat(loopCtx, fd, function(stat, ret)
 		resume(co, stat, ret)
 	end)
 	return yield()
 end
 ---@param path string
 ---@return uv_stat_t | nil, integer
-function fs.lstat(path)
-	return libfs.lstat(loopCtx, path)
+function fs.linkStat(path)
+	return libfs.linkStat(loopCtx, path)
 end
 ---@param path string
 ---@param callback fun(stat:uv_stat_t | nil, ret:integer):void
-function fs.lstatAsync(path, callback)
-	libfs.lstat(loopCtx, path, callback)
+function fs.linkStatAsync(path, callback)
+	libfs.linkStat(loopCtx, path, callback)
 end
 ---@param path string
 ---@return uv_stat_t | nil, integer
-function fs.lstatAsyncWait(path)
+function fs.linkStatAsyncWait(path)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.lstat(loopCtx, path, function(stat, ret)
+	libfs.linkStat(loopCtx, path, function(stat, ret)
 		resume(co, stat, ret)
 	end)
 	return yield()
@@ -1119,20 +1119,20 @@ end
 
 ---@param path string
 ---@return uv_statfs_t | nil, integer
-function fs.statfs(path)
-	return libfs.statfs(loopCtx, path)
+function fs.statFileSystem(path)
+	return libfs.statFileSystem(loopCtx, path)
 end
 ---@param path string
 ---@param callback fun(stat:uv_statfs_t | nil, ret:integer):void
-function fs.statfsAsync(path, callback)
-	libfs.statfs(loopCtx, path, callback)
+function fs.statFileSystemAsync(path, callback)
+	libfs.statFileSystem(loopCtx, path, callback)
 end
 ---@param path string
 ---@return uv_statfs_t | nil, integer
-function fs.statfsAsyncWait(path)
+function fs.statFileSystemAsyncWait(path)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.statfs(loopCtx, path, function(stat, ret)
+	libfs.statFileSystem(loopCtx, path, function(stat, ret)
 		resume(co, stat, ret)
 	end)
 	return yield()
@@ -1162,40 +1162,40 @@ function fs.renameAsyncWait(path, newPath)
 end
 ---@param fd integer
 ---@return integer
-function fs.fsync(fd)
-	return libfs.fsync(loopCtx, fd)
+function fs.fdSync(fd)
+	return libfs.fdSync(loopCtx, fd)
 end
 ---@param fd integer
 ---@param callback StatusCallbackSignature
-function fs.fsyncAsync(fd, callback)
-	libfs.fsync(loopCtx, fd, callback)
+function fs.fdSyncAsync(fd, callback)
+	libfs.fdSync(loopCtx, fd, callback)
 end
 ---@param fd integer
 ---@return integer
-function fs.fsyncAsyncWait(fd)
+function fs.fdSyncAsyncWait(fd)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.fsync(loopCtx, fd, function(ret)
+	libfs.fdSync(loopCtx, fd, function(ret)
 		resume(co, ret)
 	end)
 	return yield()
 end
 ---@param fd integer
 ---@return integer
-function fs.fdatasync(fd)
-	return libfs.fdatasync(loopCtx, fd)
+function fs.fdDataSync(fd)
+	return libfs.fdDataSync(loopCtx, fd)
 end
 ---@param fd integer
 ---@param callback StatusCallbackSignature
-function fs.fdatasyncAsync(fd, callback)
-	libfs.fdatasync(loopCtx, fd, callback)
+function fs.fdDataSyncAsync(fd, callback)
+	libfs.fdDataSync(loopCtx, fd, callback)
 end
 ---@param fd integer
 ---@return integer
-function fs.fdatasyncAsyncWait(fd)
+function fs.fdDataSyncAsyncWait(fd)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.fdatasync(loopCtx, fd, function(ret)
+	libfs.fdDataSync(loopCtx, fd, function(ret)
 		resume(co, ret)
 	end)
 	return yield()
@@ -1203,22 +1203,22 @@ end
 ---@param fd integer
 ---@param offset integer
 ---@return integer
-function fs.ftruncate(fd, offset)
-	return libfs.ftruncate(loopCtx, fd, offset)
+function fs.fdTruncate(fd, offset)
+	return libfs.fdTruncate(loopCtx, fd, offset)
 end
 ---@param fd integer
 ---@param offset integer
 ---@param callback StatusCallbackSignature
-function fs.ftruncateAsync(fd, offset, callback)
-	libfs.ftruncate(loopCtx, fd, offset, callback)
+function fs.fdTruncateAsync(fd, offset, callback)
+	libfs.fdTruncate(loopCtx, fd, offset, callback)
 end
 ---@param fd integer
 ---@param offset integer
 ---@return integer
-function fs.ftruncateAsyncWait(fd, offset)
+function fs.fdTruncateAsyncWait(fd, offset)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.ftruncate(loopCtx, fd, offset, function(ret)
+	libfs.fdTruncate(loopCtx, fd, offset, function(ret)
 		resume(co, ret)
 	end)
 	return yield()
@@ -1227,24 +1227,24 @@ end
 ---@param newPath string
 ---@param flags integer
 ---@return integer
-function fs.copyfile(path, newPath, flags)
-	return libfs.copyfile(loopCtx, path, newPath, flags)
+function fs.copyFile(path, newPath, flags)
+	return libfs.copyFile(loopCtx, path, newPath, flags)
 end
 ---@param path string
 ---@param newPath string
 ---@param flags integer
 ---@param callback StatusCallbackSignature
-function fs.copyfileAsync(path, newPath, flags, callback)
-	libfs.copyfile(loopCtx, path, newPath, flags, callback)
+function fs.copyFileAsync(path, newPath, flags, callback)
+	libfs.copyFile(loopCtx, path, newPath, flags, callback)
 end
 ---@param path string
 ---@param newPath string
 ---@param flags integer
 ---@return integer
-function fs.copyfileAsyncWait(path, newPath, flags)
+function fs.copyFileAsyncWait(path, newPath, flags)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.copyfile(loopCtx, path, newPath, flags, function(ret)
+	libfs.copyFile(loopCtx, path, newPath, flags, function(ret)
 		resume(co, ret)
 	end)
 	return yield()
@@ -1254,26 +1254,26 @@ end
 ---@param inOffset integer
 ---@param length integer
 ---@return integer
-function fs.sendfile(outFd, inFd, inOffset, length)
-	return libfs.sendfile(loopCtx, outFd, inFd, inOffset, length)
+function fs.sendFile(outFd, inFd, inOffset, length)
+	return libfs.sendFile(loopCtx, outFd, inFd, inOffset, length)
 end
 ---@param outFd integer
 ---@param inFd integer
 ---@param inOffset integer
 ---@param length integer
 ---@param callback StatusCallbackSignature
-function fs.sendfileAsync(outFd, inFd, inOffset, length, callback)
-	libfs.sendfile(loopCtx, outFd, inFd, inOffset, length, callback)
+function fs.sendFileAsync(outFd, inFd, inOffset, length, callback)
+	libfs.sendFile(loopCtx, outFd, inFd, inOffset, length, callback)
 end
 ---@param outFd integer
 ---@param inFd integer
 ---@param inOffset integer
 ---@param length integer
 ---@return integer
-function fs.sendfileAsyncWait(outFd, inFd, inOffset, length)
+function fs.sendFileAsyncWait(outFd, inFd, inOffset, length)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.sendfile(loopCtx, outFd, inFd, inOffset, length, function(ret)
+	libfs.sendFile(loopCtx, outFd, inFd, inOffset, length, function(ret)
 		resume(co, ret)
 	end)
 	return yield()
@@ -1304,22 +1304,22 @@ end
 ---@param path string
 ---@param mode integer
 ---@return integer
-function fs.chmod(path, mode)
-	return libfs.chmod(loopCtx, path, mode)
+function fs.changeMode(path, mode)
+	return libfs.changeMode(loopCtx, path, mode)
 end
 ---@param path string
 ---@param mode integer
 ---@param callback StatusCallbackSignature
-function fs.chmodAsync(path, mode, callback)
-	libfs.chmod(loopCtx, path, mode, callback)
+function fs.changeModeAsync(path, mode, callback)
+	libfs.changeMode(loopCtx, path, mode, callback)
 end
 ---@param path string
 ---@param mode integer
 ---@return integer
-function fs.chmodAsyncWait(path, mode)
+function fs.changeModeAsyncWait(path, mode)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.chmod(loopCtx, path, mode, function(ret)
+	libfs.changeMode(loopCtx, path, mode, function(ret)
 		resume(co, ret)
 	end)
 	return yield()
@@ -1327,22 +1327,22 @@ end
 ---@param fd integer
 ---@param mode integer
 ---@return integer
-function fs.fchmod(fd, mode)
-	return libfs.fchmod(loopCtx, fd, mode)
+function fs.fdChangeMode(fd, mode)
+	return libfs.fdChangeMode(loopCtx, fd, mode)
 end
 ---@param fd integer
 ---@param mode integer
 ---@param callback StatusCallbackSignature
-function fs.fchmodAsync(fd, mode, callback)
-	libfs.fchmod(loopCtx, fd, mode, callback)
+function fs.fdChangeModeAsync(fd, mode, callback)
+	libfs.fdChangeMode(loopCtx, fd, mode, callback)
 end
 ---@param fd integer
 ---@param mode integer
 ---@return integer
-function fs.fchmodAsyncWait(fd, mode)
+function fs.fdChangeModeAsyncWait(fd, mode)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.fchmod(loopCtx, fd, mode, function(ret)
+	libfs.fdChangeMode(loopCtx, fd, mode, function(ret)
 		resume(co, ret)
 	end)
 	return yield()
@@ -1377,24 +1377,24 @@ end
 ---@param atime number
 ---@param utime number
 ---@return integer
-function fs.futime(fd, atime, utime)
-	return libfs.futime(loopCtx, fd, atime, utime)
+function fs.fdUtime(fd, atime, utime)
+	return libfs.fdUtime(loopCtx, fd, atime, utime)
 end
 ---@param fd integer
 ---@param atime number
 ---@param utime number
 ---@param callback StatusCallbackSignature
-function fs.futimeAsync(fd, atime, utime, callback)
-	libfs.futime(loopCtx, fd, atime, utime, callback)
+function fs.fdUtimeAsync(fd, atime, utime, callback)
+	libfs.fdUtime(loopCtx, fd, atime, utime, callback)
 end
 ---@param fd integer
 ---@param atime number
 ---@param utime number
 ---@return integer
-function fs.futimeAsyncWait(fd, atime, utime)
+function fs.fdUtimeAsyncWait(fd, atime, utime)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.futime(loopCtx, fd, atime, utime, function(ret)
+	libfs.fdUtime(loopCtx, fd, atime, utime, function(ret)
 		resume(co, ret)
 	end)
 	return yield()
@@ -1426,64 +1426,64 @@ end
 ---@param newPath string
 ---@param flags integer
 ---@return integer
-function fs.symlink(path, newPath, flags)
-	return libfs.symlink(loopCtx, path, newPath, flags)
+function fs.symbolLink(path, newPath, flags)
+	return libfs.symbolLink(loopCtx, path, newPath, flags)
 end
 ---@param path string
 ---@param newPath string
 ---@param flags integer
 ---@param callback StatusCallbackSignature
-function fs.symlinkAsync(path, newPath, flags, callback)
-	libfs.symlink(loopCtx, path, newPath, flags, callback)
+function fs.symbolLinkAsync(path, newPath, flags, callback)
+	libfs.symbolLink(loopCtx, path, newPath, flags, callback)
 end
 ---@param path string
 ---@param newPath string
 ---@param flags integer
 ---@return integer
-function fs.symlinkAsyncWait(path, newPath, flags)
+function fs.symbolLinkAsyncWait(path, newPath, flags)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.symlink(loopCtx, path, newPath, flags, function(ret)
+	libfs.symbolLink(loopCtx, path, newPath, flags, function(ret)
 		resume(co, ret)
 	end)
 	return yield()
 end
 ---@param path string
 ---@return string | nil, integer
-function fs.readlink(path)
-	return libfs.readlink(loopCtx, path)
+function fs.readLink(path)
+	return libfs.readLink(loopCtx, path)
 end
 ---@param path string
 ---@param callback fun(str:string | nil, ret:integer):void
-function fs.readlinkAsync(path, callback)
-	libfs.readlink(loopCtx, path, callback)
+function fs.readLinkAsync(path, callback)
+	libfs.readLink(loopCtx, path, callback)
 end
 ---@param path string
 ---@return string | nil, integer
-function fs.readlinkAsyncWait(path)
+function fs.readLinkAsyncWait(path)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.readlink(loopCtx, path, function(str, ret)
+	libfs.readLink(loopCtx, path, function(str, ret)
 		resume(co, str, ret)
 	end)
 	return yield()
 end
 ---@param path string
 ---@return string | nil, integer
-function fs.realpath(path)
-	return libfs.realpath(loopCtx, path)
+function fs.realPath(path)
+	return libfs.realPath(loopCtx, path)
 end
 ---@param path string
 ---@param callback fun(str:string | nil, ret:integer):void
-function fs.realpathAsync(path, callback)
-	libfs.realpath(loopCtx, path, callback)
+function fs.realPathAsync(path, callback)
+	libfs.realPath(loopCtx, path, callback)
 end
 ---@param path string
 ---@return string | nil, integer
-function fs.realpathAsyncWait(path)
+function fs.realPathAsyncWait(path)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.realpath(loopCtx, path, function(str, ret)
+	libfs.realPath(loopCtx, path, function(str, ret)
 		resume(co, str, ret)
 	end)
 	return yield()
@@ -1492,24 +1492,24 @@ end
 ---@param uid integer
 ---@param gid integer
 ---@return integer
-function fs.chown(path, uid, gid)
-	return libfs.chown(loopCtx, path, uid, gid)
+function fs.changeOwn(path, uid, gid)
+	return libfs.changeOwn(loopCtx, path, uid, gid)
 end
 ---@param path string
 ---@param uid integer
 ---@param gid integer
 ---@param callback StatusCallbackSignature
-function fs.chownAsync(path, uid, gid, callback)
-	libfs.chown(loopCtx, path, uid, gid, callback)
+function fs.changeOwnAsync(path, uid, gid, callback)
+	libfs.changeOwn(loopCtx, path, uid, gid, callback)
 end
 ---@param path string
 ---@param uid integer
 ---@param gid integer
 ---@return integer
-function fs.chownAsyncWait(path, uid, gid)
+function fs.changeOwnAsyncWait(path, uid, gid)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.chown(loopCtx, path, uid, gid, function(ret)
+	libfs.changeOwn(loopCtx, path, uid, gid, function(ret)
 		resume(co, ret)
 	end)
 	return yield()
@@ -1518,24 +1518,24 @@ end
 ---@param uid integer
 ---@param gid integer
 ---@return integer
-function fs.fchown(fd, uid, gid)
-	return libfs.fchown(loopCtx, fd, uid, gid)
+function fs.fdChangeOwn(fd, uid, gid)
+	return libfs.fdChangeOwn(loopCtx, fd, uid, gid)
 end
 ---@param fd integer
 ---@param uid integer
 ---@param gid integer
 ---@param callback StatusCallbackSignature
-function fs.fchownAsync(fd, uid, gid, callback)
-	libfs.fchown(loopCtx, fd, uid, gid, callback)
+function fs.fdChangeOwnAsync(fd, uid, gid, callback)
+	libfs.fdChangeOwn(loopCtx, fd, uid, gid, callback)
 end
 ---@param fd integer
 ---@param uid integer
 ---@param gid integer
 ---@return integer
-function fs.fchownAsyncWait(fd, uid, gid)
+function fs.fdChangeOwnAsyncWait(fd, uid, gid)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.fchown(loopCtx, fd, uid, gid, function(ret)
+	libfs.fdChangeOwn(loopCtx, fd, uid, gid, function(ret)
 		resume(co, ret)
 	end)
 	return yield()
@@ -1544,44 +1544,44 @@ end
 ---@param uid integer
 ---@param gid integer
 ---@return integer
-function fs.lchown(path, uid, gid)
-	return libfs.lchown(loopCtx, path, uid, gid)
+function fs.linkChangeOwn(path, uid, gid)
+	return libfs.linkChangeOwn(loopCtx, path, uid, gid)
 end
 ---@param path string
 ---@param uid integer
 ---@param gid integer
 ---@param callback StatusCallbackSignature
-function fs.lchownAsync(path, uid, gid, callback)
-	libfs.lchown(loopCtx, path, uid, gid, callback)
+function fs.linkChangeOwnAsync(path, uid, gid, callback)
+	libfs.linkChangeOwn(loopCtx, path, uid, gid, callback)
 end
 ---@param path string
 ---@param uid integer
 ---@param gid integer
 ---@return integer
-function fs.lchownAsyncWait(path, uid, gid)
+function fs.linkChangeOwnAsyncWait(path, uid, gid)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.lchown(loopCtx, path, uid, gid, function(ret)
+	libfs.linkChangeOwn(loopCtx, path, uid, gid, function(ret)
 		resume(co, ret)
 	end)
 	return yield()
 end
 ---@param filePath string
 ---@return string | nil, integer
-function fs.readfile(filePath)
-	return libfs.readfile(loopCtx, filePath)
+function fs.readFile(filePath)
+	return libfs.readFile(loopCtx, filePath)
 end
 ---@param filePath string
 ---@param callback fun(str:string | nil, ret:integer):void
-function fs.readfileAsync(filePath, callback)
-	libfs.readfile(loopCtx, filePath, callback)
+function fs.readFileAsync(filePath, callback)
+	libfs.readFile(loopCtx, filePath, callback)
 end
 ---@param filePath string
 ---@return string | nil, integer
-function fs.readfileAsyncWait(filePath)
+function fs.readFileAsyncWait(filePath)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.readfile(loopCtx, filePath, function(str, ret)
+	libfs.readFile(loopCtx, filePath, function(str, ret)
 		resume(co, str, ret)
 	end)
 	return yield()
@@ -1589,22 +1589,22 @@ end
 ---@param filePath string
 ---@param data string
 ---@return integer
-function fs.writefile(filePath, data)
-	return libfs.writefile(loopCtx, filePath, data)
+function fs.writeFile(filePath, data)
+	return libfs.writeFile(loopCtx, filePath, data)
 end
 ---@param filePath string
 ---@param data string
 ---@param callback StatusCallbackSignature
-function fs.writefileAsync(filePath, data, callback)
-	libfs.writefile(loopCtx, filePath, data, callback)
+function fs.writeFileAsync(filePath, data, callback)
+	libfs.writeFile(loopCtx, filePath, data, callback)
 end
 ---@param filePath string
 ---@param data string
 ---@return integer
-function fs.writefileAsyncWait(filePath, data)
+function fs.writeFileAsyncWait(filePath, data)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
-	libfs.writefile(loopCtx, filePath, data, function(ret)
+	libfs.writeFile(loopCtx, filePath, data, function(ret)
 		resume(co, ret)
 	end)
 	return yield()

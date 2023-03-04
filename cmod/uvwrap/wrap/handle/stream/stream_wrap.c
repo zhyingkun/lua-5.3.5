@@ -10,7 +10,7 @@ void STREAM_FUNCTION(ctor)(lua_State* L, uv_stream_t* handle) {
 static void STREAM_CALLBACK(shutdownAsync)(uv_shutdown_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
-  UNHOLD_HANDLE_ITSELF(L, req->handle); // shutdown will cancel listenAsync, so remove handle itself cache
+  UNHOLD_HANDLE_ITSELF(L, req->handle); // shutdown will cancel listenStartAsync, so remove handle itself cache
   if (lua_isfunction(L, -1)) {
     lua_pushinteger(L, status);
     PUSH_REQ_PARAM_CLEAN(L, req, 1);
@@ -50,19 +50,19 @@ static int STREAM_FUNCTION(shutdownAsyncWait)(lua_State* co) {
   return lua_yield(co, 0);
 }
 
-static void STREAM_CALLBACK(listenAsync)(uv_stream_t* handle, int status) {
+static void STREAM_CALLBACK(listenStartAsync)(uv_stream_t* handle, int status) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_STREAM_LISTEN);
   lua_pushinteger(L, status);
   PUSH_HANDLE_ITSELF(L, handle);
   CALL_LUA_FUNCTION(L, 2);
 }
-static int STREAM_FUNCTION(listenAsync)(lua_State* L) {
+static int STREAM_FUNCTION(listenStartAsync)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
   int backlog = (int)luaL_checkinteger(L, 2);
   luaL_checktype(L, 3, LUA_TFUNCTION);
 
-  int err = uv_listen(handle, backlog, STREAM_CALLBACK(listenAsync));
+  int err = uv_listen(handle, backlog, STREAM_CALLBACK(listenStartAsync));
   CHECK_ERROR(L, err);
   HOLD_HANDLE_CALLBACK(L, handle, IDX_STREAM_LISTEN, 3);
   HOLD_HANDLE_ITSELF(L, handle, 1);
@@ -278,7 +278,7 @@ int STREAM_FUNCTION(__gc)(lua_State* L) {
 static const luaL_Reg uvwrap_stream_metafuncs[] = {
     EMPLACE_STREAM_FUNCTION(shutdownAsync),
     EMPLACE_STREAM_FUNCTION(shutdownAsyncWait),
-    EMPLACE_STREAM_FUNCTION(listenAsync),
+    EMPLACE_STREAM_FUNCTION(listenStartAsync),
     EMPLACE_STREAM_FUNCTION(accept),
     EMPLACE_STREAM_FUNCTION(readStartAsync),
     EMPLACE_STREAM_FUNCTION(readStop),

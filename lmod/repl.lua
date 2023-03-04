@@ -210,7 +210,7 @@ function repl.serverStartAsync(ip, port, callback)
 	local EOF = libuv.err_code.EOF
 
 	local sockAddr = libuv.network.SockAddr():ip4Addr(ip or "0.0.0.0", port or 1999)
-	libuv.tcp.Tcp():bind(sockAddr):listenAsync(128, function(status, tcpSocket)
+	libuv.tcp.Tcp():bind(sockAddr):listenStartAsync(128, function(status, tcpSocket)
 		if status ~= OK then
 			printError("TCP listen error:", status)
 			return
