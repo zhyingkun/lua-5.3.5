@@ -85,14 +85,14 @@ end
 
 function tick()
 	local count = 0
-	timer.Timer():startAsync(function(handle)
+	timer.Timer():startAsync(1000, 1000, function(handle)
 		count = count + 1
 		print("tick")
 		if count >= 3 then
 			handle:stop()
 			print("BOOM!")
 		end
-	end, 1000, 1000)
+	end)
 end
 
 function cgi()
@@ -599,26 +599,26 @@ end
 function ref_timer()
 	local gc = timer.Timer()
 	gc:unref()
-	gc:startAsync(function(handle)
+	gc:startAsync(0, 2000, function(handle)
 		print("Freeing unused objects")
-	end, 0, 2000)
+	end)
 	-- could actually be a TCP download or something
 	local fake_job = timer.Timer()
-	fake_job:startAsync(function(handle)
+	fake_job:startOneShotAsync(9000, function(handle)
 		print("Fake job done")
 		gc:stop()
-	end, 9000, 0)
+	end)
 end
 
 function signal_action()
-	signal.Signal():startAsync(function(signum, handle)
+	signal.Signal():startAsync(sig_num.SIGUSR1, function(signum, handle)
 		print("Signal received A:", sig_name[signum])
 		handle:stop()
-	end, sig_num.SIGUSR1)
-	signal.Signal():startAsync(function(signum, handle)
+	end)
+	signal.Signal():startAsync(sig_num.SIGUSR1, function(signum, handle)
 		print("Signal received B:", sig_name[signum])
 		handle:stop()
-	end, sig_num.SIGUSR1)
+	end)
 end
 
 function spawn()
@@ -727,7 +727,7 @@ function tty_gravity()
 	tty_handle:writeAsync("Hello TTY\n", function(status) end)
 	local pos = 0
 	local message = "  Hello TTY  "
-	timer.Timer():startAsync(function(handle)
+	timer.Timer():startAsync(200, 200, function(handle)
 		-- "\033[2J\033[H\033[%dB\033[%dC\033[42;37m%s" in c
 		local fmt = "\027[2J\027[H\027[%dB\027[%dC\027[42;37m%s"
 		local str = string.format(fmt, pos, math.floor((width - #message) / 2), message)
@@ -737,7 +737,7 @@ function tty_gravity()
 			tty.resetMode()
 			handle:stop()
 		end
-	end, 200, 200)
+	end)
 end
 
 function udp_dhcp()

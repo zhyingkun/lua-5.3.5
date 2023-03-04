@@ -105,7 +105,7 @@ local function TcpClient()
 			WriteHello(i)
 		end
 		local delay = timer.Timer()
-		delay:startAsync(function()
+		delay:startOneShotAsync(1000, function()
 			delay:stop()
 			local str = "="
 			local len = 128
@@ -117,7 +117,7 @@ local function TcpClient()
 					print(errName(status), strError(status))
 				end
 			end)
-		end, 1000, 0)
+		end)
 	end)
 	--]]
 	runInCoroutine(function()
@@ -152,7 +152,7 @@ local function TcpClient()
 		end
 		local delay = timer.Timer()
 		--[[
-		delay:startAsync(function()
+		delay:startOneShotAsync(1000, function()
 			delay:stop()
 			local str = "="
 			local len = 128
@@ -164,9 +164,9 @@ local function TcpClient()
 					print(errName(status), strError(status))
 				end
 			end)
-		end, 1000, 0)
+		end)
 		--]]
-		delay:startAsyncWait(1000)
+		delay:startOneShotAsyncWait(1000)
 		delay:stop()
 		local str = "="
 		local len = 128
