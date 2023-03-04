@@ -613,8 +613,9 @@ libuv.signal = signal
 ---@alias SignalCallbackSignature fun(sigNum:integer, handle:uv_signal_t):void
 
 ---@class uv_signal_t:uv_handle_t
----@field public startAsync fun(self:uv_signal_t, callback:SignalCallbackSignature, sigNum:integer):void
----@field public startOneShotAsync fun(self:uv_signal_t, callback:SignalCallbackSignature, sigNum:integer):void
+---@field public startAsync fun(self:uv_signal_t, sigNum:integer, callback:SignalCallbackSignature):void
+---@field public startOneShotAsync fun(self:uv_signal_t, sigNum:integer, callback:SignalCallbackSignature):void
+---@field public startOneShotAsyncWait fun(self:uv_signal_t, sigNum:integer):void
 ---@field public stop fun(self:uv_signal_t):void
 ---@field public closeAsync fun(self:uv_signal_t, callback:fun(handle:uv_signal_t):void):void @uv_handle_t
 
@@ -624,36 +625,36 @@ function signal.Signal()
 end
 
 ---@class libuv_sig_num
----@field public SIGHUP integer
----@field public SIGINT integer
----@field public SIGQUIT integer @for MacOSX and Linux only
----@field public SIGILL integer
----@field public SIGTRAP integer @for MacOSX and Linux only
----@field public SIGABRT integer
----@field public SIGFPE integer
----@field public SIGKILL integer
----@field public SIGBUS integer @for MacOSX and Linux only
----@field public SIGSEGV integer
----@field public SIGSYS integer @for MacOSX and Linux only
----@field public SIGPIPE integer @for MacOSX and Linux only
----@field public SIGALRM integer @for MacOSX and Linux only
----@field public SIGTERM integer
----@field public SIGURG integer @for MacOSX and Linux only
----@field public SIGSTOP integer @for MacOSX and Linux only
----@field public SIGTSTP integer @for MacOSX and Linux only
----@field public SIGCONT integer @for MacOSX and Linux only
----@field public SIGCHLD integer @for MacOSX and Linux only
----@field public SIGTTIN integer @for MacOSX and Linux only
----@field public SIGTTOU integer @for MacOSX and Linux only
----@field public SIGIO integer @for Linux only
----@field public SIGXCPU integer @for MacOSX and Linux only
----@field public SIGXFSZ integer @for MacOSX and Linux only
+---@field public SIGHUP    integer
+---@field public SIGINT    integer
+---@field public SIGQUIT   integer @for MacOSX and Linux only
+---@field public SIGILL    integer
+---@field public SIGTRAP   integer @for MacOSX and Linux only
+---@field public SIGABRT   integer
+---@field public SIGFPE    integer
+---@field public SIGKILL   integer
+---@field public SIGBUS    integer @for MacOSX and Linux only
+---@field public SIGSEGV   integer
+---@field public SIGSYS    integer @for MacOSX and Linux only
+---@field public SIGPIPE   integer @for MacOSX and Linux only
+---@field public SIGALRM   integer @for MacOSX and Linux only
+---@field public SIGTERM   integer
+---@field public SIGURG    integer @for MacOSX and Linux only
+---@field public SIGSTOP   integer @for MacOSX and Linux only
+---@field public SIGTSTP   integer @for MacOSX and Linux only
+---@field public SIGCONT   integer @for MacOSX and Linux only
+---@field public SIGCHLD   integer @for MacOSX and Linux only
+---@field public SIGTTIN   integer @for MacOSX and Linux only
+---@field public SIGTTOU   integer @for MacOSX and Linux only
+---@field public SIGIO     integer @for Linux only
+---@field public SIGXCPU   integer @for MacOSX and Linux only
+---@field public SIGXFSZ   integer @for MacOSX and Linux only
 ---@field public SIGVTALRM integer @for MacOSX and Linux only
----@field public SIGPROF integer @for MacOSX and Linux only
----@field public SIGWINCH integer @for Windows and Linux only
----@field public SIGPWR integer @for Linux only
----@field public SIGUSR1 integer @for MacOSX and Linux only
----@field public SIGUSR2 integer @for MacOSX and Linux only
+---@field public SIGPROF   integer @for MacOSX and Linux only
+---@field public SIGWINCH  integer @for Windows and Linux only
+---@field public SIGPWR    integer @for Linux only
+---@field public SIGUSR1   integer @for MacOSX and Linux only
+---@field public SIGUSR2   integer @for MacOSX and Linux only
 
 ---@type libuv_sig_num
 signal.sig_num = libsignal.sig_num
@@ -678,8 +679,9 @@ libuv.timer = timer
 ---@alias TimerCallbackSignature fun(handle:uv_timer_t):void
 
 ---@class uv_timer_t:uv_handle_t
----@field public startAsync fun(self:uv_timer_t, callback:TimerCallbackSignature, timeOut:integer, repeat:integer):void
----@field public startAsyncWait fun(self:uv_timer_t, timeOut:integer):void
+---@field public startAsync fun(self:uv_timer_t, timeOut:integer, repeat:integer, callback:TimerCallbackSignature):void
+---@field public startOneShotAsync fun(self:uv_timer_t, timeOut:integer, callback:TimerCallbackSignature):void
+---@field public startOneShotAsyncWait fun(self:uv_timer_t, timeOut:integer):void
 ---@field public stop fun(self:uv_timer_t):void
 ---@field public again fun(self:uv_timer_t):void
 ---@field public setRepeat fun(self:uv_timer_t, repeat:integer):void
