@@ -20,7 +20,7 @@
 
 ## 函数名后缀含义：
 
-1. 'StartAsync'：call back multiple times (no version StartAsyncWait)
+1. 'StartAsync'：回调函数会被调用多次 (没有 StartAsyncWait 的版本)
 2. 'Async'：表示任务被异步处理，有些 Async 任务允许无回调，做完收工
 3. 'AsyncWait'：表示协程中等异步任务，做完自动唤醒协程，必须在协程中才能调用
 4. 其他：表示同步阻塞
