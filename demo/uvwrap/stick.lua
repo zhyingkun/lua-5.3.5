@@ -22,7 +22,7 @@ local function TcpServer()
 	local sockAddr = network.SockAddr()
 	sockAddr:ip4Addr("0.0.0.0", 1024)
 	tcpSocket:bind(sockAddr)
-	tcpSocket:listenAsync(128, function(status)
+	tcpSocket:listenStartAsync(128, function(status)
 		if status ~= OK then
 			print("TCP listen error:", status, errName(status), strError(status))
 			return

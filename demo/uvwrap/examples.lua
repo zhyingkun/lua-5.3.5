@@ -128,7 +128,7 @@ function cgi()
 	end
 	local addr = network.SockAddr():ip4Addr("0.0.0.0", 7000)
 	---@param handle uv_tcp_t
-	tcp.Tcp():bind(addr):listenAsync(128, function(status, handle)
+	tcp.Tcp():bind(addr):listenStartAsync(128, function(status, handle)
 		if status ~= OK then
 			print("TCP listen error:", status)
 			return
@@ -348,7 +348,7 @@ function multi_echo_server()
 	setup_workers()
 	local addr = network.SockAddr():ip4Addr("0.0.0.0", 7000)
 	---@param server uv_tcp_t
-	tcp.Tcp():bind(addr):listenAsync(128, function(status, server)
+	tcp.Tcp():bind(addr):listenStartAsync(128, function(status, server)
 		if status ~= OK then
 			print("TCP listen error:", status, errName(status), strError(status))
 			return
@@ -465,7 +465,7 @@ end
 local PIPENAME = os.sysname == "Windows" and "\\\\?\\pipe\\echo.sock" or "/tmp/echo.sock"
 function pipe_echo_server()
 	---@param server uv_pipe_t
-	pipe.Pipe():bind(PIPENAME):listenAsync(128, function(status, server)
+	pipe.Pipe():bind(PIPENAME):listenStartAsync(128, function(status, server)
 		if status < 0 then
 			print("Listen error:", errName(status), strError(status))
 			return
@@ -647,7 +647,7 @@ end
 
 function tcp_echo_server()
 	local addr = network.SockAddr():ip4Addr("0.0.0.0", 7000)
-	tcp.Tcp():bind(addr):listenAsync(128, function(status, server)
+	tcp.Tcp():bind(addr):listenStartAsync(128, function(status, server)
 		if status < OK then
 			printerr("New connection error %s\n", strError(status))
 			return
