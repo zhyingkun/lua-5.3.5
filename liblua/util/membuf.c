@@ -67,6 +67,12 @@ static int MEMBUF_FUNCTION(getSize)(lua_State* L) {
   return 1;
 }
 
+static int MEMBUF_FUNCTION(getType)(lua_State* L) {
+  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  lua_pushmemtype(L, MEMBUFFER_TYPE(mb));
+  return 1;
+}
+
 static int MEMBUF_FUNCTION(toString)(lua_State* L) {
   const luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   lua_pushlstring(L, (const char*)mb->ptr, mb->sz);
@@ -88,6 +94,7 @@ static const luaL_Reg membuf_metafuncs[] = {
     EMPLACE_MEMBUF_FUNCTION(moveTo),
     EMPLACE_MEMBUF_FUNCTION(makeCopy),
     EMPLACE_MEMBUF_FUNCTION(getSize),
+    EMPLACE_MEMBUF_FUNCTION(getType),
     EMPLACE_MEMBUF_FUNCTION(toString),
     EMPLACE_MEMBUF_FUNCTION(__gc),
     {NULL, NULL},
@@ -95,6 +102,41 @@ static const luaL_Reg membuf_metafuncs[] = {
 
 void membuf_init(lua_State* L) {
   REGISTER_METATABLE(LUA_MEMBUFFER_TYPE, membuf_metafuncs);
+}
+
+LUALIB_API void* luaL_staticMemBuffer(void* ud, void* ptr, size_t nsz) {
+  (void)ud;
+  (void)ptr;
+  (void)nsz;
+  return NULL;
+}
+LUALIB_API int luaL_isMemType(luaL_MemBuffer* mb, int count, ...) {
+  lua_assert(count >= 1);
+  luaL_MemType type = MEMBUFFER_TYPE(mb);
+  luaL_MemType target;
+  va_list argp;
+  va_start(argp, count);
+  int i = 0;
+  do {
+    i++;
+    target = va_arg(argp, luaL_MemType);
+  } while (target == type || i == count);
+  va_end(argp);
+  return target == type ? 1 : 0;
+}
+LUALIB_API void luaL_assertMemType(luaL_MemBuffer* mb, int count, ...) {
+  lua_assert(count >= 1);
+  luaL_MemType type = MEMBUFFER_TYPE(mb);
+  luaL_MemType target;
+  va_list argp;
+  va_start(argp, count);
+  int i = 0;
+  do {
+    i++;
+    target = va_arg(argp, luaL_MemType);
+  } while (target == type || i == count);
+  va_end(argp);
+  lua_assert(target == type);
 }
 
 LUALIB_API luaL_MemBuffer* luaL_newmembuffer(lua_State* L) {
@@ -117,6 +159,15 @@ LUALIB_API void luaL_releasebuffer(lua_State* L, int arg) {
   }
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, arg);
   MEMBUFFER_RELEASE(mb);
+}
+LUALIB_API luaL_MemBuffer* luaL_tobuffer(lua_State* L, int arg, luaL_MemBuffer* buf) {
+  if (lua_isstring(L, arg)) {
+    size_t len;
+    const char* ptr = lua_tolstring(L, arg, &len);
+    MEMBUFFER_SETREPLACE_REF(buf, ptr, len);
+    return buf;
+  }
+  return luaL_checkmembuffer(L, arg);
 }
 
 /* }====================================================== */

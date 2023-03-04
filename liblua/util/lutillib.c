@@ -61,13 +61,6 @@ static int util_MemBuffer(lua_State* L) {
   return 1;
 }
 
-LUALIB_API void* luaL_staticMemBuffer(void* ud, void* ptr, size_t nsz) {
-  (void)ud;
-  (void)ptr;
-  (void)nsz;
-  return NULL;
-}
-
 /* }====================================================== */
 
 /*

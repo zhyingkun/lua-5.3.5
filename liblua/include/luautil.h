@@ -215,22 +215,36 @@ typedef struct {
 
 typedef enum {
   MT_Null,
+  MT_SizeOnly,
+  MT_Reference,
   MT_Static,
   MT_Dynamic,
-  MT_Reference,
 } luaL_MemType;
 
-#define MEMBUFFER_IS_NULL(mb) ((mb)->ptr == NULL)
-#define MEMBUFFER_IS_STATIC(mb) ((mb)->ptr != NULL && (mb)->realloc == luaL_staticMemBuffer)
-#define MEMBUFFER_IS_DYNAMIC(mb) ((mb)->ptr != NULL && (mb)->realloc != NULL && (mb)->realloc != luaL_staticMemBuffer)
-#define MEMBUFFER_IS_REFERENCE(mb) ((mb)->ptr != NULL && (mb)->realloc == NULL)
+LUALIB_API void* luaL_staticMemBuffer(void* ud, void* ptr, size_t nsz);
 
-#define MEMBUFFER_TYPE(mb) ((mb)->ptr == NULL                     ? MT_Null : \
+#define MEMBUFFER_TYPE(mb) ((mb)->ptr == NULL ? \
+                                (mb)->sz == 0 ? MT_Null : \
+                                                MT_SizeOnly : \
                             (mb)->realloc == NULL                 ? MT_Reference : \
                             (mb)->realloc == luaL_staticMemBuffer ? MT_Static : \
                                                                     MT_Dynamic)
 
-LUALIB_API void* luaL_staticMemBuffer(void* ud, void* ptr, size_t nsz);
+LUALIB_API int luaL_isMemType(luaL_MemBuffer* mb, int count, ...);
+
+#define MEMBUFFER_IS_NULL(mb) (MEMBUFFER_TYPE(mb) == MT_Null)
+#define MEMBUFFER_IS_SIZE_ONLY(mb) (MEMBUFFER_TYPE(mb) == MT_SizeOnly)
+#define MEMBUFFER_IS_REFERENCE(mb) (MEMBUFFER_TYPE(mb) == MT_Reference)
+#define MEMBUFFER_IS_STATIC(mb) (MEMBUFFER_TYPE(mb) == MT_Static)
+#define MEMBUFFER_IS_DYNAMIC(mb) (MEMBUFFER_TYPE(mb) == MT_Dynamic)
+#define MEMBUFFER_IS_TYPE2(mb, t1, t2) luaL_isMemType(mb, 2, t1, t2)
+#define MEMBUFFER_IS_TYPE3(mb, t1, t2, t3) luaL_isMemType(mb, 3, t1, t2, t3)
+
+LUALIB_API void luaL_assertMemType(luaL_MemBuffer* mb, int count, ...);
+
+#define MEMBUFFER_CHECK_TYPE(mb, t1) lua_assert(MEMBUFFER_TYPE(mb) == (t1))
+#define MEMBUFFER_CHECK_TYPE2(mb, t1, t2) luaL_assertMemType(mb, 2, t1, t2)
+#define MEMBUFFER_CHECK_TYPE3(mb, t1, t2, t3) luaL_assertMemType(mb, 3, t1, t2, t3)
 
 #define MEMBUFFER_NULL \
   { NULL, 0, NULL, NULL }
@@ -288,8 +302,10 @@ LUALIB_API void* luaL_staticMemBuffer(void* ud, void* ptr, size_t nsz);
 #define LUA_MEMBUFFER_TYPE "luaL_MemBuffer*"
 #define luaL_checkmembuffer(L, idx) (luaL_MemBuffer*)luaL_checkudata(L, idx, LUA_MEMBUFFER_TYPE)
 LUALIB_API luaL_MemBuffer* luaL_newmembuffer(lua_State* L);
+#define lua_pushmemtype(L, t) lua_pushinteger(L, t)
 LUALIB_API const void* luaL_checklbuffer(lua_State* L, int arg, size_t* len);
 LUALIB_API void luaL_releasebuffer(lua_State* L, int arg);
+LUALIB_API luaL_MemBuffer* luaL_tobuffer(lua_State* L, int arg, luaL_MemBuffer* buf);
 
 /* }====================================================== */
 
