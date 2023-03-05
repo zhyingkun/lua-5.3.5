@@ -142,15 +142,13 @@ static void* MEMORY_FUNCTION(mb_realloc_buf)(void* ud, void* ptr, size_t nsz) {
     return MEMORY_FUNCTION(malloc_buf)(nsz);
   }
   if (nsz == 0) {
-    MEMORY_FUNCTION(free_buf)
-    (ptr);
+    (void)MEMORY_FUNCTION(free_buf)(ptr);
   }
   // MemBuffer do not support reallocate an old buffer, just for malloc and free
   return NULL;
 }
-void MEMORY_FUNCTION(buf_moveToMemBuffer)(uv_buf_t* buf, luaL_MemBuffer* mb) {
-  MEMBUFFER_SETREPLACE(mb, (void*)buf->base, buf->len, MEMORY_FUNCTION(mb_realloc_buf), NULL);
-  *buf = uv_buf_init(NULL, 0);
+void MEMORY_FUNCTION(buf_moveToMemBuffer)(uv_buf_t buf, luaL_MemBuffer* mb) {
+  MEMBUFFER_SETREPLACE(mb, (void*)buf.base, buf.len, MEMORY_FUNCTION(mb_realloc_buf), NULL);
 }
 
 /* }====================================================== */
@@ -214,11 +212,15 @@ void UTILS_PUSH_FUNCTION(uv_stat_t)(lua_State* L, const uv_stat_t* stat) {
 
 void UTILS_PUSH_FUNCTION(sockaddr)(lua_State* L, const struct sockaddr* addr, size_t len) {
   struct sockaddr_storage* addr_storage = SOCKADDR_FUNCTION(create)(L);
+  util_copySockAddrLen(addr, len, addr_storage);
+}
+
+void util_copySockAddrLen(const struct sockaddr* addr, size_t len, struct sockaddr_storage* storage) {
 #define MIN_LEN(a, b) ((a) > (b) ? (b) : (a))
-  memcpy((void*)addr_storage, (void*)addr, MIN_LEN(len, sizeof(struct sockaddr_storage)));
+  memcpy((void*)storage, (void*)addr, MIN_LEN(len, sizeof(struct sockaddr_storage)));
 #undef MIN_LEN
   if (len < sizeof(struct sockaddr_storage)) {
-    memset((void*)(((char*)addr_storage) + len), 0, sizeof(struct sockaddr_storage) - len);
+    memset((void*)(((char*)storage) + len), 0, sizeof(struct sockaddr_storage) - len);
   }
 }
 
@@ -234,7 +236,7 @@ void UTILS_PUSH_FUNCTION(physaddr)(lua_State* L, const char* addr) {
 #define SET_UV_INTERFACE_ADDRESS_T_BOOLEAN(name) \
   SET_FIELD(boolean, #name, addr->name)
 #define SET_UV_INTERFACE_ADDRESS_T_SOCKADDR(name) \
-  SET_FIELD_2(sockaddr, #name, (struct sockaddr*)&(addr->name), sizeof(addr->name))
+  SET_FIELD_2(lsockaddr, #name, (struct sockaddr*)&(addr->name), sizeof(addr->name))
 
 void UTILS_PUSH_FUNCTION(uv_interface_address_t)(lua_State* L, const uv_interface_address_t* addr) {
   lua_createtable(L, 0, 4);
@@ -251,7 +253,7 @@ void UTILS_PUSH_FUNCTION(uv_interface_address_t)(lua_State* L, const uv_interfac
 #define SET_ADDRINFO_STRING(name) \
   SET_FIELD(string, #name, info->ai_##name)
 #define SET_ADDRINFO_SOCKADDR(name) \
-  SET_FIELD_2(sockaddr, #name, info->ai_##name, info->ai_##name##len)
+  SET_FIELD_2(lsockaddr, #name, info->ai_##name, info->ai_##name##len)
 
 void UTILS_PUSH_FUNCTION(addrinfo)(lua_State* L, const struct addrinfo* info) {
   lua_createtable(L, 0, 6);

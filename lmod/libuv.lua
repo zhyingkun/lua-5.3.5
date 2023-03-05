@@ -152,7 +152,7 @@ local pipe = {}
 libuv.pipe = pipe
 
 ---@alias StatusPipeSignature fun(status:integer, handle:uv_pipe_t):void
----@alias PipeReadSignature fun(nread:integer, str:string | nil, handle:uv_pipe_t):void
+---@alias PipeReadSignature fun(nread:integer, str:luaL_MemBuffer | nil, handle:uv_pipe_t):void
 
 ---@class uv_pipe_t:uv_stream_t
 ---@field public open fun(self:uv_pipe_t, fd:integer):uv_pipe_t
@@ -170,8 +170,11 @@ libuv.pipe = pipe
 ---@field public listenStartAsync fun(self:uv_pipe_t, backlog:integer, callback:StatusPipeSignature):void @uv_stream_t
 ---@field public accept fun(self:uv_pipe_t, client:uv_pipe_t | nil):integer, uv_pipe_t @uv_stream_t
 ---@field public readStartAsync fun(self:uv_pipe_t, callback:PipeReadSignature):void @uv_stream_t
----@field public writeAsync fun(self:uv_pipe_t, data:string, callback:StatusPipeSignature):void @uv_stream_t
----@field public write2Async fun(self:uv_pipe_t, data:string, sendHandle:uv_stream_t, callback:StatusPipeSignature):void @uv_stream_t
+---@field public writeAsync fun(self:uv_pipe_t, data:string | luaL_MemBuffer, callback:StatusPipeSignature):void @uv_stream_t
+---@field public writeAsyncWait fun(self:uv_pipe_t, data:string | luaL_MemBuffer):integer @uv_stream_t
+---@field public write2Async fun(self:uv_pipe_t, data:string | luaL_MemBuffer, sendHandle:uv_stream_t, callback:StatusPipeSignature):void @uv_stream_t
+---@field public write2AsyncWait fun(self:uv_pipe_t, data:string | luaL_MemBuffer, sendHandle:uv_stream_t):integer @uv_stream_t
+---@field public tryWrite fun(self:uv_pipe_t, data:string | luaL_MemBuffer):integer @uv_stream_t
 
 ---@param ipc boolean
 ---@return uv_pipe_t
@@ -187,7 +190,7 @@ end
 ** =======================================================
 --]]
 
----@alias ReadCallbackSignature fun(nread:integer, str:string | nil, handle:uv_stream_t):void
+---@alias ReadCallbackSignature fun(nread:integer, str:luaL_MemBuffer | nil, handle:uv_stream_t):void
 ---@alias StatusStreamSignature fun(status:integer, handle:uv_stream_t):void
 
 ---@class uv_stream_t:uv_handle_t
@@ -197,11 +200,11 @@ end
 ---@field public accept fun(self:uv_stream_t, client:uv_stream_t | nil):integer, uv_stream_t
 ---@field public readStartAsync fun(self:uv_stream_t, callback:ReadCallbackSignature):void
 ---@field public readStop fun(self:uv_stream_t):void
----@field public writeAsync fun(self:uv_stream_t, data:string, callback:StatusStreamSignature | nil):void @callback version in child class
----@field public writeAsyncWait fun(self:uv_stream_t, data:string):integer
----@field public write2Async fun(self:uv_stream_t, data:string, sendHandle:uv_stream_t, callback:StatusStreamSignature | nil):void @callback version in child class
----@field public write2AsyncWait fun(self:uv_stream_t, data:string, sendHandle:uv_stream_t):integer
----@field public tryWrite fun(self:uv_stream_t, data:string):integer
+---@field public writeAsync fun(self:uv_stream_t, data:string | luaL_MemBuffer, callback:StatusStreamSignature | nil):void @callback version in child class
+---@field public writeAsyncWait fun(self:uv_stream_t, data:string | luaL_MemBuffer):integer
+---@field public write2Async fun(self:uv_stream_t, data:string | luaL_MemBuffer, sendHandle:uv_stream_t, callback:StatusStreamSignature | nil):void @callback version in child class
+---@field public write2AsyncWait fun(self:uv_stream_t, data:string | luaL_MemBuffer, sendHandle:uv_stream_t):integer
+---@field public tryWrite fun(self:uv_stream_t, data:string | luaL_MemBuffer):integer
 ---@field public isReadable fun(self:uv_stream_t):boolean
 ---@field public isWritable fun(self:uv_stream_t):boolean
 ---@field public setBlocking fun(self:uv_stream_t, block:boolean):void
@@ -220,7 +223,7 @@ local tcp = {}
 libuv.tcp = tcp
 
 ---@alias StatusTcpSignature fun(status:integer, handle:uv_tcp_t):void
----@alias TcpReadSignature fun(nread:integer, str:string | nil, handle:uv_tcp_t):void
+---@alias TcpReadSignature fun(nread:integer, str:luaL_MemBuffer | nil, handle:uv_tcp_t):void
 
 ---@class uv_tcp_t:uv_stream_t
 ---@field public bind fun(self:uv_tcp_t, addr:sockaddr, flags:libuv_tcp_flag | nil):uv_tcp_t
@@ -236,8 +239,11 @@ libuv.tcp = tcp
 ---@field public listenStartAsync fun(self:uv_tcp_t, backlog:integer, callback:StatusTcpSignature):void @uv_stream_t
 ---@field public accept fun(self:uv_tcp_t, client:uv_tcp_t | nil):integer, uv_tcp_t @uv_stream_t
 ---@field public readStartAsync fun(self:uv_tcp_t, callback:TcpReadSignature):void @uv_stream_t
----@field public writeAsync fun(self:uv_tcp_t, data:string, callback:StatusTcpSignature):void @uv_stream_t
----@field public write2Async fun(self:uv_tcp_t, data:string, sendHandle:uv_stream_t, callback:StatusTcpSignature):void @uv_stream_t
+---@field public writeAsync fun(self:uv_tcp_t, data:string | luaL_MemBuffer, callback:StatusTcpSignature):void @uv_stream_t
+---@field public writeAsyncWait fun(self:uv_tcp_t, data:string | luaL_MemBuffer):integer @uv_stream_t
+---@field public write2Async fun(self:uv_tcp_t, data:string | luaL_MemBuffer, sendHandle:uv_stream_t, callback:StatusTcpSignature):void @uv_stream_t
+---@field public write2AsyncWait fun(self:uv_tcp_t, data:string | luaL_MemBuffer, sendHandle:uv_stream_t):integer @uv_stream_t
+---@field public tryWrite fun(self:uv_tcp_t, data:string | luaL_MemBuffer):integer @uv_stream_t
 
 ---@overload fun():uv_tcp_t
 ---@overload fun(flags:libuv_address_family):uv_tcp_t
@@ -265,7 +271,7 @@ tcp.tcp_flag = libtcp.tcp_flag
 local tty = {}
 libuv.tty = tty
 
----@alias TtyReadSignature fun(nread:integer, str:string | nil, handle:uv_tty_t):void
+---@alias TtyReadSignature fun(nread:integer, str:luaL_MemBuffer | nil, handle:uv_tty_t):void
 ---@alias StatusTtySignature fun(status:integer, handle:uv_tty_t):void
 
 ---@class uv_tty_t:uv_stream_t
@@ -276,8 +282,11 @@ libuv.tty = tty
 ---@field public listenStartAsync fun(self:uv_tty_t, backlog:integer, callback:StatusTtySignature):void @uv_stream_t
 ---@field public accept fun(self:uv_tty_t, client:uv_tty_t | nil):integer, uv_tty_t @uv_stream_t
 ---@field public readStartAsync fun(self:uv_tty_t, callback:TtyReadSignature):void @uv_stream_t
----@field public writeAsync fun(self:uv_tty_t, data:string, callback:StatusTtySignature):void @uv_stream_t
----@field public write2Async fun(self:uv_tty_t, data:string, sendHandle:uv_stream_t, callback:StatusTtySignature):void @uv_stream_t
+---@field public writeAsync fun(self:uv_tty_t, data:string | luaL_MemBuffer, callback:StatusTtySignature):void @uv_stream_t
+---@field public writeAsyncWait fun(self:uv_tty_t, data:string | luaL_MemBuffer):integer @uv_stream_t
+---@field public write2Async fun(self:uv_tty_t, data:string | luaL_MemBuffer, sendHandle:uv_stream_t, callback:StatusTtySignature):void @uv_stream_t
+---@field public write2AsyncWait fun(self:uv_tty_t, data:string | luaL_MemBuffer, sendHandle:uv_stream_t):integer @uv_stream_t
+---@field public tryWrite fun(self:uv_tty_t, data:string | luaL_MemBuffer):integer @uv_stream_t
 
 ---@param fd integer
 ---@return uv_tty_t
@@ -706,7 +715,7 @@ local udp = {}
 libuv.udp = udp
 
 ---@alias SendCallbackSignature fun(status:integer, handle:uv_udp_t):void
----@alias RecvCallbackSignature fun(nread:integer, data:string | nil, addr:sockaddr | nil, flags:libuv_udp_flag, handle:uv_udp_t):void
+---@alias RecvCallbackSignature fun(nread:integer, data:luaL_MemBuffer | nil, addr:sockaddr | nil, flags:libuv_udp_flag, handle:uv_udp_t):void
 
 ---@class uv_udp_t:uv_handle_t
 ---@field public bind fun(self:uv_udp_t, addr:sockaddr, flags:libuv_udp_flag):uv_udp_t
@@ -719,9 +728,9 @@ libuv.udp = udp
 ---@field public setMulticastInterface fun(self:uv_udp_t, interfaceAddr:string):uv_udp_t
 ---@field public setBroadcast fun(self:uv_udp_t, on:boolean):uv_udp_t
 ---@field public setTtl fun(self:uv_udp_t, ttl:integer):uv_udp_t
----@field public sendAsync fun(self:uv_udp_t, data:string, addr:sockaddr, callback:SendCallbackSignature | nil):void
----@field public sendAsyncWait fun(self:uv_udp_t, data:string, addr:sockaddr):integer
----@field public trySend fun(self:uv_udp_t, data:string, addr:sockaddr):void
+---@field public sendAsync fun(self:uv_udp_t, data:string | luaL_MemBuffer, addr:sockaddr, callback:SendCallbackSignature | nil):void
+---@field public sendAsyncWait fun(self:uv_udp_t, data:string | luaL_MemBuffer, addr:sockaddr):integer
+---@field public trySend fun(self:uv_udp_t, data:string | luaL_MemBuffer, addr:sockaddr):void
 ---@field public recvStartAsync fun(self:uv_udp_t, callback:RecvCallbackSignature):void
 ---@field public recvStop fun(self:uv_udp_t):void
 ---@field public getSendQueueSize fun(self:uv_udp_t):integer
@@ -832,19 +841,19 @@ function fs.openAsyncWait(filePath, flags, mode)
 end
 ---@param fd integer
 ---@param offset integer
----@return string, integer
+---@return luaL_MemBuffer, integer
 function fs.read(fd, offset)
 	return libfs.read(loopCtx, fd, offset)
 end
 ---@param fd integer
 ---@param offset integer
----@param callback fun(str:string | nil, ret:integer):void
+---@param callback fun(str:luaL_MemBuffer | nil, ret:integer):void
 function fs.readAsync(fd, offset, callback)
 	libfs.read(loopCtx, fd, offset, callback)
 end
 ---@param fd integer
 ---@param offset integer
----@return string, integer
+---@return luaL_MemBuffer, integer
 function fs.readAsyncWait(fd, offset)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
@@ -874,21 +883,21 @@ function fs.unlinkAsyncWait(filePath)
 	return yield()
 end
 ---@param fd integer
----@param str string
+---@param str string | luaL_MemBuffer
 ---@param offset integer
 ---@return integer
 function fs.write(fd, str, offset)
 	return libfs.write(loopCtx, fd, str, offset)
 end
 ---@param fd integer
----@param str string
+---@param str string | luaL_MemBuffer
 ---@param offset integer
 ---@param callback StatusCallbackSignature
 function fs.writeAsync(fd, str, offset, callback)
 	libfs.write(loopCtx, fd, str, offset, callback)
 end
 ---@param fd integer
----@param str string
+---@param str string | luaL_MemBuffer
 ---@param offset integer
 ---@return integer
 function fs.writeAsyncWait(fd, str, offset)
@@ -1567,17 +1576,17 @@ function fs.linkChangeOwnAsyncWait(path, uid, gid)
 	return yield()
 end
 ---@param filePath string
----@return string | nil, integer
+---@return luaL_MemBuffer | nil, integer
 function fs.readFile(filePath)
 	return libfs.readFile(loopCtx, filePath)
 end
 ---@param filePath string
----@param callback fun(str:string | nil, ret:integer):void
+---@param callback fun(str:luaL_MemBuffer | nil, ret:integer):void
 function fs.readFileAsync(filePath, callback)
 	libfs.readFile(loopCtx, filePath, callback)
 end
 ---@param filePath string
----@return string | nil, integer
+---@return luaL_MemBuffer | nil, integer
 function fs.readFileAsyncWait(filePath)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
@@ -1587,19 +1596,19 @@ function fs.readFileAsyncWait(filePath)
 	return yield()
 end
 ---@param filePath string
----@param data string
+---@param data string | luaL_MemBuffer
 ---@return integer
 function fs.writeFile(filePath, data)
 	return libfs.writeFile(loopCtx, filePath, data)
 end
 ---@param filePath string
----@param data string
+---@param data string | luaL_MemBuffer
 ---@param callback StatusCallbackSignature
 function fs.writeFileAsync(filePath, data, callback)
 	libfs.writeFile(loopCtx, filePath, data, callback)
 end
 ---@param filePath string
----@param data string
+---@param data string | luaL_MemBuffer
 ---@return integer
 function fs.writeFileAsyncWait(filePath, data)
 	local co, main = running()

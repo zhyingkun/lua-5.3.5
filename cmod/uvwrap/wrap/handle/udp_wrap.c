@@ -102,7 +102,7 @@ static int UDP_FUNCTION(setTtl)(lua_State* L) {
 static void UDP_CALLBACK(sendAsync)(uv_udp_send_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
-  UNHOLD_REQ_PARAM(L, req, 1);
+  RELEASE_UNHOLD_REQ_BUFFER(L, req, 1);
   if (lua_isfunction(L, -1)) {
     lua_pushinteger(L, status);
     PUSH_REQ_PARAM_CLEAN(L, req, 2);
@@ -117,7 +117,7 @@ static void UDP_CALLBACK(sendAsync)(uv_udp_send_t* req, int status) {
 static int UDP_FUNCTION(sendAsync)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   size_t len;
-  const char* data = luaL_checklstring(L, 2, &len);
+  const char* data = luaL_checklbuffer(L, 2, &len);
   struct sockaddr* addr = luaL_checksockaddr(L, 3);
   IS_FUNCTION_OR_MAKE_NIL(L, 4);
 
@@ -133,7 +133,7 @@ static int UDP_FUNCTION(sendAsync)(lua_State* L) {
 
 static void UDP_CALLBACK(sendAsyncWait)(uv_udp_send_t* req, int status) {
   REQ_ASYNC_WAIT_PREPARE();
-  UNHOLD_REQ_PARAM(co, req, 2);
+  RELEASE_UNHOLD_REQ_BUFFER(co, req, 2);
   UNHOLD_REQ_PARAM(co, req, 3);
   REQ_ASYNC_WAIT_RESUME(sendAsyncWait);
 }
@@ -141,7 +141,7 @@ static int UDP_FUNCTION(sendAsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);
   uv_udp_t* handle = luaL_checkudp(co, 1);
   size_t len;
-  const char* data = luaL_checklstring(co, 2, &len);
+  const char* data = luaL_checklbuffer(co, 2, &len);
   struct sockaddr* addr = luaL_checksockaddr(co, 3);
 
   uv_udp_send_t* req = (uv_udp_send_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_udp_send_t));
@@ -157,15 +157,63 @@ static int UDP_FUNCTION(sendAsyncWait)(lua_State* co) {
 static int UDP_FUNCTION(trySend)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
   size_t len;
-  const char* data = luaL_checklstring(L, 2, &len);
+  const char* data = luaL_checklbuffer(L, 2, &len);
   struct sockaddr* addr = luaL_checksockaddr(L, 3);
 
   BUFS_INIT(data, len);
   int err = uv_udp_try_send(handle, BUFS, NBUFS, addr);
   lua_pushinteger(L, err);
+
+  luaL_releasebuffer(L, 2);
   return 0;
 }
 
+typedef struct {
+  size_t nread;
+  luaL_MemBuffer mb;
+  struct sockaddr_storage storage;
+  unsigned flags;
+  bool bHasAddr;
+} UdpRecvResult;
+static void urr_set(UdpRecvResult* urr, size_t nread, const uv_buf_t* buf, const struct sockaddr* addr, unsigned flags) {
+  urr->nread = nread;
+  if (urr->nread > 0) {
+    (void)MEMORY_FUNCTION(buf_moveToMemBuffer)(uv_buf_init(buf->base, nread), &urr->mb);
+  } else {
+    (void)MEMORY_FUNCTION(buf_free)(buf);
+  }
+  urr->bHasAddr = addr != NULL;
+  if (urr->bHasAddr) {
+    util_copySockAddr(addr, &urr->storage);
+  }
+  urr->flags = flags;
+}
+static int urr_push(UdpRecvResult* urr, lua_State* L) {
+  lua_pushinteger(L, urr->nread);
+  if (urr->nread > 0) {
+    luaL_pushmembuffer(L, &urr->mb);
+  } else {
+    lua_pushnil(L);
+  }
+  if (urr->bHasAddr) {
+    lua_pushsockaddr(L, (const struct sockaddr*)&urr->storage);
+  } else {
+    lua_pushnil(L);
+  }
+  lua_pushinteger(L, urr->flags);
+  return 4;
+}
+static void urr_clear(UdpRecvResult* urr) {
+  if (urr->nread > 0) {
+    urr->nread = 0;
+    MEMBUFFER_RELEASE(&urr->mb);
+  }
+}
+static int pushRecvResult(lua_State* L, ssize_t nread, const uv_buf_t* buf, const struct sockaddr* addr, unsigned flags) {
+  UdpRecvResult urr;
+  urr_set(&urr, nread, buf, addr, flags);
+  return urr_push(&urr, L);
+}
 // The flags parameter may be UV_UDP_PARTIAL if the buffer provided
 // by your allocator was not large enough to hold the data. In this
 // case the OS will discard the data that could not fit (That’s UDP for you!).
@@ -173,21 +221,9 @@ static void UDP_CALLBACK(recvStartAsync)(uv_udp_t* handle, ssize_t nread, const 
                                          unsigned flags) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_UDP_RECV_START);
-  lua_pushinteger(L, nread);
-  if (nread > 0) {
-    lua_pushlstring(L, buf->base, nread);
-  } else {
-    lua_pushnil(L);
-  }
-  (void)MEMORY_FUNCTION(buf_free)(buf);
-  if (addr != NULL) {
-    lua_pushsockaddr(L, addr, addr->sa_family == AF_INET ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6));
-  } else {
-    lua_pushnil(L);
-  }
-  lua_pushinteger(L, flags);
+  int n = pushRecvResult(L, nread, buf, addr, flags);
   PUSH_HANDLE_ITSELF(L, handle);
-  CALL_LUA_FUNCTION(L, 5);
+  CALL_LUA_FUNCTION(L, n + 1);
 }
 static int UDP_FUNCTION(recvStartAsync)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);

@@ -59,9 +59,10 @@ static int FS_FUNCTION(open)(lua_State* L) {
   RETURN_ONLY_ERR(req, 5);
 }
 
-#define PUSH_READ_STRING(L, req, buf) \
+#define PUSH_READ_BUFFER(L, req, buffer) \
   if (uv_fs_get_result(req) > 0) { \
-    lua_pushlstring(L, (char*)buf, uv_fs_get_result(req)); \
+    luaL_MemBuffer* mb = luaL_newmembuffer(L); \
+    (void)MEMORY_FUNCTION(buf_moveToMemBuffer)(uv_buf_init(buffer, uv_fs_get_result(req)), mb); \
   } else { \
     lua_pushnil(L); \
   }
@@ -72,7 +73,7 @@ static void FS_CALLBACK(read)(uv_fs_t* req) {
   PUSH_REQ_PARAM_CLEAN(L, req, 1);
   char* buffer = (char*)lua_touserdata(L, -1);
   lua_pop(L, 1); // pop the lightuserdata
-  PUSH_READ_STRING(L, req, buffer);
+  PUSH_READ_BUFFER(L, req, buffer);
   (void)MEMORY_FUNCTION(free_buf)(buffer);
 
   lua_pushinteger(L, uv_fs_get_result(req)); // result == 0 means EOF
@@ -96,7 +97,7 @@ static int FS_FUNCTION(read)(lua_State* L) {
     return 0;
   }
   if (!async) {
-    PUSH_READ_STRING(L, req, buffer);
+    PUSH_READ_BUFFER(L, req, buffer);
   }
   (void)MEMORY_FUNCTION(free_buf)(buffer);
   RETURN_RESULT(1);
@@ -806,7 +807,7 @@ static void FS_CALLBACK(readFile)(uv_fs_t* req) {
   PUSH_REQ_PARAM_CLEAN(L, req, 1);
   char* buffer = lua_touserdata(L, -1);
   lua_pop(L, 1); // pop the lightuserdata
-  PUSH_READ_STRING(L, req, buffer);
+  PUSH_READ_BUFFER(L, req, buffer);
   (void)MEMORY_FUNCTION(free_buf)(buffer);
 
   lua_pushinteger(L, result);
@@ -841,7 +842,7 @@ static int FS_FUNCTION(readFile)(lua_State* L) {
     return 0;
   }
   if (!async) {
-    PUSH_READ_STRING(L, req, buffer);
+    PUSH_READ_BUFFER(L, req, buffer);
   }
   (void)MEMORY_FUNCTION(free_buf)(buffer);
   FREE_REQ(req);
@@ -859,7 +860,7 @@ static int FS_FUNCTION(readFile)(lua_State* L) {
 static void FS_CALLBACK(writeFile)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
-  UNHOLD_REQ_PARAM(L, req, 1);
+  RELEASE_UNHOLD_REQ_BUFFER(L, req, 1);
 
   PUSH_REQ_PARAM_CLEAN(L, req, 2);
   uv_loop_t* loop = (uv_loop_t*)lua_touserdata(L, -1);
@@ -880,7 +881,7 @@ static int FS_FUNCTION(writeFile)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
   const char* filepath = luaL_checkstring(L, 2);
   size_t len = 0;
-  const char* str = luaL_checklstring(L, 3, &len);
+  const char* str = luaL_checklbuffer(L, 3, &len);
   int async = CHECK_IS_ASYNC(L, 4);
 
   int fd = aux_open_write(loop, filepath);

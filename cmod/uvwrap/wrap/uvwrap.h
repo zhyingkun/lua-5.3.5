@@ -215,7 +215,7 @@ void MEMORY_FUNCTION(free_buf)(void* ptr);
 
 void MEMORY_FUNCTION(buf_alloc)(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf);
 void MEMORY_FUNCTION(buf_free)(const uv_buf_t* buf);
-void MEMORY_FUNCTION(buf_moveToMemBuffer)(uv_buf_t* buf, luaL_MemBuffer* mb);
+void MEMORY_FUNCTION(buf_moveToMemBuffer)(uv_buf_t buf, luaL_MemBuffer* mb);
 
 /* }====================================================== */
 
@@ -244,6 +244,11 @@ extern lua_State* staticL;
 #define UNHOLD_REQ_PARAM(L, req, num) UNHOLD_LUA_OBJECT(L, req, REQ_BASE_INDEX + num)
 #define PUSH_REQ_PARAM(L, req, num) PUSH_HOLD_OBJECT(L, req, REQ_BASE_INDEX + num)
 #define PUSH_REQ_PARAM_CLEAN(L, req, num) PUSH_HOLD_OBJECT_CLEAN(L, req, REQ_BASE_INDEX + num)
+
+#define RELEASE_UNHOLD_REQ_BUFFER(L, req, num) \
+  PUSH_REQ_PARAM_CLEAN(L, req, num); \
+  luaL_releasebuffer(L, -1); \
+  lua_pop(L, 1)
 
 #define HOLD_HANDLE_CALLBACK(L, handle, num, idx) HOLD_LUA_OBJECT(L, handle, num, idx)
 #define UNHOLD_HANDLE_CALLBACK(L, handle, num) UNHOLD_LUA_OBJECT(L, handle, num)
@@ -367,9 +372,14 @@ extern lua_State* staticL;
 #define luaL_checkphysaddr(L, idx) (char*)luaL_checkudata(L, idx, UVWRAP_PHYSADDR_TYPE)
 #define luaL_checkstdiocont(L, idx) (uvwrap_stdio_container_t*)luaL_checkudata(L, idx, UVWRAP_STDIOCONT_TYPE)
 
+void util_copySockAddrLen(const struct sockaddr* addr, size_t len, struct sockaddr_storage* storage);
+#define util_copySockAddr(addr, storage) util_copySockAddrLen(addr, (addr)->sa_family == AF_INET ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6), storage)
+
 #define lua_pushuv_stat_t(L, stat) \
   (void)UTILS_PUSH_FUNCTION(uv_stat_t)(L, stat)
-#define lua_pushsockaddr(L, addr, len) \
+#define lua_pushsockaddr(L, addr) \
+  (void)UTILS_PUSH_FUNCTION(sockaddr)(L, addr, (addr)->sa_family == AF_INET ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6))
+#define lua_pushlsockaddr(L, addr, len) \
   (void)UTILS_PUSH_FUNCTION(sockaddr)(L, addr, len)
 #define lua_pushphysaddr(L, addr) \
   (void)UTILS_PUSH_FUNCTION(physaddr)(L, addr);

@@ -302,10 +302,15 @@ LUALIB_API void luaL_assertMemType(luaL_MemBuffer* mb, int count, ...);
 #define LUA_MEMBUFFER_TYPE "luaL_MemBuffer*"
 #define luaL_checkmembuffer(L, idx) (luaL_MemBuffer*)luaL_checkudata(L, idx, LUA_MEMBUFFER_TYPE)
 LUALIB_API luaL_MemBuffer* luaL_newmembuffer(lua_State* L);
-#define lua_pushmemtype(L, t) lua_pushinteger(L, t)
+#define luaL_pushmembuffer(L, mb) \
+  do { \
+    luaL_MemBuffer* nmb = luaL_newmembuffer(L); \
+    MEMBUFFER_MOVEINIT(mb, nmb); \
+  } while (false)
+#define luaL_pushmemtype(L, t) lua_pushinteger(L, t)
 LUALIB_API const void* luaL_checklbuffer(lua_State* L, int arg, size_t* len);
 LUALIB_API void luaL_releasebuffer(lua_State* L, int arg);
-LUALIB_API luaL_MemBuffer* luaL_tobuffer(lua_State* L, int arg, luaL_MemBuffer* buf);
+LUALIB_API luaL_MemBuffer* luaL_tomembuffer(lua_State* L, int arg, luaL_MemBuffer* buf);
 
 /* }====================================================== */
 

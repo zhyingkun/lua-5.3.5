@@ -91,18 +91,45 @@ static int STREAM_FUNCTION(accept)(lua_State* L) {
   return 2;
 }
 
-static void STREAM_CALLBACK(readStartAsync)(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
-  lua_State* L;
-  PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_STREAM_READ_START);
-  lua_pushinteger(L, nread); // nread == 0 means No data in buffer, nread == UV_EOF means EOF
-  if (nread > 0) {
-    lua_pushlstring(L, buf->base, nread);
+typedef struct {
+  size_t nread;
+  luaL_MemBuffer mb;
+} StreamReadResult;
+static void srr_set(StreamReadResult* srr, size_t nread, const uv_buf_t* buf) {
+  srr->nread = nread;
+  if (srr->nread > 0) {
+    (void)MEMORY_FUNCTION(buf_moveToMemBuffer)(uv_buf_init(buf->base, nread), &srr->mb);
+  } else {
+    (void)MEMORY_FUNCTION(buf_free)(buf);
+  }
+}
+static int srr_push(StreamReadResult* srr, lua_State* L) {
+  lua_pushinteger(L, srr->nread); // nread == 0 means No data in buffer, nread == UV_EOF means EOF
+  if (srr->nread > 0) {
+    luaL_pushmembuffer(L, &srr->mb);
   } else {
     lua_pushnil(L);
   }
-  (void)MEMORY_FUNCTION(buf_free)(buf);
+  return 2;
+}
+static void srr_clear(StreamReadResult* srr) {
+  if (srr->nread > 0) {
+    srr->nread = 0;
+    MEMBUFFER_RELEASE(&srr->mb);
+  }
+}
+static int pushReadResult(lua_State* L, ssize_t nread, const uv_buf_t* buf) {
+  StreamReadResult srr;
+  srr_set(&srr, nread, buf);
+  return srr_push(&srr, L);
+}
+static void STREAM_CALLBACK(readStartAsync)(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
+  lua_State* L;
+  PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_STREAM_READ_START);
+  int n = pushReadResult(L, nread, buf);
+  // (void)MEMORY_FUNCTION(buf_free)(buf); // buf will move to membuffer, so no need to free
   PUSH_HANDLE_ITSELF(L, handle);
-  CALL_LUA_FUNCTION(L, 3);
+  CALL_LUA_FUNCTION(L, n + 1);
 }
 static int STREAM_FUNCTION(readStartAsync)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
@@ -127,7 +154,7 @@ static int STREAM_FUNCTION(readStop)(lua_State* L) {
 static void STREAM_CALLBACK(writeAsync)(uv_write_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
-  UNHOLD_REQ_PARAM(L, req, 1);
+  RELEASE_UNHOLD_REQ_BUFFER(L, req, 1);
   if (lua_isfunction(L, -1)) {
     lua_pushinteger(L, status);
     PUSH_REQ_PARAM_CLEAN(L, req, 2);
@@ -142,7 +169,7 @@ static void STREAM_CALLBACK(writeAsync)(uv_write_t* req, int status) {
 static int STREAM_FUNCTION(writeAsync)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
   size_t len;
-  const char* data = luaL_checklstring(L, 2, &len);
+  const char* data = luaL_checklbuffer(L, 2, &len);
   IS_FUNCTION_OR_MAKE_NIL(L, 3);
 
   uv_write_t* req = (uv_write_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_write_t));
@@ -157,14 +184,14 @@ static int STREAM_FUNCTION(writeAsync)(lua_State* L) {
 
 static void STREAM_CALLBACK(writeAsyncWait)(uv_write_t* req, int status) {
   REQ_ASYNC_WAIT_PREPARE();
-  UNHOLD_REQ_PARAM(co, req, 2);
+  RELEASE_UNHOLD_REQ_BUFFER(co, req, 2);
   REQ_ASYNC_WAIT_RESUME(writeAsyncWait);
 }
 static int STREAM_FUNCTION(writeAsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);
   uv_stream_t* handle = luaL_checkstream(co, 1);
   size_t len;
-  const char* data = luaL_checklstring(co, 2, &len);
+  const char* data = luaL_checklbuffer(co, 2, &len);
 
   uv_write_t* req = (uv_write_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_write_t));
   BUFS_INIT(data, len);
@@ -178,7 +205,7 @@ static int STREAM_FUNCTION(writeAsyncWait)(lua_State* co) {
 static void STREAM_CALLBACK(write2Async)(uv_write_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
-  UNHOLD_REQ_PARAM(L, req, 1);
+  RELEASE_UNHOLD_REQ_BUFFER(L, req, 1);
   UNHOLD_REQ_PARAM(L, req, 2);
   if (lua_isfunction(L, -1)) {
     lua_pushinteger(L, status);
@@ -194,7 +221,7 @@ static void STREAM_CALLBACK(write2Async)(uv_write_t* req, int status) {
 static int STREAM_FUNCTION(write2Async)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
   size_t len;
-  const char* data = luaL_checklstring(L, 2, &len);
+  const char* data = luaL_checklbuffer(L, 2, &len);
   uv_stream_t* send_handle = luaL_checkstream(L, 3);
   IS_FUNCTION_OR_MAKE_NIL(L, 4);
 
@@ -211,7 +238,7 @@ static int STREAM_FUNCTION(write2Async)(lua_State* L) {
 
 static void STREAM_CALLBACK(write2AsyncWait)(uv_write_t* req, int status) {
   REQ_ASYNC_WAIT_PREPARE();
-  UNHOLD_REQ_PARAM(co, req, 2);
+  RELEASE_UNHOLD_REQ_BUFFER(co, req, 2);
   UNHOLD_REQ_PARAM(co, req, 3);
   REQ_ASYNC_WAIT_RESUME(write2AsyncWait);
 }
@@ -219,7 +246,7 @@ static int STREAM_FUNCTION(write2AsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);
   uv_stream_t* handle = luaL_checkstream(co, 1);
   size_t len;
-  const char* data = luaL_checklstring(co, 2, &len);
+  const char* data = luaL_checklbuffer(co, 2, &len);
   uv_stream_t* send_handle = luaL_checkstream(co, 3);
 
   uv_write_t* req = (uv_write_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_write_t));
@@ -235,11 +262,13 @@ static int STREAM_FUNCTION(write2AsyncWait)(lua_State* co) {
 static int STREAM_FUNCTION(tryWrite)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
   size_t len;
-  const char* data = luaL_checklstring(L, 2, &len);
+  const char* data = luaL_checklbuffer(L, 2, &len);
 
   BUFS_INIT(data, len);
   int err = uv_try_write(handle, BUFS, NBUFS);
   lua_pushinteger(L, err);
+
+  luaL_releasebuffer(L, 2);
   return 1;
 }
 

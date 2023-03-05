@@ -69,7 +69,7 @@ static int MEMBUF_FUNCTION(getSize)(lua_State* L) {
 
 static int MEMBUF_FUNCTION(getType)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
-  lua_pushmemtype(L, MEMBUFFER_TYPE(mb));
+  luaL_pushmemtype(L, MEMBUFFER_TYPE(mb));
   return 1;
 }
 
@@ -160,7 +160,7 @@ LUALIB_API void luaL_releasebuffer(lua_State* L, int arg) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, arg);
   MEMBUFFER_RELEASE(mb);
 }
-LUALIB_API luaL_MemBuffer* luaL_tobuffer(lua_State* L, int arg, luaL_MemBuffer* buf) {
+LUALIB_API luaL_MemBuffer* luaL_tomembuffer(lua_State* L, int arg, luaL_MemBuffer* buf) {
   if (lua_isstring(L, arg)) {
     size_t len;
     const char* ptr = lua_tolstring(L, arg, &len);
