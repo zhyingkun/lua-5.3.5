@@ -177,6 +177,7 @@ typedef struct {
 } UdpRecvResult;
 static void urr_set(UdpRecvResult* urr, size_t nread, const uv_buf_t* buf, const struct sockaddr* addr, unsigned flags) {
   urr->nread = nread;
+  MEMBUFFER_SETNULL(&urr->mb);
   if (urr->nread > 0) {
     (void)MEMORY_FUNCTION(buf_moveToMemBuffer)(uv_buf_init(buf->base, nread), &urr->mb);
   } else {

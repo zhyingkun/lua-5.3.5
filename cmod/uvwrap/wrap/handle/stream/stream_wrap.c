@@ -97,6 +97,7 @@ typedef struct {
 } StreamReadResult;
 static void srr_set(StreamReadResult* srr, size_t nread, const uv_buf_t* buf) {
   srr->nread = nread;
+  MEMBUFFER_SETNULL(&srr->mb);
   if (srr->nread > 0) {
     (void)MEMORY_FUNCTION(buf_moveToMemBuffer)(uv_buf_init(buf->base, nread), &srr->mb);
   } else {

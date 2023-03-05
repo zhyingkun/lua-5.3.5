@@ -241,6 +241,9 @@ LUALIB_API int luaL_isMemType(luaL_MemBuffer* mb, int count, ...);
 #define MEMBUFFER_IS_TYPE2(mb, t1, t2) luaL_isMemType(mb, 2, t1, t2)
 #define MEMBUFFER_IS_TYPE3(mb, t1, t2, t3) luaL_isMemType(mb, 3, t1, t2, t3)
 
+#define MEMBUFFER_HAS_DATA(mb) ((mb)->ptr != NULL && (mb)->sz > 0)
+#define MEMBUFFER_CAN_CACHE(mb) (MEMBUFFER_HAS_DATA(mb) && (mb)->release != NULL)
+
 LUALIB_API void luaL_assertMemType(luaL_MemBuffer* mb, int count, ...);
 
 #define MEMBUFFER_CHECK_TYPE(mb, t1) lua_assert(MEMBUFFER_TYPE(mb) == (t1))
@@ -275,6 +278,8 @@ LUALIB_API void luaL_assertMemType(luaL_MemBuffer* mb, int count, ...);
 #define MEMBUFFER_SETREPLACE(mb, ptr_, sz_, release_, ud_) \
   MEMBUFFER_CALLFREE(mb); \
   MEMBUFFER_SETINIT(mb, ptr_, sz_, release_, ud_)
+
+#define MEMBUFFER_SETINIT_SIZE_ONLY(mb, sz_) MEMBUFFER_SETINIT(mb, NULL, sz_, NULL, NULL)
 
 #define MEMBUFFER_GETCLEAR(mb, ptr_, sz_, release_, ud_) \
   ptr_ = (mb)->ptr; \

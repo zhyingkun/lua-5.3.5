@@ -26,7 +26,7 @@ void triangle_makeVertexBuffer(luaL_MemBuffer* mb, bcfx_VertexLayout* vl) {
        0.5f,  1.0f, 0.0f,  0.0f, 0.0f, 1.0f,  0.5f, 1.0f,    0.0f, 0.0f, 1.0f,
   };
   // clang-format on
-  MEMBUFFER_SETREPLACE(mb, Vertex, sizeof(Vertex), NULL, NULL);
+  MEMBUFFER_SETREPLACE_STATIC(mb, Vertex, sizeof(Vertex));
 }
 
 /* }====================================================== */
@@ -55,7 +55,7 @@ void square_makeVertexBuffer(luaL_MemBuffer* mb, bcfx_VertexLayout* vl) {
       -1.0f,  1.0f, 0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f,
   };
   // clang-format on
-  MEMBUFFER_SETREPLACE(mb, Vertex, sizeof(Vertex), NULL, NULL);
+  MEMBUFFER_SETREPLACE_STATIC(mb, Vertex, sizeof(Vertex));
 }
 
 /* }====================================================== */
@@ -89,7 +89,7 @@ void circle_makeVertexBuffer(luaL_MemBuffer* mb, bcfx_VertexLayout* vl) {
   // WorldSpace: +x to right, +y to front, +z to top, Current LocalSpace equals WorldSpace
   static float Vertex[(3 + 3 + 2) * 360];
   FillCircle(Vertex);
-  MEMBUFFER_SETREPLACE(mb, Vertex, sizeof(Vertex), NULL, NULL);
+  MEMBUFFER_SETREPLACE_STATIC(mb, Vertex, sizeof(Vertex));
 }
 
 /* }====================================================== */
@@ -142,7 +142,7 @@ void tetrahedron_makeVertexBuffer(luaL_MemBuffer* mb, bcfx_VertexLayout* vl) {
   // WorldSpace: +x to right, +y to front, +z to top, LocalSpace equals WorldSpace
   static float Vertex[(3 + 3 + 2) * 3 * 4];
   FillTetrahedron(Vertex);
-  MEMBUFFER_SETREPLACE(mb, Vertex, sizeof(Vertex), NULL, NULL);
+  MEMBUFFER_SETREPLACE_STATIC(mb, Vertex, sizeof(Vertex));
 }
 
 /* }====================================================== */
@@ -232,7 +232,7 @@ void cube_makeVertexBuffer(luaL_MemBuffer* mb, bcfx_VertexLayout* vl) {
   // WorldSpace: +x to right, +y to front, +z to top, Current LocalSpace equals WorldSpace
   static float Vertex[(3 + 3 + 2) * 6 * 6];
   FillCube(Vertex);
-  MEMBUFFER_SETREPLACE(mb, Vertex, sizeof(Vertex), NULL, NULL);
+  MEMBUFFER_SETREPLACE_STATIC(mb, Vertex, sizeof(Vertex));
 }
 
 /* }====================================================== */

@@ -23,10 +23,10 @@ static void luaL_pushmesh(lua_State* L, Mesh* mesh) {
 
   lua_createtable(L, 0, 2);
   luaL_MemBuffer* vmb = luaL_newmembuffer(L);
-  MEMBUFFER_SETREPLACE(vmb, vertexPtr, vertexSize, _releaseMeshMemory, NULL);
+  MEMBUFFER_SETINIT(vmb, vertexPtr, vertexSize, _releaseMeshMemory, NULL);
   lua_setfield(L, -2, "vertex");
   luaL_MemBuffer* imb = luaL_newmembuffer(L);
-  MEMBUFFER_SETREPLACE(imb, indexPtr, indexSize, _releaseMeshMemory, NULL);
+  MEMBUFFER_SETINIT(imb, indexPtr, indexSize, _releaseMeshMemory, NULL);
   lua_setfield(L, -2, "index");
 }
 

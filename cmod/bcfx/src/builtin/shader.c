@@ -41,12 +41,14 @@ bcfx_Handle builtin_createShader(bcfx_EBuiltinShaderType type) {
   bcfx_Handle vertexHandle = kInvalidHandle;
   bcfx_Handle fragmentHandle = kInvalidHandle;
   if (config->vertexCode) {
-    luaL_MemBuffer mb = {(void*)config->vertexCode, config->vertexSize, NULL, NULL};
-    vertexHandle = bcfx_createShader(&mb, ST_Vertex);
+    luaL_MemBuffer mb[1];
+    MEMBUFFER_SETINIT_STATIC(mb, config->vertexCode, config->vertexSize);
+    vertexHandle = bcfx_createShader(mb, ST_Vertex);
   }
   if (config->fragmentCode) {
-    luaL_MemBuffer mb = {(void*)config->fragmentCode, config->fragmentSize, NULL, NULL};
-    fragmentHandle = bcfx_createShader(&mb, ST_Fragment);
+    luaL_MemBuffer mb[1];
+    MEMBUFFER_SETINIT_STATIC(mb, config->fragmentCode, config->fragmentSize);
+    fragmentHandle = bcfx_createShader(mb, ST_Fragment);
   }
   return bcfx_createProgram(vertexHandle, fragmentHandle);
 }

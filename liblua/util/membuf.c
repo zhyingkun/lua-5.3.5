@@ -52,7 +52,7 @@ static void MEMBUF_FUNCTION(releaseBuffer)(const luaL_MemBuffer* mb) {
 }
 static int MEMBUF_FUNCTION(makeCopy)(lua_State* L) {
   luaL_MemBuffer* src = luaL_checkmembuffer(L, 1);
-  if (src->ptr != NULL && src->sz != 0) {
+  if (MEMBUFFER_HAS_DATA(src)) {
     void* ptr = malloc(src->sz);
     if (ptr != NULL) {
       memcpy(ptr, src->ptr, src->sz);

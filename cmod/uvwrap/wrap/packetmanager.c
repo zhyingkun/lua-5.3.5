@@ -80,8 +80,7 @@ static void pm_appendCache(PacketManager* pm) {
 }
 static void pm_addPackData(PacketManager* pm, luaL_MemBuffer* mb) {
   pm_appendCache(pm);
-  const bool bCanCache = MEMBUFFER_IS_TYPE2(mb, MT_Dynamic, MT_Static);
-  if (bCanCache) {
+  if (MEMBUFFER_CAN_CACHE(mb)) {
     luaBB_static(pm->bc, (uint8_t*)mb->ptr, (uint32_t)mb->sz, true, false);
     MEMBUFFER_MOVEINIT(mb, pm->cache);
   } else {

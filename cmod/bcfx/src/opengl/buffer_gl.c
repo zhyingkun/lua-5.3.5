@@ -1,7 +1,7 @@
 #include <common_gl.h>
 
 void gl_createBufferGPU(BufferGL* buf, luaL_MemBuffer* mem, GLenum target) {
-  buf->bIsDynamic = mem->ptr == NULL;
+  buf->bIsDynamic = MEMBUFFER_IS_SIZE_ONLY(mem);
   buf->size = mem->sz;
   GL_CHECK(glGenBuffers(1, &buf->id));
   GL_CHECK(glBindBuffer(target, buf->id));

@@ -937,7 +937,7 @@ end
 --]]
 
 ---@param handle Handle
----@param mb luaL_MemBuffer
+---@param mb string | luaL_MemBuffer
 function bcfx.updateShader(handle, mb)
 	libbcfx.updateShader(handle, mb)
 end

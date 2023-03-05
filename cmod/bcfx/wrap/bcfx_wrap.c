@@ -340,15 +340,10 @@ static int BCWRAP_FUNCTION(createDynamicIndexBuffer)(lua_State* L) {
   return 1;
 }
 static int BCWRAP_FUNCTION(createShader)(lua_State* L) {
-  luaL_MemBuffer buffer;
-  luaL_MemBuffer* mb = &buffer;
-  if (lua_isstring(L, 1)) {
-    size_t sz = 0;
-    void* ptr = (void*)lua_tolstring(L, 1, &sz);
-    MEMBUFFER_SETINIT(mb, ptr, sz, NULL, NULL);
+  luaL_MemBuffer buffer = MEMBUFFER_NULL;
+  luaL_MemBuffer* mb = luaL_tomembuffer(L, 1, &buffer);
+  if (mb == &buffer) {
     hold_frame_resourse(L, bcfx_frameId(), 1);
-  } else {
-    mb = luaL_checkmembuffer(L, 1);
   }
   bcfx_EShaderType type = luaL_checkshadertype(L, 2);
 
@@ -357,15 +352,10 @@ static int BCWRAP_FUNCTION(createShader)(lua_State* L) {
   return 1;
 }
 static int BCWRAP_FUNCTION(createIncludeShader)(lua_State* L) {
-  luaL_MemBuffer buffer;
-  luaL_MemBuffer* mb = &buffer;
-  if (lua_isstring(L, 1)) {
-    size_t sz = 0;
-    void* ptr = (void*)lua_tolstring(L, 1, &sz);
-    MEMBUFFER_SETINIT(mb, ptr, sz, NULL, NULL);
+  luaL_MemBuffer buffer = MEMBUFFER_NULL;
+  luaL_MemBuffer* mb = luaL_tomembuffer(L, 1, &buffer);
+  if (mb == &buffer) {
     hold_frame_resourse(L, bcfx_frameId(), 1);
-  } else {
-    mb = luaL_checkmembuffer(L, 1);
   }
   bcfx_EShaderType type = luaL_checkshadertype(L, 2);
   const char* path = luaL_checkstring(L, 3);
@@ -568,7 +558,11 @@ static int BCWRAP_FUNCTION(createDynamicTextureBuffer)(lua_State* L) {
 
 static int BCWRAP_FUNCTION(updateShader)(lua_State* L) {
   bcfx_Handle handle = luaL_checkhandle(L, 1);
-  luaL_MemBuffer* mb = luaL_checkmembuffer(L, 2);
+  luaL_MemBuffer buffer = MEMBUFFER_NULL;
+  luaL_MemBuffer* mb = luaL_tomembuffer(L, 2, &buffer);
+  if (mb == &buffer) {
+    hold_frame_resourse(L, bcfx_frameId(), 2);
+  }
 
   bcfx_updateShader(handle, mb);
   return 0;
