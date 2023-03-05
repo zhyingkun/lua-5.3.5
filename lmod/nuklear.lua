@@ -22,7 +22,7 @@ nk.font = font
 ---@field public begin fun(self:nk_font_atlas):void
 ---@field public add fun(self:nk_font_atlas, mem:string, height:number, cfg:nk_font_config):nk_font
 ---@field public addDefault fun(self:nk_font_atlas, height:number, cfg:nk_font_config):nk_font
----@field public bake fun(self:nk_font_atlas, format:nuklear_atlas_format):lightuserdata, lightuserdata, lightuserdata, integer, integer
+---@field public bake fun(self:nk_font_atlas, format:nuklear_atlas_format):luaL_MemBuffer, integer, integer
 ---@field public endAtlas fun(self:nk_font_atlas, handleId:integer):nk_draw_null_texture
 ---@field public cleanup fun(self:nk_font_atlas):void
 
@@ -942,21 +942,19 @@ nk.layout_format = libnk.layout_format
 ** =======================================================
 --]]
 
----@param cmds nk_buffer
----@param vbuf nk_buffer @vertices
----@param ebuf nk_buffer @elements
 ---@param nullTex nk_draw_null_texture
-function nk.convert(cmds, vbuf, ebuf, nullTex)
-	libnk.convert(curCtx, cmds, vbuf, ebuf, nullTex)
+---@param frameId integer
+---@return nk_buffer, nk_buffer @ vertices buffer, elements buffer
+function nk.convertAsMemBuffer(nullTex, frameId)
+	return libnk.convertAsMemBuffer(curCtx, nullTex, frameId)
 end
----@param cmds nk_buffer
 ---@param screenWidth integer
 ---@param screenHeight integer
 ---@param pixelWidth integer
 ---@param pixelHeight integer
 ---@param callback fun(offset:integer, elemCount:integer, textureHandle:integer, x:integer, y:integer, w:integer, h:integer):void
-function nk.drawForEach(cmds, screenWidth, screenHeight, pixelWidth, pixelHeight, callback)
-	libnk.drawForEach(curCtx, cmds, screenWidth, screenHeight, pixelWidth, pixelHeight, callback)
+function nk.drawForEach(screenWidth, screenHeight, pixelWidth, pixelHeight, callback)
+	libnk.drawForEach(curCtx, screenWidth, screenHeight, pixelWidth, pixelHeight, callback)
 end
 
 -- }======================================================
