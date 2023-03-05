@@ -102,7 +102,7 @@ _writer[128+11] = _writer[128+7]
 ---@class pbc:table
 local pbc = {}
 
----@param buffer string
+---@param buffer string | luaL_MemBuffer
 function pbc.register(buffer)
 	c._env_register(P, buffer)
 end
@@ -138,25 +138,26 @@ end
 
 ---@param message string
 ---@param tbl table
----@return string
+---@return luaL_MemBuffer
 function pbc.encode(message, tbl)
 	local wmsg = c._wmessage_new(P, message)
 	assert(wmsg, message)
 	encode_message(wmsg, message, tbl)
-	local s = c._wmessage_buffer_string(wmsg)
-	c._wmessage_delete(wmsg)
-	return s
+	-- local s = c._wmessage_buffer_string(wmsg)
+	-- c._wmessage_delete(wmsg)
+	-- return s
+	return c._wmessage_move_to_membuffer(wmsg)
 end
 
 ---@param typeName string
----@param buffer string
+---@param buffer string | luaL_MemBuffer
 ---@return table
 function pbc.decode(typeName, buffer)
 	return c.decode(P, typeName, buffer)
 end
 
 ---@param typeName string
----@param buffer string
+---@param buffer string | luaL_MemBuffer
 ---@return table
 function pbc.decodePure(typeName, buffer)
 	return c.decode_pure(P, typeName, buffer)

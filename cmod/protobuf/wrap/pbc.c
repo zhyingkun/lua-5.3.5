@@ -9,6 +9,7 @@ extern "C" {
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
+#include "luautil.h"
 #ifdef __cplusplus
 }
 #endif
@@ -52,11 +53,12 @@ static int _env_memsize(lua_State* L) {
 static int _env_register(lua_State* L) {
   pbc_env* env = (pbc_env*)checkuserdata(L, 1);
   size_t sz = 0;
-  const char* buffer = luaL_checklstring(L, 2, &sz);
+  const char* buffer = luaL_checklbuffer(L, 2, &sz);
   pbc_slice slice;
   slice.buffer = (void*)buffer;
   slice.len = (int)sz;
   int ret = pbc_register(env, &slice);
+  luaL_releasebuffer(L, 2);
 
   if (ret) {
     return luaL_error(L, "register fail");
@@ -232,6 +234,25 @@ static int _wmessage_buffer_string(lua_State* L) {
   pbc_wmessage* m = (pbc_wmessage*)checkuserdata(L, 1);
   pbc_wmessage_buffer(m, &slice);
   lua_pushlstring(L, (const char*)slice.buffer, slice.len);
+  return 1;
+}
+
+static void* _wmessage_free(void* ud, void* ptr, size_t nsz) {
+  if (nsz == 0) {
+    pbc_wmessage* m = (pbc_wmessage*)ud;
+    lua_assert(m != NULL);
+    pbc_wmessage_delete(m);
+  }
+  // do not support copy
+  return NULL;
+}
+static int _wmessage_move_to_membuffer(lua_State* L) {
+  pbc_slice slice;
+  pbc_wmessage* m = (pbc_wmessage*)checkuserdata(L, 1);
+  pbc_wmessage_buffer(m, &slice);
+  lua_pushlstring(L, (const char*)slice.buffer, slice.len);
+  luaL_MemBuffer* mb = luaL_newmembuffer(L);
+  MEMBUFFER_SETINIT(mb, slice.buffer, slice.len, _wmessage_free, m);
   return 1;
 }
 
@@ -1067,12 +1088,11 @@ static int l_pbc_decode_pure(lua_State* L) {
   struct pbc_env* env = (struct pbc_env*)checkuserdata(L, 1);
   const char* type = luaL_checkstring(L, 2);
   pbc_slice slice;
-  size_t len;
-  slice.buffer = (void*)luaL_checklstring(L, 3, &len);
-  slice.len = (int)len;
+  slice.buffer = (void*)luaL_checklbuffer(L, 3, &slice.len);
   lua_newtable(L);
   UD ud = {L, env};
   int n = pbc_decode(env, type, &slice, l_pbc_decode_pure_cb, (void*)&ud);
+  luaL_releasebuffer(L, 3);
   if (n < 0) {
     return 0;
   }
@@ -1177,6 +1197,7 @@ LUAMOD_API int luaopen_libprotobuf(lua_State* L) {
       {"_wmessage_int", _wmessage_int},
       {"_wmessage_buffer", _wmessage_buffer},
       {"_wmessage_buffer_string", _wmessage_buffer_string},
+      {"_wmessage_move_to_membuffer", _wmessage_move_to_membuffer},
       {"_pattern_new", _pattern_new},
       {"_pattern_delete", _pattern_delete},
       {"_pattern_size", _pattern_size},
