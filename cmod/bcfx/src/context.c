@@ -12,6 +12,7 @@
 #define CHECK_HANDLE_IF_VALID(handle, targetType) assert((handle) == kInvalidHandle || (HANDLE_TYPE(handle) == (targetType) && HANDLE_ISVALID(handle)))
 
 #define CHECK_MEMBUFFER_HAS_DATA(mb) assert(MEMBUFFER_HAS_DATA(mb))
+#define CHECK_MEMBUFFER_HAS_DATA_ZERO(mb) assert((mb)->ptr != NULL)
 
 #define CALL_RENDERER(func, ...) renderCtx->func(renderCtx, ##__VA_ARGS__)
 
@@ -561,7 +562,7 @@ void ctx_updateProgram(Context* ctx, bcfx_Handle handle, bcfx_Handle vs, bcfx_Ha
 
 void ctx_updateDynamicBuffer(Context* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem) {
   CHECK_HANDLE_VALID(handle, HT_VertexBuffer);
-  CHECK_MEMBUFFER_HAS_DATA(mem);
+  CHECK_MEMBUFFER_HAS_DATA_ZERO(mem);
   CommandParam* param = ctx_addCommand(ctx, CT_UpdateBuffer, handle);
   param->cub.offset = offset;
   MEMBUFFER_MOVEINIT(mem, &param->cub.mem);
