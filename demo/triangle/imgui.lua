@@ -121,17 +121,8 @@ local imgui = {}
 local myFont
 local nullTex
 
-local vbuf1
-local ebuf1
-local vbuf2
-local ebuf2
-
-local cmds
-
 local vertexHandle
 local indexHandle
-local vertexMemBuffer
-local indexMemBuffer
 local uniformTex
 local samplerHandle
 local imguiShader
@@ -148,9 +139,7 @@ function imgui.setup(mainWin_)
 	atlas:begin()
 	local cfg = font.Config()
 	myFont = atlas:addDefault(22, cfg)
-	local image, release, ud, width, height = atlas:bake(1)
-	-- bcfx.utils.imageWrite("zykTest.png", width, height, 4, image)
-	local mb = util.MemBuffer(image, width * height * 4, release, ud)
+	local mb, width, height = atlas:bake(font.atlas_format.RGBA32)
 	mb = bcfx.image.imageFlipVertical(mb, width, height)
 	local imageHandle = bcfx.createTexture2D(bcfx.texture_format.RGBA8, mb, width, height)
 	nullTex = atlas:endAtlas(imageHandle)
@@ -167,18 +156,16 @@ function imgui.setup(mainWin_)
 	local ctx = nk.Context(myFont)
 	nk.setContext(ctx)
 
-	cmds = nk.Buffer()
-	local vsize = 4 * 1024 * 1024
-	local esize = 4 * 1024 * 1024
-
 	local layout = bcfx.VertexLayout()
 	layout:addAttrib(vertex_attrib.Position, 2, attrib_type.Float, false)
 	layout:addAttrib(vertex_attrib.TexCoord0, 2, attrib_type.Float, false)
 	layout:addAttrib(vertex_attrib.Color0, 4, attrib_type.Uint8, true)
+
+	-- TODO: Using dynamic size for this two Buffer
+	local vsize = 4 * 1024 * 1024
+	local esize = 4 * 1024 * 1024
 	vertexHandle = bcfx.createDynamicVertexBuffer(vsize, layout)
 	indexHandle = bcfx.createDynamicIndexBuffer(esize, index_type.Uint16)
-	vertexMemBuffer = util.MemBuffer()
-	indexMemBuffer = util.MemBuffer()
 
 	uniformTex = bcfx.createUniform("Texture", bcfx.uniform_type.Sampler2D)
 	imguiShader = require("loader").LoadProgram("imgui")
@@ -222,11 +209,6 @@ function imgui.setup(mainWin_)
 		dstRGB = blend_func.OneMinusSrcAlpha,
 		dstAlpha = blend_func.OneMinusSrcAlpha,
 	})
-
-	vbuf1 = nk.Buffer(vsize)
-	ebuf1 = nk.Buffer(esize)
-	vbuf2 = nk.Buffer(vsize)
-	ebuf2 = nk.Buffer(esize)
 
 	-- bcfx.setViewDebug(255, bcfx.debug.WIREFRAME)
 	_img_ = nk.Image(_imgRT_)
@@ -348,23 +330,9 @@ function imgui.tick(delta)
 	nk.endWindow()
 	nk.stylePopStyleItem()
 
-	local vbuf, ebuf
-	if bcfx.frameId() % 2 == 0 then
-		vbuf = vbuf1
-		ebuf = ebuf1
-	else
-		vbuf = vbuf2
-		ebuf = ebuf2
-	end
-	vbuf:clear()
-	ebuf:clear()
-
-	nk.convert(cmds, vbuf, ebuf, nullTex)
-
-	vertexMemBuffer:setReplace(vbuf:frontBufferPtr(), vbuf:frontBufferAllocated()) -- 
-	indexMemBuffer:setReplace(ebuf:frontBufferPtr(), ebuf:frontBufferAllocated()) -- 
-	bcfx.updateDynamicBuffer(vertexHandle, 0, vertexMemBuffer)
-	bcfx.updateDynamicBuffer(indexHandle, 0, indexMemBuffer)
+	local vmb, imb = nk.convertAsMemBuffer(nullTex, bcfx.frameId())
+	bcfx.updateDynamicBuffer(vertexHandle, 0, vmb)
+	bcfx.updateDynamicBuffer(indexHandle, 0, imb)
 
 	bcfx.setVertexBuffer(0, vertexHandle)
 	bcfx.setState(state, bcfx.color.black)
@@ -374,7 +342,7 @@ function imgui.tick(delta)
 
 	local screenWidth, screenHeight = glfw.getWindowSize(mainWin)
 
-	nk.drawForEach(cmds, screenWidth, screenHeight, pixelWidth, pixelHeight, function(offset, count, texture, x, y, w, h)
+	nk.drawForEach(screenWidth, screenHeight, pixelWidth, pixelHeight, function(offset, count, texture, x, y, w, h)
 		bcfx.setIndexBuffer(indexHandle, offset, count)
 		bcfx.setTexture(0, uniformTex, texture, samplerHandle)
 		bcfx.setScissor(x, y, w, h) -- in pixel coordinate
@@ -387,7 +355,6 @@ function imgui.tick(delta)
 	--]]
 
 	nk.clear()
-	cmds:clear()
 end
 
 
