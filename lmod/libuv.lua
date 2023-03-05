@@ -2453,13 +2453,13 @@ end
 ** =======================================================
 --]]
 
----@alias NextPacketSignature fun(self:PacketManager):string | nil
+---@alias NextPacketSignature fun(self:PacketManager):string | luaL_MemBuffer | nil
 
 ---@class PacketManager:userdata
----@field public packPacket fun(self:PacketManager, data:string):string
----@field public addPackData fun(self:PacketManager, packData:string):void
----@field public getPacket fun(self:PacketManager):libuv_packet_status, string
----@field public eachPacket fun(self:PacketManager):NextPacketSignature, PacketManager
+---@field public packPacket fun(self:PacketManager, data:string | luaL_MemBuffer, bUseString:boolean):string | luaL_MemBuffer @ Must using the return MemBuffer before next call to PacketManager
+---@field public addPackData fun(self:PacketManager, packData:string | luaL_MemBuffer):void
+---@field public getPacket fun(self:PacketManager, bUseString:boolean):libuv_packet_status, string | luaL_MemBuffer @ Must using the return MemBuffer before next call to PacketManager
+---@field public eachPacket fun(self:PacketManager, bUseString:boolean):NextPacketSignature, PacketManager
 ---@field public getRemainForRead fun(self:PacketManager):integer
 
 ---@type PacketManager

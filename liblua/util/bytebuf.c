@@ -175,18 +175,12 @@ LUALIB_API void luaBB_unreadbytes(luaL_ByteBuffer* b, uint32_t len) {
 }
 
 LUALIB_API void luaBB_flushread(luaL_ByteBuffer* b) {
-  if (b->bConst || b->hadRead == 0) {
-    return;
-  }
   b->n -= b->hadRead;
   b->deleted += b->hadRead;
   b->hadRead = 0;
 }
 
 LUALIB_API void luaBB_clear(luaL_ByteBuffer* b) {
-  if (b->bConst) {
-    return;
-  }
   b->n = 0;
   b->hadRead = 0;
   b->deleted = 0;

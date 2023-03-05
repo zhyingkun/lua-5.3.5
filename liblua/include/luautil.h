@@ -147,8 +147,8 @@ typedef struct {
   uint32_t n; /* number of characters in buffer */
   uint32_t hadRead;
   uint32_t deleted;
-  bool bStatic;
-  bool bConst;
+  bool bStatic; /* true for couldn't reallocate the buffer*/
+  bool bConst; /* true for doesn't support append data */
 } luaL_ByteBuffer;
 
 LUALIB_API void luaBB_init(luaL_ByteBuffer* b, uint32_t size);
