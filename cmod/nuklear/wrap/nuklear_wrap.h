@@ -98,9 +98,17 @@ void NKFONTCFG_FUNCTION(init)(lua_State* L);
 #define luaL_checkbuffer(L, idx) (nk_buffer*)luaL_checkudata(L, idx, NUKLEAR_BUFFER_TYPE)
 void NKBUFFER_FUNCTION(init)(lua_State* L);
 
+typedef struct {
+  nk_context ctx[1];
+  nk_buffer cmds[1];
+  nk_buffer vertices[2]; // for double buffer
+  nk_buffer elements[2];
+} nk_context_wrap;
+
 #define NUKLEAR_CONTEXT_TYPE "nk_context*"
 #define NKCONTEXT_FUNCTION(name) nuklear_context_wrap_##name
 #define luaL_checkcontext(L, idx) (nk_context*)luaL_checkudata(L, idx, NUKLEAR_CONTEXT_TYPE)
+#define luaL_checkcontextwrap(L, idx) (nk_context_wrap*)luaL_checkudata(L, idx, NUKLEAR_CONTEXT_TYPE)
 void NKCONTEXT_FUNCTION(init)(lua_State* L);
 
 #define NUKLEAR_IMAGE_TYPE "nk_image*"

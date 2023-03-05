@@ -30,18 +30,33 @@ static int NKFONTATLAS_FUNCTION(addDefault)(lua_State* L) {
   lua_pushlightuserdata(L, (void*)font);
   return 1;
 }
+typedef struct {
+  nk_allocator allocator;
+  int width, height;
+} AtlasAllocator;
+static void NKFONTATLAS_FUNCTION(releaseAtlas)(const luaL_MemBuffer* mb) {
+  AtlasAllocator* aa = (AtlasAllocator*)mb->ud;
+  aa->allocator.free(aa->allocator.userdata, mb->ptr);
+  (void)NKWRAP_FUNCTION(free)(aa);
+}
 static int NKFONTATLAS_FUNCTION(bake)(lua_State* L) {
   nk_font_atlas* atlas = luaL_checknkfontatlas(L, 1);
   nk_font_atlas_format format = luaL_checknkfontatlasformat(L, 2);
+
   int width, height;
   const void* image = nk_font_atlas_bake(atlas, &width, &height, format);
-  nk_allocator allocator = nk_font_atlas_move_pixel(atlas, NULL);
-  lua_pushlightuserdata(L, (void*)image);
-  lua_pushlightuserdata(L, allocator.free);
-  lua_pushlightuserdata(L, allocator.userdata.ptr);
+  const int pixelLen = format == NK_FONT_ATLAS_RGBA32 ? 4 : 1;
+  const size_t len = width * height * pixelLen;
+  AtlasAllocator* aa = (AtlasAllocator*)NKWRAP_FUNCTION(malloc)(sizeof(AtlasAllocator));
+  aa->allocator = nk_font_atlas_move_pixel(atlas, NULL);
+  aa->width = width;
+  aa->height = height;
+
+  luaL_MemBuffer* mb = luaL_newmembuffer(L);
+  MEMBUFFER_SETINIT(mb, image, len, NKFONTATLAS_FUNCTION(releaseAtlas), aa);
   lua_pushinteger(L, width);
   lua_pushinteger(L, height);
-  return 5;
+  return 3;
 }
 static int NKFONTATLAS_FUNCTION(endAtlas)(lua_State* L) {
   nk_font_atlas* atlas = luaL_checknkfontatlas(L, 1);
@@ -63,7 +78,7 @@ static int NKFONTATLAS_FUNCTION(__gc)(lua_State* L) {
 }
 
 #define EMPLACE_NKFONTATLAS_FUNCTION(name) \
-  { #name, NKFONTATLAS_FUNCTION(name) }
+  { "" #name, NKFONTATLAS_FUNCTION(name) }
 static const luaL_Reg metafuncs[] = {
     EMPLACE_NKFONTATLAS_FUNCTION(begin),
     EMPLACE_NKFONTATLAS_FUNCTION(add),

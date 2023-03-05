@@ -8,14 +8,20 @@
 */
 
 static int NKCONTEXT_FUNCTION(free)(lua_State* L) {
-  nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_free(ctx);
+  nk_context_wrap* wrap = luaL_checkcontextwrap(L, 1);
+  nk_buffer_free(wrap->cmds);
+  nk_buffer_free(&wrap->vertices[0]);
+  nk_buffer_free(&wrap->vertices[1]);
+  nk_buffer_free(&wrap->elements[0]);
+  nk_buffer_free(&wrap->elements[1]);
+  nk_free(wrap->ctx);
   return 0;
 }
 
 static int NKCONTEXT_FUNCTION(clear)(lua_State* L) {
-  nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_clear(ctx);
+  nk_context_wrap* wrap = luaL_checkcontextwrap(L, 1);
+  nk_buffer_clear(wrap->cmds);
+  nk_clear(wrap->ctx);
   return 0;
 }
 
@@ -37,7 +43,7 @@ static int NKCONTEXT_FUNCTION(__gc)(lua_State* L) {
 }
 
 #define EMPLACE_NKCONTEXT_FUNCTION(name) \
-  { #name, NKCONTEXT_FUNCTION(name) }
+  { "" #name, NKCONTEXT_FUNCTION(name) }
 static const luaL_Reg metafuncs[] = {
     EMPLACE_NKCONTEXT_FUNCTION(free),
     EMPLACE_NKCONTEXT_FUNCTION(clear),
@@ -49,11 +55,16 @@ static const luaL_Reg metafuncs[] = {
 static int NKCONTEXT_FUNCTION(Context)(lua_State* L) {
   nk_font* font = luaL_checknkfont(L, 1);
 
-  nk_context* ctx = (nk_context*)lua_newuserdata(L, sizeof(nk_context));
+  nk_context_wrap* wrap = (nk_context_wrap*)lua_newuserdata(L, sizeof(nk_context_wrap));
   luaL_setmetatable(L, NUKLEAR_CONTEXT_TYPE);
-  nk_init_default(ctx, &font->handle);
+  nk_init_default(wrap->ctx, &font->handle);
   // nk_init_fixed
   // nk_init
+  nk_buffer_init_default(wrap->cmds);
+  nk_buffer_init_default(&wrap->vertices[0]);
+  nk_buffer_init_default(&wrap->vertices[1]);
+  nk_buffer_init_default(&wrap->elements[0]);
+  nk_buffer_init_default(&wrap->elements[1]);
   return 1;
 }
 

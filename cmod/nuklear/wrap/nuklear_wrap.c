@@ -12,13 +12,7 @@
 ** =======================================================
 */
 
-static int NKWRAP_FUNCTION(convert)(lua_State* L) {
-  nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_buffer* cmds = luaL_checkbuffer(L, 2);
-  nk_buffer* vertices = luaL_checkbuffer(L, 3);
-  nk_buffer* elements = luaL_checkbuffer(L, 4);
-  nk_draw_null_texture* nullTex = luaL_checknkdrawnulltexture(L, 5);
-
+static void _convertInternal(lua_State* L, nk_context* ctx, nk_buffer* cmds, nk_buffer* vertices, nk_buffer* elements, nk_draw_null_texture* nullTex) {
   typedef struct {
     float position[2];
     float uv[2];
@@ -52,7 +46,7 @@ static int NKWRAP_FUNCTION(convert)(lua_State* L) {
         "VertexBufferFull",
         "ElementBufferFull",
     };
-    return luaL_error(L, "Convert nuklear draw command failed: %s", convertMessage[ret]);
+    luaL_error(L, "Convert nuklear draw command failed: %s", convertMessage[ret]);
   }
   /*
   printf("VertexBuffer and IndexBuffer:\n");
@@ -75,7 +69,43 @@ static int NKWRAP_FUNCTION(convert)(lua_State* L) {
     printf("triangle: %d, %d, %d\n", indices[i * 3], indices[i * 3 + 1], indices[i * 3 + 2]);
   }
   */
+}
+/*
+static int NKWRAP_FUNCTION(convert)(lua_State* L) {
+  nk_context* ctx = luaL_checkcontext(L, 1);
+  nk_buffer* cmds = luaL_checkbuffer(L, 2);
+  nk_buffer* vertices = luaL_checkbuffer(L, 3);
+  nk_buffer* elements = luaL_checkbuffer(L, 4);
+  nk_draw_null_texture* nullTex = luaL_checknkdrawnulltexture(L, 5);
+  _convertInternal(L, ctx, cmds, vertices, elements, nullTex);
   return 0;
+}
+*/
+static luaL_MemBuffer* _findOrAddMemBuffer(lua_State* L, int idx) {
+  void* ptr = (void*)(((char*)_findOrAddMemBuffer) + idx);
+  if (lua_rawgetp(L, LUA_REGISTRYINDEX, ptr) == LUA_TNIL) {
+    lua_pop(L, 1);
+    luaL_newmembuffer(L);
+    lua_pushvalue(L, -1);
+    lua_rawsetp(L, LUA_REGISTRYINDEX, ptr);
+  }
+  return luaL_checkmembuffer(L, -1);
+}
+static int NKWRAP_FUNCTION(convertAsMemBuffer)(lua_State* L) {
+  nk_context_wrap* wrap = luaL_checkcontextwrap(L, 1);
+  nk_draw_null_texture* nullTex = luaL_checknkdrawnulltexture(L, 2);
+  uint32_t frameId = (uint32_t)luaL_checkinteger(L, 3);
+  uint32_t idx = frameId % 2;
+  nk_buffer* vertices = &wrap->vertices[idx];
+  nk_buffer* elements = &wrap->elements[idx];
+  nk_buffer_clear(vertices);
+  nk_buffer_clear(elements);
+  _convertInternal(L, wrap->ctx, wrap->cmds, vertices, elements, nullTex);
+  luaL_MemBuffer* vmb = _findOrAddMemBuffer(L, 0);
+  luaL_MemBuffer* emb = _findOrAddMemBuffer(L, 1);
+  MEMBUFFER_SETREPLACE_REF(vmb, nk_buffer_memory(vertices), vertices->allocated);
+  MEMBUFFER_SETREPLACE_REF(emb, nk_buffer_memory(elements), elements->allocated);
+  return 2;
 }
 
 static void nk_rect_scale(nk_rect* rect, float xScale, float yScale) {
@@ -85,13 +115,14 @@ static void nk_rect_scale(nk_rect* rect, float xScale, float yScale) {
   rect->h *= yScale;
 }
 static int NKWRAP_FUNCTION(drawForEach)(lua_State* L) {
-  nk_context* ctx = luaL_checkcontext(L, 1);
-  nk_buffer* cmds = luaL_checkbuffer(L, 2);
-  uint16_t screenWidth = luaL_checkinteger(L, 3);
-  uint16_t screenHeight = luaL_checkinteger(L, 4);
-  uint16_t pixelWidth = luaL_checkinteger(L, 5);
-  uint16_t pixelHeight = luaL_checkinteger(L, 6);
-#define CALLBACK_IDX 7
+  nk_context_wrap* wrap = luaL_checkcontextwrap(L, 1);
+  nk_context* ctx = wrap->ctx;
+  nk_buffer* cmds = wrap->cmds;
+  uint16_t screenWidth = luaL_checkinteger(L, 2);
+  uint16_t screenHeight = luaL_checkinteger(L, 3);
+  uint16_t pixelWidth = luaL_checkinteger(L, 4);
+  uint16_t pixelHeight = luaL_checkinteger(L, 5);
+#define CALLBACK_IDX 6
   luaL_checktype(L, CALLBACK_IDX, LUA_TFUNCTION);
 
   nk_rect viewPort = nk_make_rect(0.0, 0.0, (float)screenWidth, (float)screenHeight);
@@ -1360,7 +1391,8 @@ static int NKWRAP_FUNCTION(menu_end)(lua_State* L) {
   { "" #name, NKWRAP_FUNCTION(name) }
 static const luaL_Reg wrap_funcs[] = {
     /* Drawing */
-    EMPLACE_NKWRAP_FUNCTION(convert),
+    // EMPLACE_NKWRAP_FUNCTION(convert),
+    EMPLACE_NKWRAP_FUNCTION(convertAsMemBuffer),
     EMPLACE_NKWRAP_FUNCTION(drawForEach),
     /* ListView */
     EMPLACE_NKWRAP_FUNCTION(list_view_begin),
