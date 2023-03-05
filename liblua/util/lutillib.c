@@ -49,7 +49,7 @@ static int util_setErrorMessageHandler(lua_State* L) {
 ** MemBuffer
 ** =======================================================
 */
-
+/*
 static int util_MemBuffer(lua_State* L) {
   void* ptr = luaL_optlightuserdata(L, 1, NULL);
   size_t sz = luaL_optinteger(L, 2, 0);
@@ -60,7 +60,7 @@ static int util_MemBuffer(lua_State* L) {
   MEMBUFFER_SETINIT(mb, ptr, sz, release, ud);
   return 1;
 }
-
+*/
 /* }====================================================== */
 
 /*
@@ -83,7 +83,7 @@ static int util_printFinish(lua_State* L) {
 
 static const luaL_Reg util_funcs[] = {
     {"setErrorMessageHandler", util_setErrorMessageHandler},
-    {"MemBuffer", util_MemBuffer},
+    // {"MemBuffer", util_MemBuffer},
     {"printBuffer", util_printBuffer},
     {"printFinish", util_printFinish},
     {NULL, NULL},
