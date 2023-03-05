@@ -204,14 +204,15 @@ LUALIB_API uint32_t luaBB_getremainforwrite(luaL_ByteBuffer* b);
 ** =======================================================
 */
 
-typedef void* (*luaL_MemRealloc)(void* ud, void* ptr, size_t nsz);
+typedef struct luaL_MemBuffer luaL_MemBuffer;
+typedef void (*luaL_MemRelease)(const luaL_MemBuffer* mb);
 
-typedef struct {
+struct luaL_MemBuffer {
   void* ptr; // constant buffer, do not change data in the buffer memory
   size_t sz; // how many 'byte' in 'ptr', maybe 'sz' less than 'the real allocate size'
-  luaL_MemRealloc realloc; // using 'realloc' instead of 'free' just for duplicate itself
+  luaL_MemRelease release; // just for 'free' the 'ptr' buffer
   void* ud;
-} luaL_MemBuffer;
+};
 
 typedef enum {
   MT_Null,
@@ -221,13 +222,13 @@ typedef enum {
   MT_Dynamic,
 } luaL_MemType;
 
-LUALIB_API void* luaL_staticMemBuffer(void* ud, void* ptr, size_t nsz);
+LUALIB_API void luaL_staticMemBuffer(const luaL_MemBuffer* mb);
 
 #define MEMBUFFER_TYPE(mb) ((mb)->ptr == NULL ? \
                                 (mb)->sz == 0 ? MT_Null : \
                                                 MT_SizeOnly : \
-                            (mb)->realloc == NULL                 ? MT_Reference : \
-                            (mb)->realloc == luaL_staticMemBuffer ? MT_Static : \
+                            (mb)->release == NULL                 ? MT_Reference : \
+                            (mb)->release == luaL_staticMemBuffer ? MT_Static : \
                                                                     MT_Dynamic)
 
 LUALIB_API int luaL_isMemType(luaL_MemBuffer* mb, int count, ...);
@@ -252,11 +253,11 @@ LUALIB_API void luaL_assertMemType(luaL_MemBuffer* mb, int count, ...);
 #define MEMBUFFER_SETNULL(mb) \
   (mb)->ptr = NULL; \
   (mb)->sz = 0; \
-  (mb)->realloc = NULL; \
+  (mb)->release = NULL; \
   (mb)->ud = NULL
 #define MEMBUFFER_CALLFREE(mb) \
   if (MEMBUFFER_IS_DYNAMIC(mb)) { \
-    (mb)->realloc((mb)->ud, (mb)->ptr, 0); \
+    (mb)->release((mb)); \
   }
 
 #define MEMBUFFER_INIT(mb) \
@@ -266,19 +267,19 @@ LUALIB_API void luaL_assertMemType(luaL_MemBuffer* mb, int count, ...);
   MEMBUFFER_CALLFREE(mb); \
   MEMBUFFER_SETNULL(mb)
 
-#define MEMBUFFER_SETINIT(mb, ptr_, sz_, realloc_, ud_) \
+#define MEMBUFFER_SETINIT(mb, ptr_, sz_, release_, ud_) \
   (mb)->ptr = (void*)(ptr_); \
   (mb)->sz = (size_t)(sz_); \
-  (mb)->realloc = (realloc_); \
+  (mb)->release = (release_); \
   (mb)->ud = (void*)(ud_)
-#define MEMBUFFER_SETREPLACE(mb, ptr_, sz_, realloc_, ud_) \
+#define MEMBUFFER_SETREPLACE(mb, ptr_, sz_, release_, ud_) \
   MEMBUFFER_CALLFREE(mb); \
-  MEMBUFFER_SETINIT(mb, ptr_, sz_, realloc_, ud_)
+  MEMBUFFER_SETINIT(mb, ptr_, sz_, release_, ud_)
 
-#define MEMBUFFER_GETCLEAR(mb, ptr_, sz_, realloc_, ud_) \
+#define MEMBUFFER_GETCLEAR(mb, ptr_, sz_, release_, ud_) \
   ptr_ = (mb)->ptr; \
   sz_ = (mb)->sz; \
-  realloc_ = (mb)->realloc; \
+  release_ = (mb)->release; \
   ud_ = (mb)->ud; \
   MEMBUFFER_SETNULL(mb)
 

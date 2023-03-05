@@ -53,11 +53,11 @@ static int util_setErrorMessageHandler(lua_State* L) {
 static int util_MemBuffer(lua_State* L) {
   void* ptr = luaL_optlightuserdata(L, 1, NULL);
   size_t sz = luaL_optinteger(L, 2, 0);
-  luaL_MemRealloc realloc = (luaL_MemRealloc)luaL_optlightuserdata(L, 3, NULL);
+  luaL_MemRelease release = (luaL_MemRelease)luaL_optlightuserdata(L, 3, NULL);
   void* ud = luaL_optlightuserdata(L, 4, NULL);
 
   luaL_MemBuffer* mb = luaL_newmembuffer(L);
-  MEMBUFFER_SETREPLACE(mb, ptr, sz, realloc, ud);
+  MEMBUFFER_SETINIT(mb, ptr, sz, release, ud);
   return 1;
 }
 

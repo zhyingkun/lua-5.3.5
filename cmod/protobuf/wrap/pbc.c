@@ -237,14 +237,10 @@ static int _wmessage_buffer_string(lua_State* L) {
   return 1;
 }
 
-static void* _wmessage_free(void* ud, void* ptr, size_t nsz) {
-  if (nsz == 0) {
-    pbc_wmessage* m = (pbc_wmessage*)ud;
-    lua_assert(m != NULL);
-    pbc_wmessage_delete(m);
-  }
-  // do not support copy
-  return NULL;
+static void _wmessage_free(const luaL_MemBuffer* mb) {
+  pbc_wmessage* m = (pbc_wmessage*)mb->ud;
+  lua_assert(m != NULL);
+  pbc_wmessage_delete(m);
 }
 static int _wmessage_move_to_membuffer(lua_State* L) {
   pbc_slice slice;
@@ -1087,8 +1083,10 @@ static void l_pbc_decode_pure_cb(void* ud, int type, const char* type_name, pbc_
 static int l_pbc_decode_pure(lua_State* L) {
   struct pbc_env* env = (struct pbc_env*)checkuserdata(L, 1);
   const char* type = luaL_checkstring(L, 2);
+  size_t len;
   pbc_slice slice;
-  slice.buffer = (void*)luaL_checklbuffer(L, 3, &slice.len);
+  slice.buffer = (void*)luaL_checklbuffer(L, 3, &len);
+  slice.len = (int)len;
   lua_newtable(L);
   UD ud = {L, env};
   int n = pbc_decode(env, type, &slice, l_pbc_decode_pure_cb, (void*)&ud);

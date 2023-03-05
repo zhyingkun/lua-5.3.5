@@ -7,9 +7,8 @@
 ** =======================================================
 */
 
-static void* _reallocBuffer(void* ud, void* ptr, size_t nsz) {
-  (void)ud;
-  return realloc(ptr, nsz);
+static void _releaseBuffer(const luaL_MemBuffer* mb) {
+  free(mb->ptr);
 }
 static int _readFileAllToBuffer(const char* filename, void** pbuf, size_t* sz) {
   FILE* f = fopen(filename, "rb");
@@ -40,7 +39,7 @@ static int mbio_readFile(const char* fileName, luaL_MemBuffer* mb) {
   void* buf = NULL;
   size_t sz = 0;
   int err = _readFileAllToBuffer(fileName, &buf, &sz);
-  MEMBUFFER_SETREPLACE(mb, buf, sz, _reallocBuffer, NULL);
+  MEMBUFFER_SETREPLACE(mb, buf, sz, _releaseBuffer, NULL);
   return err;
 }
 
