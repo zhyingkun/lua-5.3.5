@@ -232,7 +232,7 @@ int pbc_wmessage_real(pbc_wmessage* m, const char* key, double v) {
   return 0;
 }
 
-int pbc_wmessage_string(pbc_wmessage* m, const char* key, const char* v, int len) {
+int pbc_wmessage_string(pbc_wmessage* m, const char* key, const char* v, size_t len) {
   _field* f = (_field*)_pbcM_sp_query(m->type->name, key);
   if (f == NULL) {
     // todo : error
@@ -240,17 +240,10 @@ int pbc_wmessage_string(pbc_wmessage* m, const char* key, const char* v, int len
     return -1;
   }
 
-  bool varlen = false;
-
-  if (len <= 0) {
-    varlen = true;
-    // -1 for add '\0'
-    len = (int)(strlen(v) - len);
-  }
   if (f->label == LABEL_PACKED) {
     if (f->type == PTYPE_ENUM) {
       char* temp = (char*)alloca(len + 1);
-      if (!varlen || v[len] != '\0') {
+      if (v[len] != '\0') {
         memcpy(temp, v, len);
         temp[len] = '\0';
         v = temp;
@@ -287,7 +280,7 @@ int pbc_wmessage_string(pbc_wmessage* m, const char* key, const char* v, int len
   switch (f->type) {
     case PTYPE_ENUM: {
       char* temp = (char*)alloca(len + 1);
-      if (!varlen || v[len] != '\0') {
+      if (v[len] != '\0') {
         memcpy(temp, v, len);
         temp[len] = '\0';
         v = temp;

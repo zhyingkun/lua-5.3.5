@@ -91,7 +91,10 @@ size_t pbc_wmessage_memsize(pbc_wmessage* m);
 // for negative integer, pass -1 to hi
 int pbc_wmessage_integer(pbc_wmessage*, const char* key, uint32_t low, uint32_t hi);
 int pbc_wmessage_real(pbc_wmessage*, const char* key, double v);
-int pbc_wmessage_string(pbc_wmessage*, const char* key, const char* v, int len);
+
+// if the protocol type of key is enum, user should make sure we can access v[len]
+int pbc_wmessage_string(pbc_wmessage*, const char* key, const char* v, size_t len);
+
 pbc_wmessage* pbc_wmessage_message(pbc_wmessage*, const char* key);
 void* pbc_wmessage_buffer(pbc_wmessage*, pbc_slice* slice);
 

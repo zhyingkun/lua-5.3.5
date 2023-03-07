@@ -189,8 +189,9 @@ static int _wmessage_string(lua_State* L) {
   pbc_wmessage* m = (pbc_wmessage*)checkuserdata(L, 1);
   const char* key = luaL_checkstring(L, 2);
   size_t len = 0;
-  const char* v = luaL_checklstring(L, 3, &len);
-  int err = pbc_wmessage_string(m, key, v, (int)len);
+  const char* v = luaL_checklbuffer(L, 3, &len);
+  int err = pbc_wmessage_string(m, key, v, len);
+  luaL_releasebuffer(L, 3);
   if (err) {
     return luaL_error(L, "Write string error : %s", v);
   }
