@@ -188,13 +188,13 @@ static int PM_FUNCTION(addPackData)(lua_State* L) {
 }
 static int PM_FUNCTION(getPacket)(lua_State* L) {
   PacketManager* pm = luaL_checkpacketmanager(L, 1);
+  const bool bUseString = luaL_optboolean(L, 2, false);
 
   const uint8_t* ptr = NULL;
   size_t sz = 0;
   PacketStatus status = pm_nextPacket(pm, &ptr, &sz);
   lua_pushinteger(L, (int)status);
   if (status == PS_OK) {
-    const bool bUseString = luaL_optboolean(L, 2, false);
     if (bUseString) {
       lua_pushlstring(L, (const char*)ptr, sz);
     } else {
