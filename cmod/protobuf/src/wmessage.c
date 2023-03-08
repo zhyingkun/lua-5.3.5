@@ -301,8 +301,8 @@ int pbc_wmessage_string(pbc_wmessage* m, const char* key, const char* v, size_t 
     case PTYPE_BYTES:
       id |= WT_LEND;
       m->ptr += _pbcV_encode32(id, m->ptr);
-      m->ptr += _pbcV_encode32(len, m->ptr);
-      _expand_message(m, len);
+      m->ptr += _pbcV_encode32((uint32_t)len, m->ptr);
+      _expand_message(m, (uint32_t)len);
       memcpy(m->ptr, v, len);
       m->ptr += len;
       break;
