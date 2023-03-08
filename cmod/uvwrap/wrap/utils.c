@@ -350,3 +350,37 @@ void UTILS_PUSH_FUNCTION(uv_statfs_t)(lua_State* L, const uv_statfs_t* statfs) {
 }
 
 /* }====================================================== */
+
+/*
+** {======================================================
+** AsyncCacheState
+** =======================================================
+*/
+
+AsyncCacheState* acs_create(size_t sizeOfStruct, uint32_t max, lua_State* co) {
+  AsyncCacheState* acs = MEMORY_FUNCTION(malloc)(sizeof(AsyncCacheState) + sizeOfStruct * max);
+  acs->co = co;
+  acs->max = max;
+  acs->start = 0;
+  acs->num = 0;
+  acs->bCanResume = false;
+  return acs;
+}
+void acs_release(AsyncCacheState* acs) {
+  (void)MEMORY_FUNCTION(free)(acs);
+}
+uint16_t acs_getIndex(AsyncCacheState* acs) {
+  assert(acs_hasCache(acs));
+  uint16_t idx = acs->start;
+  acs->start = (acs->start + 1) % acs->max;
+  acs->num--;
+  return idx;
+}
+uint16_t acs_addIndex(AsyncCacheState* acs) {
+  assert(acs_canCache(acs));
+  uint16_t idx = (acs->start + acs->num) % acs->max;
+  acs->num++;
+  return idx;
+}
+
+/* }====================================================== */

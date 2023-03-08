@@ -143,6 +143,50 @@ static int STREAM_FUNCTION(readStartAsync)(lua_State* L) {
   return 0;
 }
 
+static void STREAM_CALLBACK(readStartCache)(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
+  lua_State* L = GET_MAIN_LUA_STATE();
+  lua_checkstack(L, LUA_MINSTACK);
+  AsyncCacheState* cache = GET_HANDLE_CACHE(handle);
+  if (acs_canResume(cache)) {
+    acs_setResume(cache, false);
+    lua_State* co = cache->co;
+    int n = pushReadResult(co, nread, buf);
+    int ret = lua_resume(co, L, n);
+    if (ret != LUA_OK && ret != LUA_YIELD) {
+      fprintf(stderr, "ERROR ERROR\n");
+      // fprintf(stderr, #name " resume coroutine error: %s", lua_tostring(co, -1));
+    }
+  } else if (acs_canCache(cache)) {
+    srr_set(acs_addPtr(StreamReadResult, cache), nread, buf);
+  } else {
+    fprintf(stderr, "ERROR ERROR\n");
+
+    // fprintf(stderr, #name " drop result from callback: %d", nread);
+  }
+}
+static int STREAM_FUNCTION(readStartCache)(lua_State* co) {
+  uv_stream_t* handle = luaL_checkstream(co, 1);
+  uint16_t max = (uint16_t)luaL_optinteger(co, 2, 8);
+  CHECK_COROUTINE(co);
+
+  SET_HANDLE_NEW_CACHE(handle, max, co);
+
+  int err = uv_read_start(handle, MEMORY_FUNCTION(buf_alloc), STREAM_CALLBACK(readStartCache));
+  CHECK_ERROR(co, err);
+  HOLD_COROUTINE_FOR_HANDLE(co);
+  return 0;
+}
+static int STREAM_FUNCTION(readCacheWait)(lua_State* co) {
+  CHECK_COROUTINE(co);
+  uv_stream_t* handle = luaL_checkstream(co, 1);
+  AsyncCacheState* cache = GET_HANDLE_CACHE(handle);
+  if (acs_hasCache(cache)) {
+    return srr_push(acs_getPtr(StreamReadResult, cache), co);
+  }
+  acs_setResume(cache, true);
+  return lua_yield(co, 0);
+}
+
 static int STREAM_FUNCTION(readStop)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
   int err = uv_read_stop(handle);
@@ -311,6 +355,8 @@ static const luaL_Reg uvwrap_stream_metafuncs[] = {
     EMPLACE_STREAM_FUNCTION(listenStartAsync),
     EMPLACE_STREAM_FUNCTION(accept),
     EMPLACE_STREAM_FUNCTION(readStartAsync),
+    EMPLACE_STREAM_FUNCTION(readStartCache),
+    EMPLACE_STREAM_FUNCTION(readCacheWait),
     EMPLACE_STREAM_FUNCTION(readStop),
     EMPLACE_STREAM_FUNCTION(writeAsync),
     EMPLACE_STREAM_FUNCTION(writeAsyncWait),

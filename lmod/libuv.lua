@@ -28,9 +28,9 @@ local OK = uvwrap.err_code.OK
 local running = coroutine.running
 local yield = coroutine.yield
 local resumeOrigin = coroutine.resume
-local function resume(...)
-	local status, msg = resumeOrigin(...)
-	if not status then printerr("libuv lua module resume coroutine error: ", msg) end
+local function resume(co, ...)
+	local status, msg = resumeOrigin(co, ...)
+	if not status then printerr("libuv lua module resume coroutine error: ", msg, debug.traceback(co)) end
 end
 
 ---@alias StatusCallbackSignature fun(status:integer):void
@@ -41,6 +41,8 @@ local libuv = {}
 --[[
 	The meaning of the asynchronous function suffix:
 	'StartAsync': call back multiple times (no version StartAsyncWait)
+	'StartCache': cache the async result and wait for 'CacheWait', must be used in coroutines
+	'CacheWait': get the async result from 'StartCache' or wait for next one, must be used in coroutines
 	'Async': call back only once
 	'AsyncWait': return until done, must be used in coroutines
 	No Suffix: it is a synchronous function

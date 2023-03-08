@@ -262,6 +262,7 @@ extern lua_State* staticL;
 #define IDX_HANDLE_ITSELF 0
 #define IDX_HANDLE_CLOSE 1
 #define IDX_HANDLE_CALLBACK 1
+#define IDX_HANDLE_COROUTINE 1
 
 #define IDX_ASYNC_START IDX_HANDLE_CALLBACK
 
@@ -319,6 +320,10 @@ extern lua_State* staticL;
   if (ret != LUA_OK && ret != LUA_YIELD) { \
     fprintf(stderr, #name " resume coroutine error: %s", lua_tostring(co, -1)); \
   }
+
+#define HOLD_COROUTINE_FOR_HANDLE(co) \
+  HOLD_REQ_PARAM(co, handle, IDX_HANDLE_COROUTINE, -1); /* hold the coroutine */ \
+  HOLD_REQ_PARAM(co, handle, IDX_HANDLE_ITSELF, 1) /* hold the handle */
 
 #define IS_FUNCTION_OR_MAKE_NIL(L, idx) \
   do { \
@@ -416,6 +421,42 @@ int uvwrap_replRead(lua_State* L);
 int uvwrap_replHistory(lua_State* L);
 
 void uvwrap_replInitMetatable(lua_State* L);
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** AsyncCacheState
+** =======================================================
+*/
+
+typedef struct {
+  lua_State* co;
+  uint16_t max; // max num in this cache
+  uint16_t start; // the index of the first one
+  uint16_t num;
+  bool bCanResume;
+} AsyncCacheState;
+#define acs_getArrayPtr(acs_) ((acs_) + 1)
+#define acs_canResume(acs_) ((acs_)->bCanResume)
+#define acs_setResume(acs_, v) ((acs_)->bCanResume = (v))
+#define acs_canCache(acs_) ((acs_)->max > (acs_)->num)
+#define acs_hasCache(acs_) ((acs_)->num > 0)
+#define acs_getPtr(type_, cache_) &(((type_*)acs_getArrayPtr(cache))[acs_getIndex(cache)])
+#define acs_addPtr(type_, cache_) &(((type_*)acs_getArrayPtr(cache))[acs_addIndex(cache)])
+AsyncCacheState* acs_create(size_t sizeOfStruct, uint32_t max, lua_State* co);
+void acs_release(AsyncCacheState* acs);
+uint16_t acs_getIndex(AsyncCacheState* acs);
+uint16_t acs_addIndex(AsyncCacheState* acs);
+
+#define SET_HANDLE_CACHE(handle_, cache_) \
+  assert(uv_handle_get_data((uv_handle_t*)(handle_)) == NULL); \
+  uv_handle_set_data((uv_handle_t*)(handle_), (void*)(cache_))
+#define GET_HANDLE_CACHE(handle_) \
+  (assert(uv_handle_get_data((uv_handle_t*)(handle_)) != NULL), (AsyncCacheState*)uv_handle_get_data((uv_handle_t*)(handle_)))
+
+#define SET_HANDLE_NEW_CACHE(handle_, max_, co_) \
+  SET_HANDLE_CACHE(handle_, acs_create(sizeof(StreamReadResult), max_, co_))
 
 /* }====================================================== */
 
