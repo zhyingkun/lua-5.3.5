@@ -379,35 +379,23 @@ function repl.clientStart(serverIP, serverPort)
 		local tcpClient = makeTcpConnection(sockAddr)
 		if not tcpClient then return end
 
-		local thread = coroutine.running();
-		local bCanResume = false;
-		tcpClient:readStartAsync(function(nread, str, client)
-			if nread < 0 then
-				printError("REPL TCP Read error:", nread)
-			elseif nread > 0 then
-				if bCanResume then
-					bCanResume = false
-					coroutine.resume(thread, str)
-				else
-					printerr("Error: Resume coroutine too quickly", str)
+		local function readAsyncWait()
+			while true do
+				local nread, str = tcpClient:readCacheWait()
+				if nread < 0 then
+					printError("REPL TCP Read error:", nread)
+				elseif nread > 0 then
+					return str
 				end
 			end
-		end)
-		local function readAsyncWait()
-			bCanResume = true
-			return coroutine.yield()
-		end
-		local function sendToServer(msg)
-			tcpClient:writeAsync(msg, function(statusWrite, handle)
-				if statusWrite ~= OK then
-					printError("REPL TCP Write error:", statusWrite)
-				end
-			end)
 		end
 		local packetHandler = REPLPacketHandler()
+		tcpClient:readStartCache()
 		local function remoteREPL(codeStr, bEOF)
 			local msg = packetHandler:packReadMessage(codeStr, bEOF)
-			sendToServer(msg)
+			if tcpClient:writeAsyncWait(msg) ~= OK then
+				printError("REPL TCP Write error:", statusWrite)
+			end
 			local tbl
 			repeat
 				local str = readAsyncWait()
@@ -498,9 +486,11 @@ local ASYNC_WAIT_MSG = "AsyncWait api must running in coroutine"
 local running = coroutine.running
 local yield = coroutine.yield
 local resumeOrigin = coroutine.resume
-local function resume(...)
-	local status, msg = resumeOrigin(...)
-	if not status then printerr("libuv lua module resume coroutine error: ", msg) end
+local function resume(co, ...)
+	local status, msg = resumeOrigin(co, ...)
+	if not status then
+		printerr("repl lua module resume coroutine error: ", msg, debug.traceback(co))
+	end
 end
 function repl.clientOneShotAsyncWait(serverIP, serverPort, codeStr)
 	local co, main = running()
