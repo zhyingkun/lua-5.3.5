@@ -113,7 +113,8 @@ static int srr_push(StreamReadResult* srr, lua_State* L) {
   }
   return 2;
 }
-static void srr_clear(StreamReadResult* srr) {
+static void srr_clear(void* obj) {
+  StreamReadResult* srr = (StreamReadResult*)obj;
   if (srr->nread > 0) {
     srr->nread = 0;
     MEMBUFFER_RELEASE(&srr->mb);
@@ -144,51 +145,29 @@ static int STREAM_FUNCTION(readStartAsync)(lua_State* L) {
 }
 
 static void STREAM_CALLBACK(readStartCache)(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
-  lua_State* L = GET_MAIN_LUA_STATE();
-  lua_checkstack(L, LUA_MINSTACK);
-  AsyncCacheState* cache = GET_HANDLE_CACHE(handle);
-  if (acs_canResume(cache)) {
-    acs_setResume(cache, false);
-    lua_State* co = cache->co;
-    int n = pushReadResult(co, nread, buf);
-    int ret = lua_resume(co, L, n);
-    if (ret != LUA_OK && ret != LUA_YIELD) {
-      fprintf(stderr, "ERROR ERROR\n");
-      // fprintf(stderr, #name " resume coroutine error: %s", lua_tostring(co, -1));
-    }
-  } else if (acs_canCache(cache)) {
-    srr_set(acs_addPtr(StreamReadResult, cache), nread, buf);
-  } else {
-    fprintf(stderr, "ERROR ERROR\n");
-
-    // fprintf(stderr, #name " drop result from callback: %d", nread);
-  }
+  ASYNC_RESUME_CACHE(readStartCache, pushReadResult, srr_set, StreamReadResult, handle, nread, buf);
 }
 static int STREAM_FUNCTION(readStartCache)(lua_State* co) {
   uv_stream_t* handle = luaL_checkstream(co, 1);
   uint16_t max = (uint16_t)luaL_optinteger(co, 2, 8);
   CHECK_COROUTINE(co);
 
-  SET_HANDLE_NEW_CACHE(handle, max, co);
+  SET_HANDLE_NEW_CACHE(handle, StreamReadResult, max, co, srr_clear);
 
   int err = uv_read_start(handle, MEMORY_FUNCTION(buf_alloc), STREAM_CALLBACK(readStartCache));
   CHECK_ERROR(co, err);
-  HOLD_COROUTINE_FOR_HANDLE(co);
+  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1, -1);
   return 0;
 }
 static int STREAM_FUNCTION(readCacheWait)(lua_State* co) {
   CHECK_COROUTINE(co);
   uv_stream_t* handle = luaL_checkstream(co, 1);
-  AsyncCacheState* cache = GET_HANDLE_CACHE(handle);
-  if (acs_hasCache(cache)) {
-    return srr_push(acs_getPtr(StreamReadResult, cache), co);
-  }
-  acs_setResume(cache, true);
-  return lua_yield(co, 0);
+  PUSH_CACHE_RESULT_OR_YIELD(handle, srr_push, StreamReadResult);
 }
 
 static int STREAM_FUNCTION(readStop)(lua_State* L) {
   uv_stream_t* handle = luaL_checkstream(L, 1);
+  RELEASE_HANDLE_CACHE(handle);
   int err = uv_read_stop(handle);
   CHECK_ERROR(L, err);
   UNHOLD_HANDLE_CALLBACK(L, handle, IDX_STREAM_READ_START);

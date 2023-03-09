@@ -6,14 +6,47 @@
 #define FS_EVENT_FUNCTION(name) UVWRAP_FUNCTION(fs_event, name)
 #define FS_EVENT_CALLBACK(name) UVWRAP_CALLBACK(fs_event, name)
 
-void FS_EVENT_CALLBACK(startAsync)(uv_fs_event_t* handle, const char* filename, int events, int status) {
-  lua_State* L;
-  PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_FS_EVENT_START);
-  lua_pushstring(L, filename);
+typedef struct {
+  const char* fileName;
+  size_t nameSize;
+  int events;
+  int status;
+} FileSystemEventResult;
+static void fser_set(FileSystemEventResult* result, const char* fileName, int events, int status) {
+  const size_t sz = strlen(fileName);
+  char* ptr = MEMORY_FUNCTION(malloc)(sz);
+  strncpy(ptr, fileName, sz);
+  result->fileName = ptr;
+  result->nameSize = sz;
+  result->events = events;
+  result->status = status;
+}
+static int fser_push(FileSystemEventResult* result, lua_State* L) {
+  lua_pushlstring(L, result->fileName, result->nameSize);
+  lua_pushinteger(L, result->events);
+  lua_pushinteger(L, result->status);
+  (void)MEMORY_FUNCTION(free)((void*)result->fileName);
+  result->fileName = NULL;
+  return 3;
+}
+static void fser_clear(void* obj) {
+  FileSystemEventResult* result = (FileSystemEventResult*)obj;
+  (void)MEMORY_FUNCTION(free)((void*)result->fileName);
+  result->fileName = NULL;
+}
+static int pushEventResult(lua_State* L, const char* fileName, int events, int status) {
+  lua_pushstring(L, fileName);
   lua_pushinteger(L, events);
   lua_pushinteger(L, status);
+  return 3;
+}
+
+void FS_EVENT_CALLBACK(startAsync)(uv_fs_event_t* handle, const char* fileName, int events, int status) {
+  lua_State* L;
+  PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_FS_EVENT_START);
+  int n = pushEventResult(L, fileName, events, status);
   PUSH_HANDLE_ITSELF(L, handle);
-  CALL_LUA_FUNCTION(L, 4);
+  CALL_LUA_FUNCTION(L, n + 1);
 }
 static int FS_EVENT_FUNCTION(startAsync)(lua_State* L) {
   uv_fs_event_t* handle = luaL_checkfs_event(L, 1);
@@ -28,8 +61,31 @@ static int FS_EVENT_FUNCTION(startAsync)(lua_State* L) {
   return 0;
 }
 
+static void FS_EVENT_CALLBACK(startCache)(uv_fs_event_t* handle, const char* fileName, int events, int status) {
+  ASYNC_RESUME_CACHE(startCache, pushEventResult, fser_set, FileSystemEventResult, handle, fileName, events, status);
+}
+static int FS_EVENT_FUNCTION(startCache)(lua_State* co) {
+  uv_fs_event_t* handle = luaL_checkfs_event(co, 1);
+  const char* filepath = luaL_checkstring(co, 3);
+  unsigned int flags = (unsigned int)luaL_checkinteger(co, 4);
+  CHECK_COROUTINE(co);
+
+  SET_HANDLE_NEW_CACHE(handle, FileSystemEventResult, 8, co, fser_clear);
+
+  int err = uv_fs_event_start(handle, FS_EVENT_CALLBACK(startCache), filepath, flags);
+  CHECK_ERROR(co, err);
+  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1, -1);
+  return 0;
+}
+static int FS_EVENT_FUNCTION(getCacheWait)(lua_State* co) {
+  CHECK_COROUTINE(co);
+  uv_stream_t* handle = luaL_checkstream(co, 1);
+  PUSH_CACHE_RESULT_OR_YIELD(handle, fser_push, FileSystemEventResult);
+}
+
 static int FS_EVENT_FUNCTION(stop)(lua_State* L) {
   uv_fs_event_t* handle = luaL_checkfs_event(L, 1);
+  RELEASE_HANDLE_CACHE(handle);
   int err = uv_fs_event_stop(handle);
   CHECK_ERROR(L, err);
   UNHOLD_HANDLE_CALLBACK(L, handle, IDX_FS_EVENT_START);
@@ -72,6 +128,8 @@ static int FS_EVENT_FUNCTION(__gc)(lua_State* L) {
 
 const luaL_Reg FS_EVENT_FUNCTION(metafuncs)[] = {
     EMPLACE_FS_EVENT_FUNCTION(startAsync),
+    EMPLACE_FS_EVENT_FUNCTION(startCache),
+    EMPLACE_FS_EVENT_FUNCTION(getCacheWait),
     EMPLACE_FS_EVENT_FUNCTION(stop),
     EMPLACE_FS_EVENT_FUNCTION(getPath),
     EMPLACE_FS_EVENT_FUNCTION(__gc),

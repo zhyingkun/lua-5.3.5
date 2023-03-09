@@ -38,13 +38,14 @@ static int TIMER_FUNCTION(startOneShotAsync)(lua_State* L) {
 
 static void TIMER_CALLBACK(startOneShotAsyncWait)(uv_timer_t* handle) {
   lua_State* L = GET_MAIN_LUA_STATE();
-  lua_State* co = (lua_State*)uv_handle_get_data((const uv_handle_t*)handle);
-  UNHOLD_LUA_OBJECT(co, handle, 0);
-  UNHOLD_LUA_OBJECT(co, handle, 1);
+  PUSH_HOLD_OBJECT_CLEAN(L, handle, 0);
+  lua_State* co = lua_tothread(L, -1);
+  UNHOLD_LUA_OBJECT(L, handle, 1);
   int ret = lua_resume(co, L, 0);
   if (ret != LUA_OK && ret != LUA_YIELD) {
     fprintf(stderr, "Timer startOneShotAsyncWait resume coroutine error: %s", lua_tostring(co, -1));
   }
+  lua_pop(L, 1); // pop the coroutine
 }
 static int TIMER_FUNCTION(startOneShotAsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);
@@ -53,9 +54,12 @@ static int TIMER_FUNCTION(startOneShotAsyncWait)(lua_State* co) {
 
   int err = uv_timer_start(handle, TIMER_CALLBACK(startOneShotAsyncWait), timeout, 0);
   CHECK_ERROR(co, err);
-  uv_handle_set_data((uv_handle_t*)handle, (void*)co);
-  HOLD_LUA_OBJECT(co, handle, 0, -1); /* hold the coroutine */
-  HOLD_LUA_OBJECT(co, handle, 1, 1);
+  lua_State* L = GET_MAIN_LUA_STATE();
+  lua_xmove(co, L, 1);
+  HOLD_LUA_OBJECT(L, handle, 0, -1); /* hold the coroutine */
+  lua_settop(co, 1);
+  lua_xmove(co, L, 1);
+  HOLD_LUA_OBJECT(L, handle, 1, 1);
   return lua_yield(co, 0);
 }
 

@@ -9,6 +9,7 @@ void HANDLE_FUNCTION(ctor)(lua_State* L, uv_handle_t* handle) {
   lua_pushvalue(L, -2);
   lua_rawsetp(L, -2, (void*)handle);
   lua_pop(L, 1);
+  (void)EXTENSION_FUNCTION(setExtension)(handle, NULL);
 }
 
 static int HANDLE_FUNCTION(isActive)(lua_State* L) {
@@ -25,6 +26,7 @@ static int HANDLE_FUNCTION(isClosing)(lua_State* L) {
 
 static void HANDLE_CALLBACK(closeAsync)(uv_handle_t* handle) {
   lua_State* L;
+  (void)EXTENSION_FUNCTION(releaseExtension)(handle);
   PUSH_HANDLE_CLOSE_CALLBACK_CLEAN_FOR_INVOKE(L, handle);
   if (lua_isfunction(L, -1)) {
     PUSH_HANDLE_ITSELF_CLEAN(L, handle);
@@ -36,17 +38,19 @@ static void HANDLE_CALLBACK(closeAsync)(uv_handle_t* handle) {
 }
 static int HANDLE_FUNCTION(closeAsync)(lua_State* L) {
   uv_handle_t* handle = luaL_checkhandle(L, 1);
-  if (!uv_is_closing(handle)) {
-    IS_FUNCTION_OR_MAKE_NIL(L, 2);
-    HOLD_HANDLE_CLOSE_CALLBACK(L, handle, 2);
-    HOLD_HANDLE_ITSELF(L, handle, 1);
-    uv_close(handle, HANDLE_CALLBACK(closeAsync));
+  if (uv_is_closing(handle)) {
+    return luaL_error(L, "this handle(%p) has been closed, don't close again", handle);
   }
+  IS_FUNCTION_OR_MAKE_NIL(L, 2);
+  HOLD_HANDLE_CLOSE_CALLBACK(L, handle, 2);
+  HOLD_HANDLE_ITSELF(L, handle, 1);
+  uv_close(handle, HANDLE_CALLBACK(closeAsync));
   return 0;
 }
 
 static void HANDLE_CALLBACK(__gc)(uv_handle_t* handle) {
   lua_State* L = GET_MAIN_LUA_STATE();
+  (void)EXTENSION_FUNCTION(releaseExtension)(handle);
   UNHOLD_HANDLE_CALLBACK(L, handle, IDX_HANDLE_CALLBACK);
   UNHOLD_HANDLE_ITSELF(L, handle);
 }

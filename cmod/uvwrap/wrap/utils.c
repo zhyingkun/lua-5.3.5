@@ -353,21 +353,50 @@ void UTILS_PUSH_FUNCTION(uv_statfs_t)(lua_State* L, const uv_statfs_t* statfs) {
 
 /*
 ** {======================================================
+** HandleExtension
+** =======================================================
+*/
+
+void EXTENSION_FUNCTION(releaseExtension)(uv_handle_t* handle) {
+  HandleExtension* ext = GET_EXTENSION(handle);
+  if (ext != NULL) {
+    if (ext->release != NULL)
+      ext->release(ext);
+    SET_EXTENSION(handle, NULL);
+  }
+}
+void EXTENSION_FUNCTION(setExtension)(uv_handle_t* handle, HandleExtension* ext) {
+  (void)EXTENSION_FUNCTION(releaseExtension)(handle);
+  SET_EXTENSION(handle, ext);
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** AsyncCacheState
 ** =======================================================
 */
 
-AsyncCacheState* acs_create(size_t sizeOfStruct, uint32_t max, lua_State* co) {
+AsyncCacheState* acs_create(size_t sizeOfStruct, uint32_t max, lua_State* co, ObjectReleaser objReleaser) {
   AsyncCacheState* acs = MEMORY_FUNCTION(malloc)(sizeof(AsyncCacheState) + sizeOfStruct * max);
+  acs->ext->release = acs_release;
   acs->co = co;
+  acs->objRelease = objReleaser;
   acs->max = max;
   acs->start = 0;
   acs->num = 0;
   acs->bCanResume = false;
   return acs;
 }
-void acs_release(AsyncCacheState* acs) {
-  (void)MEMORY_FUNCTION(free)(acs);
+void acs_release(HandleExtension* ext) {
+  AsyncCacheState* cache = (AsyncCacheState*)ext;
+  if (cache->objRelease != NULL) {
+    while (acs_hasCache(cache)) {
+      cache->objRelease(acs_getPtr(void, acs));
+    }
+  }
+  (void)MEMORY_FUNCTION(free)(cache);
 }
 uint16_t acs_getIndex(AsyncCacheState* acs) {
   assert(acs_hasCache(acs));

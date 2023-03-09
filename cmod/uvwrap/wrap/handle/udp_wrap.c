@@ -204,7 +204,8 @@ static int urr_push(UdpRecvResult* urr, lua_State* L) {
   lua_pushinteger(L, urr->flags);
   return 4;
 }
-static void urr_clear(UdpRecvResult* urr) {
+static void urr_clear(void* obj) {
+  UdpRecvResult* urr = (UdpRecvResult*)obj;
   if (urr->nread > 0) {
     urr->nread = 0;
     MEMBUFFER_RELEASE(&urr->mb);

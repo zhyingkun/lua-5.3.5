@@ -260,9 +260,10 @@ extern lua_State* staticL;
   } while (0)
 
 #define IDX_HANDLE_ITSELF 0
-#define IDX_HANDLE_CLOSE 1
-#define IDX_HANDLE_CALLBACK 1
-#define IDX_HANDLE_COROUTINE 1
+#define IDX_HANDLE_FEATURE 1
+#define IDX_HANDLE_CLOSE IDX_HANDLE_FEATURE
+#define IDX_HANDLE_CALLBACK IDX_HANDLE_FEATURE
+#define IDX_HANDLE_COROUTINE IDX_HANDLE_FEATURE
 
 #define IDX_ASYNC_START IDX_HANDLE_CALLBACK
 
@@ -321,9 +322,47 @@ extern lua_State* staticL;
     fprintf(stderr, #name " resume coroutine error: %s", lua_tostring(co, -1)); \
   }
 
-#define HOLD_COROUTINE_FOR_HANDLE(co) \
-  HOLD_REQ_PARAM(co, handle, IDX_HANDLE_COROUTINE, -1); /* hold the coroutine */ \
-  HOLD_REQ_PARAM(co, handle, IDX_HANDLE_ITSELF, 1) /* hold the handle */
+#define UNHOLD_HANDLE_FEATURE(L, handle) \
+  UNHOLD_LUA_OBJECT(L, handle, IDX_HANDLE_ITSELF); \
+  UNHOLD_LUA_OBJECT(L, handle, IDX_HANDLE_FEATURE)
+#define HOLD_CALLBACK_FOR_HANDLE(L, handle, idx, cbidx) \
+  HOLD_LUA_OBJECT(L, handle, IDX_HANDLE_ITSELF, idx); \
+  HOLD_LUA_OBJECT(L, handle, IDX_HANDLE_CALLBACK, cbidx)
+#define HOLD_COROUTINE_FOR_HANDLE(L, handle, idx, coidx) \
+  HOLD_LUA_OBJECT(co, handle, IDX_HANDLE_ITSELF, idx); \
+  HOLD_LUA_OBJECT(co, handle, IDX_HANDLE_COROUTINE, coidx)
+
+#define ASYNC_RESUME_CACHE(name_, pushResult_, setCache_, typeCache_, handle_, ...) \
+  lua_State* L = GET_MAIN_LUA_STATE(); \
+  AsyncCacheState* cache = GET_HANDLE_CACHE(handle_); \
+  if (acs_canResume(cache)) { \
+    acs_setResume(cache, false); \
+    lua_State* co = cache->co; \
+    lua_checkstack(co, LUA_MINSTACK); \
+\
+    const int count = pushResult_(co, __VA_ARGS__); \
+\
+    int ret = lua_resume(co, L, count); \
+    if (ret != LUA_OK && ret != LUA_YIELD) { \
+      luaL_traceback(L, co, NULL, 0); \
+      fprintf(stderr, #name_ " resume coroutine error: %s\n%s", lua_tostring(co, -1), lua_tostring(L, -1)); \
+      lua_pop(L, 1); \
+    } \
+  } else if (acs_canCache(cache)) { \
+\
+    (setCache_)(acs_addPtr(typeCache_, cache), __VA_ARGS__); \
+\
+  } else { \
+    fprintf(stderr, #name_ "%s", " drop result from callback"); \
+  }
+
+#define PUSH_CACHE_RESULT_OR_YIELD(handle_, pushCache_, typeCache_) \
+  AsyncCacheState* cache = GET_HANDLE_CACHE(handle_); \
+  if (acs_hasCache(cache)) { \
+    return (pushCache_)(acs_getPtr(typeCache_, cache), co); \
+  } \
+  acs_setResume(cache, true); \
+  return lua_yield(co, 0)
 
 #define IS_FUNCTION_OR_MAKE_NIL(L, idx) \
   do { \
@@ -426,12 +465,35 @@ void uvwrap_replInitMetatable(lua_State* L);
 
 /*
 ** {======================================================
+** HandleExtension
+** =======================================================
+*/
+
+#define EXTENSION_FUNCTION(name) UVWRAP_FUNCTION(extension, name)
+
+typedef struct HandleExtension HandleExtension;
+typedef void (*ExtensionReleaser)(HandleExtension* ext);
+struct HandleExtension {
+  ExtensionReleaser release;
+};
+#define GET_EXTENSION(handle) (HandleExtension*)uv_handle_get_data(handle)
+#define SET_EXTENSION(handle, ext) uv_handle_set_data(handle, (void*)ext)
+void EXTENSION_FUNCTION(releaseExtension)(uv_handle_t* handle);
+void EXTENSION_FUNCTION(setExtension)(uv_handle_t* handle, HandleExtension* ext);
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** AsyncCacheState
 ** =======================================================
 */
 
+typedef void (*ObjectReleaser)(void* obj);
 typedef struct {
+  HandleExtension ext[1];
   lua_State* co;
+  ObjectReleaser objRelease;
   uint16_t max; // max num in this cache
   uint16_t start; // the index of the first one
   uint16_t num;
@@ -444,19 +506,16 @@ typedef struct {
 #define acs_hasCache(acs_) ((acs_)->num > 0)
 #define acs_getPtr(type_, cache_) &(((type_*)acs_getArrayPtr(cache))[acs_getIndex(cache)])
 #define acs_addPtr(type_, cache_) &(((type_*)acs_getArrayPtr(cache))[acs_addIndex(cache)])
-AsyncCacheState* acs_create(size_t sizeOfStruct, uint32_t max, lua_State* co);
-void acs_release(AsyncCacheState* acs);
+AsyncCacheState* acs_create(size_t sizeOfStruct, uint32_t max, lua_State* co, ObjectReleaser objReleaser);
+void acs_release(HandleExtension* ext);
 uint16_t acs_getIndex(AsyncCacheState* acs);
 uint16_t acs_addIndex(AsyncCacheState* acs);
 
-#define SET_HANDLE_CACHE(handle_, cache_) \
-  assert(uv_handle_get_data((uv_handle_t*)(handle_)) == NULL); \
-  uv_handle_set_data((uv_handle_t*)(handle_), (void*)(cache_))
-#define GET_HANDLE_CACHE(handle_) \
-  (assert(uv_handle_get_data((uv_handle_t*)(handle_)) != NULL), (AsyncCacheState*)uv_handle_get_data((uv_handle_t*)(handle_)))
-
-#define SET_HANDLE_NEW_CACHE(handle_, max_, co_) \
-  SET_HANDLE_CACHE(handle_, acs_create(sizeof(StreamReadResult), max_, co_))
+#define SET_HANDLE_NEW_CACHE(handle_, type_, max_, co_, clear_) \
+  (void)EXTENSION_FUNCTION(setExtension)((uv_handle_t*)handle_, (HandleExtension*)acs_create(sizeof(type_), max_, co_, clear_))
+#define RELEASE_HANDLE_CACHE(handle_) \
+  (void)EXTENSION_FUNCTION(releaseExtension)((uv_handle_t*)handle_)
+#define GET_HANDLE_CACHE(handle_) (AsyncCacheState*)GET_EXTENSION((uv_handle_t*)handle_)
 
 /* }====================================================== */
 
