@@ -30,7 +30,7 @@ static void on_loop_close(lua_State* L, uv_loop_t* loop) {
   lua_pushnil(L);
   while (lua_next(L, idx)) {
     uv_handle_t* handle = lua_touserdata(L, -2);
-    UNHOLD_HANDLE_CALLBACK(L, handle, IDX_HANDLE_CALLBACK);
+    UNHOLD_HANDLE_FEATURE(L, handle);
     lua_pop(L, 1);
   }
   lua_pop(L, 1);
@@ -160,7 +160,7 @@ static int LOOP_FUNCTION(block_signal)(lua_State* L) {
 }
 
 #define EMPLACE_LOOP_FUNCTION(name) \
-  { #name, LOOP_FUNCTION(name) }
+  { "" #name, LOOP_FUNCTION(name) }
 
 static const luaL_Reg LOOP_FUNCTION(funcs)[] = {
     EMPLACE_LOOP_FUNCTION(default),

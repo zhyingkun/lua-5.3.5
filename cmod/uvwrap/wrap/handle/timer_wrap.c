@@ -4,13 +4,34 @@
 #define TIMER_FUNCTION(name) UVWRAP_FUNCTION(timer, name)
 #define TIMER_CALLBACK(name) UVWRAP_CALLBACK(timer, name)
 
+typedef struct {
+  uv_handle_t* nothing;
+} TimerResult;
+static void tr_set(TimerResult* result, uv_handle_t* handle) {
+  (void)result;
+  (void)handle;
+}
+static int tr_push(TimerResult* result, lua_State* L) {
+  (void)result;
+  (void)L;
+  return 0;
+}
+static void tr_clear(void* obj) {
+  TimerResult* result = (TimerResult*)obj;
+  (void)result;
+}
+static int pushTimerResult(lua_State* L, uv_handle_t* handle) {
+  (void)L;
+  (void)handle;
+  return 0;
+}
+
 static void TIMER_CALLBACK(startAsyncInternal)(uv_timer_t* handle) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_TIMER_START);
   PUSH_HANDLE_ITSELF(L, handle);
   if (uv_timer_get_repeat(handle) == 0) {
-    UNHOLD_HANDLE_CALLBACK(L, handle, IDX_TIMER_START);
-    UNHOLD_HANDLE_ITSELF(L, handle);
+    UNHOLD_HANDLE_FEATURE(L, handle);
   }
   CALL_LUA_FUNCTION(L, 1);
 }
@@ -21,8 +42,7 @@ static int TIMER_FUNCTION(startAsyncInternal)(lua_State* L, uint64_t repeat, int
 
   int err = uv_timer_start(handle, TIMER_CALLBACK(startAsyncInternal), timeout, repeat);
   CHECK_ERROR(L, err);
-  HOLD_HANDLE_CALLBACK(L, handle, IDX_TIMER_START, 2);
-  HOLD_HANDLE_ITSELF(L, handle, 1);
+  HOLD_CALLBACK_FOR_HANDLE(L, handle, 1, cbidx);
   return 0;
 }
 static int TIMER_FUNCTION(startAsync)(lua_State* L) {
@@ -36,16 +56,33 @@ static int TIMER_FUNCTION(startOneShotAsync)(lua_State* L) {
   return TIMER_FUNCTION(startAsyncInternal)(L, 0, 3);
 }
 
-static void TIMER_CALLBACK(startOneShotAsyncWait)(uv_timer_t* handle) {
-  lua_State* L = GET_MAIN_LUA_STATE();
-  PUSH_HOLD_OBJECT_CLEAN(L, handle, 0);
-  lua_State* co = lua_tothread(L, -1);
-  UNHOLD_LUA_OBJECT(L, handle, 1);
-  int ret = lua_resume(co, L, 0);
-  if (ret != LUA_OK && ret != LUA_YIELD) {
-    fprintf(stderr, "Timer startOneShotAsyncWait resume coroutine error: %s", lua_tostring(co, -1));
+static void TIMER_CALLBACK(startCache)(uv_timer_t* handle) {
+  ASYNC_RESUME_CACHE(startCache, pushTimerResult, tr_set, TimerResult, handle, (uv_handle_t*)handle);
+}
+static int TIMER_FUNCTION(startCache)(lua_State* co) {
+  CHECK_COROUTINE(co);
+  uv_timer_t* handle = luaL_checktimer(co, 1);
+  uint64_t timeout = luaL_checkinteger(co, 2);
+  uint64_t repeat = luaL_checkinteger(co, 3);
+  if (repeat <= 0) {
+    return luaL_error(co, "Timer startAsync 'repeat' should > 0, current is: %lu", repeat);
   }
-  lua_pop(L, 1); // pop the coroutine
+
+  SET_HANDLE_NEW_CACHE(handle, TimerResult, 0, co, tr_clear);
+  int err = uv_timer_start(handle, TIMER_CALLBACK(startCache), timeout, repeat);
+  CHECK_ERROR(co, err);
+  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1);
+  return 0;
+}
+static int TIMER_FUNCTION(getCacheWait)(lua_State* co) {
+  CHECK_COROUTINE(co);
+  uv_timer_t* handle = luaL_checktimer(co, 1);
+  PUSH_CACHE_RESULT_OR_YIELD(handle, tr_push, TimerResult);
+}
+
+static void TIMER_CALLBACK(startOneShotAsyncWait)(uv_timer_t* handle) {
+  HANDLE_ASYNC_WAIT_PREPARE(handle);
+  HANDLE_ASYNC_WAIT_RESUME(startOneShotAsyncWait, 0);
 }
 static int TIMER_FUNCTION(startOneShotAsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);
@@ -54,22 +91,17 @@ static int TIMER_FUNCTION(startOneShotAsyncWait)(lua_State* co) {
 
   int err = uv_timer_start(handle, TIMER_CALLBACK(startOneShotAsyncWait), timeout, 0);
   CHECK_ERROR(co, err);
-  lua_State* L = GET_MAIN_LUA_STATE();
-  lua_xmove(co, L, 1);
-  HOLD_LUA_OBJECT(L, handle, 0, -1); /* hold the coroutine */
-  lua_settop(co, 1);
-  lua_xmove(co, L, 1);
-  HOLD_LUA_OBJECT(L, handle, 1, 1);
+  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1);
   return lua_yield(co, 0);
 }
 
 static int TIMER_FUNCTION(stop)(lua_State* L) {
   uv_timer_t* handle = luaL_checktimer(L, 1);
 
+  RELEASE_HANDLE_CACHE(handle);
   int err = uv_timer_stop(handle);
   CHECK_ERROR(L, err);
-  UNHOLD_HANDLE_CALLBACK(L, handle, IDX_TIMER_START);
-  UNHOLD_HANDLE_ITSELF(L, handle);
+  UNHOLD_HANDLE_FEATURE(L, handle);
   return 0;
 }
 
@@ -105,6 +137,8 @@ static int TIMER_FUNCTION(__gc)(lua_State* L) {
 
 static const luaL_Reg TIMER_FUNCTION(metafuncs)[] = {
     EMPLACE_TIMER_FUNCTION(startAsync),
+    EMPLACE_TIMER_FUNCTION(startCache),
+    EMPLACE_TIMER_FUNCTION(getCacheWait),
     EMPLACE_TIMER_FUNCTION(startOneShotAsync),
     EMPLACE_TIMER_FUNCTION(startOneShotAsyncWait),
     EMPLACE_TIMER_FUNCTION(stop),

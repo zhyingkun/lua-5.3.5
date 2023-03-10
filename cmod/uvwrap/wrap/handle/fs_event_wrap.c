@@ -56,8 +56,7 @@ static int FS_EVENT_FUNCTION(startAsync)(lua_State* L) {
 
   int err = uv_fs_event_start(handle, FS_EVENT_CALLBACK(startAsync), filepath, flags);
   CHECK_ERROR(L, err);
-  HOLD_HANDLE_CALLBACK(L, handle, IDX_FS_EVENT_START, 2);
-  HOLD_HANDLE_ITSELF(L, handle, 1);
+  HOLD_CALLBACK_FOR_HANDLE(L, handle, 1, 2);
   return 0;
 }
 
@@ -65,16 +64,16 @@ static void FS_EVENT_CALLBACK(startCache)(uv_fs_event_t* handle, const char* fil
   ASYNC_RESUME_CACHE(startCache, pushEventResult, fser_set, FileSystemEventResult, handle, fileName, events, status);
 }
 static int FS_EVENT_FUNCTION(startCache)(lua_State* co) {
+  CHECK_COROUTINE(co);
   uv_fs_event_t* handle = luaL_checkfs_event(co, 1);
   const char* filepath = luaL_checkstring(co, 3);
   unsigned int flags = (unsigned int)luaL_checkinteger(co, 4);
-  CHECK_COROUTINE(co);
 
   SET_HANDLE_NEW_CACHE(handle, FileSystemEventResult, 8, co, fser_clear);
 
   int err = uv_fs_event_start(handle, FS_EVENT_CALLBACK(startCache), filepath, flags);
   CHECK_ERROR(co, err);
-  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1, -1);
+  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1);
   return 0;
 }
 static int FS_EVENT_FUNCTION(getCacheWait)(lua_State* co) {
@@ -88,8 +87,7 @@ static int FS_EVENT_FUNCTION(stop)(lua_State* L) {
   RELEASE_HANDLE_CACHE(handle);
   int err = uv_fs_event_stop(handle);
   CHECK_ERROR(L, err);
-  UNHOLD_HANDLE_CALLBACK(L, handle, IDX_FS_EVENT_START);
-  UNHOLD_HANDLE_ITSELF(L, handle);
+  UNHOLD_HANDLE_FEATURE(L, handle);
   return 0;
 }
 

@@ -4,6 +4,33 @@
 #define FS_POLL_FUNCTION(name) UVWRAP_FUNCTION(fs_poll, name)
 #define FS_POLL_CALLBACK(name) UVWRAP_CALLBACK(fs_poll, name)
 
+typedef struct {
+  int status;
+  uv_stat_t prev;
+  uv_stat_t curr;
+} PollResult;
+static void fspr_set(PollResult* result, int status, const uv_stat_t* prev, const uv_stat_t* curr) {
+  result->status = status;
+  result->prev = *prev;
+  result->curr = *curr;
+}
+static int fspr_push(PollResult* result, lua_State* L) {
+  lua_pushinteger(L, result->status);
+  lua_pushuv_stat_t(L, &result->prev);
+  lua_pushuv_stat_t(L, &result->curr);
+  return 3;
+}
+static void fspr_clear(void* obj) {
+  PollResult* result = (PollResult*)obj;
+  (void)result;
+}
+static int pushPollResult(lua_State* L, int status, const uv_stat_t* prev, const uv_stat_t* curr) {
+  lua_pushinteger(L, status);
+  lua_pushuv_stat_t(L, prev);
+  lua_pushuv_stat_t(L, curr);
+  return 3;
+}
+
 static void FS_POLL_CALLBACK(startAsync)(uv_fs_poll_t* handle, int status, const uv_stat_t* prev, const uv_stat_t* curr) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_FS_POLL_START);
@@ -21,17 +48,39 @@ static int FS_POLL_FUNCTION(startAsync)(lua_State* L) {
 
   int err = uv_fs_poll_start(handle, FS_POLL_CALLBACK(startAsync), path, interval);
   CHECK_ERROR(L, err);
-  HOLD_HANDLE_CALLBACK(L, handle, IDX_FS_POLL_START, 2);
-  HOLD_HANDLE_ITSELF(L, handle, 1);
+  HOLD_CALLBACK_FOR_HANDLE(L, handle, 1, 2);
   return 0;
+}
+
+static void FS_POLL_CALLBACK(startCache)(uv_fs_poll_t* handle, int status, const uv_stat_t* prev, const uv_stat_t* curr) {
+  ASYNC_RESUME_CACHE(startCache, pushPollResult, fspr_set, PollResult, handle, status, prev, curr);
+}
+static int FS_POLL_FUNCTION(startCache)(lua_State* co) {
+  CHECK_COROUTINE(co);
+  uv_fs_poll_t* handle = luaL_checkfs_poll(co, 1);
+  const char* path = luaL_checkstring(co, 2);
+  const unsigned int interval = (unsigned int)luaL_checkinteger(co, 3);
+  const uint16_t max = (uint16_t)luaL_optinteger(co, 4, 8);
+
+  SET_HANDLE_NEW_CACHE(handle, PollResult, max, co, fspr_clear);
+
+  const int err = uv_fs_poll_start(handle, FS_POLL_CALLBACK(startCache), path, interval);
+  CHECK_ERROR(co, err);
+  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1);
+  return 0;
+}
+static int FS_POLL_FUNCTION(getCacheWait)(lua_State* co) {
+  CHECK_COROUTINE(co);
+  uv_fs_poll_t* handle = luaL_checkfs_poll(co, 1);
+  PUSH_CACHE_RESULT_OR_YIELD(handle, fspr_push, PollResult);
 }
 
 static int FS_POLL_FUNCTION(stop)(lua_State* L) {
   uv_fs_poll_t* handle = luaL_checkfs_poll(L, 1);
+  RELEASE_HANDLE_CACHE(handle);
   int err = uv_fs_poll_stop(handle);
   CHECK_ERROR(L, err);
-  UNHOLD_HANDLE_CALLBACK(L, handle, IDX_FS_POLL_START);
-  UNHOLD_HANDLE_ITSELF(L, handle);
+  UNHOLD_HANDLE_FEATURE(L, handle);
   return 0;
 }
 
@@ -70,6 +119,8 @@ static int FS_POLL_FUNCTION(__gc)(lua_State* L) {
 
 static const luaL_Reg FS_POLL_FUNCTION(metafuncs)[] = {
     EMPLACE_FS_POLL_FUNCTION(startAsync),
+    EMPLACE_FS_POLL_FUNCTION(startCache),
+    EMPLACE_FS_POLL_FUNCTION(getCacheWait),
     EMPLACE_FS_POLL_FUNCTION(stop),
     EMPLACE_FS_POLL_FUNCTION(getPath),
     EMPLACE_FS_POLL_FUNCTION(__gc),

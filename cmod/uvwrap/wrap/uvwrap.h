@@ -228,8 +228,25 @@ void MEMORY_FUNCTION(buf_moveToMemBuffer)(uv_buf_t buf, luaL_MemBuffer* mb);
 extern lua_State* staticL;
 #define GET_MAIN_LUA_STATE() (staticL)
 
+#define IS_FUNCTION_OR_MAKE_NIL(L, idx) \
+  do { \
+    if (!lua_isfunction(L, idx)) { \
+      lua_pushnil(L); \
+      lua_replace(L, idx); \
+    } \
+  } while (0)
+
 #define CHECK_IS_ASYNC(L, idx) (lua_type(L, idx) == LUA_TFUNCTION)
 
+#define ASYNC_WAIT_MSG "AsyncWait api must running in coroutine"
+#define CHECK_COROUTINE(co) \
+  do { \
+    if (lua_ismainthread(co)) { \
+      return luaL_error(co, ASYNC_WAIT_MSG); \
+    } \
+  } while (false)
+
+// request start
 #define REQ_BASE_INDEX 0
 #define HOLD_REQ_CALLBACK(L, req, idx) HOLD_LUA_OBJECT(L, req, REQ_BASE_INDEX, idx)
 #define PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req) \
@@ -239,7 +256,6 @@ extern lua_State* staticL;
     PUSH_HOLD_OBJECT_CLEAN(L, req, REQ_BASE_INDEX); \
   } while (0)
 
-#define REQ_BASE_INDEX 0
 #define HOLD_REQ_PARAM(L, req, num, idx) HOLD_LUA_OBJECT(L, req, REQ_BASE_INDEX + num, idx)
 #define UNHOLD_REQ_PARAM(L, req, num) UNHOLD_LUA_OBJECT(L, req, REQ_BASE_INDEX + num)
 #define PUSH_REQ_PARAM(L, req, num) PUSH_HOLD_OBJECT(L, req, REQ_BASE_INDEX + num)
@@ -250,18 +266,27 @@ extern lua_State* staticL;
   luaL_releasebuffer(L, -1); \
   lua_pop(L, 1)
 
-#define HOLD_HANDLE_CALLBACK(L, handle, num, idx) HOLD_LUA_OBJECT(L, handle, num, idx)
-#define UNHOLD_HANDLE_CALLBACK(L, handle, num) UNHOLD_LUA_OBJECT(L, handle, num)
-#define PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, num) \
-  do { \
-    L = GET_MAIN_LUA_STATE(); \
-    PREPARE_CALL_LUA(L); \
-    PUSH_HOLD_OBJECT(L, handle, num); \
-  } while (0)
+#define HOLD_COROUTINE_FOR_REQ(co) \
+  uv_req_set_data((uv_req_t*)req, (void*)co); \
+  HOLD_REQ_PARAM(co, req, 0, -1); /* hold the coroutine */ \
+  HOLD_REQ_PARAM(co, req, 1, 1) /* hold the handle */
+#define REQ_ASYNC_WAIT_PREPARE() \
+  lua_State* L = GET_MAIN_LUA_STATE(); \
+  lua_checkstack(L, LUA_MINSTACK); \
+  lua_State* co = (lua_State*)uv_req_get_data((const uv_req_t*)req); \
+  (void)MEMORY_FUNCTION(free_req)(req); \
+  UNHOLD_REQ_PARAM(co, req, 0); /* must unhold before resume */ \
+  UNHOLD_REQ_PARAM(co, req, 1)
+#define REQ_ASYNC_WAIT_RESUME(name) \
+  lua_pushinteger(co, status); \
+  int ret = lua_resume(co, L, 1); \
+  if (ret != LUA_OK && ret != LUA_YIELD) { \
+    fprintf(stderr, #name " resume coroutine error: %s", lua_tostring(co, -1)); \
+  }
+// request end
 
 #define IDX_HANDLE_ITSELF 0
 #define IDX_HANDLE_FEATURE 1
-#define IDX_HANDLE_CLOSE IDX_HANDLE_FEATURE
 #define IDX_HANDLE_CALLBACK IDX_HANDLE_FEATURE
 #define IDX_HANDLE_COROUTINE IDX_HANDLE_FEATURE
 
@@ -290,47 +315,42 @@ extern lua_State* staticL;
 #define PUSH_HANDLE_ITSELF_CLEAN(L, handle) \
   PUSH_HOLD_OBJECT_CLEAN(L, handle, IDX_HANDLE_ITSELF)
 
-#define HOLD_HANDLE_CLOSE_CALLBACK(L, handle, idx) \
-  HOLD_HANDLE_CALLBACK(L, handle, IDX_HANDLE_CLOSE, idx)
-#define PUSH_HANDLE_CLOSE_CALLBACK_CLEAN_FOR_INVOKE(L, handle) \
-  do { \
-    L = GET_MAIN_LUA_STATE(); \
-    PREPARE_CALL_LUA(L); \
-    PUSH_HOLD_OBJECT_CLEAN(L, handle, IDX_HANDLE_CLOSE); \
-  } while (0)
-
-#define ASYNC_WAIT_MSG "AsyncWait api must running in coroutine"
-#define CHECK_COROUTINE(co) \
-  if (lua_pushthread(co)) { \
-    return luaL_error(co, ASYNC_WAIT_MSG); \
-  }
-#define HOLD_COROUTINE_FOR_REQ(co) \
-  uv_req_set_data((uv_req_t*)req, (void*)co); \
-  HOLD_REQ_PARAM(co, req, 0, -1); /* hold the coroutine */ \
-  HOLD_REQ_PARAM(co, req, 1, 1) /* hold the handle */
-#define REQ_ASYNC_WAIT_PREPARE() \
-  lua_State* L = GET_MAIN_LUA_STATE(); \
-  lua_checkstack(L, LUA_MINSTACK); \
-  lua_State* co = (lua_State*)uv_req_get_data((const uv_req_t*)req); \
-  (void)MEMORY_FUNCTION(free_req)(req); \
-  UNHOLD_REQ_PARAM(co, req, 0); /* must unhold before resume */ \
-  UNHOLD_REQ_PARAM(co, req, 1)
-#define REQ_ASYNC_WAIT_RESUME(name) \
-  lua_pushinteger(co, status); \
-  int ret = lua_resume(co, L, 1); \
-  if (ret != LUA_OK && ret != LUA_YIELD) { \
-    fprintf(stderr, #name " resume coroutine error: %s", lua_tostring(co, -1)); \
-  }
-
 #define UNHOLD_HANDLE_FEATURE(L, handle) \
   UNHOLD_LUA_OBJECT(L, handle, IDX_HANDLE_ITSELF); \
   UNHOLD_LUA_OBJECT(L, handle, IDX_HANDLE_FEATURE)
 #define HOLD_CALLBACK_FOR_HANDLE(L, handle, idx, cbidx) \
   HOLD_LUA_OBJECT(L, handle, IDX_HANDLE_ITSELF, idx); \
   HOLD_LUA_OBJECT(L, handle, IDX_HANDLE_CALLBACK, cbidx)
-#define HOLD_COROUTINE_FOR_HANDLE(L, handle, idx, coidx) \
-  HOLD_LUA_OBJECT(co, handle, IDX_HANDLE_ITSELF, idx); \
-  HOLD_LUA_OBJECT(co, handle, IDX_HANDLE_COROUTINE, coidx)
+#define HOLD_COROUTINE_FOR_HANDLE(co, handle, handleIdxInCo) \
+  lua_State* L = GET_MAIN_LUA_STATE(); \
+  lua_pushvalue(co, handleIdxInCo); \
+  lua_pushthread(co); \
+  lua_xmove(co, L, 2); \
+  HOLD_LUA_OBJECT(L, handle, IDX_HANDLE_ITSELF, -2); \
+  HOLD_LUA_OBJECT(L, handle, IDX_HANDLE_COROUTINE, -1); \
+  lua_pop(L, 2)
+
+#define PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, num) \
+  do { \
+    L = GET_MAIN_LUA_STATE(); \
+    PREPARE_CALL_LUA(L); \
+    PUSH_HOLD_OBJECT(L, handle, num); \
+  } while (0)
+
+#define HANDLE_ASYNC_WAIT_PREPARE(handle) \
+  (void)EXTENSION_FUNCTION(releaseExtension)((uv_handle_t*)handle); \
+  lua_State* L = GET_MAIN_LUA_STATE(); \
+  UNHOLD_LUA_OBJECT(L, handle, IDX_HANDLE_ITSELF); \
+  PUSH_HOLD_OBJECT_CLEAN(L, handle, IDX_HANDLE_COROUTINE); \
+  lua_State* co = lua_tothread(L, -1)
+#define HANDLE_ASYNC_WAIT_RESUME(name_, count_) \
+  int ret = lua_resume(co, L, count_); \
+  if (ret != LUA_OK && ret != LUA_YIELD) { \
+    luaL_traceback(L, co, NULL, 0); \
+    fprintf(stderr, #name_ " resume coroutine error: %s\n%s", lua_tostring(co, -1), lua_tostring(L, -1)); \
+    lua_pop(L, 1); \
+  } \
+  lua_pop(L, 1) /* pop the coroutine */
 
 #define ASYNC_RESUME_CACHE(name_, pushResult_, setCache_, typeCache_, handle_, ...) \
   lua_State* L = GET_MAIN_LUA_STATE(); \
@@ -363,14 +383,6 @@ extern lua_State* staticL;
   } \
   acs_setResume(cache, true); \
   return lua_yield(co, 0)
-
-#define IS_FUNCTION_OR_MAKE_NIL(L, idx) \
-  do { \
-    if (!lua_isfunction(L, idx)) { \
-      lua_pushnil(L); \
-      lua_replace(L, idx); \
-    } \
-  } while (0)
 
 /* }====================================================== */
 
@@ -497,6 +509,7 @@ typedef struct {
   uint16_t max; // max num in this cache
   uint16_t start; // the index of the first one
   uint16_t num;
+  uint8_t sizeOfStruct;
   bool bCanResume;
 } AsyncCacheState;
 #define acs_getArrayPtr(acs_) ((acs_) + 1)
@@ -504,9 +517,9 @@ typedef struct {
 #define acs_setResume(acs_, v) ((acs_)->bCanResume = (v))
 #define acs_canCache(acs_) ((acs_)->max > (acs_)->num)
 #define acs_hasCache(acs_) ((acs_)->num > 0)
-#define acs_getPtr(type_, cache_) &(((type_*)acs_getArrayPtr(cache))[acs_getIndex(cache)])
-#define acs_addPtr(type_, cache_) &(((type_*)acs_getArrayPtr(cache))[acs_addIndex(cache)])
-AsyncCacheState* acs_create(size_t sizeOfStruct, uint32_t max, lua_State* co, ObjectReleaser objReleaser);
+#define acs_getPtr(type_, cache_) (type_*)&(((char*)acs_getArrayPtr(cache_))[acs_getIndex(cache_) * (cache_)->sizeOfStruct])
+#define acs_addPtr(type_, cache_) (type_*)&(((char*)acs_getArrayPtr(cache_))[acs_addIndex(cache_) * (cache_)->sizeOfStruct])
+AsyncCacheState* acs_create(uint8_t sizeOfStruct, uint16_t max, lua_State* co, ObjectReleaser objReleaser);
 void acs_release(HandleExtension* ext);
 uint16_t acs_getIndex(AsyncCacheState* acs);
 uint16_t acs_addIndex(AsyncCacheState* acs);

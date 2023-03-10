@@ -25,9 +25,10 @@ static int HANDLE_FUNCTION(isClosing)(lua_State* L) {
 }
 
 static void HANDLE_CALLBACK(closeAsync)(uv_handle_t* handle) {
-  lua_State* L;
   (void)EXTENSION_FUNCTION(releaseExtension)(handle);
-  PUSH_HANDLE_CLOSE_CALLBACK_CLEAN_FOR_INVOKE(L, handle);
+  lua_State* L = GET_MAIN_LUA_STATE();
+  PREPARE_CALL_LUA(L);
+  PUSH_HOLD_OBJECT_CLEAN(L, handle, IDX_HANDLE_CALLBACK);
   if (lua_isfunction(L, -1)) {
     PUSH_HANDLE_ITSELF_CLEAN(L, handle);
     CALL_LUA_FUNCTION(L, 1);
@@ -42,22 +43,34 @@ static int HANDLE_FUNCTION(closeAsync)(lua_State* L) {
     return luaL_error(L, "this handle(%p) has been closed, don't close again", handle);
   }
   IS_FUNCTION_OR_MAKE_NIL(L, 2);
-  HOLD_HANDLE_CLOSE_CALLBACK(L, handle, 2);
-  HOLD_HANDLE_ITSELF(L, handle, 1);
+  HOLD_CALLBACK_FOR_HANDLE(L, handle, 1, 2);
   uv_close(handle, HANDLE_CALLBACK(closeAsync));
+  return 0;
+}
+
+static void HANDLE_CALLBACK(closeAsyncWait)(uv_handle_t* handle) {
+  HANDLE_ASYNC_WAIT_PREPARE(handle);
+  HANDLE_ASYNC_WAIT_RESUME(handle, 0);
+}
+static int HANDLE_FUNCTION(closeAsyncWait)(lua_State* co) {
+  CHECK_COROUTINE(co);
+  uv_handle_t* handle = luaL_checkhandle(co, 1);
+  if (uv_is_closing(handle)) {
+    return luaL_error(co, "this handle(%p) has been closed, don't close again", handle);
+  }
+  uv_close(handle, HANDLE_CALLBACK(closeAsyncWait));
+  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1);
   return 0;
 }
 
 static void HANDLE_CALLBACK(__gc)(uv_handle_t* handle) {
   lua_State* L = GET_MAIN_LUA_STATE();
   (void)EXTENSION_FUNCTION(releaseExtension)(handle);
-  UNHOLD_HANDLE_CALLBACK(L, handle, IDX_HANDLE_CALLBACK);
-  UNHOLD_HANDLE_ITSELF(L, handle);
+  UNHOLD_HANDLE_FEATURE(L, handle);
 }
 int HANDLE_FUNCTION(__gc)(lua_State* L) {
   uv_handle_t* handle = luaL_checkhandle(L, 1);
   if (!uv_is_closing(handle)) {
-    // uv_handle_set_data((uv_handle_t*)handle, (void*)L);
     HOLD_HANDLE_ITSELF(L, handle, 1);
     uv_close(handle, HANDLE_CALLBACK(__gc));
   }
@@ -129,6 +142,7 @@ static const luaL_Reg HANDLE_FUNCTION(metafuncs)[] = {
     EMPLACE_HANDLE_FUNCTION(isActive),
     EMPLACE_HANDLE_FUNCTION(isClosing),
     EMPLACE_HANDLE_FUNCTION(closeAsync),
+    EMPLACE_HANDLE_FUNCTION(closeAsyncWait),
     EMPLACE_HANDLE_FUNCTION(ref),
     EMPLACE_HANDLE_FUNCTION(unref),
     EMPLACE_HANDLE_FUNCTION(hasRef),

@@ -4,6 +4,25 @@
 #define SIGNAL_FUNCTION(name) UVWRAP_FUNCTION(signal, name)
 #define SIGNAL_CALLBACK(name) UVWRAP_CALLBACK(signal, name)
 
+typedef struct {
+  int signum;
+} SignalResult;
+static void sr_set(SignalResult* result, int signum) {
+  result->signum = signum;
+}
+static int sr_push(SignalResult* result, lua_State* L) {
+  lua_pushinteger(L, result->signum);
+  return 1;
+}
+static void sr_clear(void* obj) {
+  SignalResult* result = (SignalResult*)obj;
+  (void)result;
+}
+static int pushSignalResult(lua_State* L, int signum) {
+  lua_pushinteger(L, signum);
+  return 1;
+}
+
 static void SIGNAL_CALLBACK(startAsync)(uv_signal_t* handle, int signum) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_SIGNAL_START); /* make sure one handle only push one callback */
@@ -18,17 +37,38 @@ static int SIGNAL_FUNCTION(startAsync)(lua_State* L) {
 
   int err = uv_signal_start(handle, SIGNAL_CALLBACK(startAsync), signum);
   CHECK_ERROR(L, err);
-  HOLD_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START, 2);
-  HOLD_HANDLE_ITSELF(L, handle, 1);
+  HOLD_CALLBACK_FOR_HANDLE(L, handle, 1, 3);
   return 0;
+}
+
+static void SIGNAL_CALLBACK(startCache)(uv_signal_t* handle, int signum) {
+  ASYNC_RESUME_CACHE(startCache, pushSignalResult, sr_set, SignalResult, handle, signum);
+}
+static int SIGNAL_FUNCTION(startCache)(lua_State* co) {
+  CHECK_COROUTINE(co);
+  uv_signal_t* handle = luaL_checksignal(co, 1);
+  int signum = (int)luaL_checkinteger(co, 2);
+  const uint16_t max = (uint16_t)luaL_optinteger(co, 3, 8);
+
+  SET_HANDLE_NEW_CACHE(handle, SignalResult, max, co, sr_clear);
+
+  const int err = uv_signal_start(handle, SIGNAL_CALLBACK(startCache), signum);
+  CHECK_ERROR(co, err);
+  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1);
+  return 0;
+}
+static int SIGNAL_FUNCTION(getCacheWait)(lua_State* co) {
+  CHECK_COROUTINE(co);
+  uv_signal_t* handle = luaL_checksignal(co, 1);
+  PUSH_CACHE_RESULT_OR_YIELD(handle, sr_push, SignalResult);
 }
 
 static void SIGNAL_CALLBACK(startOneShotAsync)(uv_signal_t* handle, int signum) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_SIGNAL_START); /* make sure one handle only push one callback */
-  UNHOLD_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START);
   lua_pushinteger(L, signum);
-  PUSH_HANDLE_ITSELF_CLEAN(L, handle);
+  PUSH_HANDLE_ITSELF(L, handle);
+  UNHOLD_HANDLE_FEATURE(L, handle);
   CALL_LUA_FUNCTION(L, 2);
 }
 static int SIGNAL_FUNCTION(startOneShotAsync)(lua_State* L) {
@@ -38,20 +78,13 @@ static int SIGNAL_FUNCTION(startOneShotAsync)(lua_State* L) {
 
   int err = uv_signal_start_oneshot(handle, SIGNAL_CALLBACK(startOneShotAsync), signum);
   CHECK_ERROR(L, err);
-  HOLD_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START, 2);
-  HOLD_HANDLE_ITSELF(L, handle, 1);
+  HOLD_CALLBACK_FOR_HANDLE(L, handle, 1, 3);
   return 0;
 }
 
 static void SIGNAL_CALLBACK(startOneShotAsyncWait)(uv_signal_t* handle, int signum) {
-  lua_State* L = GET_MAIN_LUA_STATE();
-  lua_State* co = (lua_State*)uv_handle_get_data((const uv_handle_t*)handle);
-  UNHOLD_LUA_OBJECT(co, handle, 0);
-  UNHOLD_LUA_OBJECT(co, handle, 1);
-  int ret = lua_resume(co, L, 0);
-  if (ret != LUA_OK && ret != LUA_YIELD) {
-    fprintf(stderr, "Signal startOneShotAsyncWait resume coroutine error: %s", lua_tostring(co, -1));
-  }
+  HANDLE_ASYNC_WAIT_PREPARE(handle);
+  HANDLE_ASYNC_WAIT_RESUME(startOneShotAsyncWait, 0);
 }
 static int SIGNAL_FUNCTION(startOneShotAsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);
@@ -60,18 +93,16 @@ static int SIGNAL_FUNCTION(startOneShotAsyncWait)(lua_State* co) {
 
   int err = uv_signal_start_oneshot(handle, SIGNAL_CALLBACK(startOneShotAsyncWait), signum);
   CHECK_ERROR(co, err);
-  uv_handle_set_data((uv_handle_t*)handle, (void*)co);
-  HOLD_LUA_OBJECT(co, handle, 0, -1); /* hold the coroutine */
-  HOLD_LUA_OBJECT(co, handle, 1, 1);
+  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1);
   return lua_yield(co, 0);
 }
 
 static int SIGNAL_FUNCTION(stop)(lua_State* L) {
   uv_signal_t* handle = luaL_checksignal(L, 1);
+  RELEASE_HANDLE_CACHE(handle);
   int err = uv_signal_stop(handle);
   CHECK_ERROR(L, err);
-  UNHOLD_HANDLE_CALLBACK(L, handle, IDX_SIGNAL_START);
-  UNHOLD_HANDLE_ITSELF(L, handle);
+  UNHOLD_HANDLE_FEATURE(L, handle);
   return 0;
 }
 
@@ -85,6 +116,8 @@ static int SIGNAL_FUNCTION(__gc)(lua_State* L) {
 
 static const luaL_Reg SIGNAL_FUNCTION(metafuncs)[] = {
     EMPLACE_SIGNAL_FUNCTION(startAsync),
+    EMPLACE_SIGNAL_FUNCTION(startCache),
+    EMPLACE_SIGNAL_FUNCTION(getCacheWait),
     EMPLACE_SIGNAL_FUNCTION(startOneShotAsync),
     EMPLACE_SIGNAL_FUNCTION(startOneShotAsyncWait),
     EMPLACE_SIGNAL_FUNCTION(stop),

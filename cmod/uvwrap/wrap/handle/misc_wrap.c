@@ -7,6 +7,28 @@
 ** =======================================================
 */
 
+typedef struct {
+  uv_handle_t* nothing;
+} MiscResult;
+static void misc_set(MiscResult* result, uv_handle_t* handle) {
+  (void)result;
+  (void)handle;
+}
+static int misc_push(MiscResult* result, lua_State* L) {
+  (void)result;
+  (void)L;
+  return 0;
+}
+static void misc_clear(void* obj) {
+  MiscResult* result = (MiscResult*)obj;
+  (void)result;
+}
+static int pushMiscResult(lua_State* L, uv_handle_t* handle) {
+  (void)L;
+  (void)handle;
+  return 0;
+}
+
 #define UVWRAP_MISC_HANDLE_DEFINE(name, NAME, Name) \
 \
   static int UVWRAP_FUNCTION(name, Name)(lua_State * L) { \
@@ -22,29 +44,48 @@
     return 1; \
   } \
 \
-  static void UVWRAP_CALLBACK(name, start)(uv_##name##_t * handle) { \
+  static void UVWRAP_CALLBACK(name, startAsync)(uv_##name##_t * handle) { \
     lua_State* L; \
     PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_##NAME##_START); /* make sure one handle only push one callback */ \
     PUSH_HANDLE_ITSELF(L, handle); \
     CALL_LUA_FUNCTION(L, 1); \
   } \
-  static int UVWRAP_FUNCTION(name, start)(lua_State * L) { \
+  static int UVWRAP_FUNCTION(name, startAsync)(lua_State * L) { \
     uv_##name##_t* handle = luaL_check##name(L, 1); \
     luaL_checktype(L, 2, LUA_TFUNCTION); \
 \
-    int err = uv_##name##_start(handle, UVWRAP_CALLBACK(name, start)); \
+    int err = uv_##name##_start(handle, UVWRAP_CALLBACK(name, startAsync)); \
     CHECK_ERROR(L, err); \
-    HOLD_HANDLE_CALLBACK(L, handle, IDX_##NAME##_START, 2); \
-    HOLD_HANDLE_ITSELF(L, handle, 1); \
+    HOLD_CALLBACK_FOR_HANDLE(L, handle, 1, 2); \
     return 0; \
+  } \
+\
+  static void UVWRAP_CALLBACK(name, startCache)(uv_##name##_t * handle) { \
+    ASYNC_RESUME_CACHE(startCache, pushMiscResult, misc_set, MiscResult, handle, (uv_handle_t*)handle); \
+  } \
+  static int UVWRAP_FUNCTION(name, startCache)(lua_State * co) { \
+    CHECK_COROUTINE(co); \
+    uv_##name##_t* handle = luaL_check##name(co, 1); \
+\
+    SET_HANDLE_NEW_CACHE(handle, MiscResult, 0, co, misc_clear); \
+\
+    int err = uv_##name##_start(handle, UVWRAP_CALLBACK(name, startCache)); \
+    CHECK_ERROR(co, err); \
+    HOLD_COROUTINE_FOR_HANDLE(co, handle, 1); \
+    return 0; \
+  } \
+  static int UVWRAP_FUNCTION(name, getCacheWait)(lua_State * co) { \
+    CHECK_COROUTINE(co); \
+    uv_##name##_t* handle = luaL_check##name(co, 1); \
+    PUSH_CACHE_RESULT_OR_YIELD(handle, misc_push, MiscResult); \
   } \
 \
   static int UVWRAP_FUNCTION(name, stop)(lua_State * L) { \
     uv_##name##_t* handle = luaL_check##name(L, 1); \
+    RELEASE_HANDLE_CACHE(handle); \
     int err = uv_##name##_stop(handle); \
     CHECK_ERROR(L, err); \
-    UNHOLD_HANDLE_CALLBACK(L, handle, IDX_##NAME##_START); \
-    UNHOLD_HANDLE_ITSELF(L, handle); \
+    UNHOLD_HANDLE_FEATURE(L, handle); \
     return 0; \
   } \
 \
@@ -54,7 +95,9 @@
   } \
 \
   static const luaL_Reg UVWRAP_FUNCTION(name, metafuncs)[] = { \
-      {"startAsync", UVWRAP_FUNCTION(name, start)}, \
+      {"startAsync", UVWRAP_FUNCTION(name, startAsync)}, \
+      {"startCache", UVWRAP_FUNCTION(name, startCache)}, \
+      {"getCacheWait", UVWRAP_FUNCTION(name, getCacheWait)}, \
       {"stop", UVWRAP_FUNCTION(name, stop)}, \
       {"__gc", UVWRAP_FUNCTION(name, __gc)}, \
       {NULL, NULL}, \

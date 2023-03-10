@@ -233,17 +233,35 @@ static int UDP_FUNCTION(recvStartAsync)(lua_State* L) {
 
   int err = uv_udp_recv_start(handle, MEMORY_FUNCTION(buf_alloc), UDP_CALLBACK(recvStartAsync));
   CHECK_ERROR(L, err);
-  HOLD_HANDLE_CALLBACK(L, handle, IDX_UDP_RECV_START, 2);
-  HOLD_HANDLE_ITSELF(L, handle, 1);
+  HOLD_CALLBACK_FOR_HANDLE(L, handle, 1, 2);
   return 0;
+}
+
+static void UDP_CALLBACK(recvStartCache)(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const struct sockaddr* addr, unsigned flags) {
+  ASYNC_RESUME_CACHE(recvStartCache, pushRecvResult, urr_set, UdpRecvResult, handle, nread, buf, addr, flags);
+}
+static int UDP_FUNCTION(recvStartCache)(lua_State* co) {
+  CHECK_COROUTINE(co);
+  uv_udp_t* handle = luaL_checkudp(co, 1);
+
+  SET_HANDLE_NEW_CACHE(handle, UdpRecvResult, 8, co, urr_clear);
+  const int err = uv_udp_recv_start(handle, MEMORY_FUNCTION(buf_alloc), UDP_CALLBACK(recvStartCache));
+  CHECK_ERROR(co, err);
+  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1);
+  return 0;
+}
+static int UDP_FUNCTION(recvCacheWait)(lua_State* co) {
+  CHECK_COROUTINE(co);
+  uv_udp_t* handle = luaL_checkudp(co, 1);
+  PUSH_CACHE_RESULT_OR_YIELD(handle, urr_push, UdpRecvResult);
 }
 
 static int UDP_FUNCTION(recvStop)(lua_State* L) {
   uv_udp_t* handle = luaL_checkudp(L, 1);
+  RELEASE_HANDLE_CACHE(handle);
   int err = uv_udp_recv_stop(handle);
   CHECK_ERROR(L, err);
-  UNHOLD_HANDLE_CALLBACK(L, handle, IDX_UDP_RECV_START);
-  UNHOLD_HANDLE_ITSELF(L, handle);
+  UNHOLD_HANDLE_FEATURE(L, handle);
   return 0;
 }
 
@@ -283,6 +301,8 @@ const luaL_Reg UDP_FUNCTION(metafuncs)[] = {
     EMPLACE_UDP_FUNCTION(sendAsyncWait),
     EMPLACE_UDP_FUNCTION(trySend),
     EMPLACE_UDP_FUNCTION(recvStartAsync),
+    EMPLACE_UDP_FUNCTION(recvStartCache),
+    EMPLACE_UDP_FUNCTION(recvCacheWait),
     EMPLACE_UDP_FUNCTION(recvStop),
     EMPLACE_UDP_FUNCTION(getSendQueueSize),
     EMPLACE_UDP_FUNCTION(getSendQueueCount),
