@@ -577,6 +577,10 @@ LUA_API int lua_pushthread(lua_State* L) {
   return (G(L)->mainthread == L);
 }
 
+LUA_API int lua_ismainthread(lua_State* L) {
+  return (G(L)->mainthread == L);
+}
+
 /*
 ** get functions (Lua -> stack)
 */
