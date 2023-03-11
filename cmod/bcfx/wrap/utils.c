@@ -17,7 +17,9 @@ static int UTILS_FUNCTION(packSamplerFlags)(lua_State* L) {
   SET_FLAGS_FIELD(wrapU, integer);
   SET_FLAGS_FIELD(wrapV, integer);
   SET_FLAGS_FIELD(wrapW, integer);
-  SET_FLAGS_FIELD(wrapMirror, integer);
+  SET_FLAGS_FIELD(wrapMirrorU, boolean);
+  SET_FLAGS_FIELD(wrapMirrorV, boolean);
+  SET_FLAGS_FIELD(wrapMirrorW, boolean);
   SET_FLAGS_FIELD(compareMode, integer);
   SET_FLAGS_FIELD(compareFunc, integer);
   SET_FLAGS_FIELD(filterMin, integer);

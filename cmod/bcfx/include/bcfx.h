@@ -352,16 +352,19 @@ typedef struct {
   uint8_t wrapU : 2;
   uint8_t wrapV : 2;
   uint8_t wrapW : 2;
-  uint8_t wrapMirror : 1;
+  uint8_t wrapMirrorU : 1;
+  uint8_t wrapMirrorV : 1; // one byte finish
+  uint8_t wrapMirrorW : 1;
   uint8_t compareMode : 1;
   uint8_t compareFunc : 3;
   uint8_t filterMin : 1;
   uint8_t filterMag : 1;
-  uint8_t enableMipmap : 1;
+  uint8_t enableMipmap : 1; // two byte finish
   uint8_t filterMipmap : 1; // Only filterMin has mipmap
   uint8_t enableAniso : 1;
 
-  uint8_t reserved1[2];
+  uint8_t reserved1 : 6; // three byte finish
+  uint8_t reserved2;
   uint32_t borderColor;
 } bcfx_SamplerFlag;
 typedef union {

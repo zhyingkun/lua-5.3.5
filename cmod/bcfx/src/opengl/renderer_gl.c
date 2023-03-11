@@ -525,9 +525,9 @@ static void gl_createSampler(RendererContext* ctx, bcfx_Handle handle, bcfx_Samp
   SamplerGL* sampler = &glCtx->samplers[handle_index(handle)];
   GL_CHECK(glGenSamplers(1, &sampler->id));
 
-  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_WRAP_S, _getTextureWrapType(flags.wrapU, flags.wrapMirror)));
-  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_WRAP_T, _getTextureWrapType(flags.wrapV, flags.wrapMirror)));
-  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_WRAP_R, _getTextureWrapType(flags.wrapW, flags.wrapMirror)));
+  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_WRAP_S, _getTextureWrapType(flags.wrapU, flags.wrapMirrorU)));
+  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_WRAP_T, _getTextureWrapType(flags.wrapV, flags.wrapMirrorV)));
+  GL_CHECK(glSamplerParameteri(sampler->id, GL_TEXTURE_WRAP_R, _getTextureWrapType(flags.wrapW, flags.wrapMirrorW)));
 
   float borderColor[4];
   bcfx_unpackColorNFArray(flags.borderColor, borderColor);

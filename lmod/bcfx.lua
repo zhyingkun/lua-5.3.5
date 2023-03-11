@@ -1632,7 +1632,9 @@ bcfx.utils = utils
 ---@field public wrapU bcfx_texture_wrap
 ---@field public wrapV bcfx_texture_wrap
 ---@field public wrapW bcfx_texture_wrap
----@field public wrapMirror boolean
+---@field public wrapMirrorU boolean
+---@field public wrapMirrorV boolean
+---@field public wrapMirrorW boolean
 ---@field public compareMode bcfx_texture_compare_mode
 ---@field public compareFunc bcfx_compare_func
 ---@field public filterMin bcfx_texture_filter
