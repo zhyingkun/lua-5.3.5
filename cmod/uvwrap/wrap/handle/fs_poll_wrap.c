@@ -34,17 +34,15 @@ static int pushPollResult(lua_State* L, int status, const uv_stat_t* prev, const
 static void FS_POLL_CALLBACK(startAsync)(uv_fs_poll_t* handle, int status, const uv_stat_t* prev, const uv_stat_t* curr) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_FS_POLL_START);
-  lua_pushinteger(L, status);
-  lua_pushuv_stat_t(L, prev);
-  lua_pushuv_stat_t(L, curr);
+  int n = pushPollResult(status, prev, curr);
   PUSH_HANDLE_ITSELF(L, handle);
-  CALL_LUA_FUNCTION(L, 4);
+  CALL_LUA_FUNCTION(L, n + 1);
 }
 static int FS_POLL_FUNCTION(startAsync)(lua_State* L) {
   uv_fs_poll_t* handle = luaL_checkfs_poll(L, 1);
-  luaL_checktype(L, 2, LUA_TFUNCTION);
-  const char* path = luaL_checkstring(L, 3);
-  unsigned int interval = (unsigned int)luaL_checkinteger(L, 4);
+  const char* path = luaL_checkstring(L, 2);
+  unsigned int interval = (unsigned int)luaL_checkinteger(L, 3);
+  luaL_checktype(L, 4, LUA_TFUNCTION);
 
   int err = uv_fs_poll_start(handle, FS_POLL_CALLBACK(startAsync), path, interval);
   CHECK_ERROR(L, err);

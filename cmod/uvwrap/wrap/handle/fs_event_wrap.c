@@ -50,13 +50,13 @@ void FS_EVENT_CALLBACK(startAsync)(uv_fs_event_t* handle, const char* fileName, 
 }
 static int FS_EVENT_FUNCTION(startAsync)(lua_State* L) {
   uv_fs_event_t* handle = luaL_checkfs_event(L, 1);
-  luaL_checktype(L, 2, LUA_TFUNCTION);
-  const char* filepath = luaL_checkstring(L, 3);
-  unsigned int flags = (unsigned int)luaL_checkinteger(L, 4);
+  const char* filepath = luaL_checkstring(L, 2);
+  unsigned int flags = (unsigned int)luaL_checkinteger(L, 3);
+  luaL_checktype(L, 4, LUA_TFUNCTION);
 
   int err = uv_fs_event_start(handle, FS_EVENT_CALLBACK(startAsync), filepath, flags);
   CHECK_ERROR(L, err);
-  HOLD_CALLBACK_FOR_HANDLE(L, handle, 1, 2);
+  HOLD_CALLBACK_FOR_HANDLE(L, handle, 1, 4);
   return 0;
 }
 
@@ -66,8 +66,8 @@ static void FS_EVENT_CALLBACK(startCache)(uv_fs_event_t* handle, const char* fil
 static int FS_EVENT_FUNCTION(startCache)(lua_State* co) {
   CHECK_COROUTINE(co);
   uv_fs_event_t* handle = luaL_checkfs_event(co, 1);
-  const char* filepath = luaL_checkstring(co, 3);
-  unsigned int flags = (unsigned int)luaL_checkinteger(co, 4);
+  const char* filepath = luaL_checkstring(co, 2);
+  unsigned int flags = (unsigned int)luaL_checkinteger(co, 3);
 
   SET_HANDLE_NEW_CACHE(handle, FileSystemEventResult, 8, co, fser_clear);
 

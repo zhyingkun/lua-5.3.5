@@ -60,7 +60,7 @@ static int HANDLE_FUNCTION(closeAsyncWait)(lua_State* co) {
   }
   uv_close(handle, HANDLE_CALLBACK(closeAsyncWait));
   HOLD_COROUTINE_FOR_HANDLE(co, handle, 1);
-  return 0;
+  return lua_yield(co, 0);
 }
 
 static void HANDLE_CALLBACK(__gc)(uv_handle_t* handle) {
