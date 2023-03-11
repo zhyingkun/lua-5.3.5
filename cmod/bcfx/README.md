@@ -11,6 +11,13 @@
 
 ## BCFX 逻辑框架：
 
+### 坐标系
+
+1. 局部空间: 本质上任意三维坐标系都可以做局部坐标系（根据需要构造出局部坐标系到世界坐标系的变换矩阵）
+2. 世界空间: 定义为 +x 向右、 +y 向前、 +z 向上，属于右手坐标系
+3. OpenGL 视角空间: +x 向右、 +y 向上、 +z 向后，也属于右手坐标系
+4. OpenGL 特有的 CubeMap 坐标系: +x 向右、 +y 向下、 +z 向后，我们看向 -z 轴，属于左手坐标系
+
 ### 库 API：
 
 1. 生命周期：初始化 init、每一帧调用 apiFrame、结束 shutdown
@@ -49,6 +56,7 @@
 ## Shader 功能
 
 1. 支持以`#pragma include<xxx/xx.xxxx.glsl>`的方式来使用类似 C 语言`#include`预处理的功能
+2. 支持以`#pragma header start`、`#pragma header finish`的方式来编写函数声明
 
 ## 关于色环
 
