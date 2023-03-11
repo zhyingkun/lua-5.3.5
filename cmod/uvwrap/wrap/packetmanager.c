@@ -20,7 +20,7 @@ typedef enum {
   PS_ErrorLength,
 } PacketStatus;
 
-static void _packLengthToBuffer(luaL_ByteBuffer* b, size_t len) {
+static void _packLengthToBuffer(luaL_ByteBuffer* b, uint32_t len) {
   do {
     luaBB_addbyte(b, (uint8_t)(len | 0x80));
     len >>= 7;
@@ -28,18 +28,17 @@ static void _packLengthToBuffer(luaL_ByteBuffer* b, size_t len) {
   luaBB_addbyte(b, (uint8_t)len);
 }
 
-static PacketStatus _unpackLengthFromBuffer(luaL_ByteBuffer* b, size_t* plen) {
-  size_t len = 0;
-  for (int i = 0; i < 10; i++) {
+static PacketStatus _unpackLengthFromBuffer(luaL_ByteBuffer* b, uint32_t* outLen) {
+  uint32_t len = 0;
+  const int maxByte = (sizeof(*outLen) * 8 + 6) / 7;
+  for (int i = 0; i < maxByte; i++) {
     const uint8_t* byte = luaBB_readbytes(b, 1);
     if (byte == NULL) {
       return PS_NeedMore;
     }
-    len |= (size_t)(*byte & 0x7F) << (7 * i);
+    len |= (uint32_t)(*byte & 0x7F) << (7 * i);
     if ((*byte & 0x80) == 0) {
-      if (plen) {
-        *plen = len;
-      }
+      *outLen = len;
       return PS_OK;
     }
   }
@@ -60,10 +59,19 @@ static void pm_destroy(PacketManager* pm) {
   MEMBUFFER_RELEASE(pm->cache);
 }
 
-static uint8_t* pm_packPacket(PacketManager* pm, const uint8_t* raw, size_t len, size_t* sz) {
+typedef struct {
+  const char* typeName;
+  const uint8_t* ptrBuffer;
+  uint32_t typeLen;
+  uint32_t ptrLen;
+} Packet;
+
+static const uint8_t* pm_packPacket(PacketManager* pm, const Packet* packet, size_t* sz) {
   luaBB_clear(pm->tmp);
-  _packLengthToBuffer(pm->tmp, len);
-  luaBB_addbytes(pm->tmp, raw, (uint32_t)len);
+  _packLengthToBuffer(pm->tmp, packet->typeLen);
+  luaBB_addbytes(pm->tmp, (const uint8_t*)packet->typeName, packet->typeLen);
+  _packLengthToBuffer(pm->tmp, packet->ptrLen);
+  luaBB_addbytes(pm->tmp, packet->ptrBuffer, packet->ptrLen);
   if (sz) {
     *sz = pm->tmp->n;
   }
@@ -89,25 +97,28 @@ static void pm_addPackData(PacketManager* pm, luaL_MemBuffer* mb) {
   }
 }
 
-static PacketStatus pm_nextPacketByteBuffer(luaL_ByteBuffer* b, const uint8_t** pptr, size_t* plen) {
-  size_t len;
-  const uint8_t* ptr;
-  luaBB_flushread(b);
+static PacketStatus _unpackTuple(luaL_ByteBuffer* b, const uint8_t** outPtr, uint32_t* outLen) {
+  uint32_t len = 0;
   PacketStatus status = _unpackLengthFromBuffer(b, &len);
+  if (status == PS_OK) {
+    const uint8_t* ptr = luaBB_readbytes(b, (uint32_t)len);
+    if (ptr == NULL) {
+      status = PS_NeedMore;
+    } else {
+      *outPtr = ptr;
+      *outLen = len;
+    }
+  }
+  return status;
+}
+static PacketStatus pm_nextPacketByteBuffer(luaL_ByteBuffer* b, Packet* outPacket) {
+  luaBB_flushread(b);
+  PacketStatus status = _unpackTuple(b, (const uint8_t**)&outPacket->typeName, &outPacket->typeLen);
+  if (status == PS_OK) {
+    status = _unpackTuple(b, (const uint8_t**)&outPacket->ptrBuffer, &outPacket->ptrLen);
+  }
   switch (status) {
     case PS_OK:
-      ptr = luaBB_readbytes(b, (uint32_t)len);
-      if (ptr == NULL) {
-        status = PS_NeedMore;
-        luaBB_undoread(b);
-      } else {
-        if (pptr) {
-          *pptr = ptr;
-        }
-        if (plen) {
-          *plen = len;
-        }
-      }
       break;
     case PS_NeedMore:
       luaBB_undoread(b);
@@ -120,31 +131,20 @@ static PacketStatus pm_nextPacketByteBuffer(luaL_ByteBuffer* b, const uint8_t** 
   }
   return status;
 }
-
-static PacketStatus pm_nextPacket(PacketManager* pm, const uint8_t** pptr, size_t* plen) {
+static PacketStatus pm_nextPacket(PacketManager* pm, Packet* outPacket) {
 again:
   if (!luaBB_isemptyforread(pm->b)) {
-    PacketStatus status = pm_nextPacketByteBuffer(pm->b, pptr, plen);
-    switch (status) {
-      case PS_OK:
-        return PS_OK;
-      case PS_NeedMore:
-        if (!luaBB_isemptyforread(pm->bc)) {
-          pm_appendCache(pm);
-          goto again;
-        }
-        return PS_NeedMore;
-      case PS_ErrorLength:
-        return PS_ErrorLength;
-      default:
-        assert(false);
-        break;
+    const PacketStatus status = pm_nextPacketByteBuffer(pm->b, outPacket);
+    if (status == PS_NeedMore && !luaBB_isemptyforread(pm->bc)) {
+      pm_appendCache(pm);
+      goto again;
     }
-  } else if (!luaBB_isemptyforread(pm->bc)) {
-    return pm_nextPacketByteBuffer(pm->bc, pptr, plen);
-  } else {
-    MEMBUFFER_RELEASE(pm->cache);
+    return status;
   }
+  if (!luaBB_isemptyforread(pm->bc)) {
+    return pm_nextPacketByteBuffer(pm->bc, outPacket);
+  }
+  MEMBUFFER_RELEASE(pm->cache);
   return PS_NeedMore;
 }
 
@@ -162,12 +162,15 @@ again:
 
 static int PM_FUNCTION(packPacket)(lua_State* L) {
   PacketManager* pm = luaL_checkpacketmanager(L, 1);
-  size_t len;
-  const char* data = luaL_checklbuffer(L, 2, &len);
-  const bool bUseString = luaL_optboolean(L, 3, false);
+  size_t typeLen = 0;
+  const char* typeName = luaL_checklstring(L, 2, &typeLen);
+  size_t ptrLen;
+  const uint8_t* ptrBuffer = (const uint8_t*)luaL_checklbuffer(L, 3, &ptrLen);
+  const bool bUseString = luaL_optboolean(L, 4, false);
 
+  const Packet packet = {typeName, ptrBuffer, (uint32_t)typeLen, (uint32_t)ptrLen};
   size_t sz;
-  uint8_t* ptr = pm_packPacket(pm, (uint8_t*)data, len, &sz);
+  const uint8_t* ptr = pm_packPacket(pm, &packet, &sz);
 
   luaL_releasebuffer(L, 2);
   if (bUseString) {
@@ -186,52 +189,41 @@ static int PM_FUNCTION(addPackData)(lua_State* L) {
   pm_addPackData(pm, mb);
   return 0;
 }
+static int _pushPacket(lua_State* L, Packet* packet, bool bUseString) {
+  lua_pushlstring(L, packet->typeName, packet->typeLen);
+  if (bUseString) {
+    lua_pushlstring(L, (const char*)packet->ptrBuffer, packet->ptrLen);
+  } else {
+    luaL_MemBuffer* mb = luaL_newmembuffer(L);
+    MEMBUFFER_SETINIT_REF(mb, packet->ptrBuffer, packet->ptrLen);
+  }
+  return 2;
+}
 static int PM_FUNCTION(getPacket)(lua_State* L) {
   PacketManager* pm = luaL_checkpacketmanager(L, 1);
   const bool bUseString = luaL_optboolean(L, 2, false);
 
-  const uint8_t* ptr = NULL;
-  size_t sz = 0;
-  PacketStatus status = pm_nextPacket(pm, &ptr, &sz);
+  Packet packet[1];
+  PacketStatus status = pm_nextPacket(pm, packet);
   lua_pushinteger(L, (int)status);
   if (status == PS_OK) {
-    if (bUseString) {
-      lua_pushlstring(L, (const char*)ptr, sz);
-    } else {
-      luaL_MemBuffer* mb = luaL_newmembuffer(L);
-      MEMBUFFER_SETINIT_REF(mb, ptr, sz);
-    }
-  } else {
-    lua_pushnil(L);
+    return _pushPacket(L, packet, bUseString) + 1;
   }
-  return 2;
+  return 1;
 }
 static int _nextPacket(lua_State* L) {
   PacketManager* pm = luaL_checkpacketmanager(L, 1);
 
-  const uint8_t* ptr;
-  size_t sz;
-  PacketStatus status = pm_nextPacket(pm, &ptr, &sz);
-  switch (status) {
-    case PS_OK: {
-      const bool bUseString = luaL_optboolean(L, lua_upvalueindex(1), false);
-      if (bUseString) {
-        lua_pushlstring(L, (const char*)ptr, sz);
-      } else {
-        luaL_MemBuffer* mb = luaL_newmembuffer(L);
-        MEMBUFFER_SETINIT_REF(mb, ptr, sz);
-      }
-    } break;
-    case PS_NeedMore:
-      lua_pushnil(L);
-      break;
-    case PS_ErrorLength:
-      /* fall through */
-    default:
-      luaL_error(L, "Parse Packet Error: %d", status);
-      break;
+  Packet packet[1];
+  PacketStatus status = pm_nextPacket(pm, packet);
+  if (status == PS_OK) {
+    const bool bUseString = luaL_optboolean(L, lua_upvalueindex(1), false);
+    return _pushPacket(L, packet, bUseString);
   }
-  return 1;
+  if (status == PS_ErrorLength) {
+    return luaL_error(L, "Parse Packet Error: %d", status);
+  }
+  return 0;
 }
 static int PM_FUNCTION(eachPacket)(lua_State* L) {
   luaL_checkpacketmanager(L, 1);
