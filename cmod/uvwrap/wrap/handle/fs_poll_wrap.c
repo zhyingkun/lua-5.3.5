@@ -34,7 +34,7 @@ static int pushPollResult(lua_State* L, int status, const uv_stat_t* prev, const
 static void FS_POLL_CALLBACK(startAsync)(uv_fs_poll_t* handle, int status, const uv_stat_t* prev, const uv_stat_t* curr) {
   lua_State* L;
   PUSH_HANDLE_CALLBACK_FOR_INVOKE(L, handle, IDX_FS_POLL_START);
-  int n = pushPollResult(status, prev, curr);
+  int n = pushPollResult(L, status, prev, curr);
   PUSH_HANDLE_ITSELF(L, handle);
   CALL_LUA_FUNCTION(L, n + 1);
 }
