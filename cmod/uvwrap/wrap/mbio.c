@@ -161,7 +161,7 @@ static int MBIO_FUNCTION(packWriteFileParam)(lua_State* L) {
 }
 static void* MBIO_FUNCTION(writeFilePtr)(void* arg) {
   WriteFileParam* param = (WriteFileParam*)arg;
-  long err = mbio_writeFile(param->fileName, &param->mb);
+  size_t err = mbio_writeFile(param->fileName, &param->mb);
   MEMBUFFER_RELEASE(&param->mb);
   free((void*)param);
   return (void*)err;
@@ -178,7 +178,7 @@ static int _dealWriteFileResult(lua_State* L, int err) {
 }
 static int MBIO_FUNCTION(unpackWriteFileResult)(lua_State* L) {
   void* err = luaL_checklightuserdata(L, 1);
-  return _dealWriteFileResult(L, (int)(long)err);
+  return _dealWriteFileResult(L, (int)(size_t)err);
 }
 
 static int MBIO_FUNCTION(writeFile)(lua_State* L) {
