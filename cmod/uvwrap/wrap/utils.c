@@ -378,7 +378,7 @@ void EXTENSION_FUNCTION(setExtension)(uv_handle_t* handle, HandleExtension* ext)
 ** =======================================================
 */
 
-AsyncCacheState* acs_create(uint8_t sizeOfStruct, uint16_t max, lua_State* co, ObjectReleaser objReleaser) {
+AsyncCacheState* acs_create(uint16_t sizeOfStruct, uint16_t max, lua_State* co, ObjectReleaser objReleaser) {
   AsyncCacheState* acs = MEMORY_FUNCTION(malloc)(sizeof(AsyncCacheState) + sizeOfStruct * max);
   acs->ext->release = acs_release;
   acs->co = co;

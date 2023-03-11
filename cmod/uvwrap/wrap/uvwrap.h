@@ -509,8 +509,8 @@ typedef struct {
   uint16_t max; // max num in this cache
   uint16_t start; // the index of the first one
   uint16_t num;
-  uint8_t sizeOfStruct;
-  bool bCanResume;
+  uint16_t sizeOfStruct : 15;
+  uint16_t bCanResume : 1;
 } AsyncCacheState;
 #define acs_getArrayPtr(acs_) ((acs_) + 1)
 #define acs_canResume(acs_) ((acs_)->bCanResume)
@@ -519,7 +519,7 @@ typedef struct {
 #define acs_hasCache(acs_) ((acs_)->num > 0)
 #define acs_getPtr(type_, cache_) (type_*)&(((char*)acs_getArrayPtr(cache_))[acs_getIndex(cache_) * (cache_)->sizeOfStruct])
 #define acs_addPtr(type_, cache_) (type_*)&(((char*)acs_getArrayPtr(cache_))[acs_addIndex(cache_) * (cache_)->sizeOfStruct])
-AsyncCacheState* acs_create(uint8_t sizeOfStruct, uint16_t max, lua_State* co, ObjectReleaser objReleaser);
+AsyncCacheState* acs_create(uint16_t sizeOfStruct, uint16_t max, lua_State* co, ObjectReleaser objReleaser);
 void acs_release(HandleExtension* ext);
 uint16_t acs_getIndex(AsyncCacheState* acs);
 uint16_t acs_addIndex(AsyncCacheState* acs);
