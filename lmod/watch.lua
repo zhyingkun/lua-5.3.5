@@ -28,7 +28,7 @@ local function onFileChangedInternal(filePath, callback, onError)
 		return false
 	end
 	local handle = fsevent.FsEvent()
-	handle:startAsync(function(fileName, events, status, fsHandle)
+	handle:startAsync(filePath, RECURSIVE, function(fileName, events, status, fsHandle)
 		if status == OK then
 			if events & CHANGE ~= 0 then
 				if not skip() then
@@ -48,7 +48,7 @@ local function onFileChangedInternal(filePath, callback, onError)
 				tostring(status)
 			)
 		end
-	end, filePath, RECURSIVE)
+	end)
 	return handle
 end
 
