@@ -25,7 +25,7 @@ REPLPacket.__index = REPLPacket
 
 function REPLPacket:packMessage(messageType, dataTable)
 	local serializedData = pbc.encode(messageType, dataTable)
-	return self.packetManager:packPacket(messageType, packet)
+	return self.packetManager:packPacket(messageType, serializedData)
 end
 
 function REPLPacket:packReadMessage(codeStr, eof)
