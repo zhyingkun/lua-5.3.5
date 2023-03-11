@@ -376,7 +376,7 @@ typedef union {
 
 BCFX_API bcfx_Handle bcfx_createSampler(bcfx_SamplerFlag flags);
 
-// WARNING: Change bcfx_ETextureFormat must Update textureFormat_glType and channels_textureFormat
+// WARNING: Change bcfx_ETextureFormat must Update bcfx_TextureParameter, textureFormat_glType and channels_textureFormat
 typedef enum {
   /* unsigned integer */
   TF_R8,
@@ -399,14 +399,38 @@ typedef enum {
   TF_D24S8,
 } bcfx_ETextureFormat;
 BCFX_API uint8_t channels_textureFormat[];
+// WARNING: Change bcfx_ETextureSwizzle must Update textureSwizzle_glType
+typedef enum {
+  TS_None,
+  TS_Red,
+  TS_Green,
+  TS_Blue,
+  TS_Alpha,
+  TS_Zero,
+  TS_One,
+} bcfx_ETextureSwizzle;
+typedef struct {
+  uint8_t format : 4; // bcfx_ETextureFormat
+  uint8_t swizzleR : 3; // bcfx_ETextureSwizzle
+  uint8_t swizzleG : 3;
+  uint8_t swizzleB : 3;
+  uint8_t swizzleA : 3; // two byte finish
+  uint8_t reserved[6];
+} bcfx_TextureParameter;
+typedef union {
+  uint64_t flagsUINT64;
+  bcfx_TextureParameter flagsStruct;
+} bcfx_UTextureParameter;
+#define TEXTUREPARAMETER_UINT64(flags) (((bcfx_UTextureParameter*)&(flags))->flagsUINT64)
+#define TEXTUREPARAMETER_STRUCT(flags) (((bcfx_UTextureParameter*)&(flags))->flagsStruct)
 
-BCFX_API bcfx_Handle bcfx_createTexture1D(bcfx_ETextureFormat format, luaL_MemBuffer* mem, uint16_t width, bool bGenMipmap);
-BCFX_API bcfx_Handle bcfx_createTexture1DArray(bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t layers, bool bGenMipmap);
-BCFX_API bcfx_Handle bcfx_createTexture2D(bcfx_ETextureFormat format, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bool bGenMipmap);
-BCFX_API bcfx_Handle bcfx_createTexture2DArray(bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t layers, bool bGenMipmap);
-BCFX_API bcfx_Handle bcfx_createTexture3D(bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t depth, bool bGenMipmap);
-BCFX_API bcfx_Handle bcfx_createTextureCubeMap(bcfx_ETextureFormat format, luaL_MemBuffer* mb6, uint16_t width, bool bGenMipmap);
-BCFX_API bcfx_Handle bcfx_createTexture2DMipmap(bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t levels);
+BCFX_API bcfx_Handle bcfx_createTexture1D(bcfx_TextureParameter tp, luaL_MemBuffer* mem, uint16_t width, bool bGenMipmap);
+BCFX_API bcfx_Handle bcfx_createTexture1DArray(bcfx_TextureParameter tp, luaL_MemBuffer* mba, uint16_t width, uint16_t layers, bool bGenMipmap);
+BCFX_API bcfx_Handle bcfx_createTexture2D(bcfx_TextureParameter tp, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bool bGenMipmap);
+BCFX_API bcfx_Handle bcfx_createTexture2DArray(bcfx_TextureParameter tp, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t layers, bool bGenMipmap);
+BCFX_API bcfx_Handle bcfx_createTexture3D(bcfx_TextureParameter tp, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t depth, bool bGenMipmap);
+BCFX_API bcfx_Handle bcfx_createTextureCubeMap(bcfx_TextureParameter tp, luaL_MemBuffer* mb6, uint16_t width, bool bGenMipmap);
+BCFX_API bcfx_Handle bcfx_createTexture2DMipmap(bcfx_TextureParameter tp, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t levels);
 
 BCFX_API bcfx_Handle bcfx_createRenderTexture(bcfx_ETextureFormat format, uint16_t width, uint16_t height);
 

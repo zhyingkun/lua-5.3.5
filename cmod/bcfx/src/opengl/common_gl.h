@@ -121,7 +121,7 @@ typedef struct {
 typedef struct {
   GLuint id;
   bcfx_ETextureType type;
-  bcfx_ETextureFormat format;
+  bcfx_TextureParameter tp;
 } TextureGL;
 typedef struct {
   GLuint id;

@@ -36,6 +36,30 @@ static int UTILS_FUNCTION(packSamplerFlags)(lua_State* L) {
 
 /*
 ** {======================================================
+** Texture Parameter
+** =======================================================
+*/
+
+#define SET_PARAM_FIELD(field, type) \
+  lua_getfield(L, 1, #field); \
+  tp.field = (uint8_t)luaL_opt##type(L, 2, 0); \
+  lua_pop(L, 1)
+static int UTILS_FUNCTION(packTextureParameter)(lua_State* L) {
+  bcfx_TextureParameter tp;
+  luaL_checktype(L, 1, LUA_TTABLE);
+  SET_PARAM_FIELD(format, integer);
+  SET_PARAM_FIELD(swizzleR, integer);
+  SET_PARAM_FIELD(swizzleG, integer);
+  SET_PARAM_FIELD(swizzleB, integer);
+  SET_PARAM_FIELD(swizzleA, integer);
+  lua_pushinteger(L, TEXTUREPARAMETER_UINT64(tp));
+  return 1;
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
 ** RenderState
 ** =======================================================
 */
@@ -92,9 +116,10 @@ static int UTILS_FUNCTION(packStencilState)(lua_State* L) {
 /* }====================================================== */
 
 #define EMPLACE_UTILS_FUNCTION(name) \
-  { #name, UTILS_FUNCTION(name) }
+  { "" #name, UTILS_FUNCTION(name) }
 static const luaL_Reg utils_funcs[] = {
     EMPLACE_UTILS_FUNCTION(packSamplerFlags),
+    EMPLACE_UTILS_FUNCTION(packTextureParameter),
     EMPLACE_UTILS_FUNCTION(packRenderState),
     EMPLACE_UTILS_FUNCTION(packStencilState),
     {NULL, NULL},

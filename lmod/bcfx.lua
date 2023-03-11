@@ -149,7 +149,7 @@ end
 
 -- }======================================================
 
----@class bcfx_image_type
+---@class bcfx_image_type:integer
 ---@field public PNG integer
 ---@field public BMP integer
 ---@field public TGA integer
@@ -820,76 +820,76 @@ end
 function bcfx.createSampler(flags)
 	return libbcfx.createSampler(flags)
 end
----@overload fun(format:bcfx_texture_format, mb:luaL_MemBuffer, width:integer):Handle
----@overload fun(format:bcfx_texture_format, mb:luaL_MemBuffer, width:integer, bGenMipmap:boolean):Handle
----@param format bcfx_texture_format
+---@overload fun(tp:bcfx_texture_parameter, mb:luaL_MemBuffer, width:integer):Handle
+---@overload fun(tp:bcfx_texture_parameter, mb:luaL_MemBuffer, width:integer, bGenMipmap:boolean):Handle
+---@param tp bcfx_texture_parameter
 ---@param mb luaL_MemBuffer
 ---@param width integer
 ---@param bGenMipmap boolean
 ---@return Handle
-function bcfx.createTexture1D(format, mb, width, bGenMipmap)
-	return libbcfx.createTexture1D(format, mb, width, bGenMipmap)
+function bcfx.createTexture1D(tp, mb, width, bGenMipmap)
+	return libbcfx.createTexture1D(tp, mb, width, bGenMipmap)
 end
----@overload fun(format:bcfx_texture_format, mba:luaL_MemBuffer[], width:integer):Handle
----@overload fun(format:bcfx_texture_format, mba:luaL_MemBuffer[], width:integer, bGenMipmap:boolean):Handle
----@param format bcfx_texture_format
+---@overload fun(tp:bcfx_texture_parameter, mba:luaL_MemBuffer[], width:integer):Handle
+---@overload fun(tp:bcfx_texture_parameter, mba:luaL_MemBuffer[], width:integer, bGenMipmap:boolean):Handle
+---@param tp bcfx_texture_parameter
 ---@param mba luaL_MemBuffer[]
 ---@param width integer
 ---@param bGenMipmap boolean
 ---@return Handle
-function bcfx.createTexture1DArray(format, mba, width, bGenMipmap)
-	return libbcfx.createTexture1DArray(format, mba, width, bGenMipmap)
+function bcfx.createTexture1DArray(tp, mba, width, bGenMipmap)
+	return libbcfx.createTexture1DArray(tp, mba, width, bGenMipmap)
 end
----@overload fun(format:bcfx_texture_format, mb:luaL_MemBuffer, width:integer, height:integer):Handle
----@overload fun(format:bcfx_texture_format, mb:luaL_MemBuffer, width:integer, height:integer, bGenMipmap:boolean):Handle
----@param format bcfx_texture_format
+---@overload fun(tp:bcfx_texture_parameter, mb:luaL_MemBuffer, width:integer, height:integer):Handle
+---@overload fun(tp:bcfx_texture_parameter, mb:luaL_MemBuffer, width:integer, height:integer, bGenMipmap:boolean):Handle
+---@param tp bcfx_texture_parameter
 ---@param mb luaL_MemBuffer
 ---@param width integer
 ---@param height integer
 ---@param bGenMipmap boolean
 ---@return Handle
-function bcfx.createTexture2D(format, mb, width, height, bGenMipmap)
-	return libbcfx.createTexture2D(format, mb, width, height, bGenMipmap)
+function bcfx.createTexture2D(tp, mb, width, height, bGenMipmap)
+	return libbcfx.createTexture2D(tp, mb, width, height, bGenMipmap)
 end
----@overload fun(format:bcfx_texture_format, mba:luaL_MemBuffer[], width:integer, height:integer):Handle
----@overload fun(format:bcfx_texture_format, mba:luaL_MemBuffer[], width:integer, height:integer, bGenMipmap:boolean):Handle
----@param format bcfx_texture_format
+---@overload fun(tp:bcfx_texture_parameter, mba:luaL_MemBuffer[], width:integer, height:integer):Handle
+---@overload fun(tp:bcfx_texture_parameter, mba:luaL_MemBuffer[], width:integer, height:integer, bGenMipmap:boolean):Handle
+---@param tp bcfx_texture_parameter
 ---@param mba luaL_MemBuffer[]
 ---@param width integer
 ---@param height integer
 ---@param bGenMipmap boolean
 ---@return Handle
-function bcfx.createTexture2DArray(format, mba, width, height, bGenMipmap)
-	return libbcfx.createTexture2DArray(format, mba, width, height, bGenMipmap)
+function bcfx.createTexture2DArray(tp, mba, width, height, bGenMipmap)
+	return libbcfx.createTexture2DArray(tp, mba, width, height, bGenMipmap)
 end
----@overload fun(format:bcfx_texture_format, mba:luaL_MemBuffer[], width:integer, height:integer):Handle
----@overload fun(format:bcfx_texture_format, mba:luaL_MemBuffer[], width:integer, height:integer, bGenMipmap:boolean):Handle
----@param format bcfx_texture_format
+---@overload fun(tp:bcfx_texture_parameter, mba:luaL_MemBuffer[], width:integer, height:integer):Handle
+---@overload fun(tp:bcfx_texture_parameter, mba:luaL_MemBuffer[], width:integer, height:integer, bGenMipmap:boolean):Handle
+---@param tp bcfx_texture_parameter
 ---@param mba luaL_MemBuffer[]
 ---@param width integer
 ---@param height integer
 ---@param bGenMipmap boolean
 ---@return Handle
-function bcfx.createTexture3D(format, mba, width, height, bGenMipmap)
-	return libbcfx.createTexture3D(format, mba, width, height, bGenMipmap)
+function bcfx.createTexture3D(tp, mba, width, height, bGenMipmap)
+	return libbcfx.createTexture3D(tp, mba, width, height, bGenMipmap)
 end
----@overload fun(format:bcfx_texture_format, mb6:luaL_MemBuffer[], width:integer):Handle
----@overload fun(format:bcfx_texture_format, mb6:luaL_MemBuffer[], width:integer, bGenMipmap:boolean):Handle
----@param format bcfx_texture_format
+---@overload fun(tp:bcfx_texture_parameter, mb6:luaL_MemBuffer[], width:integer):Handle
+---@overload fun(tp:bcfx_texture_parameter, mb6:luaL_MemBuffer[], width:integer, bGenMipmap:boolean):Handle
+---@param tp bcfx_texture_parameter
 ---@param mb6 luaL_MemBuffer[]
 ---@param width integer
 ---@param bGenMipmap boolean
 ---@return Handle
-function bcfx.createTextureCubeMap(format, mb6, width, bGenMipmap)
-	return libbcfx.createTextureCubeMap(format, mb6, width, bGenMipmap)
+function bcfx.createTextureCubeMap(tp, mb6, width, bGenMipmap)
+	return libbcfx.createTextureCubeMap(tp, mb6, width, bGenMipmap)
 end
----@param format bcfx_texture_format
+---@param tp bcfx_texture_parameter
 ---@param mba luaL_MemBuffer[]
 ---@param width integer
 ---@param height integer
 ---@return Handle
-function bcfx.createTexture2DMipmap(format, mba, width, height)
-	return libbcfx.createTexture2DMipmap(format, mba, width, height)
+function bcfx.createTexture2DMipmap(tp, mba, width, height)
+	return libbcfx.createTexture2DMipmap(tp, mba, width, height)
 end
 ---@param format bcfx_texture_format
 ---@param width integer
@@ -1172,19 +1172,19 @@ end
 
 -- }======================================================
 
----@class bcfx_init_flag
+---@class bcfx_init_flag:integer
 ---@field public FramebufferSRGB integer
 
 ---@type bcfx_init_flag
 bcfx.init_flag = libbcfx.init_flag
 
----@class bcfx_init_flag_mask
+---@class bcfx_init_flag_mask:integer
 ---@field public FramebufferSRGB integer
 
 ---@type bcfx_init_flag_mask
 bcfx.init_flag_mask = libbcfx.init_flag_mask
 
----@class bcfx_clear_flag
+---@class bcfx_clear_flag:integer
 ---@field public Color integer
 ---@field public Depth integer
 ---@field public Stencil integer
@@ -1193,7 +1193,7 @@ bcfx.init_flag_mask = libbcfx.init_flag_mask
 ---@type bcfx_clear_flag
 bcfx.clear_flag = libbcfx.clear_flag
 
----@class bcfx_clear_flag_mask
+---@class bcfx_clear_flag_mask:integer
 ---@field public None integer
 ---@field public Color integer
 ---@field public Depth integer
@@ -1203,7 +1203,7 @@ bcfx.clear_flag = libbcfx.clear_flag
 ---@type bcfx_clear_flag_mask
 bcfx.clear_flag_mask = libbcfx.clear_flag_mask
 
----@class bcfx_vertex_attrib
+---@class bcfx_vertex_attrib:integer
 ---@field public Position integer
 ---@field public Normal integer
 ---@field public Tangent integer
@@ -1227,7 +1227,7 @@ bcfx.clear_flag_mask = libbcfx.clear_flag_mask
 ---@type bcfx_vertex_attrib
 bcfx.vertex_attrib = libbcfx.vertex_attrib
 
----@class bcfx_vertex_attrib_mask
+---@class bcfx_vertex_attrib_mask:integer
 ---@field public Position integer
 ---@field public Normal integer
 ---@field public Tangent integer
@@ -1251,7 +1251,7 @@ bcfx.vertex_attrib = libbcfx.vertex_attrib
 ---@type bcfx_vertex_attrib_mask
 bcfx.vertex_attrib_mask = libbcfx.vertex_attrib_mask
 
----@class bcfx_attrib_type
+---@class bcfx_attrib_type:integer
 ---@field public Uint8 integer
 ---@field public Uint10 integer
 ---@field public Int16 integer
@@ -1261,7 +1261,7 @@ bcfx.vertex_attrib_mask = libbcfx.vertex_attrib_mask
 ---@type bcfx_attrib_type
 bcfx.attrib_type = libbcfx.attrib_type
 
----@class bcfx_index_type
+---@class bcfx_index_type:integer
 ---@field public Uint8 integer
 ---@field public Uint16 integer
 ---@field public Uint32 integer
@@ -1269,7 +1269,7 @@ bcfx.attrib_type = libbcfx.attrib_type
 ---@type bcfx_index_type
 bcfx.index_type = libbcfx.index_type
 
----@class bcfx_shader_type
+---@class bcfx_shader_type:integer
 ---@field public Vertex integer
 ---@field public Fragment integer
 ---@field public Count integer
@@ -1277,7 +1277,7 @@ bcfx.index_type = libbcfx.index_type
 ---@type bcfx_shader_type
 bcfx.shader_type = libbcfx.shader_type
 
----@class bcfx_texture_wrap
+---@class bcfx_texture_wrap:integer
 ---@field public Repeat integer
 ---@field public ClampToEdge integer
 ---@field public ClampToBorder integer
@@ -1285,28 +1285,28 @@ bcfx.shader_type = libbcfx.shader_type
 ---@type bcfx_texture_wrap
 bcfx.texture_wrap = libbcfx.texture_wrap
 
----@class bcfx_texture_filter
+---@class bcfx_texture_filter:integer
 ---@field public Linear integer
 ---@field public Nearest integer
 
 ---@type bcfx_texture_filter
 bcfx.texture_filter = libbcfx.texture_filter
 
----@class bcfx_texture_compare_mode
+---@class bcfx_texture_compare_mode:integer
 ---@field public None integer
 ---@field public RefToTexture integer
 
 ---@type bcfx_texture_compare_mode
 bcfx.texture_compare_mode = libbcfx.texture_compare_mode
 
----@class bcfx_front_face
+---@class bcfx_front_face:integer
 ---@field public CounterClockWise integer
 ---@field public ClockWise integer
 
 ---@type bcfx_front_face
 bcfx.front_face = libbcfx.front_face
 
----@class bcfx_cull_face
+---@class bcfx_cull_face:integer
 ---@field public Back integer
 ---@field public Front integer
 ---@field public FrontAndBack integer
@@ -1314,7 +1314,7 @@ bcfx.front_face = libbcfx.front_face
 ---@type bcfx_cull_face
 bcfx.cull_face = libbcfx.cull_face
 
----@class bcfx_compare_func
+---@class bcfx_compare_func:integer
 ---@field public Less integer
 ---@field public LEqual integer
 ---@field public Equal integer
@@ -1327,7 +1327,7 @@ bcfx.cull_face = libbcfx.cull_face
 ---@type bcfx_compare_func
 bcfx.compare_func = libbcfx.compare_func
 
----@class bcfx_blend_func
+---@class bcfx_blend_func:integer
 ---@field public Zero integer
 ---@field public One integer
 ---@field public SrcColor integer
@@ -1347,7 +1347,7 @@ bcfx.compare_func = libbcfx.compare_func
 ---@type bcfx_blend_func
 bcfx.blend_func = libbcfx.blend_func
 
----@class bcfx_blend_equation
+---@class bcfx_blend_equation:integer
 ---@field public FuncAdd integer
 ---@field public FuncSubtract integer
 ---@field public FuncReverseSubtract integer
@@ -1357,7 +1357,7 @@ bcfx.blend_func = libbcfx.blend_func
 ---@type bcfx_blend_equation
 bcfx.blend_equation = libbcfx.blend_equation
 
----@class bcfx_logic_operate
+---@class bcfx_logic_operate:integer
 ---@field public Copy integer
 ---@field public CopyInverted integer
 ---@field public Clear integer
@@ -1378,7 +1378,7 @@ bcfx.blend_equation = libbcfx.blend_equation
 ---@type bcfx_logic_operate
 bcfx.logic_operate = libbcfx.logic_operate
 
----@class bcfx_stencil_action
+---@class bcfx_stencil_action:integer
 ---@field public Keep integer
 ---@field public Zero integer
 ---@field public Replace integer
@@ -1391,7 +1391,7 @@ bcfx.logic_operate = libbcfx.logic_operate
 ---@type bcfx_stencil_action
 bcfx.stencil_action = libbcfx.stencil_action
 
----@class bcfx_view_mode
+---@class bcfx_view_mode:integer
 ---@field public Default integer
 ---@field public Sequential integer
 ---@field public DepthAscending integer
@@ -1401,21 +1401,21 @@ bcfx.stencil_action = libbcfx.stencil_action
 ---@type bcfx_view_mode
 bcfx.view_mode = libbcfx.view_mode
 
----@class bcfx_debug_flag
+---@class bcfx_debug_flag:integer
 ---@field public Wireframe integer
 ---@field public Pointset integer
 
 ---@type bcfx_debug_flag
 bcfx.debug_flag = libbcfx.debug_flag
 
----@class bcfx_debug_flag_mask
+---@class bcfx_debug_flag_mask:integer
 ---@field public Wireframe integer
 ---@field public Pointset integer
 
 ---@type bcfx_debug_flag_mask
 bcfx.debug_flag_mask = libbcfx.debug_flag_mask
 
----@class bcfx_discard_flag
+---@class bcfx_discard_flag:integer
 ---@field public VertexStreams integer
 ---@field public IndexBuffer integer
 ---@field public Transform integer
@@ -1427,7 +1427,7 @@ bcfx.debug_flag_mask = libbcfx.debug_flag_mask
 ---@type bcfx_discard_flag
 bcfx.discard_flag = libbcfx.discard_flag
 
----@class bcfx_discard_flag_mask
+---@class bcfx_discard_flag_mask:integer
 ---@field public None integer
 ---@field public VertexStreams integer
 ---@field public IndexBuffer integer
@@ -1440,7 +1440,7 @@ bcfx.discard_flag = libbcfx.discard_flag
 ---@type bcfx_discard_flag_mask
 bcfx.discard_flag_mask = libbcfx.discard_flag_mask
 
----@class bcfx_primitive_type
+---@class bcfx_primitive_type:integer
 ---@field public Default integer
 ---@field public Points integer
 ---@field public Lines integer
@@ -1453,7 +1453,7 @@ bcfx.discard_flag_mask = libbcfx.discard_flag_mask
 ---@type bcfx_primitive_type
 bcfx.primitive_type = libbcfx.primitive_type
 
----@class bcfx_texture_format
+---@class bcfx_texture_format:integer
 ---@field public R8 integer
 ---@field public R16 integer
 ---@field public RG8 integer
@@ -1472,7 +1472,19 @@ bcfx.primitive_type = libbcfx.primitive_type
 ---@type bcfx_texture_format
 bcfx.texture_format = libbcfx.texture_format
 
----@class bcfx_uniform_type
+---@class bcfx_texture_swizzle:integer
+---@field public None integer
+---@field public Red integer
+---@field public Green integer
+---@field public Blue integer
+---@field public Alpha integer
+---@field public Zero integer
+---@field public One integer
+
+---@type bcfx_texture_swizzle
+bcfx.texture_swizzle = libbcfx.texture_swizzle
+
+---@class bcfx_uniform_type:integer
 ---@field public Float integer
 ---@field public Int integer
 ---@field public Bool integer
@@ -1490,7 +1502,7 @@ bcfx.texture_format = libbcfx.texture_format
 ---@type bcfx_uniform_type
 bcfx.uniform_type = libbcfx.uniform_type
 
----@class bcfx_builtin_mesh_type
+---@class bcfx_builtin_mesh_type:integer
 ---@field public Triangle integer
 ---@field public Square integer
 ---@field public Circle integer
@@ -1503,7 +1515,7 @@ bcfx.uniform_type = libbcfx.uniform_type
 ---@type bcfx_builtin_mesh_type
 bcfx.builtin_mesh_type = libbcfx.builtin_mesh_type
 
----@class bcfx_builtin_shader_type
+---@class bcfx_builtin_shader_type:integer
 ---@field public Default integer
 
 ---@type bcfx_builtin_shader_type
@@ -1550,7 +1562,7 @@ color.black = libcolor.black
 ---@type Color
 color.white = libcolor.white
 
----@class bcfx_color_pack_type
+---@class bcfx_color_pack_type:integer
 ---@field public ABGR8 integer
 ---@field public A2BGR10 integer
 
@@ -1603,7 +1615,7 @@ function bcfx.makeMemBuffer(...)
 	return libbcfx.makeMemBuffer(...)
 end
 
----@class bcfx_data_type
+---@class bcfx_data_type:integer
 ---@field public Uint8 integer
 ---@field public Uint16 integer
 ---@field public Uint32 integer
@@ -1650,6 +1662,21 @@ bcfx.utils = utils
 ---@return bcfx_sampler_flag
 function utils.packSamplerFlags(flags)
 	return libutils.packSamplerFlags(flags)
+end
+
+---@class bcfx_TextureParameter:table
+---@field public format bcfx_texture_format
+---@field public swizzleR bcfx_texture_swizzle
+---@field public swizzleG bcfx_texture_swizzle
+---@field public swizzleB bcfx_texture_swizzle
+---@field public swizzleA bcfx_texture_swizzle
+
+---@class bcfx_texture_parameter:integer
+
+---@param param bcfx_TextureParameter
+---@return bcfx_texture_parameter
+function utils.packTextureParameter(param)
+	return libutils.packTextureParameter(param)
 end
 
 ---@class bcfx_RenderState:table

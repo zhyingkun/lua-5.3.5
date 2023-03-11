@@ -68,13 +68,13 @@ bcfx_Handle ctx_createProgram(Context* ctx, bcfx_Handle vs, bcfx_Handle fs);
 bcfx_Handle ctx_createUniform(Context* ctx, const char* name, bcfx_EUniformType type, uint16_t num);
 bcfx_Handle ctx_createSampler(Context* ctx, bcfx_SamplerFlag flags);
 
-bcfx_Handle ctx_createTexture1D(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mem, uint16_t width, bool bGenMipmap);
-bcfx_Handle ctx_createTexture1DArray(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t layers, bool bGenMipmap);
-bcfx_Handle ctx_createTexture2D(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bool bGenMipmap);
-bcfx_Handle ctx_createTexture2DArray(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t layers, bool bGenMipmap);
-bcfx_Handle ctx_createTexture3D(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t depth, bool bGenMipmap);
-bcfx_Handle ctx_createTextureCubeMap(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mb6, uint16_t width, bool bGenMipmap);
-bcfx_Handle ctx_createTexture2DMipmap(Context* ctx, bcfx_ETextureFormat format, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t levels);
+bcfx_Handle ctx_createTexture1D(Context* ctx, bcfx_TextureParameter tp, luaL_MemBuffer* mem, uint16_t width, bool bGenMipmap);
+bcfx_Handle ctx_createTexture1DArray(Context* ctx, bcfx_TextureParameter tp, luaL_MemBuffer* mba, uint16_t width, uint16_t layers, bool bGenMipmap);
+bcfx_Handle ctx_createTexture2D(Context* ctx, bcfx_TextureParameter tp, luaL_MemBuffer* mem, uint16_t width, uint16_t height, bool bGenMipmap);
+bcfx_Handle ctx_createTexture2DArray(Context* ctx, bcfx_TextureParameter tp, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t layers, bool bGenMipmap);
+bcfx_Handle ctx_createTexture3D(Context* ctx, bcfx_TextureParameter tp, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t depth, bool bGenMipmap);
+bcfx_Handle ctx_createTextureCubeMap(Context* ctx, bcfx_TextureParameter tp, luaL_MemBuffer* mb6, uint16_t width, bool bGenMipmap);
+bcfx_Handle ctx_createTexture2DMipmap(Context* ctx, bcfx_TextureParameter tp, luaL_MemBuffer* mba, uint16_t width, uint16_t height, uint16_t levels);
 
 bcfx_Handle ctx_createRenderTexture(Context* ctx, bcfx_ETextureFormat format, uint16_t width, uint16_t height);
 bcfx_Handle ctx_createFrameBuffer(Context* ctx, uint8_t num, bcfx_Handle* handles);

@@ -103,8 +103,8 @@ typedef struct {
 } ParamTexture2DMipmap;
 
 typedef struct {
-  bcfx_ETextureFormat format;
   bcfx_ETextureType type;
+  bcfx_TextureParameter tp;
   union {
     ParamTexture1D t1d;
     ParamTexture1DArray t1da;

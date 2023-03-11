@@ -212,6 +212,16 @@ const TextureFormatInfo textureFormat_glType[] = {
     /* depth and stencil texture*/
     {GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 4, GL_DEPTH24_STENCIL8},
 };
+// According to bcfx_ETextureSwizzle
+const GLenum textureSwizzle_glType[] = {
+    GL_NONE,
+    GL_RED,
+    GL_GREEN,
+    GL_BLUE,
+    GL_ALPHA,
+    GL_ZERO,
+    GL_ONE,
+};
 // According to bcfx_EShaderType
 const GLenum shader_glType[] = {
     GL_VERTEX_SHADER,
@@ -556,34 +566,48 @@ static void gl_createSampler(RendererContext* ctx, bcfx_Handle handle, bcfx_Samp
   // GL_CHECK(glSamplerParameterf(sampler->id, GL_TEXTURE_MAX_LOD, 1000.0f));
   // GL_CHECK(glSamplerParameterf(sampler->id, GL_TEXTURE_LOD_BIAS, 0.0f));
 }
+
+static void _setTextureParameterSwizzle(GLenum target, bcfx_TextureParameter tp) {
+#define SET_ONE_SWIZZLE(field_, enum_) \
+  if (tp.field_ != TS_None) { \
+    GL_CHECK(glTexParameteri(target, enum_, textureSwizzle_glType[tp.field_])); \
+  }
+
+  SET_ONE_SWIZZLE(swizzleR, GL_TEXTURE_SWIZZLE_R);
+  SET_ONE_SWIZZLE(swizzleG, GL_TEXTURE_SWIZZLE_G);
+  SET_ONE_SWIZZLE(swizzleB, GL_TEXTURE_SWIZZLE_B);
+  SET_ONE_SWIZZLE(swizzleA, GL_TEXTURE_SWIZZLE_A);
+
+#undef SET_ONE_SWIZZLE
+}
 // luaL_MemBuffer* mem, uint16_t width, uint16_t height, bcfx_ETextureFormat format
 static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTexture* param) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   TextureGL* texture = &glCtx->textures[handle_index(handle)];
   texture->type = param->type;
-  texture->format = param->format;
-  const TextureFormatInfo* fi = &textureFormat_glType[texture->format];
+  texture->tp = param->tp;
+  const TextureFormatInfo* fi = &textureFormat_glType[texture->tp.format];
 
   // Specifies the alignment requirements for the start of each pixel row in memory. The allowable values are 1/2/4/8, default is 4
   GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
   GL_CHECK(glGenTextures(1, &texture->id));
+  const GLenum glTexType = texture_glType[param->type];
+  GL_CHECK(glBindTexture(glTexType, texture->id));
+  _setTextureParameterSwizzle(glTexType, param->tp);
   const GLint mipmapLevel = 0;
   const GLint border = 0;
   switch (param->type) {
     case TT_Texture1D: {
       ParamTexture1D* p = &param->value.t1d;
-      GL_CHECK(glBindTexture(GL_TEXTURE_1D, texture->id));
       assert(p->mem.sz == p->width * fi->pixelSizeByte);
       GL_CHECK(glTexImage1D(GL_TEXTURE_1D, 0, fi->internalFormat, p->width, 0, fi->format, fi->type, p->mem.ptr));
       if (p->bGenMipmap) {
         GL_CHECK(glGenerateMipmap(GL_TEXTURE_1D));
       }
-      GL_CHECK(glBindTexture(GL_TEXTURE_1D, 0));
       MEMBUFFER_RELEASE(&p->mem);
     } break;
     case TT_Texture1DArray: {
       ParamTexture1DArray* p = &param->value.t1da;
-      GL_CHECK(glBindTexture(GL_TEXTURE_1D_ARRAY, texture->id));
       // glTexImage2D will allocate GPU memory, (maybe transfer data from CPU memory to GPU memory)
       GL_CHECK(glTexImage2D(GL_TEXTURE_1D_ARRAY, mipmapLevel, fi->internalFormat, p->width, p->layers, border, fi->format, fi->type, NULL));
       for (uint16_t layer = 0; layer < p->layers; layer++) {
@@ -597,22 +621,18 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
       if (p->bGenMipmap) {
         GL_CHECK(glGenerateMipmap(GL_TEXTURE_1D_ARRAY));
       }
-      GL_CHECK(glBindTexture(GL_TEXTURE_1D_ARRAY, 0));
     } break;
     case TT_Texture2D: {
       ParamTexture2D* p = &param->value.t2d;
-      GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
       assert(p->mem.ptr == NULL || p->mem.sz == (size_t)(p->width * p->height * fi->pixelSizeByte));
       GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, fi->internalFormat, p->width, p->height, 0, fi->format, fi->type, p->mem.ptr));
       if (p->bGenMipmap) {
         GL_CHECK(glGenerateMipmap(GL_TEXTURE_2D));
       }
-      GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
       MEMBUFFER_RELEASE(&p->mem);
     } break;
     case TT_Texture2DArray: {
       ParamTexture2DArray* p = &param->value.t2da;
-      GL_CHECK(glBindTexture(GL_TEXTURE_2D_ARRAY, texture->id));
       GL_CHECK(glTexImage3D(GL_TEXTURE_2D_ARRAY, mipmapLevel, fi->internalFormat, p->width, p->height, p->layers, border, fi->format, fi->type, NULL));
       for (uint16_t layer = 0; layer < p->layers; layer++) {
         assert(p->mba[layer].sz == (size_t)(p->width * p->height * fi->pixelSizeByte));
@@ -624,11 +644,9 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
       if (p->bGenMipmap) {
         GL_CHECK(glGenerateMipmap(GL_TEXTURE_2D_ARRAY));
       }
-      GL_CHECK(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
     } break;
     case TT_Texture3D: {
       ParamTexture3D* p = &param->value.t3d;
-      GL_CHECK(glBindTexture(GL_TEXTURE_3D, texture->id));
       GL_CHECK(glTexImage3D(GL_TEXTURE_3D, mipmapLevel, fi->internalFormat, p->width, p->height, p->depth, border, fi->format, fi->type, NULL));
       for (uint16_t depth = 0; depth < p->depth; depth++) {
         assert(p->mba[depth].sz == (size_t)(p->width * p->height * fi->pixelSizeByte));
@@ -640,11 +658,9 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
       if (p->bGenMipmap) {
         GL_CHECK(glGenerateMipmap(GL_TEXTURE_3D));
       }
-      GL_CHECK(glBindTexture(GL_TEXTURE_3D, 0));
     } break;
     case TT_TextureCubeMap: {
       ParamTextureCubeMap* p = &param->value.tcm;
-      GL_CHECK(glBindTexture(GL_TEXTURE_CUBE_MAP, texture->id));
       for (uint8_t side = 0; side < 6; side++) { // +X, -X, +Y, -Y, +Z, -Z
         assert(p->mb6[side].sz == (size_t)(p->width * p->width * fi->pixelSizeByte));
         GL_CHECK(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, fi->internalFormat, p->width, p->width, 0, fi->format, fi->type, p->mb6[side].ptr));
@@ -655,11 +671,9 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
       if (p->bGenMipmap) {
         GL_CHECK(glGenerateMipmap(GL_TEXTURE_CUBE_MAP));
       }
-      GL_CHECK(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
     } break;
     case TT_Texture2DMipmap: {
       ParamTexture2DMipmap* p = &param->value.t2dm;
-      GL_CHECK(glBindTexture(GL_TEXTURE_2D, texture->id));
       assert(p->levels <= log2(MAX(p->width, p->height)) + 1);
       uint16_t width = p->width;
       uint16_t height = p->height;
@@ -674,11 +688,11 @@ static void gl_createTexture(RendererContext* ctx, bcfx_Handle handle, CmdTextur
       p->mba = NULL;
       GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0));
       GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, p->levels - 1));
-      GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
     } break;
     default:
       break;
   }
+  GL_CHECK(glBindTexture(glTexType, 0));
 }
 static void gl_createFrameBuffer(RendererContext* ctx, bcfx_Handle handle, uint8_t num, bcfx_Handle* handles) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
@@ -690,7 +704,7 @@ static void gl_createFrameBuffer(RendererContext* ctx, bcfx_Handle handle, uint8
   for (uint8_t i = 0; i < num; i++) {
     TextureGL* texture = &glCtx->textures[handle_index(handles[i])];
     GLenum attachment;
-    if (texture->format == TF_D24S8) {
+    if (texture->tp.format == TF_D24S8) {
       attachment = GL_DEPTH_STENCIL_ATTACHMENT;
     } else {
       attachment = GL_COLOR_ATTACHMENT0 + colorIdx;
