@@ -3878,10 +3878,10 @@ struct nk_font_config {
   /* NOTE: only used internally */
   void* ttf_blob;
   /* pointer to loaded TTF file memory block.
-     * NOTE: not needed for nk_font_atlas_add_from_memory and nk_font_atlas_add_from_file. */
+   * NOTE: not needed for nk_font_atlas_add_from_memory and nk_font_atlas_add_from_file. */
   nk_size ttf_size;
   /* size of the loaded TTF file memory block
-     * NOTE: not needed for nk_font_atlas_add_from_memory and nk_font_atlas_add_from_file. */
+   * NOTE: not needed for nk_font_atlas_add_from_memory and nk_font_atlas_add_from_file. */
 
   unsigned char ttf_data_owned_by_atlas;
   /* used inside font atlas: default to: 0*/
@@ -5523,9 +5523,9 @@ struct nk_context {
   nk_handle userdata;
 #endif
   /* text editor objects are quite big because of an internal
-     * undo/redo stack. Therefore it does not make sense to have one for
-     * each window for temporary use cases, so I only provide *one* instance
-     * for all windows. This works because the content is cleared anyway */
+   * undo/redo stack. Therefore it does not make sense to have one for
+   * each window for temporary use cases, so I only provide *one* instance
+   * for all windows. This works because the content is cleared anyway */
   nk_text_edit text_edit;
   /* draw buffer used for overlay drawing operation like cursor */
   nk_command_buffer overlay;
@@ -5630,7 +5630,7 @@ struct nk_alignof {
 #define NK_ALIGNOF(t) (nk_alignof<t>::value)
 #else
 #define NK_ALIGNOF(t) NK_OFFSETOF( \
-    struct {char c; t _h; }, _h)
+    struct c##t {char c; t _h; }, _h)
 #endif
 
 #define NK_CONTAINER_OF(ptr, type, member) \

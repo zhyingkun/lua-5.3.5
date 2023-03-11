@@ -9,6 +9,7 @@
 
 #if defined(_WIN32)
 #include <windows.h>
+#include <direct.h>
 #define PATH_MAX MAX_PATH
 #else
 #include <unistd.h>
@@ -106,7 +107,7 @@ int main(int argc, char const* argv[]) {
 
   lua_pushcfunction(L, pmain); // protected, for lua_error
   lua_pushinteger(L, argc);
-  lua_pushlightuserdata(L, argv);
+  lua_pushlightuserdata(L, (void*)argv);
   int status = lua_pcall(L, 2, 0, 0);
   if (status != LUA_OK) {
     const char* msg = lua_tolstring(L, -1, NULL);

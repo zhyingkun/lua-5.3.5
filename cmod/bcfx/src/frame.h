@@ -28,7 +28,7 @@ typedef struct {
   int32_t baseVertex;
 
   // The index of the vertex attribute fetched from the enabled instanced vertex attribute arrays
-  // is calculated as ⌊gl_InstanceID/divisor⌋+baseInstance.
+  // is calculated as floor(gl_InstanceID/divisor)+baseInstance.
   // Note that baseInstance does not affect the shader-visible value of gl_InstanceID.
   // Only OpenGL4.2+ supports baseInstance.
   uint32_t numInstance;

@@ -23,7 +23,7 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	set(CMAKE_C_FLAGS_DEBUG   "-g")
 	set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG")
 elseif(WIN32)
-	set(CMAKE_C_FLAGS         "/Wall /DLUA_BUILD_AS_DLL")
+	set(CMAKE_C_FLAGS         "/DLUA_BUILD_AS_DLL") # /Wall
 	set(CMAKE_C_FLAGS_DEBUG   "/ZI /Od")
 	set(CMAKE_C_FLAGS_RELEASE "/O2 /DNDEBUG")
 endif()

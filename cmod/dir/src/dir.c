@@ -22,6 +22,7 @@
 
 #include <windows.h>
 #include <io.h>
+#include <direct.h>
 
 #include <stdbool.h>
 

@@ -912,7 +912,7 @@ static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw
     GLsizei start = draw->indexStart; // count in indices
     GLsizei count = draw->indexCount == 0 ? total : (GLsizei)draw->indexCount;
     CLAMP_OFFSET_COUNT(total, start, count);
-    const void* indices = (const void*)(long)((uint64_t)start * sizeof_IndexType[ib->type]); // offset in byte
+    const void* indices = (const void*)(size_t)(start * sizeof_IndexType[ib->type]); // offset in byte
     if (draw->numInstance == 0) {
       GL_CHECK(glDrawElementsBaseVertex(primitiveType, count, index_glType[ib->type], indices, draw->baseVertex));
     } else {

@@ -558,7 +558,7 @@ int main(int argc, char const* argv[]) {
 
   lua_pushcclosure(L, pmain, 0); // protected, for lua_error
   lua_pushinteger(L, argc);
-  lua_pushlightuserdata(L, argv);
+  lua_pushlightuserdata(L, (void*)argv);
   int status = lua_pcallk(L, 2, 0, 0, (lua_KContext)NULL, NULL);
   if (status != LUA_OK) {
     const char* msg = lua_tolstring(L, -1, NULL);

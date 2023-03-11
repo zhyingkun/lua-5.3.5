@@ -114,7 +114,7 @@ static int HANDLE_FUNCTION(fileno)(lua_State* L) {
   uv_os_fd_t fd;
   int err = uv_fileno(handle, &fd);
   if (err == UVWRAP_OK) {
-    lua_pushinteger(L, fd);
+    lua_pushinteger(L, (lua_Integer)fd);
     return 1;
   } else {
     lua_pushnil(L);

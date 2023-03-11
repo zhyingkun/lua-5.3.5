@@ -211,13 +211,13 @@ void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderD
       }
       GL_CHECK(glEnableVertexAttribArray(loc));
       GL_CHECK(glVertexAttribDivisor(loc, 0)); // indicated it's per vertex, not per instance
-      uint32_t offset = layout->offsets[attr];
+      void* offset = (void*)(size_t)layout->offsets[attr];
       bcfx_Attrib* attrib = &layout->attributes[attr];
       uint8_t stride = layout->groupStrides[attrib->group];
       if (attrib->normal == 0 && attrib->type < AT_Half) {
-        GL_CHECK(glVertexAttribIPointer(loc, attrib->num, attrib_glType[attrib->type], stride, (void*)(long)offset));
+        GL_CHECK(glVertexAttribIPointer(loc, attrib->num, attrib_glType[attrib->type], stride, offset));
       } else {
-        GL_CHECK(glVertexAttribPointer(loc, attrib->num, attrib_glType[attrib->type], attrib->normal, stride, (void*)(long)offset));
+        GL_CHECK(glVertexAttribPointer(loc, attrib->num, attrib_glType[attrib->type], attrib->normal, stride, offset));
       }
     }
   }
@@ -251,7 +251,7 @@ void gl_bindInstanceAttributes(RendererContextGL* glCtx, ProgramGL* prog, Render
       GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, idb->buffer.id));
       GL_CHECK(glEnableVertexAttribArray(loc));
       GL_CHECK(glVertexAttribDivisor(loc, 1)); // indicated it's per instance, not per vertex
-      void* offset = (void*)((long)startByte + numBytePerVec4 * i);
+      void* offset = (void*)(size_t)(startByte + numBytePerVec4 * i);
       GL_CHECK(glVertexAttribPointer(loc, 4, GL_FLOAT, GL_FALSE, numBytePerInstance, offset));
     } else {
       GL_CHECK(glDisableVertexAttribArray(loc));

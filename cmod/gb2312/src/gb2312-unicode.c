@@ -1,6 +1,7 @@
 // Do Not Format This File Anymore
 #include <gb2312.h>
 // Section first: (n-1)*94+5, Section last: n*94+4
+// clang-format off
 LUAI_DDEF const GB2312Unicode GB2312_Unicode[] = {
     {0xA1A1, 0x3000}, /* '　' -> 12288 */
     {0xA1A2, 0x3001}, /* '、' -> 12289 */
@@ -7617,5 +7618,6 @@ LUAI_DDEF const GB2312Unicode GB2312_Unicode[] = {
     {0xF7FD, 0x9F3E}, /* '鼾' -> 40766 */
     {0xF7FE, 0x9F44}, /* '齄' -> 40772 */
 };
+// clang-format on
 
 LUAI_DDEF const size_t GB2312_Unicode_Size = sizeof(GB2312_Unicode) / sizeof(GB2312_Unicode[0]);

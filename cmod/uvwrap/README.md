@@ -67,3 +67,11 @@ int main(int argc, char** argv) {
 ```
 
 将上述代码加入 main 函数中，即可在奔溃是生成`project.dmp`文件，用 VS 打开该文件可尝试还原奔溃堆栈
+
+## Windows 下处理 VS 编译警告`[C4819]`的处理方法
+
+报错信息为：`[C4819] The file contains a character that cannot be represented in the current code page (936). Save the file in Unicode format to prevent data loss`
+
+1. 第一种：控制面板 => 区域 => 管理 => 非 Unicode 程序的语言 => 更改系统区域设置 => 勾选 使用 UTF-8 提供全球语言支持 => 重启电脑
+2. 第二种：在对应源码文件开头增加一行：`#pragma warning (disable:4819)` 并无法彻底解决该问题，还是会在第一行报该 Warning
+3. 第三种：该工程添加编译参数：/wd4819

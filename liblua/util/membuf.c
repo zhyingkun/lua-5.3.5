@@ -14,16 +14,18 @@
 static int MEMBUF_FUNCTION(getClear)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   lua_pushlightuserdata(L, mb->ptr);
-  lua_pushinteger(L, mb->sz);
-  lua_pushlightuserdata(L, mb->release);
+  lua_pushinteger(L, (lua_Integer)mb->sz);
+  lua_pushlightuserdata(L, (void*)mb->release);
   lua_pushlightuserdata(L, mb->ud);
   MEMBUFFER_SETNULL(mb);
   return 4;
 }
 
 #define CHECK_AND_SET(idx, field, type, check) \
-  if (!lua_isnoneornil(L, idx)) \
-  mb->field = (type)luaL_check##check(L, idx)
+  if (lua_isnoneornil(L, idx)) { \
+  } else { \
+    mb->field = (type)luaL_check##check(L, idx); \
+  }
 static int MEMBUF_FUNCTION(setReplace)(lua_State* L) {
   luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   MEMBUFFER_RELEASE(mb);
