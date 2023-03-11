@@ -139,9 +139,16 @@ function imgui.setup(mainWin_)
 	atlas:begin()
 	local cfg = font.Config()
 	myFont = atlas:addDefault(22, cfg)
-	local mb, width, height = atlas:bake(font.atlas_format.RGBA32)
+	local mb, width, height = atlas:bake(font.atlas_format.ALPHA8)
 	mb = bcfx.image.imageFlipVertical(mb, width, height)
-	local imageHandle = bcfx.createTexture2D(bcfx.texture_format.RGBA8, mb, width, height)
+	local texParam = bcfx.utils.packTextureParameter({
+		format = bcfx.texture_format.R8,
+		swizzleR = bcfx.texture_swizzle.One,
+		swizzleG = bcfx.texture_swizzle.One,
+		swizzleB = bcfx.texture_swizzle.One,
+		swizzleA = bcfx.texture_swizzle.Red,
+	})
+	local imageHandle = bcfx.createTexture2D(texParam, mb, width, height)
 	nullTex = atlas:endAtlas(imageHandle)
 
 

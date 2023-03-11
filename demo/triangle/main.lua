@@ -10,12 +10,6 @@ local input_state = glfw.input_state
 
 local bcfx = require("bcfx")
 
---[[
-package.cpath = package.cpath .. ';/Users/zyk/Library/Application Support/JetBrains/IdeaIC2021.1/plugins/EmmyLua/classes/debugger/emmy/mac/?.dylib'
-local dbg = require('emmy_core')
-dbg.tcpConnect('localhost', 9966)
---]]
-
 util.setErrorMessageHandler(function(msg)
 	return "callback to lua pcall error: " .. msg .. debug.traceback()
 end)

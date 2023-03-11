@@ -88,4 +88,27 @@ function loader.LoadTextureCubeMap(folderName)
 	return bcfx.createTextureCubeMap(texture_format.RGB8, fileDataMB, width, false)
 end
 
+function loader.LoadTexture2DArray(fileNameList)
+	local fileDataMBList = {}
+	local filePrefix = pathPrefix .. "Resource/Texture"
+	local width, height
+	for idx, fileName in ipairs(fileNameList) do
+		local filePath = filePrefix / fileName
+		local fileData, err, str = mbio.readFile(filePath)
+		if not fileData then
+			printerr("LoadTextureCubeMap error: ", err, str, filePath)
+		else
+			local parseMB, w, h = image.imageDecode(fileData, texture_format.RGB8)
+			fileDataMBList[idx] = parseMB
+			print(parseMB, idx)
+			if not width and not height then
+				width, height = w, h
+			else
+				assert(width == w and height == h)
+			end	
+		end
+	end
+	return bcfx.createTexture2DArray(texture_format.RGB8, fileDataMBList, width, height, false)
+end
+
 return loader

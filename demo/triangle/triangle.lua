@@ -287,6 +287,32 @@ local function CreateBlitBuffer()
 	}
 end
 
+local function CreateSkyCube()
+	local vertexHandle, indexHandle = bcfx.getBuiltinMesh(bcfx.builtin_mesh_type.Cube)
+	local uniformHandle = bcfx.createUniform("Sampler2DArray", bcfx.uniform_type.Sampler2DArray)
+	local shaderProgramHandle = loader.LoadProgram("texarr")
+	local textureHandle = loader.LoadTexture2DArray({
+		"SunnySkybox/right.jpg",
+		"SunnySkybox/left.jpg",
+		"SunnySkybox/front.jpg",
+		"SunnySkybox/back.jpg",
+		"SunnySkybox/top.jpg",
+		"SunnySkybox/bottom.jpg",
+		--"Yokohama1Skybox/right.jpg",
+		--"Yokohama2Skybox/right.jpg",
+		--"Yokohama3Skybox/right.jpg",
+		--"Yokohama3Skybox/right.jpg",
+		--"Yokohama3Skybox/right.jpg",
+	})
+	return {
+		vertex = vertexHandle,
+		index = indexHandle,
+		uniform = uniformHandle,
+		shader = shaderProgramHandle,
+		texture = textureHandle,
+	}
+end
+
 local function SetupViewFull(viewID, win, width, height)
 	bcfx.setViewWindow(viewID, win)
 	local color = bcfx.color.pack(51, 76, 76, 255)
@@ -336,6 +362,7 @@ local skybox
 local triangle
 local cube
 local spot
+local texArr
 local samplerHandle
 local instanceBuffer
 local instanceData
@@ -351,6 +378,7 @@ local function setup(mainWin)
 	triangle = CreateTriangleBuffer()
 	cube = CreateCubeBuffer()
 	spot = CreateSpotBuffer()
+	texArr = CreateSkyCube()
 
 	glfw.setFramebufferSizeCallback(mainWin, function(window, width, height)
 		bcfx.setViewRect(255, 0, 0, width, height)
@@ -455,22 +483,25 @@ local function tick(delta)
 	bcfx.setInstanceDataBuffer(3, instanceBuffer)
 	bcfx.submit(1, triangle.shader, discard.All)
 	--]]
---[[
-	bcfx.setVertexBuffer(0, cube.vertex)
-	bcfx.setIndexBuffer(cube.index)
+---[[
+--	bcfx.setVertexBuffer(0, cube.vertex)
+--	bcfx.setIndexBuffer(cube.index)
 	-- bcfx.setVertexBuffer(0, spot.vertex)
 	-- bcfx.setIndexBuffer(spot.index)
+	bcfx.setVertexBuffer(0, texArr.vertex)
+	bcfx.setIndexBuffer(texArr.index)
+	bcfx.setTexture(0, texArr.uniform, texArr.texture, samplerHandle)
 
 	angle = (angle + 1) % 360
 	local matScale = graphics3d.scale(vector.Vec3(1.5, 1.5, 1.5))
 	local matRotate = graphics3d.rotate(angle, vector.Vec3(1.0, 1.0, 1.0))
 	local matScale = graphics3d.scale(vector.Vec3(1.0, 1.0, 1.0))
-	local matRotate = graphics3d.rotate(angle, vector.Vec3(0.0, 1.0, 0.0))
+	local matRotate = graphics3d.rotate(tmpAngle, vector.Vec3(0.0, 1.0, 0.0))
 	-- local mat = graphics3d.rotate(45, vector.Vec3(1.0, 0.0, 0.0))
 	bcfx.setTransform(matRotate * matScale)
 
 	-- bcfx.setTexture(0, cube.uniform, cube.texture, flags)
-	bcfx.setTexture(0, cube.uniform, spot.texture, samplerHandle)
+	--bcfx.setTexture(0, cube.uniform, spot.texture, samplerHandle)
 
 	local state = bcfx.utils.packRenderState({
 		enableDepth = true,
@@ -478,7 +509,8 @@ local function tick(delta)
 	bcfx.setState(state, bcfx.color.black)
 
 	-- bcfx.setViewDebug(1, bcfx.debug.WIREFRAME)
-	bcfx.submit(2, cube.shader, discard.All)
+	--bcfx.submit(2, cube.shader, discard.All)
+	bcfx.submit(2, texArr.shader, discard.All)
 
 	bcfx.setVertexBuffer(0, blit.vertex)
 	bcfx.setTexture(0, blit.uniform, blit.texture, samplerHandle)
