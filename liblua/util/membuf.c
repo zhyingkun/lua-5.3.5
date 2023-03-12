@@ -78,6 +78,12 @@ static int MEMBUF_FUNCTION(getType)(lua_State* L) {
   return 1;
 }
 
+static int MEMBUF_FUNCTION(toString)(lua_State* L) {
+  const luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
+  lua_pushlstring(L, (const char*)mb->ptr, mb->sz);
+  return 1;
+}
+
 static int MEMBUF_FUNCTION(__tostring)(lua_State* L) {
   const luaL_MemBuffer* mb = luaL_checkmembuffer(L, 1);
   lua_pushfstring(L, "luaL_MemBuffer*: %p { ptr: %p, sz: %d, release: %p, ud: %p }", mb, mb->ptr, (int)mb->sz, mb->release, mb->ud);
