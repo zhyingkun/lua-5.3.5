@@ -103,7 +103,7 @@ static int TRANSFORM_FUNCTION(__tostring)(lua_State* L) {
                      "\trotation: (pitch: %f, roll: %f, yaw: %f)\n"
                      "\tscale:    (x:     %f, y:    %f, z:   %f)\n"
                      "}",
-                  trans
+                  trans,
                   VEC3_X(l), VEC3_Y(l), VEC3_Z(l),
                   r->pitch, r->roll, r->yaw,
                   VEC3_X(s), VEC3_Y(s), VEC3_Z(s));
