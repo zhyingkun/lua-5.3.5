@@ -338,7 +338,7 @@ extern lua_State* staticL;
   } while (0)
 
 #define HANDLE_ASYNC_WAIT_PREPARE(handle) \
-  (void)EXTENSION_FUNCTION(releaseExtension)((uv_handle_t*)handle); \
+  (void)EXTENSION_FUNCTION(release)((uv_handle_t*)handle); \
   lua_State* L = GET_MAIN_LUA_STATE(); \
   UNHOLD_LUA_OBJECT(L, handle, IDX_HANDLE_ITSELF); \
   PUSH_HOLD_OBJECT_CLEAN(L, handle, IDX_HANDLE_COROUTINE); \
@@ -490,8 +490,9 @@ struct HandleExtension {
 };
 #define GET_EXTENSION(handle) (HandleExtension*)uv_handle_get_data(handle)
 #define SET_EXTENSION(handle, ext) uv_handle_set_data(handle, (void*)ext)
-void EXTENSION_FUNCTION(releaseExtension)(uv_handle_t* handle);
-void EXTENSION_FUNCTION(setExtension)(uv_handle_t* handle, HandleExtension* ext);
+void EXTENSION_FUNCTION(init)(uv_handle_t* handle);
+void EXTENSION_FUNCTION(release)(uv_handle_t* handle);
+void EXTENSION_FUNCTION(set)(uv_handle_t* handle, HandleExtension* ext);
 
 /* }====================================================== */
 
@@ -525,9 +526,9 @@ uint16_t acs_getIndex(AsyncCacheState* acs);
 uint16_t acs_addIndex(AsyncCacheState* acs);
 
 #define SET_HANDLE_NEW_CACHE(handle_, type_, max_, co_, clear_) \
-  (void)EXTENSION_FUNCTION(setExtension)((uv_handle_t*)handle_, (HandleExtension*)acs_create(sizeof(type_), max_, co_, clear_))
+  (void)EXTENSION_FUNCTION(set)((uv_handle_t*)handle_, (HandleExtension*)acs_create(sizeof(type_), max_, co_, clear_))
 #define RELEASE_HANDLE_CACHE(handle_) \
-  (void)EXTENSION_FUNCTION(releaseExtension)((uv_handle_t*)handle_)
+  (void)EXTENSION_FUNCTION(release)((uv_handle_t*)handle_)
 #define GET_HANDLE_CACHE(handle_) (AsyncCacheState*)GET_EXTENSION((uv_handle_t*)handle_)
 
 /* }====================================================== */

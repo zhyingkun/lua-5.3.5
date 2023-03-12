@@ -357,7 +357,10 @@ void UTILS_PUSH_FUNCTION(uv_statfs_t)(lua_State* L, const uv_statfs_t* statfs) {
 ** =======================================================
 */
 
-void EXTENSION_FUNCTION(releaseExtension)(uv_handle_t* handle) {
+void EXTENSION_FUNCTION(init)(uv_handle_t* handle) {
+  SET_EXTENSION(handle, NULL);
+}
+void EXTENSION_FUNCTION(release)(uv_handle_t* handle) {
   HandleExtension* ext = GET_EXTENSION(handle);
   if (ext != NULL) {
     if (ext->release != NULL)
@@ -365,8 +368,8 @@ void EXTENSION_FUNCTION(releaseExtension)(uv_handle_t* handle) {
     SET_EXTENSION(handle, NULL);
   }
 }
-void EXTENSION_FUNCTION(setExtension)(uv_handle_t* handle, HandleExtension* ext) {
-  (void)EXTENSION_FUNCTION(releaseExtension)(handle);
+void EXTENSION_FUNCTION(set)(uv_handle_t* handle, HandleExtension* ext) {
+  (void)EXTENSION_FUNCTION(release)(handle);
   SET_EXTENSION(handle, ext);
 }
 

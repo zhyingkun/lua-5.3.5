@@ -9,7 +9,7 @@ void HANDLE_FUNCTION(ctor)(lua_State* L, uv_handle_t* handle) {
   lua_pushvalue(L, -2);
   lua_rawsetp(L, -2, (void*)handle);
   lua_pop(L, 1);
-  (void)EXTENSION_FUNCTION(setExtension)(handle, NULL);
+  (void)EXTENSION_FUNCTION(init)(handle);
 }
 
 static int HANDLE_FUNCTION(isActive)(lua_State* L) {
@@ -25,7 +25,7 @@ static int HANDLE_FUNCTION(isClosing)(lua_State* L) {
 }
 
 static void HANDLE_CALLBACK(closeAsync)(uv_handle_t* handle) {
-  (void)EXTENSION_FUNCTION(releaseExtension)(handle);
+  (void)EXTENSION_FUNCTION(release)(handle);
   lua_State* L = GET_MAIN_LUA_STATE();
   PREPARE_CALL_LUA(L);
   PUSH_HOLD_OBJECT_CLEAN(L, handle, IDX_HANDLE_CALLBACK);
@@ -65,7 +65,7 @@ static int HANDLE_FUNCTION(closeAsyncWait)(lua_State* co) {
 
 static void HANDLE_CALLBACK(__gc)(uv_handle_t* handle) {
   lua_State* L = GET_MAIN_LUA_STATE();
-  (void)EXTENSION_FUNCTION(releaseExtension)(handle);
+  (void)EXTENSION_FUNCTION(release)(handle);
   UNHOLD_HANDLE_FEATURE(L, handle);
 }
 int HANDLE_FUNCTION(__gc)(lua_State* L) {
