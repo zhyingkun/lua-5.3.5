@@ -108,7 +108,7 @@ static int NKFONTATLAS_FUNCTION(Atlas)(lua_State* L) {
 static int NKFONTATLAS_FUNCTION(__tostring)(lua_State* L) {
   nk_draw_null_texture* nullTex = luaL_checknkdrawnulltexture(L, 1);
 
-  lua_pushfstring(L, "nk_draw_null_texture: %d, uv: (%f, %f)", nullTex->texture.id, nullTex->uv.x, nullTex->uv.y);
+  lua_pushfstring(L, "nk_draw_null_texture*: %p, id: %d, uv: (%f, %f)", nullTex, nullTex->texture.id, nullTex->uv.x, nullTex->uv.y);
   return 1;
 }
 

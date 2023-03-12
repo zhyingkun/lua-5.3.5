@@ -267,17 +267,21 @@ static int VECTOR_FUNCTION(__newindex)(lua_State* L) {
 
 static int VECTOR_FUNCTION(__tostring)(lua_State* L) {
   char buf[TEMP_BUF_SIZE];
+#define luaL_addfstring(b_, fmt_, ...) \
+  snprintf(buf, TEMP_BUF_SIZE, "" fmt_, __VA_ARGS__); \
+  luaL_addstring(b_, buf)
+
   Vec* vec = luaL_checkvector(L, 1);
   luaL_Buffer b[1];
   luaL_buffinitsize(L, b, TEMP_BUF_SIZE);
-  snprintf(buf, TEMP_BUF_SIZE, "Vec*: %d (%f", VEC_COUNT(vec), VEC_ELEMENT(vec, 0));
-  luaL_addstring(b, buf);
+  luaL_addfstring(b, "Vec*: %p (%d) { %f", vec, VEC_COUNT(vec), VEC_ELEMENT(vec, 0));
   for (int i = 1; i < VEC_COUNT(vec); i++) {
-    snprintf(buf, TEMP_BUF_SIZE, ", %f", VEC_ELEMENT(vec, i));
-    luaL_addstring(b, buf);
+    luaL_addfstring(b, ", %f", VEC_ELEMENT(vec, i));
   }
-  luaL_addstring(b, ")");
+  luaL_addstring(b, " }");
   luaL_pushresult(b);
+
+#undef luaL_addfstring
   return 1;
 }
 

@@ -786,12 +786,12 @@ static int NKSTYLEITEM_FUNCTION(__tostring)(lua_State* L) {
       "Image",
       "NineSlice",
   };
-  lua_pushfstring(L, "nk_style_item: %p, type: %s", styleItem, StyleItemTypeStr[styleItem->type]);
+  lua_pushfstring(L, "nk_style_item*: %p, type: %s", styleItem, StyleItemTypeStr[styleItem->type]);
   return 1;
 }
 
 #define EMPLACE_NKSTYLEITEM_FUNCTION(name) \
-  { #name, NKSTYLEITEM_FUNCTION(name) }
+  { "" #name, NKSTYLEITEM_FUNCTION(name) }
 static const luaL_Reg metafuncs[] = {
     EMPLACE_NKSTYLEITEM_FUNCTION(__tostring),
     {NULL, NULL},
@@ -829,7 +829,7 @@ void NKSTYLEITEM_FUNCTION(init)(lua_State* L) {
 /* }====================================================== */
 
 #define EMPLACE_NKWRAP_FUNCTION(name) \
-  { #name, NKWRAP_FUNCTION(name) }
+  { "" #name, NKWRAP_FUNCTION(name) }
 static const luaL_Reg wrap_funcs[] = {
     EMPLACE_NKWRAP_FUNCTION(getStylePtrTable),
     /* Style */

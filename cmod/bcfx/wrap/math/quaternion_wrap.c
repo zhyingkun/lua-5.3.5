@@ -174,7 +174,7 @@ static int QUATERNION_FUNCTION(__eq)(lua_State* L) {
 }
 static int QUATERNION_FUNCTION(__tostring)(lua_State* L) {
   Quaternion* quat = luaL_checkquaternion(L, 1);
-  lua_pushfstring(L, "Quaternion*: (w: %f, x: %f, y: %f, z: %f)", quat->w, quat->x, quat->y, quat->z);
+  lua_pushfstring(L, "Quaternion*: %p (w: %f, x: %f, y: %f, z: %f)", quat, quat->w, quat->x, quat->y, quat->z);
   return 1;
 }
 

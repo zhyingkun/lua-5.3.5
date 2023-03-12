@@ -182,21 +182,25 @@ static int MATRIX_FUNCTION(__unm)(lua_State* L) {
 
 static int MATRIX_FUNCTION(__tostring)(lua_State* L) {
   char buf[TEMP_BUF_SIZE];
+#define luaL_addfstring(b_, fmt_, ...) \
+  snprintf(buf, TEMP_BUF_SIZE, "" fmt_, __VA_ARGS__); \
+  luaL_addstring(b_, buf)
+
   Mat* mat = luaL_checkmatrix(L, 1);
   luaL_Buffer b[1];
   luaL_buffinitsize(L, b, MATRIX_STR_SIZE);
-  snprintf(buf, TEMP_BUF_SIZE, "Mat*: %dx%d\n", mat->row, mat->col);
-  luaL_addstring(b, buf);
+  luaL_addfstring(b, "Mat*: %p (%dx%d) {\n", mat, mat->row, mat->col);
   for (int i = 0; i < mat->row; i++) {
-    snprintf(buf, TEMP_BUF_SIZE, "\t%f", MAT_ELEMENT(mat, i, 0));
-    luaL_addstring(b, buf);
+    luaL_addfstring(b, "\t%f,", MAT_ELEMENT(mat, i, 0));
     for (int j = 1; j < mat->col; j++) {
-      snprintf(buf, TEMP_BUF_SIZE, ", %f", MAT_ELEMENT(mat, i, j));
-      luaL_addstring(b, buf);
+      luaL_addfstring(b, " %f,", MAT_ELEMENT(mat, i, j));
     }
     luaL_addstring(b, "\n");
   }
+  luaL_addstring(b, "}");
   luaL_pushresult(b);
+
+#undef luaL_addfstring
   return 1;
 }
 

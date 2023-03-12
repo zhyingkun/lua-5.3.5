@@ -102,7 +102,7 @@ static int NKSTYLEBUTTON_FUNCTION(__newindex)(lua_State* L) {
 static int NKSTYLEBUTTON_FUNCTION(__tostring)(lua_State* L) {
   nk_style_button* styleButton = luaL_checkstylebutton(L, 1);
 
-  lua_pushfstring(L, "nk_style_button: %p", styleButton);
+  lua_pushfstring(L, "nk_style_button*: %p", styleButton);
   return 1;
 }
 static int NKSTYLEBUTTON_FUNCTION(__gc)(lua_State* L) {
