@@ -764,153 +764,270 @@ static int FS_FUNCTION(linkChangeOwn)(lua_State* L) {
 ** =======================================================
 */
 
-#define aux_open_read(loop, filepath) aux_open(loop, filepath, UV_FS_O_RDONLY, 0)
-#define aux_open_write(loop, filepath) aux_open(loop, filepath, UV_FS_O_WRONLY | UV_FS_O_CREAT, 0644)
+#define aux_openRead(loop, filepath) aux_open(loop, filepath, UV_FS_O_RDONLY, 0)
+#define aux_openWrite(loop, filepath) aux_open(loop, filepath, UV_FS_O_WRONLY | UV_FS_O_TRUNC | UV_FS_O_CREAT, 0644)
 
 static int aux_open(uv_loop_t* loop, const char* filepath, int flags, int mode) {
   uv_fs_t req[1];
-  int fd = uv_fs_open(loop, req, filepath, flags, mode, NULL);
+  const int fd = uv_fs_open(loop, req, filepath, flags, mode, NULL);
   uv_fs_req_cleanup(req);
   return fd;
 }
 static int aux_close(uv_loop_t* loop, int fd) {
   uv_fs_t req[1];
-  int err = uv_fs_close(loop, req, fd, NULL);
+  const int err = uv_fs_close(loop, req, fd, NULL);
   uv_fs_req_cleanup(req);
   return err;
 }
-static int aux_filesize(uv_loop_t* loop, int fd, size_t* size) {
+static int aux_fileSize(uv_loop_t* loop, int fd, size_t* size) {
   uv_fs_t req[1];
-  int err = uv_fs_fstat(loop, req, fd, NULL);
+  const int err = uv_fs_fstat(loop, req, fd, NULL);
   if (err == UVWRAP_OK && size) {
     *size = uv_fs_get_statbuf(req)->st_size;
   }
   uv_fs_req_cleanup(req);
   return err;
 }
-
-static void FS_CALLBACK(readFile)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
-
-  PUSH_REQ_PARAM_CLEAN(L, req, 2);
-  uv_loop_t* loop = (uv_loop_t*)lua_touserdata(L, -1);
-  PUSH_REQ_PARAM_CLEAN(L, req, 3);
-  int fd = (int)lua_tointeger(L, -1);
-  lua_pop(L, 2);
-
-  ssize_t result = aux_close(loop, fd);
-  if (result == UVWRAP_OK) {
-    result = uv_fs_get_result(req);
+static int aux_doReadFile(uv_loop_t* loop, int fd, size_t size, char** outPtr) {
+  uv_fs_t req[1];
+  char* buffer = MEMORY_FUNCTION(malloc_buf)(size);
+  BUFS_INIT(buffer, size);
+  const int ret = uv_fs_read(loop, req, fd, BUFS, NBUFS, 0, NULL);
+  uv_fs_req_cleanup(req);
+  if (ret > 0) { // ret is the read count
+    *outPtr = buffer;
+  } else {
+    (void)MEMORY_FUNCTION(free_buf)(buffer);
   }
+  return ret;
+}
+static int aux_doWriteFile(uv_loop_t* loop, int fd, char* ptr, size_t size) {
+  uv_fs_t req[1];
+  BUFS_INIT(ptr, size);
+  const int err = uv_fs_write(loop, req, fd, BUFS, NBUFS, 0, NULL);
+  uv_fs_req_cleanup(req);
+  return err;
+}
+typedef struct {
+  uv_work_t req[1];
+  luaL_MemBuffer mb[1];
+  const char* filePath;
+  int err;
+  bool bRead;
+  char pathBuffer[1];
+} FileIOParam;
+#define CHECK_FILE_IO_ERR(err_) \
+  do { \
+    if (err_ < 0) { \
+      param->err = err_; \
+      return; \
+    } \
+  } while (false)
+static int aux_readFileInternal(uv_loop_t* loop, int fd, char** outPtr) {
+  size_t size;
+  const int err = aux_fileSize(loop, fd, &size);
+  if (err < 0)
+    return err;
+  return aux_doReadFile(loop, fd, size, outPtr);
+}
+static void aux_readFile(uv_loop_t* loop, FileIOParam* param) {
+  const int fd = aux_openRead(loop, param->filePath);
+  CHECK_FILE_IO_ERR(fd); // fd is the err code
+  char* ptr;
+  const int ret = aux_readFileInternal(loop, fd, &ptr);
+  const int err = aux_close(loop, fd);
+  if (ret > 0) {
+    (void)MEMORY_FUNCTION(buf_moveToMemBuffer)(uv_buf_init(ptr, ret), param->mb);
+    param->err = UVWRAP_OK;
+  } else {
+    MEMBUFFER_SETNULL(param->mb);
+    param->err = ret < 0 ? ret : err;
+  }
+}
+static void aux_writeFile(uv_loop_t* loop, FileIOParam* param) {
+  const int fd = aux_openWrite(loop, param->filePath);
+  CHECK_FILE_IO_ERR(fd); // fd is the err code
+  const int ret = aux_doWriteFile(loop, fd, param->mb->ptr, param->mb->sz);
+  MEMBUFFER_RELEASE(param->mb);
+  const int err = aux_close(loop, fd);
+  param->err = ret < 0 ? ret : err;
+}
 
-  PUSH_REQ_PARAM_CLEAN(L, req, 1);
-  char* buffer = lua_touserdata(L, -1);
-  lua_pop(L, 1); // pop the lightuserdata
-  PUSH_READ_BUFFER(L, req, buffer);
-  (void)MEMORY_FUNCTION(free_buf)(buffer);
+static void worker_fileIO(uv_work_t* req) {
+  FileIOParam* param = (FileIOParam*)uv_req_get_data((uv_req_t*)req);
+  if (param->bRead) {
+    aux_readFile(req->loop, param);
+  } else {
+    aux_writeFile(req->loop, param);
+  }
+}
 
-  lua_pushinteger(L, result);
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 2);
+static int _pushReadFileResult(lua_State* L, FileIOParam* param) {
+  bool bSucceed = param->err == UVWRAP_OK;
+  bool bHasMB = MEMBUFFER_HAS_DATA(param->mb);
+  if (bSucceed) {
+    if (bHasMB) {
+      luaL_pushmembuffer(L, param->mb);
+    } else {
+      lua_pushliteral(L, "");
+    }
+  } else {
+    assert(!bHasMB);
+    lua_pushnil(L);
+  }
+  lua_pushinteger(L, param->err);
+  return 2;
+}
+static FileIOParam* _createFileIOParam(uv_loop_t* loop, const char* filePath, size_t len, FileIOParam* stackParam) {
+  FileIOParam* param = NULL;
+  if (stackParam == NULL) {
+    param = MEMORY_FUNCTION(malloc)(sizeof(FileIOParam) + sizeof(char) * len);
+    strncpy(param->pathBuffer, filePath, len);
+    param->pathBuffer[len] = '\0';
+    param->filePath = &param->pathBuffer[0];
+  } else {
+    param = stackParam;
+    param->filePath = filePath;
+  }
+  param->err = 0;
+  MEMBUFFER_SETNULL(param->mb);
+  param->req->loop = loop;
+  uv_req_set_data((uv_req_t*)param->req, (void*)param);
+  return param;
 }
 static int FS_FUNCTION(readFile)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
-  const char* filepath = luaL_checkstring(L, 2);
-  int async = CHECK_IS_ASYNC(L, 3);
+  size_t len;
+  const char* filePath = luaL_checklstring(L, 2, &len);
 
-  int fd = aux_open_read(loop, filepath);
-  if (fd < 0) {
-    return ERROR_FUNCTION(check)(L, fd); // fd is the err code
-  }
-  size_t size = 0;
-  int err = aux_filesize(loop, fd, &size);
-  CHECK_ERROR(L, err);
+  FileIOParam stackParam;
+  FileIOParam* param = _createFileIOParam(loop, filePath, len, &stackParam);
+  param->bRead = true;
 
-  uv_fs_t* req = ALLOCA_REQ();
-  char* buffer = MEMORY_FUNCTION(malloc_buf)(size);
-  BUFS_INIT(buffer, size);
-  int ret = uv_fs_read(loop, req, fd, BUFS, NBUFS, 0, async ? FS_CALLBACK(readFile) : NULL);
-  if (async && ret == UVWRAP_OK) {
-    HOLD_REQ_CALLBACK(L, req, 3);
-    lua_pushlightuserdata(L, (void*)buffer);
-    HOLD_REQ_PARAM(L, req, 1, lua_gettop(L));
-    lua_pushlightuserdata(L, (void*)loop);
-    HOLD_REQ_PARAM(L, req, 2, lua_gettop(L));
-    lua_pushinteger(L, fd);
-    HOLD_REQ_PARAM(L, req, 3, lua_gettop(L));
-    return 0;
-  }
-  if (!async) {
-    PUSH_READ_BUFFER(L, req, buffer);
-  }
-  (void)MEMORY_FUNCTION(free_buf)(buffer);
-  FREE_REQ(req);
-  int ret2 = aux_close(loop, fd);
-  if (ret2 < 0) {
-    ret = ret2;
-  }
-  if (async) {
-    return ERROR_FUNCTION(check)(L, ret);
-  }
-  lua_pushinteger(L, ret);
-  return 2;
+  worker_fileIO(param->req);
+  return _pushReadFileResult(L, param);
 }
-
-static void FS_CALLBACK(writeFile)(uv_fs_t* req) {
+static void FS_CALLBACK(readFileAsync)(uv_work_t* req, int status) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
-  RELEASE_UNHOLD_REQ_BUFFER(L, req, 1);
 
-  PUSH_REQ_PARAM_CLEAN(L, req, 2);
-  uv_loop_t* loop = (uv_loop_t*)lua_touserdata(L, -1);
-  PUSH_REQ_PARAM_CLEAN(L, req, 3);
-  int fd = (int)lua_tointeger(L, -1);
-  lua_pop(L, 2);
+  FileIOParam* param = (FileIOParam*)uv_req_get_data((uv_req_t*)req);
+  int n = _pushReadFileResult(L, param);
+  (void)MEMORY_FUNCTION(free)((void*)param);
 
-  ssize_t result = aux_close(loop, fd);
-  if (result == UVWRAP_OK) {
-    result = uv_fs_get_result(req);
-  }
-  lua_pushinteger(L, result);
-
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 1);
+  CALL_LUA_FUNCTION(L, n);
 }
+static int FS_FUNCTION(readFileAsync)(lua_State* L) {
+  uv_loop_t* loop = luaL_checkuvloop(L, 1);
+  size_t len;
+  const char* filePath = luaL_checklstring(L, 2, &len);
+  luaL_checkany(L, 3);
+
+  FileIOParam* param = _createFileIOParam(loop, filePath, len, NULL);
+  param->bRead = true;
+
+  const int err = uv_queue_work(loop, param->req, worker_fileIO, FS_CALLBACK(readFileAsync));
+  CHECK_ERROR(L, err);
+  HOLD_REQ_CALLBACK(L, param->req, 3);
+  return 0;
+}
+static void FS_CALLBACK(readFileAsyncWait)(uv_work_t* req, int status) {
+  lua_State* L = GET_MAIN_LUA_STATE();
+  PUSH_REQ_PARAM_CLEAN(L, req, 0); /* must unhold before resume */
+  lua_State* co = lua_tothread(L, -1);
+  FileIOParam* param = (FileIOParam*)uv_req_get_data((uv_req_t*)req);
+  int n = _pushReadFileResult(co, param);
+  (void)MEMORY_FUNCTION(free)((void*)param);
+  (void)status;
+  REQ_ASYNC_WAIT_RESUME(readFileAsyncWait, n);
+}
+static int FS_FUNCTION(readFileAsyncWait)(lua_State* co) {
+  uv_loop_t* loop = luaL_checkuvloop(co, 1);
+  size_t len;
+  const char* filePath = luaL_checklstring(co, 2, &len);
+
+  FileIOParam* param = _createFileIOParam(loop, filePath, len, NULL);
+  param->bRead = true;
+  uv_work_t* req = param->req;
+
+  const int err = uv_queue_work(loop, req, worker_fileIO, FS_CALLBACK(readFileAsyncWait));
+  CHECK_ERROR(co, err);
+  HOLD_COROUTINE_FOR_REQ(co);
+  return lua_yield(co, 0);
+}
+
 static int FS_FUNCTION(writeFile)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
-  const char* filepath = luaL_checkstring(L, 2);
-  size_t len = 0;
-  const char* str = luaL_checklbuffer(L, 3, &len);
-  int async = CHECK_IS_ASYNC(L, 4);
+  size_t len;
+  const char* filePath = luaL_checklstring(L, 2, &len);
+  luaL_MemBuffer stackMemBuffer = MEMBUFFER_NULL;
+  luaL_MemBuffer* mb = luaL_tomembuffer(L, 3, &stackMemBuffer);
 
-  int fd = aux_open_write(loop, filepath);
-  if (fd < 0) {
-    return ERROR_FUNCTION(check)(L, fd); // fd is the err code
-  }
+  FileIOParam stackParam;
+  FileIOParam* param = _createFileIOParam(loop, filePath, len, &stackParam);
+  param->bRead = false; // indicate this is write file
+  MEMBUFFER_MOVEINIT(mb, param->mb);
 
-  uv_fs_t* req = ALLOCA_REQ();
-  BUFS_INIT(str, len);
-  int ret = uv_fs_write(loop, req, fd, BUFS, NBUFS, 0, async ? FS_CALLBACK(writeFile) : NULL);
-  if (async && ret == UVWRAP_OK) {
-    HOLD_REQ_CALLBACK(L, req, 4);
-    HOLD_REQ_PARAM(L, req, 1, 3);
-    lua_pushlightuserdata(L, (void*)loop);
-    HOLD_REQ_PARAM(L, req, 2, lua_gettop(L));
-    lua_pushinteger(L, fd);
-    HOLD_REQ_PARAM(L, req, 3, lua_gettop(L));
-    return 0;
-  }
-  FREE_REQ(req);
-  int ret2 = aux_close(loop, fd);
-  if (ret2 < 0) {
-    ret = ret2;
-  }
-  if (async) {
-    return ERROR_FUNCTION(check)(L, ret);
-  }
-  lua_pushinteger(L, ret);
+  worker_fileIO(param->req);
+  lua_pushinteger(L, param->err);
   return 1;
+}
+static void FS_CALLBACK(writeFileAsync)(uv_work_t* req, int status) {
+  lua_State* L;
+  PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
+
+  FileIOParam* param = (FileIOParam*)uv_req_get_data((uv_req_t*)req);
+  lua_pushinteger(L, param->err);
+  (void)MEMORY_FUNCTION(free)((void*)param);
+
+  CALL_LUA_FUNCTION(L, 1);
+}
+static int FS_FUNCTION(writeFileAsync)(lua_State* L) {
+  uv_loop_t* loop = luaL_checkuvloop(L, 1);
+  size_t len;
+  const char* filePath = luaL_checklstring(L, 2, &len);
+  luaL_MemBuffer stackMemBuffer = MEMBUFFER_NULL;
+  luaL_MemBuffer* mb = luaL_tomembuffer(L, 3, &stackMemBuffer);
+  luaL_checkany(L, 4);
+
+  FileIOParam* param = _createFileIOParam(loop, filePath, len, NULL);
+  param->bRead = false; // indicate this is write file
+  MEMBUFFER_MOVEINIT(mb, param->mb);
+
+  const int err = uv_queue_work(loop, param->req, worker_fileIO, FS_CALLBACK(writeFileAsync));
+  CHECK_ERROR(L, err);
+  HOLD_REQ_CALLBACK(L, param->req, 3);
+  if (mb == &stackMemBuffer) { // it is a reference membuffer
+    HOLD_REQ_PARAM(L, param->req, 1, 3);
+  }
+  return 0;
+}
+static void FS_CALLBACK(writeFileAsyncWait)(uv_work_t* req, int status) {
+  lua_State* L = GET_MAIN_LUA_STATE();
+  PUSH_REQ_PARAM_CLEAN(L, req, 0); /* must unhold before resume */
+  lua_State* co = lua_tothread(L, -1);
+  FileIOParam* param = (FileIOParam*)uv_req_get_data((uv_req_t*)req);
+  lua_pushinteger(L, param->err);
+  (void)MEMORY_FUNCTION(free)((void*)param);
+  (void)status;
+  REQ_ASYNC_WAIT_RESUME(writeFileAsyncWait, 1);
+}
+static int FS_FUNCTION(writeFileAsyncWait)(lua_State* co) {
+  uv_loop_t* loop = luaL_checkuvloop(co, 1);
+  size_t len;
+  const char* filePath = luaL_checklstring(co, 2, &len);
+  luaL_MemBuffer stackMemBuffer = MEMBUFFER_NULL;
+  luaL_MemBuffer* mb = luaL_tomembuffer(co, 3, &stackMemBuffer);
+
+  FileIOParam* param = _createFileIOParam(loop, filePath, len, NULL);
+  param->bRead = false; // indicate this is write file
+  MEMBUFFER_MOVEINIT(mb, param->mb);
+  uv_work_t* req = param->req;
+
+  const int err = uv_queue_work(loop, req, worker_fileIO, FS_CALLBACK(writeFileAsyncWait));
+  CHECK_ERROR(co, err);
+  HOLD_COROUTINE_FOR_REQ(co);
+  return lua_yield(co, 0);
 }
 
 /* }====================================================== */
@@ -955,7 +1072,11 @@ static const luaL_Reg FS_FUNCTION(funcs)[] = {
     EMPLACE_FS_FUNCTION(linkChangeOwn),
     /* For convenient */
     EMPLACE_FS_FUNCTION(readFile),
+    EMPLACE_FS_FUNCTION(readFileAsync),
+    EMPLACE_FS_FUNCTION(readFileAsyncWait),
     EMPLACE_FS_FUNCTION(writeFile),
+    EMPLACE_FS_FUNCTION(writeFileAsync),
+    EMPLACE_FS_FUNCTION(writeFileAsyncWait),
     {NULL, NULL},
 };
 
