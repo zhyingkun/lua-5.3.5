@@ -54,7 +54,7 @@ static int SIGNAL_FUNCTION(startCache)(lua_State* co) {
 
   const int err = uv_signal_start(handle, SIGNAL_CALLBACK(startCache), signum);
   CHECK_ERROR(co, err);
-  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1);
+  HOLD_COROUTINE_FOR_HANDLE_CACHE(co, handle);
   return 0;
 }
 static int SIGNAL_FUNCTION(getCacheWait)(lua_State* co) {
@@ -93,7 +93,7 @@ static int SIGNAL_FUNCTION(startOneShotAsyncWait)(lua_State* co) {
 
   int err = uv_signal_start_oneshot(handle, SIGNAL_CALLBACK(startOneShotAsyncWait), signum);
   CHECK_ERROR(co, err);
-  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1);
+  HOLD_COROUTINE_FOR_HANDLE_ASYNC_WAIT(co, handle);
   return lua_yield(co, 0);
 }
 

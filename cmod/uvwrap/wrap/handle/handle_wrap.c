@@ -59,7 +59,7 @@ static int HANDLE_FUNCTION(closeAsyncWait)(lua_State* co) {
     return luaL_error(co, "this handle(%p) has been closed, don't close again", handle);
   }
   uv_close(handle, HANDLE_CALLBACK(closeAsyncWait));
-  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1);
+  HOLD_COROUTINE_FOR_HANDLE_ASYNC_WAIT(co, handle);
   return lua_yield(co, 0);
 }
 

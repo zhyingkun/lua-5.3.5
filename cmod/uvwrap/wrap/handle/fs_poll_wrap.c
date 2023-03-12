@@ -64,7 +64,7 @@ static int FS_POLL_FUNCTION(startCache)(lua_State* co) {
 
   const int err = uv_fs_poll_start(handle, FS_POLL_CALLBACK(startCache), path, interval);
   CHECK_ERROR(co, err);
-  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1);
+  HOLD_COROUTINE_FOR_HANDLE_CACHE(co, handle);
   return 0;
 }
 static int FS_POLL_FUNCTION(getCacheWait)(lua_State* co) {

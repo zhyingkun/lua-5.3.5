@@ -41,8 +41,8 @@ static int TCP_FUNCTION(connectAsync)(lua_State* L) {
 
 static void TCP_CALLBACK(connectAsyncWait)(uv_connect_t* req, int status) {
   REQ_ASYNC_WAIT_PREPARE();
-  UNHOLD_REQ_PARAM(co, req, 2);
-  REQ_ASYNC_WAIT_RESUME(connectAsyncWait);
+  lua_pushinteger(co, status);
+  REQ_ASYNC_WAIT_RESUME(connectAsyncWait, 1);
 }
 static int TCP_FUNCTION(connectAsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);
@@ -54,7 +54,6 @@ static int TCP_FUNCTION(connectAsyncWait)(lua_State* co) {
   int err = uv_tcp_connect(req, handle, addr, TCP_CALLBACK(connectAsyncWait));
   if (err == UVWRAP_OK) {
     HOLD_COROUTINE_FOR_REQ(co);
-    HOLD_REQ_PARAM(co, req, 2, 2);
     return lua_yield(co, 0);
   }
   lua_pushinteger(co, err);

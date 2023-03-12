@@ -71,7 +71,7 @@ static int TIMER_FUNCTION(startCache)(lua_State* co) {
   SET_HANDLE_NEW_CACHE(handle, TimerResult, 0, co, tr_clear);
   int err = uv_timer_start(handle, TIMER_CALLBACK(startCache), timeout, repeat);
   CHECK_ERROR(co, err);
-  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1);
+  HOLD_COROUTINE_FOR_HANDLE_CACHE(co, handle);
   return 0;
 }
 static int TIMER_FUNCTION(getCacheWait)(lua_State* co) {
@@ -91,7 +91,7 @@ static int TIMER_FUNCTION(startOneShotAsyncWait)(lua_State* co) {
 
   int err = uv_timer_start(handle, TIMER_CALLBACK(startOneShotAsyncWait), timeout, 0);
   CHECK_ERROR(co, err);
-  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1);
+  HOLD_COROUTINE_FOR_HANDLE_ASYNC_WAIT(co, handle);
   return lua_yield(co, 0);
 }
 

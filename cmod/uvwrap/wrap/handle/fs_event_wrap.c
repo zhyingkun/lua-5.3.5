@@ -73,7 +73,7 @@ static int FS_EVENT_FUNCTION(startCache)(lua_State* co) {
 
   int err = uv_fs_event_start(handle, FS_EVENT_CALLBACK(startCache), filepath, flags);
   CHECK_ERROR(co, err);
-  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1);
+  HOLD_COROUTINE_FOR_HANDLE_CACHE(co, handle);
   return 0;
 }
 static int FS_EVENT_FUNCTION(getCacheWait)(lua_State* co) {

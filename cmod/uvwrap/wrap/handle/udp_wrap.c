@@ -133,9 +133,9 @@ static int UDP_FUNCTION(sendAsync)(lua_State* L) {
 
 static void UDP_CALLBACK(sendAsyncWait)(uv_udp_send_t* req, int status) {
   REQ_ASYNC_WAIT_PREPARE();
-  RELEASE_UNHOLD_REQ_BUFFER(co, req, 2);
-  UNHOLD_REQ_PARAM(co, req, 3);
-  REQ_ASYNC_WAIT_RESUME(sendAsyncWait);
+  luaL_releasebuffer(L, 2);
+  lua_pushinteger(co, status);
+  REQ_ASYNC_WAIT_RESUME(sendAsyncWait, 1);
 }
 static int UDP_FUNCTION(sendAsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);
@@ -149,8 +149,6 @@ static int UDP_FUNCTION(sendAsyncWait)(lua_State* co) {
   int err = uv_udp_send(req, handle, BUFS, NBUFS, addr, UDP_CALLBACK(sendAsyncWait)); // bufs and addr are passed by value
   CHECK_ERROR(co, err);
   HOLD_COROUTINE_FOR_REQ(co);
-  HOLD_REQ_PARAM(co, req, 2, 2);
-  HOLD_REQ_PARAM(co, req, 3, 3);
   return lua_yield(co, 0);
 }
 
@@ -247,7 +245,7 @@ static int UDP_FUNCTION(recvStartCache)(lua_State* co) {
   SET_HANDLE_NEW_CACHE(handle, UdpRecvResult, 8, co, urr_clear);
   const int err = uv_udp_recv_start(handle, MEMORY_FUNCTION(buf_alloc), UDP_CALLBACK(recvStartCache));
   CHECK_ERROR(co, err);
-  HOLD_COROUTINE_FOR_HANDLE(co, handle, 1);
+  HOLD_COROUTINE_FOR_HANDLE_CACHE(co, handle);
   return 0;
 }
 static int UDP_FUNCTION(recvCacheWait)(lua_State* co) {

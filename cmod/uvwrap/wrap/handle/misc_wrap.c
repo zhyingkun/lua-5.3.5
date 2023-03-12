@@ -71,7 +71,7 @@ static int pushMiscResult(lua_State* L, uv_handle_t* handle) {
 \
     int err = uv_##name##_start(handle, UVWRAP_CALLBACK(name, startCache)); \
     CHECK_ERROR(co, err); \
-    HOLD_COROUTINE_FOR_HANDLE(co, handle, 1); \
+    HOLD_COROUTINE_FOR_HANDLE_CACHE(co, handle); \
     return 0; \
   } \
   static int UVWRAP_FUNCTION(name, getCacheWait)(lua_State * co) { \
