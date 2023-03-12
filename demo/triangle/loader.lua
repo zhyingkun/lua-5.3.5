@@ -4,7 +4,7 @@ local texture_format = bcfx.texture_format
 local image = bcfx.image
 
 local libuv = require("libuv")
-local mbio = libuv.mbio
+local fs = libuv.fs
 
 local watch = require("watch")
 
@@ -38,14 +38,14 @@ end
 
 function loader.LoadTexture(filename)
 	local filePath = pathPrefix .. "Resource/Texture/" .. filename;
-	local fileData = mbio.readFile(filePath)
+	local fileData = fs.readFile(filePath)
 	local parseMB, width, height = image.imageDecode(fileData, texture_format.RGBA8)
 	return bcfx.createTexture2D(texture_format.RGBA8, parseMB, width, height)
 end
 
 function loader.loadMesh(fileName)
 	local filePath = pathPrefix .. "Resource/Mesh/" .. fileName;
-	local fileData = mbio.readFile(filePath)
+	local fileData = fs.readFile(filePath)
 	local meshs, materialLibraryNames = bcfx.mesh.meshParse(fileData)
 	return meshs[1].vertex, meshs[1].index
 end
@@ -72,9 +72,9 @@ function loader.LoadTextureCubeMap(folderName)
 	local width
 	for idx, faceName in ipairs(FaceNameList) do
 		local filePath = filePrefix / (faceName .. ".jpg")
-		local fileData, err, str = mbio.readFile(filePath)
+		local fileData, err = fs.readFile(filePath)
 		if not fileData then
-			printerr("LoadTextureCubeMap error: ", err, str, filePath)
+			printerr("LoadTextureCubeMap error: ", err, libuv.strError(err), filePath)
 		end
 		local parseMB, w, h = image.imageDecode(fileData, texture_format.RGB8)
 		fileDataMB[idx] = parseMB
@@ -94,9 +94,9 @@ function loader.LoadTexture2DArray(fileNameList)
 	local width, height
 	for idx, fileName in ipairs(fileNameList) do
 		local filePath = filePrefix / fileName
-		local fileData, err, str = mbio.readFile(filePath)
+		local fileData, err = fs.readFile(filePath)
 		if not fileData then
-			printerr("LoadTextureCubeMap error: ", err, str, filePath)
+			printerr("LoadTextureCubeMap error: ", err, libuv.strError(err), filePath)
 		else
 			local parseMB, w, h = image.imageDecode(fileData, texture_format.RGB8)
 			fileDataMBList[idx] = parseMB
