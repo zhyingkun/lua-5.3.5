@@ -1621,17 +1621,12 @@ end
 ---@param filePath string
 ---@param callback fun(str:luaL_MemBuffer | nil, ret:integer):void
 function fs.readFileAsync(filePath, callback)
-	libfs.readFile(loopCtx, filePath, callback)
+	libfs.readFileAsync(loopCtx, filePath, callback)
 end
 ---@param filePath string
 ---@return luaL_MemBuffer | nil, integer
 function fs.readFileAsyncWait(filePath)
-	local co, main = running()
-	if main then error(ASYNC_WAIT_MSG) end
-	libfs.readFile(loopCtx, filePath, function(str, ret)
-		resume(co, str, ret)
-	end)
-	return yield()
+	return libfs.readFileAsyncWait(loopCtx, filePath)
 end
 ---@param filePath string
 ---@param data string | luaL_MemBuffer
@@ -1643,18 +1638,13 @@ end
 ---@param data string | luaL_MemBuffer
 ---@param callback StatusCallbackSignature
 function fs.writeFileAsync(filePath, data, callback)
-	libfs.writeFile(loopCtx, filePath, data, callback)
+	libfs.writeFileAsync(loopCtx, filePath, data, callback)
 end
 ---@param filePath string
 ---@param data string | luaL_MemBuffer
 ---@return integer
 function fs.writeFileAsyncWait(filePath, data)
-	local co, main = running()
-	if main then error(ASYNC_WAIT_MSG) end
-	libfs.writeFile(loopCtx, filePath, data, function(ret)
-		resume(co, ret)
-	end)
-	return yield()
+	return libfs.writeFileAsyncWait(loopCtx, filePath, data)
 end
 
 ---@class libuv_open_flag
