@@ -245,19 +245,29 @@ static int STREAM_FUNCTION(writeAsync)(lua_State* L) {
 }
 
 static void STREAM_CALLBACK(writeAsyncWait)(uv_write_t* req, int status) {
+  // before resume the coroutine, we should release the 'mb'
+  luaL_MemBuffer* mb = (luaL_MemBuffer*)uv_req_get_data((uv_req_t*)req);
+  if (mb != NULL) {
+    MEMBUFFER_RELEASE(mb);
+  }
+  // now we call free the req and resume coroutine
   REQ_ASYNC_WAIT_PREPARE();
-  luaL_releasebuffer(L, 2);
   lua_pushinteger(co, status);
   REQ_ASYNC_WAIT_RESUME(writeAsyncWait, 1);
 }
 static int STREAM_FUNCTION(writeAsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);
   uv_stream_t* handle = luaL_checkstream(co, 1);
-  size_t len;
-  const char* data = luaL_checklbuffer(co, 2, &len);
+  luaL_MemBuffer stackMemBuffer = MEMBUFFER_NULL;
+  luaL_MemBuffer* mb = luaL_tomembuffer(co, 2, &stackMemBuffer);
 
   uv_write_t* req = (uv_write_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_write_t));
-  BUFS_INIT(data, len);
+  // we just pass the 'mb' pointer, no need to hold the MemBuffer in Lua
+  // because when yield, the co stack still here and hold the MemBuffer until we resume it
+  // so, we should use 'mb' pointer before resume this coroutine
+  uv_req_set_data((uv_req_t*)req, mb != &stackMemBuffer ? (void*)mb : NULL);
+
+  BUFS_INIT(mb->ptr, mb->sz);
   int err = uv_write(req, handle, BUFS, NBUFS, STREAM_CALLBACK(writeAsyncWait));
   CHECK_ERROR(co, err);
   HOLD_COROUTINE_FOR_REQ(co);
@@ -299,20 +309,30 @@ static int STREAM_FUNCTION(write2Async)(lua_State* L) {
 }
 
 static void STREAM_CALLBACK(write2AsyncWait)(uv_write_t* req, int status) {
+  // before resume the coroutine, we should release the 'mb'
+  luaL_MemBuffer* mb = (luaL_MemBuffer*)uv_req_get_data((uv_req_t*)req);
+  if (mb != NULL) {
+    MEMBUFFER_RELEASE(mb);
+  }
+  // now we call free the req and resume coroutine
   REQ_ASYNC_WAIT_PREPARE();
-  luaL_releasebuffer(L, 2);
   lua_pushinteger(co, status);
   REQ_ASYNC_WAIT_RESUME(write2AsyncWait, 1);
 }
 static int STREAM_FUNCTION(write2AsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);
   uv_stream_t* handle = luaL_checkstream(co, 1);
-  size_t len;
-  const char* data = luaL_checklbuffer(co, 2, &len);
+  luaL_MemBuffer stackMemBuffer = MEMBUFFER_NULL;
+  luaL_MemBuffer* mb = luaL_tomembuffer(co, 2, &stackMemBuffer);
   uv_stream_t* send_handle = luaL_checkstream(co, 3);
 
   uv_write_t* req = (uv_write_t*)MEMORY_FUNCTION(malloc_req)(sizeof(uv_write_t));
-  BUFS_INIT(data, len);
+  // we just pass the 'mb' pointer, no need to hold the MemBuffer in Lua
+  // because when yield, the co stack still here and hold the MemBuffer until we resume it
+  // so, we should use 'mb' pointer before resume this coroutine
+  uv_req_set_data((uv_req_t*)req, mb != &stackMemBuffer ? (void*)mb : NULL);
+
+  BUFS_INIT(mb->ptr, mb->sz);
   int err = uv_write2(req, handle, BUFS, NBUFS, send_handle, STREAM_CALLBACK(write2AsyncWait));
   CHECK_ERROR(co, err);
   HOLD_COROUTINE_FOR_REQ(co);
