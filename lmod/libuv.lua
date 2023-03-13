@@ -19,7 +19,6 @@ local libnetwork = uvwrap.network
 local libos = uvwrap.os
 local libsys = uvwrap.sys
 local libthread = uvwrap.thread
-local libmbio = uvwrap.mbio
 
 local ASYNC_WAIT_MSG = "AsyncWait api must running in coroutine"
 local queueWork = uvwrap.queue_work
@@ -2394,83 +2393,6 @@ end
 ---@param history string
 function libuv.replHistory(history)
 	uvwrap.replHistory(history)
-end
-
--- }======================================================
-
----@class libuv_mbio:table
-local mbio = {}
-libuv.mbio = mbio
-
-local queueWorkAsync = libuv.queueWorkAsync
-local queueWorkAsyncWait = libuv.queueWorkAsyncWait
-
---[[
-** {======================================================
-** ReadFile
-** =======================================================
---]]
-
----@param fileName string
----@return luaL_MemBuffer | nil, nil | integer, nil | string
-function mbio.readFile(fileName)
-	return libmbio.readFile(fileName)
-end
----@param fileName string
----@param callback fun(mb:luaL_MemBuffer | nil, errCode:nil | integer, errStr:nil | string):void
-function mbio.readFileAsync(fileName, callback)
-	local ptr = libmbio.packReadFileParam(fileName)
-	queueWorkAsync(libmbio.readFilePtr, ptr, function(result, status)
-		if status ~= OK then printerr("mbio.readFileAsync callback error: ", status) end
-		callback(libmbio.unpackReadFileResult(result))
-	end)
-end
----@param fileName string
----@return luaL_MemBuffer | nil, nil | integer, nil | string
-function mbio.readFileAsyncWait(fileName)
-	local _, main = running()
-	if main then error(ASYNC_WAIT_MSG) end
-	local ptr = libmbio.packReadFileParam(fileName)
-	local result = queueWorkAsyncWait(libmbio.readFilePtr, ptr)
-	return libmbio.unpackReadFileResult(result)
-end
-
--- }======================================================
-
---[[
-** {======================================================
-** WriteFile
-** =======================================================
---]]
-
----@param fileName string
----@param mb luaL_MemBuffer
----@return boolean, nil | integer, nil | string
-function mbio.writeFile(fileName, mb)
-	libmbio.writeFile(fileName, mb)
-end
----@alias MBIOWriteCallback fun(ret:boolean, errCode:nil | integer, errStr:nil | string):void
----@overload fun(fileName:string, mb:luaL_MemBuffer):void
----@overload fun(fileName:string, mb:luaL_MemBuffer, callback:MBIOWriteCallback):void
----@param fileName string
----@param mb luaL_MemBuffer
----@param callback MBIOWriteCallback | nil
-function mbio.writeFileAsync(fileName, mb, callback)
-	local ptr = libmbio.packWriteFileParam(fileName, mb)
-	queueWorkAsync(libmbio.writeFilePtr, ptr, callback and function(result, status)
-		if status ~= OK then printerr("mbio.writeFileAsync callback error: ", status) end
-		callback(libmbio.unpackWriteFileResult(result))
-	end or nil)
-end
----@param fileName string
----@param mb luaL_MemBuffer
----@return boolean, nil | integer, nil | string
-function mbio.writeFileAsyncWait(fileName, mb)
-	local _, main = running()
-	if main then error(ASYNC_WAIT_MSG) end
-	local ptr = libmbio.packWriteFileParam(fileName, mb)
-	local result = queueWorkAsyncWait(libmbio.writeFilePtr, ptr)
-	return libmbio.unpackWriteFileResult(result)
 end
 
 -- }======================================================

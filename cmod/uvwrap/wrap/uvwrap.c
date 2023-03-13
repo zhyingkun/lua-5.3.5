@@ -217,7 +217,6 @@ LUAMOD_API int luaopen_libuvwrap(lua_State* L) {
   lua_pushlightuserdata(L, (void*)worker_hello);
   lua_setfield(L, -2, "worker_hello");
 
-  INVOKE_MODULE_INIT(mbio);
   INVOKE_MODULE_INIT(pm);
 
   INVOKE_MODULE_INIT(handle);

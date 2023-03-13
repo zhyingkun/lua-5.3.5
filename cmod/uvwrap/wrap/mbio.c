@@ -6,7 +6,7 @@
 ** ReadFile to MemBuffer
 ** =======================================================
 */
-
+/*
 static void _releaseBuffer(const luaL_MemBuffer* mb) {
   free(mb->ptr);
 }
@@ -42,7 +42,7 @@ static int mbio_readFile(const char* fileName, luaL_MemBuffer* mb) {
   MEMBUFFER_SETREPLACE(mb, buf, sz, _releaseBuffer, NULL);
   return err;
 }
-
+*/
 /* }====================================================== */
 
 /*
@@ -50,7 +50,7 @@ static int mbio_readFile(const char* fileName, luaL_MemBuffer* mb) {
 ** Write MemBuffer to file
 ** =======================================================
 */
-
+/*
 static int _writeFileAllFromBuffer(const char* filename, const void* pbuf, size_t sz) {
   FILE* f = fopen(filename, "wb");
   if (f == NULL) {
@@ -70,17 +70,17 @@ static int mbio_writeFile(const char* fileName, luaL_MemBuffer* mb) {
   MEMBUFFER_RELEASE(mb);
   return err;
 }
-
+*/
 /* }====================================================== */
-
+/*
 #define MBIO_FUNCTION(name) UVWRAP_FUNCTION(mbio, name)
-
+*/
 /*
 ** {======================================================
 ** ReadFile
 ** =======================================================
 */
-
+/*
 typedef struct {
   char fileName[1];
 } ReadFileParam;
@@ -132,7 +132,7 @@ static int MBIO_FUNCTION(readFile)(lua_State* L) {
   int err = mbio_readFile(fileName, mb);
   return _dealReadFileResult(L, err, mb);
 }
-
+*/
 /* }====================================================== */
 
 /*
@@ -140,7 +140,7 @@ static int MBIO_FUNCTION(readFile)(lua_State* L) {
 ** WriteFile
 ** =======================================================
 */
-
+/*
 typedef struct {
   luaL_MemBuffer mb;
   char fileName[1];
@@ -189,9 +189,9 @@ static int MBIO_FUNCTION(writeFile)(lua_State* L) {
   MEMBUFFER_RELEASE(mb);
   return _dealWriteFileResult(L, err);
 }
-
+*/
 /* }====================================================== */
-
+/*
 #define EMPLACE_MBIO_FUNCTION(name) \
   { "" #name, MBIO_FUNCTION(name) }
 static const luaL_Reg MBIO_FUNCTION(funcs)[] = {
@@ -215,3 +215,4 @@ void MBIO_FUNCTION(init)(lua_State* L) {
 
   lua_setfield(L, -2, "mbio");
 }
+*/
