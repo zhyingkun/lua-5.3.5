@@ -106,25 +106,24 @@ static int SOCKADDR_FUNCTION(__tostring)(lua_State* L) {
   int err = UVWRAP_OK;
   char buf[ADDRSTRLEN];
   int port = 0;
-  const char* format = NULL;
+  const char* prefix = NULL;
+  const char* suffix = NULL;
   if (addr->sa_family == AF_INET) {
     err = uv_ip4_name((struct sockaddr_in*)addr, buf, sizeof(buf));
     port = ntohs(((struct sockaddr_in*)addr)->sin_port);
-    format = "%p: %s:%d";
+    prefix = "";
+    suffix = "";
   } else if (addr->sa_family == AF_INET6) {
     err = uv_ip6_name((struct sockaddr_in6*)addr, buf, sizeof(buf));
     port = ntohs(((struct sockaddr_in6*)addr)->sin6_port);
-    format = "%p: [%s]:%d";
+    prefix = "[";
+    suffix = "]";
   } else {
     luaL_error(L, "Error sockaddr family: %d", addr->sa_family);
   }
   CHECK_ERROR(L, err);
-// assert(port > 0 && port < 65536);
-#define ADDRSTRLEN_ ADDRSTRLEN + 2 + 1 + 5
-  char total[ADDRSTRLEN_]; // []:65535
-  snprintf(total, ADDRSTRLEN_, format, addr, buf, port);
-#undef ADDRSTRLEN_
-  lua_pushstring(L, total);
+  // assert(port > 0 && port < 65536);
+  lua_pushfstring(L, "sockaddr*: %p (%s%s%s:%d)", addr, prefix, buf, suffix, port);
   return 1;
 }
 
