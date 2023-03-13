@@ -68,8 +68,9 @@ static int FS_EVENT_FUNCTION(startCache)(lua_State* co) {
   uv_fs_event_t* handle = luaL_checkfs_event(co, 1);
   const char* filepath = luaL_checkstring(co, 2);
   unsigned int flags = (unsigned int)luaL_checkinteger(co, 3);
+  const uint16_t max = (uint16_t)luaL_optinteger(co, 4, 8);
 
-  SET_HANDLE_NEW_CACHE(handle, FileSystemEventResult, 8, co, fser_clear);
+  SET_HANDLE_NEW_CACHE(handle, FileSystemEventResult, max, co, fser_clear);
 
   int err = uv_fs_event_start(handle, FS_EVENT_CALLBACK(startCache), filepath, flags);
   CHECK_ERROR(co, err);

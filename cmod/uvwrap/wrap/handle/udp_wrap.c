@@ -251,8 +251,9 @@ static void UDP_CALLBACK(recvStartCache)(uv_udp_t* handle, ssize_t nread, const 
 static int UDP_FUNCTION(recvStartCache)(lua_State* co) {
   CHECK_COROUTINE(co);
   uv_udp_t* handle = luaL_checkudp(co, 1);
+  const uint16_t max = (uint16_t)luaL_optinteger(co, 2, 8);
 
-  SET_HANDLE_NEW_CACHE(handle, UdpRecvResult, 8, co, urr_clear);
+  SET_HANDLE_NEW_CACHE(handle, UdpRecvResult, max, co, urr_clear);
   const int err = uv_udp_recv_start(handle, MEMORY_FUNCTION(buf_alloc), UDP_CALLBACK(recvStartCache));
   CHECK_ERROR(co, err);
   HOLD_COROUTINE_FOR_HANDLE_CACHE(co, handle);
