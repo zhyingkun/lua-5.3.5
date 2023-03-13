@@ -41,7 +41,7 @@ void main() {
     bcfx.setFrameViewCaptureCallback(function(frameId, id, width, height, mb)
         local fileName = tostring(frameId) .. "_" .. tostring(id) .. "_Capture.png"
         local mb = bcfx.image.imageEncode(mb, width, height, 4, bcfx.image.image_type.PNG, width * 4)
-        require("libuv").mbio.writeFile(fileName, mb)
+        require("libuv").fs.writeFile(fileName, mb)
         print("Already save png")
     end)
 end

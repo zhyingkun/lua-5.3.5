@@ -1,7 +1,7 @@
 package.path = "demo/triangle/?.lua;" .. package.path
 
 local libuv = require("libuv")
-local mbio = libuv.mbio
+local fs = libuv.fs
 
 local glfw = require("glfw")
 local window_hint = glfw.window_hint
@@ -86,15 +86,15 @@ bcfx.setFrameViewCaptureCallback(function(frameId, viewId, width, height, mb)
 	print("setFrameViewCaptureCallback Lua", frameId, viewId, width, height, mb)
 	local fileName = tostring(frameId) .. "_" .. tostring(viewId) .. "FrameViewCapture.png";
 	-- local mb = bcfx.image.imageEncode(mb, width, height, 4, bcfx.image.image_type.PNG, width * 4)
-	-- mbio.writeFile(fileName, mb)
+	-- fs.writeFile(fileName, mb)
 	-- bcfx.image.imageEncodeAsync(mb, width, height, 4, bcfx.image.image_type.PNG, width * 4, function(mb)
-	-- 	mbio.writeFileAsync(fileName, mb, function(ret)
+	-- 	fs.writeFileAsync(fileName, mb, function(ret)
 	-- 		print("setFrameViewCaptureCallback Async WriteFile End:", ret)
 	-- 	end)
 	-- end)
 	runInCoroutine(function()
 		local mb = bcfx.image.imageEncodeAsyncWait(mb, width, height, 4, bcfx.image.image_type.PNG, width * 4)
-		local ret = mbio.writeFileAsyncWait(fileName, mb)
+		local ret = fs.writeFileAsyncWait(fileName, mb)
 		print("setFrameViewCaptureCallback Async WriteFile End:", ret)
 	end)
 end)

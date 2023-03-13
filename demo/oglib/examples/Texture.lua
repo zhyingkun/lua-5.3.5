@@ -46,7 +46,7 @@ void main() {
     bcfx.destroy(vs, fs)
 
     local libuv = require("libuv")
-    local mb = libuv.mbio.readFile("resources/awesomeface.png")
+    local mb = libuv.fs.readFile("resources/awesomeface.png")
     local data, w, h = bcfx.image.imageDecode(mb, bcfx.texture_format.RGB8)
     triangle.textureHandle = bcfx.createTexture2D(bcfx.texture_format.RGB8, data, w, h)
     local textureFlags = bcfx.utils.packSamplerFlags({

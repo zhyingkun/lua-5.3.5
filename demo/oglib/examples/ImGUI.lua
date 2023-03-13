@@ -94,7 +94,7 @@ void main(){
     self.ebuf2 = nk.Buffer(esize)
 
     local libuv = require("libuv")
-    local mb = libuv.mbio.readFile("resources/awesomeface.png")
+    local mb = libuv.fs.readFile("resources/awesomeface.png")
     local data, w, h = bcfx.image.imageDecode(mb, bcfx.texture_format.RGB8)
     self.textureHandle = bcfx.createTexture2D(bcfx.texture_format.RGB8, data, w, h)
 

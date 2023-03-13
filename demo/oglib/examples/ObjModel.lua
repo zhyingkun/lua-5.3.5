@@ -25,12 +25,12 @@ local function setup(glfw, bcfx, win)
     layout:addAttrib(bcfx.vertex_attrib.Normal, 3, bcfx.attrib_type.Float, false)
     layout:addAttrib(bcfx.vertex_attrib.TexCoord0, 2, bcfx.attrib_type.Float, false)
 
-    local fileData = require("libuv").mbio.readFile("resources/spot_quadrangulated.obj")
+    local fileData = require("libuv").fs.readFile("resources/spot_quadrangulated.obj")
     local meshs = bcfx.mesh.meshParse(fileData)
     triangle.vertexHandle = bcfx.createVertexBuffer(meshs[1].vertex, layout)
     triangle.indexHandle = bcfx.createIndexBuffer(meshs[1].index, bcfx.index_type.Uint32)
 
-    local fileData = require("libuv").mbio.readFile("resources/spot_texture.png")
+    local fileData = require("libuv").fs.readFile("resources/spot_texture.png")
     local parseMB, width, height = bcfx.image.imageDecode(fileData, bcfx.texture_format.RGBA8)
     triangle.texture = bcfx.createTexture2D(bcfx.texture_format.RGBA8, parseMB, width, height)
 
