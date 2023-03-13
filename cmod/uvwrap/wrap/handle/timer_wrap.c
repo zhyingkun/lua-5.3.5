@@ -57,7 +57,7 @@ static int TIMER_FUNCTION(startOneShotAsync)(lua_State* L) {
 }
 
 static void TIMER_CALLBACK(startCache)(uv_timer_t* handle) {
-  ASYNC_RESUME_CACHE(startCache, pushTimerResult, tr_set, TimerResult, handle, (uv_handle_t*)handle);
+  ASYNC_RESUME_CACHE(Timer, startCache, pushTimerResult, tr_set, TimerResult, handle, (uv_handle_t*)handle);
 }
 static int TIMER_FUNCTION(startCache)(lua_State* co) {
   CHECK_COROUTINE(co);
@@ -82,7 +82,7 @@ static int TIMER_FUNCTION(getCacheWait)(lua_State* co) {
 
 static void TIMER_CALLBACK(startOneShotAsyncWait)(uv_timer_t* handle) {
   HANDLE_ASYNC_WAIT_PREPARE(handle);
-  HANDLE_ASYNC_WAIT_RESUME(startOneShotAsyncWait, 0);
+  HANDLE_ASYNC_WAIT_RESUME(Timer, startOneShotAsyncWait, 0);
 }
 static int TIMER_FUNCTION(startOneShotAsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);

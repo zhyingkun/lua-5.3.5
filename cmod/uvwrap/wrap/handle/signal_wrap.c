@@ -42,7 +42,7 @@ static int SIGNAL_FUNCTION(startAsync)(lua_State* L) {
 }
 
 static void SIGNAL_CALLBACK(startCache)(uv_signal_t* handle, int signum) {
-  ASYNC_RESUME_CACHE(startCache, pushSignalResult, sr_set, SignalResult, handle, signum);
+  ASYNC_RESUME_CACHE(Signal, startCache, pushSignalResult, sr_set, SignalResult, handle, signum);
 }
 static int SIGNAL_FUNCTION(startCache)(lua_State* co) {
   CHECK_COROUTINE(co);
@@ -84,7 +84,7 @@ static int SIGNAL_FUNCTION(startOneShotAsync)(lua_State* L) {
 
 static void SIGNAL_CALLBACK(startOneShotAsyncWait)(uv_signal_t* handle, int signum) {
   HANDLE_ASYNC_WAIT_PREPARE(handle);
-  HANDLE_ASYNC_WAIT_RESUME(startOneShotAsyncWait, 0);
+  HANDLE_ASYNC_WAIT_RESUME(Signal, startOneShotAsyncWait, 0);
 }
 static int SIGNAL_FUNCTION(startOneShotAsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);

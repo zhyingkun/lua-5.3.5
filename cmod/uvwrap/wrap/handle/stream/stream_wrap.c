@@ -37,7 +37,7 @@ static int STREAM_FUNCTION(shutdownAsync)(lua_State* L) {
 static void STREAM_CALLBACK(shutdownAsyncWait)(uv_shutdown_t* req, int status) {
   REQ_ASYNC_WAIT_PREPARE();
   lua_pushinteger(co, status);
-  REQ_ASYNC_WAIT_RESUME(shutdownAsyncWait, 1);
+  REQ_ASYNC_WAIT_RESUME(Stream, shutdownAsyncWait, 1);
 }
 static int STREAM_FUNCTION(shutdownAsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);
@@ -88,7 +88,7 @@ static int STREAM_FUNCTION(listenStartAsync)(lua_State* L) {
 }
 
 static void STREAM_CALLBACK(listenStartCache)(uv_stream_t* handle, int status) {
-  ASYNC_RESUME_CACHE(listenStartCache, pushListenResult, slr_set, ListenResult, handle, status);
+  ASYNC_RESUME_CACHE(Stream, listenStartCache, pushListenResult, slr_set, ListenResult, handle, status);
 }
 static int STREAM_FUNCTION(listenStartCache)(lua_State* co) {
   CHECK_COROUTINE(co);
@@ -184,7 +184,7 @@ static int STREAM_FUNCTION(readStartAsync)(lua_State* L) {
 }
 
 static void STREAM_CALLBACK(readStartCache)(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
-  ASYNC_RESUME_CACHE(readStartCache, pushReadResult, srr_set, StreamReadResult, handle, nread, buf);
+  ASYNC_RESUME_CACHE(Stream, readStartCache, pushReadResult, srr_set, StreamReadResult, handle, nread, buf);
 }
 static int STREAM_FUNCTION(readStartCache)(lua_State* co) {
   CHECK_COROUTINE(co);
@@ -253,7 +253,7 @@ static void STREAM_CALLBACK(writeAsyncWait)(uv_write_t* req, int status) {
   // now we call free the req and resume coroutine
   REQ_ASYNC_WAIT_PREPARE();
   lua_pushinteger(co, status);
-  REQ_ASYNC_WAIT_RESUME(writeAsyncWait, 1);
+  REQ_ASYNC_WAIT_RESUME(Stream, writeAsyncWait, 1);
 }
 static int STREAM_FUNCTION(writeAsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);
@@ -317,7 +317,7 @@ static void STREAM_CALLBACK(write2AsyncWait)(uv_write_t* req, int status) {
   // now we call free the req and resume coroutine
   REQ_ASYNC_WAIT_PREPARE();
   lua_pushinteger(co, status);
-  REQ_ASYNC_WAIT_RESUME(write2AsyncWait, 1);
+  REQ_ASYNC_WAIT_RESUME(Stream, write2AsyncWait, 1);
 }
 static int STREAM_FUNCTION(write2AsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);

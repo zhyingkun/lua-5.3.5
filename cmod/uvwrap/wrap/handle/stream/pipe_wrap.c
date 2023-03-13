@@ -48,7 +48,7 @@ static int PIPE_FUNCTION(connectAsync)(lua_State* L) {
 static void PIPE_CALLBACK(connectAsyncWait)(uv_connect_t* req, int status) {
   REQ_ASYNC_WAIT_PREPARE();
   lua_pushinteger(co, status);
-  REQ_ASYNC_WAIT_RESUME(connectAsyncWait, 1);
+  REQ_ASYNC_WAIT_RESUME(Pipe, connectAsyncWait, 1);
 }
 static int PIPE_FUNCTION(connectAsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);

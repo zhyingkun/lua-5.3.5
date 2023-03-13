@@ -51,7 +51,7 @@ static int FS_POLL_FUNCTION(startAsync)(lua_State* L) {
 }
 
 static void FS_POLL_CALLBACK(startCache)(uv_fs_poll_t* handle, int status, const uv_stat_t* prev, const uv_stat_t* curr) {
-  ASYNC_RESUME_CACHE(startCache, pushPollResult, fspr_set, PollResult, handle, status, prev, curr);
+  ASYNC_RESUME_CACHE(FsPoll, startCache, pushPollResult, fspr_set, PollResult, handle, status, prev, curr);
 }
 static int FS_POLL_FUNCTION(startCache)(lua_State* co) {
   CHECK_COROUTINE(co);

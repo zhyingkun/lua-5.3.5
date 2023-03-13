@@ -61,7 +61,7 @@ static int FS_EVENT_FUNCTION(startAsync)(lua_State* L) {
 }
 
 static void FS_EVENT_CALLBACK(startCache)(uv_fs_event_t* handle, const char* fileName, int events, int status) {
-  ASYNC_RESUME_CACHE(startCache, pushEventResult, fser_set, FileSystemEventResult, handle, fileName, events, status);
+  ASYNC_RESUME_CACHE(FsEvent, startCache, pushEventResult, fser_set, FileSystemEventResult, handle, fileName, events, status);
 }
 static int FS_EVENT_FUNCTION(startCache)(lua_State* co) {
   CHECK_COROUTINE(co);

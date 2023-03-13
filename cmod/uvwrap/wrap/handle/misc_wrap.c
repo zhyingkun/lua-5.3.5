@@ -61,7 +61,7 @@ static int pushMiscResult(lua_State* L, uv_handle_t* handle) {
   } \
 \
   static void UVWRAP_CALLBACK(name, startCache)(uv_##name##_t * handle) { \
-    ASYNC_RESUME_CACHE(startCache, pushMiscResult, misc_set, MiscResult, handle, (uv_handle_t*)handle); \
+    ASYNC_RESUME_CACHE(Misc, startCache, pushMiscResult, misc_set, MiscResult, handle, (uv_handle_t*)handle); \
   } \
   static int UVWRAP_FUNCTION(name, startCache)(lua_State * co) { \
     CHECK_COROUTINE(co); \

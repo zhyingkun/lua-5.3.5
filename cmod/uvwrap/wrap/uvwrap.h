@@ -280,11 +280,11 @@ extern lua_State* staticL;
   PUSH_REQ_PARAM_CLEAN(L, req, 0); /* must unhold before resume */ \
   lua_State* co = lua_tothread(L, -1); \
   (void)MEMORY_FUNCTION(free_req)(req)
-#define REQ_ASYNC_WAIT_RESUME(name_, count_) \
+#define REQ_ASYNC_WAIT_RESUME(name_, func_, count_) \
   int ret = lua_resume(co, L, count_); \
   if (ret != LUA_OK && ret != LUA_YIELD) { \
     luaL_traceback(L, co, NULL, 0); \
-    fprintf(stderr, #name_ " resume coroutine error: %s\n%s", lua_tostring(co, -1), lua_tostring(L, -1)); \
+    fprintf(stderr, #name_ " " #func_ " resume coroutine error: %s\n%s", lua_tostring(co, -1), lua_tostring(L, -1)); \
     lua_pop(L, 1); \
   } \
   lua_pop(L, 1) /* pop the coroutine */
@@ -346,11 +346,11 @@ extern lua_State* staticL;
   lua_State* L = GET_MAIN_LUA_STATE(); \
   PUSH_HOLD_OBJECT_CLEAN(L, handle, IDX_HANDLE_COROUTINE); \
   lua_State* co = lua_tothread(L, -1)
-#define HANDLE_ASYNC_WAIT_RESUME(name_, count_) \
+#define HANDLE_ASYNC_WAIT_RESUME(name_, func_, count_) \
   int ret = lua_resume(co, L, count_); \
   if (ret != LUA_OK && ret != LUA_YIELD) { \
     luaL_traceback(L, co, NULL, 0); \
-    fprintf(stderr, #name_ " resume coroutine error: %s\n%s", lua_tostring(co, -1), lua_tostring(L, -1)); \
+    fprintf(stderr, #name_ " " #func_ " resume coroutine error: %s\n%s", lua_tostring(co, -1), lua_tostring(L, -1)); \
     lua_pop(L, 1); \
   } \
   lua_pop(L, 1) /* pop the coroutine */
@@ -362,7 +362,7 @@ extern lua_State* staticL;
   lua_xmove(co, L, 1); \
   HOLD_LUA_OBJECT(L, handle, IDX_HANDLE_COROUTINE, -1); \
   lua_pop(L, 1)
-#define ASYNC_RESUME_CACHE(name_, pushResult_, setCache_, typeCache_, handle_, ...) \
+#define ASYNC_RESUME_CACHE(name_, func_, pushResult_, setCache_, typeCache_, handle_, ...) \
   lua_State* L = GET_MAIN_LUA_STATE(); \
   AsyncCacheState* cache = GET_HANDLE_CACHE(handle_); \
   if (acs_canResume(cache)) { \
@@ -375,7 +375,7 @@ extern lua_State* staticL;
     int ret = lua_resume(co, L, count); \
     if (ret != LUA_OK && ret != LUA_YIELD) { \
       luaL_traceback(L, co, NULL, 0); \
-      fprintf(stderr, #name_ " resume coroutine error: %s\n%s", lua_tostring(co, -1), lua_tostring(L, -1)); \
+      fprintf(stderr, #name_ " " #func_ " resume coroutine error: %s\n%s", lua_tostring(co, -1), lua_tostring(L, -1)); \
       lua_pop(L, 1); \
     } \
   } else if (acs_canCache(cache)) { \

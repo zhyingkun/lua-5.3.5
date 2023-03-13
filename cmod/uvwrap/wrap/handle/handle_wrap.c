@@ -50,7 +50,7 @@ static int HANDLE_FUNCTION(closeAsync)(lua_State* L) {
 
 static void HANDLE_CALLBACK(closeAsyncWait)(uv_handle_t* handle) {
   HANDLE_ASYNC_WAIT_PREPARE(handle);
-  HANDLE_ASYNC_WAIT_RESUME(handle, 0);
+  HANDLE_ASYNC_WAIT_RESUME(Handle, closeAsyncWait, 0);
 }
 static int HANDLE_FUNCTION(closeAsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);

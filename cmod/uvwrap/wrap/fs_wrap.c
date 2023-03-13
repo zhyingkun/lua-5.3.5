@@ -939,7 +939,7 @@ static void FS_CALLBACK(readFileAsyncWait)(uv_work_t* req, int status) {
   int n = _pushReadFileResult(co, param);
   (void)MEMORY_FUNCTION(free)((void*)param);
   (void)status;
-  REQ_ASYNC_WAIT_RESUME(readFileAsyncWait, n);
+  REQ_ASYNC_WAIT_RESUME(FileSystem, readFileAsyncWait, n);
 }
 static int FS_FUNCTION(readFileAsyncWait)(lua_State* co) {
   uv_loop_t* loop = luaL_checkuvloop(co, 1);
@@ -1010,7 +1010,7 @@ static void FS_CALLBACK(writeFileAsyncWait)(uv_work_t* req, int status) {
   lua_pushinteger(L, param->err);
   (void)MEMORY_FUNCTION(free)((void*)param);
   (void)status;
-  REQ_ASYNC_WAIT_RESUME(writeFileAsyncWait, 1);
+  REQ_ASYNC_WAIT_RESUME(FileSystem, writeFileAsyncWait, 1);
 }
 static int FS_FUNCTION(writeFileAsyncWait)(lua_State* co) {
   uv_loop_t* loop = luaL_checkuvloop(co, 1);

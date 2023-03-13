@@ -140,7 +140,7 @@ static void UDP_CALLBACK(sendAsyncWait)(uv_udp_send_t* req, int status) {
   // now we call free the req and resume coroutine
   REQ_ASYNC_WAIT_PREPARE();
   lua_pushinteger(co, status);
-  REQ_ASYNC_WAIT_RESUME(sendAsyncWait, 1);
+  REQ_ASYNC_WAIT_RESUME(Udp, sendAsyncWait, 1);
 }
 static int UDP_FUNCTION(sendAsyncWait)(lua_State* co) {
   CHECK_COROUTINE(co);
@@ -246,7 +246,7 @@ static int UDP_FUNCTION(recvStartAsync)(lua_State* L) {
 }
 
 static void UDP_CALLBACK(recvStartCache)(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf, const struct sockaddr* addr, unsigned flags) {
-  ASYNC_RESUME_CACHE(recvStartCache, pushRecvResult, urr_set, UdpRecvResult, handle, nread, buf, addr, flags);
+  ASYNC_RESUME_CACHE(Udp, recvStartCache, pushRecvResult, urr_set, UdpRecvResult, handle, nread, buf, addr, flags);
 }
 static int UDP_FUNCTION(recvStartCache)(lua_State* co) {
   CHECK_COROUTINE(co);
