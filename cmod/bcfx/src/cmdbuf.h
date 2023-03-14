@@ -18,6 +18,8 @@ typedef enum {
 #undef XX
   /* Update Render Resource */
   CT_UpdateBuffer,
+  CT_UpdateShader,
+  CT_UpdateProgram,
   /* Above/Below command will be processed before/after DrawCall */
   CT_End,
   /* Destroy Render Resource */
@@ -133,6 +135,13 @@ typedef struct {
   size_t offset;
   luaL_MemBuffer mem;
 } CmdUpdateBuffer;
+typedef struct {
+  luaL_MemBuffer mem;
+} CmdUpdateShader;
+typedef struct {
+  bcfx_Handle vsHandle;
+  bcfx_Handle fsHandle;
+} CmdUpdateProgram;
 
 typedef union {
   CmdVertexBuffer cvb;
@@ -147,6 +156,8 @@ typedef union {
   CmdTextureBuffer ctb;
 
   CmdUpdateBuffer cub;
+  CmdUpdateShader cus;
+  CmdUpdateProgram cup;
 } CommandParam;
 
 typedef struct {

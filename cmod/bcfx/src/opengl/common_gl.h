@@ -231,7 +231,7 @@ typedef struct {
 
   RenderStateGL* renderStatePtr;
 
-  uint32_t curVertexCount; // for gl_bindProgramAttributes pass count to gl_submitDraw
+  uint32_t curVertexCount; // for prog_bindAttributes pass count to glCtx_submitDraw
 } RendererContextGL;
 
 /* }====================================================== */
@@ -242,9 +242,9 @@ typedef struct {
 ** =======================================================
 */
 
-void gl_createBufferGPU(BufferGL* buf, luaL_MemBuffer* mem, GLenum target);
-void gl_updateBufferGPU(BufferGL* buf, size_t offset, luaL_MemBuffer* mem, GLenum target);
-void gl_destroyBufferGPU(BufferGL* buf);
+void buffer_createInGPU(BufferGL* buf, luaL_MemBuffer* mem, GLenum target);
+void buffer_updateInGPU(BufferGL* buf, size_t offset, luaL_MemBuffer* mem, GLenum target);
+void buffer_destroyInGPU(BufferGL* buf);
 
 /* }====================================================== */
 
@@ -284,8 +284,8 @@ extern const TextureFormatInfo textureFormat_glType[];
 ** =======================================================
 */
 
-void gl_cacheRenderState(RendererContextGL* glCtx, RenderStateGL* renderState);
-void gl_updateRenderState(RendererContextGL* glCtx, RenderDraw* draw);
+void glCtx_cacheRenderState(RendererContextGL* glCtx, RenderStateGL* renderState);
+void glCtx_updateRenderState(RendererContextGL* glCtx, RenderDraw* draw);
 
 /* }====================================================== */
 
@@ -296,9 +296,9 @@ void gl_updateRenderState(RendererContextGL* glCtx, RenderDraw* draw);
 */
 
 void prog_collectAttributes(ProgramGL* prog);
-void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw);
+void prog_bindAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw);
 
-void gl_bindInstanceAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw);
+void prog_bindInstanceAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw);
 
 /* }====================================================== */
 
@@ -309,7 +309,7 @@ void gl_bindInstanceAttributes(RendererContextGL* glCtx, ProgramGL* prog, Render
 */
 
 void prog_collectUniforms(ProgramGL* prog, RendererContextGL* glCtx);
-void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw, View* view, RenderBind* bind);
+void prog_setUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw, View* view, RenderBind* bind);
 
 /* }====================================================== */
 
@@ -319,19 +319,22 @@ void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw
 ** =======================================================
 */
 
-void gl_skipFirstVersionLine(const char** pptr, size_t* psz);
+void shader_skipFirstVersionLine(const char** pptr, size_t* psz);
 
-void gl_initShaderInclude(RendererContextGL* glCtx);
-void gl_destroyShaderInclude(RendererContextGL* glCtx);
-void gl_addShaderIncludeHandle(RendererContextGL* glCtx, const String* path, bcfx_Handle handle);
+void glCtx_initShaderInclude(RendererContextGL* glCtx);
+void glCtx_destroyShaderInclude(RendererContextGL* glCtx);
+void shader_addIncludeHandle(RendererContextGL* glCtx, const String* path, bcfx_Handle handle);
 bcfx_Handle gl_findShaderIncludeHandle(RendererContextGL* glCtx, const String* path);
 
-void gl_scanShaderDependence(RendererContextGL* glCtx, ShaderGL* shader, const char* source, size_t len);
+void shader_scanDependence(RendererContextGL* glCtx, ShaderGL* shader, const char* source, size_t len);
 
 void gl_attachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle);
 void gl_detachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle);
 
-void gl_updateAllProgram(RendererContextGL* glCtx, bcfx_Handle shaderHandle);
+void glCtx_updateAllProgram(RendererContextGL* glCtx, bcfx_Handle shaderHandle);
+
+bool shader_updateSource(RendererContextGL* glCtx, ShaderGL* shader, luaL_MemBuffer* mem);
+void prog_updateShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle vsh, bcfx_Handle fsh);
 
 /* }====================================================== */
 
@@ -341,8 +344,8 @@ void gl_updateAllProgram(RendererContextGL* glCtx, bcfx_Handle shaderHandle);
 ** =======================================================
 */
 
-void gl_initMainWinTripleBuffer(RendererContextGL* glCtx, bool enable);
-void gl_blitMainWinTripleBuffer(RendererContextGL* glCtx);
-GLuint gl_getTripleFrameBuffer(RendererContextGL* glCtx);
+void glCtx_initMainWinTripleBuffer(RendererContextGL* glCtx, bool enable);
+void glCtx_blitMainWinTripleBuffer(RendererContextGL* glCtx);
+GLuint glCtx_getTripleFrameBuffer(RendererContextGL* glCtx);
 
 /* }====================================================== */

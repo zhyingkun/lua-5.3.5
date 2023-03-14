@@ -38,7 +38,7 @@ void triplebuffer_updateRenderBuffer(TripleBuffer* tb, int width, int height) {
   }
   GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
-void gl_initMainWinTripleBuffer(RendererContextGL* glCtx, bool enable) {
+void glCtx_initMainWinTripleBuffer(RendererContextGL* glCtx, bool enable) {
   TripleBuffer* tb = &glCtx->mainWinTripleBuffer;
   if (enable) {
     GL_CHECK(glGenFramebuffers(1, &tb->fb));
@@ -49,7 +49,7 @@ void gl_initMainWinTripleBuffer(RendererContextGL* glCtx, bool enable) {
     tb->fb = 0;
   }
 }
-void gl_blitMainWinTripleBuffer(RendererContextGL* glCtx) {
+void glCtx_blitMainWinTripleBuffer(RendererContextGL* glCtx) {
   TripleBuffer* tb = &glCtx->mainWinTripleBuffer;
   if (tb->fb != 0) {
     GL_CHECK(glDisable(GL_SCISSOR_TEST));
@@ -60,7 +60,7 @@ void gl_blitMainWinTripleBuffer(RendererContextGL* glCtx) {
     GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
   }
 }
-GLuint gl_getTripleFrameBuffer(RendererContextGL* glCtx) {
+GLuint glCtx_getTripleFrameBuffer(RendererContextGL* glCtx) {
   return glCtx->mainWinTripleBuffer.fb;
 }
 

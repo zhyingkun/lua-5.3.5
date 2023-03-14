@@ -268,11 +268,11 @@ static void renderstate_updateLogicOp(RenderStateGL* stateGL, bcfx_RenderState s
   }
 }
 
-void gl_cacheRenderState(RendererContextGL* glCtx, RenderStateGL* renderState) {
+void glCtx_cacheRenderState(RendererContextGL* glCtx, RenderStateGL* renderState) {
   renderstate_init(renderState);
 }
 
-void gl_updateRenderState(RendererContextGL* glCtx, RenderDraw* draw) {
+void glCtx_updateRenderState(RendererContextGL* glCtx, RenderDraw* draw) {
   RenderStateGL* stateGL = glCtx->renderStatePtr;
   renderstate_updateCull(stateGL, draw->state);
   renderstate_updateDepth(stateGL, draw->state);

@@ -1,6 +1,6 @@
 #include <common_gl.h>
 
-void gl_createBufferGPU(BufferGL* buf, luaL_MemBuffer* mem, GLenum target) {
+void buffer_createInGPU(BufferGL* buf, luaL_MemBuffer* mem, GLenum target) {
   buf->bIsDynamic = MEMBUFFER_IS_SIZE_ONLY(mem);
   buf->size = mem->sz;
   GL_CHECK(glGenBuffers(1, &buf->id));
@@ -10,7 +10,7 @@ void gl_createBufferGPU(BufferGL* buf, luaL_MemBuffer* mem, GLenum target) {
   MEMBUFFER_RELEASE(mem);
 }
 
-void gl_updateBufferGPU(BufferGL* buf, size_t offset, luaL_MemBuffer* mem, GLenum target) {
+void buffer_updateInGPU(BufferGL* buf, size_t offset, luaL_MemBuffer* mem, GLenum target) {
   size_t size = mem->sz;
   CLAMP_OFFSET_COUNT(buf->size, offset, size);
   GL_CHECK(glBindBuffer(target, buf->id));
@@ -19,7 +19,7 @@ void gl_updateBufferGPU(BufferGL* buf, size_t offset, luaL_MemBuffer* mem, GLenu
   MEMBUFFER_RELEASE(mem);
 }
 
-void gl_destroyBufferGPU(BufferGL* buf) {
+void buffer_destroyInGPU(BufferGL* buf) {
   if (buf->id != 0) {
     GL_CHECK(glDeleteBuffers(1, &buf->id));
     buf->id = 0;

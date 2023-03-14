@@ -189,7 +189,7 @@ static bcfx_VertexLayout* find_vertexLayout(RendererContextGL* glCtx, RenderDraw
   }
   return target;
 }
-void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw) {
+void prog_bindAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw) {
   glCtx->curVertexCount = 0;
   GLuint curId = 0;
   PredefinedAttrib* pa = &prog->pa;
@@ -223,7 +223,7 @@ void gl_bindProgramAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderD
   }
   GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
-void gl_bindInstanceAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw) {
+void prog_bindInstanceAttributes(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw) {
   if (draw->instanceDataBuffer == kInvalidHandle) {
     return;
   }
@@ -364,7 +364,7 @@ static void gl_bindTextureUnit(RendererContextGL* glCtx, RenderBind* bind, uint8
     printf_err("Bind texture unit %d with invalid handle\n", stage);
   }
 }
-void gl_setProgramUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw, View* view, RenderBind* bind) {
+void prog_setUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* draw, View* view, RenderBind* bind) {
   PredefinedUniform* pu = &prog->pu;
   for (uint8_t i = 0; i < pu->usedCount; i++) {
     bcfx_EUniformBuiltin eub = (bcfx_EUniformBuiltin)pu->used[i];
@@ -649,7 +649,7 @@ static const char* findNextLineStart(const char* ptr, const char* endNotInclude)
   }
   return endNotInclude;
 }
-static void parseShaderSource(const char* buf, size_t sz, OnFindIncludePath onFindIncludePath, OnFindHeaderCode onFindHeaderCode, void* ud) {
+static void shader_parseSource(const char* buf, size_t sz, OnFindIncludePath onFindIncludePath, OnFindHeaderCode onFindHeaderCode, void* ud) {
   ParserContext ctx;
   ctx.onFindIncludePath = onFindIncludePath;
   ctx.onFindHeaderCode = onFindHeaderCode;
@@ -667,14 +667,16 @@ static void parseShaderSource(const char* buf, size_t sz, OnFindIncludePath onFi
   } while (ctx.nextLineStart < endNotInclude);
 }
 
-void gl_skipFirstVersionLine(const char** pptr, size_t* psz) {
+void shader_skipFirstVersionLine(const char** inOutPtr, size_t* inOutSize) {
+  const char* ptr = *inOutPtr;
+  uint32_t sz = (uint32_t)*inOutSize;
   luaL_ByteBuffer b[1];
-  luaBB_static(b, (uint8_t*)*pptr, (uint32_t)*psz, true, false);
+  luaBB_static(b, (uint8_t*)ptr, sz, true, false);
   if (isMatchNextToken2(b, '#', TK_VERSION)) {
-    const char* endNotInclude = *pptr + *psz;
-    const char* nextStart = findNextLineStart(*pptr, endNotInclude);
-    *pptr = nextStart;
-    *psz = endNotInclude - nextStart;
+    const char* endNotInclude = ptr + sz;
+    const char* nextStart = findNextLineStart(ptr, endNotInclude);
+    *inOutPtr = nextStart;
+    *inOutSize = endNotInclude - nextStart;
     // TODO: Check version number and profile type
   }
 }
@@ -687,13 +689,13 @@ void gl_skipFirstVersionLine(const char** pptr, size_t* psz) {
 ** =======================================================
 */
 
-void gl_initShaderInclude(RendererContextGL* glCtx) {
+void glCtx_initShaderInclude(RendererContextGL* glCtx) {
   IncludeNodeArray* ina = &glCtx->ina;
   ina->n = 0;
   ina->sz = 64;
   ina->arr = (IncludeNode*)mem_malloc(ina->sz * sizeof(IncludeNode));
 }
-void gl_destroyShaderInclude(RendererContextGL* glCtx) {
+void glCtx_destroyShaderInclude(RendererContextGL* glCtx) {
   IncludeNodeArray* ina = &glCtx->ina;
   for (size_t i = 0; i < ina->n; i++) {
     str_destroy(ina->arr[i].path);
@@ -703,7 +705,7 @@ void gl_destroyShaderInclude(RendererContextGL* glCtx) {
   ina->sz = 0;
   ina->arr = NULL;
 }
-void gl_addShaderIncludeHandle(RendererContextGL* glCtx, const String* path, bcfx_Handle handle) {
+void shader_addIncludeHandle(RendererContextGL* glCtx, const String* path, bcfx_Handle handle) {
   IncludeNodeArray* ina = &glCtx->ina;
   if (ina->n >= ina->sz) {
     ina->sz *= 2;
@@ -769,7 +771,7 @@ static void _onFindHeaderCode(void* ud, const char* str, size_t sz) {
   Param* p = (Param*)ud;
   p->shader->headerCode = str_create(str, sz);
 }
-void gl_scanShaderDependence(RendererContextGL* glCtx, ShaderGL* shader, const char* source, size_t len) {
+void shader_scanDependence(RendererContextGL* glCtx, ShaderGL* shader, const char* source, size_t len) {
   Param p[1];
   p->glCtx = glCtx;
   p->shader = shader;
@@ -778,7 +780,7 @@ void gl_scanShaderDependence(RendererContextGL* glCtx, ShaderGL* shader, const c
     shader->headerCode = NULL;
   }
   shader->numDep = 0;
-  parseShaderSource(source, len, _onFindIncludePath, _onFindHeaderCode, (void*)p);
+  shader_parseSource(source, len, _onFindIncludePath, _onFindHeaderCode, (void*)p);
 }
 
 DECLARE_ARRAY(bcfx_Handle, HandleArray, ha)
@@ -855,7 +857,7 @@ static bool gl_isProgramDependsShader(RendererContextGL* glCtx, bcfx_Handle prog
   _forEachDependShader(glCtx, prog->fs, true, _doDependenceCheck, (void*)&shaderHandle);
   return bHasDepend;
 }
-void gl_updateAllProgram(RendererContextGL* glCtx, bcfx_Handle shaderHandle) {
+void glCtx_updateAllProgram(RendererContextGL* glCtx, bcfx_Handle shaderHandle) {
   for (int i = 0; i < BCFX_CONFIG_MAX_PROGRAM; i++) {
     ProgramGL* prog = &glCtx->programs[i];
     if (prog->id != 0) {
@@ -866,4 +868,81 @@ void gl_updateAllProgram(RendererContextGL* glCtx, bcfx_Handle shaderHandle) {
     }
   }
 }
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Shader Compile
+** =======================================================
+*/
+
+bool shader_updateSource(RendererContextGL* glCtx, ShaderGL* shader, luaL_MemBuffer* mem) {
+  shader_scanDependence(glCtx, shader, mem->ptr, mem->sz);
+  const char* ptrCode = mem->ptr;
+  size_t szCode = mem->sz;
+  shader_skipFirstVersionLine(&ptrCode, &szCode);
+
+#define ADD_SOURCE_CODE(ptr_, sz_) source[count] = (const GLchar*)(ptr_), length[count] = (GLint)(sz_), count++
+  GLsizei count = 0;
+  const GLchar* source[3 + BCFX_SHADER_DEPEND_COUNT];
+  GLint length[3 + BCFX_SHADER_DEPEND_COUNT];
+  ADD_SOURCE_CODE("#version 410 core\n#line 0 1\n", -1);
+  for (uint16_t i = 0; i < shader->numDep; i++) {
+    ShaderGL* dep = &glCtx->shaders[handle_index(shader->depend[i])];
+    if (dep->headerCode != NULL) {
+      ADD_SOURCE_CODE(dep->headerCode->str, dep->headerCode->sz);
+    }
+  }
+  ADD_SOURCE_CODE("#line 1 0\n", -1);
+  ADD_SOURCE_CODE(ptrCode, szCode);
+#undef ADD_SOURCE_CODE
+
+  GL_CHECK(glShaderSource(shader->id, count, source, length));
+  GL_CHECK(glCompileShader(shader->id));
+
+  GLint success;
+  GL_CHECK(glGetShaderiv(shader->id, GL_COMPILE_STATUS, &success));
+  if (success == GL_FALSE) {
+    GLint logLen = 0;
+    GL_CHECK(glGetShaderiv(shader->id, GL_INFO_LOG_LENGTH, &logLen));
+    GLchar* infoLog = (GLchar*)alloca(logLen);
+    GL_CHECK(glGetShaderInfoLog(shader->id, logLen, NULL, infoLog));
+    printf_err("Shader compile error: %s\n", infoLog);
+  }
+  MEMBUFFER_RELEASE(mem);
+  return success == GL_TRUE;
+}
+
+void prog_updateShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle vsh, bcfx_Handle fsh) {
+  prog->vs = vsh;
+  prog->fs = fsh;
+  if (prog->vs != kInvalidHandle) {
+    gl_attachShader(glCtx, prog, prog->vs);
+  }
+  if (prog->fs != kInvalidHandle) {
+    gl_attachShader(glCtx, prog, prog->fs);
+  }
+  GL_CHECK(glLinkProgram(prog->id));
+  if (prog->vs != kInvalidHandle) {
+    gl_detachShader(glCtx, prog, prog->vs);
+  }
+  if (prog->fs != kInvalidHandle) {
+    gl_detachShader(glCtx, prog, prog->fs);
+  }
+
+  GLint success;
+  GL_CHECK(glGetProgramiv(prog->id, GL_LINK_STATUS, &success));
+  if (success == GL_FALSE) {
+    GLint logLen = 0;
+    GL_CHECK(glGetProgramiv(prog->id, GL_INFO_LOG_LENGTH, &logLen));
+    GLchar* infoLog = (GLchar*)alloca(logLen);
+    GL_CHECK(glGetProgramInfoLog(prog->id, logLen, NULL, infoLog));
+    printf_err("Shader program link error: %s\n", infoLog);
+  } else {
+    prog_collectAttributes(prog);
+    prog_collectUniforms(prog, glCtx);
+  }
+}
+
 /* }====================================================== */

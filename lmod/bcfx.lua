@@ -937,6 +937,12 @@ end
 --]]
 
 ---@param handle Handle
+---@param offset integer @ start byte in buffer for update
+---@param mb luaL_MemBuffer
+function bcfx.updateDynamicBuffer(handle, offset, mb)
+	libbcfx.updateDynamicBuffer(handle, offset, mb)
+end
+---@param handle Handle
 ---@param mb string | luaL_MemBuffer
 function bcfx.updateShader(handle, mb)
 	libbcfx.updateShader(handle, mb)
@@ -946,12 +952,6 @@ end
 ---@param fs Handle
 function bcfx.updateProgram(handle, vs, fs)
 	libbcfx.updateProgram(handle, vs, fs)
-end
----@param handle Handle
----@param offset integer @ start byte in buffer for update
----@param mb luaL_MemBuffer
-function bcfx.updateDynamicBuffer(handle, offset, mb)
-	libbcfx.updateDynamicBuffer(handle, offset, mb)
 end
 
 -- }======================================================

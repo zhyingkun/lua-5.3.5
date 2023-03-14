@@ -7,7 +7,7 @@
 #define HANDLE_TYPE(handle) handle_type(handle)
 #define HANDLE_TYPENAME(handle) handle_typeName(handle_type(handle))
 
-#define CHECK_HANDLE_VALID(handle, targetType) assert(HANDLE_ISVALID(handle))
+#define CHECK_HANDLE_VALID(handle) assert(HANDLE_ISVALID(handle))
 #define CHECK_HANDLE(handle, targetType) assert(HANDLE_TYPE(handle) == (targetType) && HANDLE_ISVALID(handle))
 #define CHECK_HANDLE_IF_VALID(handle, targetType) assert((handle) == kInvalidHandle || (HANDLE_TYPE(handle) == (targetType) && HANDLE_ISVALID(handle)))
 
@@ -80,6 +80,8 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
       CASE_CALL_RENDERER(CreateTextureBuffer, createTextureBuffer, cmd->handle, &param->ctb.mem, param->ctb.format);
       /* Update Render Resource */
       CASE_CALL_RENDERER(UpdateBuffer, updateBuffer, cmd->handle, param->cub.offset, &param->cub.mem);
+      CASE_CALL_RENDERER(UpdateShader, updateShader, cmd->handle, &param->cus.mem);
+      CASE_CALL_RENDERER(UpdateProgram, updateProgram, cmd->handle, param->cup.vsHandle, &param->cup.fsHandle);
       /* Above/Below command will be processed before/after DrawCall */
       CASE_PRINTF_ERR(End);
       /* Destroy Render Resource */
@@ -544,30 +546,28 @@ bcfx_Handle ctx_createDynamicTextureBuffer(Context* ctx, size_t size, bcfx_EText
 ** =======================================================
 */
 
+void ctx_updateDynamicBuffer(Context* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem) {
+  CHECK_HANDLE_VALID(handle);
+  CHECK_MEMBUFFER_HAS_DATA_ZERO(mem);
+  CommandParam* param = ctx_addCommand(ctx, CT_UpdateBuffer, handle);
+  param->cub.offset = offset;
+  MEMBUFFER_MOVEINIT(mem, &param->cub.mem);
+}
+
 void ctx_updateShader(Context* ctx, bcfx_Handle handle, luaL_MemBuffer* mem) {
   CHECK_HANDLE(handle, HT_Shader);
   CHECK_MEMBUFFER_HAS_DATA(mem);
-  CommandParam* param = ctx_addCommand(ctx, CT_CreateShader, handle);
-  MEMBUFFER_MOVEINIT(mem, &param->cs.mem);
-  param->cs.type = ST_Count;
-  param->cs.path = NULL;
+  CommandParam* param = ctx_addCommand(ctx, CT_UpdateShader, handle);
+  MEMBUFFER_MOVEINIT(mem, &param->cus.mem);
 }
 
 void ctx_updateProgram(Context* ctx, bcfx_Handle handle, bcfx_Handle vs, bcfx_Handle fs) {
   CHECK_HANDLE(handle, HT_Program);
   CHECK_HANDLE(vs, HT_Shader);
   CHECK_HANDLE(fs, HT_Shader);
-  CommandParam* param = ctx_addCommand(ctx, CT_CreateProgram, handle);
-  param->cp.vsHandle = vs;
-  param->cp.fsHandle = fs;
-}
-
-void ctx_updateDynamicBuffer(Context* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem) {
-  CHECK_HANDLE_VALID(handle, HT_VertexBuffer);
-  CHECK_MEMBUFFER_HAS_DATA_ZERO(mem);
-  CommandParam* param = ctx_addCommand(ctx, CT_UpdateBuffer, handle);
-  param->cub.offset = offset;
-  MEMBUFFER_MOVEINIT(mem, &param->cub.mem);
+  CommandParam* param = ctx_addCommand(ctx, CT_UpdateProgram, handle);
+  param->cup.vsHandle = vs;
+  param->cup.fsHandle = fs;
 }
 
 /* }====================================================== */

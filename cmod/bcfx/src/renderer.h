@@ -30,6 +30,8 @@ typedef void (*RendererCreateInstanceDataBuffer)(RendererContext* ctx, bcfx_Hand
 typedef void (*RendererCreateTextureBuffer)(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_ETextureFormat format);
 
 typedef void (*RendererUpdateBuffer)(RendererContext* ctx, bcfx_Handle handle, size_t offset, luaL_MemBuffer* mem);
+typedef void (*RendererUpdateShader)(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem);
+typedef void (*RendererUpdateProgram)(RendererContext* ctx, bcfx_Handle handle, bcfx_Handle vsh, bcfx_Handle fsh);
 
 typedef void (*RendererBeginFrame)(RendererContext* ctx, Frame* frame);
 typedef void (*RendererSubmit)(RendererContext* ctx, Frame* frame);
@@ -63,6 +65,8 @@ struct RendererContext {
   RendererCreateTextureBuffer createTextureBuffer;
 
   RendererUpdateBuffer updateBuffer;
+  RendererUpdateShader updateShader;
+  RendererUpdateProgram updateProgram;
 
   RendererBeginFrame beginFrame;
   RendererSubmit submit;

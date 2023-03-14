@@ -242,7 +242,7 @@ const GLenum primitive_glType[] = {
 
 /* }====================================================== */
 
-static WindowSwapper* gl_getWindowSwapper(RendererContextGL* glCtx, Window win) {
+static WindowSwapper* glCtx_getWindowSwapper(RendererContextGL* glCtx, Window win) {
   for (uint8_t i = 0; i < glCtx->swapCount; i++) {
     if (glCtx->swapWins[i].win == win) {
       return &glCtx->swapWins[i];
@@ -257,17 +257,17 @@ static WindowSwapper* gl_getWindowSwapper(RendererContextGL* glCtx, Window win) 
   // MacOSX supports forward-compatible core profile contexts for OpenGL 3.2 and above
   GL_CHECK(glGenVertexArrays(1, &swapper->vaoId)); // Contains VertexAttributes and ElementIndexBuffer
   // New window has new OpenGLContext, cache it's RenderState
-  gl_cacheRenderState(glCtx, &swapper->renderState);
+  glCtx_cacheRenderState(glCtx, &swapper->renderState);
   return swapper;
 }
-static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win, GLuint mainWinFb) {
+static void glCtx_MakeWinCurrent(RendererContextGL* glCtx, Window win, GLuint mainWinFb) {
   if (win == NULL) {
     win = glCtx->mainWin;
   }
   if (glCtx->curWin != win) {
     glCtx->curWin = win;
     winctx_makeContextCurrent(win);
-    WindowSwapper* swapper = gl_getWindowSwapper(glCtx, win);
+    WindowSwapper* swapper = glCtx_getWindowSwapper(glCtx, win);
     swapper->touch = true;
     GL_CHECK(glBindVertexArray(swapper->vaoId));
     glCtx->renderStatePtr = &swapper->renderState;
@@ -281,7 +281,7 @@ static void gl_MakeWinCurrent(RendererContextGL* glCtx, Window win, GLuint mainW
 
 static void gl_init(RendererContext* ctx, Window mainWin, uint32_t initMask) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  gl_initShaderInclude(glCtx);
+  glCtx_initShaderInclude(glCtx);
   glCtx->mainWin = mainWin;
   glCtx->curWin = NULL;
   glCtx->curMainWinFb = 0;
@@ -294,8 +294,8 @@ static void gl_init(RendererContext* ctx, Window mainWin, uint32_t initMask) {
     exit(-1);
   }
   winctx_makeContextCurrent(NULL);
-  gl_MakeWinCurrent(glCtx, glCtx->mainWin, 0);
-  gl_initMainWinTripleBuffer(glCtx, false);
+  glCtx_MakeWinCurrent(glCtx, glCtx->mainWin, 0);
+  glCtx_initMainWinTripleBuffer(glCtx, false);
 
   if (HAS_BIT(initMask, IF_FramebufferSRGB)) {
     GL_CHECK(glEnable(GL_FRAMEBUFFER_SRGB));
@@ -330,16 +330,16 @@ static void gl_endFrame(RendererContext* ctx) {
 
 static void gl_shutdown(RendererContext* ctx) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  gl_destroyShaderInclude(glCtx);
+  glCtx_destroyShaderInclude(glCtx);
 
   for (size_t i = 0; i < BCFX_CONFIG_MAX_VERTEX_BUFFER; i++) {
     VertexBufferGL* vb = &glCtx->vertexBuffers[i];
-    gl_destroyBufferGPU(&vb->buffer);
+    buffer_destroyInGPU(&vb->buffer);
     memset(&vb->layout, 0, sizeof(bcfx_VertexLayout));
   }
   for (size_t i = 0; i < BCFX_CONFIG_MAX_INDEX_BUFFER; i++) {
     IndexBufferGL* ib = &glCtx->indexBuffers[i];
-    gl_destroyBufferGPU(&ib->buffer);
+    buffer_destroyInGPU(&ib->buffer);
   }
   for (size_t i = 0; i < BCFX_CONFIG_MAX_SHADER; i++) {
     ShaderGL* shader = &glCtx->shaders[i];
@@ -380,11 +380,11 @@ static void gl_shutdown(RendererContext* ctx) {
   }
   for (size_t i = 0; i < BCFX_CONFIG_MAX_INSTANCE_DATA_BUFFER; i++) {
     InstanceDataBufferGL* idb = &glCtx->instanceDataBuffers[i];
-    gl_destroyBufferGPU(&idb->buffer);
+    buffer_destroyInGPU(&idb->buffer);
   }
   for (size_t i = 0; i < BCFX_CONFIG_MAX_TEXTURE_BUFFER; i++) {
     TextureBufferGL* tb = &glCtx->textureBuffers[i];
-    gl_destroyBufferGPU(&tb->buffer);
+    buffer_destroyInGPU(&tb->buffer);
     if (tb->textureID != 0) {
       GL_CHECK(glDeleteTextures(1, &tb->textureID));
       tb->textureID = 0;
@@ -399,7 +399,7 @@ static void gl_shutdown(RendererContext* ctx) {
 
 static void gl_flip(RendererContext* ctx) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
-  gl_blitMainWinTripleBuffer(glCtx);
+  glCtx_blitMainWinTripleBuffer(glCtx);
   winctx_swapBuffers(glCtx->mainWin);
   for (uint8_t i = 1; i < glCtx->swapCount; i++) {
     winctx_swapBuffers(glCtx->swapWins[i].win);
@@ -411,105 +411,36 @@ static void gl_createVertexBuffer(RendererContext* ctx, bcfx_Handle handle, luaL
   VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
   // vb->count = mem->sz / layout->stride;
   vb->layout = *layout;
-  gl_createBufferGPU(&vb->buffer, mem, GL_ARRAY_BUFFER);
+  buffer_createInGPU(&vb->buffer, mem, GL_ARRAY_BUFFER);
 }
 static void gl_createIndexBuffer(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_EIndexType type) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
   ib->count = (uint32_t)(mem->sz / (size_t)sizeof_IndexType[type]);
   ib->type = type;
-  gl_createBufferGPU(&ib->buffer, mem, GL_ELEMENT_ARRAY_BUFFER);
+  buffer_createInGPU(&ib->buffer, mem, GL_ELEMENT_ARRAY_BUFFER);
 }
 static void gl_createShader(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_EShaderType type, const String* path) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   ShaderGL* shader = &glCtx->shaders[handle_index(handle)];
-  bool bCreate = shader->id == 0;
-  if (bCreate) {
-    assert(type != ST_Count);
-    shader->type = shader_glType[type];
-    GL_CHECK(shader->id = glCreateShader(shader->type));
-  } else {
-    assert(type == ST_Count);
-    assert(path == NULL);
-  }
-  gl_scanShaderDependence(glCtx, shader, mem->ptr, mem->sz);
-  const char* ptrCode = mem->ptr;
-  size_t szCode = mem->sz;
-  gl_skipFirstVersionLine(&ptrCode, &szCode);
+  assert(shader->id == 0);
+  assert(type != ST_Count);
+  shader->type = shader_glType[type];
+  GL_CHECK(shader->id = glCreateShader(shader->type));
 
-#define ADD_SOURCE_CODE(ptr_, sz_) source[count] = (const GLchar*)(ptr_), length[count] = (GLint)(sz_), count++
-  GLsizei count = 0;
-  const GLchar* source[3 + BCFX_SHADER_DEPEND_COUNT];
-  GLint length[3 + BCFX_SHADER_DEPEND_COUNT];
-  ADD_SOURCE_CODE("#version 410 core\n#line 0 1\n", -1);
-  for (uint16_t i = 0; i < shader->numDep; i++) {
-    ShaderGL* dep = &glCtx->shaders[handle_index(shader->depend[i])];
-    if (dep->headerCode != NULL) {
-      ADD_SOURCE_CODE(dep->headerCode->str, dep->headerCode->sz);
-    }
-  }
-  ADD_SOURCE_CODE("#line 1 0\n", -1);
-  ADD_SOURCE_CODE(ptrCode, szCode);
-#undef ADD_SOURCE_CODE
+  bool bSucceed = shader_updateSource(glCtx, shader, mem);
 
-  GL_CHECK(glShaderSource(shader->id, count, source, length));
-  GL_CHECK(glCompileShader(shader->id));
-
-  GLint success;
-  GL_CHECK(glGetShaderiv(shader->id, GL_COMPILE_STATUS, &success));
-  if (success == GL_FALSE) {
-    GLint logLen = 0;
-    GL_CHECK(glGetShaderiv(shader->id, GL_INFO_LOG_LENGTH, &logLen));
-    GLchar* infoLog = (GLchar*)alloca(logLen);
-    GL_CHECK(glGetShaderInfoLog(shader->id, logLen, NULL, infoLog));
-    printf_err("Shader compile error: %s\n", infoLog);
-  } else {
-    if (bCreate) {
-      if (path != NULL) {
-        gl_addShaderIncludeHandle(glCtx, path, handle);
-      }
-    } else {
-      gl_updateAllProgram(glCtx, handle);
-    }
+  if (bSucceed && path != NULL) {
+    shader_addIncludeHandle(glCtx, path, handle);
   }
-  MEMBUFFER_RELEASE(mem);
 }
 static void gl_createProgram(RendererContext* ctx, bcfx_Handle handle, bcfx_Handle vsh, bcfx_Handle fsh) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   ProgramGL* prog = &glCtx->programs[handle_index(handle)];
-  if (prog->id == 0) {
-    GL_CHECK(prog->id = glCreateProgram());
-  }
-  prog->vs = vsh;
-  prog->fs = fsh;
-  if (prog->vs != kInvalidHandle) {
-    gl_attachShader(glCtx, prog, prog->vs);
-  }
-  if (prog->fs != kInvalidHandle) {
-    gl_attachShader(glCtx, prog, prog->fs);
-  }
-  if (prog->fs != fsh) {
-  }
-  GL_CHECK(glLinkProgram(prog->id));
-  if (prog->vs != kInvalidHandle) {
-    gl_detachShader(glCtx, prog, prog->vs);
-  }
-  if (prog->fs != kInvalidHandle) {
-    gl_detachShader(glCtx, prog, prog->fs);
-  }
+  assert(prog->id == 0);
+  GL_CHECK(prog->id = glCreateProgram());
 
-  GLint success;
-  GL_CHECK(glGetProgramiv(prog->id, GL_LINK_STATUS, &success));
-  if (success == GL_FALSE) {
-    GLint logLen = 0;
-    GL_CHECK(glGetProgramiv(prog->id, GL_INFO_LOG_LENGTH, &logLen));
-    GLchar* infoLog = (GLchar*)alloca(logLen);
-    GL_CHECK(glGetProgramInfoLog(prog->id, logLen, NULL, infoLog));
-    printf_err("Shader program link error: %s\n", infoLog);
-  } else {
-    prog_collectAttributes(prog);
-    prog_collectUniforms(prog, glCtx);
-  }
+  prog_updateShader(glCtx, prog, vsh, fsh);
 }
 static void gl_createUniform(RendererContext* ctx, bcfx_Handle handle, const String* name, bcfx_EUniformType type, uint16_t num) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
@@ -736,13 +667,13 @@ static void gl_createInstanceDataBuffer(RendererContext* ctx, bcfx_Handle handle
   const uint8_t numBytePerVec4 = numFloatPerVec4 * numBytePerFloat;
   uint32_t numBytePerInstance = numVec4PerInstance * numBytePerVec4;
   idb->numInstance = (uint32_t)(mem->sz / numBytePerInstance);
-  gl_createBufferGPU(&idb->buffer, mem, GL_ARRAY_BUFFER);
+  buffer_createInGPU(&idb->buffer, mem, GL_ARRAY_BUFFER);
 }
 static void gl_createTextureBuffer(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem, bcfx_ETextureFormat format) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   TextureBufferGL* tb = &glCtx->textureBuffers[handle_index(handle)];
   tb->format = format;
-  gl_createBufferGPU(&tb->buffer, mem, GL_TEXTURE_BUFFER);
+  buffer_createInGPU(&tb->buffer, mem, GL_TEXTURE_BUFFER);
   GL_CHECK(glGenTextures(1, &tb->textureID));
   GL_CHECK(glBindTexture(GL_TEXTURE_BUFFER, tb->textureID));
   GL_CHECK(glTexBuffer(GL_TEXTURE_BUFFER, textureFormat_glType[format].internalFormat, tb->buffer.id));
@@ -756,38 +687,56 @@ static void gl_updateBuffer(RendererContext* ctx, bcfx_Handle handle, size_t off
     case HT_VertexBuffer: {
       VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
       CHECK_DYNAMIC_BUFFER(&vb->buffer);
-      gl_updateBufferGPU(&vb->buffer, offset, mem, GL_ARRAY_BUFFER);
+      buffer_updateInGPU(&vb->buffer, offset, mem, GL_ARRAY_BUFFER);
     } break;
     case HT_IndexBuffer: {
       IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
       CHECK_DYNAMIC_BUFFER(&ib->buffer);
-      gl_updateBufferGPU(&ib->buffer, offset, mem, GL_ELEMENT_ARRAY_BUFFER);
+      buffer_updateInGPU(&ib->buffer, offset, mem, GL_ELEMENT_ARRAY_BUFFER);
     } break;
     case HT_InstanceDataBuffer: {
       InstanceDataBufferGL* idb = &glCtx->instanceDataBuffers[handle_index(handle)];
       CHECK_DYNAMIC_BUFFER(&idb->buffer);
-      gl_updateBufferGPU(&idb->buffer, offset, mem, GL_ARRAY_BUFFER);
+      buffer_updateInGPU(&idb->buffer, offset, mem, GL_ARRAY_BUFFER);
     } break;
     case HT_TextureBuffer: {
       TextureBufferGL* tb = &glCtx->textureBuffers[handle_index(handle)];
       CHECK_DYNAMIC_BUFFER(&tb->buffer);
-      gl_updateBufferGPU(&tb->buffer, offset, mem, GL_TEXTURE_BUFFER);
+      buffer_updateInGPU(&tb->buffer, offset, mem, GL_TEXTURE_BUFFER);
     } break;
     default:
       printf_err("Update buffer with error handle: %d, %s\n", handle, handle_typeName(type));
       break;
   }
 }
+static void gl_updateShader(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  ShaderGL* shader = &glCtx->shaders[handle_index(handle)];
+  assert(shader->id != 0);
 
-static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
+  const bool bSucceed = shader_updateSource(glCtx, shader, mem);
+
+  if (bSucceed) {
+    glCtx_updateAllProgram(glCtx, handle);
+  }
+}
+static void gl_updateProgram(RendererContext* ctx, bcfx_Handle handle, bcfx_Handle vsh, bcfx_Handle fsh) {
+  RendererContextGL* glCtx = (RendererContextGL*)ctx;
+  ProgramGL* prog = &glCtx->programs[handle_index(handle)];
+  assert(prog->id != 0);
+
+  prog_updateShader(glCtx, prog, vsh, fsh);
+}
+
+static void glCtx_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
   GLuint mainWinFb = 0;
   if (view->fbh != kInvalidHandle) {
     // only mainWin can has framebuffer
     mainWinFb = glCtx->frameBuffers[handle_index(view->fbh)].id;
   } else if (view->win == NULL || view->win == glCtx->mainWin) {
-    mainWinFb = gl_getTripleFrameBuffer(glCtx);
+    mainWinFb = glCtx_getTripleFrameBuffer(glCtx);
   }
-  gl_MakeWinCurrent(glCtx, view->win, mainWinFb);
+  glCtx_MakeWinCurrent(glCtx, view->win, mainWinFb);
 
   Rect* rect = &view->rect;
   GL_CHECK(glViewport(rect->x, rect->y, rect->width, rect->height));
@@ -817,7 +766,7 @@ static void gl_MakeViewCurrent(RendererContextGL* glCtx, View* view) {
   GL_CHECK(glDepthRange(view->nearDepth, view->farDepth));
 }
 
-static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, Frame* frame) {
+static void glCtx_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, Frame* frame) {
   luaBB_setread(frame->uniformDataBuffer, draw->uniformStartByte);
   size_t hadRead = 0;
   while (hadRead < draw->uniformSizeByte) {
@@ -840,7 +789,7 @@ static void gl_updateGlobalUniform(RendererContextGL* glCtx, RenderDraw* draw, F
   // luaBB_undoread(frame->uniformDataBuffer);
 }
 
-static inline bool shouldCaptureView(Frame* frame, ViewId id) {
+static inline bool _shouldCaptureView(Frame* frame, ViewId id) {
   return (frame->numVCR < BCFX_CONFIG_MAX_VIEW_CAPTURE) &&
          (frame->viewCapture[VIEW_UINT64_INDEX(id)] & VIEW_OFFSET_BIT(id)) != 0;
 }
@@ -848,7 +797,7 @@ static void _releaseFrameCapture(const luaL_MemBuffer* mb) {
   mem_free(mb->ptr);
 }
 static void frameCaptureView(Frame* frame, ViewId id) {
-  if (IS_VIEWID_VALID(id) && shouldCaptureView(frame, id)) {
+  if (IS_VIEWID_VALID(id) && _shouldCaptureView(frame, id)) {
     View* view = &frame->views[id];
     Rect* rect = &view->rect;
     size_t sz = rect->width * rect->height * 4;
@@ -865,7 +814,7 @@ static void frameCaptureView(Frame* frame, ViewId id) {
   }
 }
 
-static Rect* findScissor(Rect* viewsci, Rect* drawsci, Rect* dst) {
+static Rect* _findScissor(Rect* viewsci, Rect* drawsci, Rect* dst) {
   bool bHasVS = !rect_isZeroArea(viewsci);
   bool bHasDS = !rect_isZeroArea(drawsci);
   if (bHasVS && bHasDS) {
@@ -874,9 +823,9 @@ static Rect* findScissor(Rect* viewsci, Rect* drawsci, Rect* dst) {
   }
   return bHasVS ? viewsci : (bHasDS ? drawsci : NULL);
 }
-static void updateRenderScissor(View* view, RenderDraw* draw) {
+static void _updateRenderScissor(View* view, RenderDraw* draw) {
   Rect dst;
-  Rect* scissor = findScissor(&view->scissor, &draw->scissor, &dst);
+  Rect* scissor = _findScissor(&view->scissor, &draw->scissor, &dst);
   if (scissor != NULL) {
     GL_CHECK(glEnable(GL_SCISSOR_TEST));
     GL_CHECK(glScissor(scissor->x, scissor->y, scissor->width, scissor->height));
@@ -884,7 +833,7 @@ static void updateRenderScissor(View* view, RenderDraw* draw) {
     GL_CHECK(glDisable(GL_SCISSOR_TEST));
   }
 }
-static GLenum getPolygonMode(View* view) {
+static GLenum _getPolygonMode(View* view) {
   if (HAS_BIT(view->debugMask, DF_Wireframe)) {
     return GL_LINE;
   }
@@ -893,16 +842,15 @@ static GLenum getPolygonMode(View* view) {
   }
   return GL_FILL;
 }
-
-static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw* draw, RenderBind* bind, View* view) {
-  updateRenderScissor(view, draw);
-  gl_updateRenderState(glCtx, draw);
+static void glCtx_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw* draw, RenderBind* bind, View* view) {
+  _updateRenderScissor(view, draw);
+  glCtx_updateRenderState(glCtx, draw);
 
   ProgramGL* prog = &glCtx->programs[progIdx];
   GL_CHECK(glUseProgram(prog->id));
 
-  gl_bindProgramAttributes(glCtx, prog, draw);
-  gl_setProgramUniforms(glCtx, prog, draw, view, bind);
+  prog_bindAttributes(glCtx, prog, draw);
+  prog_setUniforms(glCtx, prog, draw, view, bind);
 
   GLenum primitiveType = primitive_glType[draw->primitiveType];
 
@@ -915,7 +863,7 @@ static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw
     if (draw->numInstance == 0) {
       GL_CHECK(glDrawArrays(primitiveType, start, count));
     } else {
-      gl_bindInstanceAttributes(glCtx, prog, draw);
+      prog_bindInstanceAttributes(glCtx, prog, draw);
       GL_CHECK(glDrawArraysInstanced(primitiveType, start, count, draw->numInstance));
     }
   } else {
@@ -930,13 +878,13 @@ static void gl_submitDraw(RendererContextGL* glCtx, uint16_t progIdx, RenderDraw
     if (draw->numInstance == 0) {
       GL_CHECK(glDrawElementsBaseVertex(primitiveType, count, index_glType[ib->type], indices, draw->baseVertex));
     } else {
-      gl_bindInstanceAttributes(glCtx, prog, draw);
+      prog_bindInstanceAttributes(glCtx, prog, draw);
       GL_CHECK(glDrawElementsInstancedBaseVertex(primitiveType, count, index_glType[ib->type], indices, draw->numInstance, draw->baseVertex));
     }
   }
 }
 
-#define IS_VALUE_CHANGED(value_, want_) ((value_ != want_) ? (value_ = want_, 1) : (0))
+#define IS_VALUE_CHANGED(value_, want_) (((value_) != (want_)) ? (((value_) = (want_)), 1) : (0))
 static void gl_submit(RendererContext* ctx, Frame* frame) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
 
@@ -954,9 +902,9 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
     if (curViewId != id) { // view changed
       frameCaptureView(frame, curViewId);
       curViewId = id;
-      gl_MakeViewCurrent(glCtx, view);
+      glCtx_MakeViewCurrent(glCtx, view);
 
-      GLenum polMod = getPolygonMode(view);
+      GLenum polMod = _getPolygonMode(view);
       if (IS_VALUE_CHANGED(curPolMod, polMod)) {
         GL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, curPolMod));
       }
@@ -964,31 +912,31 @@ static void gl_submit(RendererContext* ctx, Frame* frame) {
 
     RenderDraw* draw = &frame->renderItems[key->sequence].draw;
 
-    gl_updateGlobalUniform(glCtx, draw, frame);
+    glCtx_updateGlobalUniform(glCtx, draw, frame);
 
     if (!key->notTouch) {
       continue; // it is a touch
     }
     if (key->isDraw) {
       RenderBind* bind = &frame->renderBinds[i];
-      gl_submitDraw(glCtx, key->program, draw, bind, view);
+      glCtx_submitDraw(glCtx, key->program, draw, bind, view);
     }
   }
   frameCaptureView(frame, curViewId);
-  gl_MakeWinCurrent(glCtx, NULL, 0); // set mainWin framebuffer to 0 for fixed swap nothing error in MacOSX
+  glCtx_MakeWinCurrent(glCtx, NULL, 0); // set mainWin framebuffer to 0 for fixed swap nothing error in MacOSX
 }
 
 static void gl_destroyVertexBuffer(RendererContext* ctx, bcfx_Handle handle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   VertexBufferGL* vb = &glCtx->vertexBuffers[handle_index(handle)];
-  gl_destroyBufferGPU(&vb->buffer);
+  buffer_destroyInGPU(&vb->buffer);
   bcfx_VertexLayout* vl = &vb->layout;
   memset((uint8_t*)vl, 0, sizeof(bcfx_VertexLayout));
 }
 static void gl_destroyIndexBuffer(RendererContext* ctx, bcfx_Handle handle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   IndexBufferGL* ib = &glCtx->indexBuffers[handle_index(handle)];
-  gl_destroyBufferGPU(&ib->buffer);
+  buffer_destroyInGPU(&ib->buffer);
 }
 static void gl_destroyShader(RendererContext* ctx, bcfx_Handle handle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
@@ -1039,12 +987,12 @@ static void gl_destroyFrameBuffer(RendererContext* ctx, bcfx_Handle handle) {
 static void gl_destroyInstanceDataBuffer(RendererContext* ctx, bcfx_Handle handle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   InstanceDataBufferGL* idb = &glCtx->instanceDataBuffers[handle_index(handle)];
-  gl_destroyBufferGPU(&idb->buffer);
+  buffer_destroyInGPU(&idb->buffer);
 }
 static void gl_destroyTextureBuffer(RendererContext* ctx, bcfx_Handle handle) {
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   TextureBufferGL* tb = &glCtx->textureBuffers[handle_index(handle)];
-  gl_destroyBufferGPU(&tb->buffer);
+  buffer_destroyInGPU(&tb->buffer);
 }
 
 RendererContext* CreateRendererGL(void) {
@@ -1067,6 +1015,8 @@ RendererContext* CreateRendererGL(void) {
   renderer->createTextureBuffer = gl_createTextureBuffer;
 
   renderer->updateBuffer = gl_updateBuffer;
+  renderer->updateShader = gl_updateShader;
+  renderer->updateProgram = gl_updateProgram;
 
   renderer->beginFrame = gl_beginFrame;
   renderer->submit = gl_submit;
