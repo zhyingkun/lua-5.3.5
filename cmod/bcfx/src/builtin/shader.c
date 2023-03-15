@@ -1,5 +1,6 @@
 #define _shader_c_
 #include <common.h>
+#include <utils.h>
 
 /*
 ** {======================================================
@@ -22,33 +23,26 @@ void main() {                             \n\
 /* }====================================================== */
 
 typedef struct {
-  const char* vertexCode;
-  size_t vertexSize;
-  const char* fragmentCode;
-  size_t fragmentSize;
+  const String vertex;
+  const String fragment;
 } ShaderConfig;
 
-#define CONFIG_SHADER(vertex, fragment) \
-  { vertex, sizeof(vertex) - 1, fragment, sizeof(fragment) - 1 }
-
 const ShaderConfig BuiltinShaderList[] = {
-    CONFIG_SHADER(DefaultVertex, DefaultFragment),
-    {NULL, 0, NULL, 0},
+    {STRING_LITERAL(DefaultVertex), STRING_LITERAL(DefaultFragment)},
+    {STRING_LITERAL_NULL(), STRING_LITERAL_NULL()},
 };
 
+static bcfx_Handle _doCreateShader(const String* shaderCode, bcfx_EShaderType type) {
+  if (str_isNull(shaderCode)) {
+    return kInvalidHandle;
+  }
+  luaL_MemBuffer mb[1];
+  MEMBUFFER_SETINIT_STATIC(mb, shaderCode->str, shaderCode->sz);
+  return bcfx_createShader(mb, type);
+}
 bcfx_Handle builtin_createShader(bcfx_EBuiltinShaderType type) {
   const ShaderConfig* config = &BuiltinShaderList[type];
-  bcfx_Handle vertexHandle = kInvalidHandle;
-  bcfx_Handle fragmentHandle = kInvalidHandle;
-  if (config->vertexCode) {
-    luaL_MemBuffer mb[1];
-    MEMBUFFER_SETINIT_STATIC(mb, config->vertexCode, config->vertexSize);
-    vertexHandle = bcfx_createShader(mb, ST_Vertex);
-  }
-  if (config->fragmentCode) {
-    luaL_MemBuffer mb[1];
-    MEMBUFFER_SETINIT_STATIC(mb, config->fragmentCode, config->fragmentSize);
-    fragmentHandle = bcfx_createShader(mb, ST_Fragment);
-  }
-  return bcfx_createProgram(vertexHandle, fragmentHandle);
+  const bcfx_Handle vsh = _doCreateShader(&config->vertex, ST_Vertex);
+  const bcfx_Handle fsh = _doCreateShader(&config->fragment, ST_Fragment);
+  return bcfx_createProgram(vsh, fsh);
 }

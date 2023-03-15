@@ -257,22 +257,29 @@ const MeshConfig BuiltinMeshList[] = {
     {PT_Default, NULL, NULL}, // None
 };
 
+static bcfx_Handle _doCreateVertexBuffer(MakeMeshVertexBuffer makeVertexBuffer) {
+  if (makeVertexBuffer) {
+    luaL_MemBuffer VertexBuffer = MEMBUFFER_NULL;
+    bcfx_VertexLayout VertexLayout = {0};
+    makeVertexBuffer(&VertexBuffer, &VertexLayout);
+    return bcfx_createVertexBuffer(&VertexBuffer, &VertexLayout);
+  }
+  return kInvalidHandle;
+}
+static bcfx_Handle _doCreateIndexBuffer(MakeMeshIndexBuffer makeIndexBuffer) {
+  if (makeIndexBuffer) {
+    luaL_MemBuffer IndexBuffer = MEMBUFFER_NULL;
+    const bcfx_EIndexType indexType = makeIndexBuffer(&IndexBuffer);
+    return bcfx_createIndexBuffer(&IndexBuffer, indexType);
+  }
+  return kInvalidHandle;
+}
 bcfx_BuiltinMesh builtin_createMesh(bcfx_EBuiltinMeshType type) {
   const MeshConfig* config = &BuiltinMeshList[type];
 
-  bcfx_BuiltinMesh mesh = {0};
+  bcfx_BuiltinMesh mesh;
   mesh.primitive = config->primitive;
-  if (config->makeVertexBuffer) {
-    luaL_MemBuffer VertexBuffer = MEMBUFFER_NULL;
-    bcfx_VertexLayout VertexLayout = {0};
-    config->makeVertexBuffer(&VertexBuffer, &VertexLayout);
-    mesh.vertex = bcfx_createVertexBuffer(&VertexBuffer, &VertexLayout);
-  }
-  if (config->makeIndexBuffer) {
-    luaL_MemBuffer IndexBuffer = MEMBUFFER_NULL;
-    bcfx_EIndexType type = config->makeIndexBuffer(&IndexBuffer);
-    mesh.index = bcfx_createIndexBuffer(&IndexBuffer, type);
-  }
-
+  mesh.vertex = _doCreateVertexBuffer(config->makeVertexBuffer);
+  mesh.index = _doCreateIndexBuffer(config->makeIndexBuffer);
   return mesh;
 }

@@ -81,7 +81,7 @@ static void ctx_rendererExecCommands(Context* ctx, CommandBuffer* cmdbuf) {
       /* Update Render Resource */
       CASE_CALL_RENDERER(UpdateBuffer, updateBuffer, cmd->handle, param->cub.offset, &param->cub.mem);
       CASE_CALL_RENDERER(UpdateShader, updateShader, cmd->handle, &param->cus.mem);
-      CASE_CALL_RENDERER(UpdateProgram, updateProgram, cmd->handle, param->cup.vsHandle, &param->cup.fsHandle);
+      CASE_CALL_RENDERER(UpdateProgram, updateProgram, cmd->handle, param->cup.vsHandle, param->cup.fsHandle);
       /* Above/Below command will be processed before/after DrawCall */
       CASE_PRINTF_ERR(End);
       /* Destroy Render Resource */
