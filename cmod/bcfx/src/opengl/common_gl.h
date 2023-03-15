@@ -73,7 +73,7 @@ typedef struct {
 #define BCFX_SHADER_DEPEND_COUNT 7
 typedef struct {
   GLuint id;
-  GLenum type;
+  bcfx_EShaderType type;
   uint16_t numDep;
   bcfx_Handle depend[BCFX_SHADER_DEPEND_COUNT];
   const String* headerCode;
@@ -319,22 +319,16 @@ void prog_setUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* dra
 ** =======================================================
 */
 
-void shader_skipFirstVersionLine(const char** pptr, size_t* psz);
-
 void glCtx_initShaderInclude(RendererContextGL* glCtx);
 void glCtx_destroyShaderInclude(RendererContextGL* glCtx);
-void shader_addIncludeHandle(RendererContextGL* glCtx, const String* path, bcfx_Handle handle);
-bcfx_Handle gl_findShaderIncludeHandle(RendererContextGL* glCtx, const String* path);
-
-void shader_scanDependence(RendererContextGL* glCtx, ShaderGL* shader, const char* source, size_t len);
-
-void gl_attachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle);
-void gl_detachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle);
-
-void glCtx_updateAllProgram(RendererContextGL* glCtx, bcfx_Handle shaderHandle);
+void glCtx_addShaderInclude(RendererContextGL* glCtx, const String* path, bcfx_Handle handle);
+bcfx_Handle glCtx_findShaderInclude(RendererContextGL* glCtx, const String* path);
 
 bool shader_updateSource(RendererContextGL* glCtx, ShaderGL* shader, luaL_MemBuffer* mem);
+
 void prog_updateShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle vsh, bcfx_Handle fsh);
+
+void glCtx_updateAllProgram(RendererContextGL* glCtx, bcfx_Handle shaderHandle);
 
 /* }====================================================== */
 

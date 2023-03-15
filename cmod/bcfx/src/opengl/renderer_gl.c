@@ -425,13 +425,13 @@ static void gl_createShader(RendererContext* ctx, bcfx_Handle handle, luaL_MemBu
   ShaderGL* shader = &glCtx->shaders[handle_index(handle)];
   assert(shader->id == 0);
   assert(type != ST_Count);
-  shader->type = shader_glType[type];
-  GL_CHECK(shader->id = glCreateShader(shader->type));
+  shader->type = type;
+  GL_CHECK(shader->id = glCreateShader(shader_glType[type]));
 
   bool bSucceed = shader_updateSource(glCtx, shader, mem);
 
   if (bSucceed && path != NULL) {
-    shader_addIncludeHandle(glCtx, path, handle);
+    glCtx_addShaderInclude(glCtx, path, handle);
   }
 }
 static void gl_createProgram(RendererContext* ctx, bcfx_Handle handle, bcfx_Handle vsh, bcfx_Handle fsh) {

@@ -351,7 +351,7 @@ void prog_collectUniforms(ProgramGL* prog, RendererContextGL* glCtx) {
   pu->usedCountUD = cntUD;
 }
 
-static void gl_bindTextureUnit(RendererContextGL* glCtx, RenderBind* bind, uint8_t stage) {
+static void _bindTextureUnit(RendererContextGL* glCtx, RenderBind* bind, uint8_t stage) {
   Binding* b = &bind->binds[stage];
   if (b->handle != kInvalidHandle) {
     TextureGL* texture = &glCtx->textures[handle_index(b->handle)];
@@ -470,7 +470,7 @@ void prog_setUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* dra
       case UT_SamplerBuffer:
         assert(ub->num == 1);
         GL_CHECK(glUniform1i(prop->loc, (GLint)uniform->data.stage));
-        gl_bindTextureUnit(glCtx, bind, uniform->data.stage);
+        _bindTextureUnit(glCtx, bind, uniform->data.stage);
         break;
       default:
         break;
@@ -667,7 +667,7 @@ static void shader_parseSource(const char* buf, size_t sz, OnFindIncludePath onF
   } while (ctx.nextLineStart < endNotInclude);
 }
 
-void shader_skipFirstVersionLine(const char** inOutPtr, size_t* inOutSize) {
+static void shader_skipFirstVersionLine(const char** inOutPtr, size_t* inOutSize) {
   const char* ptr = *inOutPtr;
   uint32_t sz = (uint32_t)*inOutSize;
   luaL_ByteBuffer b[1];
@@ -705,7 +705,7 @@ void glCtx_destroyShaderInclude(RendererContextGL* glCtx) {
   ina->sz = 0;
   ina->arr = NULL;
 }
-void shader_addIncludeHandle(RendererContextGL* glCtx, const String* path, bcfx_Handle handle) {
+void glCtx_addShaderInclude(RendererContextGL* glCtx, const String* path, bcfx_Handle handle) {
   IncludeNodeArray* ina = &glCtx->ina;
   if (ina->n >= ina->sz) {
     ina->sz *= 2;
@@ -715,7 +715,7 @@ void shader_addIncludeHandle(RendererContextGL* glCtx, const String* path, bcfx_
   ina->arr[ina->n].handle = handle;
   ina->n++;
 }
-bcfx_Handle gl_findShaderIncludeHandle(RendererContextGL* glCtx, const String* path) {
+bcfx_Handle glCtx_findShaderInclude(RendererContextGL* glCtx, const String* path) {
   IncludeNodeArray* ina = &glCtx->ina;
   for (size_t i = 0; i < ina->n; i++) {
     if (str_isEqual(path, ina->arr[i].path)) {
@@ -744,7 +744,7 @@ static void _onFindIncludePath(void* ud, const char* str, size_t sz, size_t line
   path->sz = sz;
   Param* p = (Param*)ud;
   RendererContextGL* glCtx = p->glCtx;
-  bcfx_Handle handle = gl_findShaderIncludeHandle(glCtx, path);
+  bcfx_Handle handle = glCtx_findShaderInclude(glCtx, path);
   if (handle == kInvalidHandle) {
     printShaderIncludeError(lineNumber, path, "shader include file could not found");
     return;
@@ -771,7 +771,7 @@ static void _onFindHeaderCode(void* ud, const char* str, size_t sz) {
   Param* p = (Param*)ud;
   p->shader->headerCode = str_create(str, sz);
 }
-void shader_scanDependence(RendererContextGL* glCtx, ShaderGL* shader, const char* source, size_t len) {
+static void shader_scanDependence(RendererContextGL* glCtx, ShaderGL* shader, const char* source, size_t len) {
   Param p[1];
   p->glCtx = glCtx;
   p->shader = shader;
@@ -794,7 +794,7 @@ typedef struct {
   void* ud;
   HandleArray cache[1];
 } TraverseContext;
-static void _forEachDependShaderInternal(TraverseContext* tc, bcfx_Handle handle) {
+static void _forEachDependenceInternal(TraverseContext* tc, bcfx_Handle handle) {
   if (ha_contains(tc->cache, handle)) {
     return;
   }
@@ -804,11 +804,11 @@ static void _forEachDependShaderInternal(TraverseContext* tc, bcfx_Handle handle
     bcfx_Handle dep = shader->depend[i];
     tc->callback(tc->glCtx, tc->ud, dep);
     if (tc->recursive) {
-      _forEachDependShaderInternal(tc, dep);
+      _forEachDependenceInternal(tc, dep);
     }
   }
 }
-static void _forEachDependShader(RendererContextGL* glCtx, bcfx_Handle handle, bool recursive, OnFindShader callback, void* ud) {
+static void shader_forEachDependence(RendererContextGL* glCtx, bcfx_Handle handle, bool recursive, OnFindShader callback, void* ud) {
   // TODO: check handle invalid
   TraverseContext tc[1];
   tc->glCtx = glCtx;
@@ -816,28 +816,8 @@ static void _forEachDependShader(RendererContextGL* glCtx, bcfx_Handle handle, b
   tc->callback = callback;
   tc->ud = ud;
   ha_init(tc->cache);
-  _forEachDependShaderInternal(tc, handle);
+  _forEachDependenceInternal(tc, handle);
   ha_destroy(tc->cache);
-}
-
-static void _doAttachShader(RendererContextGL* glCtx, void* ud, bcfx_Handle shaderHandle) {
-  ProgramGL* prog = (ProgramGL*)ud;
-  ShaderGL* shader = &glCtx->shaders[handle_index(shaderHandle)];
-  GL_CHECK(glAttachShader(prog->id, shader->id));
-}
-void gl_attachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle) {
-  _doAttachShader(glCtx, (void*)prog, handle);
-  _forEachDependShader(glCtx, handle, true, _doAttachShader, (void*)prog);
-}
-
-static void _doDetachShader(RendererContextGL* glCtx, void* ud, bcfx_Handle shaderHandle) {
-  ProgramGL* prog = (ProgramGL*)ud;
-  ShaderGL* shader = &glCtx->shaders[handle_index(shaderHandle)];
-  GL_CHECK(glDetachShader(prog->id, shader->id));
-}
-void gl_detachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle) {
-  _doDetachShader(glCtx, (void*)prog, handle);
-  _forEachDependShader(glCtx, handle, true, _doDetachShader, (void*)prog);
 }
 
 static bool bHasDepend = false;
@@ -847,33 +827,17 @@ static void _doDependenceCheck(RendererContextGL* glCtx, void* ud, bcfx_Handle h
     bHasDepend = true;
   }
 }
-static bool gl_isProgramDependsShader(RendererContextGL* glCtx, bcfx_Handle progHandle, bcfx_Handle shaderHandle) {
-  ProgramGL* prog = &glCtx->programs[handle_index(progHandle)];
+static bool shader_isDependOnShader(RendererContextGL* glCtx, bcfx_Handle targetShader, bcfx_Handle shaderHandle) {
   bHasDepend = false;
-  _forEachDependShader(glCtx, prog->vs, true, _doDependenceCheck, (void*)&shaderHandle);
-  if (bHasDepend) {
-    return true;
-  }
-  _forEachDependShader(glCtx, prog->fs, true, _doDependenceCheck, (void*)&shaderHandle);
+  shader_forEachDependence(glCtx, targetShader, true, _doDependenceCheck, (void*)&shaderHandle);
   return bHasDepend;
-}
-void glCtx_updateAllProgram(RendererContextGL* glCtx, bcfx_Handle shaderHandle) {
-  for (int i = 0; i < BCFX_CONFIG_MAX_PROGRAM; i++) {
-    ProgramGL* prog = &glCtx->programs[i];
-    if (prog->id != 0) {
-      bcfx_Handle progHandle = handle_pack(HT_Program, i);
-      if (gl_isProgramDependsShader(glCtx, progHandle, shaderHandle)) {
-        glCtx->api.createProgram((RendererContext*)glCtx, progHandle, prog->vs, prog->fs);
-      }
-    }
-  }
 }
 
 /* }====================================================== */
 
 /*
 ** {======================================================
-** Shader Compile
+** Shader
 ** =======================================================
 */
 
@@ -914,21 +878,49 @@ bool shader_updateSource(RendererContextGL* glCtx, ShaderGL* shader, luaL_MemBuf
   return success == GL_TRUE;
 }
 
+/* }====================================================== */
+
+/*
+** {======================================================
+** Program
+** =======================================================
+*/
+
+static void _doAttachShader(RendererContextGL* glCtx, void* ud, bcfx_Handle shaderHandle) {
+  ProgramGL* prog = (ProgramGL*)ud;
+  ShaderGL* shader = &glCtx->shaders[handle_index(shaderHandle)];
+  GL_CHECK(glAttachShader(prog->id, shader->id));
+}
+static void prog_attachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle) {
+  _doAttachShader(glCtx, (void*)prog, handle);
+  shader_forEachDependence(glCtx, handle, true, _doAttachShader, (void*)prog);
+}
+
+static void _doDetachShader(RendererContextGL* glCtx, void* ud, bcfx_Handle shaderHandle) {
+  ProgramGL* prog = (ProgramGL*)ud;
+  ShaderGL* shader = &glCtx->shaders[handle_index(shaderHandle)];
+  GL_CHECK(glDetachShader(prog->id, shader->id));
+}
+static void prog_detachShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle handle) {
+  _doDetachShader(glCtx, (void*)prog, handle);
+  shader_forEachDependence(glCtx, handle, true, _doDetachShader, (void*)prog);
+}
+
 void prog_updateShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle vsh, bcfx_Handle fsh) {
   prog->vs = vsh;
   prog->fs = fsh;
   if (prog->vs != kInvalidHandle) {
-    gl_attachShader(glCtx, prog, prog->vs);
+    prog_attachShader(glCtx, prog, prog->vs);
   }
   if (prog->fs != kInvalidHandle) {
-    gl_attachShader(glCtx, prog, prog->fs);
+    prog_attachShader(glCtx, prog, prog->fs);
   }
   GL_CHECK(glLinkProgram(prog->id));
   if (prog->vs != kInvalidHandle) {
-    gl_detachShader(glCtx, prog, prog->vs);
+    prog_detachShader(glCtx, prog, prog->vs);
   }
   if (prog->fs != kInvalidHandle) {
-    gl_detachShader(glCtx, prog, prog->fs);
+    prog_detachShader(glCtx, prog, prog->fs);
   }
 
   GLint success;
@@ -942,6 +934,33 @@ void prog_updateShader(RendererContextGL* glCtx, ProgramGL* prog, bcfx_Handle vs
   } else {
     prog_collectAttributes(prog);
     prog_collectUniforms(prog, glCtx);
+  }
+}
+
+static bool prog_isDependOnShader(RendererContextGL* glCtx, bcfx_Handle progHandle, bcfx_Handle shaderHandle) {
+  ProgramGL* prog = &glCtx->programs[handle_index(progHandle)];
+  ShaderGL* shader = &glCtx->shaders[handle_index(shaderHandle)];
+  bcfx_Handle target = shader->type == ST_Vertex ? prog->vs : prog->fs;
+  return shader_isDependOnShader(glCtx, target, shaderHandle);
+}
+
+/* }====================================================== */
+
+/*
+** {======================================================
+** Global
+** =======================================================
+*/
+
+void glCtx_updateAllProgram(RendererContextGL* glCtx, bcfx_Handle shaderHandle) {
+  for (int i = 0; i < BCFX_CONFIG_MAX_PROGRAM; i++) {
+    ProgramGL* prog = &glCtx->programs[i];
+    if (prog->id != 0) {
+      bcfx_Handle progHandle = handle_pack(HT_Program, i);
+      if (prog_isDependOnShader(glCtx, progHandle, shaderHandle)) {
+        glCtx->api.updateProgram((RendererContext*)glCtx, progHandle, prog->vs, prog->fs);
+      }
+    }
   }
 }
 
