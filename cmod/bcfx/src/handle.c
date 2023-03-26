@@ -100,7 +100,7 @@ const char* handle_typeName(bcfx_EHandleType type) {
 }
 
 bcfx_Handle handle_pack(bcfx_EHandleType type, uint16_t index) {
-  return (bcfx_Handle)PACK_HANDLE(type, index);
+  return (bcfx_Handle)PACK_HANDLE(index, type);
 }
 
 void handle_forEach(HandleAlloc* allocator, OnEachHandle onEachHandle, void* ud) {
