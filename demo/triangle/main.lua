@@ -43,6 +43,7 @@ repl.init(libuv)
 repl.serverStartAsync()
 
 local loader = require("loader")
+loader.InitShaderInclude()
 loader.SetPathPrefix(require("libdir").dirname(arg[0]) .. "/")
 
 local triangle = require("triangle")

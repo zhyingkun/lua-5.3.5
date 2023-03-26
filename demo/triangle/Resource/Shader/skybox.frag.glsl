@@ -1,5 +1,3 @@
-#version 410 core
-
 in vec3 TexCoords;
 
 uniform samplerCube CubeMapSampler;

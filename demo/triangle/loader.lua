@@ -15,6 +15,30 @@ function loader.SetPathPrefix(prefix)
 	pathPrefix = prefix
 end
 
+local function GetAllFileRelativePathInFolder(folderAbsPath)
+	local pathList = setmetatable({}, table)
+	for path, isDir in require("dir").dirs(folderAbsPath) do
+		if not isDir then pathList:insert(path) end
+	end
+	return pathList
+end
+function loader.InitShaderInclude()
+	local folder = "Resource/Shader/Include"
+	local folderAbsPath = pathPrefix .. folder
+	local fileList = GetAllFileRelativePathInFolder(folderAbsPath)
+	--print(tostring(fileList, 1))
+
+	for _, fileRelativePath in ipairs(fileList) do
+		local path = folderAbsPath / fileRelativePath;
+		local type = path:sub(-5, -1) == ".vert" and shader_type.Vertex or shader_type.Fragment
+		local handle = bcfx.createIncludeShader(fs.readFile(path), type, fileRelativePath)
+		watch.onFileChanged(path, function()
+			bcfx.updateShader(handle, fs.readFile(path))
+			printerr("Include shader reload completed!")
+		end)
+	end
+end
+
 function loader.LoadProgram(name)
 	local vsPath = pathPrefix .. "Resource/Shader/" .. name .. ".vert.glsl"
 	local fsPath = pathPrefix .. "Resource/Shader/" .. name .. ".frag.glsl"
