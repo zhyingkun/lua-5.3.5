@@ -280,7 +280,7 @@ static const String uniformNames[] = {
     STRING_LITERAL("u_model"),
     STRING_LITERAL("u_modelView"),
     STRING_LITERAL("u_modelViewProj"),
-    STRING_LITERAL("u_alphaRef4"),
+    STRING_LITERAL("u_alphaRef"),
     STRING_LITERAL_NULL(),
 };
 static bcfx_EUniformBuiltin findUniformBuiltinEnum(const String* name) {
@@ -560,7 +560,7 @@ static const char* readPath(luaL_ByteBuffer* b, char pre, char del, size_t* sz) 
   const char* path = (const char*)pCh;
   while (pCh != NULL && *pCh != del) {
     char ch = *pCh;
-    if (isalpha(ch) || ch == '_' || ch == '/') {
+    if (isalpha(ch) || ch == '_' || ch == '/' || ch == '.') {
       pCh = luaBB_readbytes(b, 1);
     } else {
       return NULL; // unfinished path
@@ -598,8 +598,12 @@ static void parseOneLine(ParserContext* ctx) {
     case TK_INCLUDE: {
       size_t len = 0;
       const char* path = readPath(b, '<', '>', &len);
-      if (path != NULL && len != 0 && ctx->onFindIncludePath != NULL) {
-        ctx->onFindIncludePath(ctx->ud, path, len, ctx->currentLineNumber);
+      if (path != NULL && len != 0) {
+        if (ctx->onFindIncludePath != NULL) {
+          ctx->onFindIncludePath(ctx->ud, path, len, ctx->currentLineNumber);
+        }
+      } else {
+        // TODO: Print error for include path error
       }
     } break;
     case TK_HEADER: {
