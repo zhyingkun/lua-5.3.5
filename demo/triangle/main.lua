@@ -51,10 +51,11 @@ triangle.setup(window)
 -- colorcircle.setup(window)
 
 local input = require("input")
-input.ImGUIInit(window)
+input:init(window)
 local imgui = require("imgui")
-imgui.setup(window)
-
+local w, h = glfw.getWindowSize(window)
+local fbW, fbH = glfw.getFramebufferSize(window)
+imgui:init(input, w, h, fbW, fbH)
 
 require("watch").autoReload("triangle")
 -- require("watch").autoReload("colorcircle")
@@ -104,9 +105,9 @@ local function Tick()
 	while not glfw.windowShouldClose(window) do
 		libuv.runNoWait()
 
-		input.ImGUIPrePollEvent()
+		imgui:prePollEvent()
 		glfw.pollEvents() -- will fire user input, keyboard or mouse
-		input.ImGUIPostPollEvent()
+		imgui:postPollEvent()
 
 		local time = glfw.getTime()
 		local delta = time - lastTime
@@ -114,14 +115,7 @@ local function Tick()
 
 		triangle.tick(delta)
 		-- colorcircle.tick(delta)
-		imgui.tick(delta)
-
-		if bcfx.frameId() == 60 and false then
-			bcfx.requestCurrentFrameViewCapture(0)
-			bcfx.requestCurrentFrameViewCapture(1)
-			bcfx.requestCurrentFrameViewCapture(2)
-			bcfx.requestCurrentFrameViewCapture(255)
-		end
+		imgui:tick(delta)
 
 		bcfx.apiFrame()
 		collectgarbage()

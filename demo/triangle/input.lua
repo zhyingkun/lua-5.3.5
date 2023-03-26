@@ -1,88 +1,96 @@
 local glfw = require("glfw")
-local nk = require("nuklear")
+
+-- TODO: Joystick Monitor
+local input_type = {
+	Key = 0,
+	Char = 1,
+	MouseButton = 2,
+	CursorPos = 3,
+	CursorEnter = 4,
+	Scroll = 5,
+	Drop = 6,
+
+	WindowPos = 7,
+	WindowSize = 8,
+	WindowClose = 9,
+	WindowRefresh = 10,
+	WindowFocus = 11,
+	WindowIconify = 12,
+	WindowMaximize = 13,
+	WindowFramebufferSize = 14,
+	WindowContentScale = 15,
+}
+
+local InputSetCallbackMap = {
+	Key = glfw.setKeyCallback,
+	Char = glfw.setCharCallback,
+	MouseButton = glfw.setMouseButtonCallback,
+	CursorPos = glfw.setCursorPosCallback,
+	CursorEnter = glfw.setCursorEnterCallback,
+	Scroll = glfw.setScrollCallback,
+	Drop = glfw.setDropCallback,
+
+	WindowPos = glfw.setWindowPosCallback,
+	WindowSize = glfw.setWindowSizeCallback,
+	WindowClose = glfw.setWindowCloseCallback,
+	WindowRefresh = glfw.setWindowRefreshCallback,
+	WindowFocus = glfw.setWindowFocusCallback,
+	WindowIconify = glfw.setWindowIconifyCallback,
+	WindowMaximize = glfw.setWindowMaximizeCallback,
+	WindowFramebufferSize = glfw.setFramebufferSizeCallback,
+	WindowContentScale = glfw.setWindowContentScaleCallback,
+}
+
+-- ActionName => List of input_type
+local ActionInputTypeMap = {
+	ImGUIKey = { input_type.Key },
+	ImGUIChar = { input_type.Char },
+	ImGUIMouseButton = { input_type.MouseButton },
+	ImGUICursorPos = { input_type.CursorPos },
+	ImGUIScroll = { input_type.Scroll },
+	ImGUIWindowSize = { input_type.WindowSize },
+	ImGUIWindowFramebufferSize = { input_type.WindowFramebufferSize },
+}
+-- ActionName => List of Callback Function
+local ActionCallbackMap = {}
+local function MakeCombineCallback(actionList)
+	return function(window, ...)
+		for _, actionName in ipairs(actionList) do
+			for _, callback in ipairs(ActionCallbackMap[actionName] or {}) do
+				callback(...)
+			end
+		end
+	end
+end
+
+local function FindAllActionName(inputType)
+	local ActionNameList = {}
+	for ActionName, InputTypeList in pairs(ActionInputTypeMap) do
+		if table.indexOf(InputTypeList, inputType) then
+			table.insert(ActionNameList, ActionName)
+		end
+	end
+	return ActionNameList
+end
 
 local input = {}
 
-local bImGUI
-local unicodeCount
-local mainWin_
-local ButtonInputs
-
-function input.ImGUIInit(mainWin)
-	bImGUI = false
-	unicodeCount = 0
-	mainWin_ = mainWin
-	ButtonInputs = {}
-
-	glfw.setCursorPosCallback(mainWin, function(window, xpos, ypos)
-		if bImGUI then
-			-- print("motion:", xpos, ypos)
-			nk.inputMotion(math.floor(xpos), math.floor(ypos))
+function input:init(win)
+	for typeName, inputType in pairs(input_type) do
+		local actionList = FindAllActionName(inputType)
+		if next(actionList) then
+			InputSetCallbackMap[typeName](win, MakeCombineCallback(actionList))
 		end
-	 end)
-	 glfw.setKeyCallback(mainWin, function(window, key, scancode, action, mods)
-		if bImGUI then
-			nk.inputKey(KeyToNKKey(key), ActionToDown(action))
-		end
-	 end)
-	 glfw.setMouseButtonCallback(mainWin, function(window, button, action, mods)
-		if bImGUI then
-			-- print("MouseButton:", button, action, mods)
-			ButtonInputs[button] = action
-		end
-	 end)
-	 glfw.setScrollCallback(mainWin, function(window, xoffset, yoffset)
-		if bImGUI then
-			nk.inputScroll(nk.packVec2(xoffset, yoffset))
-		end
-	 end)
-	 glfw.setCharCallback(mainWin, function(window, codepoint)
-		if bImGUI then
-			unicodeCount = unicodeCount + 1
-			if unicodeCount >= nk.INPUT_MAX then
-				printerr("Error: too many input unicode in one frame, maybe low fps")
-			else
-				if codepoint < 128 then
-					nk.inputChar(codepoint)
-				else
-					nk.inputUnicode(codepoint)
-				end	
-			end
-		end
-	 end)	 
-end
-
-function input.ImGUIPrePollEvent()
-	nk.inputBegin()
-	bImGUI = true
-	unicodeCount = 0
-end
-
-local left = 0
-local right = 1
-local map = {
-	[left] = 0,
-	[right] = 2,
-}
-local function ToNKButton(btn)
-	return map[btn]
-end
-function input.ImGUIPostPollEvent()
-	bImGUI = false
-	unicodeCount = 0
-	local x, y = glfw.getCursorPos(mainWin_)
-	if ButtonInputs[left] and ButtonInputs[right] then
-		nk.inputButton(ToNKButton(leftAndRight), math.floor(x), math.floor(y), ButtonInputs[left] == 1)
-	elseif ButtonInputs[left] then
-		nk.inputButton(ToNKButton(left), math.floor(x), math.floor(y), ButtonInputs[left] == 1)
-	elseif ButtonInputs[right] then
-		nk.inputButton(ToNKButton(right), math.floor(x), math.floor(y), ButtonInputs[right] == 1)
 	end
-	-- if ButtonInputs[middle] then
-	-- 	nk.inputButton(ToNKButton(middle), x, y, ButtonInputs[middle]))
-	-- end
-	ButtonInputs = {}
-	nk.inputEnd()
+end
+
+function input:bindAction(actionName, callback)
+	local list = ActionCallbackMap[actionName]
+	if list then
+		list:insert(callback)
+	else
+		ActionCallbackMap[actionName] = setmetatable({ callback }, table)
+	end
 end
 
 return input

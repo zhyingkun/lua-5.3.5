@@ -1,4 +1,5 @@
 local glfw = require("glfw")
+local RELEASE = glfw.input_state.RELEASE
 
 local bcfx = require("bcfx")
 local vertex_attrib = bcfx.vertex_attrib
@@ -8,186 +9,148 @@ local vector = bcfx.math.vector
 local texture_wrap = bcfx.texture_wrap
 local texture_filter = bcfx.texture_filter
 local discard = bcfx.discard_flag_mask
-local texture_format = bcfx.texture_format
 local blend_equation = bcfx.blend_equation
 local blend_func = bcfx.blend_func
 
 local nk = require("nuklear")
-local font = nk.font
 local panel_flag = nk.panel_flag
 local text_alignment = nk.text_alignment
 local index_type = bcfx.index_type
-local clear_flag = bcfx.clear_flag_mask
 
+local ToNKMouseButton = {
+	[glfw.mouse_button.LEFT] = nk.mouse_button.LEFT,
+	[glfw.mouse_button.RIGHT] = nk.mouse_button.RIGHT,
+	[glfw.mouse_button.MIDDLE] = nk.mouse_button.MIDDLE,
+}
 
----@param nk nuklear
----@param pos NuklearVec2
----@param radius number
----@param icons nk_image[]
-local function piemenuInternal(pos, radius, icons)
-	local ret = -1
-	local activeItem = 1
+local imgui = {
+	bImGUI = false,
+	unicodeCount = 0,
 
-	local hide = nk.StyleItem()
-	local ptr = nk.getStylePtrTable()
-	nk.stylePushStyleItem(ptr.style_item.window.fixed_background, hide)
-	nk.stylePushColor(ptr.color.window.border_color, nk.rgbaToColor(0, 0, 0, 0))
-	nk.stylePushVec2(ptr.vec2.window.spacing, nk.packVec2(0, 0))
-	nk.stylePushVec2(ptr.vec2.window.padding, nk.packVec2(0, 0))
+	winSizeX = 0, winSizeY = 0,
+	fbSizeX = 0, fbSizeY = 0,
 
-	local tx, ty, tw, th = nk.unpackRect(nk.windowGetContentRegion())
-	local x, y = nk.unpackVec2(pos)
-	local bounds = nk.packRect(x - tx - radius, y - radius - ty, 2*radius, 2*radius)
-	if nk.popupBegin(nk.popup_type.STATIC, "piemenu", nk.panel_flag.NO_SCROLLBAR, bounds) then
-		nk.stylePushVec2(ptr.vec2.window.spacing, nk.packVec2(4, 4))
-		nk.stylePushVec2(ptr.vec2.window.padding, nk.packVec2(8, 8))
+	atlas = nil, imguiFont = nil, nullTex = nil,
 
-		local canvas = nk.windowGetCanvas()
-		local tx, ty, tw, th = nk.unpackRect(nk.windowGetContentRegion())
-		nk.layoutRowDynamic(th, 1)
-		local status, bounds = nk.widget()
-		local bx, by, bw, bh = nk.unpackRect(bounds)
-		nk.fillCircle(canvas, bounds, nk.rgbaToColor(50, 50, 50));
-		local step = 2 * math.pi / math.max(1, #icons)
-		local aMin = 0.0
-		local aMax = step
-		local centerX = bx + bw / 2.0
-		local centerY = by + bh / 2.0
-		local mx, my = nk.unpackVec2(nk.inputGetMousePos())
-		local dragX = mx - centerX
-		local dragY = my - centerY
-		local angle = math.atan(dragY, dragX)
-		if angle < 0.0 then angle = angle + 2 * math.pi end
-		activeItem = math.tointeger(angle // step) + 1
+	layout = nil, vertex = nil, index = nil,
+	textureUniform = nil, sampler = nil,
+	imguiShader = nil,
 
-		for idx, img in ipairs(icons) do
-			nk.fillArc(canvas, centerX, centerY, bw / 2.0, aMin, aMax, activeItem == idx and nk.rgbaToColor(45, 100, 255) or nk.rgbaToColor(60, 60, 60))
-			local rx = bw / 2.0
-			local ry = 0
-			local dx = rx * math.cos(aMin) - ry * math.sin(aMin)
-			local dy = rx * math.sin(aMin) + ry * math.cos(aMin)
-			nk.strokeLine(canvas, centerX, centerY, centerX + dx, centerY + dy, 1.0, nk.rgbaToColor(50, 50, 50))
+	transScaleMat = nil, viewMat = nil, projMat = nil,
+	renderState = nil,
+}
 
-			local a = aMin + (aMax - aMin) / 2.0
-			rx = bw / 2.5
-			ry = 0
-			local w = 30
-			local h = 30
-			local x = centerX + rx * math.cos(a) - ry * math.sin(a) - w / 2.0
-			local y = centerY + rx * math.sin(a) + ry * math.cos(a) - h / 2.0
-			local content = nk.packRect(x, y, w, h)
-			nk.drawImage(canvas, content, img, nk.rgbaToColor(255, 255, 255))
-
-			aMin = aMax
-			aMax = aMax + step
+function imgui:BindAction(input)
+	input:bindAction("ImGUIKey", function(key, scancode, action, mods)
+		if not self.bImGUI then return end
+	end)
+	input:bindAction("ImGUIChar", function(codepoint)
+		if not self.bImGUI then return end
+		self.unicodeCount = self.unicodeCount + 1
+		if self.unicodeCount >= nk.INPUT_MAX then
+			printerr("Error: too many input unicode in one frame, maybe low fps")
+		else
+			if codepoint < 128 then
+				nk.inputChar(codepoint)
+			else
+				nk.inputUnicode(codepoint)
+			end
 		end
-
-		-- inner circle
-		local x = bx + bw / 2.0 - bw / 4.0
-		local y = by + bh / 2.0 - bh / 4.0
-		local w = bw / 2.0
-		local h = bh / 2.0
-		local inner = nk.packRect(x, y ,w, h)
-		nk.fillCircle(canvas, inner, nk.rgbaToColor(45, 45, 45))
-
-		-- active icon content
-		local boundsW = w / 2.0
-		local boundsH = h / 2.0
-		local boundsX = x + w / 2.0 - boundsW / 2.0
-		local boundsY = y + h / 2.0 - boundsH / 2.0
-		local bounds = nk.packRect(boundsX, boundsY, boundsW, boundsH)
-		nk.drawImage(canvas, bounds, icons[activeItem], nk.rgbaToColor(255, 255, 255))
-
-		nk.layoutSpaceEnd()
-		if not nk.inputIsMouseDown(nk.mouse_button.RIGHT) then
-			nk.popupClose()
-			ret = activeItem
-		end
-		nk.stylePopVec2()
-		nk.stylePopVec2()
-	end
-	nk.popupEnd()
-
-	nk.stylePopVec2()
-	nk.stylePopVec2()
-	nk.stylePopColor()
-	nk.stylePopStyleItem()
-
-	return ret
+	end)
+	input:bindAction("ImGUIMouseButton", function(button, action, mods, xPos, yPos)
+		if not self.bImGUI then return end
+		local nkBtn = ToNKMouseButton[button]
+		if not nkBtn then return end
+		nk.inputButton(nkBtn, math.floor(xPos), math.floor(yPos), action ~= RELEASE)
+	end)
+	input:bindAction("ImGUICursorPos", function(xPos, yPos)
+		if not self.bImGUI then return end
+		nk.inputMotion(math.floor(xPos), math.floor(yPos))
+	end)
+	input:bindAction("ImGUIScroll", function(xOffset, yOffset)
+		if not self.bImGUI then return end
+		nk.inputScroll(nk.packVec2(xOffset, yOffset))
+	end)
+	input:bindAction("ImGUIWindowSize", function(width, height)
+		self.winSizeX, self.winSizeY = width, height
+		self:UpdateProjectionMatrix()
+	end)
+	input:bindAction("ImGUIWindowFramebufferSize", function(width, height)
+		self.fbSizeX, self.fbSizeY = width, height
+	end)
 end
 
-local imgui = {}
+function imgui:prePollEvent()
+	nk.inputBegin()
+	self.bImGUI = true
+	self.unicodeCount = 0
+end
+function imgui:postPollEvent()
+	nk.inputEnd()
+	self.bImGUI = false
+	self.unicodeCount = 0
+end
 
-local myFont
-local nullTex
+function imgui:UpdateProjectionMatrix()
+	-- projMat = bcfx.math.matrix.Mat4x4(
+	-- 	2/w, 0, 0, -1,
+	-- 	0, -2/h, 0, 1,
+	-- 	0, 0, -1, 0,
+	-- 	0, 0, 0, 1
+	-- )
+	local w, h = self.winSizeX, self.winSizeY
+	local orthogonalMat = graphics3d.orthogonal(
+			-w/2, w/2,-- left, right
+			-h/2, h/2,-- bottom, top
+			-1.0, 1.0-- zNear, zFar
+	)
+	self.projMat = self.transScaleMat * orthogonalMat
+end
 
-local vertexHandle
-local indexHandle
-local uniformTex
-local samplerHandle
-local imguiShader
-local projMat
-local state
+function imgui:init(input, winSzX, winSzY, fbSzX, fbSzY)
+	self.winSizeX, self.winSizeY = winSzX, winSzY
+	self.fbSizeX, self.fbSizeY = fbSzX, fbSzY
+	self:BindAction(input)
 
-local mainWin
-
-local atlas
-
-function imgui.setup(mainWin_)
-	mainWin = mainWin_
-	atlas = font.Atlas()
-	atlas:begin()
-	local cfg = font.Config()
-	myFont = atlas:addDefault(22, cfg)
-	local mb, width, height = atlas:bake(font.atlas_format.ALPHA8)
-	mb = bcfx.image.imageFlipVertical(mb, width, height)
-	local texParam = bcfx.utils.packTextureParameter({
+	self.atlas = nk.font.Atlas()
+	self.atlas:begin()
+	self.imguiFont = self.atlas:addDefault(22, nk.font.Config())
+	local mb, width, height = self.atlas:bake(nk.font.atlas_format.ALPHA8)
+	local imageHandle = bcfx.createTexture2D(bcfx.utils.packTextureParameter({
 		format = bcfx.texture_format.R8,
 		swizzleR = bcfx.texture_swizzle.One,
 		swizzleG = bcfx.texture_swizzle.One,
 		swizzleB = bcfx.texture_swizzle.One,
 		swizzleA = bcfx.texture_swizzle.Red,
-	})
-	local imageHandle = bcfx.createTexture2D(texParam, mb, width, height)
-	nullTex = atlas:endAtlas(imageHandle)
+	}), bcfx.image.imageFlipVertical(mb, width, height), width, height)
+	self.nullTex = self.atlas:endAtlas(imageHandle)
 
-
-	local flags = bcfx.utils.packSamplerFlags({
+	self.sampler = bcfx.createSampler(bcfx.utils.packSamplerFlags({
 		wrapU = texture_wrap.Repeat,
 		wrapV = texture_wrap.Repeat,
 		filterMin = texture_filter.Linear,
 		filterMag = texture_filter.Linear,
-	})
-	samplerHandle = bcfx.createSampler(flags)
-
-	local ctx = nk.Context(myFont)
-	nk.setContext(ctx)
+	}))
 
 	local layout = bcfx.VertexLayout()
 	layout:addAttrib(vertex_attrib.Position, 2, attrib_type.Float, false)
 	layout:addAttrib(vertex_attrib.TexCoord0, 2, attrib_type.Float, false)
 	layout:addAttrib(vertex_attrib.Color0, 4, attrib_type.Uint8, true)
+	self.layout = layout
 
 	-- TODO: Using dynamic size for this two Buffer
 	local vsize = 4 * 1024 * 1024
 	local esize = 4 * 1024 * 1024
-	vertexHandle = bcfx.createDynamicVertexBuffer(vsize, layout)
-	indexHandle = bcfx.createDynamicIndexBuffer(esize, index_type.Uint16)
+	self.vertex = bcfx.createDynamicVertexBuffer(vsize, layout)
+	self.index = bcfx.createDynamicIndexBuffer(esize, index_type.Uint16)
 
-	uniformTex = bcfx.createUniform("Texture", bcfx.uniform_type.Sampler2D)
-	imguiShader = require("loader").LoadProgram("imgui")
+	self.textureUniform = bcfx.createUniform("Texture", bcfx.uniform_type.Sampler2D)
+	self.imguiShader = require("loader").LoadProgram("imgui")
 
-	local viewMat = graphics3d.lookAt(
+	self.viewMat = graphics3d.lookAt(
 		vector.Vec3(0.0, 0.0, 3.0), -- eye
 		vector.Vec3(0.0, 0.0, 0.0), -- center
 		vector.Vec3(0.0, 1.0, 0.0) -- up
-	)
-	local w, h = glfw.getFramebufferSize(mainWin)
-	local w, h = glfw.getWindowSize(mainWin)
-	projMat = graphics3d.orthogonal(
-		-w/2, w/2,-- left, right
-		-h/2, h/2,-- bottom, top
-		-1.0, 1.0-- zNear, zFar
 	)
 	local transMat = graphics3d.translate(
 		vector.Vec3(-1.0, 1.0, 0.0)
@@ -196,16 +159,10 @@ function imgui.setup(mainWin_)
 		vector.Vec3(1.0, -1.0, 0.0)
 	)
 	-- transMat and scaleMat for convert window coordinate to OpenGL ClipSpace
+	self.transScaleMat = transMat * scaleMat
+	self:UpdateProjectionMatrix()
 
-	-- projMat = bcfx.math.matrix.Mat4x4(
-	-- 	2/w, 0, 0, -1,
-	-- 	0, -2/h, 0, 1,
-	-- 	0, 0, -1, 0,
-	-- 	0, 0, 0, 1
-	-- )
-	projMat = transMat * scaleMat * projMat
-
-	state = bcfx.utils.packRenderState({
+	self.renderState = bcfx.utils.packRenderState({
 		enableCull = false,
 		enableDepth = false,
 		enableBlend = true,
@@ -217,171 +174,49 @@ function imgui.setup(mainWin_)
 		dstAlpha = blend_func.OneMinusSrcAlpha,
 	})
 
+	nk.setContext(nk.Context(self.imguiFont))
 	-- bcfx.setViewDebug(255, bcfx.debug.WIREFRAME)
-	_img_ = nk.Image(_imgRT_)
 end
 
-local prog = 40
-local slider = 10
-
-function imgui.tick(delta)
-	nk.styleSetFont(myFont)
-	---[[
-	if nk.begin("Basic Demo", nk.packRect(0, 0, 400, 300), 
-		panel_flag.BORDER  |panel_flag.MOVABLE |panel_flag.TITLE|
-		panel_flag.SCALABLE|panel_flag.CLOSABLE|panel_flag.MINIMIZABLE)
-	then
-		local wStatus = glfw.getKey(mainWin, glfw.keyboard.W)
-		local upStatus = glfw.getKey(mainWin, glfw.keyboard.UP)
-		local str = "W: " .. tostring(wStatus) .. "    UP: " .. tostring(upStatus)
-		nk.layoutRowDynamic(50, 1)
-		nk.textWidget(str, text_alignment.LEFT)
+function imgui:tick(delta)
+	nk.styleSetFont(self.imguiFont)
+	nk.stylePushStyleItem(
+			nk.getStylePtrTable().style_item.window.fixed_background,
+			nk.StyleItem(nk.rgbaToColor(0, 0, 0, 0))
+	)
+	if nk.begin("You Should not see this Title",
+			nk.packRect(0, 0, self.winSizeX, self.winSizeY),
+			panel_flag.NO_SCROLLBAR
+	) then
+		-- Insert ImGUI code here start
 		nk.layoutRowDynamic(20, 1)
-		nk.textWidget("1234567890", text_alignment.RIGHT)
-		nk.layoutRowStatic(50, 50, 2)
-		if nk.buttonImageText(_img_, "Button", text_alignment.LEFT) then
-			print("OnButtonClicked")
-			_OpenPopup_ = not _OpenPopup_
+		nk.textWidget("1234567890", text_alignment.LEFT)
+		nk.layoutRowStatic(50, 100, 1)
+		if nk.buttonText("Button") then
+			print("Button Clicked")
 		end
-		if nk.buttonImage(_img_) then
-		end
-		if _OpenPopup_ then
-			if nk.popupBegin(nk.popup_type.STATIC, "Image Popup", 0, nk.packRect(265, 0, 280, 220)) then
-				nk.layoutRowStatic(82, 82, 3);
-				-- nk.textWidget("ABCDEFGHIJKLMNOPQRSTUVWXYZ", text_alignment.LEFT)
-				for i = 1, 9 do
-					if nk.buttonImage(_img_) then
-						_OpenPopup_ = false
-						nk.popupClose()
-					end
-				end
-				-- if nk.buttonImageText(_img_, "Button", text_alignment.LEFT) then
-				-- 	_OpenPopup_ = false
-				-- 	nk.popupClose()
-				-- end
-				nk.popupEnd()
-			end
-		end
-		nk.layoutRowDynamic(110, 1)
-		local ret, begin, count = nk.listViewBegin("zykTest", panel_flag.BORDER, 25, 100)
-		if ret then
-			nk.layoutRowDynamic(25, 1)
-			for i = 1, count, 1 do
-				nk.textWidget("Test" .. tostring(begin + i), text_alignment.CENTERED);
-			end
-			nk.listViewEnd();
-		end
-		nk.layoutRowStatic(120, 120, 1)
-		nk.imageWidget(_img_)
-
-		nk.layoutRowStatic(30, 160, 1)
-		local bounds = nk.widgetBounds()
-		nk.textWidget("Right click me for menu", text_alignment.LEFT)
-
-		if nk.contextualBegin(0, nk.packVec2(200, 600), bounds) then
-			nk.layoutRowDynamic(25, 1)
-			-- nk.checkboxText("Menu", &show_menu)
-			-- nk_progress(ctx, &prog, 100, NK_MODIFIABLE);
-			-- nk_slider_int(ctx, 0, &slider, 16, 1);
-			nk.textWidget("Contextual", text_alignment.LEFT)
-
-			if nk.contextualItemText("About", text_alignment.CENTERED) then
-				show_app_about = true
-			end
-			-- nk.selectable_label(ctx, select[0]?"Unselect":"Select", NK_TEXT_LEFT, &select[0]);
-			-- nk_selectable_label(ctx, select[1]?"Unselect":"Select", NK_TEXT_LEFT, &select[1]);
-			-- nk_selectable_label(ctx, select[2]?"Unselect":"Select", NK_TEXT_LEFT, &select[2]);
-			-- nk_selectable_label(ctx, select[3]?"Unselect":"Select", NK_TEXT_LEFT, &select[3]);
-			nk.contextualEnd();
-		end
-
-		nk.layoutRowStatic(30, 300, 1);
-		local bounds = nk.widgetBounds()
-		nk.textWidget("Hover me for tooltip", text_alignment.LEFT);
-		if nk.inputIsMouseHoveringRect(bounds) then
-			nk.tooltip("This is a tooltip")
-		end
-	end
-	nk.endWindow()
-	if nk.begin("Second Demo", nk.packRect(0, 0, 400, 300), 
-		panel_flag.BORDER  |panel_flag.MOVABLE |panel_flag.TITLE|
-		panel_flag.SCALABLE|panel_flag.CLOSABLE|panel_flag.MINIMIZABLE)
-	then
-		if nk.inputIsMouseClickDownInRect(nk.mouse_button.RIGHT, nk.windowGetBounds(), true) then
-			piemenuPos = nk.inputGetMousePos()
-			piemenuActive = true
-		end
-		if piemenuActive then
-			--local ret = nk.piemenu(piemenuPos, 140, {
-			--	_img_, _img_, _img_, _img_, _img_, _img_,
-			--})
-			local ret = piemenuInternal(piemenuPos, 140, {
-				_img_, _img_, _img_, _img_, _img_, _img_,
-			})
-			if ret == -2 then piemenuActive = false end
-			if ret > 0 then
-				print("piemenu selected:", ret)
-				piemenuActive = false;
-			end
-		end
-	end
-	nk.endWindow()
-	--]]
-
-	nk.stylePushStyleItem(nk.getStylePtrTable().style_item.window.fixed_background, nk.StyleItem(nk.rgbaToColor(128, 128, 128, 0)))
-	if nk.begin("Transparent Background Demo", nk.packRect(0, 0, 400, 300),
-		panel_flag.BORDER  |panel_flag.MOVABLE |panel_flag.TITLE|
-		panel_flag.SCALABLE|panel_flag.CLOSABLE|panel_flag.MINIMIZABLE)
-	then
+		-- Insert ImGUI code here end
 	end
 	nk.endWindow()
 	nk.stylePopStyleItem()
 
-	local vmb, imb = nk.convertAsMemBuffer(nullTex, bcfx.frameId())
-	bcfx.updateDynamicBuffer(vertexHandle, 0, vmb)
-	bcfx.updateDynamicBuffer(indexHandle, 0, imb)
+	local vmb, imb = nk.convertAsMemBuffer(self.nullTex, bcfx.frameId())
+	bcfx.updateDynamicBuffer(self.vertex, 0, vmb)
+	bcfx.updateDynamicBuffer(self.index, 0, imb)
 
-	bcfx.setVertexBuffer(0, vertexHandle)
-	bcfx.setState(state, bcfx.color.black)
-	bcfx.setViewTransform(255, viewMat, projMat)
-	local pixelWidth, pixelHeight = glfw.getFramebufferSize(mainWin)
-	bcfx.setViewRect(255, 0, 0, pixelWidth, pixelHeight)
+	bcfx.setVertexBuffer(0, self.vertex)
+	bcfx.setState(self.renderState, bcfx.color.black)
+	bcfx.setViewTransform(255, self.viewMat, self.projMat)
+	bcfx.setViewRect(255, 0, 0, self.fbSizeX, self.fbSizeY)
 
-	local screenWidth, screenHeight = glfw.getWindowSize(mainWin)
-
-	nk.drawForEach(screenWidth, screenHeight, pixelWidth, pixelHeight, function(offset, count, texture, x, y, w, h)
-		bcfx.setIndexBuffer(indexHandle, offset, count)
-		bcfx.setTexture(0, uniformTex, texture, samplerHandle)
+	nk.drawForEach(self.winSizeX, self.winSizeY, self.fbSizeX, self.fbSizeY, function(offset, count, texture, x, y, w, h)
+		bcfx.setIndexBuffer(self.index, offset, count)
+		bcfx.setTexture(0, self.textureUniform, texture, self.sampler)
 		bcfx.setScissor(x, y, w, h) -- in pixel coordinate
-		bcfx.submit(255, imguiShader, discard.IndexBuffer | discard.Bindings)
+		bcfx.submit(255, self.imguiShader, discard.IndexBuffer | discard.Bindings)
 	end)
-	--[[
-	bcfx.setIndexBuffer(indexHandle, 0, 324)
-	bcfx.setTexture(0, uniformTex, imageHandle, flags)
-	bcfx.submit(255, imguiShader, discard.INDEX_BUFFER | discard.BINDINGS)
-	--]]
 
 	nk.clear()
-end
-
-
-local piemenuPos
-local piemenuActive
----@param nk nuklear
----@param radius number
----@param icons nk_image[]
-local function piemenu(nk, radius, icons)
-	if nk.inputIsMouseDown(nk.mouse_button.RIGHT) then
-		piemenuPos = 0 -- TODO: Get Mouse Position
-		piemenuActive = true
-	end
-	local ret = 1
-	if piemenuActive then
-		local ret = piemenuInternal(nk. piemenuPos, radius, icons)
-		if ret ~= -1 then piemenuActive = false end
-		if ret <= 0 then ret = 1 end
-	end
-	return ret
 end
 
 return imgui
