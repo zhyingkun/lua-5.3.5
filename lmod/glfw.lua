@@ -209,7 +209,7 @@ function glfw.setCharModsCallback(window, callback)
 	libglfw.SetCharModsCallback(window, callback)
 end
 ---@param window GLFWwindow
----@param callback fun(window:GLFWwindow, button:glfw_mouse_button, action:glfw_input_state, mods:glfw_modifier_key):void
+---@param callback fun(window:GLFWwindow, button:glfw_mouse_button, action:glfw_input_state, mods:glfw_modifier_key, x:number, y:number):void
 function glfw.setMouseButtonCallback(window, callback)
 	libglfw.SetMouseButtonCallback(window, callback)
 end

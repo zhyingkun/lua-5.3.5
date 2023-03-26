@@ -156,7 +156,11 @@ void GLFWRAP_CALLBACK(SetMouseButtonCallback)(GLFWwindow* window, int button, in
   lua_pushinteger(L, button);
   lua_pushinteger(L, action);
   lua_pushinteger(L, mods);
-  CALL_LUA_FUNCTION(L, 4);
+  double x, y;
+  glfwGetCursorPos(window, &x, &y);
+  lua_pushnumber(L, (lua_Number)x);
+  lua_pushnumber(L, (lua_Number)y);
+  CALL_LUA_FUNCTION(L, 6);
   WINDOW_CALLBACK_END()
 }
 static int GLFWRAP_FUNCTION(SetMouseButtonCallback)(lua_State* L) {
