@@ -254,7 +254,7 @@ static int FS_FUNCTION(closeDir)(lua_State* L) {
 }
 
 #define PUSH_DIR_NAME_TYPE(L, err, dirent) \
-  if (err == UVWRAP_OK) { \
+  if (err == 1) { \
     lua_pushstring(L, dirent->name); \
     lua_pushinteger(L, dirent->type); \
   } else { \
@@ -265,15 +265,14 @@ static void FS_CALLBACK(readDir)(uv_fs_t* req) {
   lua_State* L;
   PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
 
-  PUSH_REQ_PARAM_CLEAN(L, req, 1);
-  uv_dirent_t* dirents = (uv_dirent_t*)lua_touserdata(L, -1);
+  uv_dirent_t* dirents = (uv_dirent_t*)uv_fs_get_ptr(req);
   ssize_t err = uv_fs_get_result(req);
   PUSH_DIR_NAME_TYPE(L, err, dirents);
-  (void)MEMORY_FUNCTION(free_buf)(dirents);
   lua_remove(L, -3);
 
   lua_pushinteger(L, err);
   FREE_REQ(req);
+  (void)MEMORY_FUNCTION(free_buf)(dirents);
   CALL_LUA_FUNCTION(L, 3);
 }
 static int FS_FUNCTION(readDir)(lua_State* L) {
@@ -283,30 +282,43 @@ static int FS_FUNCTION(readDir)(lua_State* L) {
 
   uv_fs_t* req = ALLOCA_REQ();
 
-  uv_dirent_t* dirents = (uv_dirent_t*)MEMORY_FUNCTION(malloc_buf)(sizeof(uv_dirent_t));
+  uv_dirent_t stackDirent;
+  uv_dirent_t* dirents;
+  if (async) {
+    dirents = (uv_dirent_t*)MEMORY_FUNCTION(malloc_buf)(sizeof(uv_dirent_t));
+  } else {
+    dirents = &stackDirent;
+  }
   dir->dirents = dirents;
   dir->nentries = 1;
   int err = uv_fs_readdir(loop, req, dir, async ? FS_CALLBACK(readDir) : NULL);
-  if (async && err == UVWRAP_OK) {
+  if (async) {
+    if (err != UVWRAP_OK) {
+      (void)MEMORY_FUNCTION(free_buf)(dirents);
+    }
+    CHECK_ERROR(L, err);
     HOLD_REQ_CALLBACK(L, req, 3);
-    lua_pushlightuserdata(L, (void*)dirents);
-    HOLD_REQ_PARAM(L, req, 1, -1);
     return 0;
   }
   if (!async) {
     PUSH_DIR_NAME_TYPE(L, err, dirents);
   }
-  (void)MEMORY_FUNCTION(free_buf)(dirents);
   RETURN_RESULT(2);
 }
 
 static void push_ents_in_table(lua_State* L, uv_fs_t* req) {
   if (uv_fs_get_result(req) > 0) {
     uv_dirent_t ent;
+    int err;
     lua_createtable(L, 0, (int)uv_fs_get_result(req));
-    while (uv_fs_scandir_next(req, &ent) == 0) {
+    while (err = uv_fs_scandir_next(req, &ent), err == 0) {
       lua_pushstring(L, ent.name);
       lua_pushinteger(L, ent.type);
+      lua_rawset(L, -3);
+    }
+    if (err != UV_EOF) {
+      lua_pushstring(L, "_error_");
+      lua_pushinteger(L, err);
       lua_rawset(L, -3);
     }
   } else {
@@ -326,7 +338,7 @@ static void FS_CALLBACK(scanDir)(uv_fs_t* req) {
 static int FS_FUNCTION(scanDir)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
   const char* path = luaL_checkstring(L, 2);
-  int flags = (int)luaL_checkinteger(L, 3);
+  int flags = (int)luaL_optinteger(L, 3, 0);
   int async = CHECK_IS_ASYNC(L, 4);
 
   uv_fs_t* req = ALLOCA_REQ();
