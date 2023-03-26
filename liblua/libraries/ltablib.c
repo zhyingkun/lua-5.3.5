@@ -17,6 +17,7 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
+#include "luautil.h"
 
 /*
 ** Operations that an object must define to mimic a table
@@ -695,5 +696,6 @@ LUAMOD_API int luaopen_table(lua_State* L) {
   lua_getfield(L, -1, "unpack");
   lua_setglobal(L, "unpack");
 #endif
+  METATABLE_INDEX_TO_SELF(-1);
   return 1;
 }
