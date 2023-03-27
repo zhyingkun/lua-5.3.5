@@ -18,6 +18,7 @@ const char* err_EnumName(GLenum _enum);
       printf_err("================================================================\n"); \
       printf_err(#call "; GL error 0x%x: %s\n", err, err_EnumName(err)); \
       printf_err("File: %s, Line: %d\n", __FILE__, __LINE__); \
+      exit(-1); \
     } \
   }
 #else
