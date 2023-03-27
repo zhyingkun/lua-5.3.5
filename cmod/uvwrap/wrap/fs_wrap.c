@@ -306,51 +306,204 @@ static int FS_FUNCTION(readDir)(lua_State* L) {
   RETURN_RESULT(2);
 }
 
-static void push_ents_in_table(lua_State* L, uv_fs_t* req) {
-  if (uv_fs_get_result(req) > 0) {
-    uv_dirent_t ent;
-    int err;
-    lua_createtable(L, 0, (int)uv_fs_get_result(req));
-    while (err = uv_fs_scandir_next(req, &ent), err == 0) {
-      lua_pushstring(L, ent.name);
-      lua_pushinteger(L, ent.type);
-      lua_rawset(L, -3);
-    }
-    if (err != UV_EOF) {
-      lua_pushstring(L, "_error_");
-      lua_pushinteger(L, err);
-      lua_rawset(L, -3);
-    }
-  } else {
-    lua_pushnil(L);
+typedef struct {
+  uv_work_t req[1];
+  uv_fs_t* head;
+  uv_fs_t* last;
+  const char* filePath;
+  size_t pathLen;
+  int flags;
+  int err;
+  bool recursive;
+  bool async;
+  size_t bufferLen;
+  char pathBuffer[PATH_MAX];
+} ScanDirParam;
+static size_t _appendSubDirName(ScanDirParam* param, const char* name) {
+  size_t len = param->bufferLen;
+  param->pathBuffer[len++] = '/';
+  const size_t lenEnt = strlen(name);
+  strncpy(param->pathBuffer + len, name, lenEnt);
+  len += lenEnt;
+  param->pathBuffer[len] = '\0';
+  return len;
+}
+static void scandir_doInternal(ScanDirParam* param);
+static void _scanDirRecursive(void* ud, uv_dirent_t* ent) {
+  ScanDirParam* param = (ScanDirParam*)ud;
+  assert(param->recursive);
+  if (ent->type == UV_DIRENT_DIR) {
+    const size_t cache = param->bufferLen;
+    param->bufferLen = _appendSubDirName(param, ent->name);
+    scandir_doInternal(param);
+    param->bufferLen = cache;
   }
 }
-static void FS_CALLBACK(scanDir)(uv_fs_t* req) {
-  lua_State* L;
-  PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
-
-  push_ents_in_table(L, req);
-
-  lua_pushinteger(L, uv_fs_get_result(req));
-  FREE_REQ(req);
-  CALL_LUA_FUNCTION(L, 2);
+static uv_fs_t* scandir_newRequest(ScanDirParam* param) {
+  uv_fs_t* reqScan = ALLOCA_REQ();
+  reqScan->data = NULL;
+  if (param->head == NULL) {
+    param->head = param->last = reqScan;
+  } else {
+    param->last->data = reqScan;
+    param->last = reqScan;
+  }
+  return reqScan;
+}
+static void scandir_doInternal(ScanDirParam* param) {
+  uv_fs_t* reqScan = scandir_newRequest(param);
+  param->err = uv_fs_scandir(param->req->loop, reqScan, param->filePath, param->flags, NULL);
+  reqScan->path = NULL;
+  if (param->err > 0) {
+    if (param->recursive) {
+      if (param->bufferLen > param->pathLen) {
+        reqScan->path = strdup(param->filePath + param->pathLen + 1);
+      }
+      uv_fs_scandir_foreach(reqScan, _scanDirRecursive, param);
+    }
+  } else if (param->err < 0) {
+    fprintf(stderr, "libuv fs scandir error: %s, %s", param->filePath, uv_strerror(param->err));
+  }
+}
+static void worker_scanDir(uv_work_t* req) {
+  ScanDirParam* param = (ScanDirParam*)uv_req_get_data((uv_req_t*)req);
+  scandir_doInternal(param);
+}
+static void _calculateCount(void* ud, uv_dirent_t* ent) {
+  if (ent->type != UV_DIRENT_DIR) {
+    (*(int*)ud)++;
+  }
+}
+static void _setScanDirToTable(lua_State* L, uv_fs_t* req, const char* prefix, int idx, bool onlyFile) {
+  uv_dirent_t ent;
+  int err;
+  while (err = uv_fs_scandir_next(req, &ent), err == 0) {
+    if (onlyFile && ent.type == UV_DIRENT_DIR) {
+      continue;
+    }
+    if (prefix != NULL) {
+      lua_pushfstring(L, "%s/%s", prefix, ent.name);
+    } else {
+      lua_pushstring(L, ent.name);
+    }
+    lua_pushinteger(L, ent.type);
+    lua_rawset(L, idx);
+  }
+  if (err != UV_EOF) {
+    lua_pushstring(L, "_error_code_");
+    lua_pushinteger(L, err);
+    lua_rawset(L, idx);
+  }
+}
+static int scandir_pushResult(ScanDirParam* param, lua_State* L) {
+  int count = 0;
+  for (uv_fs_t* req = param->head; req != NULL; req = (uv_fs_t*)req->data) {
+    uv_fs_scandir_foreach(req, _calculateCount, &count);
+  }
+  lua_createtable(L, 0, count);
+  const int idx = lua_gettop(L);
+  for (uv_fs_t* req = param->head; req != NULL; req = (uv_fs_t*)req->data) {
+    _setScanDirToTable(L, req, req->path, idx, param->recursive);
+  }
+  for (uv_fs_t* req = param->head; req != NULL;) {
+    uv_fs_t* next = (uv_fs_t*)req->data;
+    free((void*)req->path);
+    uv_fs_req_cleanup(req);
+    FREE_REQ(req);
+    req = next;
+  }
+  return 1;
+}
+static ScanDirParam* scandir_createParam(uv_loop_t* loop, const char* filePath, size_t len, bool recursive, ScanDirParam* stackParam) {
+  const bool async = stackParam == NULL;
+  ScanDirParam* param = async ? (ScanDirParam*)MEMORY_FUNCTION(malloc)(sizeof(ScanDirParam)) : stackParam;
+  param->async = async;
+  param->req->loop = loop;
+  uv_req_set_data((uv_req_t*)param->req, (void*)param);
+  param->head = param->last = NULL;
+  param->flags = 0;
+  param->err = 0;
+  param->recursive = recursive;
+  if (recursive || async) {
+    if (filePath[len - 1] == '/') {
+      len--;
+    }
+    strncpy(param->pathBuffer, filePath, len);
+    param->pathBuffer[len] = '\0';
+    param->bufferLen = len;
+    param->filePath = param->pathBuffer;
+  } else {
+    param->bufferLen = 0;
+    param->filePath = filePath;
+  }
+  param->pathLen = len;
+  return param;
+}
+static void scandir_destroyParam(ScanDirParam* param) {
+  if (param->async) {
+    (void)MEMORY_FUNCTION(free)((void*)param);
+  }
 }
 static int FS_FUNCTION(scanDir)(lua_State* L) {
   uv_loop_t* loop = luaL_checkuvloop(L, 1);
-  const char* path = luaL_checkstring(L, 2);
-  int flags = (int)luaL_optinteger(L, 3, 0);
-  int async = CHECK_IS_ASYNC(L, 4);
+  size_t len;
+  const char* path = luaL_checklstring(L, 2, &len);
+  const bool recursive = luaL_optboolean(L, 3, false);
 
-  uv_fs_t* req = ALLOCA_REQ();
-  int err = uv_fs_scandir(loop, req, path, flags, async ? FS_CALLBACK(scanDir) : NULL); // path will be duplicate in libuv api
-  if (async && err == UVWRAP_OK) {
-    HOLD_REQ_CALLBACK(L, req, 4);
-    return 0;
-  }
-  if (!async) {
-    push_ents_in_table(L, req);
-  }
-  RETURN_RESULT(1);
+  ScanDirParam stackParam;
+  ScanDirParam* param = scandir_createParam(loop, path, len, recursive, &stackParam);
+  worker_scanDir(param->req);
+  const int ret = scandir_pushResult(param, L);
+  scandir_destroyParam(param);
+  return ret;
+}
+static void FS_CALLBACK(scanDirAsync)(uv_work_t* req, int status) {
+  lua_State* L;
+  PUSH_REQ_CALLBACK_CLEAN_FOR_INVOKE(L, req);
+
+  ScanDirParam* param = (ScanDirParam*)uv_req_get_data((uv_req_t*)req);
+  const int n = scandir_pushResult(param, L);
+  scandir_destroyParam(param);
+
+  CALL_LUA_FUNCTION(L, n);
+}
+static int FS_FUNCTION(scanDirAsync)(lua_State* L) {
+  uv_loop_t* loop = luaL_checkuvloop(L, 1);
+  size_t len;
+  const char* path = luaL_checklstring(L, 2, &len);
+  const bool recursive = luaL_optboolean(L, 3, false);
+  luaL_checkany(L, 4);
+
+  ScanDirParam* param = scandir_createParam(loop, path, len, recursive, NULL);
+
+  const int err = uv_queue_work(loop, param->req, worker_scanDir, FS_CALLBACK(scanDirAsync));
+  CHECK_ERROR(L, err);
+  HOLD_REQ_CALLBACK(L, param->req, 4);
+  return 0;
+}
+static void FS_CALLBACK(scanDirAsyncWait)(uv_work_t* req, int status) {
+  lua_State* L = GET_MAIN_LUA_STATE();
+  PUSH_REQ_PARAM_CLEAN(L, req, 0); /* must unhold before resume */
+  lua_State* co = lua_tothread(L, -1);
+  ScanDirParam* param = (ScanDirParam*)uv_req_get_data((uv_req_t*)req);
+  const int n = scandir_pushResult(param, L);
+  scandir_destroyParam(param);
+  (void)status;
+  REQ_ASYNC_WAIT_RESUME(FileSystem, readFileAsyncWait, n);
+}
+static int FS_FUNCTION(scanDirAsyncWait)(lua_State* co) {
+  uv_loop_t* loop = luaL_checkuvloop(co, 1);
+  size_t len;
+  const char* path = luaL_checklstring(co, 2, &len);
+  const bool recursive = luaL_optboolean(co, 3, false);
+
+  ScanDirParam* param = scandir_createParam(loop, path, len, recursive, NULL);
+  uv_work_t* req = param->req;
+
+  const int err = uv_queue_work(loop, req, worker_scanDir, FS_CALLBACK(scanDirAsyncWait));
+  CHECK_ERROR(co, err);
+  HOLD_COROUTINE_FOR_REQ(co);
+  return lua_yield(co, 0);
 }
 
 #define PUSH_STAT_STRUCT(L, err, req) \
@@ -1060,6 +1213,8 @@ static const luaL_Reg FS_FUNCTION(funcs)[] = {
     EMPLACE_FS_FUNCTION(closeDir),
     EMPLACE_FS_FUNCTION(readDir),
     EMPLACE_FS_FUNCTION(scanDir),
+    EMPLACE_FS_FUNCTION(scanDirAsync),
+    EMPLACE_FS_FUNCTION(scanDirAsyncWait),
     EMPLACE_FS_FUNCTION(stat),
     EMPLACE_FS_FUNCTION(fdStat),
     EMPLACE_FS_FUNCTION(linkStat),
