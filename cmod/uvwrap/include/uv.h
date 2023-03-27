@@ -820,10 +820,10 @@ UV_EXTERN int uv_getaddrinfo(uv_loop_t* loop,
 UV_EXTERN void uv_freeaddrinfo(struct addrinfo* ai);
 
 /*
-* uv_getnameinfo_t is a subclass of uv_req_t.
-*
-* Request object for uv_getnameinfo.
-*/
+ * uv_getnameinfo_t is a subclass of uv_req_t.
+ *
+ * Request object for uv_getnameinfo.
+ */
 struct uv_getnameinfo_s {
   UV_REQ_FIELDS
   /* read-only */
@@ -1297,6 +1297,10 @@ UV_EXTERN int uv_fs_scandir(uv_loop_t* loop,
                             const char* path,
                             int flags,
                             uv_fs_cb cb);
+typedef void (*uv_fs_scandir_cb)(void* ud, uv_dirent_t* ent);
+UV_EXTERN void uv_fs_scandir_foreach(uv_fs_t* req,
+                                     uv_fs_scandir_cb cb,
+                                     void* ud);
 UV_EXTERN int uv_fs_scandir_next(uv_fs_t* req,
                                  uv_dirent_t* ent);
 UV_EXTERN int uv_fs_opendir(uv_loop_t* loop,

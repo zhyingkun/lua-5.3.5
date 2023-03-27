@@ -567,6 +567,24 @@ void uv__fs_scandir_cleanup(uv_fs_t* req) {
   req->ptr = NULL;
 }
 
+void uv_fs_scandir_foreach(uv_fs_t* req, uv_fs_scandir_cb cb, void* ud) {
+  /* Check to see if req passed */
+  if (req->result < 0)
+    return;
+  /* Ptr will be null if req was canceled or no files found */
+  if (!req->ptr)
+    return;
+
+  uv__dirent_t** dents = req->ptr;
+  for (ssize_t i = 0; i < req->result; i++) {
+    uv__dirent_t* dent = dents[i];
+    uv_dirent_t ent;
+    ent.name = dent->d_name;
+    ent.type = uv__fs_get_dirent_type(dent);
+    cb(ud, &ent);
+  }
+}
+
 int uv_fs_scandir_next(uv_fs_t* req, uv_dirent_t* ent) {
   uv__dirent_t** dents;
   uv__dirent_t* dent;
