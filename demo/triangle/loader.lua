@@ -15,27 +15,26 @@ function loader.SetPathPrefix(prefix)
 	pathPrefix = prefix
 end
 
-local function GetAllFileRelativePathInFolder(folderAbsPath)
-	local pathList = setmetatable({}, table)
-	for path, isDir in require("dir").dirs(folderAbsPath) do
-		if not isDir then pathList:insert(path) end
-	end
-	return pathList
-end
+local SuffixToShaderType = {
+	[".vert"] = shader_type.Vertex,
+	[".frag"] = shader_type.Fragment,
+}
 function loader.InitShaderInclude()
 	local folder = "Resource/Shader/Include"
 	local folderAbsPath = pathPrefix .. folder
-	local fileList = GetAllFileRelativePathInFolder(folderAbsPath)
-	--print(tostring(fileList, 1))
-
-	for _, fileRelativePath in ipairs(fileList) do
+	local fileMap = fs.scanDir(folderAbsPath, true)
+	-- print(tostring(fileMap, 1))
+do return end
+	for fileRelativePath in pairs(fileMap) do
 		local path = folderAbsPath / fileRelativePath;
-		local type = path:sub(-5, -1) == ".vert" and shader_type.Vertex or shader_type.Fragment
-		local handle = bcfx.createIncludeShader(fs.readFile(path), type, fileRelativePath)
-		watch.onFileChanged(path, function()
-			bcfx.updateShader(handle, fs.readFile(path))
-			printerr("Include shader reload completed!")
-		end)
+		local shaderType = SuffixToShaderType[path:sub(-5, -1)]
+		if shaderType then
+			local handle = bcfx.createIncludeShader(fs.readFile(path), shaderType, fileRelativePath)
+			watch.onFileChanged(path, function()
+				bcfx.updateShader(handle, fs.readFile(path))
+				printerr("Include shader reload completed!")
+			end)
+		end
 	end
 end
 
