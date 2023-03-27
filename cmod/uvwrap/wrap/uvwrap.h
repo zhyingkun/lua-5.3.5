@@ -259,11 +259,9 @@ extern lua_State* staticL;
 // For AsyncWait, no need to hold parameter, just hold the coroutine
 // all parameter will hold in the coroutine stack
 #define HOLD_COROUTINE_FOR_REQ(co) \
-  lua_State* L = GET_MAIN_LUA_STATE(); \
   lua_pushthread(co); \
-  lua_xmove(co, L, 1); \
-  HOLD_REQ_PARAM(L, req, 0, -1); /* hold the coroutine */ \
-  lua_pop(L, 1)
+  HOLD_REQ_PARAM(co, req, 0, -1); /* hold the coroutine */ \
+  lua_pop(co, 1)
 #define REQ_ASYNC_WAIT_PREPARE() \
   lua_State* L = GET_MAIN_LUA_STATE(); \
   lua_checkstack(L, LUA_MINSTACK); \
@@ -326,11 +324,9 @@ extern lua_State* staticL;
 
 // For AsyncWait, no need to hold the handle object, because the user must use the handle to call this api
 #define HOLD_COROUTINE_FOR_HANDLE_ASYNC_WAIT(co, handle) \
-  lua_State* L = GET_MAIN_LUA_STATE(); \
   lua_pushthread(co); \
-  lua_xmove(co, L, 1); \
-  HOLD_LUA_OBJECT(L, handle, IDX_HANDLE_COROUTINE, -1); \
-  lua_pop(L, 1)
+  HOLD_LUA_OBJECT(co, handle, IDX_HANDLE_COROUTINE, -1); \
+  lua_pop(co, 1)
 #define HANDLE_ASYNC_WAIT_PREPARE(handle) \
   (void)EXTENSION_FUNCTION(release)((uv_handle_t*)handle); \
   lua_State* L = GET_MAIN_LUA_STATE(); \
@@ -347,11 +343,10 @@ extern lua_State* staticL;
 
 // For AsyncCache, no need to hold the handle, because the user must use the handle to call this api
 #define HOLD_COROUTINE_FOR_HANDLE_CACHE(co, handle) \
-  lua_State* L = GET_MAIN_LUA_STATE(); \
   lua_pushthread(co); \
-  lua_xmove(co, L, 1); \
-  HOLD_LUA_OBJECT(L, handle, IDX_HANDLE_COROUTINE, -1); \
-  lua_pop(L, 1)
+  HOLD_LUA_OBJECT(co, handle, IDX_HANDLE_COROUTINE, -1); \
+  lua_pop(co, 1)
+
 #define ASYNC_RESUME_CACHE(name_, func_, pushResult_, setCache_, typeCache_, handle_, ...) \
   lua_State* L = GET_MAIN_LUA_STATE(); \
   AsyncCacheState* cache = GET_HANDLE_CACHE(handle_); \
