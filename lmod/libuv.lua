@@ -1069,27 +1069,22 @@ function fs.readDirAsyncWait(dir)
 	return yield()
 end
 ---@param path string
----@param flags integer
+---@param recursive boolean
 ---@return table<string, libuv_dirent_type> | nil, integer
-function fs.scanDir(path, flags)
-	return libfs.scanDir(loopCtx, path, flags)
+function fs.scanDir(path, recursive)
+	return libfs.scanDir(loopCtx, path, recursive)
 end
 ---@param path string
----@param flags integer
+---@param recursive boolean
 ---@param callback fun(ents:table<string, libuv_dirent_type> | nil, ret:integer):void
-function fs.scanDirAsync(path, flags, callback)
-	libfs.scanDir(loopCtx, path, flags, callback)
+function fs.scanDirAsync(path, recursive, callback)
+	libfs.scanDirAsync(loopCtx, path, recursive, callback)
 end
 ---@param path string
----@param flags integer
+---@param recursive boolean
 ---@return table<string, libuv_dirent_type> | nil, integer
-function fs.scanDirAsyncWait(path, flags)
-	local co, main = running()
-	if main then error(ASYNC_WAIT_MSG) end
-	libfs.scanDir(loopCtx, path, flags, function(ents, ret)
-		resume(co, ents, ret)
-	end)
-	return yield()
+function fs.scanDirAsyncWait(path, recursive)
+	return libfs.scanDirAsyncWait(path, recursive)
 end
 
 ---@param path string
