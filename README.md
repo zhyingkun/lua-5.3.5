@@ -188,6 +188,7 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 30. table 表中新增功能方法：create、copy、every、filter、indexOf、map、reduce、reverse、slice、splice
 31. 新增 asm.closure 函数，支持直接编写 Lua 汇编构建闭包
 32. Lua 命令新增'-a'参数，用于将后续所有参数传递给'-e'所执行的脚本，方便构建 lua 脚本命令行工具
+33. 新增 \_G.cocall 函数，参数传递类似 pcall，用于在新的协程中调用传入的函数
 
 ---
 
