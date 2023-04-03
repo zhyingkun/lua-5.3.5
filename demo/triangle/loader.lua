@@ -24,7 +24,7 @@ function loader.InitShaderInclude()
 	local folderAbsPath = pathPrefix .. folder
 	local fileMap = fs.scanDir(folderAbsPath, true)
 	-- print(tostring(fileMap, 1))
-do return end
+
 	for fileRelativePath in pairs(fileMap) do
 		local path = folderAbsPath / fileRelativePath;
 		local shaderType = SuffixToShaderType[path:sub(-5, -1)]
