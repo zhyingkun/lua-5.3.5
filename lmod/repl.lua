@@ -358,10 +358,7 @@ function repl.clientStart(serverIP, serverPort)
 		local msg = string.format("REPL TCP Connect to %s:%d failed:", serverIP, serverPort)
 		printError(msg, status)
 	end
-	local function runInCoroutine(func)
-		coroutine.wrap(func)()
-	end	
-	runInCoroutine(function()
+	cocall(function()
 		local sockAddr = getSockAddr(serverIP, serverPort)
 		if not sockAddr then return end
 		local tcpClient = makeTcpConnection(sockAddr)
