@@ -503,6 +503,24 @@ static int luaB_atrepl(lua_State* L) {
   return 0;
 }
 
+static int luaB_cocall(lua_State* L) {
+  luaL_checktype(L, 1, LUA_TFUNCTION);
+  const int n = lua_gettop(L);
+  lua_checkstack(L, 1);
+  lua_State* co = lua_newthread(L);
+  lua_insert(L, 1);
+  lua_checkstack(co, n);
+  lua_xmove(L, co, n);
+  const int status = lua_resume(co, L, n - 1);
+  if (status != LUA_OK && status != LUA_YIELD) {
+    luaL_traceback(L, co, NULL, 0);
+    fprintf(stderr, "luaB_cocall resume coroutine error: %s\n%s", lua_tostring(co, -1), lua_tostring(L, -1));
+    lua_pop(L, 1);
+  }
+  lua_settop(co, 0);
+  return 0;
+}
+
 static const luaL_Reg base_funcs[] = {
     {"assert", luaB_assert},
     {"collectgarbage", luaB_collectgarbage},
@@ -533,6 +551,7 @@ static const luaL_Reg base_funcs[] = {
     {"atexit", luaB_atexit},
     {"atrepl", luaB_atrepl},
     {"printerr", luaB_printerr},
+    {"cocall", luaB_cocall},
     /* placeholders */
     {"_G", NULL},
     {"_VERSION", NULL},
