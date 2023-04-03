@@ -29,7 +29,7 @@ local yield = coroutine.yield
 local resumeOrigin = coroutine.resume
 local function resume(co, ...)
 	local status, msg = resumeOrigin(co, ...)
-	if not status then printerr("libuv lua module resume coroutine error: ", msg, debug.traceback(co)) end
+	if not status then printe("libuv lua module resume coroutine error: ", msg, debug.traceback(co)) end
 end
 
 ---@alias StatusCallbackSignature fun(status:integer):void
@@ -2182,7 +2182,7 @@ end
 ---@param callback (fun(result:lightuserdata, status:integer):void) | nil
 function libuv.queueWorkAsync(worker, arg, callback)
 	queueWork(loopCtx, worker, arg, callback and function(result, status)
-		if status ~= OK then printerr("queueWorkAsync callback error: ", status) end
+		if status ~= OK then printe("queueWorkAsync callback error: ", status) end
 		callback(result, status)
 	end or nil)
 end
@@ -2193,7 +2193,7 @@ function libuv.queueWorkAsyncWait(worker, arg)
 	local co, main = running()
 	if main then error(ASYNC_WAIT_MSG) end
 	queueWork(loopCtx, worker, arg, function(result, status)
-		if status ~= OK then printerr("queueWorkAsyncWait callback error: ", status) end
+		if status ~= OK then printe("queueWorkAsyncWait callback error: ", status) end
 		resume(co, result, status)
 	end)
 	return yield()

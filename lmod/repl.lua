@@ -179,7 +179,7 @@ end
 -- }======================================================
 
 local function printError(msg, status)
-	printerr(msg, status, libuv.errName(status), libuv.strError(status))
+	printe(msg, status, libuv.errName(status), libuv.strError(status))
 end
 
 ---@alias REPLRemoteEvalSignature fun(codeStr:string | nil, eof:boolean):boolean, string, string | nil, string | nil @running, prompt, history, output
@@ -474,7 +474,7 @@ local resumeOrigin = coroutine.resume
 local function resume(co, ...)
 	local status, msg = resumeOrigin(co, ...)
 	if not status then
-		printerr("repl lua module resume coroutine error: ", msg, debug.traceback(co))
+		printe("repl lua module resume coroutine error: ", msg, debug.traceback(co))
 	end
 end
 function repl.clientOneShotAsyncWait(serverIP, serverPort, codeStr)

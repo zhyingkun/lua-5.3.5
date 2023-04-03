@@ -76,9 +76,9 @@ function watch.autoReload(modName)
 	onFileChanged(filePath, function(path)
 		local ok, msg = reload(modName)
 		if ok then
-			printerr("reload succeed:", modName, path)
+			printe("reload succeed:", modName, path)
 		else
-			printerr("reload failed:", modName, msg, path)
+			printe("reload failed:", modName, msg, path)
 		end
 	end)
 end

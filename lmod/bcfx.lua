@@ -44,7 +44,7 @@ end
 function image.imageDecodeAsync(mb, format, callback)
 	local ptr = libimage.packImageDecodeParam(mb, format)
 	queueWorkAsync(libimage.imageDecodePtr, ptr, function(result, status)
-		if status ~= OK then printerr("image.imageDecodeAsync callback error: ", status) end
+		if status ~= OK then printe("image.imageDecodeAsync callback error: ", status) end
 		callback(libimage.unpackImageDecodeResult(result))
 	end)
 end
@@ -90,7 +90,7 @@ end
 function image.imageEncodeAsync(mb, x, y, comp, type, sorq, callback) -- stride or quality
 	local ptr = libimage.packImageEncodeParam(mb, x, y, comp, type, sorq)
 	queueWorkAsync(libimage.imageEncodePtr, ptr, function(result, status)
-		if status ~= OK then printerr("image.imageEncodeAsync callback error: ", status) end
+		if status ~= OK then printe("image.imageEncodeAsync callback error: ", status) end
 		callback(libimage.unpackImageEncodeResult(result))
 	end)
 end
@@ -131,7 +131,7 @@ end
 function image.imageFlipVerticalAsync(mb, width, height, callback)
 	local ptr = libimage.packImageFlipVerticalParam(mb, width, height);
 	queueWorkAsync(libimage.imageFlipVerticalPtr, ptr, function(result, status)
-		if status ~= OK then printerr("image.imageFlipVerticalAsync callback error: ", status) end
+		if status ~= OK then printe("image.imageFlipVerticalAsync callback error: ", status) end
 		callback(libimage.unpackImageFlipVerticalResult(result))
 	end)
 end
@@ -602,7 +602,7 @@ end
 function mesh.meshParseAsync(mb, callback)
 	local ptr = libmesh.packMeshParseParam(mb);
 	queueWorkAsync(libmesh.meshParsePtr, ptr, function(result, status)
-		if status ~= OK then printerr("mesh.meshParseAsync callback error: ", status) end
+		if status ~= OK then printe("mesh.meshParseAsync callback error: ", status) end
 		callback(libmesh.unpackMeshParseResult(result))
 	end)
 end
@@ -650,7 +650,7 @@ end
 function mesh.materialParseAsync(mb, callback)
 	local ptr = libmesh.packMaterialParseParam(mb);
 	queueWorkAsync(libmesh.materialParsePtr, ptr, function(result, status)
-		if status ~= OK then printerr("mesh.materialParseAsync callback error: ", status) end
+		if status ~= OK then printe("mesh.materialParseAsync callback error: ", status) end
 		callback(libmesh.unpackMaterialParseResult(result))
 	end)
 end

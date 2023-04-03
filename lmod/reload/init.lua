@@ -98,7 +98,7 @@ local sandbox = (function()
 		ipairs = ipairs,
 		next = next,
 		print = print, -- for debug
-		printerr = printerr, -- for debug
+		printe = printe, -- for debug
 	}
 
 	local _require = (function()
