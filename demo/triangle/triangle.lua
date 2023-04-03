@@ -409,10 +409,7 @@ local function setup(mainWin)
 	-- 	printerr("FrameRate:", string.format("%.2f", GetFrameRate()))
 	-- end, 1000, 1000)
 
-	local function runInCoroutine(func)
-		coroutine.wrap(func)()
-	end
-	runInCoroutine(function()
+	cocall(function()
 		local timer = libuv.timer.Timer()
 		for i = 1, 3, 1 do
 			timer:startOneShotAsyncWait(1000)

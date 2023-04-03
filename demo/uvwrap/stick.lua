@@ -76,10 +76,6 @@ local function Server()
 	UdpServer()
 end
 
-local function runInCoroutine(func)
-	coroutine.wrap(func)()
-end
-
 local function TcpClient()
 	local tcpClient = tcp.Tcp()
 	local sockAddr = network.SockAddr()
@@ -120,7 +116,7 @@ local function TcpClient()
 		end)
 	end)
 	--]]
-	runInCoroutine(function()
+	cocall(function()
 		local status = tcpClient:connectAsyncWait(sockAddr)
 		if status < 0 then
 			print("TCP Connect error:", status, errName(status), strError(status))
@@ -138,7 +134,7 @@ local function TcpClient()
 				end
 			end)
 			--]]
-			runInCoroutine(function()
+			cocall(function()
 				local status = tcpClient:writeAsyncWait(hello)
 				if status == OK then
 					print("Write Complete:", #hello, idx)
@@ -196,7 +192,7 @@ local function UdpClient()
 			end
 		end)
 		--]]
-		runInCoroutine(function()
+		cocall(function()
 			local status = udpClient:sendAsyncWait(hello, sockAddr)
 			if status == OK then
 				print("UDP Send Complete:", #hello, udpClient:getSockName(), idx)
@@ -228,7 +224,7 @@ local function UdpClient()
 		end
 	end)
 	--]]
-	runInCoroutine(function()
+	cocall(function()
 		local status = udpClient:sendAsyncWait(buffer, sockAddr)
 		if status == OK then
 			print("UDP Send Complete:", len, udpClient:getSockName())

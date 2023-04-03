@@ -80,10 +80,6 @@ local orthoMat = graphics3d.orthogonal(-3.4, 8, -6.8, 4, 0.1, 50)
 print("orthoMat:", orthoMat)
 --]]
 
-local function runInCoroutine(func)
-	coroutine.wrap(func)()
-end
-
 bcfx.setFrameViewCaptureCallback(function(frameId, viewId, width, height, mb)
 	print("setFrameViewCaptureCallback Lua", frameId, viewId, width, height, mb)
 	local fileName = tostring(frameId) .. "_" .. tostring(viewId) .. "FrameViewCapture.png";
@@ -94,7 +90,7 @@ bcfx.setFrameViewCaptureCallback(function(frameId, viewId, width, height, mb)
 	-- 		print("setFrameViewCaptureCallback Async WriteFile End:", ret)
 	-- 	end)
 	-- end)
-	runInCoroutine(function()
+	cocall(function()
 		local mb = bcfx.image.imageEncodeAsyncWait(mb, width, height, 4, bcfx.image.image_type.PNG, width * 4)
 		local ret = fs.writeFileAsyncWait(fileName, mb)
 		print("setFrameViewCaptureCallback Async WriteFile End:", ret)

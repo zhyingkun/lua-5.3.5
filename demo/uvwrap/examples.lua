@@ -496,9 +496,6 @@ function pipe_echo_server()
 	end)
 end
 
-local function runInCoroutine(func)
-	coroutine.wrap(func)()
-end
 function pipe_echo_client()
 	-- local CLIENTNAME = os.sysname == "Windows" and "\\\\?\\pipe\\client.sock" or "/tmp/client.sock"
 	local client = pipe.Pipe()
@@ -531,7 +528,7 @@ function pipe_echo_client()
 	end)
 	--]]
 	---[[
-	runInCoroutine(function()
+	cocall(function()
 		local status = client:connectAsyncWait(PIPENAME)
 		if status ~= OK then
 			printerr("Connect error %s\n", errName(status))
