@@ -41,7 +41,7 @@ static int luaB_print(lua_State* L) {
   return 0;
 }
 
-static int luaB_printerr(lua_State* L) {
+static int luaB_printe(lua_State* L) {
   int n = lua_gettop(L); /* number of arguments */
   int i;
   lua_getglobal(L, "tostring");
@@ -550,7 +550,7 @@ static const luaL_Reg base_funcs[] = {
     {"xpcall", luaB_xpcall},
     {"atexit", luaB_atexit},
     {"atrepl", luaB_atrepl},
-    {"printerr", luaB_printerr},
+    {"printe", luaB_printe},
     {"cocall", luaB_cocall},
     /* placeholders */
     {"_G", NULL},

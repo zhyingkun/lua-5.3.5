@@ -45,7 +45,7 @@ function atexit(callback) end
 function atrepl(callback) end
 
 ---@vararg any
-function printerr(...) end
+function printe(...) end
 
 ---@type lightuserdata
 NULL = nil

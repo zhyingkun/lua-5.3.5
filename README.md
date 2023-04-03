@@ -184,7 +184,7 @@ luac 命令的官方实现中，使用了一些动态库没有导出的符号，
 26. 增加 atexit 函数，用于注册一个函数给 lua 命令退出之前调用
 27. 增加 atrepl 函数，用于注册一个函数给 lua 交互式命令执行一句脚本之后调用
 28. 扩展 math.tointeger，支持将 lightuserdata 强转为整数
-29. 新增 \_G.printerr 函数，用于输出到标准错误流
+29. 新增 \_G.printe 函数，用于输出到标准错误流
 30. table 表中新增功能方法：create、copy、every、filter、indexOf、map、reduce、reverse、slice、splice
 31. 新增 asm.closure 函数，支持直接编写 Lua 汇编构建闭包
 32. Lua 命令新增'-a'参数，用于将后续所有参数传递给'-e'所执行的脚本，方便构建 lua 脚本命令行工具
