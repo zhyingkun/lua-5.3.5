@@ -120,7 +120,7 @@ local function Tick()
 end
 
 local ret, msg = pcall(Tick)
-if not ret then printerr(msg) end
+if not ret then printe(msg) end
 
 -- libuv.repl_stop()
 

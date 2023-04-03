@@ -346,7 +346,7 @@ end
 local function SetupAnotherView(viewID, mainWin)
 	local win = glfw.createWindow(800, 600, "Another", nil, mainWin)
 	if not win then
-		printerr("GLFW CreateWindow Error:", glfw.getError())
+		printe("GLFW CreateWindow Error:", glfw.getError())
 		glfw.terminate()
 		return
 	end
@@ -406,7 +406,7 @@ local function setup(mainWin)
 
 	-- timer = libuv.timer.new()
 	-- timer:start(function()
-	-- 	printerr("FrameRate:", string.format("%.2f", GetFrameRate()))
+	-- 	printe("FrameRate:", string.format("%.2f", GetFrameRate()))
 	-- end, 1000, 1000)
 
 	cocall(function()

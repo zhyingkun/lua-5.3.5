@@ -79,7 +79,7 @@ if arg and arg.argc and arg.argv then
 end
 --]]
 
-local function printerr(...)
+local function printe(...)
 	io.stderr:write(string.format(...))
 end
 
@@ -123,7 +123,7 @@ function cgi()
 		if child_handle then
 			print("Spawn new process:", child_handle)
 		else
-			printerr("Spawn new process error %s: %s", errName(status), strError(status))
+			printe("Spawn new process error %s: %s", errName(status), strError(status))
 		end
 	end
 	local addr = network.SockAddr():ip4Addr("0.0.0.0", 7000)
@@ -163,7 +163,7 @@ function cgi_client()
 		end)
 	end)
 	if status ~= OK then
-		printerr("TCP connect error %s: %s\n", errName(status), strError(status))
+		printe("TCP connect error %s: %s\n", errName(status), strError(status))
 	end
 end
 
@@ -182,7 +182,7 @@ function detach()
 			print("Launched sleep with PID", child_handle:getPid())
 			child_handle:unref()
 		else
-			printerr("Spawn new process error %s: %s", errName(status), strError(status))
+			printe("Spawn new process error %s: %s", errName(status), strError(status))
 		end
 	end)
 	print("Spawn new process:", status, str)
@@ -219,7 +219,7 @@ function dns()
 			end)
 		end)
 		if status ~= OK then
-			printerr("TCP connect error %s: %s\n", errName(status), strError(status))
+			printe("TCP connect error %s: %s\n", errName(status), strError(status))
 		end
 	end)
 end
@@ -327,7 +327,7 @@ function multi_echo_server()
 				},
 				stdio = child_stdio,
 				exit_cb = function(exit_status, term_signal)
-					printerr("Process exited with status %d, signal %d\n", exit_status, term_signal)
+					printe("Process exited with status %d, signal %d\n", exit_status, term_signal)
 					child_handle:closeAsync()
 					child_handle = nil
 				end,
@@ -340,7 +340,7 @@ function multi_echo_server()
 					child_handle = child_handle,
 				})
 			else
-				printerr("Spawn new process error %s: %s", errName(status), strError(status))
+				printe("Spawn new process error %s: %s", errName(status), strError(status))
 			end
 		end
 
@@ -371,29 +371,29 @@ function multi_echo_worker()
 	pipe.Pipe(true):open(0) --[[ stdin ]]:readStartAsync(function(nread, str, handle)
 		if nread < 0 then
 			if nread ~= EOF then
-				printerr("Read error %s\n", errName(nread))
+				printe("Read error %s\n", errName(nread))
 			end
 			handle:closeAsync()
 			return
 		end
 		if handle:pendingCount() == 0 then
-			printerr("No pending count\n")
+			printe("No pending count\n")
 		end
 		assert(handle:pendingType() == handle_type.TCP)
 		local client = tcp.Tcp()
 		if handle:accept(client) == OK then
-			printerr("Worker %d: Accepted fd %d\n", process.getPid(), client:fileno())
+			printe("Worker %d: Accepted fd %d\n", process.getPid(), client:fileno())
 			client:readStartAsync(function(nread, str, clientHandle)
 				if nread < 0 then
 					if nread ~= EOF then
-						printerr("Read error %s\n", errName(status))
+						printe("Read error %s\n", errName(status))
 					end
 					clientHandle:closeAsync()
 					return
 				end
 				clientHandle:writeAsync(str, function(status, clientHandle)
 					if status ~= OK then
-						printerr("Write error %s\n", errName(status))
+						printe("Write error %s\n", errName(status))
 					end
 				end)
 			end)
@@ -433,7 +433,7 @@ function multi_echo_hammer()
 			socket:writeAsync(PHRASE, function(status) end)
 		end)
 		if status ~= OK then
-			printerr("TCP connect error %s: %s\n", errName(status), strError(status))
+			printe("TCP connect error %s: %s\n", errName(status), strError(status))
 		end
 	end
 end
@@ -477,7 +477,7 @@ function pipe_echo_server()
 					if nread == EOF then
 						print("Read EOF")
 					else
-						printerr("Read error %s\n", errName(nread))
+						printe("Read error %s\n", errName(nread))
 					end
 					client:closeAsync()
 					return
@@ -485,7 +485,7 @@ function pipe_echo_server()
 				print("Pipe read:", nread, str)
 				client:writeAsync(str, function(status, client)
 					if status < 0 then
-						printerr("Write error %s\n", errName(nread))
+						printe("Write error %s\n", errName(nread))
 					end
 				end)
 			end)
@@ -503,20 +503,20 @@ function pipe_echo_client()
 	--[[
 	client:connectAsync(PIPENAME, function(status)
 		if status ~= OK then
-			printerr("Connect error %s\n", errName(r))
+			printe("Connect error %s\n", errName(r))
 			return
 		end
 		local str = "Hello World John!"
 		client:writeAsync(str, function(status)
 			if status < 0 then
-				printerr("Write error %s\n", errName(r))
+				printe("Write error %s\n", errName(r))
 			else
 				client:readStartAsync(function(nread, str)
 					if nread < 0 then
 						if nread == EOF then
 							pirnt("Receive EOF")
 						else
-							printerr("Read error %s\n", errName(r))
+							printe("Read error %s\n", errName(r))
 						end
 					else
 						print("Read from Server:", nread, str)
@@ -531,21 +531,21 @@ function pipe_echo_client()
 	cocall(function()
 		local status = client:connectAsyncWait(PIPENAME)
 		if status ~= OK then
-			printerr("Connect error %s\n", errName(status))
+			printe("Connect error %s\n", errName(status))
 			return
 		end
 		local str = "Hello World John!"
 		tmp = debug.getregistry()
 		local status = client:writeAsyncWait(str)
 		if status < 0 then
-			printerr("Write error %s\n", errName(status))
+			printe("Write error %s\n", errName(status))
 		else
 			client:readStartAsync(function(nread, str, client)
 				if nread < 0 then
 					if nread == EOF then
 						pirnt("Receive EOF")
 					else
-						printerr("Read error %s\n", errName(status))
+						printe("Read error %s\n", errName(status))
 					end
 				else
 					print("Read from Server:", nread, str)
@@ -581,7 +581,7 @@ function proc_streams()
 		},
 		stdio = child_stdio,
 		exitCallback = function(exit_status, term_signal)
-			printerr("Process exited with status %d, signal %d\n", exit_status, term_signal)
+			printe("Process exited with status %d, signal %d\n", exit_status, term_signal)
 			child_handle:closeAsync()
 			child_handle = nil
 		end,
@@ -589,7 +589,7 @@ function proc_streams()
 	if child_handle then
 		print("Spawn new process:", child_handle)
 	else
-		printerr("Spawn new process error %s: %s", errName(status), strError(status))
+		printe("Spawn new process error %s: %s", errName(status), strError(status))
 	end
 end
 
@@ -630,7 +630,7 @@ function spawn()
 			"test-dir",
 		},
 		exitCallback = function(exit_status, term_signal)
-			printerr("Process exited with status %d, signal %d\n", exit_status, term_signal)
+			printe("Process exited with status %d, signal %d\n", exit_status, term_signal)
 			child_handle:closeAsync()
 			child_handle = nil
 		end,
@@ -638,7 +638,7 @@ function spawn()
 	if child_handle then
 		print("Launched process with ID", child_handle:getPid())
 	else
-		printerr("Spawn new process error %s: %s", errName(status), strError(status))
+		printe("Spawn new process error %s: %s", errName(status), strError(status))
 	end
 end
 
@@ -646,7 +646,7 @@ function tcp_echo_server()
 	local addr = network.SockAddr():ip4Addr("0.0.0.0", 7000)
 	tcp.Tcp():bind(addr):listenStartAsync(128, function(status, server)
 		if status < OK then
-			printerr("New connection error %s\n", strError(status))
+			printe("New connection error %s\n", strError(status))
 			return
 		end
 		local client = tcp.Tcp()
@@ -654,7 +654,7 @@ function tcp_echo_server()
 			client:readStartAsync(function(nread, str, client)
 				if nread < 0 then
 					if nread ~= EOF then
-						printerr("Read error %s\n", errName(status))
+						printe("Read error %s\n", errName(status))
 					else
 						print("Receive EOF")
 					end
@@ -663,7 +663,7 @@ function tcp_echo_server()
 				if nread > 0 then
 					client:writeAsync(str, function(status, client)
 						if status ~= OK then
-							printerr("Write error %s\n", strError(status))
+							printe("Write error %s\n", strError(status))
 						end
 					end)
 					print(str)
@@ -679,12 +679,12 @@ function tcp_echo_client()
 	local addr = network.SockAddr():ip4Addr("0.0.0.0", 7000)
 	local status = tcp.Tcp():connectAsync(addr, function(status, socket)
 		if status < 0 then
-			printerr("connect failed error %s\n", errName(status))
+			printe("connect failed error %s\n", errName(status))
 			return
 		end
 		socket:writeAsync("GoodGoodStudyDayDayUp", function(status, socket)
 			if status ~= OK then
-				printerr("write failed error %s\n", errName(status))
+				printe("write failed error %s\n", errName(status))
 			end
 			socket:readStartAsync(function(nread, str, socket)
 				if nread < 0 then
@@ -700,7 +700,7 @@ function tcp_echo_client()
 		end)
 	end)
 	if status ~= OK then
-		printerr("TCP connect error %s: %s\n", errName(status), strError(status))
+		printe("TCP connect error %s: %s\n", errName(status), strError(status))
 	end
 end
 
@@ -720,7 +720,7 @@ function tty_gravity()
 	local tty_handle = tty.Tty(STDOUT_FILENO)
 	tty_handle:setMode(tty_mode.NORMAL)
 	local width, height = tty_handle:getWinSize()
-	printerr("Width %d, height %d\n", width, height)
+	printe("Width %d, height %d\n", width, height)
 	tty_handle:writeAsync("Hello TTY\n", function(status) end)
 	local pos = 0
 	local message = "  Hello TTY  "
@@ -741,7 +741,7 @@ function udp_dhcp()
 	local recv_addr = network.SockAddr():ip4Addr("0.0.0.0", 68)
 	udp.Udp():bind(recv_addr, udp_flag.REUSEADDR):recvStartAsync(function(nread, str, addr, flags, recv_socket)
 		if nread < 0 then
-			printerr("UDP recv Error %d %s: %s", nread, errName(nread), strError(nread))
+			printe("UDP recv Error %d %s: %s", nread, errName(nread), strError(nread))
 		elseif nread == OK then
 			if addr then
 				print("We recv a empty packet")
@@ -824,7 +824,7 @@ function udp_dhcp()
 	local send_addr = network.SockAddr():ip4Addr("255.255.255.255", 67)
 	udp.Udp():bind(broadcast_addr):setBroadcast(true):sendAsync(discover_msg, send_addr, function(status, send_socket)
 		if status ~= OK then
-			printerr("Send error %s\n", strError(status))
+			printe("Send error %s\n", strError(status))
 		end
 	end)
 end
@@ -834,19 +834,19 @@ function uvcat(filename)
 	-- async
 	fs.openAsync(filename, open_flag.RDONLY, 0, function(fd)
 		if fd < 0 then
-			printerr("error opening file: %s\n", strError(fd))
+			printe("error opening file: %s\n", strError(fd))
 			return
 		end
 		local function read_cb(str, result)
 			if result < 0 then
-				printerr("Read error: %s\n", strError(fd))
+				printe("Read error: %s\n", strError(fd))
 			elseif result == 0 then -- EOF
 				-- synchronous
 				fs.close(fd)
 			else
 				fs.writeAsync(1, str, -1, function(result)
 					if result < 0 then
-						printerr("Write error: %s\n", strError(fd))
+						printe("Write error: %s\n", strError(fd))
 					else
 						fs.readAsync(fd, -1, read_cb)
 					end
@@ -892,12 +892,12 @@ function uvtee(filename)
 		elseif nread > 0 then
 			stdout_pipe:writeAsync(str, function(status, handle)
 				if status ~= OK then
-					printerr("Pipe write error:", strError(status))
+					printe("Pipe write error:", strError(status))
 				end
 			end)
 			file_pipe:writeAsync(str, function(status, handle)
 				if status ~= OK then
-					printerr("Pipe write error:", strError(status))
+					printe("Pipe write error:", strError(status))
 				end
 			end)
 		end

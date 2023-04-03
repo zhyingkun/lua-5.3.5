@@ -48,7 +48,7 @@ function imgui:BindAction(input)
 		if not self.bImGUI then return end
 		self.unicodeCount = self.unicodeCount + 1
 		if self.unicodeCount >= nk.INPUT_MAX then
-			printerr("Error: too many input unicode in one frame, maybe low fps")
+			printe("Error: too many input unicode in one frame, maybe low fps")
 		else
 			if codepoint < 128 then
 				nk.inputChar(codepoint)

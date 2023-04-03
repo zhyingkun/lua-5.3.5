@@ -32,7 +32,7 @@ function loader.InitShaderInclude()
 			local handle = bcfx.createIncludeShader(fs.readFile(path), shaderType, fileRelativePath)
 			watch.onFileChanged(path, function()
 				bcfx.updateShader(handle, fs.readFile(path))
-				printerr("Include shader reload completed!")
+				printe("Include shader reload completed!")
 			end)
 		end
 	end
@@ -48,13 +48,13 @@ function loader.LoadProgram(name)
 		bcfx.destroy(vs)
 		vs = bcfx.createShader(io.readfile(vsPath), shader_type.Vertex)
 		bcfx.updateProgram(prog, vs, fs)
-		printerr("Vertex shader reload completed!")
+		printe("Vertex shader reload completed!")
 	end)
 	watch.onFileChanged(fsPath, function()
 		bcfx.destroy(fs)
 		fs = bcfx.createShader(io.readfile(fsPath), shader_type.Fragment)
 		bcfx.updateProgram(prog, vs, fs)
-		printerr("Fragment shader reload completed!")
+		printe("Fragment shader reload completed!")
 	end)
 	return prog
 end
@@ -97,7 +97,7 @@ function loader.LoadTextureCubeMap(folderName)
 		local filePath = filePrefix / (faceName .. ".jpg")
 		local fileData, err = fs.readFile(filePath)
 		if not fileData then
-			printerr("LoadTextureCubeMap error: ", err, libuv.strError(err), filePath)
+			printe("LoadTextureCubeMap error: ", err, libuv.strError(err), filePath)
 		end
 		local parseMB, w, h = image.imageDecode(fileData, texture_format.RGB8)
 		fileDataMB[idx] = parseMB
@@ -119,7 +119,7 @@ function loader.LoadTexture2DArray(fileNameList)
 		local filePath = filePrefix / fileName
 		local fileData, err = fs.readFile(filePath)
 		if not fileData then
-			printerr("LoadTextureCubeMap error: ", err, libuv.strError(err), filePath)
+			printe("LoadTextureCubeMap error: ", err, libuv.strError(err), filePath)
 		else
 			local parseMB, w, h = image.imageDecode(fileData, texture_format.RGB8)
 			fileDataMBList[idx] = parseMB
