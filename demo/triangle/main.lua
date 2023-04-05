@@ -33,7 +33,7 @@ end
 
 bcfx.init(window)
 
-libuv.setLoop()
+libuv.init()
 
 local repl = require("repl")
 repl.init(libuv)

@@ -101,15 +101,15 @@ end
 ---@type uv_loop_t
 local loopCtx
 
----@param ctx uv_loop_t | nil
-function libuv.setLoop(ctx)
-	delayFrameStart()
-	loopCtx = ctx or libloop.default()
-end
-
 local libloop_run = libloop.run
 local libloop_close = libloop.close
 local NOWAIT = libloop.run_mode.NOWAIT
+local ONCE = libloop.run_mode.ONCE
+local function init()
+	delayFrameStart()
+	assert(loopCtx == nil)
+	loopCtx = libloop.default()
+end
 local function run(ctx, mode)
 	delayFrameTick()
 	return libloop_run(ctx, mode)
@@ -119,8 +119,16 @@ local function close(ctx)
 	return libloop_close(ctx)
 end
 
+function libuv.init()
+	return init()
+end
+
 function libuv.run()
 	return run(loopCtx)
+end
+
+function libuv.runOnce()
+	return run(loopCtx, ONCE)
 end
 
 function libuv.runNoWait()
@@ -1708,6 +1716,11 @@ fs.symlink_flag = libfs.symlink_flag
 local loop = {}
 libuv.loop = loop
 
+---@param ctx uv_loop_t
+function loop.setOperateLoop(ctx)
+	loopCtx = ctx
+end
+
 ---@class uv_loop_t:lightuserdata
 
 ---@return uv_loop_t
@@ -1718,53 +1731,65 @@ end
 function loop.Loop()
 	return libloop.Loop()
 end
+---@param ctx uv_loop_t
 ---@return integer
-function loop.close()
-	return close(loopCtx)
+function loop.close(ctx)
+	return libloop.close(ctx)
 end
+---@param ctx uv_loop_t
 ---@return boolean
-function loop.alive()
-	return libloop.alive(loopCtx)
+function loop.alive(ctx)
+	return libloop.alive(ctx)
 end
+---@param ctx uv_loop_t
 ---@param mode libuv_run_mode
 ---@return integer
-function loop.run(mode)
-	return run(loopCtx, mode)
+function loop.run(ctx, mode)
+	return libloop.run(ctx, mode)
 end
-function loop.stop()
-	libloop.stop(loopCtx)
+---@param ctx uv_loop_t
+function loop.stop(ctx)
+	libloop.stop(ctx)
 end
+---@param ctx uv_loop_t
 ---@return integer
-function loop.backendFd()
-	return libloop.backend_fd(loopCtx)
+function loop.backendFd(ctx)
+	return libloop.backend_fd(ctx)
 end
+---@param ctx uv_loop_t
 ---@return integer
-function loop.backendTimeout()
-	return libloop.backend_timeout(loopCtx)
+function loop.backendTimeout(ctx)
+	return libloop.backend_timeout(ctx)
 end
+---@param ctx uv_loop_t
 ---@return integer
-function loop.now()
-	return libloop.now(loopCtx)
+function loop.now(ctx)
+	return libloop.now(ctx)
 end
-function loop.updateTime()
-	libloop.update_time(loopCtx)
+---@param ctx uv_loop_t
+function loop.updateTime(ctx)
+	libloop.update_time(ctx)
 end
+---@param ctx uv_loop_t
 ---@param callback fun(handle:uv_handle_t, ptr:lightuserdata):void
 ---@return table<lightuserdata, uv_handle_t>
-function loop.walk(callback)
-	return libloop.walk(loopCtx, callback)
+function loop.walk(ctx, callback)
+	return libloop.walk(ctx, callback)
 end
+---@param ctx uv_loop_t
 ---@return lightuserdata
-function loop.getData()
-	return libloop.get_data(loopCtx)
+function loop.getData(ctx)
+	return libloop.get_data(ctx)
 end
+---@param ctx uv_loop_t
 ---@param ptr lightuserdata
-function loop.setData(ptr)
-	libloop.set_data(loopCtx, ptr)
+function loop.setData(ctx, ptr)
+	libloop.set_data(ctx, ptr)
 end
+---@param ctx uv_loop_t
 ---@param sigNum integer
-function loop.blockSignal(sigNum)
-	libloop.block_signal(loopCtx, sigNum)
+function loop.blockSignal(ctx, sigNum)
+	libloop.block_signal(ctx, sigNum)
 end
 
 ---@class libuv_run_mode

@@ -14,7 +14,7 @@ util.setErrorMessageHandler(function(msg)
 	return "In custom msg handler:" .. msg .. "\n traceback:" .. debug.traceback()
 end)
 
-libuv.setLoop()
+libuv.init()
 libuv.runDeferred()
 
 local function TcpServer()

@@ -428,7 +428,7 @@ end
 ---@param serverPort string
 function repl.cmdClientRun(serverIP, serverPort)
 	repl.init(require("libuv"), require("protobuf"))
-	libuv.setLoop()
+	libuv.init()
 	repl.clientStart(serverIP, serverPort and math.tointeger(serverPort))
 	libuv.run()
 end

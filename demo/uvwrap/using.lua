@@ -1,6 +1,6 @@
 local libuv = require("libuv")
 local fs = libuv.fs
-libuv.setLoop()
+libuv.init()
 
 local function copyfile(from, to)
 	local open_flag = fs.open_flag
