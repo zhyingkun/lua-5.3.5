@@ -431,6 +431,7 @@ function repl.cmdClientRun(serverIP, serverPort)
 	libuv.init()
 	repl.clientStart(serverIP, serverPort and math.tointeger(serverPort))
 	libuv.run()
+	libuv.close()
 end
 
 function repl.clientOneShotAsync(serverIP, serverPort, codeStr, callback)
