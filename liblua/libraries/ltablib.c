@@ -416,6 +416,12 @@ static int copy(lua_State* L) {
   return 1;
 }
 
+static int rehash(lua_State* L) {
+  luaL_checktype(L, 1, LUA_TTABLE);
+  lua_rehashtable(L, 1);
+  return 0;
+}
+
 static int every(lua_State* L) {
   lua_settop(L, 3);
   int bList = luaL_optboolean(L, 3, 1);
@@ -678,6 +684,7 @@ static const luaL_Reg tab_funcs[] = {
     {"sort", sort},
     {"create", create},
     {"copy", copy},
+    {"rehash", rehash},
     {"every", every},
     {"filter", filter},
     {"indexOf", indexOf},

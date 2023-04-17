@@ -427,6 +427,10 @@ static void rehash(lua_State* L, Table* t, const TValue* ek) {
   luaH_resize(L, t, asize, totaluse - na);
 }
 
+void luaH_rehash(lua_State* L, Table* t) {
+  rehash(L, t, luaO_nilobject);
+}
+
 // rehash
 /*
 ** }=============================================================

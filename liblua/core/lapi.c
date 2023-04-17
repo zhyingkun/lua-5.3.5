@@ -726,6 +726,15 @@ LUA_API void lua_copytable(lua_State* L, int idx, int copykv) {
   lua_unlock(L);
 }
 
+LUA_API void lua_rehashtable(lua_State* L, int idx) {
+  lua_lock(L);
+  StkId value = index2addr(L, idx);
+  api_check(L, ttistable(value), "table expected");
+  Table* t = hvalue(value);
+  luaH_rehash(L, t);
+  lua_unlock(L);
+}
+
 // [-0, +(0|1)], need 1 slot
 LUA_API int lua_getmetatable(lua_State* L, int objindex) {
   const TValue* obj;
