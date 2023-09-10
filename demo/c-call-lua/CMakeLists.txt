@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.6)
 project(c-call-lua
 	VERSION 0.1.0
 	# DESCRIPTION "Demo for C to call lua"

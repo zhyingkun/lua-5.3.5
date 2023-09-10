@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.6)
 project(nuklear
 	VERSION 4.09.0
 	# DESCRIPTION "Lua nuklear module"

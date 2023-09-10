@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.6)
 project(uvwrap
 	VERSION 1.31.0
 	# DESCRIPTION "Lua uvwrap module"

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.6)
 project(nfd
 	VERSION 1.1.6
 	# DESCRIPTION "Native File Dialogue module"

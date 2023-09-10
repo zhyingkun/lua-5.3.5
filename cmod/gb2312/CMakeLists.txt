@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.6)
 project(gb2312
 	VERSION 0.1.0
 	# DESCRIPTION "Lua gb2312 module"

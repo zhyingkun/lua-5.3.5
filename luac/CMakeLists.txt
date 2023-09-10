@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.6)
 project(luac
 	VERSION 5.3.5
 	# DESCRIPTION "Lua compiler cmd"
