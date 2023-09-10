@@ -6,6 +6,8 @@
 ** =======================================================
 */
 
+bool bGlobalPrintCheckLog = true;
+
 const char* err_EnumName(GLenum _enum) {
 #define GLENUM(e) \
   case e: \
@@ -710,6 +712,8 @@ static void gl_updateBuffer(RendererContext* ctx, bcfx_Handle handle, size_t off
   }
 }
 static void gl_updateShader(RendererContext* ctx, bcfx_Handle handle, luaL_MemBuffer* mem) {
+  bGlobalPrintCheckLog = true;
+
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   ShaderGL* shader = &glCtx->shaders[handle_index(handle)];
   assert(shader->id != 0);
@@ -721,6 +725,8 @@ static void gl_updateShader(RendererContext* ctx, bcfx_Handle handle, luaL_MemBu
   }
 }
 static void gl_updateProgram(RendererContext* ctx, bcfx_Handle handle, bcfx_Handle vsh, bcfx_Handle fsh) {
+  bGlobalPrintCheckLog = true;
+
   RendererContextGL* glCtx = (RendererContextGL*)ctx;
   ProgramGL* prog = &glCtx->programs[handle_index(handle)];
   assert(prog->id != 0);

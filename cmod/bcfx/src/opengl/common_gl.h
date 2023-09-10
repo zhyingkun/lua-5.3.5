@@ -7,6 +7,7 @@
 ** =======================================================
 */
 
+extern bool bGlobalPrintCheckLog;
 const char* err_EnumName(GLenum _enum);
 
 #ifndef NDEBUG
@@ -14,11 +15,12 @@ const char* err_EnumName(GLenum _enum);
   { \
     call; \
     GLenum err = glGetError(); \
-    if (err != 0) { \
+    if (err != 0 && bGlobalPrintCheckLog) { \
+      bGlobalPrintCheckLog = false; \
       printf_err("================================================================\n"); \
       printf_err(#call "; GL error 0x%x: %s\n", err, err_EnumName(err)); \
       printf_err("File: %s, Line: %d\n", __FILE__, __LINE__); \
-      exit(-1); \
+      /* exit(-1); // Should be called in MainThread, Do nothing in RenderThread */ \
     } \
   }
 #else
