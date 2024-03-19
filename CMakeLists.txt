@@ -27,6 +27,8 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FLASE)
 # set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib") # must before add_executable
 set(CMAKE_XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "-o linker-signed")
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
+
 function(install_script dir scriptname)
 	install(PROGRAMS ${dir}/${scriptname}.lua DESTINATION bin RENAME ${scriptname})
 	# install(PROGRAMS ${dir}/${scriptname}.lua DESTINATION scripts)
