@@ -388,6 +388,13 @@ void prog_setUniforms(RendererContextGL* glCtx, ProgramGL* prog, RenderDraw* dra
         GL_CHECK(glUniform4fv(loc, 1, ftexel));
       } break;
       case UB_View:
+        /**
+         * In OpenGL, Matrix stored in Column Major Order.
+         * `glUniformMatrix3x4fv` means 3 columns, each column has 4 member.
+         * You should using left multiply in GLSL: `Mat*Vec, MatSecond*MatFirst`
+         * If we make Mat4x4 in Row Major Order, in CPU float[16], and pass it to OpenGL without Transpose,
+         * you can using right multiply in GLSL for the same result: `Vec*Mat, MatFirst*MatSecond`
+         */
         GL_CHECK(glUniformMatrix4fv(loc, 1, GL_FALSE, view->viewMat.element));
         break;
       case UB_InvView: {

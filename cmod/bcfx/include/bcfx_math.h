@@ -201,6 +201,10 @@ BCFX_API void vec4_init(Vec4* vec);
 ** =======================================================
 */
 
+/**
+ * Mat stored in Column Major Order, `mat_multiply` using left multiply.
+ * But in `MAT_ELEMENT(mat, i, j)`, `i` means RowSubIndex, `Mat3x4` means 3 rows
+ */
 typedef struct {
   uint8_t row;
   uint8_t col;
